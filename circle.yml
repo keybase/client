@@ -50,7 +50,6 @@ dependencies:
     - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
   cache_directories:
-    # TODO: Add ~/.gradle/caches
     - ~/downloads
     - ~/.cache/yarn
     - /tmp/go-android/bin
@@ -71,22 +70,10 @@ dependencies:
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - yarn run rn-gobuild-android
     - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
-test:
-  pre:
-    - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
-    - mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
-  override:
-    # TODO(mm) uncomment these device tests (see todo above)
-    # wait for it to have booted
-    # - circle-android wait-for-boot
-    # run tests  against the emulator.
-    # - (cd android && ./gradlew connectedAndroidTest)
-    # copy the build outputs to artifacts
-    # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
-    # copy the test results to the test results directory.
-    # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
     # Build a debug version of the app
     # Bundle JS separately because doing it in the gradle build is buggy
+    - mkdir -p react-native/android/app/build/intermediates/assets/releaseUnsigned
+    - mkdir -p react-native/android/app/build/intermediates/res/merged/releaseUnsigned
     - react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned:
         environment:
           PATH: $HOME/.yarn/bin:$PATH
@@ -102,3 +89,14 @@ test:
           PLATFORM_BUILD_PATH: "react-native/android/app/build/outputs/apk/app-releaseUnsigned.apk"
           S3_URL: "s3://kb-appbuilds/"
           BUILD_URL: "https://s3-us-west-2.amazonaws.com/kb-appbuilds/"
+test:
+  override:
+    # TODO(mm) uncomment these device tests (see todo above)
+    # wait for it to have booted
+    # - circle-android wait-for-boot
+    # run tests  against the emulator.
+    # - (cd android && ./gradlew connectedAndroidTest)
+    # copy the build outputs to artifacts
+    # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
+    # copy the test results to the test results directory.
+    # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
