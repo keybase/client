@@ -3,8 +3,7 @@ import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../../styles'
-import {isIPhoneX} from '../../constants/platform'
+import {globalStyles, globalColors, isIPhoneX} from '../../styles'
 
 import type {Props} from './index.render'
 

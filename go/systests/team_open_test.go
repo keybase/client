@@ -152,33 +152,31 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	tar2 := tt.addUser("roo2")
 	tar3 := tt.addUser("roo3")
 	own := tt.addUser("own")
+	tt.logUserNames()
 
 	teamID, teamName := own.createTeam2()
 	t.Logf("Open team name is %q", teamName.String())
 
-	// tar1 and tar2 request access before team is open.
-	tar1.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
-	tar2.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	// Everyone requests access before team is open.
+	tar1.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	tar2.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	tar3.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
 
-	// Change settings to open
-	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
-	require.NoError(t, err)
-
+	// Change settings to open.
 	tar3.kickTeamRekeyd()
-
-	// tar3 requests, but rekeyd will grab all requests
-	tar3.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName.String()})
+	err := teams.ChangeTeamSettings(context.Background(), own.tc.G, teamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	require.NoError(t, err)
 
 	own.waitForTeamChangedGregor(teamID, keybase1.Seqno(3))
 
-	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
+	teamObj, err := teams.Load(context.Background(), own.tc.G, keybase1.LoadTeamArg{
 		Name:        teamName.String(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
-		role, err := teamObj.MemberRole(context.TODO(), tt.users[i].userVersion())
+		role, err := teamObj.MemberRole(context.Background(), tt.users[i].userVersion())
 		require.NoError(t, err)
 		require.Equal(t, role, keybase1.TeamRole_READER)
 	}
@@ -222,8 +220,6 @@ func TestTeamOpenBans(t *testing.T) {
 }
 
 func TestTeamOpenPuklessRequest(t *testing.T) {
-	t.Skip() // See CORE-6841
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -233,168 +229,75 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 	team := own.createTeam()
 	t.Logf("Open team name is %q", team)
 
-	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	err := teams.ChangeTeamSettings(context.Background(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
 	require.NoError(t, err)
 
-	bob.kickTeamRekeyd()
-	_, err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	// Bob is PUKless but he can still request access. But he will
+	// only be keyed in when he gets a PUK.
+	_, err = bob.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: team})
 	require.NoError(t, err)
+
+	_, err = bob.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: team})
+	require.Error(t, err)
+	t.Logf("Doubled TeamRequestAccess error is: %v", err)
+
+	// Upgrading to PUK should trigger team_rekeyd and adding bob to
+	// team by an admin.
+	bob.kickTeamRekeyd()
+	bob.perUserKeyUpgrade()
 
 	own.pollForTeamSeqnoLink(team, keybase1.Seqno(3))
 
-	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-		Name:        team,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
-	require.Equal(t, 1, teamObj.NumActiveInvites())
-
+	teamObj := own.loadTeam(team, true /* admin */)
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(members.AllUIDs())) // just owner
+	require.Equal(t, 2, len(members.AllUIDs())) // just owner
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
 }
 
-func TestTeamOpenRemoveOldUVAddInvite(t *testing.T) {
-	t.Skip() // See CORE-6841
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
-
-	ann := ctx.installKeybaseForUser("ann", 10)
-	ann.signup()
-	bob := ctx.installKeybaseForUser("bob", 10)
-	bob.signup()
-
-	team := ann.createTeam([]*smuUser{bob})
-	t.Logf("Open team name is %q", team)
-
-	annCtx := ann.getPrimaryGlobalContext()
-
-	ann.openTeam(team, keybase1.TeamRole_READER)
-
-	kickTeamRekeyd(annCtx, t)
-	bob.reset()
-	bob.loginAfterResetNoPUK(10)
-
-	bob.requestAccess(team)
-
-	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(6))
-
-	teamObj, err := teams.Load(context.TODO(), annCtx, keybase1.LoadTeamArg{
-		Name:        team.name,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
-
-	loadUserArg := libkb.NewLoadUserArg(annCtx).
-		WithNetContext(context.TODO()).
-		WithName(bob.username).
-		WithPublicKeyOptional().
-		WithForcePoll(true)
-	upak, _, err := annCtx.GetUPAKLoader().LoadV2(loadUserArg)
-	require.NoError(t, err)
-
-	seqno := upak.Current.EldestSeqno
-
-	require.Equal(t, 1, teamObj.NumActiveInvites())
-	ret, err := teamObj.HasActiveInvite(teams.NewUserVersion(bob.uid(), seqno).TeamInviteName(), "keybase")
-	require.NoError(t, err)
-	require.True(t, ret)
-
-	members, err := teamObj.Members()
-	require.NoError(t, err)
-	// expecting just ann, pre-reset version of bob should have been removed.
-	require.Equal(t, 1, len(members.AllUIDs()))
-	require.Equal(t, ann.uid(), members.AllUIDs()[0])
-}
-
-// Consider user that resets their account and immediately tries to
-// re-join their open teams from the website, before provisioning (and
-// therefore getting a PUK).
+// Consider user that resets their account and tries to re-join.
 func TestTeamOpenResetAndRejoin(t *testing.T) {
-	t.Skip() // See CORE-6841
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
 
-	ann := ctx.installKeybaseForUser("ann", 10)
-	ann.signup()
-	bob := ctx.installKeybaseForUser("bob", 10)
-	bob.signup()
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	tt.logUserNames()
 
-	team := ann.createTeam([]*smuUser{bob})
+	teamID, teamName := ann.createTeam2()
+	team := teamName.String()
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	err := teams.ChangeTeamSettings(context.Background(), ann.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	require.NoError(t, err)
+
 	t.Logf("Open team name is %q", team)
 
-	ann.openTeam(team, keybase1.TeamRole_READER)
-
-	annCtx := ann.getPrimaryGlobalContext()
-	bobCtx := bob.getPrimaryGlobalContext()
-
-	// Bob is in the team but he resets and doesn't provision.
-	kickTeamRekeyd(annCtx, t)
+	bob.kickTeamRekeyd()
 	bob.reset()
 
-	loadUserArg := libkb.NewLoadUserArg(annCtx).
-		WithNetContext(context.TODO()).
-		WithName(bob.username).
-		WithPublicKeyOptional().
-		WithForcePoll(true)
-	upak, _, err := annCtx.GetUPAKLoader().LoadV2(loadUserArg)
+	// Wait for rotate link after bob resets
+	ann.waitForRotateByID(teamID, keybase1.Seqno(4))
+
+	bob.loginAfterResetPukless()
+	_, err = bob.teamsClient.TeamRequestAccess(context.Background(), keybase1.TeamRequestAccessArg{Name: team})
 	require.NoError(t, err)
 
-	// His EldestSeqno is 0 (in the middle of reset).
-	require.EqualValues(t, 0, upak.Current.EldestSeqno)
+	bob.kickTeamRekeyd()
+	bob.perUserKeyUpgrade()
 
-	// Then bob makes a team access request (hypothetically from the
-	// website using "Join team" button).
-	err = bobCtx.LoginState().LoginWithPassphrase(bob.username, bob.userInfo.passphrase, false, nil)
-	require.NoError(t, err)
+	// Poll for change_membership after bob's TAR gets acted on.
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(5))
 
-	arg := libkb.NewAPIArgWithNetContext(context.TODO(), "team/request_access")
-	arg.Args = libkb.NewHTTPArgs()
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	arg.Args.Add("team", libkb.S{Val: team.name})
-	_, err = bobCtx.API.Post(arg)
-	require.NoError(t, err)
+	teamObj := ann.loadTeam(team, true /* admin */)
 
-	// We are expected to see following new links:
-	// - Rotate key (after bob resets)
-	// - Change membership (remove reset version of bob)
-	// - Invite (add bob%0 as keybase-type invite)
-	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(6))
-
-	loadTeamArg := keybase1.LoadTeamArg{
-		Name:        team.name,
-		ForceRepoll: true,
-	}
-	teamObj, err := teams.Load(context.TODO(), annCtx, loadTeamArg)
-	require.NoError(t, err)
-
-	require.Equal(t, 1, teamObj.NumActiveInvites())
-	// Expect to see bob%0 keybase invite.
-	ret, err := teamObj.HasActiveInvite(teams.NewUserVersion(bob.uid(), 0).TeamInviteName(), "keybase")
-	require.NoError(t, err)
-	require.True(t, ret)
+	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
 
 	members, err := teamObj.Members()
 	require.NoError(t, err)
-	// expecting just ann, pre-reset version of bob should have been removed.
-	require.Equal(t, 1, len(members.AllUIDs()))
-	require.Equal(t, ann.uid(), members.AllUIDs()[0])
-
-	// Finally bob gets a PUK - should be automatically added by SBS
-	// handler.
-	kickTeamRekeyd(annCtx, t)
-	bob.loginAfterReset(10)
-
-	// We are expecting a new ChangeMembership link that adds bob.
-	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(7))
-
-	teamObj, err = teams.Load(context.TODO(), annCtx, loadTeamArg)
+	require.Len(t, members.AllUIDs(), 2)
+	role, err := teamObj.MemberRole(context.Background(), bob.userVersion())
 	require.NoError(t, err)
-
-	require.Equal(t, 0, teamObj.NumActiveInvites())
-
-	members, err = teamObj.Members()
-	require.NoError(t, err)
-	// Expecting bob and ann finally reunited as proper cryptomembers.
-	require.Equal(t, 2, len(members.AllUIDs()))
+	require.Equal(t, keybase1.TeamRole_READER, role)
 }

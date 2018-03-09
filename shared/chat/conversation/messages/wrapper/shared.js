@@ -1,202 +1,214 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
-import {colorForAuthor} from '../shared'
-import Timestamp from '../timestamp'
+import {
+  globalStyles,
+  globalMargins,
+  globalColors,
+  isMobile,
+  styleSheetCreate,
+  collapseStyles,
+} from '../../../../styles'
+import ProfileResetNotice from '../system-profile-reset-notice/container'
+import Timestamp from './timestamp'
+import LoadMore from './load-more'
+import SendIndicator from './chat-send'
 
 import type {Props} from '.'
 
-const UserAvatar = ({author, showImage, onClick}) => (
-  <Box style={_userAvatarStyle}>
-    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onClick} />}
+const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
+  if (isYou) {
+    return globalColors.black_75
+  }
+
+  if (isBroken) {
+    return globalColors.red
+  }
+  return isFollowing ? globalColors.green2 : globalColors.blue
+}
+
+const UserAvatar = ({author, showImage, onAuthorClick}) => (
+  <Box style={styles.userAvatar}>
+    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onAuthorClick} />}
   </Box>
 )
 
-const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}) => {
-  if (!includeHeader) return null
-  const style = {
-    color: colorForAuthor(author, isYou, isFollowing, isBroken),
-    ...(isYou ? globalStyles.italic : null),
-    marginBottom: 2,
-    alignSelf: 'flex-start',
-  }
+const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
+  const style = collapseStyles([
+    styles.username,
+    isYou && styles.usernameYou,
+    {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
+  ])
   return (
     <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
-      {author}
+      {username}
     </Text>
   )
 }
 
-const ActionButton = ({onAction}) => (
-  <Box className="action-button">
-    {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
+const MenuButton = ({onClick}) => (
+  <Box className="menu-button">
+    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} />
   </Box>
 )
 
-const EditedMark = ({isEdited}) =>
-  isEdited ? (
-    <Text type="BodySmall" style={_editedStyle}>
-      EDITED
-    </Text>
-  ) : null
+const EditedMark = () => (
+  <Text type="BodySmall" style={styles.edited}>
+    EDITED
+  </Text>
+)
 
-const Failure = ({failureDescription, onShowEditor, onRetry}) => {
-  if (!failureDescription) return null
-  const error = `Failed to send${failureDescription ? ` -  ${failureDescription}` : ''}. `
+const Failure = ({failureDescription, onEdit, onRetry}) => {
+  const error = `${failureDescription ? ` -  ${failureDescription}` : ''}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
     <Text type="BodySmall">
-      <Text type="BodySmall" style={_failStyleFace}>
+      <Text type="BodySmall" style={styles.failStyleFace}>
         {'┏(>_<)┓'}
       </Text>
-      <Text type="BodySmall" style={_failStyle}>
+      <Text type="BodySmall" style={styles.fail}>
         {' '}
         {error}
       </Text>
-      {resolveByEdit && (
-        <Text type="BodySmall" style={_failStyleUnderline} onClick={onShowEditor}>
-          Edit
-        </Text>
-      )}
-      {!resolveByEdit && (
-        <Text type="BodySmall" style={_failStyleUnderline} onClick={onRetry}>
-          Retry
-        </Text>
-      )}
+      {!!onEdit &&
+        resolveByEdit && (
+          <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
+            Edit
+          </Text>
+        )}
+      {!!onRetry &&
+        !resolveByEdit && (
+          <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onRetry}>
+            Retry
+          </Text>
+        )}
     </Text>
   )
 }
 
-const MessageWrapper = (props: Props) => (
-  <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
-    {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-    <Box
-      style={{
-        ..._flexOneRow,
-        ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
-        ...(props.isSelected ? _stylesSelected : null),
-      }}
-    >
-      <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-        <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
-        <Box style={_flexOneColumn} className="message-wrapper">
-          <Username
-            author={props.author}
-            isYou={props.isYou}
-            isFollowing={props.isFollowing}
-            isBroken={props.isBroken}
-            includeHeader={props.includeHeader}
-            onClick={props.onClick}
-          />
-          <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
-            <Box style={_flexOneColumn}>
-              {/* $FlowIssue */}
-              <props.innerClass
-                messageKey={props.messageKey}
-                measure={props.measure}
-                onAction={props.onAction}
+class MessageWrapper extends React.PureComponent<Props> {
+  render() {
+    const props = this.props
+    return (
+      <Box style={styles.container}>
+        {props.orangeLineAbove && <Box style={styles.orangeLine} />}
+        {props.hasOlderResetConversation && (
+          <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
+        )}
+        {props.loadMoreType && (
+          <LoadMore type={props.loadMoreType} showTeamOffer={this.props.showTeamOffer} />
+        )}
+        {props.timestamp && <Timestamp timestamp={props.timestamp} />}
+        <Box style={collapseStyles([styles.flexOneRow, props.isSelected && styles.selected])}>
+          <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
+            <Box style={globalStyles.flexBoxColumn}>
+              <UserAvatar
+                author={props.author}
+                showImage={props.includeHeader}
+                onAuthorClick={props.onAuthorClick}
               />
-              <EditedMark isEdited={props.isEdited} />
+              <Box style={styles.sendIndicatorContainer}>
+                {props.isYou && (
+                  // $FlowIssue doesn't like HOCTimers
+                  <SendIndicator
+                    sent={props.messageSent}
+                    failed={props.messageFailed}
+                    style={{marginBottom: 2}}
+                    id={props.message.timestamp}
+                  />
+                )}
+              </Box>
             </Box>
-            <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
-            {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
+            <Box style={styles.flexOneColumn} className="message-wrapper">
+              {props.includeHeader && (
+                <Username
+                  username={props.author}
+                  isYou={props.isYou}
+                  isFollowing={props.isFollowing}
+                  isBroken={props.isBroken}
+                  onClick={props.onAuthorClick}
+                />
+              )}
+              <Box style={styles.textContainer} className="message">
+                <Box style={styles.flexOneColumn}>
+                  <props.innerClass message={props.message} isEditing={props.isEditing} />
+                  {props.isEdited && <EditedMark />}
+                </Box>
+                {!isMobile && <MenuButton onClick={props.onShowMenu} />}
+                {props.isRevoked && <Icon type="iconfont-exclamation" style={styles.exclamation} />}
+              </Box>
+              {!!props.failureDescription && (
+                <Failure
+                  failureDescription={props.failureDescription}
+                  onRetry={props.onRetry}
+                  onEdit={props.onEdit}
+                />
+              )}
+            </Box>
           </Box>
-          <Failure
-            failureDescription={props.failureDescription}
-            onRetry={props.onRetry}
-            onShowEditor={props.onShowEditor}
-          />
         </Box>
       </Box>
-    </Box>
-  </Box>
-)
-
-const _flexOneRow = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
+    )
+  }
 }
 
-const _flexOneColumn = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-}
-
-const _containerNoHeaderStyle = {
-  ...globalStyles.flexBoxColumn,
-}
-
-const _containerWithHeaderStyle = {
-  ..._containerNoHeaderStyle,
-}
-
-const _rightSideNoHeaderStyle = {
-  ..._flexOneRow,
-  marginLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-  paddingBottom: 2,
-}
-
-const _rightSideWithHeaderStyle = {
-  ..._rightSideNoHeaderStyle,
-  paddingTop: 6,
-}
-
-const _stylesFirstNewMessage = {
-  borderBottomWidth: 0,
-  borderLeftWidth: 0,
-  borderRightWidth: 0,
-  borderStyle: 'solid',
-  borderTopColor: globalColors.orange,
-  borderTopWidth: 1,
-}
-
-const _stylesSelected = {
-  backgroundColor: globalColors.black_05,
-}
-
-const _exclamationStyle = {
-  color: globalColors.blue,
-  fontSize: 11,
-  paddingBottom: globalMargins.xtiny,
-  paddingTop: globalMargins.xtiny,
-}
-
-const _ellipsisStyle = {
-  fontSize: 16,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.xtiny,
-}
-
-const _textContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  borderRadius: 4,
-  flex: 1,
-  marginLeft: -globalMargins.xtiny,
-  marginRight: globalMargins.xtiny,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
-}
-
-const _editedStyle = {
-  color: globalColors.black_20,
-}
-
-const _userAvatarStyle = {
-  width: 32,
-}
-
-const _failStyle = {
-  color: globalColors.red,
-}
-const _failStyleUnderline = {
-  ..._failStyle,
-  ...globalStyles.textDecoration('underline'),
-}
-const _failStyleFace = {
-  ..._failStyle,
-  fontSize: 9,
-}
+const styles = styleSheetCreate({
+  container: {...globalStyles.flexBoxColumn},
+  edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
+  ellipsis: {fontSize: 16, marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
+  exclamation: {
+    color: globalColors.blue,
+    fontSize: 11,
+    paddingBottom: globalMargins.xtiny,
+    paddingTop: globalMargins.xtiny,
+  },
+  fail: {color: globalColors.red},
+  failStyleFace: {color: globalColors.red, fontSize: 9},
+  failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
+  flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
+  flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
+  orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
+  rightSideNoHeader: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    marginLeft: globalMargins.tiny,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+  },
+  rightSideWithHeader: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    marginLeft: globalMargins.tiny,
+    paddingBottom: 2,
+    paddingRight: globalMargins.tiny,
+    paddingTop: 6,
+  },
+  selected: {backgroundColor: globalColors.black_05},
+  textContainer: {
+    ...globalStyles.flexBoxRow,
+    borderRadius: 4,
+    flex: 1,
+    marginLeft: -globalMargins.xtiny,
+    marginRight: globalMargins.xtiny,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.xtiny,
+  },
+  sendIndicatorContainer: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    width: 32,
+  },
+  userAvatar: {width: 32},
+  username: {
+    alignSelf: 'flex-start',
+    backgroundColor: globalColors.fastBlank,
+    marginBottom: 2,
+  },
+  usernameYou: {
+    ...globalStyles.italic,
+  },
+})
 
 export default MessageWrapper

@@ -123,19 +123,13 @@ func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
 	return false
 }
 
-type unboxConversationInfo interface {
-	GetConvID() chat1.ConversationID
-	GetMembersType() chat1.ConversationMembersType
-	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
-}
-
 type basicUnboxConversationInfo struct {
 	convID       chat1.ConversationID
 	membersType  chat1.ConversationMembersType
 	finalizeInfo *chat1.ConversationFinalizeInfo
 }
 
-var _ unboxConversationInfo = (*basicUnboxConversationInfo)(nil)
+var _ types.UnboxConversationInfo = (*basicUnboxConversationInfo)(nil)
 
 func newBasicUnboxConversationInfo(convID chat1.ConversationID,
 	membersType chat1.ConversationMembersType, finalizeInfo *chat1.ConversationFinalizeInfo) *basicUnboxConversationInfo {
@@ -158,12 +152,16 @@ func (b *basicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinali
 	return b.finalizeInfo
 }
 
+func (b *basicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
+	return nil
+}
+
 type publicUnboxConversationInfo struct {
 	convID      chat1.ConversationID
 	membersType chat1.ConversationMembersType
 }
 
-var _ unboxConversationInfo = (*publicUnboxConversationInfo)(nil)
+var _ types.UnboxConversationInfo = (*publicUnboxConversationInfo)(nil)
 
 func newPublicUnboxConverstionInfo(convID chat1.ConversationID, membersType chat1.ConversationMembersType) *publicUnboxConversationInfo {
 	return &publicUnboxConversationInfo{
@@ -182,6 +180,10 @@ func (p *publicUnboxConversationInfo) GetMembersType() chat1.ConversationMembers
 
 func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {
 	// Public conversations don't get finalized
+	return nil
+}
+
+func (p *publicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
 }
 
@@ -218,7 +220,7 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 // non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
+func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo) (m chat1.MessageUnboxed, uberr UnboxingError) {
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
@@ -879,7 +881,7 @@ func (b *Boxer) makeBodyHash(bodyCiphertext chat1.EncryptedData) (chat1.Hash, Un
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
-func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, conv unboxConversationInfo) (thread chat1.ThreadView, err error) {
+func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, conv types.UnboxConversationInfo) (thread chat1.ThreadView, err error) {
 
 	thread = chat1.ThreadView{
 		Pagination: boxed.Pagination,
@@ -977,7 +979,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 	return atMentions, atMentionUsernames, chanMention, channelNameMentions
 }
 
-func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv unboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
+func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "UnboxMessages(%s)", conv.GetConvID())()
 
 	boxCh := make(chan chat1.MessageBoxed)

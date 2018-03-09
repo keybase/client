@@ -296,16 +296,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-private-has-stuff-32.png'),
   },
-  'icon-folder-private-open-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-open-24.png'),
-  },
-  'icon-folder-private-open-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-open-32.png'),
-  },
   'icon-folder-private-success-negative-48': {
     isFont: false,
     extension: 'png',
@@ -660,6 +650,26 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-message-deletion-64.png'),
+  },
+  'icon-message-status-encrypting-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-encrypting-24.png'),
+  },
+  'icon-message-status-error-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-error-24.png'),
+  },
+  'icon-message-status-sending-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-sending-24.png'),
+  },
+  'icon-message-status-sent-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-status-sent-24.png'),
   },
   'icon-mutual-follow-21': {
     isFont: false,

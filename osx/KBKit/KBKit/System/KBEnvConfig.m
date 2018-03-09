@@ -9,6 +9,7 @@
 #import "KBEnvConfig.h"
 
 #import "KBDefines.h"
+#import "KBEnvironment.h"
 #import "KBPath.h"
 #import <Tikppa/Tikppa.h>
 
@@ -36,10 +37,25 @@
 - (instancetype)initWithRunMode:(KBRunMode)runMode {
   if ((self = [super init])) {
     _runMode = runMode;
+
+    // Read the mount point from the config file if possible.
+    NSString *mountDir = [self defaultMountDir];
+    NSData *data = [NSData dataWithContentsOfFile:[self dataPath:@"config.json" options:0]];
+    if (data) {
+      NSError *err = nil;
+      NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+      if (!err) {
+        id obj = [appConfig valueForKeyPath:@"mountdir"];
+        if (obj) {
+          mountDir = (NSString *)obj;
+        }
+      }
+    }
+
     switch (_runMode) {
       case KBRunModeProd: {
         self.title = @"Keybase.io";
-        self.mountDir = [KBPath path:@"/keybase" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses keybase.io";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -47,7 +63,7 @@
       }
       case KBRunModeStaging: {
         self.title = @"Staging";
-        self.mountDir = [KBPath path:@"/keybase.staging" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses staging server.";
         self.image = [NSImage imageNamed:NSImageNameNetwork];
@@ -55,7 +71,7 @@
       }
       case KBRunModeDevel: {
         self.title = @"Devel";
-        self.mountDir = [KBPath path:@"/keybase.devel" options:0];
+        self.mountDir = mountDir;
         self.debugEnabled = YES;
         self.info = @"Uses the local web server.";
         self.image = [NSImage imageNamed:NSImageNameComputer];
@@ -109,6 +125,25 @@
   else return NSStringWithFormat(@"Keybase%@", NSStringFromKBRunMode(_runMode, NO));
 }
 
+- (NSString *)appNameWithDot {
+  if (_runMode == KBRunModeProd) return @"Keybase";
+  else return NSStringWithFormat(@"Keybase.%@", NSStringFromKBRunMode(_runMode, NO));
+}
+
+- (NSString *)defaultMountDir {
+  // NOTE: if you change this default, you must also change the default
+  // for darwin in the `GetMountDir` function of `libkb/env.go`.
+  NSString *appName = [self appName];
+  NSString *userName = NSUserName();
+  NSString *mount = NSStringWithFormat(@"%@'s %@", userName, appName);
+  return [KBPath pathInDir:@"/Volumes" path:mount options:0];
+}
+
+- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options {
+  NSString *homeDir = self.homeDir;
+  return [KBPath pathInDir:homeDir path:filename options:options];
+}
+
 - (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options {
   NSString *homeDir = self.homeDir;
   NSString *appPath = NSStringWithFormat(@"Library/Application Support/%@", [self appName]);
@@ -145,8 +180,42 @@
   return [KBPath pathInDir:servicePath path:[self kbfsBinName] options:pathOptions];
 }
 
+- (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath {
+  if (!servicePath) return [self redirectorBinName];
+  return [KBPath pathInDir:servicePath path:[self redirectorBinName] options:pathOptions];
+}
+
 - (NSString *)gitRemoteHelperName {
   return @"git-remote-keybase";
+}
+
+- (NSString *)redirectorBinName {
+  return @"keybase-redirector";
+}
+
+- (NSString *)redirectorMount {
+  switch(_runMode) {
+    case KBRunModeDevel: return @"/keybase.devel";
+    case KBRunModeStaging: return @"/keybase.staging";
+    case KBRunModeProd: return @"/keybase";
+  }
+}
+
+- (BOOL)redirectorDisabled {
+  NSString *rootConfigPath = NSStringWithFormat(@"/etc/%@/config.json", [self appNameWithDot]);
+  NSData *data = [NSData dataWithContentsOfFile:rootConfigPath];
+  if (data) {
+    NSError *err = nil;
+    NSDictionary *appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+    if (!err) {
+      id obj = [appConfig valueForKeyPath:@"disable-root-redirector"];
+      if (obj) {
+        NSNumber *val = (NSNumber *)obj;
+        return [val boolValue];
+      }
+    }
+  }
+  return NO;
 }
 
 - (NSString *)kbfsBinName {

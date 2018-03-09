@@ -38,6 +38,7 @@ comment=""
 keybase_binpath=${KEYBASE_BINPATH:-}
 git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
+redirector_binpath=${REDIRECTOR_BINPATH:-`dirname $KBFS_BINPATH`/keybase-redirector}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
 
@@ -96,12 +97,13 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.59-darwin.tgz"
+installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.60-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
 updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
+redirector_bin="$tmp_dir/keybase-redirector"
 kbfs_bin="$tmp_dir/kbfs"
 kbnm_bin="$tmp_dir/kbnm"
 updater_bin="$tmp_dir/updater"
@@ -151,6 +153,8 @@ get_deps() {(
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp "$kbfs_binpath" .
     cp "$git_remote_keybase_binpath" .
+    echo "Using local redirector binpath: $redirector_binpath"
+    cp "$redirector_binpath" .
   else
     kbfs_url="https://github.com/keybase/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
     echo "Getting $kbfs_url"
@@ -205,6 +209,7 @@ package_app() {(
   mkdir -p "$shared_support_dir/bin"
   cp "$keybase_bin" "$shared_support_dir/bin"
   cp "$git_remote_keybase_bin" "$shared_support_dir/bin"
+  cp "$redirector_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
   cp "$kbnm_bin" "$shared_support_dir/bin"
   cp "$updater_bin" "$shared_support_dir/bin"
@@ -235,6 +240,7 @@ sign() {(
   spctl --assess --verbose=4 "$app_name.app"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase-redirector"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbnm"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"

@@ -110,7 +110,7 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 		h.G().Log.CDebugf(ctx, "| cache is good; skipping get")
 		if markViewed {
 			h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
-			tmpErr := h.markViewed(ctx)
+			tmpErr := h.markViewedWithLock(ctx)
 			if tmpErr != nil {
 				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
 			}
@@ -211,9 +211,6 @@ func (h *Home) bustCache(ctx context.Context, bustPeople bool) {
 
 func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
 
-	h.Lock()
-	defer h.Unlock()
-
 	defer h.G().CTrace(ctx, "+ Home#bustHomeCacheIfBadgedFollowers", func() error { return err })()
 
 	if h.homeCache == nil {
@@ -262,12 +259,19 @@ func (h *Home) SkipTodoType(ctx context.Context, typ keybase1.HomeScreenTodoType
 
 func (h *Home) MarkViewed(ctx context.Context) (err error) {
 	defer h.G().CTrace(ctx, "Home#MarkViewed", func() error { return err })()
-	h.bustHomeCacheIfBadgedFollowers(ctx)
-	return h.markViewed(ctx)
+	h.Lock()
+	defer h.Unlock()
+	return h.markViewedWithLock(ctx)
 }
 
-func (h *Home) markViewed(ctx context.Context) (err error) {
-	defer h.G().CTrace(ctx, "Home#markViewed", func() error { return err })()
+func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
+	defer h.G().CTrace(ctx, "Home#markViewedWithLock", func() error { return err })()
+	h.bustHomeCacheIfBadgedFollowers(ctx)
+	return h.markViewedAPICall(ctx)
+}
+
+func (h *Home) markViewedAPICall(ctx context.Context) (err error) {
+	defer h.G().CTrace(ctx, "Home#markViewedAPICall", func() error { return err })()
 
 	_, err = h.G().API.Post(libkb.APIArg{
 		Endpoint:    "home/visit",

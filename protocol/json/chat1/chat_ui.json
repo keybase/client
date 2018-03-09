@@ -126,6 +126,13 @@
           "name": "localMetadata"
         },
         {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationMetadata"

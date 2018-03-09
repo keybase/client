@@ -4,14 +4,11 @@ import * as React from 'react'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 
-export type FollowProps = { 
-  following?: ?boolean,
-  followsYou?: ?boolean,
-}
-
-export type ConnectedProps = {
+export type Props = {
   borderColor?: string,
   children?: any,
+  following?: ?boolean,
+  followsYou?: ?boolean,
   isTeam?: boolean,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
@@ -25,7 +22,5 @@ export type ConnectedProps = {
   teamname?: ?string,
 }
 
-export type Props = FollowProps & ConnectedProps
-
 export default class Avatar extends React.Component<Props> {}
-export class ConnectedAvatar extends React.Component<ConnectedProps> {}
+export class ConnectedAvatar extends React.Component<Props> {}

@@ -112,7 +112,7 @@ class Icon extends React.PureComponent<Props> {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
 
       icon = (
-        <Text style={props.style} type={props.type}>
+        <Text style={[props.style, props.iconStyle]} type={props.type}>
           {code}
         </Text>
       )

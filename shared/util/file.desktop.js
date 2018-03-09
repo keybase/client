@@ -8,15 +8,15 @@ import {cacheRoot} from '../constants/platform.desktop'
 
 import type {StatResult} from './file'
 
-function tmpDir(): string {
+export function tmpDir(): string {
   return cacheRoot
 }
 
-function tmpFile(suffix: string): string {
+export function tmpFile(suffix: string): string {
   return path.join(tmpDir(), suffix)
 }
 
-function tmpRandFile(suffix: string): Promise<string> {
+export function tmpRandFile(suffix: string): Promise<string> {
   return new Promise((resolve, reject) => {
     crypto.randomBytes(16, (err, buf) => {
       if (err) {
@@ -31,11 +31,15 @@ function tmpRandFile(suffix: string): Promise<string> {
 // TODO make this a user setting
 const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
 
-function downloadFilePath(suffix: string): Promise<string> {
+export function downloadFilePathNoSearch(filename: string): string {
+  return path.join(downloadFolder, filename)
+}
+
+export function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, path.join(downloadFolder, suffix))
 }
 
-function exists(filepath: string): Promise<boolean> {
+export function exists(filepath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     fs.access(filepath, fs.constants.F_OK, err => {
       resolve(!err)
@@ -43,7 +47,7 @@ function exists(filepath: string): Promise<boolean> {
   })
 }
 
-function stat(filepath: string): Promise<StatResult> {
+export function stat(filepath: string): Promise<StatResult> {
   return new Promise((resolve, reject) => {
     fs.stat(filepath, (err, stats) => {
       if (err) {
@@ -54,7 +58,7 @@ function stat(filepath: string): Promise<StatResult> {
   })
 }
 
-function mkdirp(target) {
+export function mkdirp(target: string) {
   const initDir = path.isAbsolute(target) ? path.sep : ''
   target.split(path.sep).reduce((parentDir, childDir) => {
     const curDir = path.resolve(parentDir, childDir)
@@ -66,17 +70,29 @@ function mkdirp(target) {
   }, initDir)
 }
 
-function copy(from: string, to: string) {
-  mkdirp(path.dirname(to))
-  fs.writeFileSync(to, fs.readFileSync(from))
+export function copy(from: string, to: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    mkdirp(path.dirname(to))
+    fs.readFile(from, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        fs.writeFile(to, data, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
+      }
+    })
+  })
 }
 
-function unlink(filepath: string): Promise<void> {
+export function unlink(filepath: string): Promise<void> {
   return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
 }
 
-function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
+export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return Promise.reject(new Error('not implemented'))
 }
-
-export {copy, downloadFilePath, exists, stat, tmpDir, tmpFile, tmpRandFile, unlink, writeStream}

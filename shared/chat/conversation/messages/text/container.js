@@ -1,43 +1,17 @@
 // @flow
-import * as Constants from '../../../../constants/chat'
-import * as Types from '../../../../constants/types/chat'
-import TextMessage, {type Props} from '.'
-import createCachedSelector from 're-reselect'
-import {Set, Map} from 'immutable'
-import {compose, lifecycle, connect, type TypedState} from '../../../../util/container'
-import {type OwnProps} from './container'
+import * as Types from '../../../../constants/types/chat2'
+import TextMessage from '.'
+import {mapProps} from '../../../../util/container'
 
-const getProps = createCachedSelector(
-  [Constants.getMessageFromMessageKey, Constants.getEditingMessage],
-  (message: ?Types.TextMessage, editingMessage) => {
-    return {
-      isEditing: message === editingMessage,
-      text: message ? message.message.stringValue() : null,
-      type: message ? message.messageState : null,
-      mentions: message ? message.mentions : Set(),
-      channelMention: message ? message.channelMention : 'None',
-      channelNameMentions: message ? message.channelNameMentions : Map(),
-    }
-  }
-)((state, messageKey) => messageKey)
-
-const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
-  return getProps(state, messageKey)
+type Props = {
+  isEditing: boolean,
+  message: Types.MessageText,
 }
-
-const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  measure,
-})
-
-export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
-  lifecycle({
-    componentWillReceiveProps: function(nextProps: Props) {
-      if (this.props.measure && this.props.type !== nextProps.type) {
-        this.props.measure()
-      }
-    },
-  })
-)(TextMessage)
+export default mapProps((props: Props) => ({
+  isEditing: props.isEditing,
+  mentionsAt: props.message.mentionsAt,
+  mentionsChannel: props.message.mentionsChannel,
+  mentionsChannelName: props.message.mentionsChannelName,
+  text: props.message.text.stringValue() /* +    ' ordinal:' +    Types.ordinalToNumber(props.message.ordinal) +    ' id: ' +    props.message.id */,
+  type: props.message.errorReason ? 'error' : props.message.submitState === null ? 'sent' : 'pending',
+}))(TextMessage)

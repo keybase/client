@@ -17,7 +17,7 @@ import {
 } from '../util/container'
 import {globalStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
-import type {ConnectedProps, Props, AvatarSize} from './avatar'
+import type {Props, AvatarSize} from './avatar'
 
 export type URLMap = {
   '200': string,
@@ -248,6 +248,7 @@ const realConnector = compose(
       }
     },
   }),
+  // $FlowIssue
   lifecycle({
     componentWillMount() {
       const _timeoutID = setTimeout(() => {
@@ -273,7 +274,7 @@ const realConnector = compose(
 
 const real = realConnector(Render)
 
-const autoMapStateToProps = (state: TypedState, ownProps: ConnectedProps) => {
+const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
   const me = state.config.username
   if (ownProps.username === me || !me || !ownProps.username) {
     return {}
@@ -314,48 +315,47 @@ const autoMergeProps = (stateProps, _, ownProps): Props => {
   return ownProps
 }
 
-// $FlowIssue idk
 const autoConnector = compose(
   realConnector,
   connect(autoMapStateToProps, () => ({}), autoMergeProps),
+  // $FlowIssue
   setDisplayName('Avatar')
 )
 const ConnectedAvatar = autoConnector(Render)
 
-const mock = compose(
-  withProps(props => {
-    const isTeam = !!props.teamname
-    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-    const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+const mockOwnToViewProps = (props: Props) => {
+  const isTeam = !!props.teamname
+  const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+  const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
 
-    let style
-    if (props.style) {
-      if (props.onClick) {
-        style = {...props.style, ...globalStyles.clickable}
-      } else {
-        style = props.style
-      }
-    } else if (props.onClick) {
-      style = globalStyles.clickable
+  let style
+  if (props.style) {
+    if (props.onClick) {
+      style = {...props.style, ...globalStyles.clickable}
+    } else {
+      style = props.style
     }
+  } else if (props.onClick) {
+    style = globalStyles.clickable
+  }
 
-    return {
-      borderColor: props.borderColor,
-      children: props.children,
-      followIconSize: _followIconSize(props.size, props.followsYou, props.following),
-      followIconStyle: followSizeToStyle[props.size],
-      followIconType: _followIconType(props.size, props.followsYou, props.following),
-      isPlaceholder: true,
-      isTeam,
-      loadingColor: props.loadingColor,
-      onClick: props.onClick,
-      opacity: props.opacity,
-      size: props.size,
-      style,
-      url,
-    }
-  })
-)(Render)
+  return {
+    borderColor: props.borderColor,
+    children: props.children,
+    followIconSize: _followIconSize(props.size, !!props.followsYou, !!props.following),
+    followIconStyle: followSizeToStyle[props.size],
+    followIconType: _followIconType(props.size, !!props.followsYou, !!props.following),
+    isPlaceholder: true,
+    isTeam,
+    loadingColor: props.loadingColor,
+    onClick: props.onClick,
+    opacity: props.opacity,
+    size: props.size,
+    style,
+    url,
+  }
+}
+const mock = compose(withProps(mockOwnToViewProps))(Render)
 
-export {ConnectedAvatar}
+export {ConnectedAvatar, mockOwnToViewProps}
 export default (isTesting ? mock : real)

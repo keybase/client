@@ -12,14 +12,14 @@ type MenuItemProps = MenuItem & {
   isHeader?: boolean,
   index: number,
   numItems: number,
-  onHidden: () => void,
+  onHidden?: ?() => void,
 }
 
 const MenuRow = (props: MenuItemProps) => (
   <TouchableOpacity
     disabled={!props.onClick}
     onPress={() => {
-      props.onHidden() // auto hide when making a selection
+      props.onHidden && props.onHidden() // auto hide after a selection
       props.onClick && props.onClick()
     }}
     style={{...styleRow(props), ...props.style}}
@@ -173,6 +173,7 @@ const styleButtonAlert = {
 }
 
 const OLDPopupMenu = PopupMenu
+const ModalLessPopupMenu = PopupMenu
 
-export {PopupHeaderText, OLDPopupMenu}
+export {PopupHeaderText, OLDPopupMenu, ModalLessPopupMenu}
 export default PopupMenu

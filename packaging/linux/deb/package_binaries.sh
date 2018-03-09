@@ -30,7 +30,8 @@ if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/deb/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
-  # "psmisc" provides "killall", which is used in run_keybase.
+  # "psmisc" provides "killall", which is used in run_keybase and
+  # post_install.sh.
   dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the

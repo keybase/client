@@ -11,7 +11,7 @@ import {
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
-import FloatingDivider from './row/floating-divider/container'
+import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
 import {Owl} from './owl'
@@ -64,7 +64,6 @@ class Inbox extends React.PureComponent<Props, State> {
       channelname: row.channelname,
       conversationIDKey: row.conversationIDKey,
       filtered: !!this.props.filter,
-      isActiveRoute: true,
       teamname: row.teamname,
       type: row.type,
     })
@@ -80,24 +79,25 @@ class Inbox extends React.PureComponent<Props, State> {
     return (
       (row.type === 'small' && row.conversationIDKey) ||
       (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
+      (row.type === 'big' && row.conversationIDKey) ||
       'missingkey'
     )
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.smallTeamsHiddenRowCount === 0 && nextProps.smallTeamsHiddenRowCount > 0) {
-      this._list && this._list.scrollToOffset({animated: false, offset: 0})
-    }
     if (this.props.rows !== nextProps.rows) {
       this._dividerIndex = nextProps.rows.findIndex(r => r.type === 'divider')
     }
   }
 
   _askForUnboxing = (rows: Array<RowItem>) => {
-    const toUnbox = rows.filter(r => r.type === 'small' && r.conversationIDKey)
-    // $FlowIssue doesn't understand that we filtered out the nulls
-    this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
+    const toUnbox = rows.reduce((arr, r) => {
+      if (r.type === 'small' && r.conversationIDKey) {
+        arr.push(r.conversationIDKey)
+      }
+      return arr
+    }, [])
+    this.props.onUntrustedInboxVisible(toUnbox)
   }
 
   _onViewChanged = data => {
@@ -138,12 +138,6 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }, 1000)
 
-  componentDidMount() {
-    if (this.props.rows.length) {
-      this._askForUnboxing(this.props.rows.slice(0, 30))
-    }
-  }
-
   _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
 
   _setRef = r => {
@@ -157,7 +151,6 @@ class Inbox extends React.PureComponent<Props, State> {
     small: globalMargins.xlarge,
   }
 
-  // This is an under documented api to help optimize the FlatList's layout. see https://github.com/facebook/react-native/blob/v0.50.0-rc.0/Libraries/Lists/FlatList.js#L118
   _getItemLayout = (data, index) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
@@ -181,6 +174,12 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   render() {
+    const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
+    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
+    const floatingDivider = this.state.showFloating &&
+      this.props.showSmallTeamsExpandDivider && (
+        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+      )
     return (
       <ErrorBoundary>
         <Box style={boxStyle}>
@@ -191,30 +190,23 @@ class Inbox extends React.PureComponent<Props, State> {
                 filter={this.props.filter}
                 onNewChat={this.props.onNewChat}
                 onSetFilter={this.props.onSetFilter}
+                onSelectUp={this.props.onSelectUp}
+                onSelectDown={this.props.onSelectDown}
+                filterFocusCount={this.props.filterFocusCount}
               />
             }
-            loading={this.props.isLoading /* force loading to update */}
             data={this.props.rows}
-            isActiveRoute={this.props.isActiveRoute}
             keyExtractor={this._keyExtractor}
             renderItem={this._renderItem}
             ref={this._setRef}
             onViewableItemsChanged={this._onViewChanged}
-            initialNumToRender={this._maxVisible}
-            windowSize={this._maxVisible}
+            windowSize={5}
             getItemLayout={this._getItemLayout}
+            removeClippedSubviews={true}
           />
-          {!this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />}
-          {!this.props.rows.length && !!this.props.filter && <Owl />}
-          {this.state.showFloating &&
-            this.props.showSmallTeamsExpandDivider && (
-              <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
-            )}
-          {/*
-            // TODO when the teams tab exists
-            this.props.showBuildATeam &&
-              <BuildATeam />
-              */}
+          {noChats}
+          {owl}
+          {floatingDivider}
         </Box>
       </ErrorBoundary>
     )
@@ -223,7 +215,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
 const boxStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.fastBlank,
   flex: 1,
   position: 'relative',
 }

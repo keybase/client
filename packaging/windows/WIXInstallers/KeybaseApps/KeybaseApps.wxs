@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
+	<Product Id="*" Name="Keybase" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
     <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\Keybase.ico"/>
@@ -8,14 +8,8 @@
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
-    <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
-    <Property Id="RESTART_PENDING">
-      <RegistrySearch Id="RestartPending"
-                      Root="HKLM"
-                      Key="SYSTEM\CurrentControlSet\Control\Session Manager"
-                      Name="PendingFileRenameOperations"
-                      Type="raw" />
-    </Property>
+    <Property Id="EXECUTABLETARGET" Value="bin"/>
+    <Property Id="MsiLogging" Value="oicewarmup"/>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
@@ -26,6 +20,7 @@
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
+      <ComponentGroupRef Id="DokanInstallerComponents" />
     </Feature>
 
 
@@ -36,7 +31,8 @@
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopGUI" Before="RemoveLegacyBundle"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -75,8 +71,6 @@
         <!-- The heat tool output (which generates gui.wxs) won't work if there are directories with only subdirectories
         and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
-        <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
-        <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -126,16 +120,6 @@
         </RegistryKey>
         <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
       </Component>
-      <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
-      <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
-        <RegistryKey Root="HKCU"
-                     Key="Software\Keybase\Keybase"
-              Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
-          <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
-	        <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
-        </RegistryKey>
-      </Component>
     </ComponentGroup>
   </Fragment>
   <Fragment>
@@ -179,6 +163,20 @@
 
     </ComponentGroup>
   </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="DokanInstallerComponents" Directory="INSTALLFOLDER">
+      <Component Id="dokaninstall.exe" Guid="{EA473E0D-2F53-4055-807F-EB70EAE3109E}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokanInstaller" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.1.0.200\DokanSetup_redist.exe" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
   <Fragment>
     <Component Id="GUIShortCutComponent" Guid="{95AB14DC-1529-423E-A20C-C0A8C63AF94E}" Directory="ProgramMenuFolder">
       <Shortcut Id="GUIShortCut"
@@ -252,6 +250,14 @@
         oReg.DeleteValue HKCU,strKeyPath,strValueName
       ]]>
     </CustomAction>
-  </Fragment>  
-
+  </Fragment>
+  <Fragment>
+    <!-- Explicitly remove the last shipping bundle. People who haven't upgraded to it may see an additional "Keybase" under add/remove programs,
+    which is harmless -->
+    <CustomAction Id="RemoveLegacyBundle"
+              Directory="LocalAppDataFolder"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{12a069da-39ed-4f62-9bd4-8f33c39bd258}\Keybase_1.0.44-20180223131449+d993081.386.exe /quiet /uninstall"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
 </Wix>

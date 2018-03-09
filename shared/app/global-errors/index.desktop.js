@@ -71,6 +71,9 @@ class GlobalError extends Component<Props, State> {
       }, nextProps.error ? 0 : 7000) // if its set, do it immediately, if its cleared set it in a bit
       this._resetError(!!nextProps.error)
     }
+    if (nextProps.debugDump !== this.props.debugDump) {
+      this._resetError(nextProps.debugDump.length > 0)
+    }
   }
 
   static maxHeightForSize(size: Size) {
@@ -124,7 +127,7 @@ class GlobalError extends Component<Props, State> {
           )}
         </Box>
         <Text type="BodyBig" selectable={true} style={detailStyle}>
-          {details}
+          {this.props.debugDump.length ? this.props.debugDump.join('\n') : details}
         </Text>
       </Box>
     )

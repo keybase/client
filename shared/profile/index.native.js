@@ -4,7 +4,6 @@ import * as Constants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
-import {isIPhoneX} from '../constants/platform'
 import orderBy from 'lodash/orderBy'
 import chunk from 'lodash/chunk'
 import moment from 'moment'
@@ -23,7 +22,7 @@ import {
   UserBio,
   UserProofs,
 } from '../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 

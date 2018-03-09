@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  moreToLoad: ?boolean,
-  showTeamOffer: boolean,
-}
-
-export default class Header extends Component<Props> {}

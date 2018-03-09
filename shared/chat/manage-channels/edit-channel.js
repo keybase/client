@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {compose, withState} from 'recompose'
+import {compose, withStateHandlers} from '../../util/container'
 import DeleteChannel from './delete-channel'
 import {Avatar, Text, Box, Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
@@ -94,8 +94,16 @@ const _EditChannelOnStandardScreen = (props: Props & TextState) => (
 )
 
 const EditChannel: React.ComponentType<Props> = compose(
-  withState('newChannelName', 'onChangeChannelName', ({channelName}: Props) => channelName),
-  withState('newTopic', 'onChangeTopic', ({topic}: Props) => topic)
+  withStateHandlers(
+    props => ({
+      newChannelName: props.channelName,
+      newTopic: props.topic,
+    }),
+    {
+      onChangeChannelName: () => newChannelName => ({newChannelName}),
+      onChangeTopic: () => newTopic => ({newTopic}),
+    }
+  )
 )(isMobile ? _EditChannelOnStandardScreen : EditChannelBare)
 
 const _boxStyle = {

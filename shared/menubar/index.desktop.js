@@ -245,8 +245,8 @@ const BadgeIcon = ({
   }
 
   const iconType = {
-    [folderTab]: 'iconfont-nav-folders',
     [peopleTab]: 'iconfont-nav-people',
+    [folderTab]: 'iconfont-nav-folders',
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
     // $FlowIssue TODO
@@ -257,7 +257,10 @@ const BadgeIcon = ({
       style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
+      <Icon
+        style={{color: count ? globalColors.blue : globalColors.lightGrey2, fontSize: 20}}
+        type={iconType}
+      />
       {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 18, top: 0}} />}
     </Box>
   )

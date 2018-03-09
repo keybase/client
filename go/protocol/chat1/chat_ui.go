@@ -78,6 +78,7 @@ type UnverifiedInboxUIItem struct {
 	Version       ConversationVers               `codec:"version" json:"version"`
 	MaxMsgID      MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
 	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
+	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes    []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
 	SupersededBy  []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
 }
@@ -108,6 +109,13 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LocalMetadata),
+		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FinalizeInfo),
 		Supersedes: (func(x []ConversationMetadata) []ConversationMetadata {
 			if x == nil {
 				return nil

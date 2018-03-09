@@ -1,6 +1,5 @@
 // @flow
 import React, {PureComponent} from 'react'
-import * as I from 'immutable'
 import {Box, ClickableBox} from '../../../../common-adapters'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
@@ -11,12 +10,11 @@ type Props = {
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,
-  participantNeedToRekey: boolean,
-  participants: I.List<string>,
+  isLocked: boolean,
+  participants: Array<string>,
   showBold: boolean,
   teamname: ?string,
   usernameColor: string,
-  youNeedToRekey: boolean,
 }
 
 class FilterSmallTeam extends PureComponent<Props> {
@@ -36,9 +34,8 @@ class FilterSmallTeam extends PureComponent<Props> {
               backgroundColor={props.backgroundColor}
               isMuted={props.isMuted}
               isSelected={props.isSelected}
-              participantNeedToRekey={props.participantNeedToRekey}
+              isLocked={props.isLocked}
               participants={props.participants}
-              youNeedToRekey={props.youNeedToRekey}
             />
           )}
           <Box
@@ -49,7 +46,7 @@ class FilterSmallTeam extends PureComponent<Props> {
             }}
           >
             <FilteredTopLine
-              participants={props.teamname ? I.List.of(props.teamname) : props.participants}
+              participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               usernameColor={props.usernameColor}
             />
