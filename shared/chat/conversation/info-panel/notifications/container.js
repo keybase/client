@@ -128,7 +128,7 @@ export default compose(
               nextProps.updateSaveState('same')
             }, savedTimeoutMs)
           }
-          const dt = Date.now() - this._savingStarted
+          const dt = Date.now() - this._lastSaveStartTime
           if (dt < minShowSavingTimeMs) {
             if (this._timeoutID) {
               clearTimeout(this._timeoutID)
@@ -146,8 +146,8 @@ export default compose(
           this.props.channelWide !== nextProps.channelWide ||
           this.props.muted !== nextProps.muted
         ) {
+          this._lastSaveStartTime = Date.now()
           if (nextProps.saveState !== 'saving') {
-            this._savingStarted = Date.now()
             nextProps.updateSaveState('saving')
           }
         }
