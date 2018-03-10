@@ -119,21 +119,22 @@ export default compose(
       ) {
         // Mark it as saved
         if (nextProps.saveState === 'saving') {
-          const setJustSaved = () => {
-            nextProps.updateSaveState('justSaved')
+          const resetTimeout = (fn, delay) => {
             if (this._timeoutID) {
               clearTimeout(this._timeoutID)
             }
-            this._timeoutID = setTimeout(() => {
+            this._timeoutID = setTimeout(fn, delay)
+          }
+
+          const setJustSaved = () => {
+            nextProps.updateSaveState('justSaved')
+            resetTimeout(() => {
               nextProps.updateSaveState('same')
             }, savedTimeoutMs)
           }
           const dt = Date.now() - this._lastSaveStartTime
           if (dt < minShowSavingTimeMs) {
-            if (this._timeoutID) {
-              clearTimeout(this._timeoutID)
-            }
-            this._timeoutID = setTimeout(setJustSaved, minShowSavingTimeMs - dt)
+            resetTimeout(setJustSaved, minShowSavingTimeMs - dt)
           } else {
             setJustSaved()
           }
