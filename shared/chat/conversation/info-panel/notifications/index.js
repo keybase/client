@@ -40,6 +40,7 @@ const UnmutedNotificationPrefs = (props: Props) => (
       label="Ignore @here and @channel mentions"
       onCheck={props.toggleChannelWide}
     />
+
     <Box style={isMobile ? styleHeaderMobile : styleHeader}>
       <Text type="BodySmallSemibold">Desktop notifications</Text>
       <Icon
@@ -47,6 +48,7 @@ const UnmutedNotificationPrefs = (props: Props) => (
         type="iconfont-notifications-desktop"
       />
     </Box>
+
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
@@ -71,6 +73,7 @@ const UnmutedNotificationPrefs = (props: Props) => (
         label={'Never'}
       />
     </Box>
+
     <Box style={styleHeader}>
       <Text type="BodySmallSemibold">Mobile notifications</Text>
       <Icon
@@ -78,6 +81,7 @@ const UnmutedNotificationPrefs = (props: Props) => (
         type="iconfont-notifications-mobile"
       />
     </Box>
+
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
