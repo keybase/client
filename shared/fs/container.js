@@ -1,6 +1,14 @@
 // @flow
 import * as I from 'immutable'
-import {compose, connect, lifecycle, setDisplayName, type Dispatch, type TypedState} from '../util/container'
+import {
+  compose,
+  connect,
+  lifecycle,
+  mapProps,
+  setDisplayName,
+  type Dispatch,
+  type TypedState,
+} from '../util/container'
 import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
@@ -63,18 +71,11 @@ const ConnectedFiles = compose(
 )(Files)
 
 const FilesLoadingHoc = compose(
-  connect(
-    (state, {routeProps}) => ({
-      path: routeProps.get('path', Constants.defaultPath),
-    }),
-    (dispatch: Dispatch) => ({
-      loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-    }),
-    ({path}, {loadFolderList}) => ({
-      path,
-      loadFolderList,
-    })
-  ),
+  connect(), // provides `dispatch`
+  mapProps(({routeProps, dispatch}) => ({
+    path: routeProps.get('path', Constants.defaultPath),
+    loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  })),
   lifecycle({
     componentWillMount() {
       this.props.loadFolderList(this.props.path)
