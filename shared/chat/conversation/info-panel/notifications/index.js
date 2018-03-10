@@ -33,6 +33,80 @@ const SaveStateComponent = ({saveState}) => {
   }
 }
 
+const unmutedNotificationPrefs = (props: Props) => [
+  <Checkbox
+    key="ignoreHere"
+    checked={!props.channelWide}
+    label="Ignore @here and @channel mentions"
+    onCheck={props.toggleChannelWide}
+  />,
+  <Box key="desktop" style={isMobile ? styleHeaderMobile : styleHeader}>
+    <Text type="BodySmallSemibold">Desktop notifications</Text>
+    <Icon
+      style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+      type="iconfont-notifications-desktop"
+    />
+  </Box>,
+  <Box key="desktopAny" style={styleRadioButton}>
+    <RadioButton
+      style={{marginTop: globalMargins.xtiny}}
+      onSelect={() => props.updateDesktop('onAnyActivity')}
+      selected={props.desktop === 'onAnyActivity'}
+      label={'On any activity'}
+    />
+  </Box>,
+  <Box key="desktopMentioned" style={styleRadioButton}>
+    <RadioButton
+      style={{marginTop: globalMargins.xtiny}}
+      onSelect={() => props.updateDesktop('onWhenAtMentioned')}
+      selected={props.desktop === 'onWhenAtMentioned'}
+      label={'Only when @mentioned'}
+    />
+  </Box>,
+  <Box key="desktopNever" style={styleRadioButton}>
+    <RadioButton
+      style={{marginTop: globalMargins.xtiny}}
+      onSelect={() => props.updateDesktop('never')}
+      selected={props.desktop === 'never'}
+      label={'Never'}
+    />
+  </Box>,
+  <Box key="mobile" style={styleHeader}>
+    <Text type="BodySmallSemibold">Mobile notifications</Text>
+    <Icon
+      style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+      type="iconfont-notifications-mobile"
+    />
+  </Box>,
+  <Box key="mobileAny" style={styleRadioButton}>
+    <RadioButton
+      style={{marginTop: globalMargins.xtiny}}
+      onSelect={() => props.updateMobile('onAnyActivity')}
+      selected={props.mobile === 'onAnyActivity'}
+      label={'On any activity'}
+    />
+  </Box>,
+  <Box key="mobileMentioned" style={styleRadioButton}>
+    <RadioButton
+      style={{marginTop: globalMargins.xtiny}}
+      onSelect={() => props.updateMobile('onWhenAtMentioned')}
+      selected={props.mobile === 'onWhenAtMentioned'}
+      label={'Only when @mentioned'}
+    />
+  </Box>,
+  <Box key="mobileNever" style={styleRadioButton}>
+    <RadioButton
+      style={{marginTop: globalMargins.xtiny}}
+      onSelect={() => props.updateMobile('never')}
+      selected={props.mobile === 'never'}
+      label={'Never'}
+    />
+  </Box>,
+  <Box key="saveState" style={styleSaveState}>
+    <SaveStateComponent saveState={props.saveState} />
+  </Box>,
+]
+
 export const Notifications = (props: Props) => (
   <Box
     style={{
@@ -58,81 +132,7 @@ export const Notifications = (props: Props) => (
         }}
       />
     </Box>
-
-    <Checkbox
-      checked={!props.channelWide}
-      label="Ignore @here and @channel mentions"
-      onCheck={props.toggleChannelWide}
-    />
-
-    <Box style={isMobile ? styleHeaderMobile : styleHeader}>
-      <Text type="BodySmallSemibold">Desktop notifications</Text>
-      <Icon
-        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
-        type="iconfont-notifications-desktop"
-      />
-    </Box>
-
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateDesktop('onAnyActivity')}
-        selected={props.desktop === 'onAnyActivity'}
-        label={'On any activity'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateDesktop('onWhenAtMentioned')}
-        selected={props.desktop === 'onWhenAtMentioned'}
-        label={'Only when @mentioned'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateDesktop('never')}
-        selected={props.desktop === 'never'}
-        label={'Never'}
-      />
-    </Box>
-
-    <Box style={styleHeader}>
-      <Text type="BodySmallSemibold">Mobile notifications</Text>
-      <Icon
-        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
-        type="iconfont-notifications-mobile"
-      />
-    </Box>
-
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateMobile('onAnyActivity')}
-        selected={props.mobile === 'onAnyActivity'}
-        label={'On any activity'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateMobile('onWhenAtMentioned')}
-        selected={props.mobile === 'onWhenAtMentioned'}
-        label={'Only when @mentioned'}
-      />
-    </Box>
-    <Box style={styleRadioButton}>
-      <RadioButton
-        style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => props.updateMobile('never')}
-        selected={props.mobile === 'never'}
-        label={'Never'}
-      />
-    </Box>
-    <Box style={styleSaveState}>
-      <SaveStateComponent saveState={props.saveState} />
-    </Box>
+    {!props.muted && unmutedNotificationPrefs(props)}
   </Box>
 )
 
