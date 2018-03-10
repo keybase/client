@@ -47,7 +47,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) =
     ),
 })
 
-const minShowSavingTimeMs = 300
+// Minimum amount of time to stay in the saving state.
+const minSavingTimeMs = 300
+
+// How long to stay in the justSaved state.
 const savedTimeoutMs = 2500
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -133,8 +136,8 @@ export default compose(
             }, savedTimeoutMs)
           }
           const dt = Date.now() - this._lastSaveStartTime
-          if (dt < minShowSavingTimeMs) {
-            resetTimeout(setJustSaved, minShowSavingTimeMs - dt)
+          if (dt < minSavingTimeMs) {
+            resetTimeout(setJustSaved, minSavingTimeMs - dt)
           } else {
             setJustSaved()
           }
