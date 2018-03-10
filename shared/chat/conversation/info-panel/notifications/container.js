@@ -47,6 +47,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) =
     ),
 })
 
+const minShowSavingTimeMs = 300
+const savedTimeoutMs = 2500
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
@@ -116,13 +119,24 @@ export default compose(
       ) {
         // Mark it as saved
         if (nextProps.saveState === 'saving') {
-          nextProps.updateSaveState('justSaved')
-          if (this.timeoutID) {
-            clearTimeout(this.timeoutID)
+          const setJustSaved = () => {
+            nextProps.updateSaveState('justSaved')
+            if (this._timeoutID) {
+              clearTimeout(this._timeoutID)
+            }
+            this._timeoutID = setTimeout(() => {
+              nextProps.updateSaveState('same')
+            }, savedTimeoutMs)
           }
-          this.timeoutID = setTimeout(() => {
-            nextProps.updateSaveState('same')
-          }, 2500)
+          const dt = Date.now() - this._savingStarted
+          if (dt < minShowSavingTimeMs) {
+            if (this._timeoutID) {
+              clearTimeout(this._timeoutID)
+            }
+            this._timeoutID = setTimeout(setJustSaved, minShowSavingTimeMs - dt)
+          } else {
+            setJustSaved()
+          }
         }
       } else {
         // did our local settings change at all?
@@ -133,6 +147,7 @@ export default compose(
           this.props.muted !== nextProps.muted
         ) {
           if (nextProps.saveState !== 'saving') {
+            this._savingStarted = Date.now()
             nextProps.updateSaveState('saving')
           }
         }
