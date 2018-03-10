@@ -36,6 +36,11 @@
     },
     "openInFileUI": {
       "path?": "string"
+    },
+    "fuseStatus": {},
+    "fuseStatusUpdate": {
+      "prevStatus": "?RPCTypes.FuseStatus",
+      "status": "RPCTypes.FuseStatus"
     }
   }
 }

@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as RPCTypes from './rpc-gen'
 import {type IconType} from '../../common-adapters/icon'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -82,6 +83,7 @@ export type _State = {
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, TransferState>,
+  fuseStatus: ?RPCTypes.FuseStatus,
 }
 export type State = I.RecordOf<_State>
 

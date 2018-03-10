@@ -1,8 +1,9 @@
 // @flow
 import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
-import fs from 'fs'
 import * as Constants from '../constants/config'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import fs from 'fs'
 import type {TypedState} from '../constants/reducer'
 import {shell} from 'electron'
 import {isLinux, isWindows} from '../constants/platform'
@@ -102,10 +103,72 @@ function _open(openPath: string): Promise<*> {
 
 export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
   const openPath = path || Constants.defaultKBFSPath
-  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(_open, openPath)
   } else {
     return Saga.sequentially([Saga.put(navigateTo([], [fsTab])), Saga.put(switchTo([fsTab]))])
   }
+}
+
+// TODO: uncomment
+// function waitForMount(attempt: number): Promise<*> {
+//   return new Promise((resolve, reject) => {
+//     // Read the KBFS path waiting for files to exist, which means it's mounted
+//     fs.readdir(Constants.defaultKBFSPath, (err, files) => {
+//       if (!err && files.length > 0) {
+//         resolve(true)
+//       } else if (attempt > 15) {
+//         reject(new Error(`${Constants.defaultKBFSPath} is unavailable. Please try again.`))
+//       } else {
+//         setTimeout(() => {
+//           waitForMount(attempt + 1).then(resolve, reject)
+//         }, 1000)
+//       }
+//     })
+//   })
+// }
+//
+// function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
+//   yield Saga.put(FsGen.createSetOpening({opening: true}))
+//   try {
+//     yield Saga.call(waitForMount, 0)
+//     // TODO: switch to reimplemented `openWithCurrenMountDir`
+//     yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Constants.defaultKBFSPath}}))
+//   } finally {
+//     yield Saga.put(FsGen.createSetOpening({opening: false}))
+//   }
+// }
+//
+// function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
+//   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+//   yield Saga.put(FsGen.createInstallKBFSResult({result}))
+//   yield Saga.put(FsGen.createSetOpening({opening: true}))
+//   yield Saga.put(FsGen.createInstallKBFSFinished())
+//   yield Saga.call(waitForMountAndOpenSaga)
+// }
+
+export function fuseStatusUpdateSaga({payload: {prevStatus, status}}: FsGen.FuseStatusUpdatePayload) {
+  // If our kextStarted status changed, finish KBFS install
+  // TODO: uncomment
+  // if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
+  //   return Saga.call(installKBFSSaga)
+  // }
+}
+
+export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  const prevStatus = state.favorite.fuseStatus
+
+  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
+  if (isWindows && status.installStatus !== 4) {
+    // Check if another Dokan we didn't install mounted the filesystem
+    const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
+    if (kbfsMount && fs.existsSync(kbfsMount)) {
+      status.installStatus = 4 // installed
+      status.installAction = 1 // none
+      status.kextStarted = true
+    }
+  }
+  yield Saga.put(FsGen.createFuseStatusUpdate({prevStatus, status}))
 }
