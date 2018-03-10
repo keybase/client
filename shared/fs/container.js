@@ -71,16 +71,21 @@ const ConnectedFiles = compose(
 )(Files)
 
 const FilesLoadingHoc = compose(
-  connect(), // provides `dispatch`
-  mapProps(({routeProps, dispatch}) => ({
-    path: routeProps.get('path', Constants.defaultPath),
+  connect(undefined, (dispatch: Dispatch) => ({
     loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  })),
+  mapProps(({routeProps, loadFolderList}) => ({
+    path: routeProps.get('path', Constants.defaultPath),
+    loadFolderList,
   })),
   lifecycle({
     componentWillMount() {
       this.props.loadFolderList(this.props.path)
     },
-    componentWillUpdate(nextProps) {
+    componentWillReceiveProps(nextProps) {
+      if (this.props.path === nextProps.path) {
+        return
+      }
       this.props.loadFolderList(nextProps.path)
     },
   }),
