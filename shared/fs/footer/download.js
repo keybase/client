@@ -9,7 +9,7 @@ export type DownloadProps = {
   completePortion: number,
   progressText: string,
   isDone: boolean,
-  open: () => void,
+  open?: () => void,
   dismiss: () => void,
 }
 

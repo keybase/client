@@ -5,7 +5,7 @@ import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './header/breadcrumb-popup'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import RowPopupMenu from './row/popup'
+import RowPopupMenu from './row/popup-container'
 
 const _folderRoute = {
   children: {
@@ -21,7 +21,7 @@ const _folderRoute = {
     rowAction: {
       component: RelativePopupHoc(RowPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
-    }
+    },
   },
   component: Files,
 }

@@ -1,39 +1,78 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, glamorous} from '../../styles'
 import memoize from 'lodash/memoize'
 import {Box, ClickableBox, Icon, Text, Divider} from '../../common-adapters'
 import PathItemIcon from './path-item-icon'
+import PathItemInfo from './path-item-info'
 
 type RowProps = {
   name: string,
   type: Types.PathType,
+  lastModifiedTimestamp: number,
+  lastWriter: string,
   itemStyles: Types.ItemStyles,
   onOpen: () => void,
   openInFileUI: () => void,
-  onAction: () => void,
+  onAction: (event: SyntheticEvent<>) => void,
 }
 
-export const Row = ({name, type, itemStyles, onOpen, openInFileUI, onAction}: RowProps) => (
+const HoverBox = glamorous(Box)({
+  '& .fs-path-item-hover-icon': {
+    color: globalColors.white,
+  },
+  ':hover .fs-path-item-hover-icon': {
+    color: globalColors.black_40,
+  },
+  '& .fs-path-item-hover-icon:hover': {
+    color: globalColors.black_60,
+  },
+})
+
+export const Row = ({
+  name,
+  type,
+  lastModifiedTimestamp,
+  lastWriter,
+  itemStyles,
+  onOpen,
+  openInFileUI,
+  onAction,
+}: RowProps) => (
   <Box>
     <Box style={stylesCommonRow}>
-      <Box style={stylesRowContainer}>
+      <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={onOpen} style={stylesRowBox}>
-          <PathItemIcon spec={itemStyles.iconSpec} />
+          <PathItemIcon spec={itemStyles.iconSpec} style={pathItemIconStyle} />
           <Box style={folderBoxStyle}>
             <Text type={itemStyles.textType} style={rowTextStyles(itemStyles.textColor)}>
               {name}
             </Text>
+            {type !== 'folder' ? (
+              <PathItemInfo lastModifiedTimestamp={lastModifiedTimestamp} lastWriter={lastWriter} />
+            ) : (
+              undefined
+            )}
           </Box>
         </ClickableBox>
         {!isMobile && (
           <Box style={stylesRowRightBox}>
-            <Icon type="iconfont-finder" style={rowActionIconStyle} onClick={openInFileUI} />
-            <Icon type="iconfont-ellipsis" style={rowActionIconStyle} onClick={onAction} />
+            <Icon
+              type="iconfont-finder"
+              style={rowActionIconStyle}
+              onClick={openInFileUI}
+              className="fs-path-item-hover-icon"
+            />
+            <Icon
+              type="iconfont-ellipsis"
+              style={rowActionIconStyle}
+              onClick={onAction}
+              className="fs-path-item-hover-icon"
+            />
           </Box>
         )}
-      </Box>
+      </HoverBox>
     </Box>
     <Divider style={stylesRowDivider} />
   </Box>
@@ -49,6 +88,10 @@ export const Placeholder = () => (
     </Box>
   </Box>
 )
+
+const pathItemIconStyle = {
+  marginRight: globalMargins.small,
+}
 
 const placeholderIcon = isMobile ? 'iconfont-folder-private' : 'iconfont-folder-private'
 
@@ -68,10 +111,8 @@ const folderBoxStyle = {
 }
 
 const rowActionIconStyle = {
-  color: globalColors.black_40, // TODO: fix hover
   fontSize: 16,
   marginLeft: globalMargins.small,
-  hoverColor: globalColors.black_60,
 }
 
 const stylesRowDivider = {

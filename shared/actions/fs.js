@@ -27,6 +27,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const direntToMetadata = (d: RPCTypes.Dirent) => ({
     name: d.name,
     lastModifiedTimestamp: d.time,
+    lastWriter: 'jareddunn', // TODO fix this when we have it from RPC
     size: d.size,
   })
 
@@ -63,7 +64,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
   yield Saga.put(FsGen.createDownloadStarted({key, path, localPath}))
 
-  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRpcPromise, {
+  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
