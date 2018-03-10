@@ -117,7 +117,10 @@ export default compose(
         // Mark it as saved
         if (nextProps.saveState === 'saving') {
           nextProps.updateSaveState('justSaved')
-          setTimeout(() => {
+          if (this.timeoutID) {
+            clearTimeout(this.timeoutID)
+          }
+          this.timeoutID = setTimeout(() => {
             nextProps.updateSaveState('same')
           }, 2500)
         }
