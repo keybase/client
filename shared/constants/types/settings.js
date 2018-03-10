@@ -46,6 +46,7 @@ export type PassphraseState = {
   newPassphraseError: ?HiddenString,
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
+  rememberPassphrase: boolean,
 }
 
 export type EmailState = {

@@ -19,6 +19,8 @@ export type AccountProps = {
   isVerified: boolean,
   onChangeEmail: () => void,
   onChangePassphrase: () => void,
+  onChangeRememberPassphrase: (remember: boolean) => void,
+  rememberPassphrase: boolean,
 }
 
 export type Props = {
