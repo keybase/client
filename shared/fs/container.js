@@ -1,13 +1,21 @@
 // @flow
 import * as I from 'immutable'
-import {compose, connect, lifecycle, setDisplayName, type Dispatch, type TypedState} from '../util/container'
+import {
+  compose,
+  connect,
+  lifecycle,
+  mapProps,
+  setDisplayName,
+  type Dispatch,
+  type TypedState,
+} from '../util/container'
 import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
 type OwnProps = {
-  routeProps: I.Map<'path', string>,
+  path: Types.Path,
 }
 
 type StateProps = {
@@ -24,8 +32,7 @@ type DispatchProps = {
   loadFolderList: (path: Types.Path) => void,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
   const itemDetail = state.fs.pathItems.get(path)
   return {
     _itemNames: itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List(),
@@ -58,12 +65,33 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export default compose(
+const ConnectedFiles = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Files')
+)(Files)
+
+const FilesLoadingHoc = compose(
+  connect(undefined, (dispatch: Dispatch) => ({
+    loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  })),
+  mapProps(({routeProps, loadFolderList}) => ({
+    path: routeProps.get('path', Constants.defaultPath),
+    loadFolderList,
+  })),
   lifecycle({
     componentWillMount() {
       this.props.loadFolderList(this.props.path)
     },
+    componentWillReceiveProps(nextProps) {
+      // This check is needed since otherwise when e.g. user clicks a popup
+      // menu, we'd end up triggerring loadFolderList too even though we didn't
+      // navigate to a different path.
+      if (this.props.path !== nextProps.path) {
+        this.props.loadFolderList(nextProps.path)
+      }
+    },
   }),
-  setDisplayName('Files')
-)(Files)
+  setDisplayName('FilesLoadingHoc')
+)(ConnectedFiles)
+
+export default FilesLoadingHoc
