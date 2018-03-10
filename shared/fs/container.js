@@ -7,7 +7,7 @@ import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
 type OwnProps = {
-  routeProps: I.Map<'path', string>,
+  path: Types.Path,
 }
 
 type StateProps = {
@@ -24,8 +24,7 @@ type DispatchProps = {
   loadFolderList: (path: Types.Path) => void,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
   const itemDetail = state.fs.pathItems.get(path)
   return {
     _itemNames: itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List(),
@@ -58,12 +57,33 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export default compose(
+const ConnectedFiles = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('Files')
+)(Files)
+
+const FilesLoadingHoc = compose(
+  connect(
+    (state, {routeProps}) => ({
+      path: routeProps.get('path', Constants.defaultPath),
+    }),
+    (dispatch: Dispatch) => ({
+      loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+    }),
+    ({path}, {loadFolderList}) => ({
+      path,
+      loadFolderList,
+    })
+  ),
   lifecycle({
     componentWillMount() {
       this.props.loadFolderList(this.props.path)
     },
+    componentWillUpdate(nextProps) {
+      this.props.loadFolderList(nextProps.path)
+    },
   }),
-  setDisplayName('Files')
-)(Files)
+  setDisplayName('FilesLoadingHoc')
+)(ConnectedFiles)
+
+export default FilesLoadingHoc
