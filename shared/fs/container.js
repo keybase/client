@@ -84,6 +84,9 @@ const FilesLoadingHoc = compose(
     },
     componentWillReceiveProps(nextProps) {
       if (this.props.path === nextProps.path) {
+        // This check is needed since otherwise when e.g. user clicks a popup
+        // menu, we'd end up triggerring loadFolderList too even though we
+        // didn't navigate to a different path.
         return
       }
       this.props.loadFolderList(nextProps.path)
