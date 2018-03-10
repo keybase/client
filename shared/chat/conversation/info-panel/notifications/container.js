@@ -119,7 +119,7 @@ export default compose(
           nextProps.updateSaveState('justSaved')
           setTimeout(() => {
             nextProps.updateSaveState('same')
-          }, 300)
+          }, 2500)
         }
       } else {
         // did our local settings change at all?
