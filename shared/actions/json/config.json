@@ -57,11 +57,15 @@
     "readyForBootstrap": {},
     "retryBootstrap": {},
     "setInitialState": {
-      "initialState": "Types.InitialState"
+      "initialState": "?Types.InitialState"
     },
     "setOpenAtLogin": {
       "open": "boolean",
       "writeFile": "boolean"
-    }
+    },
+    "debugDump": {
+      "items": "Array<string>"
+    },
+    "setStartedDueToPush": { }
   }
 }

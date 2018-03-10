@@ -31,7 +31,7 @@ const Row = ({username, onUsernameClicked}) => (
   </ClickableBox>
 )
 
-const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) => (
+const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => (
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
       <Text
@@ -45,12 +45,9 @@ const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) 
     <NativeScrollView style={{flex: 1, paddingTop: 8}}>
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 8}}>
         <Box>
-          {!!rekeyInfo &&
-            rekeyInfo
-              .get('rekeyParticipants')
-              .map(username => (
-                <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
-              ))}
+          {rekeyers.map(username => (
+            <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
+          ))}
         </Box>
       </Box>
     </NativeScrollView>

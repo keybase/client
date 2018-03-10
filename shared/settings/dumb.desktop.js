@@ -143,6 +143,8 @@ const accountBase = {
   isVerified: true,
   onChangeEmail: () => console.log('onChangeEmail'),
   onChangePassphrase: () => console.log('onChangePassphrase'),
+  onChangeRememberPassphrase: () => console.log('onChangeRememberPassphrase'),
+  rememberPassphrase: true,
 }
 
 const planInfoBasic = {

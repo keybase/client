@@ -3,13 +3,13 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import {type ConversationIDKey} from '../../constants/types/chat'
+import {type ConversationIDKey} from '../../constants/types/chat2'
 import EditChannel from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
-  const conversationIDKey = routeProps.get('conversationIDKey') || ''
+  const conversationIDKey = routeProps.get('conversationIDKey')
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
   const waitingForSave = anyWaiting(
     state,

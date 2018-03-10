@@ -1,9 +1,9 @@
 // @flow
 import {connect, type TypedState} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/teams'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
-import {createOpenTeamConversation} from '../../../actions/chat-gen'
 import {navigateAppend} from '../../../actions/route-tree'
 import {TeamHeader} from '.'
 
@@ -37,12 +37,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     dispatch(
       navigateAppend([
         {
-          props: {teamname, position: 'bottom left', targetRect: target && target.getBoundingClientRect()},
+          props: {position: 'bottom left', targetRect: target && target.getBoundingClientRect(), teamname},
           selected: 'addPeopleHow',
         },
       ])
     ),
-  onChat: () => dispatch(createOpenTeamConversation({teamname, channelname: 'general'})),
+  onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
 })
 

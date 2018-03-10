@@ -3,11 +3,11 @@ import * as AppGen from '../actions/app-gen'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
-import routeDefs from './routes'
+import {loginRouteTree} from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
-import {setRouteDef} from '../actions/route-tree'
+import {refreshRouteDef, setInitialRouteDef} from '../actions/route-tree'
 import {setup as setupLocalDebug} from '../local-debug'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
@@ -24,7 +24,8 @@ module.hot &&
       // We use global.devStore because module scope variables seem to be cleared
       // out after a hot reload. Wacky.
       console.log('updating route defs due to hot reload')
-      global.store.dispatch(setRouteDef(require('./routes').default))
+      const routes = require('./routes')
+      global.store.dispatch(refreshRouteDef(routes.loginRouteTree, routes.appRouteTree))
     }
   })
 
@@ -38,8 +39,11 @@ class Keybase extends Component<any> {
       global.keybaseLoaded = true
       this.store = configureStore()
       global.store = this.store
+      if (__DEV__) {
+        global.DEBUGStore = this.store
+      }
       setupLocalDebug(this.store)
-      this.store.dispatch(setRouteDef(routeDefs))
+      this.store.dispatch(setInitialRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
     } else {
       this.store = global.store

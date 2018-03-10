@@ -256,7 +256,7 @@
     which is harmless -->
     <CustomAction Id="RemoveLegacyBundle"
               Directory="LocalAppDataFolder"
-              ExeCommand="[LocalAppDataFolder]\Package Cache\{12a069da-39ed-4f62-9bd4-8f33c39bd258}\Keybase_1.0.44-20180223131449+d993081.386.exe /quiet /uninstall"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{a7cab659-0cbf-4b72-a658-b386d3d1d785}\Keybase_1.0.45-20180305114930+3a1c65a.386.exe /quiet /uninstall"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>

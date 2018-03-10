@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
+import * as ChatTypes from '../../constants/types/chat2'
 import {PopupDialog, HeaderHoc} from '../../common-adapters'
 import {
   connect,
@@ -52,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const convIDs = stateProps._convIDs.toArray()
   // Without the .filter we get a bunch of intermediate arrays of [undefined, undefined, ...] leading
   // to React key prop errors
-  const channelNames = convIDs.reduce((result: Array<string>, id: string) => {
+  const channelNames = convIDs.reduce((result: Array<string>, id: ChatTypes.ConversationIDKey) => {
     const channelname = stateProps._channelInfo.get(id, {}).channelname
     !!channelname && result.push(channelname)
     return result

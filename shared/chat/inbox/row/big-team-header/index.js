@@ -90,7 +90,9 @@ const iconStyle = {
   padding: isMobile ? 8 : 4,
   paddingRight: isMobile ? 2 : 4,
   ...(isMobile
-    ? {}
+    ? {
+        backgroundColor: globalColors.fastBlank,
+      }
     : {
         hoverColor: globalColors.black_75,
       }),
@@ -133,6 +135,11 @@ const teamStyle = {
   flexGrow: 1,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
+  ...(isMobile
+    ? {
+        backgroundColor: globalColors.fastBlank,
+      }
+    : {}),
 }
 
 export {BigTeamHeader}

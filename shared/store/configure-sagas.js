@@ -1,5 +1,5 @@
 // @flow
-import chatSaga from '../actions/chat'
+import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
@@ -17,6 +17,7 @@ import routeSaga from '../actions/route-tree'
 import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
 import trackerSaga from '../actions/tracker'
+import usersSaga from '../actions/users'
 import unlockFoldersSaga from '../actions/unlock-folders'
 import pushSaga from '../actions/push'
 import {fork} from 'redux-saga/effects'
@@ -30,7 +31,7 @@ import {sagaTimer} from '../dev/user-timings'
 import type {SagaGenerator} from '../constants/types/saga'
 
 function* mainSaga(): SagaGenerator<any, any> {
-  yield fork(chatSaga)
+  yield fork(chat2Saga)
   yield fork(configSaga)
   yield fork(deviceSaga)
   yield fork(favoriteSaga)
@@ -50,6 +51,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(trackerSaga)
   yield fork(teamsSaga)
   yield fork(unlockFoldersSaga)
+  yield fork(usersSaga)
   yield fork(gitSaga)
   yield fork(peopleSaga)
 }

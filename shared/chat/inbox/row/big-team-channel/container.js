@@ -1,38 +1,34 @@
 // @flow
-import * as Selectors from '../selectors'
-import * as ChatGen from '../../../../actions/chat-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {BigTeamChannel} from '.'
-import {pausableConnect, type TypedState} from '../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, isActiveRoute}) => {
-  const p = Selectors.snippetRowSelector(state, conversationIDKey)
+const mapStateToProps = (state: TypedState, ownProps) => {
+  const _conversationIDKey = ownProps.conversationIDKey
+
   return {
-    channelname,
-    hasBadge: p.hasBadge,
-    hasUnread: p.hasUnread,
-    isActiveRoute,
-    isMuted: p.isMuted,
-    isSelected: p.isSelected,
-    showBold: p.showBold,
+    _meta: Constants.getMeta(state, _conversationIDKey),
+    hasBadge: Constants.getHasBadge(state, _conversationIDKey),
+    hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+    isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
-  onSelectConversation: () => {
-    dispatch(ChatGen.createSetInboxFilter({filter: ''}))
-    dispatch(ChatGen.createSelectConversation({conversationIDKey, fromUser: true}))
-  },
+  onSelectConversation: () =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  channelname: stateProps.channelname,
+  channelname: ownProps.channelname,
   hasBadge: stateProps.hasBadge,
   hasUnread: stateProps.hasUnread,
-  isActiveRoute: stateProps.isActiveRoute,
-  isMuted: stateProps.isMuted,
+  isError: stateProps._meta.trustedState === 'error',
+  isMuted: stateProps._meta.isMuted,
   isSelected: stateProps.isSelected,
   onSelectConversation: dispatchProps.onSelectConversation,
-  showBold: stateProps.showBold,
+  showBold: Constants.getRowStyles(stateProps._meta, false, false).showBold,
 })
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamChannel)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BigTeamChannel)

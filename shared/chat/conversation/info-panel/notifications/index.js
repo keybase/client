@@ -1,16 +1,29 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-import {type NotifyType, type NotificationSaveState} from '../../../../constants/types/chat'
 
-const SaveStateComponents = (saveState: NotificationSaveState) => {
+export type SaveStateType = 'same' | 'saving' | 'justSaved'
+export type Props = {
+  channelWide: boolean,
+  desktop: Types.NotificationsType,
+  mobile: Types.NotificationsType,
+  muted: boolean,
+  saveState: SaveStateType,
+  toggleMuted: () => void,
+  updateDesktop: Types.NotificationsType => void,
+  updateMobile: Types.NotificationsType => void,
+  toggleChannelWide: () => void,
+}
+
+const SaveStateComponent = ({saveState}) => {
   switch (saveState) {
-    case 'unsaved':
+    case 'same':
       return null
     case 'saving':
       return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
-    case 'saved':
+    case 'justSaved':
       return [
         <Icon key="0" type="iconfont-check" style={{color: globalColors.green}} />,
         <Text key="1" type="BodySmall" style={{color: globalColors.green}}>
@@ -20,29 +33,7 @@ const SaveStateComponents = (saveState: NotificationSaveState) => {
   }
 }
 
-export type Props = {
-  channelWide: boolean,
-  desktop: NotifyType,
-  mobile: NotifyType,
-  muted: boolean,
-  saveState: NotificationSaveState,
-  onMuteConversation: (muted: boolean) => void,
-  onSetDesktop: NotifyType => void,
-  onSetMobile: NotifyType => void,
-  onToggleChannelWide: () => void,
-}
-
-export const Notifications = ({
-  channelWide,
-  desktop,
-  mobile,
-  muted,
-  saveState,
-  onMuteConversation,
-  onSetDesktop,
-  onSetMobile,
-  onToggleChannelWide,
-}: Props) => (
+export const Notifications = (props: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -57,12 +48,7 @@ export const Notifications = ({
         marginBottom: globalMargins.xtiny,
       }}
     >
-      <Checkbox
-        checked={muted}
-        disabled={onMuteConversation == null}
-        onCheck={onMuteConversation}
-        label="Mute all notifications"
-      />
+      <Checkbox checked={props.muted} onCheck={props.toggleMuted} label="Mute all notifications" />
       <Icon
         type="iconfont-shh"
         style={{
@@ -74,9 +60,9 @@ export const Notifications = ({
     </Box>
 
     <Checkbox
-      checked={!channelWide}
+      checked={!props.channelWide}
       label="Ignore @here and @channel mentions"
-      onCheck={onToggleChannelWide}
+      onCheck={props.toggleChannelWide}
     />
 
     <Box style={isMobile ? styleHeaderMobile : styleHeader}>
@@ -90,24 +76,24 @@ export const Notifications = ({
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => onSetDesktop('generic')}
-        selected={desktop === 'generic'}
+        onSelect={() => props.updateDesktop('onAnyActivity')}
+        selected={props.desktop === 'onAnyActivity'}
         label={'On any activity'}
       />
     </Box>
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => onSetDesktop('atmention')}
-        selected={desktop === 'atmention'}
+        onSelect={() => props.updateDesktop('onWhenAtMentioned')}
+        selected={props.desktop === 'onWhenAtMentioned'}
         label={'Only when @mentioned'}
       />
     </Box>
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => onSetDesktop('never')}
-        selected={desktop === 'never'}
+        onSelect={() => props.updateDesktop('never')}
+        selected={props.desktop === 'never'}
         label={'Never'}
       />
     </Box>
@@ -123,28 +109,30 @@ export const Notifications = ({
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => onSetMobile('generic')}
-        selected={mobile === 'generic'}
+        onSelect={() => props.updateMobile('onAnyActivity')}
+        selected={props.mobile === 'onAnyActivity'}
         label={'On any activity'}
       />
     </Box>
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => onSetMobile('atmention')}
-        selected={mobile === 'atmention'}
+        onSelect={() => props.updateMobile('onWhenAtMentioned')}
+        selected={props.mobile === 'onWhenAtMentioned'}
         label={'Only when @mentioned'}
       />
     </Box>
     <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
-        onSelect={() => onSetMobile('never')}
-        selected={mobile === 'never'}
+        onSelect={() => props.updateMobile('never')}
+        selected={props.mobile === 'never'}
         label={'Never'}
       />
     </Box>
-    <Box style={styleSaveState}>{SaveStateComponents(saveState)}</Box>
+    <Box style={styleSaveState}>
+      <SaveStateComponent saveState={props.saveState} />
+    </Box>
   </Box>
 )
 

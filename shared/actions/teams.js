@@ -7,15 +7,15 @@ import * as I from 'immutable'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
-import * as ChatConstants from '../constants/chat'
-import * as ChatTypes from '../constants/types/chat'
+import * as ChatConstants from '../constants/chat2'
+import * as ChatTypes from '../constants/types/chat2'
 import * as SearchConstants from '../constants/search'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
-import * as ChatGen from './chat-gen'
+import * as Chat2Gen from './chat2-gen'
 import engine from '../engine'
 import {replaceEntity} from './entities'
 import {usernameSelector} from '../constants/selectors'
@@ -244,25 +244,19 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
   }
 }
 
-function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) {
-  if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
-
-  return state.chat.pendingConversations.get(conversationIDKey)
-}
-
 const _createNewTeamFromConversation = function*(
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ): Saga.SagaGenerator<any, any> {
   const {conversationIDKey, teamname} = action.payload
   const state: TypedState = yield Saga.select()
   const me = usernameSelector(state)
-  const inbox = ChatConstants.getInbox(state, conversationIDKey)
-  let participants
+  let participants: Array<string> = []
 
-  if (inbox) {
-    participants = inbox.get('participants')
+  if (state.chat2.pendingSelected) {
+    participants = state.chat2.pendingConversationUsers.toArray()
   } else {
-    participants = getPendingConvParticipants(state, conversationIDKey)
+    const meta = ChatConstants.getMeta(state, conversationIDKey)
+    participants = meta.participants.toArray()
   }
 
   if (participants) {
@@ -270,10 +264,10 @@ const _createNewTeamFromConversation = function*(
     yield Saga.put(TeamsGen.createSetTeamCreationPending({pending: true}))
     try {
       const createRes = yield Saga.call(RPCTypes.teamsTeamCreateRpcPromise, {
-        name: teamname,
         joinSubteam: false,
+        name: teamname,
       })
-      for (const username of participants.toArray()) {
+      for (const username of participants) {
         if (!createRes.creatorAdded || username !== me) {
           yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
             email: '',
@@ -284,8 +278,11 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(ChatGen.createExitSearch({skipSelectPreviousConversation: true}))
-      yield Saga.put(ChatGen.createOpenTeamConversation({teamname, channelname: 'general'}))
+      yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
+      if (state.chat2.pendingSelected) {
+        yield Saga.put(Chat2Gen.createExitSearch())
+        yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      }
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {
@@ -563,7 +560,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
       })
     }
     const convID =
-      channelnameToConvID[channelname] && ChatConstants.keyToConversationID(channelnameToConvID[channelname])
+      channelnameToConvID[channelname] && ChatTypes.keyToConversationID(channelnameToConvID[channelname])
     if (convID) {
       // $FlowIssue doens't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
@@ -609,7 +606,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     })
 
     // No error if we get here.
-    const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
+    const newConversationIDKey = result ? ChatTypes.conversationIDToKey(result.conv.info.id) : null
     if (!newConversationIDKey) {
       logger.warn('No convoid from newConvoRPC')
       return null
@@ -633,7 +630,7 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     )
 
     // Select the new channel, and switch to the chat tab.
-    yield Saga.put(ChatGen.createSelectConversation({conversationIDKey: newConversationIDKey}))
+    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey}))
     yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
@@ -779,7 +776,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
   const waitingKey = {key: `updateTopic:${conversationIDKey}`}
   const param = {
-    conversationID: ChatConstants.keyToConversationID(conversationIDKey),
+    conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
     tlfPublic: false,
     headline: newTopic,
@@ -804,7 +801,7 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
   const waitingKey = {key: `updateChannelName:${conversationIDKey}`}
   const param = {
     channelName: newChannelName,
-    conversationID: ChatConstants.keyToConversationID(conversationIDKey),
+    conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
     tlfPublic: false,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -831,7 +828,7 @@ function _deleteChannelConfirmed(action: TeamsGen.DeleteChannelConfirmedPayload,
     return
   }
   const param = {
-    convID: ChatConstants.keyToConversationID(conversationIDKey),
+    convID: ChatTypes.keyToConversationID(conversationIDKey),
     channelName,
     confirmed: true,
   }
@@ -918,6 +915,26 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
   }
 }
 
+const _setChannelCreationError = (action: TeamsGen.SetChannelCreationErrorPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({channelCreationError: action.payload.error})))
+
+const _setTeamCreationError = (action: TeamsGen.SetTeamCreationErrorPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({teamCreationError: action.payload.error})))
+
+const _setTeamCreationPending = (action: TeamsGen.SetTeamCreationPendingPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({teamCreationPending: action.payload.pending})))
+
+const _setTeamJoinError = (action: TeamsGen.SetTeamJoinErrorPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map({teamJoinError: action.payload.error})))
+
+const _setTeamJoinSuccess = (action: TeamsGen.SetTeamJoinSuccessPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams'],
+      I.Map({teamJoinSuccess: action.payload.success, teamJoinTeamName: action.payload.teamname})
+    )
+  )
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -942,6 +959,11 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(TeamsGen.setChannelCreationError, _setChannelCreationError)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationError, _setTeamCreationError)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationPending, _setTeamCreationPending)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinError, _setTeamJoinError)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinSuccess, _setTeamJoinSuccess)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

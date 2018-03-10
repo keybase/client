@@ -1,15 +1,15 @@
 // @flow
 import * as TeamsGen from '../actions/teams-gen'
 import NewTeamDialog from '../teams/new-team'
-import {connect} from 'react-redux'
-import {compose, withState, withHandlers} from 'recompose'
-import {type TypedState} from '../constants/reducer'
 import upperFirst from 'lodash/upperFirst'
-import {lifecycle} from '../util/container'
+import {connect, lifecycle, type TypedState, compose, withStateHandlers} from '../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  errorText: upperFirst(state.chat.teamCreationError),
-  pending: state.chat.teamCreationPending,
+  baseTeam: '',
+  errorText: upperFirst(state.entities.teams.teamCreationError),
+  isSubteam: false,
+  joinSubteam: false,
+  pending: state.entities.teams.teamCreationPending,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
@@ -25,19 +25,23 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
+  onJoinSubteamChange: () => {},
 })
 
-const NewTeamDialogFromChat = compose(
+export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('name', 'onNameChange', ''),
-  withHandlers({
-    onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
-  }),
+  withStateHandlers(
+    {name: ''},
+    {
+      onNameChange: () => (name: string) => ({name}),
+      onSubmit: ({name}, {_onCreateNewTeam}) => () => {
+        _onCreateNewTeam(name)
+      },
+    }
+  ),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._onSetTeamCreationError('')
     },
   })
 )(NewTeamDialog)
-
-export default NewTeamDialogFromChat

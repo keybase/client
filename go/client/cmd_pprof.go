@@ -97,16 +97,105 @@ func NewCmdPprofTraceRunner(g *libkb.GlobalContext) *CmdPprofTrace {
 	}
 }
 
+type CmdPprofCPU struct {
+	libkb.Contextified
+	writeToLogDir   bool
+	profileFile     string
+	profileDuration time.Duration
+}
+
+func (c *CmdPprofCPU) ParseArgv(ctx *cli.Context) error {
+	args := ctx.Args()
+	argErr := errors.New("CPU profile needs a single file path or --log, and not both")
+	writeToLogDir := ctx.Bool("log")
+	if len(args) == 0 && writeToLogDir {
+		c.writeToLogDir = true
+	} else if len(args) == 1 && !writeToLogDir {
+		absPath, err := filepath.Abs(args.First())
+		if err != nil {
+			return err
+		}
+		c.profileFile = absPath
+	} else {
+		return argErr
+	}
+
+	c.profileDuration = ctx.Duration("duration")
+	if c.profileDuration <= 0 {
+		return fmt.Errorf("Invalid duration %s", c.profileDuration)
+	}
+	return nil
+}
+
+func (c *CmdPprofCPU) Run() error {
+	cli, err := GetPprofClient(c.G())
+	if err != nil {
+		return err
+	}
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
+		return err
+	}
+
+	durationSeconds := keybase1.DurationSec(c.profileDuration.Seconds())
+	if c.writeToLogDir {
+		return cli.LogProcessorProfile(context.TODO(), keybase1.LogProcessorProfileArg{
+			SessionID:              0,
+			ProfileDurationSeconds: durationSeconds,
+		})
+	}
+	return cli.ProcessorProfile(context.TODO(), keybase1.ProcessorProfileArg{
+		SessionID:              0,
+		ProfileFile:            c.profileFile,
+		ProfileDurationSeconds: durationSeconds,
+	})
+}
+
+func NewCmdPprofCPU(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "cpu",
+		ArgumentHelp: "[/path/to/cpu.profile.out]",
+		Usage:        "Run an CPU profile asynchronously.",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdPprofCPURunner(g), "cpu", c)
+		},
+		Flags: []cli.Flag{
+			cli.DurationFlag{
+				Name:  "duration, d",
+				Value: 5 * time.Second,
+				Usage: "How long to run the trace.",
+			},
+			cli.BoolFlag{
+				Name:  "log, l",
+				Usage: "Whether to write the CPU profile to the log directory so that it gets included in a log send. If set, don't pass an argument.",
+			},
+		},
+	}
+}
+
+func NewCmdPprofCPURunner(g *libkb.GlobalContext) *CmdPprofCPU {
+	return &CmdPprofCPU{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
 func NewCmdPprof(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name: "pprof",
 		Subcommands: []cli.Command{
 			NewCmdPprofTrace(cl, g),
+			NewCmdPprofCPU(cl, g),
 		},
 	}
 }
 
 func (c *CmdPprofTrace) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}
+
+func (c *CmdPprofCPU) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

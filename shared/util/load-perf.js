@@ -45,14 +45,17 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
   const ret = compare ? compare.call(compareContext, objA, objB) : void 0
 
   if (ret !== void 0) {
+    console.log('Defer to compare function', ret)
     return !!ret
   }
 
   if (objA === objB) {
+    console.log('Strictly equal ===')
     return true
   }
 
   if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
+    console.log('Both not objects or one is null?')
     return false
   }
 
@@ -61,6 +64,7 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
 
   const len = keysA.length
   if (len !== keysB.length) {
+    console.log('Different number of keys', keysA, keysB)
     return false
   }
 
@@ -82,5 +86,6 @@ function shallowEqualDebug(objA, objB, compare, compareContext) {
     }
   }
 
+  console.log('Shallow equal')
   return true
 }

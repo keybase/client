@@ -4,13 +4,13 @@ import ReactList from 'react-list'
 import {ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
-import FloatingDivider from './row/floating-divider/container'
+import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
-import NewConversation from './row/new-conversation'
+import NewConversation from './new-conversation/container'
 
 import type {Props} from './'
 
@@ -23,15 +23,27 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
+  _mounted: boolean = true
   _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
-    if (
-      (this.props.rows !== prevProps.rows && prevProps.rows.length) ||
-      this.props.smallTeamsHiddenRowCount > 0 !== prevProps.smallTeamsHiddenRowCount > 0
-    ) {
-      this._updateShowFloating()
+    // If we click the expand button lets try and show the floater. Kinda tricky as we decide if we're showing it
+    // based on a callback the list gives us so there's a race. Let's just give it half a sec
+    if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
+      if (this.props.smallTeamsExpanded) {
+        setTimeout(() => {
+          this._updateShowFloating()
+        }, 500)
+      }
     }
+  }
+
+  componentDidMount() {
+    this._mounted = true
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
   }
 
   _itemSizeGetter = index => {
@@ -65,13 +77,15 @@ class Inbox extends PureComponent<Props, State> {
       channelname: row.channelname,
       conversationIDKey: row.conversationIDKey,
       filtered: !!this.props.filter,
-      isActiveRoute: true,
       teamname: row.teamname,
       type: row.type,
     })
   }
 
   _updateShowFloating = () => {
+    if (!this._mounted) {
+      return
+    }
     let showFloating = true
     if (this._list) {
       const [, last] = this._list.getVisibleRange()
@@ -84,9 +98,7 @@ class Inbox extends PureComponent<Props, State> {
       }
     }
 
-    if (this.state.showFloating !== showFloating) {
-      this.setState({showFloating})
-    }
+    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
   }
 
   _onScroll = () => {
@@ -101,9 +113,14 @@ class Inbox extends PureComponent<Props, State> {
 
     const [first, end] = this._list.getVisibleRange()
     if (typeof first === 'number') {
-      const toUnbox = this.props.rows.slice(first, end).filter(r => r.type === 'small' && r.conversationIDKey)
-      // $FlowIssue doesn't understand that we filtered out the nulls
-      this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
+      const toUnbox = this.props.rows.slice(first, end).reduce((arr, r) => {
+        if (r.type === 'small' && r.conversationIDKey) {
+          arr.push(r.conversationIDKey)
+        }
+        return arr
+      }, [])
+
+      this.props.onUntrustedInboxVisible(toUnbox)
     }
   }, 200)
 
@@ -117,6 +134,11 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   render() {
+    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
+    const floatingDivider = this.state.showFloating &&
+      this.props.showSmallTeamsExpandDivider && (
+        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+      )
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
@@ -131,7 +153,7 @@ class Inbox extends PureComponent<Props, State> {
             onSelectUp={this.props.onSelectUp}
             onSelectDown={this.props.onSelectDown}
           />
-          {this.props.showNewConversation && <NewConversation />}
+          <NewConversation />
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
               ref={this._setRef}
@@ -142,16 +164,8 @@ class Inbox extends PureComponent<Props, State> {
               itemSizeGetter={this._itemSizeGetter}
             />
           </div>
-          {!this.props.rows.length && !!this.props.filter && <Owl />}
-          {this.state.showFloating &&
-            this.props.showSmallTeamsExpandDivider && (
-              <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />
-            )}
-          {/*
-            // TODO when the teams tab exists
-            this.props.showBuildATeam &&
-              <BuildATeam />
-              */}
+          {owl}
+          {floatingDivider}
         </div>
       </ErrorBoundary>
     )

@@ -47,7 +47,7 @@ NonEndBlankLine
 // instantiations of __INLINE_RULE__.
 
 InlineStartCommon
-  = InlineCode / Italic / Bold / Link / Mention / Channel / Strike / Text / Emoji / NativeEmoji
+  = InlineCode / Phone / Italic / Bold / Link / Mention / Channel / Strike / Text / Emoji / NativeEmoji
 
 InlineCont
  = !CodeBlock (Text / Emoji / NativeEmoji / EscapedChar / SpecialChar)
@@ -70,12 +70,14 @@ EmojiMarker = ":"
 QuoteBlockMarker = ">"
 MentionMarker = "@"
 ChannelMarker = "#"
+PhoneMarker = "("
+PhonePostfix = ")"
 
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
 SpecialChar
- = EscapeMarker / StrikeMarker / MentionMarker / ChannelMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
+ = EscapeMarker / StrikeMarker / MentionMarker / PhoneMarker / ChannelMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
@@ -117,6 +119,15 @@ Channel
   return name.length > 0 && name.length <= 20 &&
     options && options.channelNameToConvID && options.channelNameToConvID(name)
 } { return {type: 'channel', children: [name], convID: options && options.channelNameToConvID && options.channelNameToConvID(name) } }
+
+Num = [0-9]
+Phone
+ = phone:($ (
+   (PhoneMarker? Num Num Num PhonePostfix Space? Num Num Num [- ] Num Num Num Num !NonBlank) /
+   (PhoneMarker? Num Num Num [- ] Num Num Num [- ] Num Num Num Num !NonBlank) /
+   (PhoneMarker? Num Num Num Num Num Num Num Num Num Num !NonBlank))) {
+    return {type: 'phone', href: 'tel:'+phone, children: [phone]}
+   }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? code:($ (!Ticks3 .)+) Ticks3 { return {type: 'code-block', children: [code]} }
@@ -220,13 +231,10 @@ Link
     /* ============ */
 
     const matches = linkExp.exec(URL)
-    url._data = {leading: leading, matches: matches, trailing: trailing, URL: URL}
+    url._data = {leading, matches, trailing, URL}
     return matches
   } {
-    const leading = url._data.leading
-    const matches = url._data.matches
-    const trailing = url._data.trailing
-    const URL = url._data.URL
+    const {leading, matches, trailing, URL} = url._data
     delete url._data
     let href = matches[0]
     if (!(href.toLowerCase().startsWith('http://') || href.toLowerCase().startsWith('https://'))) {

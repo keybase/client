@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/pprof"
 	"runtime/trace"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -35,45 +37,162 @@ func durationSecToDuration(s keybase1.DurationSec) time.Duration {
 	return time.Duration(float64(s) * float64(time.Second))
 }
 
-func (c *PprofHandler) trace(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
-	if !filepath.IsAbs(traceFile) {
-		return fmt.Errorf("%q is not an absolute path", traceFile)
+type timedProfiler interface {
+	Name() string
+
+	MaxFileCount() int
+	MakeFilename(dir string, start time.Time, duration time.Duration) string
+	GetSortedFiles(dir string) ([]string, error)
+
+	Start(w io.Writer) error
+	Stop()
+}
+
+// doTimedProfile asynchronously runs a profile with the given
+// timedProfiler and associated parameters.
+func doTimedProfile(log libkb.LogUI, delayedLog logger.Logger,
+	profiler timedProfiler, outputFile string,
+	durationSeconds keybase1.DurationSec) (err error) {
+	if !filepath.IsAbs(outputFile) {
+		return fmt.Errorf("%q is not an absolute path", outputFile)
 	}
 
 	close := func(c io.Closer) {
 		err := c.Close()
 		if err != nil {
-			ctx.LogUI.Warning("Failed to close %s: %s", traceFile, err)
+			log.Warning("Failed to close %s: %s", outputFile, err)
 		}
 	}
+
+	name := profiler.Name()
 
 	defer func() {
 		if err != nil {
-			ctx.LogUI.Warning("Failed to trace to %s for %.2f second(s): %s", traceFile, traceDurationSeconds, err)
+			log.Warning("Failed to do %s profile to %s for %.2f second(s): %s", name, outputFile, durationSeconds, err)
 		}
 	}()
 
-	f, err := os.Create(traceFile)
+	f, err := os.Create(outputFile)
 	if err != nil {
 		return err
 	}
 
-	err = trace.Start(f)
+	err = profiler.Start(f)
 	if err != nil {
 		close(f)
 		return err
 	}
 
-	c.G().Log.Info("Tracing to %s for %.2f second(s)", traceFile, traceDurationSeconds)
+	log.Info("Doing %s profile to %s for %.2f second(s)", name, outputFile, durationSeconds)
 
 	go func() {
-		time.Sleep(durationSecToDuration(traceDurationSeconds))
-		trace.Stop()
+		time.Sleep(durationSecToDuration(durationSeconds))
+		profiler.Stop()
 		close(f)
-		c.G().Log.Info("Tracing to %s done", traceFile)
+		delayedLog.Info("%s profile to %s done", name, outputFile)
 	}()
 
 	return nil
+}
+
+func doTimedProfileInDir(log libkb.LogUI, delayedLog logger.Logger,
+	profiler timedProfiler, dir string,
+	durationSeconds keybase1.DurationSec) (err error) {
+	name := profiler.Name()
+	maxFileCount := profiler.MaxFileCount()
+	files, err := profiler.GetSortedFiles(dir)
+	if err != nil {
+		log.Warning("Error getting %s profile files in %q: %s",
+			name, dir, err)
+	} else if len(files)+1 > maxFileCount {
+		// Remove old trace files.
+		toRemove := files[:len(files)+1-maxFileCount]
+		for _, path := range toRemove {
+			log.Info("Removing old %s profile file %q", name, path)
+			err := os.Remove(path)
+			if err != nil {
+				log.Warning("Error on os.Remove(%q): %s", path, err)
+			}
+		}
+	}
+
+	outputFile := profiler.MakeFilename(dir, time.Now(), durationSecToDuration(durationSeconds))
+	return doTimedProfile(log, delayedLog, profiler, outputFile, durationSeconds)
+}
+
+type cpuProfiler struct{}
+
+func (cpuProfiler) Name() string { return "CPU" }
+
+func (cpuProfiler) MaxFileCount() int {
+	return libkb.MaxCPUProfileFileCount
+}
+
+func (cpuProfiler) MakeFilename(dir string, start time.Time, duration time.Duration) string {
+	return libkb.MakeCPUProfileFilename(dir, start, duration)
+}
+
+func (cpuProfiler) GetSortedFiles(dir string) ([]string, error) {
+	return libkb.GetSortedCPUProfileFiles(dir)
+}
+
+func (cpuProfiler) Start(w io.Writer) error {
+	return pprof.StartCPUProfile(w)
+}
+
+func (cpuProfiler) Stop() {
+	pprof.StopCPUProfile()
+}
+
+func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
+	ctx := engine.Context{
+		LogUI:     c.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	return doTimedProfile(ctx.LogUI, c.G().Log, cpuProfiler{}, arg.ProfileFile, arg.ProfileDurationSeconds)
+}
+
+func (c *PprofHandler) logDir(logDirForMobile string) string {
+	// Assume the returned directory already exists, i.e. we've
+	// already started logging.
+	if len(logDirForMobile) > 0 {
+		return logDirForMobile
+	}
+	return c.G().Env.GetLogDir()
+}
+
+func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogProcessorProfileArg) (err error) {
+	ctx := engine.Context{
+		LogUI:     c.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	return doTimedProfileInDir(ctx.LogUI, c.G().Log, cpuProfiler{}, c.logDir(arg.LogDirForMobile), arg.ProfileDurationSeconds)
+}
+
+type traceProfiler struct{}
+
+func (traceProfiler) Name() string { return "trace" }
+
+func (traceProfiler) MaxFileCount() int { return libkb.MaxTraceFileCount }
+
+func (traceProfiler) MakeFilename(dir string, start time.Time, duration time.Duration) string {
+	return libkb.MakeTraceFilename(dir, start, duration)
+}
+
+func (traceProfiler) GetSortedFiles(dir string) ([]string, error) {
+	return libkb.GetSortedTraceFiles(dir)
+}
+
+func (traceProfiler) Start(w io.Writer) error {
+	return trace.Start(w)
+}
+
+func (traceProfiler) Stop() {
+	trace.Stop()
+}
+
+func (c *PprofHandler) trace(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
+	return doTimedProfile(ctx.LogUI, c.G().Log, traceProfiler{}, traceFile, traceDurationSeconds)
 }
 
 func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
@@ -81,7 +200,7 @@ func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err erro
 		LogUI:     c.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	return c.trace(ctx, arg.TraceFile, arg.TraceDurationSeconds)
+	return doTimedProfile(ctx.LogUI, c.G().Log, traceProfiler{}, arg.TraceFile, arg.TraceDurationSeconds)
 }
 
 func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
@@ -89,31 +208,5 @@ func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (er
 		LogUI:     c.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-
-	// Assume this directory already exists, i.e. we've already
-	// started logging.
-	var logDir string
-	if len(arg.LogDirForMobile) > 0 {
-		logDir = arg.LogDirForMobile
-	} else {
-		logDir = c.G().Env.GetLogDir()
-	}
-
-	traceFiles, err := libkb.GetSortedTraceFiles(logDir)
-	if err != nil {
-		ctx.LogUI.Warning("Error getting trace files in %q: %s", logDir, err)
-	} else if len(traceFiles)+1 > libkb.MaxTraceFileCount {
-		// Remove old trace files.
-		toRemove := traceFiles[:len(traceFiles)+1-libkb.MaxTraceFileCount]
-		for _, path := range toRemove {
-			c.G().Log.Info("Removing old trace file %q", path)
-			err := os.Remove(path)
-			if err != nil {
-				ctx.LogUI.Warning("Error on os.Remove(%q): %s", path, err)
-			}
-		}
-	}
-
-	traceFile := libkb.MakeTraceFilename(logDir, time.Now(), durationSecToDuration(arg.TraceDurationSeconds))
-	return c.trace(ctx, traceFile, arg.TraceDurationSeconds)
+	return doTimedProfileInDir(ctx.LogUI, c.G().Log, traceProfiler{}, c.logDir(arg.LogDirForMobile), arg.TraceDurationSeconds)
 }

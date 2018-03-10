@@ -2,6 +2,7 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import logger from '../logger'
 import * as AppGen from './app-gen'
+import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as DevicesTypes from '../constants/types/devices'
 import * as DevicesConstants from '../constants/devices'
@@ -9,6 +10,7 @@ import * as WaitingGen from './waiting-gen'
 import * as DevicesGen from './devices-gen'
 import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
+import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/login'
 import * as Constants from '../constants/login'
 import * as EngineRpc from '../constants/engine'
@@ -20,11 +22,11 @@ import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
 import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../constants/tabs'
-import {createSelectConversation} from './chat-gen'
 import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
-import {pathSelector, navigateTo, navigateAppend} from './route-tree'
+import {appRouteTree, loginRouteTree} from '../app/routes'
+import {pathSelector, navigateTo, navigateAppend, switchRouteDef} from './route-tree'
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
 
@@ -79,7 +81,9 @@ function* setCodePageOtherDeviceRole(codePageOtherDeviceRole: Types.DeviceRole):
 
 function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   const state = yield Saga.select()
-  const {loggedIn, registered, initialState} = state.config
+  const {loggedIn, registered, startedDueToPush} = state.config
+  // ignore initial state if we're here due to push
+  const initialState = startedDueToPush ? null : state.config.initialState
   const {justDeletedSelf, loginError} = state.login
   const {loggedInUserNavigated} = state.routeTree
   logger.info(
@@ -93,11 +97,13 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
   )
 
   // All branches except for when loggedIn is true,
-  // loggedInUserNavigated is false, and and initialState is null must
-  // finish by yielding an action which sets
+  // loggedInUserNavigated is false, and and initialState is null
+  // yield a switchRouteDef action with appRouteTree or
+  // loginRouteTree, and must finish by yielding an action which sets
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
+    yield Saga.put(switchRouteDef(loginRouteTree))
     yield Saga.put(navigateTo([loginTab]))
   } else if (loggedIn) {
     // If the user has already performed a navigation action, or if
@@ -106,14 +112,22 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
       return
     }
 
+    yield Saga.put(switchRouteDef(appRouteTree))
+
     if (initialState) {
       const {url, tab, conversation} = (initialState: InitialState)
       if (url) {
         yield Saga.put(AppGen.createLink({link: url}))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
-          yield Saga.put(createSelectConversation({conversationIDKey: conversation}))
-          yield Saga.put(navigateTo([chatTab], null, 'initial-restore'))
+          yield Saga.put(
+            Chat2Gen.createSelectConversation({
+              conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
+            })
+          )
+          yield Saga.put(
+            navigateTo(isMobile ? [chatTab, 'conversation'] : [chatTab], null, 'initial-restore')
+          )
         } else {
           yield Saga.put(navigateTo([tab], null, 'initial-restore'))
         }
@@ -127,14 +141,17 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     }
   } else if (registered) {
     // relogging in
+    yield Saga.put(switchRouteDef(loginRouteTree))
     yield Saga.put.resolve(getExtendedStatus())
     yield Saga.call(getAccounts)
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen
+    yield Saga.put(switchRouteDef(loginRouteTree))
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else {
     // no idea
+    yield Saga.put(switchRouteDef(loginRouteTree))
     yield Saga.put(navigateTo([loginTab]))
   }
 }

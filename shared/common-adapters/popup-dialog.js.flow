@@ -6,10 +6,10 @@ export type Props = {
   allowClipBubbling?: boolean,
   fill?: boolean,
   children?: React.Node,
-  styleCover?: Object,
-  styleContainer?: Object,
-  styleClose?: Object,
-  styleClipContainer?: Object,
+  styleCover?: any,
+  styleContainer?: any,
+  styleClose?: any,
+  styleClipContainer?: any,
 }
 
 export default class PopupDialog extends React.Component<Props> {}

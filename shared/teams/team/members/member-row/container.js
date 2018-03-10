@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
-import {createStartConversation} from '../../../../actions/chat-gen'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
@@ -36,17 +36,15 @@ const mapStateToProps = (
 })
 
 type DispatchProps = {
-  _onChat: (?string) => void,
+  _onChat: () => void,
   onClick: () => void,
   _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => void,
   _onRemoveFromTeam: (teamname: string, username: string) => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
-  _onChat: myUsername => {
-    ownProps.username &&
-      myUsername &&
-      dispatch(createStartConversation({users: [ownProps.username, myUsername]}))
+  _onChat: () => {
+    ownProps.username && dispatch(Chat2Gen.createStartConversation({participants: [ownProps.username]}))
   },
   onClick: () =>
     dispatch(
@@ -88,7 +86,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...ownProps,
     ...stateProps,
     type,
-    onChat: () => dispatchProps._onChat(stateProps.you),
+    onChat: () => dispatchProps._onChat(),
     onClick: dispatchProps.onClick,
     onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, type),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),

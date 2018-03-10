@@ -1,0 +1,34 @@
+{
+  "protocol": "ephemeral",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "DeviceEkMetadata",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid",
+          "jsonkey": "device_ephemeral_dh_public"
+        },
+        {
+          "type": "int",
+          "name": "generation",
+          "jsonkey": "generation"
+        },
+        {
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

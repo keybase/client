@@ -122,6 +122,7 @@ const (
 
 	ChatBoxerMerkleFreshness    = 10 * time.Minute
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
+	EphemeralKeyMerkleFreshness = 30 * time.Second
 
 	// By default, only 64 files can be opened.
 	LevelDBNumFiles = 64
@@ -591,6 +592,10 @@ const (
 	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
 	// Context used for chaining generations of PerUserKeys.
 	DeriveReasonPUKPrev DeriveReason = "Derived-User-NaCl-SecretBox-1"
+
+	DeriveReasonDeviceEKEncryption DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
+	DeriveReasonUserEKEncryption   DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
+	DeriveReasonTeamEKEncryption   DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
 )
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that

@@ -1,21 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, Usernames} from '../../../common-adapters'
+import {Box, ClickableBox, Avatar, Text, ConnectedUsernames} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 
-type ParticipantInfo = {
-  username: string,
-  following: boolean,
+type Props = {
   fullname: string,
-  broken: boolean,
-  isYou: boolean,
+  username: string,
+  onShowProfile: (username: string) => void,
 }
 
-type ParticipantProps = ParticipantInfo & {
-  onShowProfile: (user: string) => void,
-}
-
-const Participant = ({username, following, fullname, broken, isYou, onShowProfile}: ParticipantProps) => (
+const Participant = ({fullname, username, onShowProfile}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
     <ClickableBox key={username} onClick={() => onShowProfile(username)}>
       <Box style={isMobile ? rowStyleMobile : rowStyle}>
@@ -29,11 +23,7 @@ const Participant = ({username, following, fullname, broken, isYou, onShowProfil
         >
           <Avatar size={isMobile ? 40 : 32} username={username} />
           <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-            <Usernames
-              colorFollowing={true}
-              type="BodySemibold"
-              users={[{broken, following, username, you: isYou}]}
-            />
+            <ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
             {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
           </Box>
         </Box>
@@ -54,5 +44,4 @@ const rowStyleMobile = {
   ...rowStyle,
   minHeight: 56,
 }
-export type {ParticipantInfo}
-export {Participant}
+export default Participant

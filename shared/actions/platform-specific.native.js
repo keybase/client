@@ -8,7 +8,6 @@ import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} 
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
-import {isImageFileName} from '../constants/chat'
 
 const shownPushPrompt = 'shownPushPrompt'
 
@@ -66,15 +65,11 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (isIOS || isImageFileName(goodPath)) {
-    if (!isIOS) {
-      goodPath = 'file://' + goodPath
-    }
-    logger.debug('Saving to camera roll: ', goodPath)
-    return CameraRoll.saveToCameraRoll(goodPath)
+  if (!isIOS) {
+    goodPath = 'file://' + goodPath
   }
-  logger.debug('Android: Leaving at ', goodPath)
-  return Promise.resolve(goodPath)
+  logger.debug('Saving to camera roll: ', goodPath)
+  return CameraRoll.saveToCameraRoll(goodPath)
 }
 
 function clearAllNotifications() {

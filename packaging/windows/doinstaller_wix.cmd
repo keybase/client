@@ -110,8 +110,8 @@ set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 
-move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Release\*.msi %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
-for /f %%i in ('dir /od /b *.msi') do set KEYBASE_INSTALLER_NAME=%%i
+move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\bin\Release\*.exe %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
+for /f %%i in ('dir /od /b *.exe') do set KEYBASE_INSTALLER_NAME=%%i
 
 :: Double check that the installer is codesigned
 signtool verify /pa %KEYBASE_INSTALLER_NAME%
