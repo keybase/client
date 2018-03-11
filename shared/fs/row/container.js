@@ -25,12 +25,19 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }
   },
   _openInFileUI: (path: Types.Path) => dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _onAction: (path: Types.Path, targetRect?: ?ClientRect) =>
+  _onAction: (
+    path: Types.Path,
+    pathItem: Types.PathItem,
+    itemStyles: Types.ItemStyles,
+    targetRect?: ?ClientRect
+  ) =>
     dispatch(
       navigateAppend([
         {
           props: {
             path,
+            pathItem,
+            itemStyles,
             position: 'bottom right',
             targetRect,
           },
@@ -41,17 +48,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = ({_username, path, pathItem}, {_onOpen, _openInFileUI, _onAction}) => {
-  const elems = Types.getPathElements(path)
+  const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
   return {
-    name: elems[elems.length - 1],
+    name: pathItem.name,
     type: pathItem.type,
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
     lastWriter: pathItem.lastWriter,
     onOpen: () => _onOpen(pathItem.type, path),
     openInFileUI: () => _openInFileUI(path),
     onAction: (event: SyntheticEvent<>) =>
-      _onAction(path, (event.target: window.HTMLElement).getBoundingClientRect()),
-    itemStyles: Constants.getItemStyles(elems, pathItem.type, _username),
+      _onAction(path, pathItem, itemStyles, (event.target: window.HTMLElement).getBoundingClientRect()),
+    itemStyles,
   }
 }
 

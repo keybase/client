@@ -23,6 +23,7 @@ type Props = {
 }
 
 const Popup = ({name, size, type, lastModifiedTimestamp, lastWriter, itemStyles, menuItems}: Props) => {
+  console.log(itemStyles)
   const header = {
     title: 'yo',
     view: (

@@ -1,6 +1,5 @@
 // @flow
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import Popup from './popup'
@@ -8,11 +7,14 @@ import {fileUIName} from '../../constants/platform.desktop'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
+  const pathItem = routeProps.get('pathItem')
+  const itemStyles = routeProps.get('itemStyles')
 
   return {
     path,
+    pathItem,
+    itemStyles,
     fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
-    pathItem: state.fs.pathItems.get(path),
   }
 }
 
@@ -21,16 +23,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   download: (path: Types.Path) => dispatch(FSGen.createDownload({path})),
 })
 
-const mergeProps = ({path, pathItem, fileUIEnabled}, {showInFileUI, download}, {routeProps}) => {
-  const elems = Types.getPathElements(path)
-  const type = pathItem ? pathItem.type : 'unknown'
+const mergeProps = ({path, pathItem, itemStyles, fileUIEnabled}, {showInFileUI, download}) => {
   return {
-    type,
+    type: pathItem ? pathItem.type : 'unknown',
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
     lastWriter: pathItem.lastWriter,
-    name: elems.pop(),
+    name: pathItem.name,
     size: pathItem.size,
-    itemStyles: Constants.getItemStyles(elems, type),
+    itemStyles,
     menuItems: (fileUIEnabled
       ? [
           {
