@@ -68,14 +68,6 @@ func main() {
 	g := libkb.NewGlobalContext()
 	g.Init()
 
-	// We do our best but if it's not possible on some systems or
-	// configurations, do not exit. Also see documentation in
-	// ptrace_*.go files.
-	if err := libkb.DisableProcessTracing(); err != nil {
-		startupErrors = append(startupErrors,
-			fmt.Errorf("Unable to disable process tracing: %v\n", err.Error()))
-	}
-
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
 
@@ -103,6 +95,17 @@ func main() {
 	}
 	if g.ExitCode != keybase1.ExitCode_OK {
 		keybaseExit(int(g.ExitCode))
+	}
+}
+
+func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
+	// We do our best but if it's not possible on some systems or
+	// configurations, it's not a fatal error. Also see documentation
+	// in ptrace_*.go files.
+	if e.GetRunMode() == libkb.ProductionRunMode {
+		if err := libkb.DisableProcessTracing(); err != nil {
+			log.Debug("Unable to disable process tracing: %v\n", err.Error())
+		}
 	}
 }
 
@@ -168,6 +171,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	g.StartupMessage()
 
 	warnNonProd(g.Log, g.Env)
+	tryToDisableProcessTracing(g.Log, g.Env)
 	logStartupIssues(g.Log)
 
 	if err := configOtherLibraries(g); err != nil {
