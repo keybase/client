@@ -8,7 +8,7 @@ import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
-import {CaptionedButton, DangerButton, LeaveChannel} from './channel-utils'
+import {CaptionedButton, LabeledDangerIcon} from './channel-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -244,10 +244,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'block this conversation':
         return (
-          <DangerButton
+          <LabeledDangerIcon
             key="block this conversation"
             label="Block this conversation"
             onClick={row.onShowBlockConversationDialog}
+            icon="iconfont-remove"
           />
         )
 
@@ -293,7 +294,14 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       case 'leave channel':
-        return <LeaveChannel key="leave channel" onLeave={row.onLeaveConversation} />
+        return (
+          <LabeledDangerIcon
+            key="leave channel"
+            onClick={row.onLeaveConversation}
+            label="Leave channel"
+            icon="iconfont-leave"
+          />
+        )
 
       default:
         // eslint-disable-next-line no-unused-expressions
@@ -400,10 +408,14 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               key: nextKey(),
               height: globalMargins.tiny,
             },
-            {
-              type: 'leave channel',
-              onLeaveConversation: props.onLeaveConversation,
-            },
+            ...(props.channelname !== 'general'
+              ? [
+                  {
+                    type: 'leave channel',
+                    onLeaveConversation: props.onLeaveConversation,
+                  },
+                ]
+              : []),
             {
               type: 'divider',
               key: nextKey(),
@@ -442,6 +454,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         {
           type: 'divider',
           key: nextKey(),
+          marginTop: 10,
         },
         {
           type: 'notifications',
@@ -449,11 +462,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         {
           type: 'divider',
           key: nextKey(),
-          marginBottom: 10,
+          marginBottom: globalMargins.small,
         },
         {
           type: 'block this conversation',
           onShowBlockConversationDialog: props.onShowBlockConversationDialog,
+        },
+        {
+          type: 'spacer',
+          key: nextKey(),
+          height: globalMargins.small,
         },
       ])
     }

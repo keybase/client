@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, Icon, Text} from '../../../common-adapters'
+import {Box, Button, ButtonBar, ClickableBox, Icon, Text} from '../../../common-adapters'
+import {type IconType} from '../../../common-adapters/icon.constants'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 const CaptionedButton = (props: {label: string, caption: string, onClick: () => void}) => (
@@ -24,20 +25,20 @@ const DangerButton = (props: {label: string, onClick: () => void}) => (
   </ButtonBar>
 )
 
-const LeaveChannel = ({onLeave}: {onLeave: () => void}) => (
-  <Box
+const LabeledDangerIcon = ({icon, label, onClick}: {icon: IconType, label: string, onClick: () => void}) => (
+  <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       justifyContent: 'center',
     }}
-    onClick={onLeave}
+    onClick={onClick}
   >
-    <Icon type="iconfont-team-leave" style={{color: globalColors.red, marginRight: globalMargins.tiny}} />
-    <Text type="BodySemibold" style={{color: globalColors.red}}>
-      Leave channel
+    <Icon type={icon} style={{color: globalColors.red, marginRight: globalMargins.tiny}} />
+    <Text type="BodySemibold" style={{color: globalColors.red}} className="hover-underline">
+      {label}
     </Text>
-  </Box>
+  </ClickableBox>
 )
 
-export {CaptionedButton, DangerButton, LeaveChannel}
+export {CaptionedButton, DangerButton, LabeledDangerIcon}
