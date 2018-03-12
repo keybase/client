@@ -3,11 +3,12 @@ import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/config'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Types from '../constants/types/fs'
 import fs from 'fs'
 import type {TypedState} from '../constants/reducer'
 import {shell} from 'electron'
 import {isLinux, isWindows} from '../constants/platform'
-import {navigateTo, switchTo} from './route-tree'
+import {navigateTo} from './route-tree'
 import {fsTab} from '../constants/tabs'
 import logger from '../logger'
 
@@ -107,7 +108,7 @@ export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, s
   if (isLinux || enabled) {
     return Saga.call(_open, openPath)
   } else {
-    return Saga.sequentially([Saga.put(navigateTo([], [fsTab])), Saga.put(switchTo([fsTab]))])
+    return Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(openPath)}, selected: 'folder'}]))
   }
 }
 
