@@ -202,6 +202,10 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			return fmt.Errorf("ImportKey (secret: true) error: %s", err)
 		}
 
+		if !libkb.FindPGPPrivateKey(bundle) {
+			return PGPImportStubbedError{KeyIDString: selected.GetFingerprint().ToKeyID()}
+		}
+
 		if err := bundle.Unlock(e.G(), "Import of key into Keybase keyring", ctx.SecretUI); err != nil {
 			return err
 		}
