@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles, isMobile} from '../../../styles'
+import {Avatar, Box, Button, ClickableBox, Icon, Text} from '../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
@@ -45,16 +45,18 @@ type BigProps = {
   channelname: string,
   description: ?string,
   teamname: string,
+  isPreview: boolean,
+  onJoinOrLeave: () => void,
   onClick: () => void,
 }
 
-const BigTeamHeader = ({channelname, description, teamname, onClick}: BigProps) => {
+const BigTeamHeader = (props: BigProps) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
       <Text style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2}} type="BodyBig">
-        #{channelname}
+        #{props.channelname}
       </Text>
-      {description && (
+      {props.description && (
         <Text
           style={{
             paddingLeft: 4,
@@ -63,9 +65,30 @@ const BigTeamHeader = ({channelname, description, teamname, onClick}: BigProps) 
           }}
           type="Body"
         >
-          {description}
+          {props.description}
         </Text>
       )}
+      {props.isPreview && <Button type="Primary" label="Join channel" onClick={props.onJoinOrLeave} />}
+      {!props.isPreview &&
+        props.channelname !== 'general' && (
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: globalMargins.small,
+            }}
+            onClick={props.onJoinOrLeave}
+          >
+            <Icon
+              type="iconfont-team-leave"
+              style={{color: globalColors.red, marginRight: globalMargins.tiny}}
+            />
+            <Text type="BodySemibold" style={{color: globalColors.red}}>
+              Leave channel
+            </Text>
+          </Box>
+        )}
     </Box>
   )
 }
