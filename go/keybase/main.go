@@ -70,13 +70,11 @@ func main() {
 
 	// We do our best but if it's not possible on some systems or
 	// configurations, do not exit. Also see documentation in
-	// ptrace.go file.
+	// ptrace_*.go files.
 	if err := libkb.DisableProcessTracing(); err != nil {
 		startupErrors = append(startupErrors,
 			fmt.Errorf("Unable to disable process tracing: %v\n", err.Error()))
 	}
-
-	startupErrors = append(startupErrors, fmt.Errorf("Hello world"))
 
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())

@@ -14,10 +14,10 @@ import (
 // process and drops any other processes that are currently attaching
 // to current process.
 
-const PT_DENY_ATTACH = 31
+const PtDenyAttach = 31
 
 func ptrace(request, pid int, addr uintptr, data uintptr) error {
-	_, _, errno = syscall.Syscall6(syscall.SYS_PTRACE, uintptr(request), uintptr(pid), uintptr(addr), uintptr(data), 0, 0)
+	_, _, errno := syscall.Syscall6(syscall.SYS_PTRACE, uintptr(request), uintptr(pid), uintptr(addr), uintptr(data), 0, 0)
 	if errno != 0 {
 		return errno
 	}
@@ -25,5 +25,5 @@ func ptrace(request, pid int, addr uintptr, data uintptr) error {
 }
 
 func DisableProcessTracing() error {
-	return ptrace(PT_DENY_ATTACH, 0, 0, 0)
+	return ptrace(PtDenyAttach, 0, 0, 0)
 }
