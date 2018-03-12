@@ -97,7 +97,7 @@ class Conversation extends React.PureComponent<Props, State> {
           }
           // delegate to handler for any errors
         } catch (e) {
-          logger.warn('Error stating dropped attachment', e)
+          logger.warn(`Error stating dropped attachment: ${e.code}`)
         }
       }
       this.props.onAttach(paths)
