@@ -27,7 +27,6 @@ func (n NullConfiguration) GetUpdaterConfigFilename() string                    
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
-func (n NullConfiguration) GetEKDbFilename() string                                        { return "" }
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
@@ -475,15 +474,6 @@ func (e *Env) GetChatDbFilename() string {
 		func() string { return os.Getenv("KEYBASE_CHAT_DB_FILE") },
 		func() string { return e.GetConfig().GetChatDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), ChatDBFile) },
-	)
-}
-
-func (e *Env) GetEKDbFilename() string {
-	return e.GetString(
-		func() string { return e.cmd.GetEKDbFilename() },
-		func() string { return os.Getenv("KEYBASE_EK_DB_FILE") },
-		func() string { return e.GetConfig().GetEKDbFilename() },
-		func() string { return filepath.Join(e.GetDataDir(), EKDBFile) },
 	)
 }
 

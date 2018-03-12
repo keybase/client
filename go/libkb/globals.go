@@ -58,7 +58,6 @@ type GlobalContext struct {
 	Resolver         *Resolver            // cache of resolve results
 	LocalDb          *JSONLocalDb         // Local DB for cache
 	LocalChatDb      *JSONLocalDb         // Local DB for cache
-	LocalEKDb        *JSONLocalDb         // Local DB for ephemeral keys
 	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
 	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
 	Output           io.Writer            // where 'Stdout'-style output goes
@@ -465,12 +464,10 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 	// checking).
 	g.LocalDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetDbFilename))
 	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename))
-	g.LocalEKDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetEKDbFilename))
 
 	epick := FirstErrorPicker{}
 	epick.Push(g.LocalDb.Open())
 	epick.Push(g.LocalChatDb.Open())
-	epick.Push(g.LocalEKDb.Open())
 	return epick.Error()
 }
 
@@ -574,10 +571,6 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.LocalChatDb != nil {
 			epick.Push(g.LocalChatDb.Close())
-		}
-
-		if g.LocalEKDb != nil {
-			epick.Push(g.LocalEKDb.Close())
 		}
 
 		if g.TrackCache != nil {

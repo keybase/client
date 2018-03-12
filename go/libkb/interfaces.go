@@ -35,7 +35,6 @@ type configGetter interface {
 	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
-	GetEKDbFilename() string
 	GetPvlKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string

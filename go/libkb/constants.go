@@ -57,7 +57,6 @@ const (
 	UpdaterConfigFile = "updater.json"
 	DBFile            = "keybase.leveldb"
 	ChatDBFile        = "keybase.chat.leveldb"
-	EKDBFile          = "keybase.ek.leveldb"
 	SocketFile        = "keybased.sock"
 	PIDFile           = "keybased.pid"
 
