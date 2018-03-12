@@ -429,6 +429,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'notifications',
+              key: 'notifications',
+            },
+            {
+              type: 'divider',
+              key: nextKey(),
             },
             participantCountRow,
           ]
