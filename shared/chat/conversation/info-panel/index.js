@@ -173,10 +173,9 @@ type Row =
 const typeSizeEstimator = (row: Row): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
-  // TODO (DA) re-do these sizings before PR
   switch (row.type) {
     case 'add people':
-      return 0 // TODO (DA)
+      return isMobile ? 56 : 48
 
     case 'participant':
       return 56
@@ -195,7 +194,7 @@ const typeSizeEstimator = (row: Row): number => {
       return 47
 
     case 'block this conversation':
-      return 44
+      return 17
 
     case 'participant count':
       return 15
@@ -204,13 +203,15 @@ const typeSizeEstimator = (row: Row): number => {
       return 32
 
     case 'big team header':
+      // This depends on how long the description is
+      // ballpark estimate between an empty and 1-line description
       return 57
 
     case 'join channel':
       return 47
 
     case 'leave channel':
-      return 44
+      return 17
 
     default:
       // eslint-disable-next-line no-unused-expressions
