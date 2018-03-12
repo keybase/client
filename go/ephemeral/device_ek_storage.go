@@ -90,7 +90,7 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 		return deviceEK, err
 	}
 
-	deviceEK, err = s.decrypt(ctx, data)
+	deviceEK, err = s.unbox(ctx, data)
 	if err != nil {
 		return deviceEK, err
 	}
@@ -100,7 +100,7 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	return deviceEK, nil
 }
 
-func (s *DeviceEKStorage) decrypt(ctx context.Context, data []byte) (deviceEK keybase1.DeviceEk, err error) {
+func (s *DeviceEKStorage) unbox(ctx context.Context, data []byte) (deviceEK keybase1.DeviceEk, err error) {
 	// Decode encrypted box
 	var boxed boxedData
 	if err := decode(data, &boxed); err != nil {
@@ -116,7 +116,7 @@ func (s *DeviceEKStorage) decrypt(ctx context.Context, data []byte) (deviceEK ke
 	}
 	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
 	if !ok {
-		return deviceEK, fmt.Errorf("failed to decrypt item")
+		return deviceEK, fmt.Errorf("failed to unbox item")
 	}
 
 	if err = decode(pt, deviceEK); err != nil {
@@ -130,7 +130,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	s.Lock()
 	defer s.Unlock()
 
-	data, err := s.encrypt(ctx, deviceEK)
+	data, err := s.box(ctx, deviceEK)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 	return nil
 }
 
-func (s *DeviceEKStorage) encrypt(ctx context.Context, deviceEK keybase1.DeviceEk) (data []byte, err error) {
+func (s *DeviceEKStorage) box(ctx context.Context, deviceEK keybase1.DeviceEk) (data []byte, err error) {
 	data, err = encode(deviceEK)
 	if err != nil {
 		return data, err
@@ -300,7 +300,7 @@ func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (f
 	}
 
 	// Derive symmetric key from device key
-	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonTeamsLocalStorage)
+	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonDeviceEKLocalStorage)
 	if err != nil {
 		return fkey, err
 	}
