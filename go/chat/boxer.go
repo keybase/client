@@ -237,6 +237,11 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
+	if conv.IsPublic() != boxed.ClientHeader.TlfPublic {
+		return b.makeErrorMessage(boxed,
+			NewPermanentUnboxingError(fmt.Errorf("visibility mismatch: %v != %v", conv.IsPublic(),
+				boxed.ClientHeader.TlfPublic))), nil
+	}
 	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
