@@ -21,15 +21,18 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
 
   let admin = false
+  let canEditChannel = false
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
     admin = yourOperations.renameChannel
+    canEditChannel = yourOperations.editChannelDescription
   }
 
   return {
     _participants: meta.participants,
     _infoMap: state.users.infoMap,
     admin,
+    canEditChannel,
     channelname: meta.channelname,
     description: meta.description,
     isPreview: meta.membershipType === 'youArePreviewing',
@@ -39,7 +42,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
   _onAddPeople: (teamname: string, target) =>
     dispatch(
       Route.navigateAppend([
@@ -83,6 +86,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(Route.navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
+  _onEditChannel: (teamname: string) =>
+    dispatch(Route.navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
@@ -97,6 +102,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     .toArray(),
   onAddPeople: target => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
+  onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
   onLeaveConversation: () => dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey),
   onShowBlockConversationDialog: () =>

@@ -62,7 +62,9 @@ type InfoPanelProps = {
   onClickGear: () => void,
 
   // Used for big teams.
+  canEditChannel: boolean,
   description: ?string,
+  onEditChannel: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
@@ -129,6 +131,7 @@ type SmallTeamHeaderRow = {
 type BigTeamHeaderRow = {
   type: 'big team header',
   canEditChannel: boolean,
+  onEditChannel: () => void,
   description: ?string,
   teamname: string,
   channelname: string,
@@ -278,6 +281,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <BigTeamHeader
             key="big team header"
             canEditChannel={row.canEditChannel}
+            onEditChannel={row.onEditChannel}
             channelname={row.channelname}
             description={row.description}
             teamname={row.teamname}
@@ -363,7 +367,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         // Big team.
         const headerRow = {
           type: 'big team header',
-          canEditChannel: props.admin,
+          canEditChannel: props.canEditChannel,
+          onEditChannel: props.onEditChannel,
           description: props.description,
           teamname,
           channelname,

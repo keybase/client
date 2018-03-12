@@ -44,6 +44,11 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
+    editChannel: {
+      component: MaybePopupHoc(isMobile)(EditChannel),
+      tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+      children: {},
+    },
     infoPanel: {
       component: InfoPanel,
       children: {
@@ -51,6 +56,11 @@ const conversationRoute = makeRouteDefNode({
           children: {},
           component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
           tags: makeLeafTags({layerOnTop: true}),
+        },
+        editChannel: {
+          component: MaybePopupHoc(isMobile)(EditChannel),
+          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+          children: {},
         },
         reallyLeaveTeam: {
           component: ReallyLeaveTeam,

@@ -41,12 +41,14 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
   </ClickableBox>
 )
 
+// TODO probably factor this out into a connected component
 type BigProps = {
   canEditChannel: boolean,
   channelname: string,
   description: ?string,
   teamname: string,
   onClick: () => void,
+  onEditChannel: () => void,
 }
 
 const BigTeamHeader = (props: BigProps) => {
@@ -64,7 +66,7 @@ const BigTeamHeader = (props: BigProps) => {
               right: -50,
               top: isMobile ? 2 : 1,
             }}
-            onClick={() => {}}
+            onClick={props.onEditChannel}
           >
             <Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" />
             <Text type="BodySmallPrimaryLink" className="hover-underline">
