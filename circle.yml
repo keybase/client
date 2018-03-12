@@ -94,15 +94,3 @@ test:
     # - cp -r android/app/build/outputs $CIRCLE_ARTIFACTS
     # copy the test results to the test results directory.
     # - cp -r android/app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
-deployment:
-  master:
-    branch: master
-    commands:
-      # Upload master builds to appetize
-      # And grep so we only reveal the public url in the CI logs
-      - ./react-native/uploadApp.sh | grep -Eo "\"publicURL\":\"[^\"]*\"|APK_URL:.*$":
-        environment:
-          PLATFORM: android
-          PLATFORM_BUILD_PATH: "react-native/android/app/build/outputs/apk/app-releaseUnsigned.apk"
-          S3_URL: "s3://kb-appbuilds/"
-          BUILD_URL: "https://s3-us-west-2.amazonaws.com/kb-appbuilds/"
