@@ -809,3 +809,57 @@ func TestJournalDoubleCrRemovalAfterQR(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for KBFS-2825.  alice and bob both make a bunch of
+// identical creates, within an identical, deep directory structure.
+// There's lots of squashing, CR, and journaling going on.  In the
+// end, all of bob's files should be conflicted.
+func TestJournalCoalescingConflictingCreates(t *testing.T) {
+	var busyWork []fileOp
+	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a/b/c/d/%d", i)
+		contents := fmt.Sprintf("hello%d", i)
+		busyWork = append(busyWork, mkfile(name, contents))
+	}
+
+	test(t, journal(), batchSize(1),
+		users("alice", "bob"),
+		as(alice,
+			enableJournal(),
+			mkdir("a"),
+		),
+		as(bob,
+			lsdir("a", m{}),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			flushJournal(),
+		),
+		as(alice, busyWork...),
+		as(bob,
+			flushJournal(),
+		),
+		as(bob,
+			flushJournal(),
+			disableUpdates(),
+		),
+		as(alice,
+			mkdir("g"),
+		),
+		as(bob,
+			reenableUpdates(),
+			resumeJournal(),
+			flushJournal(),
+		),
+		as(bob,
+			disableUpdates(),
+			reenableUpdates(),
+			flushJournal(),
+		),
+	)
+}
