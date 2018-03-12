@@ -5,6 +5,6 @@
 
 package libkb
 
-func DisableTracing() error {
+func DisableProcessTracing() error {
 	return nil
 }
