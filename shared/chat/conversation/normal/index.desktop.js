@@ -1,10 +1,12 @@
 // @flow
 import * as React from 'react'
+import fs from 'fs'
 import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import InfoPanel from '../info-panel/container'
+import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
@@ -80,7 +82,24 @@ class Conversation extends React.PureComponent<Props, State> {
     }
     const fileList = e.dataTransfer.files
     const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
-    if (paths) {
+    if (paths.length) {
+      for (let path of paths) {
+        // Check if any file is a directory and bail out if not
+        try {
+          // We do this synchronously
+          // in testing, this is instantaneous
+          // even when dragging many files
+          const stat = fs.lstatSync(path)
+          if (stat.isDirectory()) {
+            // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
+            this.setState({showDropOverlay: false})
+            return
+          }
+          // delegate to handler for any errors
+        } catch (e) {
+          logger.warn(`Error stating dropped attachment: ${e.code}`)
+        }
+      }
       this.props.onAttach(paths)
     }
     this.setState({showDropOverlay: false})
