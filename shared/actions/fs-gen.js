@@ -17,7 +17,7 @@ export const fileTransferProgress = 'fs:fileTransferProgress'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fuseStatus = 'fs:fuseStatus'
-export const fuseStatusUpdate = 'fs:fuseStatusUpdate'
+export const fuseStatusResult = 'fs:fuseStatusResult'
 export const openInFileUI = 'fs:openInFileUI'
 export const sortSetting = 'fs:sortSetting'
 
@@ -56,12 +56,12 @@ export const createFolderListLoaded = (
   }>
 ) => ({error: false, payload, type: folderListLoaded})
 export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
-export const createFuseStatusUpdate = (
+export const createFuseStatusResult = (
   payload: $ReadOnly<{
     prevStatus: ?RPCTypes.FuseStatus,
     status: RPCTypes.FuseStatus,
   }>
-) => ({error: false, payload, type: fuseStatusUpdate})
+) => ({error: false, payload, type: fuseStatusResult})
 export const createOpenInFileUI = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: openInFileUI})
 export const createSortSetting = (
   payload: $ReadOnly<{
@@ -79,7 +79,7 @@ export type FileTransferProgressPayload = More.ReturnType<typeof createFileTrans
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
 export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
 export type FuseStatusPayload = More.ReturnType<typeof createFuseStatus>
-export type FuseStatusUpdatePayload = More.ReturnType<typeof createFuseStatusUpdate>
+export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusResult>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
 
@@ -94,7 +94,7 @@ export type Actions =
   | More.ReturnType<typeof createFolderListLoad>
   | More.ReturnType<typeof createFolderListLoaded>
   | More.ReturnType<typeof createFuseStatus>
-  | More.ReturnType<typeof createFuseStatusUpdate>
+  | More.ReturnType<typeof createFuseStatusResult>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createSortSetting>
   | {type: 'common:resetStore', payload: void}

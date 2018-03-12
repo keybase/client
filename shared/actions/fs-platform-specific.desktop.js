@@ -148,9 +148,9 @@ export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, s
 //   yield Saga.call(waitForMountAndOpenSaga)
 // }
 
-export function fuseStatusUpdateSaga({payload: {prevStatus, status}}: FsGen.FuseStatusUpdatePayload) {
+export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
-  // TODO: uncomment
+  // TODO: uncomment; commented for now until we plug in KBFS installation.
   // if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
   //   return Saga.call(installKBFSSaga)
   // }
@@ -170,5 +170,5 @@ export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
       status.kextStarted = true
     }
   }
-  yield Saga.put(FsGen.createFuseStatusUpdate({prevStatus, status}))
+  yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
 }

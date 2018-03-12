@@ -1,15 +1,31 @@
 // @flow
 import Files from './index'
-import {connect, type TypedState} from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
+import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
-  kbfsEnabled: false,
+const mapStateToProps = (state: TypedState) => {
+  const kbfsEnabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
+  return {
+    kbfsEnabled,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
+  onInstall: () => undefined,
+  onUninstall: () => undefined,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
-
-const mergeProps = ({kbfsEnabled}) => ({
+const mergeProps = ({kbfsEnabled}, dispatchProps) => ({
   kbfsEnabled,
+  ...dispatchProps,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Files)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount: function() {
+      this.props.getFuseStatus()
+    },
+  })
+)(Files)

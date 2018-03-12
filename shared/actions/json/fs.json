@@ -38,7 +38,7 @@
       "path?": "string"
     },
     "fuseStatus": {},
-    "fuseStatusUpdate": {
+    "fuseStatusResult": {
       "prevStatus": "?RPCTypes.FuseStatus",
       "status": "RPCTypes.FuseStatus"
     }
