@@ -7,7 +7,7 @@ type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
-  onClickGear: () => void,
+  onClickGear: any => void,
 }
 
 const gearIconSize = isMobile ? 24 : 16
@@ -32,10 +32,14 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
     </Box>
     <Icon
       type="iconfont-gear"
-      onClick={evt => {
-        evt.preventDefault()
-        onClickGear()
-      }}
+      onClick={
+        isMobile
+          ? onClickGear
+          : evt => {
+              evt.preventDefault()
+              onClickGear(evt.target)
+            }
+      }
       style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
     />
   </ClickableBox>

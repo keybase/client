@@ -59,7 +59,7 @@ type InfoPanelProps = {
   // Used for small and big teams.
   onAddPeople: any => void,
   onViewTeam: () => void,
-  onClickGear: () => void,
+  onClickGear: any => void,
 
   // Used for big teams.
   canEditChannel: boolean,

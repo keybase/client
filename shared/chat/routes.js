@@ -9,6 +9,7 @@ import EditChannel from './manage-channels/edit-channel-container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import Inbox from './inbox/container'
 import InfoPanel from './conversation/info-panel/container'
+import InfoPanelMenu from './conversation/info-panel/menu/container'
 import ManageChannels from './manage-channels/container'
 import MessagePopup from './conversation/messages/message-popup'
 import NewTeamDialogFromChat from './new-team-dialog-container'
@@ -19,6 +20,18 @@ import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
+
+const manageChannels = {
+  component: ManageChannels,
+  tags: makeLeafTags({layerOnTop: true}),
+  children: {
+    editChannel: {
+      component: MaybePopupHoc(false)(EditChannel),
+      tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
+      children: {},
+    },
+  },
+}
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
@@ -62,6 +75,12 @@ const conversationRoute = makeRouteDefNode({
           tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
           children: {},
         },
+        infoPanelMenu: {
+          children: {},
+          component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
+          tags: makeLeafTags({layerOnTop: true}),
+        },
+        manageChannels,
         reallyLeaveTeam: {
           component: ReallyLeaveTeam,
           tags: makeLeafTags({layerOnTop: false}),
@@ -78,6 +97,11 @@ const conversationRoute = makeRouteDefNode({
           children: {},
         },
       },
+    },
+    infoPanelMenu: {
+      children: {},
+      component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
+      tags: makeLeafTags({layerOnTop: true}),
     },
     showBlockConversationDialog: {
       component: BlockConversationWarning,
@@ -99,17 +123,7 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
-    manageChannels: {
-      component: ManageChannels,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {
-        editChannel: {
-          component: MaybePopupHoc(false)(EditChannel),
-          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
-          children: {},
-        },
-      },
-    },
+    manageChannels,
     createChannel: {
       component: CreateChannel,
       tags: makeLeafTags({layerOnTop: true}),

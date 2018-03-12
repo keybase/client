@@ -56,6 +56,20 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
         },
       ])
     ),
+  _onOpenMenu: (teamname: string, isSmallTeam: boolean, target) =>
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {
+            teamname,
+            isSmallTeam,
+            position: 'bottom left',
+            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
+          },
+          selected: 'infoPanelMenu',
+        },
+      ])
+    ),
   _onBack: () => dispatch(navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
@@ -105,14 +119,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
   onLeaveConversation: () => dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey),
+  onClickGear: target => dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
   onShowBlockConversationDialog: () =>
     dispatchProps._onShowBlockConversationDialog(stateProps.selectedConversationIDKey),
   onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
-  // TEMP
-  onClickGear: () => {},
 })
 
 const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
