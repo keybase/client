@@ -63,6 +63,13 @@ func main() {
 		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
 	}
 
+	// We do our best but if it's not possible on some systems or
+	// configurations, do not exit. Also see documentation in
+	// ptrace.go file.
+	if err := libkb.DisableProcessTracing(); err != nil {
+		fmt.Printf("Unable to disable process tracing: %v\n", err.Error())
+	}
+
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
 
