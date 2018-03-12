@@ -199,6 +199,7 @@ const (
 	DBChatBodyHashIndex        = 0xfc
 	DBPvl                      = 0xfd
 	DBChatConvFailures         = 0xfe
+	DBEphemeralKey             = 0xff
 )
 
 const (

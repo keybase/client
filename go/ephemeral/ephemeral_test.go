@@ -1,4 +1,4 @@
-package libkb
+package ephemeral
 
 import (
 	"context"

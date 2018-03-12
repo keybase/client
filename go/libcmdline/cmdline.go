@@ -84,6 +84,9 @@ func (p CommandLine) GetDbFilename() string {
 func (p CommandLine) GetChatDbFilename() string {
 	return p.GetGString("chat-db")
 }
+func (p CommandLine) GetEKDbFilename() string {
+	return p.GetGString("ek-db")
+}
 func (p CommandLine) GetPvlKitFilename() string {
 	return p.GetGString("pvl-kit")
 }
@@ -430,6 +433,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "chat-db",
 			Usage: "Specify an alternate local Chat DB location.",
+		},
+		cli.StringFlag{
+			Name:  "ek-db",
+			Usage: "Specify an alternate local Ephemeral key DB location.",
 		},
 		cli.StringFlag{
 			Name:  "pvl-kit",

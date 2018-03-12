@@ -172,19 +172,6 @@ func DecodePacketsUnchecked(reader io.Reader) (ret KeybasePackets, err error) {
 	return
 }
 
-func DecodePacketUnchecked(reader io.Reader) (packet KeybasePacket, err error) {
-	ch := codecHandle()
-	if err = codec.NewDecoder(reader, ch).Decode(&packet); err != nil {
-		return packet, err
-	}
-
-	err = packet.unpackBody(ch)
-	if err != nil {
-		return packet, err
-	}
-	return packet, err
-}
-
 // Decode data into out, but make sure that all bytes in data are
 // used.
 func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {

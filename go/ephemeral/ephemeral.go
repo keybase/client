@@ -1,4 +1,4 @@
-package libkb
+package ephemeral
 
 import (
 	"bytes"
@@ -63,7 +63,7 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 	}
 
 	// TODO: Read the actual generation from the deviceEK store.
-	generation := 1
+	generation := keybase1.EkGeneration(1)
 
 	seed, err := newDeviceEphemeralSeed()
 	if err != nil {

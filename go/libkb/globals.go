@@ -58,6 +58,7 @@ type GlobalContext struct {
 	Resolver         *Resolver            // cache of resolve results
 	LocalDb          *JSONLocalDb         // Local DB for cache
 	LocalChatDb      *JSONLocalDb         // Local DB for cache
+	LocalEKDb        *JSONLocalDb         // Local DB for ephemeral keys
 	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
 	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
 	Output           io.Writer            // where 'Stdout'-style output goes
@@ -97,25 +98,23 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter              UIRouter                  // How to route UIs
-	Services              ExternalServicesCollector // All known external services
-	UIDMapper             UIDMapper                 // maps from UID to Usernames
-	ExitCode              keybase1.ExitCode         // Value to return to OS on Exit()
-	RateLimits            *RateLimits               // tracks the last time certain actions were taken
-	clockMu               *sync.Mutex               // protects Clock
-	clock                 clockwork.Clock           // RealClock unless we're testing
-	secretStoreMu         *sync.Mutex               // protects secretStore
-	secretStore           *SecretStoreLocked        // SecretStore
-	secretStoreDeviceEKMu *sync.Mutex               // protects secretStoreDeviceEK
-	secretStoreDeviceEK   *SecretStoreDeviceEK      // SecretStore for ephemeral device keys
-	hookMu                *sync.RWMutex             // protects loginHooks, logoutHooks
-	loginHooks            []LoginHook               // call these on login
-	logoutHooks           []LogoutHook              // call these on logout
-	GregorDismisser       GregorDismisser           // for dismissing gregor items that we've handled
-	GregorListener        GregorListener            // for alerting about clients connecting and registering UI protocols
-	oodiMu                *sync.RWMutex             // For manipluating the OutOfDateInfo
-	outOfDateInfo         *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
-	lastUpgradeWarning    *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
+	UIRouter           UIRouter                  // How to route UIs
+	Services           ExternalServicesCollector // All known external services
+	UIDMapper          UIDMapper                 // maps from UID to Usernames
+	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
+	RateLimits         *RateLimits               // tracks the last time certain actions were taken
+	clockMu            *sync.Mutex               // protects Clock
+	clock              clockwork.Clock           // RealClock unless we're testing
+	secretStoreMu      *sync.Mutex               // protects secretStore
+	secretStore        *SecretStoreLocked        // SecretStore
+	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
+	loginHooks         []LoginHook               // call these on login
+	logoutHooks        []LogoutHook              // call these on logout
+	GregorDismisser    GregorDismisser           // for dismissing gregor items that we've handled
+	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
+	oodiMu             *sync.RWMutex             // For manipluating the OutOfDateInfo
+	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
+	lastUpgradeWarning *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
@@ -163,26 +162,25 @@ type LogGetter func() logger.Logger
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
-		Log:                   log,
-		VDL:                   NewVDebugLog(log),
-		SKBKeyringMu:          new(sync.Mutex),
-		perUserKeyringMu:      new(sync.Mutex),
-		cacheMu:               new(sync.RWMutex),
-		socketWrapperMu:       new(sync.RWMutex),
-		shutdownOnce:          new(sync.Once),
-		loginStateMu:          new(sync.RWMutex),
-		clockMu:               new(sync.Mutex),
-		clock:                 clockwork.NewRealClock(),
-		hookMu:                new(sync.RWMutex),
-		oodiMu:                new(sync.RWMutex),
-		outOfDateInfo:         &keybase1.OutOfDateInfo{},
-		lastUpgradeWarning:    new(time.Time),
-		uchMu:                 new(sync.Mutex),
-		secretStoreMu:         new(sync.Mutex),
-		secretStoreDeviceEKMu: new(sync.Mutex),
-		NewTriplesec:          NewSecureTriplesec,
-		ActiveDevice:          new(ActiveDevice),
-		NetContext:            context.TODO(),
+		Log:                log,
+		VDL:                NewVDebugLog(log),
+		SKBKeyringMu:       new(sync.Mutex),
+		perUserKeyringMu:   new(sync.Mutex),
+		cacheMu:            new(sync.RWMutex),
+		socketWrapperMu:    new(sync.RWMutex),
+		shutdownOnce:       new(sync.Once),
+		loginStateMu:       new(sync.RWMutex),
+		clockMu:            new(sync.Mutex),
+		clock:              clockwork.NewRealClock(),
+		hookMu:             new(sync.RWMutex),
+		oodiMu:             new(sync.RWMutex),
+		outOfDateInfo:      &keybase1.OutOfDateInfo{},
+		lastUpgradeWarning: new(time.Time),
+		uchMu:              new(sync.Mutex),
+		secretStoreMu:      new(sync.Mutex),
+		NewTriplesec:       NewSecureTriplesec,
+		ActiveDevice:       new(ActiveDevice),
+		NetContext:         context.TODO(),
 	}
 }
 
@@ -466,13 +464,13 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 	// checking).
 	g.LocalDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetDbFilename))
 	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename))
+	g.LocalEKDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetEKDbFilename))
 
-	e1 := g.LocalDb.Open()
-	e2 := g.LocalChatDb.Open()
-	if e1 != nil {
-		return e1
-	}
-	return e2
+	epick := FirstErrorPicker{}
+	epick.Push(g.LocalDb.Open())
+	epick.Push(g.LocalChatDb.Open())
+	epick.Push(g.LocalEKDb.Open())
+	return epick.Error()
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
@@ -571,6 +569,10 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(g.LocalChatDb.Close())
 		}
 
+		if g.LocalEKDb != nil {
+			epick.Push(g.LocalEKDb.Close())
+		}
+
 		if g.TrackCache != nil {
 			g.TrackCache.Shutdown()
 		}
@@ -625,16 +627,12 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 		return err
 	}
 
-	// secretStore and secretStoreDeviceEK must be created after SetCommandLine
-	// and ConfigureUsage in order to correctly use -H,-home flag and config
-	// vars for remember_passphrase.
+	// secretStore must be created after SetCommandLine and ConfigureUsage in
+	// order to correctly use -H,-home flag and config vars for
+	// remember_passphrase.
 	g.secretStoreMu.Lock()
 	g.secretStore = NewSecretStoreLocked(g)
 	g.secretStoreMu.Unlock()
-
-	g.secretStoreDeviceEKMu.Lock()
-	g.secretStoreDeviceEK = NewSecretStoreDeviceEK(g)
-	g.secretStoreDeviceEKMu.Unlock()
 
 	return nil
 }
@@ -1141,13 +1139,6 @@ func (g *GlobalContext) SecretStore() *SecretStoreLocked {
 	defer g.secretStoreMu.Unlock()
 
 	return g.secretStore
-}
-
-func (g *GlobalContext) SecretStoreDeviceEK() *SecretStoreDeviceEK {
-	g.secretStoreDeviceEKMu.Lock()
-	defer g.secretStoreDeviceEKMu.Unlock()
-
-	return g.secretStoreDeviceEK
 }
 
 // ReplaceSecretStore gets the existing secret out of the existing
