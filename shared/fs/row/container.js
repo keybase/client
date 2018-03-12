@@ -5,8 +5,6 @@ import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
-import * as Constants from '../constants/fs'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../util/container'
 
 type OwnProps = {
   path: Types.Path,
@@ -28,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-//      dispatch(FsGen.createDownload({path}))
+      //      dispatch(FsGen.createDownload({path}))
       dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
     }
   },
