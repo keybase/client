@@ -614,6 +614,13 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type DeviceEKStorage interface {
+	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error)
+	Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error)
+	GetAll(ctx context.Context) (deviceEKs map[keybase1.EkGeneration]keybase1.DeviceEk, err error)
+	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration)
+}
+
 type ImplicitTeamConflictInfoCacher interface {
 	Get(context.Context, bool, keybase1.TeamID) *keybase1.ImplicitTeamConflictInfo
 	Put(context.Context, bool, keybase1.TeamID, keybase1.ImplicitTeamConflictInfo) error

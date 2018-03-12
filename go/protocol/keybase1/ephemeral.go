@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type EkGeneration int
+type EkGeneration int64
 
 func (o EkGeneration) DeepCopy() EkGeneration {
 	return o
@@ -28,19 +28,14 @@ func (o DeviceEkMetadata) DeepCopy() DeviceEkMetadata {
 }
 
 type DeviceEk struct {
-	Seed       []byte       `codec:"seed" json:"seed"`
+	Seed       Bytes32      `codec:"seed" json:"seed"`
 	Generation EkGeneration `codec:"generation" json:"generation"`
 	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
 }
 
 func (o DeviceEk) DeepCopy() DeviceEk {
 	return DeviceEk{
-		Seed: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.Seed),
+		Seed:       o.Seed.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
 		HashMeta:   o.HashMeta.DeepCopy(),
 	}

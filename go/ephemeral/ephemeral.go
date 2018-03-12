@@ -13,9 +13,7 @@ import (
 
 const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 
-const EKSeedSize = 32
-
-func makeNewRandomSeed() (seed [EKSeedSize]byte, err error) {
+func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(32)
 	if err != nil {
 		return seed, err
@@ -23,7 +21,7 @@ func makeNewRandomSeed() (seed [EKSeedSize]byte, err error) {
 	return libkb.MakeByte32(bs), nil
 }
 
-type DeviceEKSeed [EKSeedSize]byte
+type DeviceEKSeed keybase1.Bytes32
 
 func newDeviceEphemeralSeed() (seed DeviceEKSeed, err error) {
 	randomSeed, err := makeNewRandomSeed()
@@ -62,15 +60,13 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 		return data, err
 	}
 
-	// TODO: Read the actual generation from the deviceEK store.
-	generation := keybase1.EkGeneration(1)
+	deviceEKStorage := g.GetDeviceEKStorage()
+	generation := deviceEKStorage.MaxGeneration(ctx) + 1
 
 	seed, err := newDeviceEphemeralSeed()
 	if err != nil {
 		return data, err
 	}
-
-	// TODO: Store the key.
 
 	dhKeypair, err := seed.DeriveDHKey()
 	if err != nil {
@@ -94,6 +90,15 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 	signedPacket, _, err := signingKey.SignToString(metadataJSON)
 
 	err = postNewDeviceEK(ctx, g, signedPacket)
+	if err != nil {
+		return data, err
+	}
+
+	err = deviceEKStorage.Put(ctx, generation, keybase1.DeviceEk{
+		Seed:       keybase1.Bytes32(seed),
+		Generation: generation,
+		HashMeta:   currentMerkleRoot.HashMeta(),
+	})
 	if err != nil {
 		return data, err
 	}

@@ -12,6 +12,7 @@ import (
 func TestNewDeviceEK(t *testing.T) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
+	NewEphemeralStorageAndInstall(tc.G)
 
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
@@ -24,7 +25,12 @@ func TestNewDeviceEK(t *testing.T) {
 
 	require.Equal(t, 1, len(fetchedDevices))
 	require.Equal(t, metadata, fetchedDevices[0])
-	require.Equal(t, 1, metadata.Generation)
+	require.EqualValues(t, 1, metadata.Generation)
+
+	// If we publish again, we increase the generation
+	metadata, err = PublishNewDeviceEK(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, metadata.Generation)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata

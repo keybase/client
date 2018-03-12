@@ -137,7 +137,7 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 		return err
 	}
 
-	if err := os.MkdirAll(s.dir, 0700); err != nil {
+	if err := os.MkdirAll(s.dir, PermDir); err != nil {
 		return err
 	}
 
@@ -156,10 +156,10 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
-		if err := fsec.Chmod(0600); err != nil {
+		if err := fsec.Chmod(PermFile); err != nil {
 			return err
 		}
-		if err := fnoise.Chmod(0600); err != nil {
+		if err := fnoise.Chmod(PermFile); err != nil {
 			return err
 		}
 	}
@@ -198,10 +198,10 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 		return err
 	}
 
-	if err := os.Chmod(finalSec, 0600); err != nil {
+	if err := os.Chmod(finalSec, PermFile); err != nil {
 		return err
 	}
-	if err := os.Chmod(finalNoise, 0600); err != nil {
+	if err := os.Chmod(finalNoise, PermFile); err != nil {
 		return err
 	}
 

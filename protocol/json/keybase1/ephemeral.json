@@ -11,7 +11,8 @@
       "type": "record",
       "name": "EkGeneration",
       "fields": [],
-      "typedef": "int"
+      "lint": "ignore",
+      "typedef": "int64"
     },
     {
       "type": "record",
@@ -38,7 +39,7 @@
       "name": "DeviceEk",
       "fields": [
         {
-          "type": "bytes",
+          "type": "Bytes32",
           "name": "seed"
         },
         {

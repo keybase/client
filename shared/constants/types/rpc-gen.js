@@ -2167,7 +2167,7 @@ export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: Inco
 
 export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceEk = $ReadOnly<{seed: Bytes, generation: EkGeneration, hashMeta: HashMeta}>
+export type DeviceEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration}>
 
@@ -2201,7 +2201,7 @@ export type ED25519Signature = any
 
 export type ED25519SignatureInfo = $ReadOnly<{sig: ED25519Signature, publicKey: ED25519PublicKey}>
 
-export type EkGeneration = Int
+export type EkGeneration = Int64
 
 export type Email = $ReadOnly<{email: String, isVerified: Boolean}>
 

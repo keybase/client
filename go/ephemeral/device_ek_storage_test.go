@@ -21,22 +21,22 @@ func TestDeviceEKStorage(t *testing.T) {
 		{
 			Generation: keybase1.EkGeneration(0),
 			HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
-			Seed:       []byte("deviceekseed-deviceekseed-devic0"),
+			Seed:       keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic0"))),
 		},
 		{
 			Generation: keybase1.EkGeneration(1),
 			HashMeta:   keybase1.HashMeta("fakeHashMeta1"),
-			Seed:       []byte("deviceekseed-deviceekseed-devic1"),
+			Seed:       keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic1"))),
 		},
 		{
 			Generation: keybase1.EkGeneration(2),
 			HashMeta:   keybase1.HashMeta("fakeHashMeta2"),
-			Seed:       []byte("deviceekseed-deviceekseed-devic2"),
+			Seed:       keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic2"))),
 		},
 		{
 			Generation: keybase1.EkGeneration(3),
 			HashMeta:   keybase1.HashMeta("fakeHashMeta3"),
-			Seed:       []byte("deviceekseed-deviceekseed-devic3"),
+			Seed:       keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic3"))),
 		},
 	}
 
@@ -65,20 +65,18 @@ func TestDeviceEKStorage(t *testing.T) {
 		require.Equal(t, deviceEK, test)
 	}
 
-	require.NoError(t, s.delete(context.Background(), keybase1.EkGeneration(0)))
+	require.NoError(t, s.Delete(keybase1.EkGeneration(0)))
 
 	deviceEK, err = s.Get(context.Background(), keybase1.EkGeneration(0))
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
-	maxGeneration, err := s.GetMaxGeneration()
-	require.NoError(t, err)
+	maxGeneration := s.MaxGeneration(context.Background())
 	require.EqualValues(t, 3, maxGeneration)
 
-	require.NoError(t, s.delete(context.Background(), keybase1.EkGeneration(3)))
+	require.NoError(t, s.Delete(keybase1.EkGeneration(3)))
 
-	maxGeneration, err = s.GetMaxGeneration()
-	require.NoError(t, err)
+	maxGeneration = s.MaxGeneration(context.Background())
 	require.EqualValues(t, 2, maxGeneration)
 
 }

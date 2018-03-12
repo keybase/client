@@ -3,7 +3,8 @@
 protocol ephemeral {
   import idl "common.avdl";
 
-  @typedef("int")
+  @lint("ignore")
+  @typedef("int64")
   record EkGeneration {}
 
   record DeviceEkMetadata {
@@ -15,7 +16,7 @@ protocol ephemeral {
   }
 
   record DeviceEk {
-    bytes seed;
+    Bytes32 seed;
     EkGeneration generation;
     @jsonkey("hash_meta")
     HashMeta hashMeta;
