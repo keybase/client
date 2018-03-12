@@ -128,6 +128,7 @@ type SmallTeamHeaderRow = {
 
 type BigTeamHeaderRow = {
   type: 'big team header',
+  canEditChannel: boolean,
   description: ?string,
   teamname: string,
   channelname: string,
@@ -276,6 +277,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return (
           <BigTeamHeader
             key="big team header"
+            canEditChannel={row.canEditChannel}
             channelname={row.channelname}
             description={row.description}
             teamname={row.teamname}
@@ -361,6 +363,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         // Big team.
         const headerRow = {
           type: 'big team header',
+          canEditChannel: props.admin,
           description: props.description,
           teamname,
           channelname,

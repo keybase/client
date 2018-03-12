@@ -42,7 +42,7 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
 )
 
 type BigProps = {
-  // canEditChannel: boolean,
+  canEditChannel: boolean,
   channelname: string,
   description: ?string,
   teamname: string,
@@ -52,10 +52,28 @@ type BigProps = {
 const BigTeamHeader = (props: BigProps) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-      <Text style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2}} type="BodyBig">
-        #{props.channelname}
-      </Text>
-      {props.description && (
+      <Box
+        style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2, position: 'relative'}}
+      >
+        <Text type="BodyBig">#{props.channelname}</Text>
+        {!!props.canEditChannel && (
+          <ClickableBox
+            style={{
+              ...globalStyles.flexBoxRow,
+              position: 'absolute',
+              right: -50,
+              top: isMobile ? 2 : 1,
+            }}
+            onClick={() => {}}
+          >
+            <Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" />
+            <Text type="BodySmallPrimaryLink" className="hover-underline">
+              Edit
+            </Text>
+          </ClickableBox>
+        )}
+      </Box>
+      {!!props.description && (
         <Text
           style={{
             paddingLeft: 4,
