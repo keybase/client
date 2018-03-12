@@ -6,9 +6,9 @@ import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import Participant from './participant'
+import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
-import {CaptionedButton, DangerButton} from './button-utils'
+import {CaptionedButton, DangerButton, LeaveChannel} from './channel-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -24,6 +24,12 @@ const listStyle = {
         borderRight: border,
         marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
+}
+
+let keyState = 0
+const nextKey = () => {
+  keyState++
+  return keyState.toString()
 }
 
 const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
@@ -51,6 +57,7 @@ type InfoPanelProps = {
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
+  onAddPeople: any => void,
   onViewTeam: () => void,
   onClickGear: () => void,
 
@@ -59,6 +66,11 @@ type InfoPanelProps = {
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
+
+type AddPeopleRow = {
+  type: 'add people',
+  onClick: any => void,
+}
 
 type ParticipantRow = {
   type: 'participant',
@@ -75,16 +87,16 @@ type DividerRow = {
   marginBottom?: number,
 }
 
+const getDividerStyle = (row: DividerRow) => ({
+  marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
+  marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
+})
+
 type SpacerRow = {
   type: 'spacer',
   key: string,
   height: number,
 }
-
-const getDividerStyle = (row: DividerRow) => ({
-  marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
-  marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
-})
 
 type NotificationsRow = {
   type: 'notifications',
@@ -145,6 +157,7 @@ type TeamHeaderRow =
   | LeaveChannelRow
 
 type Row =
+  | AddPeopleRow
   | ParticipantRow
   | SpacerRow
   | DividerRow
@@ -156,7 +169,11 @@ type Row =
 const typeSizeEstimator = (row: Row): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
+  // TODO (DA) re-do these sizings before PR
   switch (row.type) {
+    case 'add people':
+      return 0 // TODO (DA)
+
     case 'participant':
       return 56
 
@@ -201,6 +218,8 @@ const typeSizeEstimator = (row: Row): number => {
 class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
+      case 'add people':
+        return <AddPeople key="add people" onClick={row.onClick} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -274,7 +293,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       case 'leave channel':
-        return <DangerButton key="leave channel" label="Leave channel" onClick={row.onLeaveConversation} />
+        return <LeaveChannel key="leave channel" onLeave={row.onLeaveConversation} />
 
       default:
         // eslint-disable-next-line no-unused-expressions
@@ -309,11 +328,11 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       if (props.smallTeam) {
         // Small team.
         headerRows = [
-          {type: 'spacer', key: '1', height: globalMargins.small},
+          {type: 'spacer', key: nextKey(), height: globalMargins.small},
           smallTeamHeaderRow,
           {
             type: 'divider',
-            key: '1',
+            key: nextKey(),
             marginBottom: 20,
             marginTop: 20,
           },
@@ -322,7 +341,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           },
           {
             type: 'divider',
-            key: '2',
+            key: nextKey(),
           },
           {
             type: 'participant count',
@@ -350,15 +369,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           headerRows = [
             headerRow,
             {
-              type: 'divider',
-              key: '1',
-              marginBottom: 0,
-            },
-            smallTeamHeaderRow,
-            {
-              type: 'divider',
-              key: '2',
-              marginTop: 0,
+              type: 'spacer',
+              key: nextKey(),
+              height: globalMargins.tiny,
             },
             {
               type: 'join channel',
@@ -367,7 +380,14 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'divider',
-              key: '3',
+              key: nextKey(),
+              marginBottom: globalMargins.tiny,
+            },
+            smallTeamHeaderRow,
+            {
+              type: 'divider',
+              key: nextKey(),
+              marginTop: globalMargins.tiny,
             },
             participantCountRow,
           ]
@@ -376,23 +396,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           headerRows = [
             headerRow,
             {
-              type: 'divider',
-              key: '1',
-              marginBottom: globalMargins.tiny,
-            },
-            smallTeamHeaderRow,
-            {
-              type: 'divider',
-              key: '2',
-              marginTop: globalMargins.tiny,
-            },
-            {
-              type: 'notifications',
-            },
-            {
-              type: 'divider',
-              key: '3',
-              marginBottom: globalMargins.tiny,
+              type: 'spacer',
+              key: nextKey(),
+              height: globalMargins.tiny,
             },
             {
               type: 'leave channel',
@@ -400,20 +406,32 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'divider',
-              key: '4',
+              key: nextKey(),
+              marginBottom: globalMargins.tiny,
+            },
+            smallTeamHeaderRow,
+            {
+              type: 'divider',
+              key: nextKey(),
               marginTop: globalMargins.tiny,
+            },
+            {
+              type: 'notifications',
             },
             participantCountRow,
           ]
         }
       }
       rows = headerRows.concat(participants)
+      if (props.admin && props.teamname && !props.isPreview) {
+        rows = rows.concat({type: 'add people', onClick: props.onAddPeople})
+      }
     } else {
       // Conversation.
       rows = participants.concat([
         {
           type: 'divider',
-          key: '1',
+          key: nextKey(),
           marginBottom: 10,
           marginTop: 10,
         },
@@ -423,14 +441,14 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
         {
           type: 'divider',
-          key: '2',
+          key: nextKey(),
         },
         {
           type: 'notifications',
         },
         {
           type: 'divider',
-          key: '3',
+          key: nextKey(),
           marginBottom: 10,
         },
         {

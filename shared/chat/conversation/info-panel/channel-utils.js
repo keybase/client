@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../styles'
+import {Box, Button, ButtonBar, Icon, Text} from '../../../common-adapters'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 const CaptionedButton = (props: {label: string, caption: string, onClick: () => void}) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
@@ -24,4 +24,20 @@ const DangerButton = (props: {label: string, onClick: () => void}) => (
   </ButtonBar>
 )
 
-export {CaptionedButton, DangerButton}
+const LeaveChannel = ({onLeave}: {onLeave: () => void}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+    onClick={onLeave}
+  >
+    <Icon type="iconfont-team-leave" style={{color: globalColors.red, marginRight: globalMargins.tiny}} />
+    <Text type="BodySemibold" style={{color: globalColors.red}}>
+      Leave channel
+    </Text>
+  </Box>
+)
+
+export {CaptionedButton, DangerButton, LeaveChannel}

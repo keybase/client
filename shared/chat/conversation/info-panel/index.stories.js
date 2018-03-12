@@ -66,6 +66,7 @@ const conversationProps = {
   onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
   onShowNewTeamDialog: action('onShowNewTeamDialog'),
 
+  onAddPeople: unexpected('onAddPeople'),
   onViewTeam: unexpected('onViewTeam'),
   onClickGear: unexpected('onClickGear'),
 
@@ -81,6 +82,7 @@ const teamCommonProps = {
   onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
 
+  onAddPeople: action('onAddPeople'),
   onViewTeam: action('onViewTeam'),
   onClickGear: action('onClickGear'),
 }

@@ -8,7 +8,7 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
 import {teamsTab} from '../../../constants/tabs'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 
@@ -40,6 +40,19 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  _onAddPeople: (teamname: string, target) =>
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {
+            teamname,
+            position: 'bottom left',
+            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
+          },
+          selected: 'addPeopleHow',
+        },
+      ])
+    ),
   _onBack: () => dispatch(navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
@@ -82,6 +95,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
+  onAddPeople: target => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
   onLeaveConversation: () => dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey),

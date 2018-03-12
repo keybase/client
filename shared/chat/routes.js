@@ -1,4 +1,5 @@
 // @flow
+import AddPeopleHow from '../teams/team/header/add-people-how/container'
 import AttachmentGetTitles from './conversation/attachment-get-titles/container'
 import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
@@ -22,6 +23,11 @@ import DeleteHistoryWarning from './delete-history-warning/container'
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
+    addPeopleHow: {
+      children: {},
+      component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
+      tags: makeLeafTags({layerOnTop: true}),
+    },
     attachmentFullscreen: {
       component: AttachmentFullscreen,
       tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
@@ -41,6 +47,11 @@ const conversationRoute = makeRouteDefNode({
     infoPanel: {
       component: InfoPanel,
       children: {
+        addPeopleHow: {
+          children: {},
+          component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
+          tags: makeLeafTags({layerOnTop: true}),
+        },
         reallyLeaveTeam: {
           component: ReallyLeaveTeam,
           tags: makeLeafTags({layerOnTop: false}),

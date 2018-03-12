@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, ConnectedUsernames} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import {Box, ClickableBox, Avatar, Text, Icon, ConnectedUsernames} from '../../../common-adapters'
+import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
 
 type Props = {
   fullname: string,
@@ -32,6 +32,31 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
   </Box>
 )
 
+const AddPeople = ({onClick}: {onClick: any => void}) => (
+  <ClickableBox
+    style={{...globalStyles.flexBoxRow}}
+    onClick={isMobile ? onClick : evt => onClick(evt.target)}
+  >
+    <Box style={isMobile ? rowStyleMobile : rowStyle}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flex: 1,
+          marginRight: globalMargins.tiny,
+        }}
+      >
+        <Box style={{width: isMobile ? 40 : 32, height: isMobile ? 40 : 32, ...globalStyles.flexBoxCenter}}>
+          <Icon type="iconfont-new" style={{fontSize: isMobile ? 24 : 16, color: globalColors.blue}} />
+        </Box>
+        <Text type="BodyPrimaryLink" style={{marginLeft: globalMargins.small}}>
+          Add someone
+        </Text>
+      </Box>
+    </Box>
+  </ClickableBox>
+)
+
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
@@ -44,4 +69,6 @@ const rowStyleMobile = {
   ...rowStyle,
   minHeight: 56,
 }
+
+export {AddPeople}
 export default Participant
