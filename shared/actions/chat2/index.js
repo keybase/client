@@ -22,6 +22,7 @@ import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
+import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
@@ -1601,12 +1602,25 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 // Helpers to nav you to the right place
 const navigateToInbox = () =>
   Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
-const navigateToThread = () =>
-  Saga.put(
-    Route.navigateTo(
-      isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+const navigateToThread = (_: any, state: TypedState) => {
+  if (state.chat2.selectedConversation) {
+    return Saga.put(
+      Route.navigateTo(
+        isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+      )
     )
-  )
+  }
+}
+
+const mobileClearSelectedConversation = (a: any, state: TypedState) => {
+  const routePath = getPath(state.routeTree.routeState)
+  const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
+  if (inboxSelected) {
+    return Saga.put(
+      Chat2Gen.createSelectConversation({conversationIDKey: Types.stringToConversationIDKey('')})
+    )
+  }
+}
 
 // Native share sheet for attachments
 function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
@@ -1738,6 +1752,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, messageAttachmentNativeShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
+    // Unselect the conversation when we go to the inbox
+    yield Saga.safeTakeEveryPure(
+      [a => typeof a.type === 'string' && a.type.startsWith('routeTree:')],
+      mobileClearSelectedConversation
+    )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
     // Auto select the latest convo
