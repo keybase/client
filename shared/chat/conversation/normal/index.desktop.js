@@ -6,6 +6,7 @@ import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import InfoPanel from '../info-panel/container'
+import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {readImageFromClipboard} from '../../../util/clipboard.desktop'
@@ -81,7 +82,7 @@ class Conversation extends React.PureComponent<Props, State> {
     }
     const fileList = e.dataTransfer.files
     const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
-    if (paths) {
+    if (paths.length) {
       for (let path of paths) {
         // Check if any file is a directory and bail out if not
         try {
@@ -95,7 +96,9 @@ class Conversation extends React.PureComponent<Props, State> {
             return
           }
           // delegate to handler for any errors
-        } catch (e) {}
+        } catch (e) {
+          logger.warn('Error stating dropped attachment', e)
+        }
       }
       this.props.onAttach(paths)
     }
