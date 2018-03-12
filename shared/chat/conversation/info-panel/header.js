@@ -12,7 +12,7 @@ type SmallProps = {
 
 const gearIconSize = isMobile ? 24 : 16
 
-const SmallTeamHeader = ({canManage, teamname, participantCount, onClick, onClickGear}: SmallProps) => (
+const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
@@ -42,6 +42,7 @@ const SmallTeamHeader = ({canManage, teamname, participantCount, onClick, onClic
 )
 
 type BigProps = {
+  // canEditChannel: boolean,
   channelname: string,
   description: ?string,
   teamname: string,
