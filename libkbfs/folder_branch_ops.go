@@ -5384,7 +5384,8 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		stillNeedsRekey = true
 
 	default:
-		if err == context.DeadlineExceeded {
+		_, isInputCanceled := err.(libkb.InputCanceledError)
+		if isInputCanceled || err == context.DeadlineExceeded {
 			fbo.log.CDebugf(ctx, "Paper key prompt timed out")
 			// Reschedule the prompt in the timeout case.
 			stillNeedsRekey = true
