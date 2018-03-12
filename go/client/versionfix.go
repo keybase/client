@@ -58,6 +58,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	g.Log.Debug("+ FixVersionClash")
 	defer func() {
 		if socket != nil {
+			g.Log.Debug("FixVersionClash deferral: socket not nil\n")
 			socket.Close()
 			socket = nil
 		}

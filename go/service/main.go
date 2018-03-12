@@ -816,6 +816,7 @@ func (d *Service) ConfigRPCServer() (net.Listener, error) {
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
+	d.G().Log.Debug("Service.Stop: %d\n", exitCode)
 	d.stopCh <- exitCode
 }
 
@@ -825,6 +826,7 @@ func (d *Service) ListenLoopWithStopper(l net.Listener) (exitCode keybase1.ExitC
 		ch <- d.ListenLoop(l)
 	}()
 	exitCode = <-d.stopCh
+	d.G().Log.Debug("ListenLoopWithStopper got code on channel: %d\n", exitCode)
 	l.Close()
 	d.G().Log.Debug("Left listen loop w/ exit code %d\n", exitCode)
 	return exitCode, <-ch

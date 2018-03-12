@@ -8,6 +8,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"path/filepath"
 	"strings"
@@ -75,5 +76,6 @@ func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
 }
 
 func IsSocketClosedError(e error) bool {
+	fmt.Printf("IsSocketClosedError:", e == winio.ErrPipeListenerClosed)
 	return e == winio.ErrPipeListenerClosed
 }
