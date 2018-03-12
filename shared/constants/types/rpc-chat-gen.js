@@ -807,7 +807,7 @@ export type GetThreadNonblockReason =
 
 export type GetThreadQuery = $ReadOnly<{markAsRead: Boolean, messageTypes?: ?Array<MessageType>, disableResolveSupersedes: Boolean, before?: ?Gregor1.Time, after?: ?Gregor1.Time, messageIDControl?: ?MessageIDControl}>
 
-export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, rateLimit?: ?RateLimit}>
+export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 
 export type GlobalAppNotificationSetting =
   | 0 // NEWMESSAGES_0

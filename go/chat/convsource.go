@@ -673,7 +673,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Set up public inbox info if we don't have one with members type from remote call. Assume this is a
 	// public chat here, since it is the only chance we have to unbox it.
 	if unboxConv == nil {
-		unboxConv = newPublicUnboxConverstionInfo(convID, boxed.MembersType)
+		unboxConv = newExtraInboxUnboxConverstionInfo(convID, boxed.MembersType, boxed.Visibility)
 	}
 
 	// Unbox
