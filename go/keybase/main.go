@@ -46,19 +46,8 @@ func keybaseExit(exitCode int) {
 	os.Exit(exitCode)
 }
 
-// Preserve non-critical errors that happen very early during startup,
-// where logging is not set up yet, to be printed later when logging
-// is functioning.
-var startupErrors []error
-
 func main() {
-	if err := libkb.SaferDLLLoading(); err != nil {
-		// Don't abort here. This should not happen on any known
-		// version of Windows, but new MS platforms may create
-		// regressions.
-		startupErrors = append(startupErrors,
-			fmt.Errorf("SaferDLLLoading error: %v", err.Error()))
-	}
+	err := libkb.SaferDLLLoading()
 
 	// handle a Quick version query
 	if handleQuickVersion() {
@@ -68,11 +57,17 @@ func main() {
 	g := libkb.NewGlobalContext()
 	g.Init()
 
+	// Don't abort here. This should not happen on any known version of Windows, but
+	// new MS platforms may create regressions.
+	if err != nil {
+		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
+	}
+
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
 
 	go HandleSignals(g)
-	err := mainInner(g)
+	err = mainInner(g)
 
 	if g.Env.GetDebug() {
 		// hack to wait a little bit to receive all the log messages from the
@@ -95,25 +90,6 @@ func main() {
 	}
 	if g.ExitCode != keybase1.ExitCode_OK {
 		keybaseExit(int(g.ExitCode))
-	}
-}
-
-func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
-	if e.GetRunMode() != libkb.ProductionRunMode || e.AllowPTrace() {
-		return
-	}
-
-	// We do our best but if it's not possible on some systems or
-	// configurations, it's not a fatal error. Also see documentation
-	// in ptrace_*.go files.
-	if err := libkb.DisableProcessTracing(); err != nil {
-		log.Debug("Unable to disable process tracing: %v", err.Error())
-	}
-}
-
-func logStartupIssues(log logger.Logger) {
-	for _, err := range startupErrors {
-		log.Debug(err.Error())
 	}
 }
 
@@ -173,8 +149,6 @@ func mainInner(g *libkb.GlobalContext) error {
 	g.StartupMessage()
 
 	warnNonProd(g.Log, g.Env)
-	tryToDisableProcessTracing(g.Log, g.Env)
-	logStartupIssues(g.Log)
 
 	if err := configOtherLibraries(g); err != nil {
 		return err
