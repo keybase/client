@@ -162,7 +162,7 @@ run_redirector() {
     # here that's owned by root.  If we can't write to it, then just nuke it
     # and overwrite.
     if [ -e "$log" -a ! -w "$log" ]; then
-      rm -f "$log" &> /dev/null
+      rm -f "$log"
     fi
     nohup keybase-redirector /keybase >> "$log" 2>&1 &
   fi
