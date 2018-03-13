@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
-import {connect} from 'react-redux'
+import {connect, type Dispatch} from '../util/container'
 import {globalColors, isMobile} from '../styles'
 
 const MaybePopup = isMobile
@@ -25,7 +25,7 @@ const MaybePopup = isMobile
     )
 
 // TODO properly type this
-const DispatchNavUpHoc: any = connect(undefined, (dispatch, {navigateUp}) => ({
+const DispatchNavUpHoc: any = connect(undefined, (dispatch: Dispatch, {navigateUp}) => ({
   connectedNavigateUp: () => dispatch(navigateUp()),
 }))
 

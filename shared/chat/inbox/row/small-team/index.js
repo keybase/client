@@ -20,7 +20,7 @@ type Props = {
   showBold: boolean,
   snippet: string,
   subColor: string,
-  teamname: ?string,
+  teamname: string,
   timestamp: string,
   usernameColor: string,
   youAreReset: boolean,

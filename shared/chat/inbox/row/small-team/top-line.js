@@ -9,7 +9,7 @@ type Props = {
   participants: Array<string>,
   showBold: boolean,
   backgroundColor: ?string,
-  subColor: ?string,
+  subColor: string,
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,

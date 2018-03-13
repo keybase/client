@@ -8,9 +8,9 @@ import {isMobile} from '../../../../../util/container'
 type Props = {
   message: Types.MessageText,
   onCopy: () => void,
-  onDelete: ?() => void,
-  onDeleteMessageHistory: ?() => void,
-  onEdit: ?() => void,
+  onDelete: null | (() => void),
+  onDeleteMessageHistory: null | (() => void),
+  onEdit: null | (() => void),
   onHidden: () => void,
   showDivider: boolean,
   style?: Object,

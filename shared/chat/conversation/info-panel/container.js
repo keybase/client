@@ -38,8 +38,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  _onBack: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
@@ -114,7 +113,7 @@ type SelectorDispatchProps = {
 
 const mapDispatchToSelectorProps = (dispatch: Dispatch, {navigateUp}): SelectorDispatchProps => ({
   // Used by HeaderHoc.
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => navigateUp && dispatch(navigateUp()),
 })
 
 type Props = {
