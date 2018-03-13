@@ -7,7 +7,7 @@ type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
-  onClickGear: any => void,
+  onClickGear: (?EventTarget) => void,
 }
 
 const gearIconSize = isMobile ? 24 : 16
@@ -34,7 +34,11 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
       type="iconfont-gear"
       onClick={evt => {
         evt.preventDefault()
-        onClickGear(evt.target)
+        if (!isMobile) {
+          onClickGear(evt.target)
+        } else {
+          onClickGear()
+        }
       }}
       style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
     />
@@ -58,7 +62,7 @@ const BigTeamHeader = (props: BigProps) => {
         style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2, position: 'relative'}}
       >
         <Text type="BodyBig">#{props.channelname}</Text>
-        {!!props.canEditChannel && (
+        {props.canEditChannel && (
           <ClickableBox
             style={{
               ...globalStyles.flexBoxRow,
