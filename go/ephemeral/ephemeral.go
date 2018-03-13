@@ -54,14 +54,25 @@ func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) er
 	return err
 }
 
+func getServerMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext) (maxGeneration keybase1.EkGeneration, err error) {
+	deviceEKs, err := GetOwnDeviceEKs(ctx, g)
+	if err != nil {
+		return maxGeneration, err
+	}
+
+	for _, deviceEK := range deviceEKs {
+		if deviceEK.Generation > maxGeneration {
+			maxGeneration = deviceEK.Generation
+		}
+	}
+	return maxGeneration, nil
+}
+
 func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keybase1.DeviceEkMetadata, err error) {
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return data, err
 	}
-
-	deviceEKStorage := g.GetDeviceEKStorage()
-	generation := deviceEKStorage.MaxGeneration(ctx) + 1
 
 	seed, err := newDeviceEphemeralSeed()
 	if err != nil {
@@ -72,6 +83,42 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 	if err != nil {
 		return data, err
 	}
+
+	deviceEKStorage := g.GetDeviceEKStorage()
+	generation, err := deviceEKStorage.MaxGeneration(ctx)
+	// Let's try to get the max from the server
+	if err != nil {
+		generation, err = getServerMaxDeviceEK(ctx, g)
+		if err != nil {
+			return data, err
+		}
+	}
+	generation++
+
+	data, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
+	// Let's retry posting with the server given max
+	if err != nil {
+		generation, err = getServerMaxDeviceEK(ctx, g)
+		if err != nil {
+			return data, err
+		}
+		generation++
+		data, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
+	}
+
+	if err != nil {
+		return data, err
+	}
+
+	err = deviceEKStorage.Put(ctx, generation, keybase1.DeviceEk{
+		Seed:       keybase1.Bytes32(seed),
+		Generation: generation,
+		HashMeta:   currentMerkleRoot.HashMeta(),
+	})
+	return data, err
+}
+
+func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, currentMerkleRoot *libkb.MerkleRoot) (data keybase1.DeviceEkMetadata, err error) {
 	metadata := keybase1.DeviceEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
@@ -90,15 +137,6 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 	signedPacket, _, err := signingKey.SignToString(metadataJSON)
 
 	err = postNewDeviceEK(ctx, g, signedPacket)
-	if err != nil {
-		return data, err
-	}
-
-	err = deviceEKStorage.Put(ctx, generation, keybase1.DeviceEk{
-		Seed:       keybase1.Bytes32(seed),
-		Generation: generation,
-		HashMeta:   currentMerkleRoot.HashMeta(),
-	})
 	if err != nil {
 		return data, err
 	}

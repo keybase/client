@@ -32,6 +32,7 @@ import (
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -809,4 +810,21 @@ func ShredFile(filename string) error {
 	}
 
 	return os.Remove(filename)
+}
+
+func MPackEncode(input interface{}) ([]byte, error) {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(input); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func MPackDecode(data []byte, res interface{}) error {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	err := dec.Decode(res)
+	return err
 }

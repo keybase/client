@@ -71,12 +71,14 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
-	maxGeneration := s.MaxGeneration(context.Background())
+	maxGeneration, err := s.MaxGeneration(context.Background())
+	require.NoError(t, err)
 	require.EqualValues(t, 3, maxGeneration)
 
 	require.NoError(t, s.Delete(keybase1.EkGeneration(3)))
 
-	maxGeneration = s.MaxGeneration(context.Background())
+	maxGeneration, err = s.MaxGeneration(context.Background())
+	require.NoError(t, err)
 	require.EqualValues(t, 2, maxGeneration)
 
 }

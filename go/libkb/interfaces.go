@@ -617,7 +617,7 @@ type DeviceEKStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error)
 	Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error)
 	GetAll(ctx context.Context) (deviceEKs map[keybase1.EkGeneration]keybase1.DeviceEk, err error)
-	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration)
+	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {
