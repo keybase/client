@@ -213,7 +213,10 @@ func (cc *crChain) getActionsToMerge(
 		}
 		// no conflicts!
 		if !conflict {
-			actions = append(actions, unmergedOp.getDefaultAction(mergedPath))
+			action := unmergedOp.getDefaultAction(mergedPath)
+			if action != nil {
+				actions = append(actions, action)
+			}
 		}
 	}
 
@@ -1019,6 +1022,8 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 		newOp = &newSetAttrOp
 	case *GCOp:
 		// No need to copy a GCOp, it won't be modified
+		newOp = realOp
+	case *rekeyOp:
 		newOp = realOp
 	}
 	for _, unref := range unrefs {

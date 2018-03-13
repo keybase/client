@@ -1376,6 +1376,8 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 		newOp = newGCOp(op.LatestRev)
 	case *resolutionOp:
 		newOp = newResolutionOp()
+	case *rekeyOp:
+		newOp = newRekeyOp()
 	}
 
 	// Now reverse all the block updates.  Don't bother with bare Refs

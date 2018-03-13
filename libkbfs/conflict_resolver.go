@@ -2953,6 +2953,33 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		return err
 	}
 
+	// Find any paths that don't have any ops associated with them,
+	// and avoid making new blocks for them in the resolution.
+	// Without this, we will end up with an extraneous block update
+	// for the directory with no ops.  Then, if this resolution ends
+	// up going through ANOTHER resolution later, which sees no ops
+	// need resolving and short-circuits the resolution process, we
+	// could end up accidentally unreferencing a merged directory
+	// block that's still in use.  See KBFS-2825 for details.
+	hasChildOps := make(map[BlockPointer]bool)
+	for _, p := range unmergedPaths {
+		chain := unmergedChains.byMostRecent[p.tailPointer()]
+		if len(chain.ops) == 0 {
+			continue
+		}
+		for _, pn := range p.path {
+			hasChildOps[pn.BlockPointer] = true
+		}
+	}
+	for ptr := range resolvedPaths {
+		if !hasChildOps[ptr] {
+			cr.log.CDebugf(ctx,
+				"Removing resolved path for op-less unmerged block pointer %v",
+				ptr)
+			delete(resolvedPaths, ptr)
+		}
+	}
+
 	updates, bps, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,

@@ -765,18 +765,32 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 			md.data.Changes.Ops, ptr, unmergedChains.doNotUnrefPointers)
 	}
 
-	// Scrub all unrefs of blocks that never made it to the server,
-	// for smaller updates and to make things easier on the
-	// StateChecker.
+	// Scrub all refs and unrefs of blocks that never made it to the
+	// server, for smaller updates and to make things easier on the
+	// StateChecker.  We scrub the refs too because in some cases
+	// (e.g., on a copied conflict file), we add an unref without
+	// removing the original ref, and if we remove the unref, the ref
+	// must go too.
 	if len(deletedBlocks) > 0 {
 		for _, op := range md.data.Changes.Ops {
-			var toUnref []BlockPointer
-			for _, unref := range op.Unrefs() {
-				if deletedBlocks[unref] {
-					toUnref = append(toUnref, unref)
+			var toDelRef []BlockPointer
+			for _, ref := range op.Refs() {
+				if deletedBlocks[ref] {
+					toDelRef = append(toDelRef, ref)
 				}
 			}
-			for _, unref := range toUnref {
+			for _, ref := range toDelRef {
+				fup.log.CDebugf(ctx, "Scrubbing ref %v", ref)
+				op.DelRefBlock(ref)
+			}
+			var toDelUnref []BlockPointer
+			for _, unref := range op.Unrefs() {
+				if deletedBlocks[unref] {
+					toDelUnref = append(toDelUnref, unref)
+				}
+			}
+			for _, unref := range toDelUnref {
+				fup.log.CDebugf(ctx, "Scrubbing unref %v", unref)
 				op.DelUnrefBlock(unref)
 			}
 		}
