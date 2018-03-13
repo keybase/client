@@ -3,6 +3,9 @@ import * as React from 'react'
 
 export type Props = {
   kbfsEnabled: boolean,
+  inProgress: boolean,
+  onInstall: () => void,
+  onUninstall: () => void,
 }
 
 declare export default function Files(props: Props): React.Component<Props>

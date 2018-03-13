@@ -12,7 +12,7 @@ const checkBoxComponent = (kbfsEnabled: boolean) => (
   </Box>
 )
 
-const Files = ({kbfsEnabled}: Props) => {
+const Files = ({kbfsEnabled, inProgress, onInstall, onUninstall}: Props) => {
   const iconType = kbfsEnabled ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'
   const bannerStyle = {
     ...globalStyles.flexBoxRow,
@@ -38,7 +38,7 @@ const Files = ({kbfsEnabled}: Props) => {
           and secure.
         </Text>
         <Box style={{justifyContent: 'flex-start'}}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={() => undefined} />
+          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} />
         </Box>
       </Box>
     )
@@ -57,9 +57,10 @@ const Files = ({kbfsEnabled}: Props) => {
           <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
         </Box>
         <Checkbox
-          onCheck={() => undefined}
+          onCheck={kbfsEnabled ? onUninstall : onInstall}
           labelComponent={checkBoxComponent(kbfsEnabled)}
           checked={kbfsEnabled}
+          disabled={inProgress}
         />
       </Box>
     </Box>

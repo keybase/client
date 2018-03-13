@@ -10,6 +10,8 @@ export opaque type Path = ?string
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 export type ProgressType = 'pending' | 'loaded'
 
+export type DispatchAction = () => void
+
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,

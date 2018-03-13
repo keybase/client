@@ -82,6 +82,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.installKBFS:
       return state.merge({kbfsInstalling: true})
     case FsGen.installKBFSResult:
+    case FsGen.uninstallKBFSConfirm:
     case FsGen.uninstallKBFS:
       // To prevent races, we overlap flags set to true. So we don't unset the
       // kbfsInstalling flag here.

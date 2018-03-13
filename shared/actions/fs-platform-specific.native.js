@@ -10,5 +10,8 @@ export function fuseStatusResultSaga() {}
 export function* installFuseSaga(): Saga.SagaGenerator<any, any> {}
 export function installDokanSaga() {}
 export function* installKBFSSaga(): Saga.SagaGenerator<any, any> {}
+export function uninstallKBFSConfirmSaga(): Promise<*> {
+  return new Promise((resolve, reject) => reject(new Error('unimplemented')))
+}
 export function uninstallKBFSSaga() {}
 export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {}

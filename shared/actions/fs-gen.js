@@ -26,6 +26,7 @@ export const openInFileUI = 'fs:openInFileUI'
 export const setFlags = 'fs:setFlags'
 export const sortSetting = 'fs:sortSetting'
 export const uninstallKBFS = 'fs:uninstallKBFS'
+export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
 // Action Creators
 export const createDismissTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: dismissTransfer})
@@ -87,6 +88,7 @@ export const createSortSetting = (
   }>
 ) => ({error: false, payload, type: sortSetting})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
+export const createUninstallKBFSConfirm = (payload: $ReadOnly<{onSuccess: Types.DispatchAction}>) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
 export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfer>
@@ -105,6 +107,7 @@ export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSR
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
+export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
 
 // All Actions
@@ -127,4 +130,5 @@ export type Actions =
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSortSetting>
   | More.ReturnType<typeof createUninstallKBFS>
+  | More.ReturnType<typeof createUninstallKBFSConfirm>
   | {type: 'common:resetStore', payload: void}

@@ -12,6 +12,7 @@ import {
   installKBFSSaga,
   installFuseSaga,
   installDokanSaga,
+  uninstallKBFSConfirmSaga,
   uninstallKBFSSaga,
   uninstallKBFSSagaSuccess,
 } from './fs-platform-specific'
@@ -111,11 +112,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   if (isWindows) {
-    yield Saga.safeTakeLatestPure(FsGen.installFuse, installDokanSaga)
+    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {
-    yield Saga.safeTakeLatest(FsGen.installFuse, installFuseSaga)
+    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
   }
   yield Saga.safeTakeEvery(FsGen.installKBFS, installKBFSSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFSSaga, uninstallKBFSSagaSuccess)
 }
 

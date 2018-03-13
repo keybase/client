@@ -55,6 +55,9 @@
     "installKBFSResult": {
       "result": "RPCTypes.InstallResult"
     },
+    "uninstallKBFSConfirm": {
+      "onSuccess": "Types.DispatchAction"
+    },
     "uninstallKBFS": {}
   }
 }

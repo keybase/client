@@ -8,8 +8,8 @@ import fs from 'fs'
 import {delay} from 'redux-saga'
 import {ExitCodeFuseKextPermissionError} from '../constants/fs'
 import type {TypedState} from '../constants/reducer'
-import {shell, electron} from 'electron'
-import {isLinux, isWindows} from '../constants/platform'
+import * as Electron from 'electron'
+import {fileUIName, isLinux, isWindows} from '../constants/platform'
 import {navigateTo} from './route-tree'
 import {fsTab} from '../constants/tabs'
 import logger from '../logger'
@@ -49,7 +49,7 @@ function openInDefaultDirectory(openPath: string): Promise<*> {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      shell.openExternal(url, {}, err => {
+      Electron.shell.openExternal(url, {}, err => {
         if (err) {
           reject(err)
           return
@@ -84,7 +84,7 @@ function _open(openPath: string): Promise<*> {
     getPathType(openPath).then(typ => {
       if (typ === 'directory') {
         if (isWindows) {
-          if (!shell.openItem(openPath)) {
+          if (!Electron.shell.openItem(openPath)) {
             reject(new Error(`Unable to open item: ${openPath}`))
             return
           }
@@ -93,7 +93,7 @@ function _open(openPath: string): Promise<*> {
           return
         }
       } else if (typ === 'file') {
-        if (!shell.showItemInFolder(openPath)) {
+        if (!Electron.shell.showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
           return
         }
@@ -194,13 +194,30 @@ export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
 }
 
+export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
+  const dialog = Electron.dialog || Electron.remote.dialog
+  dialog.showMessageBox(
+    {
+      buttons: ['Remove & Restart', 'Cancel'],
+      detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
+      message: `Remove Keybase from ${fileUIName}`,
+      type: 'question',
+    },
+    resp => {
+      if (resp === 0) {
+        return action.payload.onSuccess()
+      }
+    }
+  )
+}
+
 export function uninstallKBFSSaga() {
   return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
 }
 
 export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-  const app = electron.remote.app
+  const app = Electron.remote.app
   app.relaunch()
   app.exit(0)
 }
@@ -220,7 +237,7 @@ function installCachedDokan(): Promise<*> {
       reject(err)
       return
     }
-    // restart the servie, particularly kbfsdokan
+    // restart the service, particularly kbfsdokan
     // based on desktop/app/start-win-service.js
     const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
     if (!binPath) {
