@@ -94,7 +94,7 @@ class Developer extends React.Component<Props, DeveloperState> {
     })
   }
 
-  _showProfileControls = () => {
+  _showPprofControls = () => {
     return this.state.clickCount >= clickThreshold
   }
 
@@ -133,13 +133,17 @@ class Developer extends React.Component<Props, DeveloperState> {
           label="DB Nuke"
           onClick={props.onDBNuke}
         />
-        {this._showProfileControls() && (
-          <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
-        )}
-        {this._showProfileControls() && (
-          <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-            Trace files are included in logs sent with feedback.
-          </Text>
+        {this._showPprofControls() && (
+          <React.Fragment>
+            <TraceButton
+              durationSeconds={30}
+              onTrace={props.onTrace}
+              traceInProgress={props.traceInProgress}
+            />
+            <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+              Trace and profile files are included in logs sent with feedback.
+            </Text>
+          </React.Fragment>
         )}
         <Box style={{flex: 1}} />
       </Box>
