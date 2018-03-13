@@ -4,23 +4,19 @@ import {Map} from 'immutable'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
-import {connect, type MapStateToProps, type TypedState} from '../../util/container'
+import {connect, type TypedState} from '../../util/container'
 
-const mapStateToProps: MapStateToProps<*, *, *> = (
+type OwnProps = {
+  disableIfInTeamName: ?string,
+  id: SearchResultId,
+  onClick: () => void,
+  onMouseOver?: () => void,
+  onShowTracker?: () => void,
+}
+
+const mapStateToProps = (
   state: TypedState,
-  {
-    disableIfInTeamName,
-    id,
-    onClick,
-    onMouseOver,
-    onShowTracker,
-  }: {
-    disableIfInTeamName: ?string,
-    id: SearchResultId,
-    onClick: () => void,
-    onMouseOver?: () => void,
-    onShowTracker?: () => void,
-  }
+  {disableIfInTeamName, id, onClick, onMouseOver, onShowTracker}: OwnProps
 ) => {
   const result: any = state.entities.getIn(['search', 'searchResults', id], Map()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
