@@ -39,7 +39,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onBack: () => dispatch(Route.navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
