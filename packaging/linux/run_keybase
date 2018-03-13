@@ -157,8 +157,11 @@ run_redirector() {
 
   # Only start the root redirector if it hasn't been explicitly disabled.
   if [ "$disable" != "true" ]; then
-    logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-    nohup keybase-redirector /keybase >> "$logdir/keybase.redirector.log" 2>&1 &
+    # There's no good place to put logs as a user, since this binary
+    # will suid to root and be unable to write to ~/.cache/keybase.
+    # But I think it would also race to write to /root/.cache/keybase
+    # if it doesn't suid fast enough.
+    nohup keybase-redirector /keybase &> /dev/null &
   fi
 }
 
