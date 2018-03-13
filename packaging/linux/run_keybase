@@ -157,11 +157,14 @@ run_redirector() {
 
   # Only start the root redirector if it hasn't been explicitly disabled.
   if [ "$disable" != "true" ]; then
-    # There's no good place to put logs as a user, since this binary
-    # will suid to root and be unable to write to ~/.cache/keybase.
-    # But I think it would also race to write to /root/.cache/keybase
-    # if it doesn't suid fast enough.
-    nohup keybase-redirector /keybase &> /dev/null &
+    log="${XDG_CACHE_HOME:-$HOME/.cache}/keybase/keybase.redirector.log"
+    # An older version of post_install.sh could have made a redirector log
+    # here that's owned by root.  If we can't write to it, then just nuke it
+    # and overwrite.
+    if [ -e "$log" -a ! -w "$log" ]; then
+      rm -f "$log" &> /dev/null
+    fi
+    nohup keybase-redirector /keybase >> "$log" 2>&1 &
   fi
 }
 
