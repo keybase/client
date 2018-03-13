@@ -31,7 +31,6 @@ const PathItemIcon = ({spec, style}: PathItemIconProps) => {
 const basicIconStyles = (color, appendStyle) =>
   memoize(({color, appendStyle}) => ({
     color,
-    fontSize: 32,
     ...(appendStyle || {}),
   }))({color, appendStyle})
 

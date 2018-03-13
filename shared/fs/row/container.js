@@ -5,6 +5,7 @@ import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
+import {isMobile} from '../../styles'
 
 type OwnProps = {
   path: Types.Path,
@@ -30,7 +31,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     pathItem: Types.PathItem,
     itemStyles: Types.ItemStyles,
     targetRect?: ?ClientRect
-  ) =>
+  ) => {
+    // We may not have the folder loaded yet, but will need metadata to know
+    // folder entry types in the popup. So dispatch an action now to load it.
+    pathItem.type === 'folder' && dispatch(FSGen.createFolderListLoad({path}))
     dispatch(
       navigateAppend([
         {
@@ -44,7 +48,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           selected: 'rowAction',
         },
       ])
-    ),
+    )
+  },
 })
 
 const mergeProps = ({_username, path, pathItem}, {_onOpen, _openInFileUI, _onAction}) => {
@@ -57,7 +62,12 @@ const mergeProps = ({_username, path, pathItem}, {_onOpen, _openInFileUI, _onAct
     onOpen: () => _onOpen(pathItem.type, path),
     openInFileUI: () => _openInFileUI(path),
     onAction: (event: SyntheticEvent<>) =>
-      _onAction(path, pathItem, itemStyles, (event.target: window.HTMLElement).getBoundingClientRect()),
+      _onAction(
+        path,
+        pathItem,
+        itemStyles,
+        isMobile ? undefined : (event.target: window.HTMLElement).getBoundingClientRect()
+      ),
     itemStyles,
   }
 }

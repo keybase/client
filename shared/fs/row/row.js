@@ -18,17 +18,19 @@ type RowProps = {
   onAction: (event: SyntheticEvent<>) => void,
 }
 
-const HoverBox = glamorous(Box)({
-  '& .fs-path-item-hover-icon': {
-    color: globalColors.white,
-  },
-  ':hover .fs-path-item-hover-icon': {
-    color: globalColors.black_40,
-  },
-  '& .fs-path-item-hover-icon:hover': {
-    color: globalColors.black_60,
-  },
-})
+const HoverBox = isMobile
+  ? Box
+  : glamorous(Box)({
+      '& .fs-path-item-hover-icon': {
+        color: globalColors.white,
+      },
+      ':hover .fs-path-item-hover-icon': {
+        color: globalColors.black_40,
+      },
+      '& .fs-path-item-hover-icon:hover': {
+        color: globalColors.black_60,
+      },
+    })
 
 export const Row = ({
   name,
@@ -46,7 +48,11 @@ export const Row = ({
         <ClickableBox onClick={onOpen} style={stylesRowBox}>
           <PathItemIcon spec={itemStyles.iconSpec} style={pathItemIconStyle} />
           <Box style={folderBoxStyle}>
-            <Text type={itemStyles.textType} style={rowTextStyles(itemStyles.textColor)}>
+            <Text
+              type={itemStyles.textType}
+              style={rowTextStyles(itemStyles.textColor)}
+              lineClamp={isMobile ? 1 : undefined}
+            >
               {name}
             </Text>
             {type !== 'folder' ? (
@@ -56,22 +62,22 @@ export const Row = ({
             )}
           </Box>
         </ClickableBox>
-        {!isMobile && (
-          <Box style={stylesRowRightBox}>
+        <Box style={stylesRowRightBox}>
+          {!isMobile && (
             <Icon
               type="iconfont-finder"
               style={rowActionIconStyle}
               onClick={openInFileUI}
               className="fs-path-item-hover-icon"
             />
-            <Icon
-              type="iconfont-ellipsis"
-              style={rowActionIconStyle}
-              onClick={onAction}
-              className="fs-path-item-hover-icon"
-            />
-          </Box>
-        )}
+          )}
+          <Icon
+            type="iconfont-ellipsis"
+            style={rowActionIconStyle}
+            onClick={onAction}
+            className="fs-path-item-hover-icon"
+          />
+        </Box>
       </HoverBox>
     </Box>
     <Divider style={stylesRowDivider} />
@@ -153,7 +159,11 @@ const iconPlaceholderIconStyle = {
 
 const rowTextStyles = memoize(color => ({
   color,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  ...(isMobile
+    ? {}
+    : {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
 }))
