@@ -2,12 +2,15 @@
 import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {isLinux} from '../constants/platform'
 
 const mapStateToProps = (state: TypedState) => {
   const kbfsEnabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
+  const hasFuse = isLinux || kbfsEnabled
   return {
     kbfsEnabled,
     inProgress: state.fs.fuseInstalling || state.fs.kbfsInstalling || state.fs.kbfsOpening,
+    showSecurityPrefs: !hasFuse && state.fs.kextPermissionError,
   }
 }
 
