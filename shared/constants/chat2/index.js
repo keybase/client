@@ -26,10 +26,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 })
 
 const emptyMeta = makeConversationMeta()
-export const makeEditingContext: I.RecordFactory<Types._EditingContext> = I.Record({
-  ordinal: Types.numberToOrdinal(0),
-  type: 'message',
-})
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -42,7 +38,7 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.editingMap.getIn([id, 'ordinal'])
+  state.chat2.editingMap.get(id)
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))

@@ -34,6 +34,7 @@ const getStyle = (type, isEditing) => {
 
 const editing = {
   backgroundColor: globalColors.yellow,
+  opacity: 0.6,
   paddingLeft: 2,
   paddingRight: 2,
 }

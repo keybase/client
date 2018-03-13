@@ -7,7 +7,6 @@ export type PreMentionHocProps = {
   conversationIDKey: Types.ConversationIDKey,
   channelName: ?string,
   isEditing: boolean,
-  isEditingLastMessage: boolean,
   focusInputCounter: number,
   inputBlur: () => void,
   inputClear: () => void,

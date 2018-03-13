@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededBy || !!meta.wasFinalizedBy
   return {
     conversationIDKey,
-    editingOrdinal: state.chat2.editingMap.getIn([conversationIDKey, 'ordinal']),
+    editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     hasExtraRow,
     messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
   }

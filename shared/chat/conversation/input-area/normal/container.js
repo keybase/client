@@ -30,11 +30,10 @@ type OwnProps = {
 const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const editingContext: ?Types.EditingContext = state.chat2.editingMap.get(conversationIDKey)
-  const _editingMessage = editingContext
-    ? Constants.getMessageMap(state, conversationIDKey).get(editingContext.ordinal)
+  const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
+  const _editingMessage = editingOrdinal
+    ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
-  const isEditingLastMessage = editingContext && editingContext.type === 'lastMessage'
   const _you = state.config.username || ''
 
   return {
@@ -42,7 +41,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     _meta: Constants.getMeta(state, conversationIDKey),
     _you,
     conversationIDKey,
-    isEditingLastMessage,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -103,7 +101,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     conversationIDKey: stateProps.conversationIDKey,
     focusInputCounter: ownProps.focusInputCounter,
     isEditing: !!stateProps._editingMessage,
-    isEditingLastMessage: stateProps.isEditingLastMessage,
     isLoading: false,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),

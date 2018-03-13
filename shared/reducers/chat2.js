@@ -335,7 +335,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         if (ordinal) {
           const message = messageMap.get(ordinal)
           if (message && message.type === 'text') {
-            return editingMap.set(conversationIDKey, Constants.makeEditingContext({ordinal, type: 'message'}))
+            return editingMap.set(conversationIDKey, ordinal)
           } else {
             return editingMap
           }
@@ -348,10 +348,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return message && message.type === 'text' && message.author === editLastUser
         })
         if (found) {
-          return editingMap.set(
-            conversationIDKey,
-            Constants.makeEditingContext({ordinal: found, type: 'lastMessage'})
-          )
+          return editingMap.set(conversationIDKey, found)
         }
         return editingMap
       })

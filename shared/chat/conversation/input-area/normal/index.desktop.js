@@ -106,90 +106,99 @@ class ConversationInput extends Component<InputProps> {
 
   render() {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        {this.props.isEditingLastMessage && (
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          borderTop: `solid 1px ${globalColors.black_05}`,
+          width: '100%',
+        }}
+      >
+        {this.props.isEditing && (
           <Box style={editingTabStyle}>
-            <Text type="BodySemibold">Editing your last message</Text>
-            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={tabCancelStyle}>
+            <Text type="BodySmall">Editing:</Text>
+            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
               Cancel
             </Text>
           </Box>
         )}
-        {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.switchMention}
-            filter={this.props.mentionFilter}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && <MentionCatcher onClick={this._channelMentionCatcherClick} />}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.switchChannelMention}
-            filter={this.props.channelMentionFilter}
-          />
-        )}
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <input
-            type="file"
-            style={{display: 'none'}}
-            ref={this.props.filePickerSetRef}
-            onChange={this._pickFile}
-            multiple={true}
-          />
-          <Input
-            className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-            autoFocus={false}
-            small={true}
-            style={this.props.isEditing ? styleInputEditing : styleInput}
-            ref={this.props.inputSetRef}
-            hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
-            hideUnderline={true}
-            onChangeText={this.props.setText}
-            value={this.props.text}
-            multiline={true}
-            rowsMin={1}
-            rowsMax={5}
-            onKeyDown={this.props.onKeyDown}
-            onKeyUp={this.props.onKeyUp}
-            onEnterKeyDown={this.props.onEnterKeyDown}
-          />
-          {this.props.emojiPickerOpen && (
-            <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+        <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, width: '100%'}}>
+          {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
+          {this.props.mentionPopupOpen && (
+            <MentionHud
+              conversationIDKey={this.props.conversationIDKey}
+              selectDownCounter={this.props.downArrowCounter}
+              selectUpCounter={this.props.upArrowCounter}
+              pickSelectedUserCounter={this.props.pickSelectedCounter}
+              onPickUser={this.props.insertMention}
+              onSelectUser={this.props.switchMention}
+              filter={this.props.mentionFilter}
+            />
           )}
-          {this.props.isEditing && (
-            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={cancelStyle}>
-              Cancel
+          {this.props.channelMentionPopupOpen && (
+            <MentionCatcher onClick={this._channelMentionCatcherClick} />
+          )}
+          {this.props.channelMentionPopupOpen && (
+            <ChannelMentionHud
+              conversationIDKey={this.props.conversationIDKey}
+              selectDownCounter={this.props.downArrowCounter}
+              selectUpCounter={this.props.upArrowCounter}
+              pickSelectedChannelCounter={this.props.pickSelectedCounter}
+              onPickChannel={this.props.insertChannelMention}
+              onSelectChannel={this.props.switchChannelMention}
+              filter={this.props.channelMentionFilter}
+            />
+          )}
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <input
+              type="file"
+              style={{display: 'none'}}
+              ref={this.props.filePickerSetRef}
+              onChange={this._pickFile}
+              multiple={true}
+            />
+            <Input
+              className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+              autoFocus={false}
+              small={true}
+              style={styleInput}
+              ref={this.props.inputSetRef}
+              hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
+              hideUnderline={true}
+              onChangeText={this.props.setText}
+              value={this.props.text}
+              multiline={true}
+              rowsMin={1}
+              rowsMax={5}
+              onKeyDown={this.props.onKeyDown}
+              onKeyUp={this.props.onKeyUp}
+              onEnterKeyDown={this.props.onEnterKeyDown}
+            />
+            {this.props.emojiPickerOpen && (
+              <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+            )}
+            <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+            <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+            <Text
+              type="BodySmall"
+              style={{
+                flexGrow: 1,
+                marginBottom: globalMargins.xtiny,
+                marginLeft: globalMargins.tiny,
+                textAlign: 'left',
+              }}
+            >
+              {isTyping(this.props.typing)}
             </Text>
-          )}
-          <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
-          <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <Text
-            type="BodySmall"
-            style={{
-              flexGrow: 1,
-              marginBottom: globalMargins.xtiny,
-              marginLeft: globalMargins.tiny,
-              textAlign: 'left',
-            }}
-          >
-            {isTyping(this.props.typing)}
-          </Text>
-          <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this.props.inputFocus}>
-            *bold*, _italics_, `code`, >quote
-          </Text>
+            <Text
+              type="BodySmall"
+              style={{...styleFooter, textAlign: 'right'}}
+              onClick={this.props.inputFocus}
+            >
+              *bold*, _italics_, `code`, >quote
+            </Text>
+          </Box>
         </Box>
       </Box>
     )
@@ -264,12 +273,11 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
 )
 
 const editingTabStyle = {
-  backgroundColor: globalColors.white,
-  borderRight: `solid 1px ${globalColors.black_05}`,
-  borderTop: `solid 1px ${globalColors.black_05}`,
-  bottom: 49,
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
+  backgroundColor: globalColors.yellow_60,
+  height: 48,
   padding: 4,
-  position: 'absolute',
 }
 
 const styleMentionHud = {
@@ -282,17 +290,13 @@ const styleMentionHud = {
 }
 
 const styleInput = {
+  backgroundColor: globalColors.white,
   flex: 1,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   marginTop: globalMargins.tiny,
   textAlign: 'left',
 }
-const styleInputEditing = {
-  ...styleInput,
-  backgroundColor: globalColors.yellow,
-}
-
 const styleIcon = {
   paddingRight: globalMargins.tiny,
   paddingTop: globalMargins.tiny,
@@ -306,10 +310,6 @@ const styleFooter = {
   marginRight: globalMargins.tiny,
   marginTop: 0,
   textAlign: 'right',
-}
-
-const tabCancelStyle = {
-  marginLeft: globalMargins.tiny,
 }
 
 const cancelStyle = {
