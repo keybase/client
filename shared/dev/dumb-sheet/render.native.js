@@ -175,7 +175,7 @@ class DumbSheetRender extends Component<Props, any> {
               {this._makeStoreWrapper(component)}
             </Box>
           </Box>
-          <Box style={{position: 'absolute', bottom: 0, right: 0, ...globalStyles.flexBoxRow}}>
+          <Box style={[{position: 'absolute', bottom: 0, right: 0}, globalStyles.flexBoxRow]}>
             <Input
               small={true}
               smallLabel="Filter:"

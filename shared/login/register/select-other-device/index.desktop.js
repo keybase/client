@@ -2,7 +2,7 @@
 import Container from '../../forms/container.desktop'
 import * as React from 'react'
 import {Box, Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../../styles'
 import glamorous from 'glamorous'
 import {type DeviceType} from '../../../constants/types/devices'
 import {type IconType} from '../../../common-adapters/icon'
@@ -102,7 +102,7 @@ const stylesDevicesContainer = {
 }
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   borderRadius: 4,
   justifyContent: 'center',
   minHeight: 32,

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../../styles'
 
 type Props = {
   isSelected: boolean,
@@ -23,7 +23,7 @@ const containerSelectedStyle = {
 
 const container2Style = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'center',
 }
 

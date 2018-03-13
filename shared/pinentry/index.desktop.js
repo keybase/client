@@ -142,7 +142,7 @@ Pinentry.defaultProps = {
 }
 
 const checkboxStyle = {
-  ...globalStyles.topMost,
+  zIndex: 9999,
   color: globalColors.black,
   marginLeft: 10,
 }

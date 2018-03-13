@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Icon, PopupDialog} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../../styles'
+import {globalStyles, globalColors, globalMargins, glamorous, isMobile, desktopStyles} from '../../styles'
 
 import type {Props} from '.'
 
@@ -101,7 +101,7 @@ class Login extends Component<Props, State> {
                 <Box
                   style={{
                     ...globalStyles.flexBoxColumn,
-                    ...globalStyles.scrollable,
+                    ...desktopStyles.scrollable,
                     border: `1px solid ${globalColors.blue}`,
                     maxHeight: 300,
                     width: 270,

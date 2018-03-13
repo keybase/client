@@ -13,7 +13,7 @@ import {
   ListItem,
   Button,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 const Divider = ({theme}) => (
@@ -326,7 +326,7 @@ const styleTLFTextThemed = {
 }
 
 const styleMenu = {
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   marginLeft: 'auto',
   fontSize: 24,
 }

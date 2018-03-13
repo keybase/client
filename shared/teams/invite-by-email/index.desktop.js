@@ -124,7 +124,7 @@ const InviteByEmail = (props: Props) => (
 const styleInside = {
   padding: globalMargins.tiny,
   marginTop: 0,
-  margonBottom: 0,
+  marginBottom: 0,
 }
 
 const styleInput = {

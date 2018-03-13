@@ -5,7 +5,7 @@ import some from 'lodash/some'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
 import {Box, Text, Icon, List} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, desktopStyles, platformStyles} from '../styles'
 
 const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
@@ -129,10 +129,12 @@ const stylesIgnoreDivider = {
   height: 32,
 }
 
-const stylesDividerText = {
-  ...globalStyles.clickable,
-  marginRight: 7,
-}
+const stylesDividerText = platformStyles({
+  isElectron: {
+    ...desktopStyles.clickable,
+    marginRight: 7,
+  },
+})
 
 const stylesDividerBodyText = {
   width: 360,

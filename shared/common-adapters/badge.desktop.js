@@ -2,7 +2,7 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, platformStyles} from '../styles'
 
 import type {Props} from './badge'
 
@@ -30,11 +30,13 @@ const defaultBadgeStyle = {
   minWidth: 16,
 }
 
-const textStyle = {
-  flex: 0,
-  lineHeight: '8px',
-  fontSize: 9,
-  color: globalColors.white,
-}
+const textStyle = platformStyles({
+  isElectron: {
+    flex: 0,
+    lineHeight: '8px',
+    fontSize: 9,
+    color: globalColors.white,
+  },
+})
 
 export default Badge

@@ -1,6 +1,7 @@
 // @flow
 // Keep this file as the avatar.js file w/ the HOC currently confuses flow
 import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 export type Props = {
@@ -16,7 +17,7 @@ export type Props = {
   skipBackground?: boolean,
   skipBackgroundAfterLoaded?: boolean, // if we're on a white background we don't need a white back cover
   size: AvatarSize,
-  style?: ?Object,
+  style?: StylesCrossPlatform,
   username?: ?string,
   teamname?: ?string,
 }

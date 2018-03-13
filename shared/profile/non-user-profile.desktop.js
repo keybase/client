@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Avatar, BackButton, Box, Button, Icon, Text} from '../common-adapters'
 import capitalize from 'lodash/capitalize'
-import {globalColors, globalStyles, globalMargins} from '../styles'
+import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {platformToLogo24} from '../constants/search'
 import {AVATAR_SIZE, HEADER_SIZE} from '../profile/index.desktop'
 
@@ -98,7 +98,7 @@ const styleRightColumn = {
 
 const styleUsernameRow = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'center',
   marginTop: globalMargins.tiny,
 }
@@ -112,12 +112,16 @@ const styleFullname = {
   marginTop: 2,
 }
 
-const styleServiceLabel = {
-  fontSize: 11,
-  lineHeight: '14px',
-  marginTop: globalMargins.xtiny,
-  textTransform: 'uppercase',
-}
+const styleServiceLabel = platformStyles({
+  common: {
+    fontSize: 11,
+    lineHeight: 14,
+    marginTop: globalMargins.xtiny,
+  },
+  isElectron: {
+    textTransform: 'uppercase',
+  },
+})
 
 const styleDetails = {
   marginLeft: globalMargins.medium,

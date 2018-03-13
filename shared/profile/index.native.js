@@ -569,7 +569,6 @@ const styleFolderText = {
 }
 
 const styleFolderIcon = {
-  ...globalStyles.clickable,
   fontSize: 16,
   marginRight: globalMargins.tiny,
   textAlign: 'center',

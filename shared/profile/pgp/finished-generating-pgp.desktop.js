@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Checkbox, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import type {Props} from './finished-generating-pgp'
 
 import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
@@ -68,23 +68,27 @@ const styleTitle = {
   marginBottom: globalMargins.medium,
 }
 
-const stylePgpKeyString = {
-  padding: 10,
-  minHeight: 116,
-  backgroundColor: globalColors.lightGrey,
-  border: `solid 1px ${globalColors.black_10}`,
-  borderRadius: 3,
-  ...globalStyles.fontTerminal,
-  fontSize: 13,
-  lineHeight: '17px',
-  whiteSpace: 'pre-wrap',
-  wordWrap: 'break-word',
-  overflowY: 'auto',
-  overflowX: 'hidden',
-  textAlign: 'left',
-  flex: 1,
-  color: globalColors.black_75,
-}
+const stylePgpKeyString = platformStyles({
+  common: {
+    ...globalStyles.fontTerminal,
+    backgroundColor: globalColors.lightGrey,
+    borderRadius: 3,
+    color: globalColors.black_75,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 17,
+    minHeight: 116,
+    padding: 10,
+    textAlign: 'left',
+  },
+  isElectron: {
+    border: `solid 1px ${globalColors.black_10}`,
+    overflowX: 'hidden',
+    overflowY: 'auto',
+    whiteSpace: 'pre-wrap',
+    wordWrap: 'break-word',
+  },
+})
 
 const styleUploadContainer = {
   ...globalStyles.flexBoxColumn,

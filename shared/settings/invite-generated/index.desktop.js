@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {globalStyles, globalMargins, globalColors, desktopStyles} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
@@ -22,7 +22,7 @@ class InviteGeneratedRender extends Component<Props> {
         <Icon
           type="iconfont-close"
           style={{
-            ...globalStyles.clickable,
+            ...desktopStyles.clickable,
             position: 'absolute',
             right: globalMargins.small,
             top: globalMargins.small,
