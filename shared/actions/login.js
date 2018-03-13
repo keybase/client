@@ -484,7 +484,8 @@ function* handleProvisioningError(error): Generator<any, void, any> {
 
 function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> {
   // If there is passphrase, use that.
-  const passphraseSaga = passphrase
+  const passphraseEntered = passphrase && passphrase.stringValue && passphrase.stringValue() !== ''
+  const passphraseSaga = passphraseEntered
     ? onBackSaga => () =>
         EngineRpc.rpcResult({
           passphrase: passphrase ? passphrase.stringValue() : 'NEVER HAPPENS',
