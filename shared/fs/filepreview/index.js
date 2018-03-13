@@ -26,12 +26,17 @@ type FilePreviewProps = {
 }
 
 const humanReadableFileSize = meta => {
+  const kib = 1024
+  const mib = kib * kib
+  const gib = mib * kib
+  const tib = gib * kib
+
   if (!meta) return ''
   const size = meta.size
-  if (size >= 1024 ** 4) return `${Math.round(size / 1024 ** 4)}tb`
-  if (size >= 1024 ** 3) return `${Math.round(size / 1024 ** 3)}gb`
-  if (size >= 1024 ** 2) return `${Math.round(size / 1024 ** 2)}mb`
-  if (size >= 1024) return `${Math.round(size / 1024)}kb`
+  if (size >= tib) return `${Math.round(size / tib)}tb`
+  if (size >= gib) return `${Math.round(size / gib)}gb`
+  if (size >= mib) return `${Math.round(size / mib)}mb`
+  if (size >= kib) return `${Math.round(size / kib)}kb`
   return '' + size
 }
 
