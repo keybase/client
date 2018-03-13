@@ -277,9 +277,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
           if (body.edit) {
-            const text = new HiddenString(body.edit.body || '')
             actions.push(
-              Chat2Gen.createMessageWasEdited({conversationIDKey, messageID: body.edit.messageID, text})
+              Chat2Gen.createMessageWasEdited({
+                conversationIDKey,
+                ...Constants.uiMessageEditToMessage(body.edit, cMsg.valid),
+              })
             )
           }
           break
