@@ -33,10 +33,7 @@ const getStyle = (type, isEditing) => {
 }
 
 const editing = {
-  borderColor: globalColors.blue,
-  borderRadius: 4,
-  borderStyle: isMobile ? 'solid' : 'dashed',
-  borderWidth: 1,
+  backgroundColor: globalColors.yellow,
   paddingLeft: 2,
   paddingRight: 2,
 }

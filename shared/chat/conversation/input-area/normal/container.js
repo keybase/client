@@ -169,11 +169,11 @@ export default compose(
             : ''
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
-        const i = this.props.inputGetRef()
-        // Might be a better way to do this but this is simple for now
-        setImmediate(() => {
-          i && i.select()
-        })
+        // const i = this.props.inputGetRef()
+        // // Might be a better way to do this but this is simple for now
+        // setImmediate(() => {
+        // i && i.select()
+        // })
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
         this.props.setText(text, true)

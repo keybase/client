@@ -16,6 +16,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededBy || !!meta.wasFinalizedBy
   return {
     conversationIDKey,
+    editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     hasExtraRow,
     messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
   }
@@ -29,6 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
+  editingOrdinal: stateProps.editingOrdinal,
   hasExtraRow: stateProps.hasExtraRow,
   loadMoreMessages: dispatchProps._loadMoreMessages,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,

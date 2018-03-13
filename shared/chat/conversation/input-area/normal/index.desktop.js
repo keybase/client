@@ -143,7 +143,7 @@ class ConversationInput extends Component<InputProps> {
             className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
             autoFocus={false}
             small={true}
-            style={styleInput}
+            style={this.props.isEditing ? styleInputEditing : styleInput}
             ref={this.props.inputSetRef}
             hintText="Write a message"
             hideUnderline={true}
@@ -161,7 +161,7 @@ class ConversationInput extends Component<InputProps> {
           )}
           {this.props.isEditing && (
             <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={cancelStyle}>
-              Cancel
+              Cancel Editing
             </Text>
           )}
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
@@ -270,6 +270,10 @@ const styleInput = {
   marginRight: globalMargins.tiny,
   marginTop: globalMargins.tiny,
   textAlign: 'left',
+}
+const styleInputEditing = {
+  ...styleInput,
+  backgroundColor: globalColors.yellow,
 }
 
 const styleIcon = {
