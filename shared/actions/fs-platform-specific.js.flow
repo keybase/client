@@ -1,7 +1,8 @@
 // @flow
 import * as FsGen from './fs-gen'
+import * as Saga from '../util/saga'
 import type {TypedState} from '../constants/reducer'
 
 declare export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState): void
-declare export function* fuseStatusSaga(): Saga.SagaGenerator<any, any>
-declare export function* fuseStatusResultSaga(): Saga.SagaGenerator<any, any>
+declare export function fuseStatusResultSaga(): void
+declare export function fuseStatusSaga(): Saga.SagaGenerator<any, any>
