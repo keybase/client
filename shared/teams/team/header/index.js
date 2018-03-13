@@ -12,7 +12,7 @@ export type Props = {
   description: string,
   memberCount: number,
   openTeam: boolean,
-  role: ?(Types.TeamRoleType | 'none'),
+  role: ?Types.TeamRoleType,
   teamname: Types.Teamname,
   onAddPeople: (target?: any) => void,
   onAddSelf: () => void,

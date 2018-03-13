@@ -318,7 +318,6 @@ const autoMergeProps = (stateProps, _, ownProps): Props => {
 const autoConnector = compose(
   realConnector,
   connect(autoMapStateToProps, () => ({}), autoMergeProps),
-  // $FlowIssue
   setDisplayName('Avatar')
 )
 const ConnectedAvatar = autoConnector(Render)
