@@ -90,14 +90,14 @@ export default compose(
       },
       updateDesktop: (state, props) => (desktop: Types.NotificationsType) => {
         if (desktop === state.desktop) {
-          return {}
+          return
         }
         props._updateNotifications(desktop, state.mobile, state.channelWide)
         return {desktop}
       },
       updateMobile: (state, props) => (mobile: Types.NotificationsType) => {
         if (mobile === state.mobile) {
-          return {}
+          return
         }
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
