@@ -12,6 +12,7 @@ type Props = {
   onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
   traceInProgress: boolean,
+  processProfileInProgress: boolean,
 }
 
 const Advanced = (props: Props) => (
@@ -42,36 +43,28 @@ const Advanced = (props: Props) => (
   </Box>
 )
 
-type TraceButtonProps = {
-  durationSeconds: number,
-  traceInProgress: boolean,
-  onTrace: (durationSeconds: number) => void,
+type StartButtonProps = {
+  label: string,
+  inProgress: boolean,
+  onStart: () => void,
 }
 
-class TraceButton extends React.Component<TraceButtonProps> {
-  _onClick = () => {
-    this.props.onTrace(this.props.durationSeconds)
-  }
-
-  render() {
-    const label = `Trace (${this.props.durationSeconds}s)`
-    return (
-      <Button
-        waiting={this.props.traceInProgress}
-        style={{marginTop: globalMargins.small}}
-        type="Danger"
-        label={label}
-        onClick={this._onClick}
-      />
-    )
-  }
-}
+const StartButton = (props: StartButtonProps) => (
+  <Button
+    waiting={props.inProgress}
+    style={{marginTop: globalMargins.small}}
+    type="Danger"
+    label={props.label}
+    onClick={props.onStart}
+  />
+)
 
 type DeveloperState = {
   clickCount: number,
 }
 
 const clickThreshold = 7
+const traceDurationSeconds = 30
 
 class Developer extends React.Component<Props, DeveloperState> {
   constructor(props: Props) {
@@ -135,10 +128,10 @@ class Developer extends React.Component<Props, DeveloperState> {
         />
         {this._showPprofControls() && (
           <React.Fragment>
-            <TraceButton
-              durationSeconds={30}
-              onTrace={props.onTrace}
-              traceInProgress={props.traceInProgress}
+            <StartButton
+              label={`Trace (${traceDurationSeconds}s)`}
+              onStart={() => props.onTrace(traceDurationSeconds)}
+              inProgress={props.traceInProgress}
             />
             <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
               Trace and profile files are included in logs sent with feedback.

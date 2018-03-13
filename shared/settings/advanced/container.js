@@ -11,6 +11,7 @@ import {connect, type TypedState} from '../../util/container'
 const mapStateToProps = (state: TypedState) => ({
   openAtLogin: state.config.openAtLogin,
   traceInProgress: Constants.traceInProgress(state),
+  processorProfileInProgress: Constants.processorProfileInProgress(state),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
