@@ -99,13 +99,15 @@ func main() {
 }
 
 func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
+	if e.GetRunMode() != libkb.ProductionRunMode || e.AllowPTrace() {
+		return
+	}
+
 	// We do our best but if it's not possible on some systems or
 	// configurations, it's not a fatal error. Also see documentation
 	// in ptrace_*.go files.
-	if e.GetRunMode() == libkb.ProductionRunMode {
-		if err := libkb.DisableProcessTracing(); err != nil {
-			log.Debug("Unable to disable process tracing: %v", err.Error())
-		}
+	if err := libkb.DisableProcessTracing(); err != nil {
+		log.Debug("Unable to disable process tracing: %v", err.Error())
 	}
 }
 
