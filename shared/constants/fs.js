@@ -9,6 +9,13 @@ import memoize from 'lodash/memoize'
 
 export const defaultPath = '/keybase'
 
+// See Installer.m: KBExitFuseKextError
+export const ExitCodeFuseKextError = 4
+// See Installer.m: KBExitFuseKextPermissionError
+export const ExitCodeFuseKextPermissionError = 5
+// See Installer.m: KBExitAuthCanceledError
+export const ExitCodeAuthCanceledError = 6
+
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,

@@ -5,7 +5,17 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
-import {openInFileUISaga, fuseStatusSaga, fuseStatusResultSaga, installKBFSSaga} from './fs-platform-specific'
+import {
+  openInFileUISaga,
+  fuseStatusSaga,
+  fuseStatusResultSaga,
+  installKBFSSaga,
+  installFuseSaga,
+  installDokanSaga,
+  uninstallKBFSSaga,
+  uninstallKBFSSagaSuccess,
+} from './fs-platform-specific'
+import {isWindows} from '../constants/platform'
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
@@ -97,10 +107,16 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.download, download)
-  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
-  yield Saga.safeTakeEvery(FsGen.installKBFS, installKBFSSaga)
-  yield Saga.safeTakeLatestPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
+  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  if (isWindows) {
+    yield Saga.safeTakeLatestPure(FsGen.installFuse, installDokanSaga)
+  } else {
+    yield Saga.safeTakeLatest(FsGen.installFuse, installFuseSaga)
+  }
+  yield Saga.safeTakeEvery(FsGen.installKBFS, installKBFSSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFSSaga, uninstallKBFSSagaSuccess)
 }
 
 export default fsSaga

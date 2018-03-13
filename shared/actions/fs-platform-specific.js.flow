@@ -1,9 +1,14 @@
 // @flow
 import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import type {TypedState} from '../constants/reducer'
 
 declare export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState): void
 declare export function fuseStatusResultSaga(): void
 declare export function fuseStatusSaga(): Saga.SagaGenerator<any, any>
+declare export function installFuseSaga(): Saga.SagaGenerator<any, any>
+declare export function installDokanSaga(): void
 declare export function installKBFSSaga(): Saga.SagaGenerator<any, any>
+declare export function uninstallKBFSSaga(): void
+declare export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult): void

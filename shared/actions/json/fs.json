@@ -55,9 +55,6 @@
     "installKBFSResult": {
       "result": "RPCTypes.InstallResult"
     },
-    "uninstallKBFS": {},
-    "uninstallKBFSResult": {
-      "result": "RPCTypes.UninstallResult"
-    }
+    "uninstallKBFS": {}
   }
 }

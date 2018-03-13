@@ -5,12 +5,16 @@ import * as Constants from '../constants/config'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
 import fs from 'fs'
+import {delay} from 'redux-saga'
+import {ExitCodeFuseKextPermissionError} from '../constants/fs'
 import type {TypedState} from '../constants/reducer'
-import {shell} from 'electron'
+import {shell, electron} from 'electron'
 import {isLinux, isWindows} from '../constants/platform'
 import {navigateTo} from './route-tree'
 import {fsTab} from '../constants/tabs'
 import logger from '../logger'
+import {spawn, execFileSync} from 'child_process'
+import path from 'path'
 
 type pathType = 'file' | 'directory'
 
@@ -115,6 +119,7 @@ export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, s
 function waitForMount(attempt: number): Promise<*> {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
+    // TODO: should handle current mount directory
     fs.readdir(Constants.defaultKBFSPath, (err, files) => {
       if (!err && files.length > 0) {
         resolve(true)
@@ -133,7 +138,7 @@ function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createSetFlags({kbfsOpening: true}))
   try {
     yield Saga.call(waitForMount, 0)
-    // TODO: switch to reimplemented `openWithCurrenMountDir`
+    // TODO: should handle current mount directory
     yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Constants.defaultKBFSPath}}))
   } finally {
     yield Saga.put(FsGen.createSetFlags({kbfsOpening: false}))
@@ -149,10 +154,9 @@ export function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
 
 export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
-  // TODO: uncomment; commented for now until we plug in KBFS installation.
-  // if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-  //   return Saga.call(installKBFSSaga)
-  // }
+  if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
+    return Saga.call(installKBFSSaga)
+  }
 }
 
 export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
@@ -170,4 +174,70 @@ export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
     }
   }
   yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
+}
+
+export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
+  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
+  const fuseResults =
+    result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
+  const kextPermissionError =
+    fuseResults.length > 0 && fuseResults[0].exitCode === ExitCodeFuseKextPermissionError
+
+  if (kextPermissionError) {
+    // Add a small delay here, since on 10.13 the OS will be a little laggy
+    // when showing a kext permission error.
+    yield delay(1e3)
+  }
+
+  yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
+  yield Saga.put(FsGen.createFuseStatus())
+  yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
+}
+
+export function uninstallKBFSSaga() {
+  return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
+}
+
+export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
+  // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+  const app = electron.remote.app
+  app.relaunch()
+  app.exit(0)
+}
+
+// Invoking the cached installer package has to happen from the topmost process
+// or it won't be visible to the user. The service also does this to support command line
+// operations.
+function installCachedDokan(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    // use the action logger so it has a chance of making it into the upload
+    logger.action('Invoking dokan installer')
+    const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
+    try {
+      execFileSync(dokanPath, [])
+    } catch (err) {
+      logger.error('installCachedDokan caught', err)
+      reject(err)
+      return
+    }
+    // restart the servie, particularly kbfsdokan
+    // based on desktop/app/start-win-service.js
+    const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+    if (!binPath) {
+      return
+    }
+    const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
+    const args = [binPath, 'ctl', 'watchdog2']
+
+    spawn(rqPath, args, {
+      detached: true,
+      stdio: 'ignore',
+    })
+
+    resolve()
+  })
+}
+
+export function installDokanSaga() {
+  return Saga.call(installCachedDokan)
 }
