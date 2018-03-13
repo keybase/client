@@ -38,7 +38,8 @@ func TestNewDeviceEK(t *testing.T) {
 	err = s.Delete(keybase1.EkGeneration(2))
 	require.NoError(t, err)
 
-	// If we publish in a bad local state, we can successfully get the maxGeneration from the server and continue
+	// If we publish in a bad local state, we can successfully get the
+	// maxGeneration from the server and continue
 	metadata, err = PublishNewDeviceEK(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.EqualValues(t, 3, metadata.Generation)

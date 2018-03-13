@@ -65,9 +65,13 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 
 	key := s.key(generation)
 	data, err := s.storage.Get(ctx, key)
-	deviceEK, ok = data.(keybase1.DeviceEk)
 	if err != nil {
 		return deviceEK, err
+	}
+
+	deviceEK, ok = data.(keybase1.DeviceEk)
+	if !ok {
+		return deviceEK, fmt.Errorf("Unable to cast data to deviceEK")
 	}
 
 	// cache the result

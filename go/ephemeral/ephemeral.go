@@ -235,7 +235,8 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 			continue
 		}
 
-		// This key is valid and current. Add it to the list we're about to return.
+		// This key is valid and current. Add it to the list we're about to
+		// return.
 		currentDeviceEKs = append(currentDeviceEKs, signedMetadata)
 	}
 

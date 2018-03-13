@@ -198,11 +198,11 @@ func (s *FileErasableKVStore) Get(ctx context.Context, key string) (interface{},
 func (s *FileErasableKVStore) get(ctx context.Context, key string) (val interface{}, err error) {
 	noiseKey := s.noiseKey(key)
 	noise, err := s.read(noiseKey)
-	var noiseBytes libkb.NoiseBytes
-	copy(noiseBytes[:], noise)
 	if err != nil {
 		return val, err
 	}
+	var noiseBytes libkb.NoiseBytes
+	copy(noiseBytes[:], noise)
 
 	data, err := s.read(key)
 	if err != nil {
