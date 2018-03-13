@@ -85,7 +85,7 @@ const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIc
   usernames,
 })
 
-export const makeUUID = () => uuidv1(null, Buffer.alloc(16), 0)
+export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 

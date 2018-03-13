@@ -2580,7 +2580,11 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	if err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
 		// Try to just unbox without pushing
-		unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil)
+		vis := keybase1.TLFVisibility_PRIVATE
+		if msgBoxed.ClientHeader.TlfPublic {
+			vis = keybase1.TLFVisibility_PUBLIC
+		}
+		unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil, vis)
 		if msgUnboxed, err = NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo); err != nil {
 			h.Debug(ctx, "UnboxMobilePushNotification: failed simple unbox as well, bailing: %s", err.Error())
 			return res, err

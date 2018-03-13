@@ -13,6 +13,7 @@ class SearchResultsList extends Component<Props> {
   _renderItem = ({item: id}) => {
     const {disableIfInTeamName, onClick, onShowTracker} = this.props
     return (
+      // $FlowIssue
       <Row
         disableIfInTeamName={disableIfInTeamName}
         id={id}

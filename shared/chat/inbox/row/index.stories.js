@@ -22,7 +22,7 @@ const simpleCommon = {
   showBold: false,
   snippet: 'snippet',
   subColor: globalColors.black_40,
-  teamname: null,
+  teamname: '',
   timestamp: '1:23 pm',
   unreadCount: 0,
   usernameColor: globalColors.darkBlue,
@@ -65,6 +65,11 @@ const mocks = [
 
 const commonChannel = {
   onSelectConversation: action('onSelectConversation'),
+  hasBadge: false,
+  hasUnread: false,
+  isMuted: false,
+  isSelected: false,
+  showBold: false,
   isError: false,
 }
 
@@ -93,16 +98,16 @@ const load = () => {
           showMenu={false}
           teamname="Keybase"
         />
-        <BigTeamChannel teamname="Keybase" channelname="#general" {...commonChannel} />
-        <BigTeamChannel teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
+        <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#general" />
+        <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#random" showBold={true} />
         <BigTeamChannel
+          {...commonChannel}
           teamname="Keybase"
           channelname="#zzz"
           showBold={true}
           hasUnread={true}
-          {...commonChannel}
         />
-        <BigTeamChannel teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
+        <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#video-games" isMuted={true} />
         <BigTeamHeader
           memberCount={30}
           onManageChannels={action('onManageChannels')}
@@ -111,21 +116,21 @@ const load = () => {
           showMenu={false}
           teamname="techtonica"
         />
-        <BigTeamChannel teamname="techtonica" channelname="#general" isSelected={true} {...commonChannel} />
-        <BigTeamChannel teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
+        <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#general" isSelected={true} />
+        <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#ignore-selected-below" />
         <BigTeamChannel
+          {...commonChannel}
           teamname="techtonica"
           channelname="#random"
           isSelected={true}
           isMuted={true}
-          {...commonChannel}
         />
         <BigTeamChannel
+          {...commonChannel}
           teamname="techtonica"
           channelname="#happy-hour"
           isSelected={true}
           hasUnread={true}
-          {...commonChannel}
         />
       </Box>
     ))
@@ -163,7 +168,7 @@ const commonFiltered = {
   onSelectConversation: action('onSelectConversation'),
   participants: ['chris', 'mikem'],
   showBold: false,
-  teamname: null,
+  teamname: '',
   usernameColor: globalColors.darkBlue,
 }
 

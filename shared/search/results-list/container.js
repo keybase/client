@@ -48,11 +48,7 @@ const Progress = ({style}) => (
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  branch(
-    // $FlowIssue doesn't like props not in SearcResultsList.Props
-    (props: {pending: boolean}) => props.pending,
-    renderComponent(Progress)
-  )
+  branch((props: {pending: boolean}) => props.pending, renderComponent(Progress))
 )(SearchResultsList)
 
 const styleSpinner = {

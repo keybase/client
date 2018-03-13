@@ -1,22 +1,9 @@
 // @flow
-import React from 'react'
 import {MentionHud} from '.'
 import {connect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
 
-type ConnectedMentionHudProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  onPickUser: (user: string) => void,
-  onSelectUser: (user: string) => void,
-  selectUpCounter: number,
-  selectDownCounter: number,
-  pickSelectedUserCounter: number,
-  filter: string,
-  style?: Object,
-}
-
-const mapStateToProps = (state, {filter, conversationIDKey}): * => ({
+const mapStateToProps = (state, {filter, conversationIDKey}) => ({
   _filter: filter,
   _infoMap: state.users.infoMap,
   _participants: Constants.getMeta(state, conversationIDKey).participants,
@@ -32,10 +19,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     .toArray(),
 })
 
-const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(
-  mapStateToProps,
-  () => ({}),
-  mergeProps
-)(MentionHud)
+const ConnectedMentionHud = connect(mapStateToProps, () => ({}), mergeProps)(MentionHud)
 
 export default ConnectedMentionHud

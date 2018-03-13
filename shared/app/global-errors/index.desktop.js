@@ -5,7 +5,7 @@ import {Box, Text, Icon, HOCTimers} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 
-import type {Props} from './index'
+import type {Props as _Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {
@@ -13,6 +13,8 @@ type State = {
   cachedSummary: ?string,
   cachedDetails: ?string,
 }
+
+type Props = _Props & {clearTimeout: number => void, setTimeout: (() => void, number) => number}
 
 class GlobalError extends Component<Props, State> {
   state: State

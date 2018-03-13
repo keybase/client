@@ -908,8 +908,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, rl, fmt.Errorf("error creating topic ID: %s", err)
 		}
-		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s]", i, triple.Tlfid,
-			triple.TopicType, triple.TopicID, info.CanonicalName)
+		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v]", i, triple.Tlfid,
+			triple.TopicType, triple.TopicID, info.CanonicalName, isPublic)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
@@ -973,7 +973,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
 		}
 		res = ib.Convs[0]
-		n.Debug(ctx, "fetched conv: %v", res.GetConvID())
+		n.Debug(ctx, "fetched conv: %v mt: %v public: %v", res.GetConvID(), res.GetMembersType(),
+			res.IsPublic())
 
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]

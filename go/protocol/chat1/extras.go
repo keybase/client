@@ -608,6 +608,10 @@ func (c ConversationLocal) GetExpunge() *Expunge {
 	return &c.Expunge
 }
 
+func (c ConversationLocal) IsPublic() bool {
+	return c.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+}
+
 func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
 	for _, msg := range c.MaxMessages {
 		if msg.GetMessageType() == typ {
@@ -646,6 +650,10 @@ func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
 
 func (c Conversation) GetExpunge() *Expunge {
 	return &c.Expunge
+}
+
+func (c Conversation) IsPublic() bool {
+	return c.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
