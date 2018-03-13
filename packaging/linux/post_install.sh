@@ -44,7 +44,7 @@ run_redirector() {
   if redirector_enabled ; then
     # Hardcode the logdir instead of using $HOME, because `sudo` on
     # Ubuntu preserves the user's $HOME for some reason.
-    logdir="/root/.cache/keybase"
+    logdir="/var/log/keybase"
     mkdir -p "$logdir"
     echo Starting root redirector at $rootmount.
     nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &
