@@ -12,7 +12,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const deviceEKPrefix = "device-ephemeral-key"
+const deviceEKPrefix = "device-eks/device-ephemeral-key"
 
 type DeviceEKStorage struct {
 	sync.Mutex

@@ -828,3 +828,30 @@ func MPackDecode(data []byte, res interface{}) error {
 	err := dec.Decode(res)
 	return err
 }
+
+const noiseLen = 1024 * 1024 * 2
+
+type NoiseBytes [noiseLen]byte
+
+func MakeNoise() (nb NoiseBytes, err error) {
+	noise, err := RandBytes(noiseLen)
+	if err != nil {
+		return nb, err
+	}
+	copy(nb[:], noise)
+	return nb, nil
+}
+
+func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
+	sum := sha256.Sum256(noise[:])
+	if len(sum) != len(secret) {
+		return nil, errors.New("secret or sha256.Size is no longer 32")
+	}
+
+	xor := make([]byte, len(sum))
+	for i := 0; i < len(sum); i++ {
+		xor[i] = sum[i] ^ secret[i]
+	}
+
+	return xor, nil
+}

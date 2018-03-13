@@ -4,8 +4,6 @@
 package libkb
 
 import (
-	"crypto/sha256"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,10 +11,7 @@ import (
 	"runtime"
 )
 
-const noiseLen = 1024 * 1024 * 2
-
 type secretBytes [LKSecLen]byte
-type noiseBytes [noiseLen]byte
 
 var ErrSecretForUserNotFound = NotFoundError{Msg: "No secret found for user"}
 
@@ -91,9 +86,9 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 
 	var xorFixed secretBytes
 	copy(xorFixed[:], xor)
-	var noiseFixed noiseBytes
+	var noiseFixed NoiseBytes
 	copy(noiseFixed[:], noise)
-	secret, err := s.noiseXOR(xorFixed, noiseFixed)
+	secret, err := NoiseXOR(xorFixed, noiseFixed)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -101,38 +96,14 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) makeNoise() (noiseBytes, error) {
-	var nb noiseBytes
-	noise, err := RandBytes(noiseLen)
-	if err != nil {
-		return nb, err
-	}
-	copy(nb[:], noise)
-	return nb, nil
-}
-
-func (s *SecretStoreFile) noiseXOR(secret secretBytes, noise noiseBytes) ([]byte, error) {
-	sum := sha256.Sum256(noise[:])
-	if len(sum) != len(secret) {
-		return nil, errors.New("LKSecLen or sha256.Size is no longer 32")
-	}
-
-	xor := make([]byte, len(sum))
-	for i := 0; i < len(sum); i++ {
-		xor[i] = sum[i] ^ secret[i]
-	}
-
-	return xor, nil
-}
-
 func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
-	noise, err := s.makeNoise()
+	noise, err := MakeNoise()
 	if err != nil {
 		return err
 	}
 	var secretFixed secretBytes
 	copy(secretFixed[:], secret.Bytes())
-	xor, err := s.noiseXOR(secretFixed, noise)
+	xor, err := NoiseXOR(secretFixed, noise)
 	if err != nil {
 		return err
 	}
