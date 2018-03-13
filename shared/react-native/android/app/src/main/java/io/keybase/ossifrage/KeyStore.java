@@ -30,6 +30,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import keybase.UnsafeExternalKeyStore;
 import io.keybase.ossifrage.keystore.KeyStoreHelper;
+import io.keybase.ossifrage.modules.NativeLogger;
 
 public class KeyStore implements UnsafeExternalKeyStore {
     private final Context context;
@@ -49,6 +50,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
         ks = java.security.KeyStore.getInstance("AndroidKeyStore");
         ks.load(null);
+        NativeLogger.info("KeyStore: initialized");
     }
 
     private String sharedPrefKeyPrefix(final String serviceName) {
@@ -62,91 +64,140 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @SuppressLint("CommitPrefEdits")
     @Override
     public void clearSecret(final String serviceName, final String key) throws Exception {
-        prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: clearing secret for " + id);
+
+        try {
+            prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error clearing secret for " + id + ": " + Log.getStackTraceString(e));
+            throw e;
+        }
+
+        NativeLogger.info("KeyStore: cleared secret for " + id);
     }
 
     @Override
     public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
-        final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
-        final ArrayList<String> userNames = new ArrayList<>();
+        NativeLogger.info("KeyStore: getting users with stored secrets for " + serviceName);
 
-        while (keyIterator.hasNext()) {
-            final String key = keyIterator.next();
-            if (key.indexOf(sharedPrefKeyPrefix(serviceName)) == 0) {
-                userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length()));
+        try {
+            final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
+            final ArrayList<String> userNames = new ArrayList<>();
+
+            while (keyIterator.hasNext()) {
+                final String key = keyIterator.next();
+                if (key.indexOf(sharedPrefKeyPrefix(serviceName)) == 0) {
+                    userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length()));
+                }
             }
-        }
 
-        MessagePack msgpack = new MessagePack();
-        return msgpack.write(userNames);
+            NativeLogger.info("KeyStore: got " + userNames.size() + " users with stored secrets for " + serviceName);
+
+            MessagePack msgpack = new MessagePack();
+            return msgpack.write(userNames);
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error getting users with stored secrets for " + serviceName + ": " + Log.getStackTraceString(e));
+            throw e;
+        }
     }
 
     @Override
     public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
-        final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
-        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
-
-        if (entry == null){
-            throw new KeyStoreException("No RSA keys in the keystore");
-        }
-
-        if (!(entry instanceof PrivateKeyEntry)){
-            throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
-        }
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: retrieving secret for " + id);
 
         try {
-            return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
-        } catch (InvalidKeyException e) {
-            // Invalid key, this can happen when a user changes their lock screen from something to nothing
-            // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
-                Log.d("KBKeyStore", "Key no longer valid. Deleting entry", e);
-                ks.deleteEntry((keyStoreAlias(serviceName)));
+            final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
+            Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+
+            if (entry == null) {
+                throw new KeyStoreException("No RSA keys in the keystore");
             }
+
+            if (!(entry instanceof PrivateKeyEntry)) {
+                throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
+            }
+
+            try {
+                byte[] secret = unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+                NativeLogger.info("KeyStore: retrieved " + secret.length + "-byte secret for " + id);
+                return secret;
+            } catch (InvalidKeyException e) {
+                // Invalid key, this can happen when a user changes their lock screen from something to nothing
+                // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
+                    NativeLogger.info("KeyStore: key no longer valid; deleting entry: " + Log.getStackTraceString(e));
+                    ks.deleteEntry((keyStoreAlias(serviceName)));
+                }
+                throw e;
+            }
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error retrieving secret for " + id + ": " + Log.getStackTraceString(e));
             throw e;
         }
     }
 
     @Override
     public synchronized void setupKeyStore(final String serviceName, final String key) throws Exception {
-        if (!ks.containsAlias(keyStoreAlias(serviceName))) {
-            KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
-        }
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: setting up key store for " + id);
 
-        // Try to read the entry from the keystore.
-        // The entry may exists, but it may not be readable by us.
-        // (this happens when the app is uninstalled and reinstalled)
-        // In that case, lets' delete the entry and recreate it.
-        // Note we are purposely not recursing to avoid a state where we
-        // Constantly try to generate new RSA keys (which is slow)
         try {
-            final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
-            if (entry == null) {
-                ks.deleteEntry(keyStoreAlias(serviceName));
+            if (!ks.containsAlias(keyStoreAlias(serviceName))) {
                 KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
             }
-         } finally {
-          // Reload the keystore
-          ks = java.security.KeyStore.getInstance("AndroidKeyStore");
-          ks.load(null);
+
+            // Try to read the entry from the keystore.
+            // The entry may exists, but it may not be readable by us.
+            // (this happens when the app is uninstalled and reinstalled)
+            // In that case, lets' delete the entry and recreate it.
+            // Note we are purposely not recursing to avoid a state where we
+            // Constantly try to generate new RSA keys (which is slow)
+            try {
+                final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+                if (entry == null) {
+                    ks.deleteEntry(keyStoreAlias(serviceName));
+                    KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
+                }
+            } finally {
+                // Reload the keystore
+                ks = java.security.KeyStore.getInstance("AndroidKeyStore");
+                ks.load(null);
+            }
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error setting up key store for " + id + ": " + Log.getStackTraceString(e));
+            throw e;
         }
+
+        NativeLogger.info("KeyStore: finished setting up key store for " + id);
     }
 
     @Override
     public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
-        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+        String id = serviceName + ":" + key;
+        NativeLogger.info("KeyStore: storing " + bytes.length + "-byte secret for " + id);
 
-        if (entry == null) {
-            throw new KeyStoreException("No RSA keys in the keystore");
+        try {
+            Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
+
+            if (entry == null) {
+                throw new KeyStoreException("No RSA keys in the keystore");
+            }
+
+            final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
+
+            if (wrappedSecret == null) {
+                throw new IOException("Null return when wrapping secret");
+            }
+
+            saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
+        } catch (Exception e) {
+            NativeLogger.error("KeyStore: error storing secret for " + id + ": " + Log.getStackTraceString(e));
+            throw e;
         }
 
-        final byte[] wrappedSecret = wrapSecret((PrivateKeyEntry) entry, new SecretKeySpec(bytes, ALGORITHM));
-
-        if (wrappedSecret == null) {
-            throw new IOException("Null return when wrapping secret");
-        }
-
-        saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
+        NativeLogger.info("KeyStore: stored " + bytes.length + "-byte secret for " + id);
     }
 
     private static void saveWrappedSecret(SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
@@ -155,7 +206,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
 
     private static byte[] readWrappedSecret(SharedPreferences prefs, String prefsKey) throws Exception {
-        final String wrappedKey = prefs.getString(prefsKey,"");
+        final String wrappedKey = prefs.getString(prefsKey, "");
         if (wrappedKey.isEmpty()) {
             throw new KeyStoreException("No secret for " + prefsKey);
         }

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import SubHeading from '../subheading'
-import {Box, Button, Divider, Text, Meta} from '../../common-adapters'
+import {Box, Button, Checkbox, Divider, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
@@ -293,12 +293,26 @@ function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void
   )
 }
 
-function Account({email, isVerified, onChangeEmail, onChangePassphrase}: AccountProps) {
+function Account({
+  email,
+  isVerified,
+  onChangeEmail,
+  onChangePassphrase,
+  onChangeRememberPassphrase,
+  rememberPassphrase,
+}: AccountProps) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider style={{backgroundColor: globalColors.black_05}} />
       <AccountPassphrase onChangePassphrase={onChangePassphrase} />
+      <Divider style={{backgroundColor: globalColors.black_05}} />
+      <Checkbox
+        checked={rememberPassphrase}
+        label="Remember my passphrase"
+        onCheck={onChangeRememberPassphrase}
+        style={{paddingTop: globalMargins.small}}
+      />
     </Box>
   )
 }

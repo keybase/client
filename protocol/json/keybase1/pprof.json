@@ -8,6 +8,40 @@
   ],
   "types": [],
   "messages": {
+    "processorProfile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "profileFile",
+          "type": "string"
+        },
+        {
+          "name": "profileDurationSeconds",
+          "type": "DurationSec"
+        }
+      ],
+      "response": null
+    },
+    "logProcessorProfile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "logDirForMobile",
+          "type": "string"
+        },
+        {
+          "name": "profileDurationSeconds",
+          "type": "DurationSec"
+        }
+      ],
+      "response": null
+    },
     "trace": {
       "request": [
         {

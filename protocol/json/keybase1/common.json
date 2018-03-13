@@ -126,6 +126,12 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "HashMeta",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "TeamType",
       "symbols": [

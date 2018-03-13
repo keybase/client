@@ -20,7 +20,6 @@ import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
-import {getPath} from '../../route-tree'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
@@ -1498,8 +1497,6 @@ const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
     username: action.payload.username,
   })
 
-// Keep track of the mark as read's we've already sent
-const lastMarkAsRead = {}
 const markThreadAsRead = (
   action:
     | Chat2Gen.SelectConversationPayload
@@ -1536,26 +1533,7 @@ const markThreadAsRead = (
   }
 
   if (!Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
-    // TEMP to help debugging, remove after push marking read is known good
-    const selectedConversationIDKey = Constants.getSelectedConversation(state)
-    const appFocused = state.config.appFocused
-    const routePath = getPath(state.routeTree.routeState)
-    let chatThreadSelected = false
-    if (isMobile) {
-      chatThreadSelected =
-        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
-    } else {
-      chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
-    }
-
-    logger.info(
-      'marking read bail on not looking at this thread: sel: ',
-      selectedConversationIDKey,
-      'focus:',
-      appFocused,
-      'selectedthread:',
-      chatThreadSelected
-    )
+    logger.info('marking read bail on not looking at this thread')
     return
   }
 
@@ -1573,18 +1551,6 @@ const markThreadAsRead = (
   if (!message) {
     logger.info('marking read bail on no messages')
     return
-  }
-
-  const s = Types.conversationIDKeyToString(conversationIDKey)
-  if (!lastMarkAsRead[s]) {
-    lastMarkAsRead[s] = 0
-  }
-
-  if (lastMarkAsRead[s] >= message.id) {
-    // We've told server about newer messages
-    return
-  } else {
-    lastMarkAsRead[s] = message.id
   }
 
   logger.info(`marking read messages ${conversationIDKey} ${message.id}`)
@@ -1859,6 +1825,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.selectConversation,
       Chat2Gen.selectConversationDueToPush,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
+      AppGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
     ],
     markThreadAsRead

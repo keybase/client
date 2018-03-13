@@ -135,6 +135,17 @@ func (o GitRepoName) DeepCopy() GitRepoName {
 	return o
 }
 
+type HashMeta []byte
+
+func (o HashMeta) DeepCopy() HashMeta {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type TeamType int
 
 const (

@@ -80,12 +80,6 @@ func main() {
 		err = e2
 	}
 	if err != nil {
-		// Note that logger.Error and logger.Errorf are the same, which causes problems
-		// trying to print percent signs, which are used in environment variables
-		// in Windows.
-		// Had to change from Error to Errorf because of go vet because of:
-		// https://github.com/golang/go/issues/6407
-
 		// if errParseArgs, the error was already output (along with usage)
 		if err != errParseArgs {
 			g.Log.Errorf("%s", stripFieldsFromAppStatusError(err).Error())

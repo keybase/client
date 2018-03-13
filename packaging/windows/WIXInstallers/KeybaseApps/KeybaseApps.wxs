@@ -31,8 +31,7 @@
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RemoveGUIStartupShortcut" Before="InstallValidate"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <!-- StopGUI is legacy and to be removed after enough people are updated -->
-      <Custom Action="StopGUI" Before="RemoveLegacyBundle"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
-      <Custom Action="RemoveLegacyBundle" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -253,10 +252,11 @@
   </Fragment>
   <Fragment>
     <!-- Explicitly remove the last shipping bundle. People who haven't upgraded to it may see an additional "Keybase" under add/remove programs,
-    which is harmless -->
+    which is harmless.
+    NOTE this is not invoked yet, because we're still stuck with a bundle .exe -->
     <CustomAction Id="RemoveLegacyBundle"
               Directory="LocalAppDataFolder"
-              ExeCommand="[LocalAppDataFolder]\Package Cache\{12a069da-39ed-4f62-9bd4-8f33c39bd258}\Keybase_1.0.44-20180223131449+d993081.386.exe /quiet /uninstall"
+              ExeCommand="[LocalAppDataFolder]\Package Cache\{a7cab659-0cbf-4b72-a658-b386d3d1d785}\Keybase_1.0.45-20180305114930+3a1c65a.386.exe /quiet /uninstall"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>

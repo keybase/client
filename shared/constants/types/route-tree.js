@@ -3,7 +3,18 @@ import * as I from 'immutable'
 import type {NoErrorTypedAction, TypedAction} from './flux'
 import type {RouteDefNode, RouteDefParams, Path, PropsPath, RouteStateNode} from '../../route-tree'
 
-export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef: RouteDefParams}>
+export type SetInitialRouteDef = NoErrorTypedAction<
+  'routeTree:setInitialRouteDef',
+  {routeDef: RouteDefParams}
+>
+
+export type RefreshRouteDef = NoErrorTypedAction<
+  'routeTree:refreshRouteDef',
+  {loginRouteTree: RouteDefParams, appRouteTree: RouteDefParams}
+>
+
+export type SwitchRouteDef = NoErrorTypedAction<'routeTree:switchRouteDef', {routeDef: RouteDefParams}>
+
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
 export type NavigationSource = 'initial-default' | 'initial-restore' | 'user'
@@ -25,7 +36,9 @@ export type PutActionIfOnPath<T: TypedAction<*, *, *>> = NoErrorTypedAction<
 export type SetRouteState = NoErrorTypedAction<'routeTree:setRouteState', {path: Path, partialState: {}}>
 export type ResetRoute = NoErrorTypedAction<'routeTree:resetRoute', {path: Path}>
 export type NavigateActions =
-  | SetRouteDef
+  | SetInitialRouteDef
+  | RefreshRouteDef
+  | SwitchRouteDef
   | SwitchTo
   | NavigateTo
   | NavigateAppend

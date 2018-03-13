@@ -1,0 +1,14 @@
+@namespace("keybase.1")
+
+protocol ephemeral {
+  import idl "common.avdl";
+
+  record DeviceEkMetadata {
+    @jsonkey("device_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("generation")
+    int generation;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+  }
+}

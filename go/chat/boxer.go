@@ -127,16 +127,19 @@ type basicUnboxConversationInfo struct {
 	convID       chat1.ConversationID
 	membersType  chat1.ConversationMembersType
 	finalizeInfo *chat1.ConversationFinalizeInfo
+	visibility   keybase1.TLFVisibility
 }
 
 var _ types.UnboxConversationInfo = (*basicUnboxConversationInfo)(nil)
 
 func newBasicUnboxConversationInfo(convID chat1.ConversationID,
-	membersType chat1.ConversationMembersType, finalizeInfo *chat1.ConversationFinalizeInfo) *basicUnboxConversationInfo {
+	membersType chat1.ConversationMembersType, finalizeInfo *chat1.ConversationFinalizeInfo,
+	visibility keybase1.TLFVisibility) *basicUnboxConversationInfo {
 	return &basicUnboxConversationInfo{
 		convID:       convID,
 		membersType:  membersType,
 		finalizeInfo: finalizeInfo,
+		visibility:   visibility,
 	}
 }
 
@@ -156,35 +159,45 @@ func (b *basicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
 }
 
-type publicUnboxConversationInfo struct {
-	convID      chat1.ConversationID
-	membersType chat1.ConversationMembersType
+func (b *basicUnboxConversationInfo) IsPublic() bool {
+	return b.visibility == keybase1.TLFVisibility_PUBLIC
 }
 
-var _ types.UnboxConversationInfo = (*publicUnboxConversationInfo)(nil)
+type extraInboxUnboxConversationInfo struct {
+	convID      chat1.ConversationID
+	membersType chat1.ConversationMembersType
+	visibility  keybase1.TLFVisibility
+}
 
-func newPublicUnboxConverstionInfo(convID chat1.ConversationID, membersType chat1.ConversationMembersType) *publicUnboxConversationInfo {
-	return &publicUnboxConversationInfo{
+var _ types.UnboxConversationInfo = (*extraInboxUnboxConversationInfo)(nil)
+
+func newExtraInboxUnboxConverstionInfo(convID chat1.ConversationID, membersType chat1.ConversationMembersType,
+	visibility keybase1.TLFVisibility) *extraInboxUnboxConversationInfo {
+	return &extraInboxUnboxConversationInfo{
 		convID:      convID,
 		membersType: membersType,
+		visibility:  visibility,
 	}
 }
 
-func (p *publicUnboxConversationInfo) GetConvID() chat1.ConversationID {
+func (p *extraInboxUnboxConversationInfo) GetConvID() chat1.ConversationID {
 	return p.convID
 }
 
-func (p *publicUnboxConversationInfo) GetMembersType() chat1.ConversationMembersType {
+func (p *extraInboxUnboxConversationInfo) GetMembersType() chat1.ConversationMembersType {
 	return p.membersType
 }
 
-func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {
-	// Public conversations don't get finalized
+func (p *extraInboxUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {
 	return nil
 }
 
-func (p *publicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
+func (p *extraInboxUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
+}
+
+func (p *extraInboxUnboxConversationInfo) IsPublic() bool {
+	return p.visibility == keybase1.TLFVisibility_PUBLIC
 }
 
 func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.MessageBoxed,
@@ -224,10 +237,15 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
+	if conv.IsPublic() != boxed.ClientHeader.TlfPublic {
+		return b.makeErrorMessage(boxed,
+			NewPermanentUnboxingError(fmt.Errorf("visibility mismatch: %v != %v", conv.IsPublic(),
+				boxed.ClientHeader.TlfPublic))), nil
+	}
 	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
+		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {

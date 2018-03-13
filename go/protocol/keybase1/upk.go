@@ -37,17 +37,6 @@ func (e KeyType) String() string {
 	return ""
 }
 
-type HashMeta []byte
-
-func (o HashMeta) DeepCopy() HashMeta {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
 type UPK2MinorVersion int
 
 const (

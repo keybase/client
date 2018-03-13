@@ -1,6 +1,7 @@
 package io.keybase.ossifrage.modules;
 
 import android.util.Log;
+import android.util.JsonWriter;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -13,10 +14,47 @@ import com.facebook.react.bridge.WritableArray;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 
 
 public class NativeLogger extends ReactContextBaseJavaModule {
     private static final String NAME = "KBNativeLogger";
+
+    // Must match strings passed to NativeLogger in
+    // shared/logger/index.js.
+    private static final String ERROR_TAG = "e";
+    private static final String INFO_TAG = "i";
+    private static final String WARN_TAG = "w";
+
+    private static void rawLog(String tag, String jsonLog) {
+        Log.i(tag + NAME, jsonLog);
+    }
+
+    // This should do roughly the same thing as dumpLine from
+    // native-logger.js.
+    private static String dumpLine(String toLog) throws IOException {
+        long millis = System.currentTimeMillis();
+        StringWriter sw = new StringWriter();
+        JsonWriter js = new JsonWriter(sw);
+        js.beginArray()
+                .value(millis)
+                .value(toLog)
+                .endArray()
+                .close();
+        return sw.toString();
+    }
+
+    public static void error(String log) throws IOException {
+        rawLog(ERROR_TAG, dumpLine(log));
+    }
+
+    public static void info(String log) throws IOException {
+        rawLog(INFO_TAG, dumpLine(log));
+    }
+
+    public static void warn(String log) throws IOException {
+        rawLog(WARN_TAG, dumpLine(log));
+    }
 
     public NativeLogger(final ReactApplicationContext reactContext) {
         super(reactContext);
@@ -32,7 +70,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
         int len = tagsAndLogs.size();
         for (int i = 0; i < len; i++) {
             ReadableArray tagAndLog = tagsAndLogs.getArray(i);
-            Log.i(tagAndLog.getString(0) + NAME, tagAndLog.getString(1));
+            rawLog(tagAndLog.getString(0), tagAndLog.getString(1));
         }
     }
 

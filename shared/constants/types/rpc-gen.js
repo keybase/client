@@ -1229,9 +1229,17 @@ export const pgpSignMode = {
   clear: 2,
 }
 
+export const pprofLogProcessorProfileRpcChannelMap = (configKeys: Array<string>, request: PprofLogProcessorProfileRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.logProcessorProfile', request)
+
+export const pprofLogProcessorProfileRpcPromise = (request: PprofLogProcessorProfileRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logProcessorProfile', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const pprofLogTraceRpcChannelMap = (configKeys: Array<string>, request: PprofLogTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.logTrace', request)
 
 export const pprofLogTraceRpcPromise = (request: PprofLogTraceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.logTrace', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export const pprofProcessorProfileRpcChannelMap = (configKeys: Array<string>, request: PprofProcessorProfileRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.processorProfile', request)
+
+export const pprofProcessorProfileRpcPromise = (request: PprofProcessorProfileRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.pprof.processorProfile', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const pprofTraceRpcChannelMap = (configKeys: Array<string>, request: PprofTraceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.pprof.trace', request)
 
@@ -2151,6 +2159,8 @@ export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: Inco
 
 export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type DeviceEkMetadata = $ReadOnly<{kid: KID, generation: Int, hashMeta: HashMeta}>
+
 export type DeviceID = String
 
 export type DeviceType =
@@ -2940,7 +2950,11 @@ export type PingResponse = $ReadOnly<{timestamp: Time}>
 
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
 
+export type PprofLogProcessorProfileRpcParam = $ReadOnly<{logDirForMobile: String, profileDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type PprofLogTraceRpcParam = $ReadOnly<{logDirForMobile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type PprofProcessorProfileRpcParam = $ReadOnly<{profileFile: String, profileDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type PprofTraceRpcParam = $ReadOnly<{traceFile: String, traceDurationSeconds: DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
