@@ -49,8 +49,6 @@ class FilePreview extends React.PureComponent<FilePreviewProps> {
       desc = 'Modified on ' + formatTimeForMessages(meta.lastModifiedTimestamp)
       if (meta.lastWriter) desc += ' by ' + meta.lastWriter
     }
-    // FIXME is using FolderHeader instead of BackButton ok?
-    // <BackButton onClick={onBack} style={{left: 16, position: 'absolute', top: 16}} />
     return (
       <Box style={styleOuterContainer}>
         <Box style={globalStyles.flexBoxColumn}>
