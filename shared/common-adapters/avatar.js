@@ -15,7 +15,7 @@ import {
   withHandlers,
   withStateHandlers,
 } from '../util/container'
-import {desktopStyles} from '../styles'
+import {desktopStyles, collapseStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import type {Props, AvatarSize} from './avatar'
 
@@ -330,12 +330,12 @@ const mockOwnToViewProps = (props: Props) => {
   let style
   if (props.style) {
     if (props.onClick) {
-      style = {...props.style, ...desktopStyles.clickable}
+      style = collapseStyles([props.style, desktopStyles.clickable])
     } else {
       style = props.style
     }
   } else if (props.onClick) {
-    style = desktopStyle.clickable
+    style = desktopStyles.clickable
   }
 
   return {
