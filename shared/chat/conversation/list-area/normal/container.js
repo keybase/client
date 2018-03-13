@@ -1,4 +1,5 @@
 // @flow
+import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ListComponent from '.'
@@ -11,24 +12,30 @@ import {
   isMobile,
 } from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+type OwnProps = {conversationIDKey: Types.ConversationIDKey, onFocusInput: () => void}
+
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededBy || !!meta.wasFinalizedBy
   return {
     conversationIDKey,
-    editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
+    editingOrdinal: state.chat2.editingMap.getIn([conversationIDKey, 'ordinal']),
     hasExtraRow,
     messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
+type DispatchProps = {
+  _loadMoreMessages: () => void,
+  _markInitiallyLoadedThreadAsRead: () => void,
+}
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps): DispatchProps => ({
   _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
   hasExtraRow: stateProps.hasExtraRow,

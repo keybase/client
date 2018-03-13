@@ -70,7 +70,7 @@ describe('chat2 reducer', () => {
       })
 
       const newState = reducer(initialState, action)
-      expect(newState.editingMap.get(conversationIDKey)).toEqual(Types.numberToOrdinal(2))
+      expect(newState.editingMap.getIn([conversationIDKey, 'ordinal'])).toEqual(Types.numberToOrdinal(2))
     })
 
     it('edit ignore attachments', () => {
@@ -80,7 +80,7 @@ describe('chat2 reducer', () => {
       })
 
       const newState = reducer(initialState, action)
-      expect(newState.editingMap.get(conversationIDKey)).toEqual(undefined)
+      expect(newState.editingMap.getIn([conversationIDKey, 'ordinal'])).toEqual(undefined)
     })
 
     it('edit specific ordinal and clear works', () => {
@@ -90,14 +90,14 @@ describe('chat2 reducer', () => {
       })
 
       const state1 = reducer(initialState, setAction)
-      expect(state1.editingMap.get(conversationIDKey)).toEqual(Types.numberToOrdinal(1))
+      expect(state1.editingMap.getIn([conversationIDKey, 'ordinal'])).toEqual(Types.numberToOrdinal(1))
 
       const clearAction = Chat2Gen.createMessageSetEditing({
         conversationIDKey,
         ordinal: null,
       })
       const state2 = reducer(state1, clearAction)
-      expect(state2.editingMap.get(conversationIDKey)).toEqual(undefined)
+      expect(state2.editingMap.getIn([conversationIDKey, 'ordinal'])).toEqual(undefined)
     })
   })
 })

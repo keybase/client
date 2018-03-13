@@ -107,6 +107,14 @@ class ConversationInput extends Component<InputProps> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
+        {this.props.isEditingLastMessage && (
+          <Box style={editingTabStyle}>
+            <Text type="BodySemibold">Editing your last message</Text>
+            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={tabCancelStyle}>
+              Cancel
+            </Text>
+          </Box>
+        )}
         {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
         {this.props.mentionPopupOpen && (
           <MentionHud
@@ -145,7 +153,7 @@ class ConversationInput extends Component<InputProps> {
             small={true}
             style={this.props.isEditing ? styleInputEditing : styleInput}
             ref={this.props.inputSetRef}
-            hintText="Write a message"
+            hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
             hideUnderline={true}
             onChangeText={this.props.setText}
             value={this.props.text}
@@ -161,7 +169,7 @@ class ConversationInput extends Component<InputProps> {
           )}
           {this.props.isEditing && (
             <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={cancelStyle}>
-              Cancel Editing
+              Cancel
             </Text>
           )}
           <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
@@ -255,6 +263,15 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Box>
 )
 
+const editingTabStyle = {
+  backgroundColor: globalColors.white,
+  borderRight: `solid 1px ${globalColors.black_05}`,
+  borderTop: `solid 1px ${globalColors.black_05}`,
+  bottom: 49,
+  padding: 4,
+  position: 'absolute',
+}
+
 const styleMentionHud = {
   borderRadius: 4,
   boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
@@ -289,6 +306,10 @@ const styleFooter = {
   marginRight: globalMargins.tiny,
   marginTop: 0,
   textAlign: 'right',
+}
+
+const tabCancelStyle = {
+  marginLeft: globalMargins.tiny,
 }
 
 const cancelStyle = {

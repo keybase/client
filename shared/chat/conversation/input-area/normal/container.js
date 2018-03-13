@@ -13,11 +13,13 @@ import {
   withProps,
   lifecycle,
   connect,
+  isMobile,
+  type TypedState,
+  type Dispatch,
 } from '../../../../util/container'
 import throttle from 'lodash/throttle'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
-import type {TypedState, Dispatch} from '../../../../util/container'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -28,10 +30,11 @@ type OwnProps = {
 const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
-  const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
-  const _editingMessage = editingOrdinal
-    ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
+  const editingContext: ?Types.EditingContext = state.chat2.editingMap.get(conversationIDKey)
+  const _editingMessage = editingContext
+    ? Constants.getMessageMap(state, conversationIDKey).get(editingContext.ordinal)
     : null
+  const isEditingLastMessage = editingContext && editingContext.type === 'lastMessage'
   const _you = state.config.username || ''
 
   return {
@@ -39,6 +42,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     _meta: Constants.getMeta(state, conversationIDKey),
     _you,
     conversationIDKey,
+    isEditingLastMessage,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -99,6 +103,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     conversationIDKey: stateProps.conversationIDKey,
     focusInputCounter: ownProps.focusInputCounter,
     isEditing: !!stateProps._editingMessage,
+    isEditingLastMessage: stateProps.isEditingLastMessage,
     isLoading: false,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
@@ -169,11 +174,15 @@ export default compose(
             : ''
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
-        // const i = this.props.inputGetRef()
-        // // Might be a better way to do this but this is simple for now
-        // setImmediate(() => {
-        // i && i.select()
-        // })
+
+        if (!isMobile) {
+          const i = this.props.inputGetRef()
+          setImmediate(() => {
+            if (i) {
+              i.moveCursorToEnd()
+            }
+          })
+        }
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
         this.props.setText(text, true)

@@ -147,6 +147,13 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
+  moveCursorToEnd = () => {
+    const n = this._input && this._inputNode()
+    if (n && this.props.value) {
+      n.selectionStart = n.selectionEnd = this.props.value.length
+    }
+  }
+
   insertTextAtCursor = (text: string) => {
     const n = this._input && this._inputNode()
     const selections = this.selections()
