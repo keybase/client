@@ -12,7 +12,7 @@ type Props = {
   onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
   traceInProgress: boolean,
-  processProfileInProgress: boolean,
+  processorProfileInProgress: boolean,
 }
 
 const Advanced = (props: Props) => (
@@ -65,6 +65,7 @@ type DeveloperState = {
 
 const clickThreshold = 7
 const traceDurationSeconds = 30
+const processorProfileDurationSeconds = 30
 
 class Developer extends React.Component<Props, DeveloperState> {
   constructor(props: Props) {
@@ -132,6 +133,11 @@ class Developer extends React.Component<Props, DeveloperState> {
               label={`Trace (${traceDurationSeconds}s)`}
               onStart={() => props.onTrace(traceDurationSeconds)}
               inProgress={props.traceInProgress}
+            />
+            <StartButton
+              label={`CPU Profile (${traceDurationSeconds}s)`}
+              onStart={() => props.onProcessorProfile(processorProfileDurationSeconds)}
+              inProgress={props.processorProfileInProgress}
             />
             <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
               Trace and profile files are included in logs sent with feedback.
