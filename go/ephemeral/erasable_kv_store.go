@@ -42,10 +42,10 @@ type FileErasableKVStore struct {
 	storagePath string
 }
 
-func NewFileErasableKVStore(g *libkb.GlobalContext, storagePath string) *FileErasableKVStore {
+func NewFileErasableKVStore(g *libkb.GlobalContext) *FileErasableKVStore {
 	return &FileErasableKVStore{
 		Contextified: libkb.NewContextified(g),
-		storagePath:  storagePath,
+		storagePath:  g.Env.GetDataDir(),
 	}
 }
 

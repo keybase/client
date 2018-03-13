@@ -19,20 +19,21 @@ type DeviceEKStorage struct {
 	indexOnce *sync.Once
 	storage   ErasableKVStore
 	cache     map[keybase1.EkGeneration]keybase1.DeviceEk
+	keyPrefix string
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
-	username := g.Env.GetUsername().String()
-	storagePath := filepath.Join(g.Env.GetDataDir(), "device-eks", username)
+	keyPrefix := fmt.Sprintf("%s-%s", deviceEKPrefix, g.Env.GetUsername().String())
 	return &DeviceEKStorage{
-		storage:   NewFileErasableKVStore(g, storagePath),
+		storage:   NewFileErasableKVStore(g),
 		cache:     make(map[keybase1.EkGeneration]keybase1.DeviceEk),
 		indexOnce: new(sync.Once),
+		keyPrefix: keyPrefix,
 	}
 }
 
 func (s *DeviceEKStorage) key(generation keybase1.EkGeneration) string {
-	return fmt.Sprintf("%s-%d.ek", deviceEKPrefix, generation)
+	return fmt.Sprintf("%s-%d.ek", s.keyPrefix, generation)
 }
 
 func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error) {
@@ -53,7 +54,10 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
 	s.Lock()
 	defer s.Unlock()
+	return s.get(ctx, generation)
+}
 
+func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
 	deviceEK, ok := s.cache[generation]
 	if ok {
 		return deviceEK, nil
@@ -96,7 +100,7 @@ func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
 					return
 				}
 				generation := keybase1.EkGeneration(g)
-				deviceEK, err := s.Get(ctx, generation)
+				deviceEK, err := s.get(ctx, generation)
 				if err != nil {
 					return
 				}
