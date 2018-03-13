@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {globalStyles, globalColors, isMobile} from '../../styles'
 import {Box, Text} from '../../common-adapters'
-import moment from 'moment'
+import {formatTimeForFS} from '../../util/timestamp'
 
 type Props = {
   lastModifiedTimestamp: number,
@@ -13,7 +13,7 @@ type Props = {
 const PathItemInfo = ({lastModifiedTimestamp, lastWriter, wrap}: Props) => (
   <Box style={wrap ? timeWriterBoxStyleWithWrap : timeWriterBoxStyle}>
     <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-      {moment(lastModifiedTimestamp).format('MMM D YYYY [at] LT')}
+      {formatTimeForFS(lastModifiedTimestamp)}
     </Text>
     {lastWriter ? (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>
