@@ -108,7 +108,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry: stateProps.isYou
-      ? () => dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+      ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
       : null,
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     orangeLineAbove: stateProps.orangeLineAbove,

@@ -13,7 +13,7 @@ type Props = {
   isLocked: boolean,
   participants: Array<string>,
   showBold: boolean,
-  teamname: ?string,
+  teamname: string,
   usernameColor: string,
 }
 

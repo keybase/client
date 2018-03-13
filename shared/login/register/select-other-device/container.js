@@ -2,7 +2,7 @@
 import * as LoginGen from '../../../actions/login-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import SelectOtherDevice from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {compose, withStateHandlers} from 'recompose'
 import {type RouteProps} from '../../../route-tree/render-route'
 import openURL from '../../../util/open-url'
@@ -21,7 +21,7 @@ const mapStateToProps = (s: TypedState, {routeProps}: OwnProps) => ({
   devices: routeProps.get('devices'),
   canSelectNoDevice: routeProps.get('canSelectNoDevice'),
 })
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   onWont: () => dispatch(LoginGen.createOnWont()),
   onSelect: deviceId => dispatch(LoginGen.createSelectDeviceId({deviceId})),

@@ -7,7 +7,7 @@ import without from 'lodash/without'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
-import {connect} from 'react-redux'
+import {connect, type Dispatch} from '../util/container'
 
 import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
 
@@ -269,7 +269,7 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
 
   const C: React.ComponentType<RelativePopupProps<*>> = connect(
     undefined,
-    (dispatch, {navigateUp, routeProps}) => ({
+    (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
         dispatch(navigateUp())
         const onPopupWillClose = routeProps.get('onPopupWillClose')
@@ -279,6 +279,7 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
       position: routeProps.get('position'),
     })
   )((props: RelativePopupProps<*> & {onClosePopup: () => void}) => {
+    // $FlowIssue
     return <ModalPopupComponent {...(props: RelativePopupProps<*>)} onClosePopup={props.onClosePopup} />
   })
 
