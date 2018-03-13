@@ -1,8 +1,13 @@
 package tlfupgrade
 
 import (
+	"context"
 	"fmt"
+	"sync"
 	"time"
+
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -11,53 +16,154 @@ import (
 
 type BackgroundTLFUpdater struct {
 	libkb.Contextified
+	sync.Mutex
 
 	initialWait time.Duration
+	errWait     time.Duration
+	successWait time.Duration
 	clock       clockwork.Clock
 	shutdownCh  chan struct{}
-	suspendCh   chan struct{}
+	running     bool
 }
 
 func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
 	return &BackgroundTLFUpdater{
 		Contextified: libkb.NewContextified(g),
 		initialWait:  10 * time.Second,
+		errWait:      20 * time.Second,
+		successWait:  15 * time.Second,
 		shutdownCh:   make(chan struct{}),
-		suspendCh:    make(chan struct{}),
 		clock:        clockwork.NewRealClock(),
 	}
 }
 
-func (b *BackgroundTLFUpdater) debug(msg string, args ...interface{}) {
-	b.G().Log.Debug("BackgroundTLFUpdater: %s", fmt.Sprintf(msg, args...))
+func (b *BackgroundTLFUpdater) debug(ctx context.Context, msg string, args ...interface{}) {
+	b.G().Log.CDebugf(ctx, "BackgroundTLFUpdater: %s", fmt.Sprintf(msg, args...))
 }
 
 func (b *BackgroundTLFUpdater) Run() {
+	b.runAll()
 	go b.monitorAppState()
 }
 
-func (b *BackgroundTLFUpdater) Shutdown() {
+func (b *BackgroundTLFUpdater) runAll() {
+	b.Lock()
+	if !b.running {
+		b.shutdownCh = make(chan struct{})
+		b.running = true
+		go b.runAppType(keybase1.TeamApplication_CHAT)
+	}
+	b.Unlock()
+}
 
+func (b *BackgroundTLFUpdater) Shutdown() {
+	b.Lock()
+	if b.running {
+		b.running = false
+		close(b.shutdownCh)
+	}
+	b.Unlock()
 }
 
 func (b *BackgroundTLFUpdater) monitorAppState() {
+	ctx := context.Background()
 	for {
 		state := <-b.G().AppState.NextUpdate()
 		switch state {
 		case keybase1.AppState_FOREGROUND:
-			// wait for the initial wait time before waking up the upgrade threads
-			b.clock.Sleep(b.initialWait)
-			b.
+			b.debug(ctx, "monitorAppState: foregrounded, running all after: %v", b.initialWait)
+			b.runAll()
 		case keybase1.AppState_BACKGROUND:
-			b.debug("backgrounded, suspending upgrade thread")
-			b.suspendCh <- struct{}{}
+			b.debug(ctx, "monitorAppState: backgrounded, suspending upgrade thread")
+			b.Shutdown()
 		}
 	}
 }
 
 func (b *BackgroundTLFUpdater) runAppType(appType keybase1.TeamApplication) {
-	b.clock.Sleep(b.initialWait)
+	var tlf *GetTLFForUpgradeAvailableRes
+	ctx := context.Background()
+	nextTime := b.deadline(b.initialWait)
 	for {
-		select {}
+		select {
+		case <-b.shutdownCh:
+			b.debug(ctx, "runAppType(%v): shutdown", appType)
+			return
+		case <-b.clock.AfterTime(nextTime):
+			b.debug(ctx, "runAppType(%v): woken up", appType)
+			tlf, nextTime = b.getTLFToUpgrade(ctx, appType)
+			if tlf != nil {
+				b.upgradeTLF(ctx, tlf.TlfName, tlf.TlfID, tlf.IsPublic, appType)
+			}
+		}
+	}
+}
+
+type getUpgradeRes struct {
+	Status libkb.AppStatus `json:"status"`
+	GetTLFForUpgradeRes
+}
+
+func (r *getUpgradeRes) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func (b *BackgroundTLFUpdater) deadline(d time.Duration) time.Time {
+	return b.clock.Now().Add(d)
+}
+
+func (b *BackgroundTLFUpdater) getTLFToUpgrade(ctx context.Context, appType keybase1.TeamApplication) (*GetTLFForUpgradeAvailableRes, time.Time) {
+	arg := libkb.NewAPIArgWithNetContext(ctx, "kbfs/upgrade")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.Args.Add("app_type", libkb.I{Val: int(appType)})
+	var res getUpgradeRes
+	if err := b.G().API.GetDecode(arg, &res); err != nil {
+		b.debug(ctx, "getTLFToUpgrade: API fail: %s", err)
+		return nil, b.deadline(b.errWait)
+	}
+	typ, err := res.Typ()
+	if err != nil {
+		b.debug(ctx, "getTLFToUpgrade: failed to get typ: %s", err)
+		return nil, b.deadline(b.errWait)
+	}
+	switch typ {
+	case GetTLFForUpgradeResType_TLFAVAILABLE:
+		tlf := res.Tlfavailable()
+		b.debug(ctx, "getTLFUpgrade: found TLF to upgrade: %s apptype: %v", tlf.TlfID, appType)
+		return &tlf, b.deadline(b.successWait)
+	case GetTLFForUpgradeResType_DELAY:
+		b.debug(ctx, "getTLFUpgrade: delayed: reason: %s delay: %v", res.Delay().Reason, res.Delay().Delay)
+		return nil, gregor1.FromTime(res.Delay().Delay)
+	case GetTLFForUpgradeResType_DISABLED:
+		b.debug(ctx, "getTLFUpgrade: disabled: delay: %v", res.Disabled().Delay)
+		return nil, gregor1.FromTime(res.Disabled().Delay)
+	case GetTLFForUpgradeResType_ERR:
+		b.debug(ctx, "getTLFUpgrade: server err: %s delay: %v", res.Err().Error, res.Err().Delay)
+		return nil, gregor1.FromTime(res.Err().Delay)
+	default:
+		b.debug(ctx, "getTLFUpgrade: unknown result type: %v", typ)
+	}
+	return nil, b.deadline(b.errWait)
+}
+
+func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, tlfID keybase1.TLFID,
+	public bool, appType keybase1.TeamApplication) {
+	switch appType {
+	case keybase1.TeamApplication_CHAT:
+		b.upgradeTLFForChat(ctx, tlfName, tlfID, public)
+	default:
+		b.debug(ctx, "upgradeTLF: unknow app type: %v", appType)
+	}
+}
+
+func (b *BackgroundTLFUpdater) upgradeTLFForChat(ctx context.Context, tlfName string, tlfID keybase1.TLFID,
+	public bool) {
+	chatTLFID, err := chat1.MakeTLFID(tlfID.String())
+	if err != nil {
+		b.debug(ctx, "upgradeTLFForChat: invalid TLFID: %s", err)
+	}
+	if err := b.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, chatTLFID, public); err != nil {
+		b.debug(ctx, "upgradeTLFForChat: failed to upgrade TLFID for chat: tlfID: %v err: %s", tlfID, err)
 	}
 }

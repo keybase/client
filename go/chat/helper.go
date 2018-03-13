@@ -187,6 +187,26 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 	return topicName, err
 }
 
+func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error {
+	var cryptKeys []keybase1.CryptKey
+	ni, err := CtxKeyFinder(ctx, h.G()).FindForEncryption(ctx, tlfName, tlfID,
+		chat1.ConversationMembersType_KBFS, public)
+	if err != nil {
+		return err
+	}
+	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
+		cryptKeys = append(cryptKeys, keybase1.CryptKey{
+			KeyGeneration: key.Generation(),
+			Key:           key.Material(),
+		})
+	}
+	tlfName = ni.CanonicalName
+	h.Debug(ctx, "UpgradeKBFSToImpteam: upgrading: TlfName: %s TLFID: %s public: %v keys: %d",
+		tlfName, tlfID, public, len(cryptKeys))
+	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
+		public, keybase1.TeamApplication_CHAT, cryptKeys)
+}
+
 type sendHelper struct {
 	utils.DebugLabeler
 
