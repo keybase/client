@@ -27,7 +27,7 @@ type BackgroundTLFUpdater struct {
 }
 
 func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
-	return &BackgroundTLFUpdater{
+	b := &BackgroundTLFUpdater{
 		Contextified: libkb.NewContextified(g),
 		initialWait:  10 * time.Second,
 		errWait:      20 * time.Second,
@@ -35,6 +35,8 @@ func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
 		shutdownCh:   make(chan struct{}),
 		clock:        clockwork.NewRealClock(),
 	}
+	g.PushShutdownHook(func() error { return b.Shutdown() })
+	return b
 }
 
 func (b *BackgroundTLFUpdater) debug(ctx context.Context, msg string, args ...interface{}) {
@@ -49,6 +51,7 @@ func (b *BackgroundTLFUpdater) Run() {
 func (b *BackgroundTLFUpdater) runAll() {
 	b.Lock()
 	if !b.running {
+		b.debug(context.Background(), "starting up")
 		b.shutdownCh = make(chan struct{})
 		b.running = true
 		go b.runAppType(keybase1.TeamApplication_CHAT)
@@ -56,17 +59,20 @@ func (b *BackgroundTLFUpdater) runAll() {
 	b.Unlock()
 }
 
-func (b *BackgroundTLFUpdater) Shutdown() {
+func (b *BackgroundTLFUpdater) Shutdown() error {
 	b.Lock()
 	if b.running {
+		b.debug(context.Background(), "shutting down")
 		b.running = false
 		close(b.shutdownCh)
 	}
 	b.Unlock()
+	return nil
 }
 
 func (b *BackgroundTLFUpdater) monitorAppState() {
 	ctx := context.Background()
+	b.debug(ctx, "monitorAppState: starting up")
 	for {
 		state := <-b.G().AppState.NextUpdate()
 		switch state {
@@ -85,6 +91,7 @@ func (b *BackgroundTLFUpdater) runAppType(appType keybase1.TeamApplication) {
 	ctx := context.Background()
 	nextTime := b.deadline(b.initialWait)
 	for {
+		b.debug(ctx, "runAppType(%v): waiting until %v", appType, nextTime)
 		select {
 		case <-b.shutdownCh:
 			b.debug(ctx, "runAppType(%v): shutdown", appType)
@@ -153,7 +160,7 @@ func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, t
 	case keybase1.TeamApplication_CHAT:
 		b.upgradeTLFForChat(ctx, tlfName, tlfID, public)
 	default:
-		b.debug(ctx, "upgradeTLF: unknow app type: %v", appType)
+		b.debug(ctx, "upgradeTLF: unknown app type: %v", appType)
 	}
 }
 
