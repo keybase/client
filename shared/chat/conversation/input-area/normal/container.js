@@ -151,6 +151,8 @@ export default compose(
       _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
         if (e.key === 'ArrowUp' && !props.text) {
           props.onEditLastMessage()
+        } else if (e.key === 'Escape') {
+          props.onCancelEditing()
         }
       },
       inputBlur: props => () => input && input.blur(),
