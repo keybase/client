@@ -1612,7 +1612,7 @@ const navigateToThread = (_: any, state: TypedState) => {
   }
 }
 
-const mobileClearSelectedConversation = (a: any, state: TypedState) => {
+const mobileClearSelectedConversation = (_: any, state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
   if (inboxSelected) {
@@ -1754,7 +1754,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
     // Unselect the conversation when we go to the inbox
     yield Saga.safeTakeEveryPure(
-      [a => typeof a.type === 'string' && a.type.startsWith('routeTree:')],
+      a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
       mobileClearSelectedConversation
     )
   } else {
