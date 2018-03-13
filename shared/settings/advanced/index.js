@@ -9,6 +9,7 @@ type Props = {
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
   onTrace: (durationSeconds: number) => void,
+  onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
   traceInProgress: boolean,
 }
@@ -93,7 +94,7 @@ class Developer extends React.Component<Props, DeveloperState> {
     })
   }
 
-  _showTrace = () => {
+  _showProfileControls = () => {
     return this.state.clickCount >= clickThreshold
   }
 
@@ -132,10 +133,10 @@ class Developer extends React.Component<Props, DeveloperState> {
           label="DB Nuke"
           onClick={props.onDBNuke}
         />
-        {this._showTrace() && (
+        {this._showProfileControls() && (
           <TraceButton durationSeconds={30} onTrace={props.onTrace} traceInProgress={props.traceInProgress} />
         )}
-        {this._showTrace() && (
+        {this._showProfileControls() && (
           <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
             Trace files are included in logs sent with feedback.
           </Text>

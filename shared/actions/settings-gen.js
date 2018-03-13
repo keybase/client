@@ -38,6 +38,7 @@ export const onUpdateEmailError = 'settings:onUpdateEmailError'
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
+export const processorProfile = 'settings:processorProfile'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const trace = 'settings:trace'
 export const waitingForResponse = 'settings:waitingForResponse'
@@ -83,6 +84,7 @@ export const createOnUpdateEmailError = (payload: $ReadOnly<{|error: Error|}>) =
 export const createOnUpdatePGPSettings = () => ({error: false, payload: undefined, type: onUpdatePGPSettings})
 export const createOnUpdatePassphraseError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: onUpdatePassphraseError})
 export const createOnUpdatedPGPSettings = (payload: $ReadOnly<{|hasKeys: boolean|}>) => ({error: false, payload, type: onUpdatedPGPSettings})
+export const createProcessorProfile = (payload: $ReadOnly<{|durationSeconds: number|}>) => ({error: false, payload, type: processorProfile})
 export const createSetAllowDeleteAccount = (payload: $ReadOnly<{|allow: boolean|}>) => ({error: false, payload, type: setAllowDeleteAccount})
 export const createTrace = (payload: $ReadOnly<{|durationSeconds: number|}>) => ({error: false, payload, type: trace})
 export const createWaitingForResponse = (payload: $ReadOnly<{|waiting: boolean|}>) => ({error: false, payload, type: waitingForResponse})
@@ -116,6 +118,7 @@ export type OnUpdateEmailErrorPayload = More.ReturnType<typeof createOnUpdateEma
 export type OnUpdatePGPSettingsPayload = More.ReturnType<typeof createOnUpdatePGPSettings>
 export type OnUpdatePassphraseErrorPayload = More.ReturnType<typeof createOnUpdatePassphraseError>
 export type OnUpdatedPGPSettingsPayload = More.ReturnType<typeof createOnUpdatedPGPSettings>
+export type ProcessorProfilePayload = More.ReturnType<typeof createProcessorProfile>
 export type SetAllowDeleteAccountPayload = More.ReturnType<typeof createSetAllowDeleteAccount>
 export type TracePayload = More.ReturnType<typeof createTrace>
 export type WaitingForResponsePayload = More.ReturnType<typeof createWaitingForResponse>
@@ -153,6 +156,7 @@ export type Actions =
   | More.ReturnType<typeof createOnUpdatePGPSettings>
   | More.ReturnType<typeof createOnUpdatePassphraseError>
   | More.ReturnType<typeof createOnUpdatedPGPSettings>
+  | More.ReturnType<typeof createProcessorProfile>
   | More.ReturnType<typeof createSetAllowDeleteAccount>
   | More.ReturnType<typeof createTrace>
   | More.ReturnType<typeof createWaitingForResponse>
