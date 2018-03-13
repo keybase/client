@@ -32,14 +32,10 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
     </Box>
     <Icon
       type="iconfont-gear"
-      onClick={
-        isMobile
-          ? onClickGear
-          : evt => {
-              evt.preventDefault()
-              onClickGear(evt.target)
-            }
-      }
+      onClick={evt => {
+        evt.preventDefault()
+        onClickGear(evt.target)
+      }}
       style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
     />
   </ClickableBox>
