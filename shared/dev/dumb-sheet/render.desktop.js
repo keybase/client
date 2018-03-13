@@ -6,7 +6,7 @@ import debounce from 'lodash/debounce'
 import dumbComponentMap from './component-map.desktop'
 import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalStyles, desktopStyles} from '../../styles'
 
 class DumbSheetRender extends Component<Props, any> {
   _onFilterChange: (a: any) => void
@@ -94,7 +94,7 @@ class DumbSheetRender extends Component<Props, any> {
     let numItemsLeftWeCanShow = numItemsLeftWeCanShowMax
 
     return (
-      <Box style={{...globalStyles.scrollable, flex: 1, padding: 20}} ref="scrollBox">
+      <Box style={{...desktopStyles.scrollable, flex: 1, padding: 20}} ref="scrollBox">
         <BackButton onClick={this.props.onBack} />
         <Box style={globalStyles.flexBoxRow}>
           <Input

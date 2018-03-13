@@ -72,10 +72,7 @@ class DeleteRepo extends React.Component<Props, State> {
                 style={{marginRight: globalMargins.xtiny}}
               />
             )}
-            <Text
-              type="BodyError"
-              style={isMobile ? {textDecorationLine: 'line-through'} : {textDecoration: 'line-through'}}
-            >
+            <Text type="BodyError" style={{textDecorationLine: 'line-through'}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
           </Box>

@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {ModalLessPopupMenuProps, Props, HeaderTextProps} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
 import EscapeHandler from '../util/escape-handler'
-import {globalColors, globalMargins, globalStyles} from '../styles'
+import {globalColors, globalMargins, globalStyles, desktopStyles} from '../styles'
 
 class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   render() {
@@ -45,7 +45,7 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
                 styleDisabled = {opacity: 0.4}
               }
 
-              const styleClickable = i.disabled ? {} : globalStyles.clickable
+              const styleClickable = i.disabled ? {} : desktopStyles.clickable
 
               return (
                 <Box
@@ -157,7 +157,7 @@ class OLDPopupMenu extends Component<Props> {
                   styleDisabled = {opacity: 0.4}
                 }
 
-                const styleClickable = i.disabled ? {} : globalStyles.clickable
+                const styleClickable = i.disabled ? {} : desktopStyles.clickable
 
                 return (
                   <Box

@@ -15,7 +15,7 @@ import {
   withHandlers,
   withStateHandlers,
 } from '../util/container'
-import {globalStyles} from '../styles'
+import {desktopStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import type {Props, AvatarSize} from './avatar'
 
@@ -171,12 +171,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let style
   if (ownProps.style) {
     if (ownProps.onClick) {
-      style = {...ownProps.style, ...globalStyles.clickable}
+      style = {...ownProps.style, ...desktopStyles.clickable}
     } else {
       style = ownProps.style
     }
   } else if (ownProps.onClick) {
-    style = globalStyles.clickable
+    style = desktopStyles.clickable
   }
 
   let url
@@ -272,6 +272,7 @@ const realConnector = compose(
   })
 )
 
+<<<<<<< HEAD
 const real = realConnector(Render)
 
 const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
@@ -285,6 +286,39 @@ const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
     return {
       _followers: trackerState.trackers,
       _following: trackerState.tracking,
+||||||| parent of 42022216d... WIP
+const mock = compose(
+  withProps(props => {
+    const isTeam = !!props.teamname
+    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+    const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+
+    let style
+    if (props.style) {
+      if (props.onClick) {
+        style = {...props.style, ...globalStyles.clickable}
+      } else {
+        style = props.style
+      }
+    } else if (props.onClick) {
+      style = globalStyles.clickable
+=======
+const mock = compose(
+  withProps(props => {
+    const isTeam = !!props.teamname
+    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+    const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+
+    let style
+    if (props.style) {
+      if (props.onClick) {
+        style = {...props.style, ...desktopStyles.clickable}
+      } else {
+        style = props.style
+      }
+    } else if (props.onClick) {
+      style = desktopStyles.clickable
+>>>>>>> 42022216d... WIP
     }
   }
   // Need to give these different names because these are sets of strings while the above are arrays of objects

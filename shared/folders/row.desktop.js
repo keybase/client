@@ -3,7 +3,7 @@ import * as React from 'react'
 import type {Folder} from './list'
 import {Box, Button, Text, Icon, MultiAvatar, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, platformStyles} from '../styles'
 
 class Avatars extends React.PureComponent<any> {
   render() {
@@ -248,7 +248,7 @@ class Row extends React.PureComponent<RowType & Folder> {
 
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   position: 'relative',
 }
 
@@ -268,11 +268,13 @@ const stylesPrivate = {
   },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal',
-  action: {
-    ...globalStyles.clickable,
-    alignSelf: 'center',
-    marginRight: globalMargins.tiny,
-  },
+  action: platformStyles({
+    isElectron: {
+      ...desktopStyles.clickable,
+      alignSelf: 'center',
+      marginRight: globalMargins.tiny,
+    },
+  }),
 }
 
 const stylesPublic = {
@@ -291,11 +293,13 @@ const stylesPublic = {
   },
   nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal',
-  action: {
-    ...globalStyles.clickable,
-    alignSelf: 'center',
-    marginRight: globalMargins.tiny,
-  },
+  action: platformStyles({
+    isElectron: {
+      ...desktopStyles.clickable,
+      alignSelf: 'center',
+      marginRight: globalMargins.tiny,
+    },
+  }),
 }
 
 const stylesBodyContainer = {

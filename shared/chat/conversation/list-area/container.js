@@ -6,7 +6,7 @@ import * as TrackerGen from '../../../actions/tracker-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
-import {globalStyles} from '../../../styles'
+import {desktopStyles} from '../../../styles'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
@@ -38,7 +38,7 @@ class ListArea extends React.PureComponent<Props> {
   }
 }
 
-const searchResultStyle = {...globalStyles.scrollable, flexGrow: 1}
+const searchResultStyle = {...desktopStyles.scrollable, flexGrow: 1}
 
 const mapStateToProps = (state: TypedState): * => ({
   showSearchResults:

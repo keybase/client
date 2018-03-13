@@ -1,11 +1,40 @@
 // @flow
 // Styles from our designers
 import type {Background} from '../common-adapters/text'
-
+import * as CSS from './css'
 export {default as globalColors} from './colors'
 
 declare export var transition: (...properties: Array<string>) => Object
-declare export var globalStyles: Object
+
+// Flow gets very confused if I mark these as CSS._StylesCrossPlatform. This fixes the common pattern of using
+// spread like {...globalStyles.fontBold, width: 123} etc but it breaks using them directly like
+// style={globalStyles.fontBold}. It does work if you do style={{...globalStyles.fontBold}} though
+type _fakeFontDefSeeCommentsOnThisStyle = {fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'}
+declare export var globalStyles: {
+  fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
+  flexBoxCenter: {alignItems: 'center', justifyContent: 'center'},
+  flexBoxColumn: {flexDirection: 'column'},
+  flexBoxRow: {flexDirection: 'row'},
+  flexGrow: {flexGrow: 1},
+  fontBold: {fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'},
+  fontRegular: _fakeFontDefSeeCommentsOnThisStyle,
+  fontSemibold: _fakeFontDefSeeCommentsOnThisStyle,
+  fontTerminal: _fakeFontDefSeeCommentsOnThisStyle,
+  fontTerminalSemibold: _fakeFontDefSeeCommentsOnThisStyle,
+  fullHeight: {height: '100%'},
+  italic: _fakeFontDefSeeCommentsOnThisStyle,
+  loadingTextStyle: CSS._StylesCrossPlatform,
+  rounded: {borderRadius: 3},
+}
+declare export var desktopStyles: {
+  clickable?: CSS._StylesDesktop,
+  scrollable?: CSS._StylesDesktop, // TODO this is used a lot of places like its a global style but we should use scrollview instead
+  fadeOpacity?: CSS._StylesDesktop,
+  noSelect?: CSS._StylesDesktop,
+  windowDragging?: CSS._StylesDesktop,
+  windowDraggingClickable?: CSS._StylesDesktop,
+}
+declare export var mobileStyles: {}
 declare export var globalMargins: {
   xtiny: number,
   tiny: number,
@@ -20,7 +49,6 @@ declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
 declare export function styleSheetCreate(obj: Object): Object
 declare export function collapseStyles(styles: any): any
-declare export function lineHeight(h: number): string | number
 
 declare export var windowStyle: {
   minWidth: number,
@@ -28,6 +56,14 @@ declare export var windowStyle: {
   width: number,
   height: number,
 }
+
+declare export function platformStyles({|
+  common?: CSS._StylesCrossPlatform,
+  isIOS?: CSS._StylesMobile,
+  isAndroid?: CSS._StylesMobile,
+  isMobile?: CSS._StylesMobile,
+  isElectron?: CSS._StylesDesktop,
+|}): CSS._StylesCrossPlatform
 
 declare export function glamorous(
   Component: any // React.ComponentType<P>
@@ -37,3 +73,4 @@ declare export var isMobile: boolean
 declare export var isIPhoneX: boolean
 
 declare export var backgroundModeToColor: {[key: Background]: string}
+export type {StylesDesktop, StylesMobile, StylesCrossPlatform} from './css'

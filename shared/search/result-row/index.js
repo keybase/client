@@ -2,7 +2,14 @@
 import * as Types from '../../constants/types/search'
 import * as React from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
-import {globalColors, globalStyles, globalMargins, hairlineWidth, isMobile} from '../../styles'
+import {
+  globalColors,
+  globalStyles,
+  globalMargins,
+  hairlineWidth,
+  isMobile,
+  platformStyles,
+} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 
@@ -63,17 +70,17 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
         {!!rightUsername && (
           <Text
             type="BodySmallSemibold"
-            style={{
-              ...followingStateToStyle(rightFollowingState),
-              overflow: 'hidden',
-              flex: 1,
-              ...(isMobile
-                ? {}
-                : {
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                  }),
-            }}
+            style={platformStyles({
+              common: {
+                ...followingStateToStyle(rightFollowingState),
+                flex: 1,
+                overflow: 'hidden',
+              },
+              isElectron: {
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+              },
+            })}
           >
             {rightUsername}
           </Text>

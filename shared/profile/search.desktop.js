@@ -3,7 +3,7 @@ import React from 'react'
 import SearchResultsList from '../search/results-list/container'
 import UserInput from '../search/user-input/container'
 import {Box} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, desktopStyles} from '../styles'
 
 import type {Props} from './search'
 
@@ -20,7 +20,7 @@ const Search = (props: Props) => (
           placeholder={props.placeholder}
         />
       </Box>
-      <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
+      <Box style={{...styleSearchRow, ...desktopStyles.scrollable, justifyContent: 'center'}}>
         <SearchResultsList searchKey="profileSearch" onClick={props.onClick} disableListBuilding={true} />
       </Box>
     </Box>

@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, desktopStyles} from '../../../../styles'
 
 type Props = {
   isSelected: boolean,
@@ -98,7 +98,7 @@ const unreadStyle = {
 
 const teamRowContainerStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'center',
   flexShrink: 0,
   maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
