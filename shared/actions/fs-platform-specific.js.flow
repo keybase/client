@@ -6,3 +6,4 @@ import type {TypedState} from '../constants/reducer'
 declare export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState): void
 declare export function fuseStatusResultSaga(): void
 declare export function fuseStatusSaga(): Saga.SagaGenerator<any, any>
+declare export function installKBFSSaga(): Saga.SagaGenerator<any, any>

@@ -70,7 +70,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fuseStatus:
       return state
     case FsGen.fuseStatusResult:
-      return state.setIn(['fuseStatus'], action.payload.status)
+      return state.merge({fuseStatus: action.payload.status})
+    case FsGen.setFlags:
+      return state.merge(action.payload)
+    case FsGen.installFuse:
+      return state.merge({fuseInstalling: true, kextPermissionError: false})
+    case FsGen.installFuseResult:
+      // To prevent races, we overlap flags set to true. So we don't unset the
+      // fuseInstalling flag here.
+      return state.merge(action.payload)
+    case FsGen.installKBFS:
+      return state.merge({kbfsInstalling: true})
+    case FsGen.installKBFSResult:
+    case FsGen.uninstallKBFS:
+    case FsGen.uninstallKBFSResult:
+      // To prevent races, we overlap flags set to true. So we don't unset the
+      // kbfsInstalling flag here.
+      return state
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't

@@ -84,6 +84,10 @@ export type _State = {
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, TransferState>,
   fuseStatus: ?RPCTypes.FuseStatus,
+  kbfsOpening: boolean,
+  kbfsInstalling: boolean,
+  fuseInstalling: boolean,
+  kextPermissionError: boolean,
 }
 export type State = I.RecordOf<_State>
 

@@ -112,42 +112,40 @@ export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, s
   }
 }
 
-// TODO: uncomment
-// function waitForMount(attempt: number): Promise<*> {
-//   return new Promise((resolve, reject) => {
-//     // Read the KBFS path waiting for files to exist, which means it's mounted
-//     fs.readdir(Constants.defaultKBFSPath, (err, files) => {
-//       if (!err && files.length > 0) {
-//         resolve(true)
-//       } else if (attempt > 15) {
-//         reject(new Error(`${Constants.defaultKBFSPath} is unavailable. Please try again.`))
-//       } else {
-//         setTimeout(() => {
-//           waitForMount(attempt + 1).then(resolve, reject)
-//         }, 1000)
-//       }
-//     })
-//   })
-// }
-//
-// function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
-//   yield Saga.put(FsGen.createSetOpening({opening: true}))
-//   try {
-//     yield Saga.call(waitForMount, 0)
-//     // TODO: switch to reimplemented `openWithCurrenMountDir`
-//     yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Constants.defaultKBFSPath}}))
-//   } finally {
-//     yield Saga.put(FsGen.createSetOpening({opening: false}))
-//   }
-// }
-//
-// function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
-//   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallKBFSRpcPromise)
-//   yield Saga.put(FsGen.createInstallKBFSResult({result}))
-//   yield Saga.put(FsGen.createSetOpening({opening: true}))
-//   yield Saga.put(FsGen.createInstallKBFSFinished())
-//   yield Saga.call(waitForMountAndOpenSaga)
-// }
+function waitForMount(attempt: number): Promise<*> {
+  return new Promise((resolve, reject) => {
+    // Read the KBFS path waiting for files to exist, which means it's mounted
+    fs.readdir(Constants.defaultKBFSPath, (err, files) => {
+      if (!err && files.length > 0) {
+        resolve(true)
+      } else if (attempt > 15) {
+        reject(new Error(`${Constants.defaultKBFSPath} is unavailable. Please try again.`))
+      } else {
+        setTimeout(() => {
+          waitForMount(attempt + 1).then(resolve, reject)
+        }, 1000)
+      }
+    })
+  })
+}
+
+function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.put(FsGen.createSetFlags({kbfsOpening: true}))
+  try {
+    yield Saga.call(waitForMount, 0)
+    // TODO: switch to reimplemented `openWithCurrenMountDir`
+    yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Constants.defaultKBFSPath}}))
+  } finally {
+    yield Saga.put(FsGen.createSetFlags({kbfsOpening: false}))
+  }
+}
+
+export function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
+  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+  yield Saga.put(FsGen.createInstallKBFSResult({result}))
+  yield Saga.put(FsGen.createSetFlags({kbfsOpening: true, kbfsInstalling: false}))
+  yield Saga.call(waitForMountAndOpenSaga)
+}
 
 export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
