@@ -12,6 +12,7 @@ import (
 )
 
 type DeviceEKSeed keybase1.Bytes32
+type UserEKSeed keybase1.Bytes32
 
 func newDeviceEphemeralSeed() (seed DeviceEKSeed, err error) {
 	randomSeed, err := makeNewRandomSeed()
@@ -19,6 +20,31 @@ func newDeviceEphemeralSeed() (seed DeviceEKSeed, err error) {
 		return seed, err
 	}
 	return DeviceEKSeed(randomSeed), nil
+}
+
+func newEKSeedFromBytes(b []byte) (seed keybase1.Bytes32, err error) {
+	if len(b) != libkb.NaclDHKeysize {
+		err = fmt.Errorf("Wrong EkSeed len: %d != %d", len(b), libkb.NaclDHKeysize)
+		return seed, err
+	}
+	copy(seed[:], b)
+	return seed, nil
+}
+
+func newDeviceEKSeedFromBytes(b []byte) (s DeviceEKSeed, err error) {
+	seed, err := newEKSeedFromBytes(b)
+	if err != nil {
+		return s, err
+	}
+	return DeviceEKSeed(seed), nil
+}
+
+func newUserEKSeedFromBytes(b []byte) (s UserEKSeed, err error) {
+	seed, err := newEKSeedFromBytes(b)
+	if err != nil {
+		return s, err
+	}
+	return UserEKSeed(seed), nil
 }
 
 func (s *DeviceEKSeed) DeriveDHKey() (key *libkb.NaclDHKeyPair, err error) {
@@ -60,20 +86,19 @@ func getServerMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext) (maxGener
 
 func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keybase1.DeviceEkMetadata, err error) {
 	defer g.CTrace(ctx, "PublishNewDeviceEK", func() error { return err })()
-
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	seed, err := newDeviceEphemeralSeed()
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	dhKeypair, err := seed.DeriveDHKey()
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	deviceEKStorage := g.GetDeviceEKStorage()
@@ -83,38 +108,36 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 		g.Log.CDebugf(ctx, "Error getting maxGeneration")
 		generation, err = getServerMaxDeviceEK(ctx, g)
 		if err != nil {
-			return data, err
+			return metadata, err
 		}
 	}
 	generation++
 
-	data, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
+	metadata, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
 	if err != nil {
 		g.Log.CDebugf(ctx, "Error posting deviceEK, retrying with server maxGeneration")
 		// Let's retry posting with the server given max
 		generation, err = getServerMaxDeviceEK(ctx, g)
 		if err != nil {
-			return data, err
+			return metadata, err
 		}
 		generation++
-		data, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
+		metadata, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
 	}
 
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	err = deviceEKStorage.Put(ctx, generation, keybase1.DeviceEk{
-		Seed:       keybase1.Bytes32(seed),
-		Generation: generation,
-		HashMeta:   currentMerkleRoot.HashMeta(),
-		Ctime:      keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()),
+		Seed:     keybase1.Bytes32(seed),
+		Metadata: metadata,
 	})
-	return data, err
+	return metadata, err
 }
 
-func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, currentMerkleRoot *libkb.MerkleRoot) (data keybase1.DeviceEkMetadata, err error) {
-	metadata := keybase1.DeviceEkMetadata{
+func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, currentMerkleRoot *libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
+	metadata = keybase1.DeviceEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   currentMerkleRoot.HashMeta(),
@@ -122,22 +145,22 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 	}
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	// Sign the metadata blob with the device's long term signing key.
 	signingKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 	signedPacket, _, err := signingKey.SignToString(metadataJSON)
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	err = postNewDeviceEK(ctx, g, signedPacket)
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
 	return metadata, nil

@@ -65,19 +65,20 @@ type GlobalContext struct {
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
 
-	cacheMu         *sync.RWMutex   // protects all caches
-	ProofCache      *ProofCache     // where to cache proof results
-	TrackCache      *TrackCache     // cache of IdentifyOutcomes for tracking purposes
-	Identify2Cache  Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
-	LinkCache       *LinkCache      // cache of ChainLinks
-	upakLoader      UPAKLoader      // Load flat users with the ability to hit the cache
-	teamLoader      TeamLoader      // Play back teams for id/name properties
-	deviceEKStorage DeviceEKStorage // Store device ephemeral keys
-	itciCacher      LRUer           // Cacher for implicit team conflict info
-	CardCache       *UserCardCache  // cache of keybase1.UserCard objects
-	fullSelfer      FullSelfer      // a loader that gets the full self object
-	pvlSource       PvlSource       // a cache and fetcher for pvl
-	PayloadCache    *PayloadCache   // cache of ChainLink payload json wrappers
+	cacheMu          *sync.RWMutex    // protects all caches
+	ProofCache       *ProofCache      // where to cache proof results
+	TrackCache       *TrackCache      // cache of IdentifyOutcomes for tracking purposes
+	Identify2Cache   Identify2Cacher  // cache of Identify2 results for fast-pathing identify2 RPCS
+	LinkCache        *LinkCache       // cache of ChainLinks
+	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
+	teamLoader       TeamLoader       // Play back teams for id/name properties
+	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
+	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
+	itciCacher       LRUer            // Cacher for implicit team conflict info
+	CardCache        *UserCardCache   // cache of keybase1.UserCard objects
+	fullSelfer       FullSelfer       // a loader that gets the full self object
+	pvlSource        PvlSource        // a cache and fetcher for pvl
+	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -492,6 +493,12 @@ func (g *GlobalContext) GetDeviceEKStorage() DeviceEKStorage {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.deviceEKStorage
+}
+
+func (g *GlobalContext) GetUserEKBoxStorage() UserEKBoxStorage {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.userEKBoxStorage
 }
 
 func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
@@ -1002,6 +1009,12 @@ func (g *GlobalContext) SetDeviceEKStorage(s DeviceEKStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.deviceEKStorage = s
+}
+
+func (g *GlobalContext) SetUserEKBoxStorage(s UserEKBoxStorage) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.userEKBoxStorage = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
