@@ -858,6 +858,17 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (mute
           </span>
         </div>
       </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingTop": 16,
+          }
+        }
+      />
     </div>
   </div>
 </div>
