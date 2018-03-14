@@ -98,6 +98,7 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 
 	data, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
 	if err != nil {
+		g.Log.Debug("Error posting deviceEK, retrying with server maxGeneration")
 		// Let's retry posting with the server given max
 		generation, err = getServerMaxDeviceEK(ctx, g)
 		if err != nil {
