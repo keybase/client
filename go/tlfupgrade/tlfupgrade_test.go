@@ -52,7 +52,6 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	u.clock = clock
 	u.Run()
-
 	attempt := func() {
 		clock.BlockUntil(1)
 		clock.Advance(time.Hour)
@@ -67,4 +66,5 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
 	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
 	attempt()
+	u.Shutdown()
 }
