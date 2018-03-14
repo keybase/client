@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Text, ConnectedUsernames} from '../../../../common-adapters'
+import {Box, Text, ConnectedUsernames} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
-import {globalColors, globalMargins} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -21,44 +21,76 @@ class Joined extends React.PureComponent<Props> {
     const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
     const {author, timestamp} = this.props.message
     return (
-      <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blue4}>
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-          {formatTimeForMessages(timestamp)}
-        </Text>
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+      <Box
+        style={{
+          marginLeft: globalMargins.xtiny,
+          marginTop: 2,
+          marginBottom: 2,
+          // ...globalStyles.flexBoxColumn,
+          // alignItems: 'center',
+        }}
+      >
+        <Text type="BodySmallItalic">
           {you === author ? (
             'You'
           ) : (
             <ConnectedUsernames
               inline={true}
-              type="BodySmallSemibold"
+              type="BodySmallItalic"
               onUsernameClicked={onUsernameClicked}
               colorFollowing={true}
               underline={true}
               usernames={[author]}
             />
           )}{' '}
-          joined{' '}
-          {isBigTeam ? (
-            `#${channelname}`
-          ) : (
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-              {teamname}
-            </Text>
-          )}.
+          joined {isBigTeam ? `#${channelname}` : teamname}
+          {'. '}
+          {author === you &&
+            isBigTeam && (
+              <Text onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmallItalic">
+                Manage channel subscriptions.
+              </Text>
+            )}
         </Text>
-        {author === you &&
-          isBigTeam && (
-            <Text
-              backgroundMode="Announcements"
-              onClick={onManageChannels}
-              style={{color: globalColors.blue}}
-              type="BodySmallSemibold"
-            >
-              Manage channel subscriptions.
-            </Text>
-          )}
-      </UserNotice>
+      </Box>
+      // <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blue4}>
+      //   <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+      //     {formatTimeForMessages(timestamp)}
+      //   </Text>
+      //   <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+      //     {you === author ? (
+      //       'You'
+      //     ) : (
+      //       <ConnectedUsernames
+      //         inline={true}
+      //         type="BodySmallSemibold"
+      //         onUsernameClicked={onUsernameClicked}
+      //         colorFollowing={true}
+      //         underline={true}
+      //         usernames={[author]}
+      //       />
+      //     )}{' '}
+      //     joined{' '}
+      //     {isBigTeam ? (
+      //       `#${channelname}`
+      //     ) : (
+      //       <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+      //         {teamname}
+      //       </Text>
+      //     )}.
+      //   </Text>
+      //   {author === you &&
+      //     isBigTeam && (
+      //       <Text
+      //         backgroundMode="Announcements"
+      //         onClick={onManageChannels}
+      //         style={{color: globalColors.blue}}
+      //         type="BodySmallSemibold"
+      //       >
+      //         Manage channel subscriptions.
+      //       </Text>
+      //     )}
+      // </UserNotice>
     )
   }
 }
