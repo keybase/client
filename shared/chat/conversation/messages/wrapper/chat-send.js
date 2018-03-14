@@ -57,6 +57,11 @@ class SendIndicator extends React.Component<Props, State> {
     this.props.clearTimeout(this.sentTimeoutID)
   }
 
+  _onResend() {
+    this._setVisible(true)
+    this._setStatus('sending')
+  }
+
   componentWillMount() {
     if (!(this.props.sent || this.props.failed)) {
       // Only show the `encrypting` icon for messages once
@@ -75,22 +80,13 @@ class SendIndicator extends React.Component<Props, State> {
     }
   }
 
-  _restart() {
-    if (shownEncryptingSet.has(this.props.id)) {
-      shownEncryptingSet.delete(this.props.id)
-    }
-    this._setVisible(true)
-    this._setStatus('sending')
-  }
-
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.failed && !this.props.failed) {
       this._onFailed()
     } else if (nextProps.sent && !this.props.sent) {
       this._onSent()
-    }
-    if (!nextProps.failed && this.props.failed) {
-      this._restart()
+    } else if (!nextProps.failed && this.props.failed) {
+      this._onResend()
     }
   }
 
