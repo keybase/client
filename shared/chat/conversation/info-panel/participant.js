@@ -32,10 +32,10 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
   </Box>
 )
 
-const AddPeople = ({onClick}: {onClick: any => void}) => (
+const AddPeople = ({onClick}: {onClick: (?EventTarget) => void}) => (
   <ClickableBox
     style={{...globalStyles.flexBoxRow}}
-    onClick={isMobile ? onClick : evt => onClick(evt.target)}
+    onClick={evt => (isMobile ? onClick() : onClick(evt.target))}
   >
     <Box style={isMobile ? rowStyleMobile : rowStyle}>
       <Box

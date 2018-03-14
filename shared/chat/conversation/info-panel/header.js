@@ -12,38 +12,46 @@ type SmallProps = {
 
 const gearIconSize = isMobile ? 24 : 16
 
-const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => (
-  <ClickableBox
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginLeft: globalMargins.small,
-    }}
-    onClick={evt => !evt.defaultPrevented && onClick()}
-  >
-    <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-      <Text type="BodySemibold">{teamname}</Text>
-      <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall">
-          {participantCount.toString() + ' member' + (participantCount !== 1 ? 's' : '')}
-        </Text>
-      </Box>
-    </Box>
-    <Icon
-      type="iconfont-gear"
-      onClick={evt => {
-        evt.preventDefault()
-        if (!isMobile) {
-          onClickGear(evt.target)
-        } else {
-          onClickGear()
-        }
+const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => {
+  const _onClick = (evt: SyntheticEvent<>) => {
+    if (!evt.defaultPrevented) {
+      onClick()
+    }
+  }
+  const _onClickGear = (evt: SyntheticEvent<>) => {
+    evt.preventDefault()
+    if (!isMobile) {
+      onClickGear(evt.target)
+    } else {
+      onClickGear()
+    }
+  }
+  return (
+    <ClickableBox
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginLeft: globalMargins.small,
       }}
-      style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
-    />
-  </ClickableBox>
-)
+      onClick={_onClick}
+    >
+      <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
+        <Text type="BodySemibold">{teamname}</Text>
+        <Box style={globalStyles.flexBoxRow}>
+          <Text type="BodySmall">
+            {participantCount.toString() + ' member' + (participantCount !== 1 ? 's' : '')}
+          </Text>
+        </Box>
+      </Box>
+      <Icon
+        type="iconfont-gear"
+        onClick={_onClickGear}
+        style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
+      />
+    </ClickableBox>
+  )
+}
 
 // TODO probably factor this out into a connected component
 type BigProps = {
