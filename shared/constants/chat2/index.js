@@ -78,7 +78,6 @@ export {
   getRowStyles,
   inboxUIItemToConversationMeta,
   makeConversationMeta,
-  metaReceivedErrorToConversationMeta,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,
