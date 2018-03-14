@@ -112,12 +112,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
-  onAddPeople: target => dispatchProps._onAddPeople(stateProps.teamname, target),
+  onAddPeople: (target: ?EventTarget) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
-  onClickGear: target => dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
+  onClickGear: (target: ?EventTarget) =>
+    dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
   onShowBlockConversationDialog: dispatchProps._onShowBlockConversationDialog,
   onShowNewTeamDialog: dispatchProps._onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
