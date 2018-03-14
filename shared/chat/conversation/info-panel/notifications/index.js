@@ -106,9 +106,6 @@ const UnmutedNotificationPrefs = (props: Props) => (
         label={'Never'}
       />
     </Box>
-    <Box style={styleSaveState}>
-      <SaveStateComponent saveState={props.saveState} />
-    </Box>
   </React.Fragment>
 )
 
@@ -138,6 +135,9 @@ export const Notifications = (props: Props) => (
       />
     </Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}
+    <Box style={styleSaveState}>
+      <SaveStateComponent saveState={props.saveState} />
+    </Box>
   </Box>
 )
 
