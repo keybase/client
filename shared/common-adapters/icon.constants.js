@@ -668,8 +668,8 @@ const iconMeta_ = {
   },
   'icon-message-status-sent-24': {
     isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-message-status-sent-24.png'),
+    extension: 'gif',
+    require: require('../images/icons/icon-message-status-sent-24.gif'),
   },
   'icon-mutual-follow-21': {
     isFont: false,
