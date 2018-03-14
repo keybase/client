@@ -34,10 +34,11 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
 
 // EventTarget here because evt.target is an EventTarget
 // but `getBoundingClientRect` only works on an Element
-const AddPeople = ({onClick}: {onClick: (?EventTarget) => void}) => (
+const AddPeople = ({onClick}: {onClick: (?Element) => void}) => (
   <ClickableBox
     style={{...globalStyles.flexBoxRow}}
-    onClick={evt => (isMobile ? onClick() : onClick(evt.target))}
+    // $FlowIssue with ClickableBox
+    onClick={evt => (isMobile ? onClick() : onClick(evt.currentTarget))}
   >
     <Box style={isMobile ? rowStyleMobile : rowStyle}>
       <Box

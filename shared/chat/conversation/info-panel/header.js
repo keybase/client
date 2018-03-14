@@ -7,23 +7,21 @@ type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
-  // EventTarget here because evt.target is an EventTarget
-  // but `getBoundingClientRect` only works on an Element
-  onClickGear: (?EventTarget) => void,
+  onClickGear: (?Element) => void,
 }
 
 const gearIconSize = isMobile ? 24 : 16
 
 const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => {
-  const _onClick = (evt: SyntheticEvent<>) => {
+  const _onClick = (evt: SyntheticEvent<Element>) => {
     if (!evt.defaultPrevented) {
       onClick()
     }
   }
-  const _onClickGear = (evt: SyntheticEvent<>) => {
+  const _onClickGear = (evt: SyntheticEvent<Element>) => {
     evt.preventDefault()
     if (!isMobile) {
-      onClickGear(evt.target)
+      onClickGear(evt.currentTarget)
     } else {
       onClickGear()
     }
@@ -35,6 +33,7 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
         alignItems: 'center',
         marginLeft: globalMargins.small,
       }}
+      // $FlowIssue with ClickableBox
       onClick={_onClick}
     >
       <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
@@ -48,6 +47,7 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
       </Box>
       <Icon
         type="iconfont-gear"
+        // $FlowIssue with ClickableBox
         onClick={_onClickGear}
         style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
       />
