@@ -68,7 +68,7 @@ func (b *BackgroundTLFUpdater) Run() {
 
 func (b *BackgroundTLFUpdater) runAll() {
 	b.Lock()
-	if !b.running {
+	if !b.running && b.G().Env.GetChatMemberType() != "kbfs" {
 		b.debug(context.Background(), "starting up")
 		b.shutdownCh = make(chan struct{})
 		b.running = true
