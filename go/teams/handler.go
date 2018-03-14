@@ -269,6 +269,11 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			g.Log.CDebugf(ctx, "Open team request: adding %v, returned err: %v", uv, err)
 		}
 
+		if tx.IsEmpty() {
+			g.Log.CDebugf(ctx, "Nothing to do - transaction is empty")
+			return nil
+		}
+
 		return tx.Post(ctx)
 	})
 }

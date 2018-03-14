@@ -794,7 +794,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 [data-glamor-22] {
   font-size: 11px;
   line-height: 15px;
-  color: #3dcc8e;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
