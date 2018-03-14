@@ -25,7 +25,15 @@ const DangerButton = (props: {label: string, onClick: () => void}) => (
   </ButtonBar>
 )
 
-const LabeledDangerIcon = ({icon, label, onClick}: {icon: IconType, label: string, onClick: () => void}) => (
+const CaptionedDangerIcon = ({
+  icon,
+  caption,
+  onClick,
+}: {
+  icon: IconType,
+  caption: string,
+  onClick: () => void,
+}) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
@@ -36,9 +44,9 @@ const LabeledDangerIcon = ({icon, label, onClick}: {icon: IconType, label: strin
   >
     <Icon type={icon} style={{color: globalColors.red, marginRight: globalMargins.tiny}} />
     <Text type="BodySemibold" style={{color: globalColors.red}} className="hover-underline">
-      {label}
+      {caption}
     </Text>
   </ClickableBox>
 )
 
-export {CaptionedButton, DangerButton, LabeledDangerIcon}
+export {CaptionedButton, DangerButton, CaptionedDangerIcon}

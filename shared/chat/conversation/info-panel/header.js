@@ -7,43 +7,51 @@ type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
-  onClickGear: any => void,
+  onClickGear: (?EventTarget) => void,
 }
 
 const gearIconSize = isMobile ? 24 : 16
 
-const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => (
-  <ClickableBox
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginLeft: globalMargins.small,
-    }}
-    onClick={evt => !evt.defaultPrevented && onClick()}
-  >
-    <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-      <Text type="BodySemibold">{teamname}</Text>
-      <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall">
-          {participantCount.toString() + ' member' + (participantCount !== 1 ? 's' : '')}
-        </Text>
+const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => {
+  const _onClick = (evt: SyntheticEvent<>) => {
+    if (!evt.defaultPrevented) {
+      onClick()
+    }
+  }
+  const _onClickGear = (evt: SyntheticEvent<>) => {
+    evt.preventDefault()
+    if (!isMobile) {
+      onClickGear(evt.target)
+    } else {
+      onClickGear()
+    }
+  }
+  return (
+    <ClickableBox
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginLeft: globalMargins.small,
+      }}
+      onClick={_onClick}
+    >
+      <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
+        <Text type="BodySemibold">{teamname}</Text>
+        <Box style={globalStyles.flexBoxRow}>
+          <Text type="BodySmall">
+            {participantCount.toString() + ' member' + (participantCount !== 1 ? 's' : '')}
+          </Text>
+        </Box>
       </Box>
-    </Box>
-    <Icon
-      type="iconfont-gear"
-      onClick={
-        isMobile
-          ? onClickGear
-          : evt => {
-              evt.preventDefault()
-              onClickGear(evt.target)
-            }
-      }
-      style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
-    />
-  </ClickableBox>
-)
+      <Icon
+        type="iconfont-gear"
+        onClick={_onClickGear}
+        style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
+      />
+    </ClickableBox>
+  )
+}
 
 // TODO probably factor this out into a connected component
 type BigProps = {
@@ -62,7 +70,7 @@ const BigTeamHeader = (props: BigProps) => {
         style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2, position: 'relative'}}
       >
         <Text type="BodyBig">#{props.channelname}</Text>
-        {!!props.canEditChannel && (
+        {props.canEditChannel && (
           <ClickableBox
             style={{
               ...globalStyles.flexBoxRow,

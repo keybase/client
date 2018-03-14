@@ -72,11 +72,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
     ),
   _onBack: () => dispatch(navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-  _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-  _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
-  _onShowBlockConversationDialog: (conversationIDKey: Types.ConversationIDKey) => {
+  onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+  onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  onShowBlockConversationDialog: () => {
     dispatch(
       Route.navigateAppend([
         {
@@ -86,7 +84,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
       ])
     )
   },
-  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
+  onShowNewTeamDialog: () => {
     dispatch(
       Route.navigateAppend([
         {
@@ -114,15 +112,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
-  onAddPeople: target => dispatchProps._onAddPeople(stateProps.teamname, target),
+  onAddPeople: (target: ?EventTarget) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
-  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
-  onLeaveConversation: () => dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey),
-  onClickGear: target => dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
-  onShowBlockConversationDialog: () =>
-    dispatchProps._onShowBlockConversationDialog(stateProps.selectedConversationIDKey),
-  onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
+  onJoinChannel: dispatchProps.onJoinChannel,
+  onLeaveConversation: dispatchProps.onLeaveConversation,
+  onClickGear: (target: ?EventTarget) =>
+    dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
+  onShowBlockConversationDialog: dispatchProps._onShowBlockConversationDialog,
+  onShowNewTeamDialog: dispatchProps._onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),

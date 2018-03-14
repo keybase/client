@@ -8,7 +8,7 @@ import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
-import {CaptionedButton, LabeledDangerIcon} from './channel-utils'
+import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -51,9 +51,9 @@ type InfoPanelProps = {
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
-  onAddPeople: any => void,
+  onAddPeople: (?EventTarget) => void,
   onViewTeam: () => void,
-  onClickGear: any => void,
+  onClickGear: (?EventTarget) => void,
 
   // Used for big teams.
   canEditChannel: boolean,
@@ -252,9 +252,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'block this conversation':
         return (
-          <LabeledDangerIcon
+          <CaptionedDangerIcon
             key="block this conversation"
-            label="Block this conversation"
+            caption="Block this conversation"
             onClick={row.onShowBlockConversationDialog}
             icon="iconfont-remove"
           />
@@ -305,10 +305,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'leave channel':
         return (
-          <LabeledDangerIcon
+          <CaptionedDangerIcon
             key="leave channel"
             onClick={row.onLeaveConversation}
-            label="Leave channel"
+            caption="Leave channel"
             icon="iconfont-leave"
           />
         )
