@@ -28,6 +28,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   windowComponent: stateProps.windowComponent,
   windowOpts: stateProps.windowOpts,
   windowParam: stateProps.windowParam,
+  windowPositionBottomRight: false,
   windowTitle: stateProps.windowTitle,
 })
 

@@ -136,7 +136,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
   },
 })
 
-const ConnectedUserInput: Class<React.Component<OwnProps, void>> = compose(
+const ConnectedUserInput = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},

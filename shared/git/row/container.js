@@ -1,5 +1,4 @@
 // @flow
-import React from 'react'
 import Row from '.'
 import * as Constants from '../../constants/git'
 import {createSetTeamRepoSettings} from '../../actions/git-gen'
@@ -26,9 +25,11 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
 
 const mapDispatchToProps = (dispatch: any) => ({
   openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
-  _setDisableChat: (disabled: boolean, repoID: string, teamname: string) =>
-    dispatch(createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname, channelName: null})),
-  _onOpenChannelSelection: (repoID: string, teamname: string, selected: string) =>
+  _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
+    dispatch(
+      createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname: teamname || '', channelName: null})
+    ),
+  _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
     dispatch(
       navigateAppend(
         [{selected: 'selectChannel', props: {repoID, teamname, selected}}],
@@ -57,14 +58,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
 })
 
-const ConnectedRow: Class<
-  React.Component<{
-    id: string,
-    expanded: boolean,
-    onShowDelete: (id: string) => void,
-    onToggleExpand: (id: string) => void,
-  }>
-> = compose(
+const ConnectedRow = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withHandlers({
     onChannelClick: ({chatDisabled, onOpenChannelSelection}) => e => {

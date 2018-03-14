@@ -11,7 +11,7 @@ export type OwnProps = {
 }
 
 export type Props = OwnProps & {
-  onClick: ?() => void,
+  onClick: () => void,
 }
 
 const mentionStyles = {

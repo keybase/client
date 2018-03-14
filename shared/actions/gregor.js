@@ -23,20 +23,13 @@ function isTlfItem(gItem: Types.NonNullGregorItem): boolean {
 }
 
 function toNonNullGregorItems(state: GregorState): Array<Types.NonNullGregorItem> {
-  if (!state.items) {
-    return []
-  }
-
-  // We need to do this in two steps because flow understands filter(Boolean)
-  // can un-Maybe a type, but it doesn't understand general predicates.
-  return state.items
-    .map(x => {
-      const md = x.md
-      const item = x.item
-      // Gotta copy the object because flow is VERY UNCHILL about casting these maybes.
-      return md && item ? {md, item} : null
-    })
-    .filter(Boolean)
+  return (state.items || []).reduce((arr, x) => {
+    const {md, item} = x
+    if (md && item) {
+      arr.push({item, md})
+    }
+    return arr
+  }, [])
 }
 
 function registerReachability() {

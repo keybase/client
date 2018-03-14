@@ -14,7 +14,7 @@ import {
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
 import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
-import {type TypeMap} from '../../../../constants/types/teams'
+import {type BoolTypeMap} from '../../../../constants/types/teams'
 
 export type Props = {
   active: boolean,
@@ -30,7 +30,7 @@ export type Props = {
   you: ?string,
 }
 
-const showCrown: TypeMap = {
+const showCrown: BoolTypeMap = {
   admin: true,
   owner: true,
   reader: false,

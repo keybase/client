@@ -28,6 +28,10 @@
         "error": "Error"
       }
     },
+    "loadRememberPassphrase": {},
+    "loadedRememberPassphrase": {
+      "remember": "boolean"
+    },
     "loadSettings": {},
     "loadedSettings": {
       "emailState": "Types.EmailState"
@@ -49,6 +53,9 @@
     },
     "onChangeNewPassphraseConfirm": {
       "passphrase": "HiddenString"
+    },
+    "onChangeRememberPassphrase": {
+      "remember": "boolean",
     },
     "onChangeShowPassphrase": {},
     "onSubmitNewEmail": {},

@@ -2,19 +2,18 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-import {Avatar, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
+import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 export type Props = {
   canEditDescription: boolean,
   canJoinTeam: boolean,
   canManageMembers: boolean,
-  description: ?string,
+  description: string,
   memberCount: number,
   openTeam: boolean,
   role: ?Types.TeamRoleType,
-  teamname: string,
-
+  teamname: Types.Teamname,
   onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
@@ -41,18 +40,18 @@ const TeamHeader = (props: Props) => (
     )}
     <Box style={stylesTeamHeader}>
       {/* Summary */}
-      <Avatar isTeam={true} teamname={props.teamname} size={64} />
-      <Text type="HeaderBig" selectable={true} style={{marginTop: globalMargins.tiny}}>
-        {props.teamname}
-      </Text>
-      <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall">TEAM</Text>
-        {props.openTeam && <Meta style={stylesMeta} title="OPEN" />}
-      </Box>
-      <Text type="BodySmall">
-        {props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')} •{' '}
-        {props.role && Constants.typeToLabel[props.role]}
-      </Text>
+      <NameWithIcon
+        size="large"
+        teamname={props.teamname}
+        title={props.teamname}
+        metaOne={
+          <Box style={globalStyles.flexBoxRow}>
+            <Text type="BodySmall">TEAM</Text>
+            {props.openTeam && <Meta style={stylesMeta} title="OPEN" />}
+          </Box>
+        }
+        metaTwo={getTeamSubtitle(props.memberCount, props.role)}
+      />
 
       {/* Description */}
       {!props.loading && (props.canEditDescription || props.description) ? (
@@ -124,6 +123,17 @@ const TeamHeader = (props: Props) => (
     </Box>
   </Box>
 )
+
+const getTeamSubtitle = (memberCount: number, role: ?(Types.TeamRoleType | 'none')): string => {
+  let res = `${memberCount} member`
+  if (memberCount !== 1) {
+    res += 's'
+  }
+  if (role && role !== 'none') {
+    res += ` • ${Constants.typeToLabel[role]}`
+  }
+  return res
+}
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

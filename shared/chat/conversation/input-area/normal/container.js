@@ -81,14 +81,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _editingMessage: stateProps._editingMessage,
     _onSubmit: (text: string) => {
-      if (stateProps._editingMessage) {
-        if (
-          stateProps._editingMessage.type === 'text' &&
-          stateProps._editingMessage.text.stringValue() === text
-        ) {
+      const em = stateProps._editingMessage
+      if (em) {
+        if (em.type === 'text' && em.text.stringValue() === text) {
           dispatchProps._onCancelEditing(stateProps.conversationIDKey)
         } else {
-          dispatchProps._onEditMessage(stateProps._editingMessage, text)
+          dispatchProps._onEditMessage(em, text)
         }
       } else {
         dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
@@ -103,10 +101,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-    onJoinChannel: () => dispatchProps.onJoinChannel(stateProps.conversationIDKey),
-    onLeaveChannel: () => {
-      dispatchProps.onLeaveChannel(stateProps.conversationIDKey, stateProps._meta.teamname)
-    },
     sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
     typing: stateProps.typing,
   }

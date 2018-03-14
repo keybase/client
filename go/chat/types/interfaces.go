@@ -43,6 +43,7 @@ type UnboxConversationInfo interface {
 	GetMembersType() chat1.ConversationMembersType
 	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
 	GetExpunge() *chat1.Expunge
+	IsPublic() bool
 }
 
 type ConversationSource interface {

@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 
 export type Props = {
   author: string,
-  failureDescription: ?string,
+  failureDescription: string,
   includeHeader: boolean,
   innerClass: React.ComponentType<*>,
   isBroken: boolean,
@@ -20,12 +20,12 @@ export type Props = {
   messageFailed: boolean,
   messageSent: boolean,
   onShowMenu: any => void, // weak typing cause we swap out how this works on mobile/desktop
-  onRetry: ?() => void,
-  onEdit: ?() => void,
+  onRetry: null | (() => void),
+  onEdit: null | (() => void),
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
   showTeamOffer: boolean,
-  timestamp: ?string,
+  timestamp: string,
 }
 
 export default class Wrapper extends React.Component<Props> {}

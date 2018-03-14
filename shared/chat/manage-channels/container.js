@@ -114,10 +114,10 @@ export default compose(
   ),
   withHandlers({
     onToggle: props => (channelname: string) =>
-      props.setNextChannelState(cs => ({
-        ...cs,
-        [channelname]: !cs[channelname],
-      })),
+      props.setNextChannelState({
+        ...props.nextChannelState,
+        [channelname]: !props.nextChannelState[channelname],
+      }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
     onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {

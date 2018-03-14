@@ -4,13 +4,13 @@ import {Icon, Text, ClickableBox, Box, ProgressBar} from '../../../../../common-
 import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../../../styles'
 
 type Props = {
-  arrowColor: ?string,
-  loadPreview: ?() => void,
-  onDownload: ?() => void,
-  onShowInFinder: ?() => void,
+  arrowColor: string,
+  loadPreview: null | (() => void),
+  onDownload: null | (() => void),
+  onShowInFinder: null | (() => void),
   title: string,
   progress: number,
-  progressLabel: ?string,
+  progressLabel: string,
 }
 
 class FileAttachment extends React.PureComponent<Props> {

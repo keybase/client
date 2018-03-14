@@ -10,6 +10,7 @@ import {
   type TypedState,
   lifecycle,
   compose,
+  setDisplayName,
   withProps,
   withHandlers,
   withStateHandlers,
@@ -225,8 +226,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export type {AvatarSize}
-const real = compose(
+const realConnector = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('URLAvatar'),
   withStateHandlers(
     {_mounted: false, _stateName: '', _timeoutID: 0},
     {
@@ -246,6 +248,7 @@ const real = compose(
       }
     },
   }),
+  // $FlowIssue
   lifecycle({
     componentWillMount() {
       const _timeoutID = setTimeout(() => {
@@ -267,41 +270,91 @@ const real = compose(
       this.props.setUnmounted()
     },
   })
-)(Render)
+)
 
-const mock = compose(
-  withProps(props => {
-    const isTeam = !!props.teamname
-    const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
-    const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+const real = realConnector(Render)
 
-    let style
-    if (props.style) {
-      if (props.onClick) {
-        style = {...props.style, ...globalStyles.clickable}
-      } else {
-        style = props.style
-      }
-    } else if (props.onClick) {
-      style = globalStyles.clickable
-    }
-
+const autoMapStateToProps = (state: TypedState, ownProps: Props) => {
+  const me = state.config.username
+  if (ownProps.username === me || !me || !ownProps.username) {
+    return {}
+  }
+  // User trackerState (more accurate) if it's available; fall back to state.config if not
+  const trackerState = state.tracker.userTrackers[me]
+  if (trackerState && trackerState.trackersLoaded) {
     return {
-      borderColor: props.borderColor,
-      children: props.children,
-      followIconSize: _followIconSize(props.size, props.followsYou, props.following),
-      followIconStyle: followSizeToStyle[props.size],
-      followIconType: _followIconType(props.size, props.followsYou, props.following),
-      isPlaceholder: true,
-      isTeam,
-      loadingColor: props.loadingColor,
-      onClick: props.onClick,
-      opacity: props.opacity,
-      size: props.size,
-      style,
-      url,
+      _followers: trackerState.trackers,
+      _following: trackerState.tracking,
     }
-  })
-)(Render)
+  }
+  // Need to give these different names because these are sets of strings while the above are arrays of objects
+  return {
+    _cFollowers: state.config.followers,
+    _cFollowing: state.config.following,
+  }
+}
 
+const autoMergeProps = (stateProps, _, ownProps): Props => {
+  if (stateProps._followers && ownProps.username) {
+    const following = stateProps._following.some(user => user.username === ownProps.username)
+    const followsYou = stateProps._followers.some(user => user.username === ownProps.username)
+    return {
+      following,
+      followsYou,
+      ...ownProps,
+    }
+  } else if (stateProps._cFollowers && ownProps.username) {
+    const following = stateProps._cFollowing.has(ownProps.username)
+    const followsYou = stateProps._cFollowers.has(ownProps.username)
+    return {
+      following,
+      followsYou,
+      ...ownProps,
+    }
+  }
+  return ownProps
+}
+
+const autoConnector = compose(
+  realConnector,
+  connect(autoMapStateToProps, () => ({}), autoMergeProps),
+  setDisplayName('Avatar')
+)
+const ConnectedAvatar = autoConnector(Render)
+
+const mockOwnToViewProps = (props: Props) => {
+  const isTeam = !!props.teamname
+  const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
+  const url = iconTypeToImgSet(placeholder[String(props.size)], props.size)
+
+  let style
+  if (props.style) {
+    if (props.onClick) {
+      style = {...props.style, ...globalStyles.clickable}
+    } else {
+      style = props.style
+    }
+  } else if (props.onClick) {
+    style = globalStyles.clickable
+  }
+
+  return {
+    borderColor: props.borderColor,
+    children: props.children,
+    followIconSize: _followIconSize(props.size, !!props.followsYou, !!props.following),
+    followIconStyle: followSizeToStyle[props.size],
+    followIconType: _followIconType(props.size, !!props.followsYou, !!props.following),
+    isPlaceholder: true,
+    isTeam,
+    loadingColor: props.loadingColor,
+    onClick: props.onClick,
+    opacity: props.opacity,
+    size: props.size,
+    style,
+    url,
+  }
+}
+const mock = compose(withProps(mockOwnToViewProps))(Render)
+
+export {ConnectedAvatar, mockOwnToViewProps}
 export default (isTesting ? mock : real)

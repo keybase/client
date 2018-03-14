@@ -129,6 +129,10 @@
           "name": "membersType"
         },
         {
+          "type": "keybase1.TLFVisibility",
+          "name": "visibility"
+        },
+        {
           "type": [
             null,
             "RateLimit"

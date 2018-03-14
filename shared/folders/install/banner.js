@@ -12,6 +12,5 @@ const mapStateToProps = (state: TypedState): * => {
 
 export default compose(
   connect(mapStateToProps),
-  // $FlowIssue doesnt like sending down props not used
   branch(props => props.installed, renderComponent(Uninstall))
 )(Install)

@@ -678,6 +678,7 @@ func TestChatMessagePublic(t *testing.T) {
 		conv := chat1.Conversation{
 			Metadata: chat1.ConversationMetadata{
 				ConversationID: convID,
+				Visibility:     keybase1.TLFVisibility_PUBLIC,
 			},
 		}
 

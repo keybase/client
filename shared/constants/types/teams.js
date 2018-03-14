@@ -74,10 +74,17 @@ export type _SubteamInfo = {
 export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
 export type TypeMap = {
-  admin: string | boolean,
-  owner: string | boolean,
-  reader: string | boolean,
-  writer: string | boolean,
+  admin: string,
+  owner: string,
+  reader: string,
+  writer: string,
+}
+
+export type BoolTypeMap = {
+  admin: boolean,
+  owner: boolean,
+  reader: boolean,
+  writer: boolean,
 }
 
 export type ResetUserBadgeID = Buffer
