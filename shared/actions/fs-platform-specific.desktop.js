@@ -144,17 +144,18 @@ function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
-export function* installKBFSSaga(): Saga.SagaGenerator<any, any> {
-  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallKBFSRpcPromise)
-  yield Saga.put(FsGen.createInstallKBFSResult({result}))
-  yield Saga.put(FsGen.createSetFlags({kbfsOpening: true, kbfsInstalling: false}))
-  yield Saga.call(waitForMountAndOpenSaga)
-}
+export const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+export const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
+  Saga.sequentially([
+    Saga.put(FsGen.createInstallKBFSResult({result})),
+    Saga.put(FsGen.createSetFlags({kbfsOpening: true, kbfsInstalling: false})),
+    Saga.call(waitForMountAndOpenSaga),
+  ])
 
 export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    return Saga.call(installKBFSSaga)
+    return Saga.call(installKBFS)
   }
 }
 
@@ -206,11 +207,11 @@ export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPaylo
   )
 }
 
-export function uninstallKBFSSaga() {
+export function uninstallKBFS() {
   return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
 }
 
-export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
+export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = Electron.remote.app
   app.relaunch()

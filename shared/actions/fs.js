@@ -9,12 +9,13 @@ import {
   openInFileUISaga,
   fuseStatusSaga,
   fuseStatusResultSaga,
-  installKBFSSaga,
+  installKBFS,
+  installKBFSSuccess,
   installFuseSaga,
   installDokanSaga,
   uninstallKBFSConfirmSaga,
-  uninstallKBFSSaga,
-  uninstallKBFSSagaSuccess,
+  uninstallKBFS,
+  uninstallKBFSSuccess,
 } from './fs-platform-specific'
 import {isWindows} from '../constants/platform'
 
@@ -116,9 +117,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
   }
-  yield Saga.safeTakeEvery(FsGen.installKBFS, installKBFSSaga)
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFSSaga, uninstallKBFSSagaSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
 }
 
 export default fsSaga
