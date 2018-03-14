@@ -178,7 +178,7 @@ const typeSizeEstimator = (row: Row): number => {
   // inspector on the appropriate components, including margins.
   switch (row.type) {
     case 'add people':
-      return isMobile ? 56 : 48
+      return 48
 
     case 'participant':
       return 56

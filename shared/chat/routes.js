@@ -21,26 +21,53 @@ import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 
+const editChannel = {
+  component: MaybePopupHoc(isMobile)(EditChannel),
+  tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+  children: {},
+}
+
 const manageChannels = {
   component: ManageChannels,
-  tags: makeLeafTags({layerOnTop: true}),
+  tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
   children: {
-    editChannel: {
-      component: MaybePopupHoc(false)(EditChannel),
-      tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
-      children: {},
-    },
+    editChannel,
+  },
+}
+
+const infoPanelChildren = {
+  addPeopleHow: {
+    children: {},
+    component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+  editChannel,
+  infoPanelMenu: {
+    children: {},
+    component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+  manageChannels,
+  reallyLeaveTeam: {
+    children: {},
+    component: ReallyLeaveTeam,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  showBlockConversationDialog: {
+    component: BlockConversationWarning,
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    children: {},
+  },
+  showNewTeamDialog: {
+    component: NewTeamDialogFromChat,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+    children: {},
   },
 }
 
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
-    addPeopleHow: {
-      children: {},
-      component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
     attachmentFullscreen: {
       component: AttachmentFullscreen,
       tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
@@ -57,57 +84,12 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
-    editChannel: {
-      component: MaybePopupHoc(isMobile)(EditChannel),
-      tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
-      children: {},
-    },
     infoPanel: {
       component: InfoPanel,
-      children: {
-        addPeopleHow: {
-          children: {},
-          component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
-          tags: makeLeafTags({layerOnTop: true}),
-        },
-        editChannel: {
-          component: MaybePopupHoc(isMobile)(EditChannel),
-          tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
-          children: {},
-        },
-        infoPanelMenu: {
-          children: {},
-          component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
-          tags: makeLeafTags({layerOnTop: true}),
-        },
-        manageChannels,
-        reallyLeaveTeam: {
-          component: ReallyLeaveTeam,
-          tags: makeLeafTags({layerOnTop: false}),
-          children: {},
-        },
-        showBlockConversationDialog: {
-          component: BlockConversationWarning,
-          tags: makeLeafTags({hideStatusBar: true}),
-          children: {},
-        },
-        showNewTeamDialog: {
-          component: NewTeamDialogFromChat,
-          tags: makeLeafTags({layerOnTop: true}),
-          children: {},
-        },
-      },
+      children: infoPanelChildren,
     },
-    infoPanelMenu: {
-      children: {},
-      component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
-    showBlockConversationDialog: {
-      component: BlockConversationWarning,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
+    // We should consolidate these as only info panel children once it's changed to a route on desktop
+    ...infoPanelChildren,
     deleteHistoryWarning: {
       component: DeleteHistoryWarning,
       tags: makeLeafTags({layerOnTop: false}),
@@ -118,28 +100,21 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
-    showNewTeamDialog: {
-      component: NewTeamDialogFromChat,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-    manageChannels,
     createChannel: {
       component: CreateChannel,
       tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
-    reallyLeaveTeam: {
-      children: {},
-      component: ReallyLeaveTeam,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+
     enterPaperkey: {
       component: EnterPaperkey,
     },
   },
 })
 
+// [mobile] we assume children of the inbox are conversations. manageChannels and createChannel are
+// the only screens you can get to without going through a conversation, so we substitute them in
+// manually and route to a conversation otherwise
 const manageChannelsRoute = makeRouteDefNode({
   component: ManageChannels,
   children: {
@@ -151,7 +126,6 @@ const manageChannelsRoute = makeRouteDefNode({
   },
   tags: makeLeafTags({hideStatusBar: true}),
 })
-
 const createChannelRoute = makeRouteDefNode({
   component: CreateChannel,
   tags: makeLeafTags({hideStatusBar: true}),
