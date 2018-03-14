@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import ModalLessPopupMenu from '../../common-adapters/popup-menu'
+import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {type RouteProps} from '../../route-tree/render-route'
 import {fileUIName} from '../../constants/platform'
