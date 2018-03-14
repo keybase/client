@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../../common-adapters'
-import {globalMargins, globalStyles, isMobile} from '../../../styles'
+import {glamorous, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
@@ -65,15 +65,24 @@ type BigProps = {
   onEditChannel: () => void,
 }
 
+const EditBox = isMobile
+  ? ClickableBox
+  : glamorous(ClickableBox)({
+      opacity: 0,
+      '.header-row:hover &': {
+        opacity: 1,
+      },
+    })
+
 const BigTeamHeader = (props: BigProps) => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+    <Box className="header-row" style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
       <Box
         style={{alignSelf: 'center', marginTop: globalMargins.medium, marginBottom: 2, position: 'relative'}}
       >
         <Text type="BodyBig">#{props.channelname}</Text>
         {props.canEditChannel && (
-          <ClickableBox
+          <EditBox
             style={{
               ...globalStyles.flexBoxRow,
               position: 'absolute',
@@ -86,7 +95,7 @@ const BigTeamHeader = (props: BigProps) => {
             <Text type="BodySmallPrimaryLink" className="hover-underline">
               Edit
             </Text>
-          </ClickableBox>
+          </EditBox>
         )}
       </Box>
       {!!props.description && (
