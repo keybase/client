@@ -312,10 +312,6 @@ const styleFooter = {
   textAlign: 'right',
 }
 
-const cancelStyle = {
-  marginRight: globalMargins.tiny,
-}
-
 export default compose(
   withStateHandlers(
     {emojiPickerOpen: false},
