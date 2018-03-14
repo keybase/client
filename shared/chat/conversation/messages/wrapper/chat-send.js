@@ -12,7 +12,7 @@ const statusToIcon: {[key: IconStatus]: IconType} = {
 }
 
 const encryptingTimeout = 2000
-const sentTimeout = 600
+const sentTimeout = 400
 
 const shownEncryptingSet = new Set()
 
