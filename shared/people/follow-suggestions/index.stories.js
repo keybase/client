@@ -4,7 +4,10 @@ import {storiesOf, action} from '../../stories/storybook'
 import * as PropProviders from '../../stories/prop-providers'
 import FollowSuggestions, {type Props} from '.'
 
-const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'))
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.Avatar(['max', 'cnojima', 'cdixon'], [])
+)
 
 const props1: Props = {
   onClickUser: action('onClickUser'),

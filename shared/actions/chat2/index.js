@@ -20,9 +20,9 @@ import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
 import type {TypedState, Dispatch} from '../../util/container'
-import {getPath} from '../../route-tree'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
+import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
@@ -1498,8 +1498,6 @@ const resetLetThemIn = (action: Chat2Gen.ResetLetThemInPayload) =>
     username: action.payload.username,
   })
 
-// Keep track of the mark as read's we've already sent
-const lastMarkAsRead = {}
 const markThreadAsRead = (
   action:
     | Chat2Gen.SelectConversationPayload
@@ -1536,26 +1534,7 @@ const markThreadAsRead = (
   }
 
   if (!Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
-    // TEMP to help debugging, remove after push marking read is known good
-    const selectedConversationIDKey = Constants.getSelectedConversation(state)
-    const appFocused = state.config.appFocused
-    const routePath = getPath(state.routeTree.routeState)
-    let chatThreadSelected = false
-    if (isMobile) {
-      chatThreadSelected =
-        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
-    } else {
-      chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
-    }
-
-    logger.info(
-      'marking read bail on not looking at this thread: sel: ',
-      selectedConversationIDKey,
-      'focus:',
-      appFocused,
-      'selectedthread:',
-      chatThreadSelected
-    )
+    logger.info('marking read bail on not looking at this thread')
     return
   }
 
@@ -1573,18 +1552,6 @@ const markThreadAsRead = (
   if (!message) {
     logger.info('marking read bail on no messages')
     return
-  }
-
-  const s = Types.conversationIDKeyToString(conversationIDKey)
-  if (!lastMarkAsRead[s]) {
-    lastMarkAsRead[s] = 0
-  }
-
-  if (lastMarkAsRead[s] >= message.id) {
-    // We've told server about newer messages
-    return
-  } else {
-    lastMarkAsRead[s] = message.id
   }
 
   logger.info(`marking read messages ${conversationIDKey} ${message.id}`)
@@ -1635,12 +1602,25 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 // Helpers to nav you to the right place
 const navigateToInbox = () =>
   Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
-const navigateToThread = () =>
-  Saga.put(
-    Route.navigateTo(
-      isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+const navigateToThread = (_: any, state: TypedState) => {
+  if (state.chat2.selectedConversation) {
+    return Saga.put(
+      Route.navigateTo(
+        isMobile ? [chatTab, 'conversation'] : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+      )
     )
-  )
+  }
+}
+
+const mobileClearSelectedConversation = (_: any, state: TypedState) => {
+  const routePath = getPath(state.routeTree.routeState)
+  const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
+  if (inboxSelected) {
+    return Saga.put(
+      Chat2Gen.createSelectConversation({conversationIDKey: Types.stringToConversationIDKey('')})
+    )
+  }
+}
 
 // Native share sheet for attachments
 function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
@@ -1772,6 +1752,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, messageAttachmentNativeShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
+    // Unselect the conversation when we go to the inbox
+    yield Saga.safeTakeEveryPure(
+      a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
+      mobileClearSelectedConversation
+    )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
     // Auto select the latest convo
@@ -1859,6 +1844,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.selectConversation,
       Chat2Gen.selectConversationDueToPush,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
+      AppGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
     ],
     markThreadAsRead

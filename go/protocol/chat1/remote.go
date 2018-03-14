@@ -150,6 +150,7 @@ func (o GetInboxByTLFIDRemoteRes) DeepCopy() GetInboxByTLFIDRemoteRes {
 type GetThreadRemoteRes struct {
 	Thread      ThreadViewBoxed         `codec:"thread" json:"thread"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	Visibility  keybase1.TLFVisibility  `codec:"visibility" json:"visibility"`
 	RateLimit   *RateLimit              `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
@@ -157,6 +158,7 @@ func (o GetThreadRemoteRes) DeepCopy() GetThreadRemoteRes {
 	return GetThreadRemoteRes{
 		Thread:      o.Thread.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		Visibility:  o.Visibility.DeepCopy(),
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil

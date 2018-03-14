@@ -31,3 +31,14 @@ func (e GPGExportingError) Error() string {
 	}
 	return e.err.Error()
 }
+
+//=============================================================================
+
+type PGPImportStubbedError struct {
+	KeyIDString string
+}
+
+func (e PGPImportStubbedError) Error() string {
+	return fmt.Sprintf("Key %s has private part stubbed - cannot import to Keybase keychain. Try again with --no-import.",
+		e.KeyIDString)
+}

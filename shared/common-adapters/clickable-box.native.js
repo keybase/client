@@ -3,7 +3,7 @@ import * as React from 'react'
 import type {Props} from './clickable-box'
 import Box from './box'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import {globalColors} from '../styles'
+import {collapseStyles, globalColors} from '../styles'
 
 const ClickableBox = ({
   onClick,
@@ -16,7 +16,7 @@ const ClickableBox = ({
   feedback = true,
 }: Props) => {
   if (onClick) {
-    const clickStyle = style ? [boxStyle, style] : boxStyle
+    const clickStyle = style ? collapseStyles([boxStyle, style]) : boxStyle
     if (feedback) {
       return (
         <TouchableOpacity

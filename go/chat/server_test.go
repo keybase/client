@@ -2408,6 +2408,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		}
 		require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].ChatG
+		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
@@ -2423,9 +2424,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		require.Error(t, err)
 
 		// Advance clock and look for stale
-		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
-			return kbtest.NewChatRemoteMock(ctc.world)
-		})
+		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return ri })
 		ctc.world.Fc.Advance(time.Hour)
 
 		select {

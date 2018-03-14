@@ -66,6 +66,7 @@ protocol remote {
   record GetThreadRemoteRes {
     ThreadViewBoxed thread;
     ConversationMembersType membersType;
+    keybase1.TLFVisibility visibility;
     union { null, RateLimit } rateLimit;
   }
 

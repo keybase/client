@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
-import {connect} from 'react-redux'
+import {connect, type Dispatch} from '../util/container'
 import {globalColors, isMobile} from '../styles'
 
 const MaybePopup = isMobile
@@ -25,7 +25,7 @@ const MaybePopup = isMobile
     )
 
 // TODO properly type this
-const DispatchNavUpHoc: any = connect(undefined, (dispatch, {navigateUp}) => ({
+const DispatchNavUpHoc: any = connect(undefined, (dispatch: Dispatch, {navigateUp}) => ({
   connectedNavigateUp: () => dispatch(navigateUp()),
 }))
 
@@ -58,7 +58,7 @@ const _styleContainer = {
 }
 
 export {default as AutosizeInput} from './autosize-input'
-export {default as Avatar} from './avatar'
+export {default as Avatar, ConnectedAvatar} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {default as Banner} from './banner'
@@ -91,6 +91,7 @@ export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc}
 export {default as MultiAvatar} from './multi-avatar.js'
 export {default as Meta} from './meta'
+export {default as NameWithIcon} from './name-with-icon'
 export {default as PlatformIcon} from './platform-icon'
 export {default as PopupDialog} from './popup-dialog'
 export {default as PopupMenu} from './popup-menu'

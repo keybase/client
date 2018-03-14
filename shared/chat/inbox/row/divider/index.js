@@ -6,7 +6,7 @@ import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../s
 type Props = {
   badgeCount: number,
   hiddenCount: number,
-  style?: string,
+  style?: any,
   toggle: () => void,
 }
 

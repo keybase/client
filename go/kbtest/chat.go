@@ -412,6 +412,12 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	if arg.Pagination == nil {
 		arg.Pagination = &chat1.Pagination{Num: 10000}
 	}
+	conv, err := m.GetConversationMetadataRemote(ctx, arg.ConversationID)
+	if err != nil {
+		return res, err
+	}
+	res.MembersType = conv.Conv.GetMembersType()
+	res.Visibility = conv.Conv.Metadata.Visibility
 	msgs := m.world.Msgs[arg.ConversationID.String()]
 	count := 0
 	for _, msg := range msgs {
@@ -592,11 +598,15 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 	res.ConvID = arg.IdTriple.ToConversationID([2]byte{0, 0})
 
 	first := m.insertMsgAndSort(res.ConvID, arg.TLFMessage)
+	vis := keybase1.TLFVisibility_PRIVATE
+	if arg.TLFMessage.ClientHeader.TlfPublic {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
 	m.world.conversations = append(m.world.conversations, &chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			IdTriple:       arg.IdTriple,
 			ConversationID: res.ConvID,
-			Visibility:     keybase1.TLFVisibility_PRIVATE,
+			Visibility:     vis,
 			MembersType:    arg.MembersType,
 		},
 		MaxMsgs:         []chat1.MessageBoxed{first},

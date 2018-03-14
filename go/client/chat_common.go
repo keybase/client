@@ -51,12 +51,12 @@ func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.
 	teamWide := teamInvolved && !setChannel
 
 	if doPrompt {
-		promptText := fmt.Sprintf("Set the conversation retention policy?\nHit Enter, or Ctrl-C to cancel.")
+		promptText := fmt.Sprintf("Set the conversation retention policy?\nHit Enter to confirm, or Ctrl-C to cancel.")
 		if teamInvolved {
-			promptText = fmt.Sprintf("Set the channel retention policy?\nHit Enter, or Ctrl-C to cancel.")
+			promptText = fmt.Sprintf("Set the channel retention policy?\nHit Enter to confirm, or Ctrl-C to cancel.")
 		}
 		if teamWide {
-			promptText = fmt.Sprintf("Set the team-wide retention policy?\nHit Enter, or Ctrl-C to cancel.")
+			promptText = fmt.Sprintf("Set the team-wide retention policy?\nHit Enter to confirm, or Ctrl-C to cancel.")
 		}
 		_, err = tui.Prompt(PromptDescriptorChatSetRetention, promptText)
 		if err != nil {

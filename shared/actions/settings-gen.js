@@ -19,7 +19,9 @@ export const invitesRefresh = 'settings:invitesRefresh'
 export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
+export const loadRememberPassphrase = 'settings:loadRememberPassphrase'
 export const loadSettings = 'settings:loadSettings'
+export const loadedRememberPassphrase = 'settings:loadedRememberPassphrase'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
@@ -28,6 +30,7 @@ export const notificationsToggle = 'settings:notificationsToggle'
 export const onChangeNewEmail = 'settings:onChangeNewEmail'
 export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
 export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
+export const onChangeRememberPassphrase = 'settings:onChangeRememberPassphrase'
 export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
@@ -56,7 +59,9 @@ export const createInvitesSend = (
 ) => ({error: false, payload, type: invitesSend})
 export const createInvitesSent = () => ({error: false, payload: undefined, type: invitesSent})
 export const createInvitesSentError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: invitesSent})
+export const createLoadRememberPassphrase = () => ({error: false, payload: undefined, type: loadRememberPassphrase})
 export const createLoadSettings = () => ({error: false, payload: undefined, type: loadSettings})
+export const createLoadedRememberPassphrase = (payload: $ReadOnly<{remember: boolean}>) => ({error: false, payload, type: loadedRememberPassphrase})
 export const createLoadedSettings = (payload: $ReadOnly<{emailState: Types.EmailState}>) => ({error: false, payload, type: loadedSettings})
 export const createNotificationsRefresh = () => ({error: false, payload: undefined, type: notificationsRefresh})
 export const createNotificationsRefreshed = (payload: $ReadOnly<{notifications: Types.NotificationsState}>) => ({error: false, payload, type: notificationsRefreshed})
@@ -70,6 +75,7 @@ export const createNotificationsToggle = (
 export const createOnChangeNewEmail = (payload: $ReadOnly<{email: string}>) => ({error: false, payload, type: onChangeNewEmail})
 export const createOnChangeNewPassphrase = (payload: $ReadOnly<{passphrase: HiddenString}>) => ({error: false, payload, type: onChangeNewPassphrase})
 export const createOnChangeNewPassphraseConfirm = (payload: $ReadOnly<{passphrase: HiddenString}>) => ({error: false, payload, type: onChangeNewPassphraseConfirm})
+export const createOnChangeRememberPassphrase = (payload: $ReadOnly<{remember: boolean}>) => ({error: false, payload, type: onChangeRememberPassphrase})
 export const createOnChangeShowPassphrase = () => ({error: false, payload: undefined, type: onChangeShowPassphrase})
 export const createOnSubmitNewEmail = () => ({error: false, payload: undefined, type: onSubmitNewEmail})
 export const createOnSubmitNewPassphrase = () => ({error: false, payload: undefined, type: onSubmitNewPassphrase})
@@ -91,7 +97,9 @@ export type InvitesRefreshPayload = More.ReturnType<typeof createInvitesRefresh>
 export type InvitesRefreshedPayload = More.ReturnType<typeof createInvitesRefreshed>
 export type InvitesSendPayload = More.ReturnType<typeof createInvitesSend>
 export type InvitesSentPayload = More.ReturnType<typeof createInvitesSent>
+export type LoadRememberPassphrasePayload = More.ReturnType<typeof createLoadRememberPassphrase>
 export type LoadSettingsPayload = More.ReturnType<typeof createLoadSettings>
+export type LoadedRememberPassphrasePayload = More.ReturnType<typeof createLoadedRememberPassphrase>
 export type LoadedSettingsPayload = More.ReturnType<typeof createLoadedSettings>
 export type NotificationsRefreshPayload = More.ReturnType<typeof createNotificationsRefresh>
 export type NotificationsRefreshedPayload = More.ReturnType<typeof createNotificationsRefreshed>
@@ -100,6 +108,7 @@ export type NotificationsTogglePayload = More.ReturnType<typeof createNotificati
 export type OnChangeNewEmailPayload = More.ReturnType<typeof createOnChangeNewEmail>
 export type OnChangeNewPassphraseConfirmPayload = More.ReturnType<typeof createOnChangeNewPassphraseConfirm>
 export type OnChangeNewPassphrasePayload = More.ReturnType<typeof createOnChangeNewPassphrase>
+export type OnChangeRememberPassphrasePayload = More.ReturnType<typeof createOnChangeRememberPassphrase>
 export type OnChangeShowPassphrasePayload = More.ReturnType<typeof createOnChangeShowPassphrase>
 export type OnSubmitNewEmailPayload = More.ReturnType<typeof createOnSubmitNewEmail>
 export type OnSubmitNewPassphrasePayload = More.ReturnType<typeof createOnSubmitNewPassphrase>
@@ -125,7 +134,9 @@ export type Actions =
   | More.ReturnType<typeof createInvitesSend>
   | More.ReturnType<typeof createInvitesSent>
   | More.ReturnType<typeof createInvitesSentError>
+  | More.ReturnType<typeof createLoadRememberPassphrase>
   | More.ReturnType<typeof createLoadSettings>
+  | More.ReturnType<typeof createLoadedRememberPassphrase>
   | More.ReturnType<typeof createLoadedSettings>
   | More.ReturnType<typeof createNotificationsRefresh>
   | More.ReturnType<typeof createNotificationsRefreshed>
@@ -134,6 +145,7 @@ export type Actions =
   | More.ReturnType<typeof createOnChangeNewEmail>
   | More.ReturnType<typeof createOnChangeNewPassphrase>
   | More.ReturnType<typeof createOnChangeNewPassphraseConfirm>
+  | More.ReturnType<typeof createOnChangeRememberPassphrase>
   | More.ReturnType<typeof createOnChangeShowPassphrase>
   | More.ReturnType<typeof createOnSubmitNewEmail>
   | More.ReturnType<typeof createOnSubmitNewPassphrase>

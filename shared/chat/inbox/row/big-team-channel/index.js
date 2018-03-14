@@ -4,13 +4,13 @@ import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 
 type Props = {
-  isSelected?: boolean,
+  isSelected: boolean,
   channelname: string,
-  isMuted?: boolean,
+  isMuted: boolean,
   isError: boolean,
-  showBold?: boolean,
-  hasUnread?: boolean,
-  hasBadge?: boolean,
+  showBold: boolean,
+  hasUnread: boolean,
+  hasBadge: boolean,
   onSelectConversation: () => void,
 }
 

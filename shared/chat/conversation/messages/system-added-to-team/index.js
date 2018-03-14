@@ -11,7 +11,7 @@ type Props = {
   message: Types.MessageSystemAddedToTeam,
   onClickUserAvatar: (username: string) => void,
   onManageChannels: () => void,
-  onViewTeam: (team: string) => void,
+  onViewTeam: () => void,
   you: string,
 }
 
@@ -48,21 +48,13 @@ class AddedToTeam extends React.PureComponent<Props> {
       )
     } else if (isAdmin) {
       manageComponent = (
-        <Text
-          onClick={() => onViewTeam(team)}
-          type="BodySmallSemiboldInlineLink"
-          style={{color: globalColors.blue}}
-        >
+        <Text onClick={onViewTeam} type="BodySmallSemiboldInlineLink" style={{color: globalColors.blue}}>
           Manage members
         </Text>
       )
     } else {
       manageComponent = (
-        <Text
-          onClick={() => onViewTeam(team)}
-          type="BodySmallSemiboldInlineLink"
-          style={{color: globalColors.blue}}
-        >
+        <Text onClick={onViewTeam} type="BodySmallSemiboldInlineLink" style={{color: globalColors.blue}}>
           See all members
         </Text>
       )
@@ -74,11 +66,7 @@ class AddedToTeam extends React.PureComponent<Props> {
         username={you !== addee ? addee : undefined}
         teamname={you === addee ? team : undefined}
         bgColor={globalColors.blue4}
-        onClickAvatar={
-          you !== addee
-            ? () => this.props.onClickUserAvatar(addee)
-            : () => onViewTeam(this.props.message.team)
-        }
+        onClickAvatar={you !== addee ? () => this.props.onClickUserAvatar(addee) : onViewTeam}
       >
         {you === addee && (
           <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />
@@ -94,7 +82,7 @@ class AddedToTeam extends React.PureComponent<Props> {
           >
             {adderComponent} added {addeeComponent} to{' '}
             <Text
-              onClick={() => onViewTeam(team)}
+              onClick={onViewTeam}
               style={{color: globalColors.black_60}}
               type="BodySmallSemiboldInlineLink"
             >

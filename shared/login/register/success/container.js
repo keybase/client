@@ -2,7 +2,7 @@
 import * as LoginGen from '../../../actions/login-gen'
 import HiddenString from '../../../util/hidden-string'
 import RenderSuccess from '../../signup/success/index.render'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<
@@ -20,7 +20,7 @@ const mapStateToProps = (s: TypedState, {routeProps}: OwnProps) => ({
   waiting: routeProps.get('waiting'),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onFinish: () => dispatch(LoginGen.createOnFinish()),
   onBack: () => dispatch(LoginGen.createOnBack()),
 })

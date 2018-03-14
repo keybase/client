@@ -60,7 +60,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
     ))}
     <Box style={{flex: 1}} />
     <TabBarButton
-      label={username}
+      label={username || ''}
       isNav={true}
       selected={false}
       onClick={() => onTabClick(Tabs.profileTab)}

@@ -22,7 +22,7 @@ const noScrollBars = ['chatList', 'chatManageChannels']
 // Load common-adapter stories
 const load = () => {
   configure(() => {
-    noScrollBars.forEach(s => stories[s]())
+    noScrollBars.forEach(s => stories[s] && stories[s]())
 
     addDecorator(scrollViewDecorator)
     Object.keys(stories)

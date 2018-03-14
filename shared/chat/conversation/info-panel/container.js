@@ -14,6 +14,8 @@ import {getCanPerform} from '../../../constants/teams'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  // ? because this isn't a route on desktop, and headerHoc is mobile only
+  navigateUp?: typeof Route.navigateUp,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -70,7 +72,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
         },
       ])
     ),
-  _onBack: () => dispatch(navigateUp()),
+  _onBack: () => dispatch(navigateUp && navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
@@ -112,15 +114,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
-  onAddPeople: (target: ?EventTarget) => dispatchProps._onAddPeople(stateProps.teamname, target),
+  onAddPeople: (target: ?Element) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
-  onClickGear: (target: ?EventTarget) =>
+  onClickGear: (target: ?Element) =>
     dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
-  onShowBlockConversationDialog: dispatchProps._onShowBlockConversationDialog,
-  onShowNewTeamDialog: dispatchProps._onShowNewTeamDialog,
+  onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
+  onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
@@ -131,7 +133,7 @@ const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergePro
 type SelectorOwnProps = {
   conversationIDKey: ?Types.ConversationIDKey,
   routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile its a route
-  navigateUp?: () => void,
+  navigateUp?: typeof Route.navigateUp,
 }
 
 const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) => {
@@ -148,7 +150,7 @@ type SelectorDispatchProps = {
 
 const mapDispatchToSelectorProps = (dispatch: Dispatch, {navigateUp}): SelectorDispatchProps => ({
   // Used by HeaderHoc.
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => navigateUp && dispatch(navigateUp()),
 })
 
 type Props = {
