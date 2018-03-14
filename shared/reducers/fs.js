@@ -12,7 +12,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoad:
       return state
     case FsGen.filePreviewLoaded:
-      return state.update('metas', metas => metas.set(action.payload.path, action.payload.meta))
+      return state.update('pathItems', metas => metas.set(action.payload.path, action.payload.meta))
     case FsGen.folderListLoaded: {
       const toMerge = action.payload.pathItems.filter((item, path) => {
         if (item.type !== 'folder') {

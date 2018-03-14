@@ -49,6 +49,7 @@ class FilePreview extends React.PureComponent<FilePreviewProps> {
       desc = 'Modified on ' + formatTimeForMessages(meta.lastModifiedTimestamp)
       if (meta.lastWriter) desc += ' by ' + meta.lastWriter
     }
+    // Perhaps use PathItemIcon here later...
     return (
       <Box style={styleOuterContainer}>
         <Box style={globalStyles.flexBoxColumn}>

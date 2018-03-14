@@ -29,14 +29,14 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     },
   })
 
-  const meta = {
+  const meta = Constants.makeFile({
     name: Types.getPathName(rootPath),
     lastModifiedTimestamp: dirent.time,
     size: dirent.size,
     progress: 'loaded',
     // FIXME currently lastWriter is not provided by simplefs.
     // the GUI supports it when added here.
-  }
+  })
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
 
