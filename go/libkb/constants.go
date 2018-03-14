@@ -580,9 +580,10 @@ const (
 )
 
 const (
-	EncryptionReasonChatLocalStorage  EncryptionReason = "Keybase-Chat-Local-Storage-1"
-	EncryptionReasonChatMessage       EncryptionReason = "Keybase-Chat-Message-1"
-	EncryptionReasonTeamsLocalStorage EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 )
 
 type DeriveReason string
@@ -661,3 +662,7 @@ const (
 )
 
 const CurrentGitMetadataEncryptionVersion = 1
+
+// The secret_store_file and erasable_kv_store use a random noise file of this
+// size when encrypting secrets for disk.
+const noiseFileLen = 1024 * 1024 * 2

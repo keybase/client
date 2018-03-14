@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
@@ -282,11 +283,16 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
-	var err error
-	if err = d.setupTeams(); err != nil {
-		return err
-	}
-	return d.setupPVL()
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(d.setupTeams())
+	epick.Push(d.setupPVL())
+	epick.Push(d.setupEphemeralKeys())
+	return epick.Error()
+}
+
+func (d *Service) setupEphemeralKeys() error {
+	ephemeral.ServiceInit(d.G())
+	return nil
 }
 
 func (d *Service) setupTeams() error {
