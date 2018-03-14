@@ -28,6 +28,7 @@ type Props = {
   username?: string,
 }
 
+// If lineclamping isn't working, try adding a static width in containerStyle
 const NameWithIconVertical = (props: Props) => {
   const isAvatar = !!(props.username || props.teamname)
   const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
@@ -35,7 +36,7 @@ const NameWithIconVertical = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.vContainerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
         <ConnectedAvatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
@@ -56,7 +57,8 @@ const NameWithIconVertical = (props: Props) => {
         style={collapseStyles([
           styles.metaStyle,
           {marginTop: adapterProps.metaMargin},
-          props.metaStyle || {},
+          isMobile ? null : styles.fullWidthTextContainer,
+          props.metaStyle,
         ])}
       >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
@@ -70,8 +72,16 @@ const NameWithIconVertical = (props: Props) => {
             colorFollowing={props.colorFollowing}
           />
         )}
-        <TextOrComponent textType={adapterProps.metaOneType} val={props.metaOne} />
-        <TextOrComponent textType="BodySmall" val={props.metaTwo} />
+        <TextOrComponent
+          style={isMobile ? null : [styles.fullWidthText, {whiteSpace: 'nowrap', display: 'unset'}]}
+          textType={adapterProps.metaOneType}
+          val={props.metaOne}
+        />
+        <TextOrComponent
+          style={isMobile ? null : [styles.fullWidthText, {whiteSpace: 'nowrap', display: 'unset'}]}
+          textType="BodySmall"
+          val={props.metaTwo}
+        />
       </Box>
     </BoxComponent>
   )
@@ -84,7 +94,7 @@ const NameWithIconHorizontal = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.hContainerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.hContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
         <Avatar
@@ -95,7 +105,7 @@ const NameWithIconHorizontal = (props: Props) => {
         />
       )}
       {!isAvatar && !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} />}
-      <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle || {}])}>
+      <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
@@ -123,10 +133,18 @@ const NameWithIcon = (props: Props) => {
 }
 
 // Render text if it's text, or identity if otherwise
-const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: TextType}) => {
+const TextOrComponent = ({
+  val,
+  textType,
+  style,
+}: {
+  val: string | React.Node,
+  textType: TextType,
+  style?: any,
+}) => {
   if (typeof val === 'string') {
     return (
-      <Text lineClamp={1} type={textType}>
+      <Text style={style} lineClamp={1} type={textType}>
         {val}
       </Text>
     )
@@ -136,6 +154,8 @@ const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: T
 }
 
 const styles = styleSheetCreate({
+  fullWidthTextContainer: {width: '100%', textAlign: 'center'},
+  fullWidthText: {width: '100%'},
   hAvatarStyle: {marginRight: 16},
   hContainerStyle: {
     ...globalStyles.flexBoxRow,
