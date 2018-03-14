@@ -32,6 +32,7 @@ import (
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -314,6 +315,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
+	d.runTLFUpgrade()
 	go d.identifySelf()
 }
 
@@ -429,6 +431,11 @@ func (d *Service) identifySelf() {
 			d.G().Log.Debug("identifySelf: updated full self cache for: %s", self.GetName())
 		}
 	}
+}
+
+func (d *Service) runTLFUpgrade() {
+	upgrader := tlfupgrade.NewBackgroundTLFUpdater(d.G())
+	upgrader.Run()
 }
 
 func (d *Service) runBackgroundIdentifier() {

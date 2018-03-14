@@ -163,6 +163,11 @@ func (m *mockChatHelper) GetChannelTopicName(ctx context.Context, teamID keybase
 	return "", fmt.Errorf("mockChatHelper.GetChannelTopicName conv not found %v", convID)
 }
 
+func (m *mockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	public bool) error {
+	return nil
+}
+
 func (m *mockChatHelper) convKey(name string, topicName *string) string {
 	if topicName == nil {
 		return name + ":general"
