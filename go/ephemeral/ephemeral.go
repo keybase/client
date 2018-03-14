@@ -88,6 +88,7 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 	generation, err := deviceEKStorage.MaxGeneration(ctx)
 	// Let's try to get the max from the server
 	if err != nil {
+		g.Log.Debug("Error getting maxGeneration")
 		generation, err = getServerMaxDeviceEK(ctx, g)
 		if err != nil {
 			return data, err

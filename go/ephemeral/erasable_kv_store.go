@@ -18,7 +18,7 @@ import (
 
 type boxedData struct {
 	V int
-	N [24]byte
+	N [libkb.NaclDHNonceSize]byte
 	E []byte
 }
 
@@ -33,7 +33,6 @@ type ErasableKVStore interface {
 	Get(ctx context.Context, key string) (interface{}, error)
 	Erase(key string) error
 	AllKeys() ([]string, error)
-	EraseAll() error
 }
 
 // File based erasable kv store. Thread safe.
@@ -113,11 +112,11 @@ func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseByt
 		return data, err
 	}
 	var nonce []byte
-	nonce, err = libkb.RandBytes(24)
+	nonce, err = libkb.RandBytes(libkb.NaclDHNonceSize)
 	if err != nil {
 		return data, err
 	}
-	var fnonce [24]byte
+	var fnonce [libkb.NaclDHNonceSize]byte
 	copy(fnonce[:], nonce)
 	sealed := secretbox.Seal(nil, data, &fnonce, &enckey)
 	boxed := boxedData{
@@ -222,16 +221,14 @@ func (s *FileErasableKVStore) read(key string) ([]byte, error) {
 	return ioutil.ReadFile(filepath)
 }
 
-func (s *FileErasableKVStore) Erase(key string) (err error) {
+func (s *FileErasableKVStore) Erase(key string) error {
 	s.Lock()
 	defer s.Unlock()
 	noiseKey := s.noiseKey(key)
-	err = s.erase(noiseKey)
-	if err != nil {
-		return err
-	}
-
-	return s.erase(key)
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(s.erase(noiseKey))
+	epick.Push(s.erase(key))
+	return epick.Error()
 }
 
 func (s *FileErasableKVStore) erase(key string) error {
@@ -249,13 +246,9 @@ func (s *FileErasableKVStore) erase(key string) error {
 	return nil
 }
 
-func (s *FileErasableKVStore) AllKeys() ([]string, error) {
+func (s *FileErasableKVStore) AllKeys() (keys []string, err error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.allKeys()
-}
-
-func (s *FileErasableKVStore) allKeys() (keys []string, err error) {
 	files, err := filepath.Glob(s.storagePath)
 	if err != nil {
 		return keys, err
@@ -268,22 +261,6 @@ func (s *FileErasableKVStore) allKeys() (keys []string, err error) {
 		keys = append(keys, parts[1])
 	}
 	return keys, nil
-}
-
-func (s *FileErasableKVStore) EraseAll() error {
-	s.Lock()
-	defer s.Unlock()
-	keys, err := s.allKeys()
-	if err != nil {
-		return err
-	}
-	for _, key := range keys {
-		err := s.erase(key)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (fkey [32]byte, err error) {
@@ -299,7 +276,7 @@ func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (f
 	}
 
 	// Derive symmetric key from device key
-	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonErasableKVLocakStoreage)
+	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonErasableKVLocalStorage)
 	if err != nil {
 		return fkey, err
 	}
