@@ -66,32 +66,9 @@ const metaMapReducer = (metaMap, action) => {
           case RPCChatTypes.localConversationErrorType.otherrekeyneeded: // fallthrough
           case RPCChatTypes.localConversationErrorType.selfrekeyneeded: {
             const {username, conversationIDKey} = action.payload
-            const participants = error.rekeyInfo
-              ? I.OrderedSet(
-                  [].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)
-                )
-              : I.OrderedSet(error.unverifiedTLFName.split(','))
-            const old = metaMap.get(conversationIDKey)
-            const rekeyers = I.Set(
-              error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
-                ? [username || '']
-                : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
-            )
             return metaMap.set(
               conversationIDKey,
-              Constants.makeConversationMeta({
-                conversationIDKey,
-                membershipType: Constants.conversationMemberStatusToMembershipType(
-                  error.remoteConv.memberStatus
-                ),
-                participants,
-                rekeyers,
-                snippet: error.message,
-                teamType: old ? old.teamType : 'adhoc',
-                teamname: old ? old.teamname : '',
-                timestamp: old ? old.timestamp : 0,
-                trustedState: 'error',
-              })
+              Constants.metaReceivedErrorToConversationMeta(error, username)
             )
           }
           default:

@@ -73,12 +73,12 @@ export const isUserActivelyLookingAtThisThread = (
 }
 
 export {
-  conversationMemberStatusToMembershipType,
   getConversationIDKeyMetasToLoad,
   getRowParticipants,
   getRowStyles,
   inboxUIItemToConversationMeta,
   makeConversationMeta,
+  metaReceivedErrorToConversationMeta,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,

@@ -11,7 +11,7 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
-export const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
+const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
     case RPCChatTypes.commonConversationMemberStatus.active:
       return 'active'
@@ -77,6 +77,57 @@ export const unverifiedInboxUIItemToConversationMeta = (
     tlfname: i.name,
     trustedState: 'untrusted',
     wasFinalizedBy: i.finalizeInfo ? i.finalizeInfo.resetUser : '',
+  })
+}
+
+export const metaReceivedErrorToConversationMeta = (e: RPCChatTypes.InboxUIItemError, username: ?string) => {
+  const i = e.remoteConv
+
+  // We only treat implicit adhoc teams as having resetParticipants
+  const resetParticipants = I.Set(
+    i.localMetadata &&
+    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+    i.localMetadata.resetParticipants
+      ? i.localMetadata.resetParticipants
+      : []
+  )
+
+  const participants = e.rekeyInfo
+    ? I.OrderedSet([].concat(e.rekeyInfo.writerNames, e.rekeyInfo.readerNames).filter(Boolean))
+    : I.OrderedSet(e.unverifiedTLFName.split(','))
+
+  const rekeyers = I.Set(
+    e.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
+      ? [username || '']
+      : (e.rekeyInfo && e.rekeyInfo.rekeyers) || []
+  )
+
+  const channelname =
+    i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
+      ? i.localMetadata.channelName
+      : ''
+
+  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
+  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
+  const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
+
+  return makeConversationMeta({
+    channelname,
+    conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    inboxVersion: i.version,
+    isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
+    membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
+    participants,
+    resetParticipants,
+    rekeyers,
+    snippet: e.message,
+    supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
+    supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
+    teamType: getTeamType(i),
+    teamname,
+    timestamp: i.time,
+    trustedState: 'error',
   })
 }
 
