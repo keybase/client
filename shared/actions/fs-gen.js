@@ -88,7 +88,7 @@ export const createSortSetting = (
   }>
 ) => ({error: false, payload, type: sortSetting})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
-export const createUninstallKBFSConfirm = (payload: $ReadOnly<{onSuccess: Types.DispatchAction}>) => ({error: false, payload, type: uninstallKBFSConfirm})
+export const createUninstallKBFSConfirm = (payload: $ReadOnly<{onSuccess: () => void}>) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
 export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfer>

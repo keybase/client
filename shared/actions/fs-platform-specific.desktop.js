@@ -1,14 +1,13 @@
 // @flow
 import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
-import * as Constants from '../constants/config'
+import * as Config from '../constants/config'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
-import fs from 'fs'
-import {delay} from 'redux-saga'
-import {ExitCodeFuseKextPermissionError} from '../constants/fs'
-import type {TypedState} from '../constants/reducer'
+import * as Constants from '../constants/fs'
 import * as Electron from 'electron'
+import fs from 'fs'
+import type {TypedState} from '../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../constants/platform'
 import {navigateTo} from './route-tree'
 import {fsTab} from '../constants/tabs'
@@ -107,7 +106,7 @@ function _open(openPath: string): Promise<*> {
 }
 
 export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
-  const openPath = path || Constants.defaultKBFSPath
+  const openPath = path || Config.defaultKBFSPath
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(_open, openPath)
@@ -120,11 +119,11 @@ function waitForMount(attempt: number): Promise<*> {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
     // TODO: should handle current mount directory
-    fs.readdir(Constants.defaultKBFSPath, (err, files) => {
+    fs.readdir(Config.defaultKBFSPath, (err, files) => {
       if (!err && files.length > 0) {
         resolve(true)
       } else if (attempt > 15) {
-        reject(new Error(`${Constants.defaultKBFSPath} is unavailable. Please try again.`))
+        reject(new Error(`${Config.defaultKBFSPath} is unavailable. Please try again.`))
       } else {
         setTimeout(() => {
           waitForMount(attempt + 1).then(resolve, reject)
@@ -139,7 +138,7 @@ function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
   try {
     yield Saga.call(waitForMount, 0)
     // TODO: should handle current mount directory
-    yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Constants.defaultKBFSPath}}))
+    yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Config.defaultKBFSPath}}))
   } finally {
     yield Saga.put(FsGen.createSetFlags({kbfsOpening: false}))
   }
@@ -164,12 +163,12 @@ export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const prevStatus = state.favorite.fuseStatus
 
   let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
-  if (isWindows && status.installStatus !== 4) {
+  if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
     // Check if another Dokan we didn't install mounted the filesystem
     const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
-      status.installStatus = 4 // installed
-      status.installAction = 1 // none
+      status.installStatus = RPCTypes.installInstallStatus.installed
+      status.installAction = RPCTypes.installInstallAction.none
       status.kextStarted = true
     }
   }
@@ -181,12 +180,12 @@ export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   const fuseResults =
     result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
   const kextPermissionError =
-    fuseResults.length > 0 && fuseResults[0].exitCode === ExitCodeFuseKextPermissionError
+    fuseResults.length > 0 && fuseResults[0].exitCode === Constants.ExitCodeFuseKextPermissionError
 
   if (kextPermissionError) {
     // Add a small delay here, since on 10.13 the OS will be a little laggy
     // when showing a kext permission error.
-    yield delay(1e3)
+    yield Saga.delay(1e3)
   }
 
   yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
@@ -203,11 +202,7 @@ export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPaylo
       message: `Remove Keybase from ${fileUIName}`,
       type: 'question',
     },
-    resp => {
-      if (resp === 0) {
-        return action.payload.onSuccess()
-      }
-    }
+    resp => (resp ? undefined : action.payload.onSuccess())
   )
 }
 
@@ -227,8 +222,7 @@ export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {
 // operations.
 function installCachedDokan(): Promise<*> {
   return new Promise((resolve, reject) => {
-    // use the action logger so it has a chance of making it into the upload
-    logger.action('Invoking dokan installer')
+    logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     try {
       execFileSync(dokanPath, [])
