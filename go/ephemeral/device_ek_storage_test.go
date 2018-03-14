@@ -68,7 +68,7 @@ func TestDeviceEKStorage(t *testing.T) {
 		require.Equal(t, deviceEK, test)
 	}
 
-	require.NoError(t, s.Delete(keybase1.EkGeneration(0)))
+	require.NoError(t, s.Delete(context.Background(), keybase1.EkGeneration(0)))
 
 	deviceEK, err = s.Get(context.Background(), keybase1.EkGeneration(0))
 	require.Error(t, err)
@@ -78,7 +78,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, 3, maxGeneration)
 
-	require.NoError(t, s.Delete(keybase1.EkGeneration(3)))
+	require.NoError(t, s.Delete(context.Background(), keybase1.EkGeneration(3)))
 
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)

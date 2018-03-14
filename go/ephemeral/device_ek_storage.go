@@ -15,6 +15,7 @@ import (
 const deviceEKPrefix = "device-eks/device-ephemeral-key"
 
 type DeviceEKStorage struct {
+	libkb.Contextified
 	sync.Mutex
 	indexOnce *sync.Once
 	storage   ErasableKVStore
@@ -25,10 +26,11 @@ type DeviceEKStorage struct {
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 	keyPrefix := fmt.Sprintf("%s-%s", deviceEKPrefix, g.Env.GetUsername().String())
 	return &DeviceEKStorage{
-		storage:   NewFileErasableKVStore(g),
-		cache:     make(map[keybase1.EkGeneration]keybase1.DeviceEk),
-		indexOnce: new(sync.Once),
-		keyPrefix: keyPrefix,
+		Contextified: libkb.NewContextified(g),
+		storage:      NewFileErasableKVStore(g),
+		cache:        make(map[keybase1.EkGeneration]keybase1.DeviceEk),
+		indexOnce:    new(sync.Once),
+		keyPrefix:    keyPrefix,
 	}
 }
 
@@ -37,6 +39,7 @@ func (s *DeviceEKStorage) key(generation keybase1.EkGeneration) string {
 }
 
 func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#Put", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
@@ -52,6 +55,7 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 }
 
 func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#Get", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	return s.get(ctx, generation)
@@ -79,19 +83,21 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	return deviceEK, nil
 }
 
-func (s *DeviceEKStorage) Delete(generation keybase1.EkGeneration) error {
+func (s *DeviceEKStorage) Delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#Delete", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
 	// clear the cache
 	delete(s.cache, generation)
 	key := s.key(generation)
-	return s.storage.Erase(key)
+	return s.storage.Erase(ctx, key)
 }
 
 func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
 	s.indexOnce.Do(func() {
-		keys, err := s.storage.AllKeys()
+		defer s.G().CTrace(ctx, "DeviceEKStorage#indexInner", func() error { return err })()
+		keys, err := s.storage.AllKeys(ctx)
 		if err != nil {
 			return
 		}
@@ -121,6 +127,7 @@ func (s *DeviceEKStorage) ClearCache() {
 }
 
 func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs map[keybase1.EkGeneration]keybase1.DeviceEk, err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#GetAll", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
@@ -129,6 +136,7 @@ func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs map[keybase1.Ek
 }
 
 func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#MaxGeneration", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 

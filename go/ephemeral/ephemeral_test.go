@@ -35,7 +35,7 @@ func TestNewDeviceEK(t *testing.T) {
 
 	s := NewDeviceEKStorage(tc.G)
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = s.Delete(keybase1.EkGeneration(2))
+	err = s.Delete(context.Background(), keybase1.EkGeneration(2))
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the

@@ -829,12 +829,10 @@ func MPackDecode(data []byte, res interface{}) error {
 	return err
 }
 
-const noiseLen = 1024 * 1024 * 2
-
-type NoiseBytes [noiseLen]byte
+type NoiseBytes [noiseFileLen]byte
 
 func MakeNoise() (nb NoiseBytes, err error) {
-	noise, err := RandBytes(noiseLen)
+	noise, err := RandBytes(noiseFileLen)
 	if err != nil {
 		return nb, err
 	}

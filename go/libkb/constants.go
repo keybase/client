@@ -662,3 +662,7 @@ const (
 )
 
 const CurrentGitMetadataEncryptionVersion = 1
+
+// The secret_store_file and erasable_kv_store use a random noise file of this
+// size when encrypting secrets for disk.
+const noiseFileLen = 1024 * 1024 * 2

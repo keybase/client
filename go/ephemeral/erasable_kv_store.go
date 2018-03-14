@@ -31,8 +31,8 @@ const noiseSuffix = ".ns"
 type ErasableKVStore interface {
 	Put(ctx context.Context, key string, val interface{}) error
 	Get(ctx context.Context, key string) (interface{}, error)
-	Erase(key string) error
-	AllKeys() ([]string, error)
+	Erase(ctx context.Context, key string) error
+	AllKeys(ctx context.Context) ([]string, error)
 }
 
 // File based erasable kv store. Thread safe.
@@ -45,6 +45,8 @@ type FileErasableKVStore struct {
 	sync.Mutex
 	storagePath string
 }
+
+var _ ErasableKVStore = (*FileErasableKVStore)(nil)
 
 func NewFileErasableKVStore(g *libkb.GlobalContext) *FileErasableKVStore {
 	return &FileErasableKVStore{
@@ -76,13 +78,14 @@ func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes l
 }
 
 func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes libkb.NoiseBytes) (val interface{}, err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#unbox", func() error { return err })()
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(data, &boxed); err != nil {
 		return val, err
 	}
 	if boxed.V > cryptoVersion {
-		return val, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
+		return val, fmt.Errorf("unexpected crypto version: %d current: %d", boxed.V,
 			cryptoVersion)
 	}
 	enckey, err := s.getEncryptionKey(ctx, noiseBytes)
@@ -102,6 +105,7 @@ func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes
 }
 
 func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseBytes libkb.NoiseBytes) (data []byte, err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#box", func() error { return err })()
 	data, err = libkb.MPackEncode(val)
 	if err != nil {
 		return data, err
@@ -130,6 +134,7 @@ func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseByt
 }
 
 func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface{}) (err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#Put", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
@@ -138,15 +143,16 @@ func (s *FileErasableKVStore) Put(ctx context.Context, key string, val interface
 	if err != nil {
 		return err
 	}
-	err = s.write(key, data)
+	err = s.write(ctx, key, data)
 	if err != nil {
 		return err
 	}
 	noiseKey := s.noiseKey(key)
-	return s.write(noiseKey, noiseBytes[:])
+	return s.write(ctx, noiseKey, noiseBytes[:])
 }
 
-func (s *FileErasableKVStore) write(key string, data []byte) (err error) {
+func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte) (err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#write", func() error { return err })()
 	filepath := s.filepath(key)
 	if err := libkb.MakeParentDirs(s.G().Log, filepath); err != nil {
 		return err
@@ -196,7 +202,8 @@ func (s *FileErasableKVStore) write(key string, data []byte) (err error) {
 	return nil
 }
 
-func (s *FileErasableKVStore) Get(ctx context.Context, key string) (interface{}, error) {
+func (s *FileErasableKVStore) Get(ctx context.Context, key string) (value interface{}, err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#Get", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	return s.get(ctx, key)
@@ -204,14 +211,14 @@ func (s *FileErasableKVStore) Get(ctx context.Context, key string) (interface{},
 
 func (s *FileErasableKVStore) get(ctx context.Context, key string) (val interface{}, err error) {
 	noiseKey := s.noiseKey(key)
-	noise, err := s.read(noiseKey)
+	noise, err := s.read(ctx, noiseKey)
 	if err != nil {
 		return val, err
 	}
 	var noiseBytes libkb.NoiseBytes
 	copy(noiseBytes[:], noise)
 
-	data, err := s.read(key)
+	data, err := s.read(ctx, key)
 	if err != nil {
 		return val, err
 	}
@@ -224,12 +231,14 @@ func (s *FileErasableKVStore) get(ctx context.Context, key string) (val interfac
 	return val, err
 }
 
-func (s *FileErasableKVStore) read(key string) ([]byte, error) {
+func (s *FileErasableKVStore) read(ctx context.Context, key string) (data []byte, err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#read", func() error { return err })()
 	filepath := s.filepath(key)
 	return ioutil.ReadFile(filepath)
 }
 
-func (s *FileErasableKVStore) Erase(key string) error {
+func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#Erase", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	noiseKey := s.noiseKey(key)
@@ -254,7 +263,8 @@ func (s *FileErasableKVStore) erase(key string) error {
 	return nil
 }
 
-func (s *FileErasableKVStore) AllKeys() (keys []string, err error) {
+func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err error) {
+	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	files, err := filepath.Glob(s.storagePath)

@@ -88,7 +88,7 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 	generation, err := deviceEKStorage.MaxGeneration(ctx)
 	// Let's try to get the max from the server
 	if err != nil {
-		g.Log.Debug("Error getting maxGeneration")
+		g.Log.CDebugf(ctx, "Error getting maxGeneration")
 		generation, err = getServerMaxDeviceEK(ctx, g)
 		if err != nil {
 			return data, err
@@ -98,7 +98,7 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 
 	data, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
 	if err != nil {
-		g.Log.Debug("Error posting deviceEK, retrying with server maxGeneration")
+		g.Log.CDebugf(ctx, "Error posting deviceEK, retrying with server maxGeneration")
 		// Let's retry posting with the server given max
 		generation, err = getServerMaxDeviceEK(ctx, g)
 		if err != nil {
@@ -242,7 +242,7 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 		// and skip them.
 		ageSecs := currentMerkleRoot.Ctime() - signedMerkleRoot.Ctime
 		if ageSecs > KeyLifetimeSecs {
-			g.Log.Debug("skipping expired deviceEK %s for device KID %s", signedMetadata.Kid, matchingDevice.KID)
+			g.Log.CDebugf(ctx, "skipping expired deviceEK %s for device KID %s", signedMetadata.Kid, matchingDevice.KID)
 			continue
 		}
 
