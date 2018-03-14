@@ -105,6 +105,8 @@ func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
 			key = strings.TrimSuffix(key, filepath.Ext(key))
 			if strings.HasPrefix(key, deviceEKPrefix) {
 				parts := strings.Split(key, deviceEKPrefix)
+				// We can expect two elements in `parts` here since we check
+				// strings.HasPrefix above.
 				g, err := strconv.ParseUint(parts[1], 10, 64)
 				if err != nil {
 					return
