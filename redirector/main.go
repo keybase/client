@@ -33,6 +33,7 @@ var kbfusePath = fuse.OSXFUSEPaths{
 
 const (
 	mountpointTimeout = 5 * time.Second
+	notRunningName    = "KBFS_NOT_RUNNING"
 )
 
 type symlink struct {
@@ -204,7 +205,16 @@ func (r *root) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	_, err := r.findKBFSMount(ctx)
 	if err != nil {
 		if err == fuse.ENOENT {
-			return []fuse.Dirent{}, nil
+			// Put a symlink in the directory for someone who's not
+			// logged in, so that the directory is non-empty and
+			// future redirector calls as root won't try to mount over
+			// us.
+			return []fuse.Dirent{
+				{
+					Type: fuse.DT_Link,
+					Name: notRunningName,
+				},
+			}, nil
 		}
 		return []fuse.Dirent{}, err
 	}
@@ -233,6 +243,9 @@ func (r *root) Lookup(
 	n fs.Node, err error) {
 	mountpoint, err := r.findKBFSMount(ctx)
 	if err != nil {
+		if req.Name == notRunningName {
+			return symlink{"/dev/null"}, nil
+		}
 		return nil, err
 	}
 
