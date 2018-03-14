@@ -172,7 +172,15 @@ func (s *FileErasableKVStore) write(key string, data []byte) (err error) {
 		return err
 	}
 
-	// remove the data if it already exists
+	// NOTE: Pre-existing maybe-bug: I think this step breaks atomicity. It's
+	// possible that the rename below fails, in which case we'll have already
+	// destroyed the previous value.
+
+	// On Unix we could solve this by hard linking the old file to a new tmp
+	// location, and then shredding it after the rename. On Windows, I think
+	// we'd need to somehow call the ReplaceFile Win32 function (which Go
+	// doesn't expose anywhere as far as I know, so this would require CGO) to
+	// take advantage of its lpBackupFileName param.
 	s.erase(key)
 
 	if err := os.Rename(tmp.Name(), filepath); err != nil {

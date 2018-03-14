@@ -155,6 +155,15 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 		return err
 	}
 
+	// NOTE: Pre-existing maybe-bug: I think this step breaks atomicity. It's
+	// possible that the rename below fails, in which case we'll have already
+	// destroyed the previous value.
+
+	// On Unix we could solve this by hard linking the old file to a new tmp
+	// location, and then shredding it after the rename. On Windows, I think
+	// we'd need to somehow call the ReplaceFile Win32 function (which Go
+	// doesn't expose anywhere as far as I know, so this would require CGO) to
+	// take advantage of its lpBackupFileName param.
 	if exists {
 		// shred the existing secret
 		if err := s.clearSecretV2(username); err != nil {

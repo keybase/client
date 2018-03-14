@@ -115,6 +115,11 @@ func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
 	return err
 }
 
+// Used for testing
+func (s *DeviceEKStorage) ClearCache() {
+	s.cache = make(map[keybase1.EkGeneration]keybase1.DeviceEk)
+}
+
 func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs map[keybase1.EkGeneration]keybase1.DeviceEk, err error) {
 	s.Lock()
 	defer s.Unlock()
