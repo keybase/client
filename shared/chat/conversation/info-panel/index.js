@@ -26,12 +26,6 @@ const listStyle = {
       }),
 }
 
-let keyState = 0
-const nextKey = () => {
-  keyState++
-  return keyState.toString()
-}
-
 const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
 type InfoPanelProps = {
@@ -71,6 +65,7 @@ type InfoPanelProps = {
 
 type AddPeopleRow = {
   type: 'add people',
+  key: 'add people',
   onClick: any => void,
 }
 
@@ -102,26 +97,31 @@ type SpacerRow = {
 
 type NotificationsRow = {
   type: 'notifications',
+  key: 'notifications',
 }
 
 type TurnIntoTeamRow = {
   type: 'turn into team',
+  key: 'turn into team',
   onShowNewTeamDialog: () => void,
 }
 
 type BlockThisConversationRow = {
   type: 'block this conversation',
+  key: 'block this conversation',
   onShowBlockConversationDialog: () => void,
 }
 
 type ParticipantCountRow = {
   type: 'participant count',
+  key: 'participant count',
   label: string,
   participantCount: number,
 }
 
 type SmallTeamHeaderRow = {
   type: 'small team header',
+  key: 'small team header',
   teamname: string,
   participantCount: number,
   onViewTeam: () => void,
@@ -130,6 +130,7 @@ type SmallTeamHeaderRow = {
 
 type BigTeamHeaderRow = {
   type: 'big team header',
+  key: 'big team header',
   canEditChannel: boolean,
   onEditChannel: () => void,
   description: ?string,
@@ -140,12 +141,14 @@ type BigTeamHeaderRow = {
 
 type JoinChannelRow = {
   type: 'join channel',
+  key: 'join channel',
   teamname: string,
   onJoinChannel: () => void,
 }
 
 type LeaveChannelRow = {
   type: 'leave channel',
+  key: 'leave channel',
   onLeaveConversation: () => void,
 }
 
@@ -318,6 +321,15 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   render() {
+    // Desktop uses the key returned by _renderRow (e.g. `divider X`)
+    // mobile uses the `key` prop supplied on these row objects
+    // use this to ensure we don't repeat a number for the arbitrary keys
+    let keyState = 0
+    const nextKey = () => {
+      keyState++
+      return keyState.toString()
+    }
+
     const props = this.props
     const participants: Array<ParticipantRow> = props.participants.map(p => ({
       type: 'participant',
@@ -335,6 +347,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       let headerRows: Array<TeamHeaderRow>
       const smallTeamHeaderRow = {
         type: 'small team header',
+        key: 'small team header',
         teamname,
         participantCount,
         onViewTeam,
@@ -353,6 +366,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           },
           {
             type: 'notifications',
+            key: 'notifications',
           },
           {
             type: 'divider',
@@ -360,6 +374,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           },
           {
             type: 'participant count',
+            key: 'participant count',
             label: 'In this team',
             participantCount,
           },
@@ -368,6 +383,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         // Big team.
         const headerRow = {
           type: 'big team header',
+          key: 'big team header',
           canEditChannel: props.canEditChannel,
           onEditChannel: props.onEditChannel,
           description: props.description,
@@ -377,6 +393,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         }
         const participantCountRow = {
           type: 'participant count',
+          key: 'participant count',
           label: 'In this channel',
           participantCount,
         }
@@ -392,6 +409,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'join channel',
+              key: 'join channel',
               teamname,
               onJoinChannel: props.onJoinChannel,
             },
@@ -421,6 +439,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               ? [
                   {
                     type: 'leave channel',
+                    key: 'leave channel',
                     onLeaveConversation: props.onLeaveConversation,
                   },
                 ]
@@ -450,7 +469,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       rows = headerRows.concat(participants)
       if (props.admin && props.teamname && !props.isPreview) {
-        rows = rows.concat({type: 'add people', onClick: props.onAddPeople})
+        rows = rows.concat({type: 'add people', key: 'add people', onClick: props.onAddPeople})
       }
     } else {
       // Conversation.
@@ -463,6 +482,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
         {
           type: 'turn into team',
+          key: 'turn into team',
           onShowNewTeamDialog: props.onShowNewTeamDialog,
         },
         {
@@ -472,6 +492,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
         {
           type: 'notifications',
+          key: 'notifications',
         },
         {
           type: 'divider',
@@ -480,6 +501,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
         {
           type: 'block this conversation',
+          key: 'block this conversation',
           onShowBlockConversationDialog: props.onShowBlockConversationDialog,
         },
         {
