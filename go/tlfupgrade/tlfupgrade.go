@@ -23,6 +23,11 @@ type BackgroundTLFUpdater struct {
 	clock       clockwork.Clock
 	shutdownCh  chan struct{}
 	running     bool
+
+	// testing
+	testingAPIServer  libkb.API
+	testingChatHelper libkb.ChatHelper
+	upgradeCh         *chan keybase1.TLFID
 }
 
 func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
@@ -40,6 +45,20 @@ func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
 
 func (b *BackgroundTLFUpdater) debug(ctx context.Context, msg string, args ...interface{}) {
 	b.G().Log.CDebugf(ctx, "BackgroundTLFUpdater: %s", fmt.Sprintf(msg, args...))
+}
+
+func (b *BackgroundTLFUpdater) api() libkb.API {
+	if b.testingAPIServer != nil {
+		return b.testingAPIServer
+	}
+	return b.G().API
+}
+
+func (b *BackgroundTLFUpdater) chat() libkb.ChatHelper {
+	if b.testingChatHelper != nil {
+		return b.testingChatHelper
+	}
+	return b.G().ChatHelper
 }
 
 func (b *BackgroundTLFUpdater) Run() {
@@ -124,7 +143,7 @@ func (b *BackgroundTLFUpdater) getTLFToUpgrade(ctx context.Context, appType keyb
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args.Add("app_type", libkb.I{Val: int(appType)})
 	var res getUpgradeRes
-	if err := b.G().API.GetDecode(arg, &res); err != nil {
+	if err := b.api().GetDecode(arg, &res); err != nil {
 		b.debug(ctx, "getTLFToUpgrade: API fail: %s", err)
 		return nil, b.deadline(b.errWait)
 	}
@@ -169,7 +188,10 @@ func (b *BackgroundTLFUpdater) upgradeTLFForChat(ctx context.Context, tlfName st
 	if err != nil {
 		b.debug(ctx, "upgradeTLFForChat: invalid TLFID: %s", err)
 	}
-	if err := b.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, chatTLFID, public); err != nil {
+	if err := b.chat().UpgradeKBFSToImpteam(ctx, tlfName, chatTLFID, public); err != nil {
 		b.debug(ctx, "upgradeTLFForChat: failed to upgrade TLFID for chat: tlfID: %v err: %s", tlfID, err)
+	}
+	if b.upgradeCh != nil {
+		*b.upgradeCh <- tlfID
 	}
 }
