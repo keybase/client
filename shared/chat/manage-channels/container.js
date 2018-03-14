@@ -19,7 +19,7 @@ import {
 import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
-import {getConvIdsFromTeamName, getChannelInfoFromConvID} from '../../constants/teams'
+import {getCanPerform, getConvIdsFromTeamName, getChannelInfoFromConvID} from '../../constants/teams'
 import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
@@ -29,6 +29,11 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
   const convIDs = getConvIdsFromTeamName(state, teamname)
   const you = state.config.username
+  const yourOperations = getCanPerform(state, teamname)
+
+  const canEditChannels =
+    yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
+  const canCreateChannels = yourOperations.createChannel
 
   const channels = convIDs
     .map(convID => {
@@ -50,6 +55,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const currentPath = pathSelector(state)
 
   return {
+    canCreateChannels,
+    canEditChannels,
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
