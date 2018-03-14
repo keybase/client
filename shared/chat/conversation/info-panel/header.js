@@ -7,6 +7,8 @@ type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
+  // EventTarget here because evt.target is an EventTarget
+  // but `getBoundingClientRect` only works on an Element
   onClickGear: (?EventTarget) => void,
 }
 
