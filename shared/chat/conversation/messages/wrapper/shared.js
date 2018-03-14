@@ -59,15 +59,11 @@ const EditedMark = () => (
 )
 
 const Failure = ({failureDescription, onEdit, onRetry}) => {
-  const error = `${failureDescription ? ` -  ${failureDescription}` : ''}. `
+  const error = `${failureDescription}. `
   const resolveByEdit = failureDescription === 'message is too long'
   return (
     <Text type="BodySmall">
-      <Text type="BodySmall" style={styles.failStyleFace}>
-        {'┏(>_<)┓'}
-      </Text>
       <Text type="BodySmall" style={styles.fail}>
-        {' '}
         {error}
       </Text>
       {!!onEdit &&
@@ -163,7 +159,6 @@ const styles = styleSheetCreate({
     paddingTop: globalMargins.xtiny,
   },
   fail: {color: globalColors.red},
-  failStyleFace: {color: globalColors.red, fontSize: 9},
   failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
@@ -200,7 +195,7 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     width: 32,
   },
-  userAvatar: {width: 32},
+  userAvatar: {width: 32, marginTop: -6},
   username: {
     alignSelf: 'flex-start',
     backgroundColor: globalColors.fastBlank,
