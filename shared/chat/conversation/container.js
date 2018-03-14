@@ -59,12 +59,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   let type = 'noConvo'
   if (conversationIDKey) {
-    if (stateProps._metaMap.getIn([conversationIDKey, 'trustedState']) === 'error') {
-      type = 'error'
-    } else if (stateProps._metaMap.getIn([conversationIDKey, 'membershipType']) === 'youAreReset') {
+    if (stateProps._metaMap.getIn([conversationIDKey, 'membershipType']) === 'youAreReset') {
       type = 'youAreReset'
     } else if (stateProps._metaMap.getIn([conversationIDKey, 'rekeyers'], I.Set()).size > 0) {
       type = 'rekey'
+    } else if (stateProps._metaMap.getIn([conversationIDKey, 'trustedState']) === 'error') {
+      type = 'error'
     } else {
       type = 'normal'
     }
