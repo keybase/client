@@ -81,6 +81,9 @@ const metaMapReducer = (metaMap, action) => {
               conversationIDKey,
               Constants.makeConversationMeta({
                 conversationIDKey,
+                membershipType: Constants.conversationMemberStatusToMembershipType(
+                  error.remoteConv.memberStatus
+                ),
                 participants,
                 rekeyers,
                 snippet: error.message,

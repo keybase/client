@@ -73,6 +73,7 @@ export const isUserActivelyLookingAtThisThread = (
 }
 
 export {
+  conversationMemberStatusToMembershipType,
   getConversationIDKeyMetasToLoad,
   getRowParticipants,
   getRowStyles,

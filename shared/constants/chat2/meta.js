@@ -11,7 +11,7 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 
-const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
+export const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
     case RPCChatTypes.commonConversationMemberStatus.active:
       return 'active'
