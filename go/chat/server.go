@@ -268,7 +268,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.Conv.GetConvID(),
-					Error:     *convRes.Err,
+					Error:     utils.PresentConversationErrorLocal(*convRes.Err),
 				})
 
 				// If we get a transient failure, add this to the retrier queue

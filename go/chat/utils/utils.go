@@ -793,6 +793,17 @@ func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.Unv
 	return res
 }
 
+func PresentConversationErrorLocal(rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
+	res.Message = rawConv.Message
+	res.RekeyInfo = rawConv.RekeyInfo
+	res.RemoteConv = PresentRemoteConversation(types.RemoteConversation{
+		Conv: rawConv.RemoteConv,
+	})
+	res.Typ = rawConv.Typ
+	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
+	return res
+}
+
 func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	var writerNames []string
 	fullNames := make(map[string]string)
