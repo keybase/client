@@ -95,7 +95,7 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 	return &tmp
 }
 
-func (tx *AddMemberTx) createInvite(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole) {
+func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
 	payload := tx.invitePayload()
 
 	invite := SCTeamInvite{
@@ -113,8 +113,6 @@ func (tx *AddMemberTx) createInvite(ctx context.Context, uv keybase1.UserVersion
 		payload.Admins = appendToInviteList(invite, payload.Admins)
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
-	default:
-		tx.team.G().Log.CWarningf(ctx, "Unexpected role in tx.createInvite(%v, %v)", uv, role)
 	}
 }
 
@@ -236,7 +234,7 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	tx.sweepCryptoMembers(uv.Uid)
 
 	if !hasPUK {
-		tx.createInvite(ctx, uv, role)
+		tx.createInvite(uv, role)
 	} else {
 		tx.addMember(uv, role)
 	}
@@ -413,7 +411,11 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 	return nil
 }
 
-func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+	if err := assertValidNewTeamMemberRole(role); err != nil {
+		return err
+	}
+
 	if hasPUK {
 		tx.addMember(uv, role)
 		tx.sweepCryptoMembers(uv.Uid)
@@ -421,7 +423,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 			return err
 		}
 	} else {
-		tx.createInvite(ctx, uv, role)
+		tx.createInvite(uv, role)
 		tx.sweepKeybaseInvites(uv.Uid)
 		// We cannot sweep crypto members here because we need to
 		// ensure that we are only posting one link, and if we want to
@@ -436,6 +438,16 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 	}
 
 	return nil
+}
+
+func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
+	switch role {
+	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+		return nil
+	default:
+		return fmt.Errorf("Unexpected role: %v (%d)", role, int(role))
+	}
 }
 
 // AddMemberBySBS is very similar in what it does to addMemberByUPAKV2
@@ -476,6 +488,10 @@ func (tx *AddMemberTx) AddMemberBySBS(ctx context.Context, invitee keybase1.Team
 
 	if role == keybase1.TeamRole_OWNER && team.IsSubteam() {
 		return NewSubteamOwnersError()
+	}
+
+	if err := assertValidNewTeamMemberRole(role); err != nil {
+		return err
 	}
 
 	// Mark that we will be completing inviteID so sweepKeybaseInvites
