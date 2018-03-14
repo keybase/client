@@ -19298,7 +19298,7 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
-          srcSet="icons/icon-message-status-sending-24.png 1x, icons/icon-message-status-sending-24@2x.png 2x"
+          srcSet="icons/icon-message-status-sending-24.gif 1x, icons/icon-message-status-sending-24@2x.gif 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -19315,7 +19315,7 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
-          srcSet="icons/icon-message-status-sent-24.png 1x, icons/icon-message-status-sent-24@2x.png 2x"
+          srcSet="icons/icon-message-status-sent-24.gif 1x, icons/icon-message-status-sent-24@2x.gif 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
