@@ -32,8 +32,6 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
   </Box>
 )
 
-// EventTarget here because evt.target is an EventTarget
-// but `getBoundingClientRect` only works on an Element
 const AddPeople = ({onClick}: {onClick: (?Element) => void}) => (
   <ClickableBox
     style={{...globalStyles.flexBoxRow}}
