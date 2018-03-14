@@ -187,7 +187,10 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 	return topicName, err
 }
 
-func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error {
+func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(h.G()))
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
+		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
 	ni, err := CtxKeyFinder(ctx, h.G()).FindForEncryption(ctx, tlfName, tlfID,
 		chat1.ConversationMembersType_KBFS, public)

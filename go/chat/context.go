@@ -117,7 +117,11 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	if breaks == nil {
 		breaks = new([]keybase1.TLFIdentifyFailure)
 	}
-	res := IdentifyModeCtx(ctx, mode, breaks)
+	res := ctx
+	_, _, ok := IdentifyMode(res)
+	if !ok {
+		res = IdentifyModeCtx(res, mode, breaks)
+	}
 	val := res.Value(kfKey)
 	if _, ok := val.(KeyFinder); !ok {
 		res = context.WithValue(res, kfKey, NewKeyFinder(g))
@@ -130,7 +134,9 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 	if _, ok := val.(types.UPAKFinder); !ok {
 		res = context.WithValue(res, upKey, NewCachingUPAKFinder(g))
 	}
-	res = CtxAddLogTags(res, g.GetEnv())
+	if _, ok = CtxTrace(res); !ok {
+		res = CtxAddLogTags(res, g.GetEnv())
+	}
 	return res
 }
 
