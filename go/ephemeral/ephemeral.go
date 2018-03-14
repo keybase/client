@@ -136,6 +136,9 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		return data, err
 	}
 	signedPacket, _, err := signingKey.SignToString(metadataJSON)
+	if err != nil {
+		return data, err
+	}
 
 	err = postNewDeviceEK(ctx, g, signedPacket)
 	if err != nil {
@@ -184,6 +187,9 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 	//    results here is expected. We silently drop them.
 	currentDeviceEKs := []keybase1.DeviceEkMetadata{}
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return nil, err
+	}
 	for _, element := range parsedResponse.Results {
 		// Verify the sig.
 		signerKey, payload, _, err := libkb.NaclVerifyAndExtract(element.Sig)
@@ -194,6 +200,9 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 		// Verify the signing key corresponds to a device.
 		var matchingDevice *keybase1.PublicKey
 		self, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, g.Env.GetUID()))
+		if err != nil {
+			return nil, err
+		}
 		for _, device := range self.Base.DeviceKeys {
 			if !device.KID.Equal(signerKey.GetKID()) {
 				continue
