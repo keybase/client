@@ -18,7 +18,7 @@ const installLinkURL = 'https://keybase.io/download'
 const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>
   dispatch(PeopleGen.createSkipTodo({type}))
 
-const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username})
+const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username || ''})
 
 // ----- BIO ----- //
 const bioConnector = connect(

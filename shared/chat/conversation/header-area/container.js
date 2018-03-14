@@ -11,6 +11,7 @@ type Props = {
   onToggleInfoPanel: () => void,
   isSearching: boolean,
   infoPanelOpen: boolean,
+  showTeamOffer: boolean,
 }
 
 class HeaderArea extends React.PureComponent<Props> {

@@ -26,7 +26,7 @@ const SaveStateComponent = ({saveState}) => {
     case 'justSaved':
       return [
         <Icon key="0" type="iconfont-check" style={{color: globalColors.green}} />,
-        <Text key="1" type="BodySmall" style={{color: globalColors.green}}>
+        <Text key="1" type="BodySmall" style={{color: globalColors.green2}}>
           &nbsp; Saved
         </Text>,
       ]

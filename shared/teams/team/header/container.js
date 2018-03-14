@@ -14,6 +14,7 @@ export type OwnProps = {
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
+    _you: state.config.username,
     canEditDescription: yourOperations.editChannelDescription,
     canJoinTeam: yourOperations.joinTeam,
     canManageMembers: yourOperations.manageMembers,
@@ -21,7 +22,6 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
     memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
     openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
     role: Constants.getRole(state, teamname),
-    you: state.config.username,
   }
 }
 
@@ -47,10 +47,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-  onAddSelf: () => dispatchProps._onAddSelf(stateProps.you),
+  canEditDescription: stateProps.canEditDescription,
+  canJoinTeam: stateProps.canJoinTeam,
+  canManageMembers: stateProps.canManageMembers,
+  description: stateProps.description,
+  memberCount: stateProps.memberCount,
+  onAddPeople: dispatchProps.onAddPeople,
+  onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
+  onChat: dispatchProps.onChat,
+  onEditDescription: dispatchProps.onEditDescription,
+  openTeam: stateProps.openTeam,
+  role: stateProps.role,
+  teamname: ownProps.teamname,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamHeader)

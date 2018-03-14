@@ -9,7 +9,7 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) 
 
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
-export {connect, MapStateToProps} from 'react-redux'
+export {connect} from 'react-redux'
 export {
   branch,
   compose,

@@ -3,7 +3,7 @@ import * as LoginGen from '../actions/login-gen'
 import * as React from 'react'
 import engine from '../engine'
 import {BackButton, Box, Text} from '../common-adapters'
-import {connect} from 'react-redux'
+import {connect, type Dispatch} from '../util/container'
 import {globalStyles, globalColors} from '../styles'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 
@@ -31,12 +31,10 @@ function DevMenu(props) {
   )
 }
 
-export default connect(
-  state => ({}),
-  dispatch => ({
-    onReset: () => engine().reset(),
-    onSignOut: () => dispatch(LoginGen.createLogout()),
-    onBack: () => dispatch(navigateUp()),
-    onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
-  })
-)(DevMenu)
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onReset: () => engine().reset(),
+  onSignOut: () => dispatch(LoginGen.createLogout()),
+  onBack: () => dispatch(navigateUp()),
+  onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
+})
+export default connect(() => ({}), mapDispatchToProps)(DevMenu)

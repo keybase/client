@@ -34,25 +34,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const message = ownProps.message
   const arrowColor = message.downloadPath
     ? globalColors.green
-    : message.transferState === 'downloading' ? globalColors.blue : null
+    : message.transferState === 'downloading' ? globalColors.blue : ''
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
-      : message.transferState === 'uploading' ? 'Encrypting' : null
+      : message.transferState === 'uploading' ? 'Encrypting' : ''
 
   return {
     arrowColor,
     loadPreview: message.devicePreviewPath
-      ? undefined
+      ? null
       : () => dispatchProps._loadPreview(message.conversationIDKey, message.ordinal),
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    onShowInFinder:
-      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
-    progressLabel,
+    onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     progress: message.transferProgress,
-    title:
-      message.title ||
-      message.fileName /* +      ' ordinal:' +      Types.ordinalToNumber(message.ordinal) +      ' id: ' +      message.id */,
+    progressLabel,
+    title: message.title || message.fileName,
   }
 }
 

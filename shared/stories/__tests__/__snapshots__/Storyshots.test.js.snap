@@ -794,7 +794,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 [data-glamor-22] {
   font-size: 11px;
   line-height: 15px;
-  color: #3dcc8e;
+  color: #34ad79;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -48418,28 +48418,8 @@ exports[`Storyshots Teams TeamList 1`] = `
   color: rgba(0, 0, 0, 0.75);
 }
 
-.glamor-10,
-[data-glamor-10] {
-  font-size: 10px;
-  line-height: 11px;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-  border-radius: 1px;
-  height: 11px;
-  padding-left: 3px;
-  padding-right: 3px;
-  align-self: center;
-  text-transform: uppercase;
-  background-color: #ff6f21;
-  margin-right: 4px;
-  -webkit-align-self: center;
-}
-
-.glamor-16,
-[data-glamor-16] {
+.glamor-15,
+[data-glamor-15] {
   font-size: 9px;
   line-height: 8px;
   color: #ffffff;
@@ -48785,13 +48765,6 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-10"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    NEW
-                  </span>
-                  <span
                     className="glamor-4"
                     onClick={undefined}
                     title={undefined}
@@ -48962,7 +48935,7 @@ exports[`Storyshots Teams TeamList 1`] = `
                   }
                 >
                   <span
-                    className="glamor-16"
+                    className="glamor-15"
                     onClick={undefined}
                     title={undefined}
                   >

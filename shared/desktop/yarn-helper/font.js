@@ -268,6 +268,7 @@ export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
 
   const filename = path.join(__dirname, '../../common-adapters/icon.constants.js')
+  // $FlowIssue
   fs.writeFileSync(filename, prettier.format(iconConstants, prettier.resolveConfig.sync(filename)), 'utf8')
 }
 

@@ -134,6 +134,7 @@ function main() {
     console.log(`Generating ${ns}`)
     const desc = json5.parse(fs.readFileSync(path.join(root, file)))
     const outPath = path.join(root, '..', ns + '-gen.js')
+    // $FlowIssue
     const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
     console.log(generated)
     fs.writeFileSync(outPath, generated)

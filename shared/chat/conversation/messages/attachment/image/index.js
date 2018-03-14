@@ -5,18 +5,18 @@ import {globalStyles, globalMargins, globalColors, fileUIName, isMobile} from '.
 import {ImageRender} from './image-render'
 
 type Props = {
-  arrowColor: ?string,
+  arrowColor: string,
   height: number,
   isPreviewLoaded: boolean,
-  loadPreview: ?() => void,
+  loadPreview: null | (() => void),
   onClick: () => void,
   onShowMenu: () => void,
-  onShowInFinder: ?() => void,
-  path: ?string,
+  onShowInFinder: null | (() => void),
+  path: string,
   title: string,
   width: number,
   progress: number,
-  progressLabel: ?string,
+  progressLabel: string,
 }
 
 class ImageAttachment extends React.PureComponent<Props> {

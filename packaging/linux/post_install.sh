@@ -42,7 +42,9 @@ run_redirector() {
 
   # Only start the root redirector if it hasn't been explicitly disabled.
   if redirector_enabled ; then
-    logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+    # Hardcode the logdir instead of using $HOME, because `sudo` on
+    # Ubuntu preserves the user's $HOME for some reason.
+    logdir="/var/log/keybase"
     mkdir -p "$logdir"
     echo Starting root redirector at $rootmount.
     nohup "$krbin" "$rootmount" >> "$logdir/keybase.redirector.log" 2>&1 &

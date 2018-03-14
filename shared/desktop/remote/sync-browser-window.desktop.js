@@ -25,8 +25,8 @@ const devScripts = __DEV__
   : []
 
 type Props = {
-  windowOpts?: Object,
-  windowPositionBottomRight?: boolean,
+  windowOpts: Object,
+  windowPositionBottomRight: boolean,
   windowComponent: string,
   windowTitle: string,
   windowParam: string,

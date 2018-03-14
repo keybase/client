@@ -6,7 +6,7 @@
 import * as LoginGen from '../../../actions/login-gen'
 import React, {Component} from 'react'
 import CodePage, {type Props} from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
 // TODO remove this class
@@ -61,7 +61,7 @@ const mapStateToProps = ({
   textCode: textCode ? textCode.stringValue() : '',
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(LoginGen.createOnBack()),
   qrScanned: ({data}: {data: string}) => dispatch(LoginGen.createQrScanned({phrase: new HiddenString(data)})),
   resetQRCodeScanned: () => dispatch(LoginGen.createResetQRCodeScanned()),

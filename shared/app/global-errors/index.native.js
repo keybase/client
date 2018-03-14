@@ -13,7 +13,7 @@ import {
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 
-import type {Props} from './index'
+import type {Props as _Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 type State = {
@@ -21,6 +21,8 @@ type State = {
   cachedSummary: ?string,
   cachedDetails: ?string,
 }
+
+type Props = _Props & {clearTimeout: number => void, setTimeout: (() => void, number) => number}
 
 class GlobalError extends Component<Props, State> {
   state: State

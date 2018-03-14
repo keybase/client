@@ -12,7 +12,22 @@ const windowOpts = {height: 210, width: 440}
 const pinentryMapStateToProps = (state: TypedState, {id}: {id: number}) => {
   const p = state.pinentry.sessionIDToPinentry.get(id)
   if (!p) {
-    return {}
+    // $FlowIssue
+    return {
+      cancelLabel: '',
+      prompt: '',
+      retryLabel: '',
+      sessionID: 0,
+      showTyping: '',
+      submitLabel: '',
+      submitted: '',
+      type: '',
+      windowComponent: '',
+      windowOpts: {},
+      windowParam: '',
+      windowPositionBottomRight: false,
+      windowTitle: '',
+    }
   }
 
   return {
@@ -27,6 +42,7 @@ const pinentryMapStateToProps = (state: TypedState, {id}: {id: number}) => {
     windowComponent: 'pinentry',
     windowOpts,
     windowParam: String(id),
+    windowPositionBottomRight: false,
     windowTitle: 'Pinentry',
   }
 }

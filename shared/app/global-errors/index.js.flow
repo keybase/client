@@ -6,10 +6,6 @@ export type Props = {
   daemonError: ?Error,
   onDismiss: () => void,
   debugDump: Array<string>,
-  setTimeout: (cb: () => void, delay: number) => any,
-  clearTimeout: (id: any) => void,
-  setInterval: (cb: () => void, delay: number) => any,
-  clearInterval: (id: any) => void,
 }
 
 export default class GlobalError extends Component<Props> {}

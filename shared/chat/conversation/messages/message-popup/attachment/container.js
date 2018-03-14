@@ -81,12 +81,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onClosePopup(),
     onSaveAttachment:
-      isMobile && message.attachmentType === 'image'
-        ? () => dispatchProps._onSaveAttachment(message)
-        : undefined,
-    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : undefined,
-    onShowInFinder:
-      !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
+      isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
+    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
+    onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     yourMessage,
   }
 }

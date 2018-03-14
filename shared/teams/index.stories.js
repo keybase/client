@@ -28,8 +28,8 @@ const load = () => {
       <Box style={{maxWidth: 320}}>
         <TeamList
           teamnames={teamnames}
+          newTeams={[]}
           teamNameToIsOpen={teamNameToIsOpen}
-          newTeams={['stripe.usa']}
           newTeamRequests={['techtonica']}
           teammembercounts={teammembercounts}
           teamresetusers={{}}

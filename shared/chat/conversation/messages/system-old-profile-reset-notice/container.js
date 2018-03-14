@@ -21,11 +21,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createStartConversation({forceImmediate: true, participants})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  onOpenNewerConversation: stateProps.nextConversationIDKey
-    ? () => dispatchProps.onOpenConversation(stateProps.nextConversationIDKey)
-    : () => dispatchProps.startConversation(stateProps._participants.toArray()),
-  username: stateProps.username,
-})
+const mergeProps = (stateProps, dispatchProps) => {
+  const nextConversationIDKey = stateProps.nextConversationIDKey
+
+  return {
+    onOpenNewerConversation: nextConversationIDKey
+      ? () => dispatchProps.onOpenConversation(nextConversationIDKey)
+      : () => dispatchProps.startConversation(stateProps._participants.toArray()),
+    username: stateProps.username,
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(OldProfileResetNotice)

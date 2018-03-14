@@ -47,6 +47,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) =
     ),
 })
 
+// Minimum amount of time to stay in the saving state.
+const minSavingTimeMs = 300
+
+// How long to stay in the justSaved state.
+const savedTimeoutMs = 2500
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
@@ -84,14 +90,14 @@ export default compose(
       },
       updateDesktop: (state, props) => (desktop: Types.NotificationsType) => {
         if (desktop === state.desktop) {
-          return {}
+          return
         }
         props._updateNotifications(desktop, state.mobile, state.channelWide)
         return {desktop}
       },
       updateMobile: (state, props) => (mobile: Types.NotificationsType) => {
         if (mobile === state.mobile) {
-          return {}
+          return
         }
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
@@ -116,10 +122,25 @@ export default compose(
       ) {
         // Mark it as saved
         if (nextProps.saveState === 'saving') {
-          nextProps.updateSaveState('justSaved')
-          setTimeout(() => {
-            nextProps.updateSaveState('same')
-          }, 300)
+          const resetTimeout = (fn, delay) => {
+            if (this._timeoutID) {
+              clearTimeout(this._timeoutID)
+            }
+            this._timeoutID = setTimeout(fn, delay)
+          }
+
+          const setJustSaved = () => {
+            nextProps.updateSaveState('justSaved')
+            resetTimeout(() => {
+              nextProps.updateSaveState('same')
+            }, savedTimeoutMs)
+          }
+          const dt = Date.now() - this._lastSaveStartTime
+          if (dt < minSavingTimeMs) {
+            resetTimeout(setJustSaved, minSavingTimeMs - dt)
+          } else {
+            setJustSaved()
+          }
         }
       } else {
         // did our local settings change at all?
@@ -129,6 +150,7 @@ export default compose(
           this.props.channelWide !== nextProps.channelWide ||
           this.props.muted !== nextProps.muted
         ) {
+          this._lastSaveStartTime = Date.now()
           if (nextProps.saveState !== 'saving') {
             nextProps.updateSaveState('saving')
           }
