@@ -702,6 +702,11 @@ func (d *Service) OnLogout() (err error) {
 		d.backgroundIdentifier.Logout()
 	}
 
+	log("shutting down TLF upgrader")
+	if d.tlfUpgrader != nil {
+		d.tlfUpgrader.Shutdown()
+	}
+
 	return nil
 }
 
