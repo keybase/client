@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -41,13 +40,17 @@ func (s *PerUserKeySeed) DeriveDHKey() (*NaclDHKeyPair, error) {
 	return &res, err
 }
 
-// derivePrevKey derives the symmetric key used to secretbox the previous generation seed.
-func (s *PerUserKeySeed) derivePrevKey() (res NaclSecretBoxKey, err error) {
+func (s *PerUserKeySeed) DeriveSymmetricKey(reason DeriveReason) (res NaclSecretBoxKey, err error) {
 	derived, err := DeriveFromSecret(*s, DeriveReasonPUKPrev)
 	if err != nil {
 		return res, err
 	}
 	return NaclSecretBoxKey(derived), err
+}
+
+// derivePrevKey derives the symmetric key used to secretbox the previous generation seed.
+func (s *PerUserKeySeed) derivePrevKey() (res NaclSecretBoxKey, err error) {
+	return s.DeriveSymmetricKey(DeriveReasonPUKPrev)
 }
 
 func (s *PerUserKeySeed) IsBlank() bool {
@@ -86,10 +89,9 @@ func newPerUserKeyPrev(contents PerUserKeySeed, symmetricKey NaclSecretBoxKey) (
 	const version = 1
 
 	var nonce [NaclDHNonceSize]byte
-	if nRead, err := rand.Read(nonce[:]); err != nil {
+	nonce, err := RandomNaclDHNonce()
+	if err != nil {
 		return "", err
-	} else if nRead != NaclDHNonceSize {
-		return "", fmt.Errorf("Short random read: %d", nRead)
 	}
 
 	// secretbox
@@ -101,7 +103,7 @@ func newPerUserKeyPrev(contents PerUserKeySeed, symmetricKey NaclSecretBoxKey) (
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var msgpacked []byte
 	enc := codec.NewEncoderBytes(&msgpacked, &mh)
-	err := enc.Encode(parts)
+	err = enc.Encode(parts)
 	if err != nil {
 		return "", err
 	}

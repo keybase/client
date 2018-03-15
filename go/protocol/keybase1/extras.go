@@ -2335,10 +2335,13 @@ func (s StellarSecretBundle) CheckInvariants() error {
 		names[entry.Name] = true
 		if entry.IsPrimary {
 			if foundPrimary {
-				return fmt.Errorf("multiple primary accounts")
+				return errors.New("multiple primary accounts")
 			}
 			foundPrimary = true
 		}
+	}
+	if s.Revision < 1 {
+		return fmt.Errorf("revision %v < 1", s.Revision)
 	}
 	return nil
 }

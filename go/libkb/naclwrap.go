@@ -906,3 +906,14 @@ func GeneratePerUserKeySeed() (res PerUserKeySeed, err error) {
 	seed := PerUserKeySeed(MakeByte32(bs))
 	return seed, nil
 }
+
+func RandomNaclDHNonce() (nonce [NaclDHNonceSize]byte, err error) {
+	nRead, err := rand.Read(nonce[:])
+	if err != nil {
+		return nonce, err
+	}
+	if nRead != NaclDHNonceSize {
+		return nonce, fmt.Errorf("Short random read: %d", nRead)
+	}
+	return nonce, nil
+}
