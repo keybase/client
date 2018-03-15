@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import Files from './container'
 import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './header/breadcrumb-popup'
-import FinderPopupMenu from './header/finder-popup'
+import FinderPopupMenu from './finder-popup'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
