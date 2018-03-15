@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalColors, isMobile} from '../../styles'
+import {globalStyles, globalColors, isMobile, platformStyles} from '../../styles'
 import {Box, Text} from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'
 
@@ -42,12 +42,12 @@ const timeWriterBoxStyleWithWrap = {
   justifyContent: 'center',
 }
 
-const writerTextStyle = isMobile
-  ? {}
-  : {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    }
+const writerTextStyle = platformStyles({
+  isElectron: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+})
 
 export default PathItemInfo

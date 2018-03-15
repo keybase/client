@@ -26,11 +26,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
     }
   },
-  _openInFileUI: (path: Types.Path) => dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
+  _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   _onAction: (path: Types.Path, type: Types.PathType, targetRect?: ?ClientRect) => {
     // We may not have the folder loaded yet, but will need metadata to know
     // folder entry types in the popup. So dispatch an action now to load it.
-    type === 'folder' && dispatch(FSGen.createFolderListLoad({path}))
+    type === 'folder' && dispatch(FsGen.createFolderListLoad({path}))
     dispatch(
       navigateAppend([
         {
@@ -62,23 +62,26 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         ),
 })
 
-const mergeProps = ({_username, path, pathItem, kbfsEnabled}, {_onOpen, _openInFileUI, _onAction, _openFinderPopup}) => {
-  const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
-  return {
-    name: pathItem.name,
-    type: pathItem.type,
-    lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
-    lastWriter: pathItem.lastWriter,
-    onOpen: () => _onOpen(pathItem.type, path),
-    openInFileUI: kbfsEnabled ? () => _openInFileUI(path) : _openFinderPopup,
-    onAction: (event: SyntheticEvent<>) =>
-      _onAction(
-        path,
-        pathItem.type,
-        isMobile ? undefined : (event.target: window.HTMLElement).getBoundingClientRect()
-      ),
-    itemStyles,
-  }
-}
+const mergeProps = (stateProps, dispatchProps) => ({
+  name: stateProps.pathItem.name,
+  type: stateProps.pathItem.type,
+  lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
+  lastWriter: stateProps.pathItem.lastWriter,
+  onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),
+  openInFileUI: stateProps.kbfsEnabled
+    ? () => dispatchProps._openInFileUI(stateProps.path)
+    : dispatchProps._openFinderPopup,
+  onAction: (event: SyntheticEvent<>) =>
+    dispatchProps._onAction(
+      stateProps.path,
+      stateProps.pathItem.type,
+      isMobile ? undefined : (event.target: window.HTMLElement).getBoundingClientRect()
+    ),
+  itemStyles: Constants.getItemStyles(
+    Types.getPathElements(stateProps.path),
+    stateProps.pathItem.type,
+    stateProps._username
+  ),
+})
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Row'))(Row)
