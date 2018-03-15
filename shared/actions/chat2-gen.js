@@ -63,7 +63,6 @@ export const openFolder = 'chat2:openFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
-export const selectConversationDueToPush = 'chat2:selectConversationDueToPush'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setInboxFilter = 'chat2:setInboxFilter'
@@ -166,7 +165,7 @@ export const createDesktopNotification = (
   }>
 ) => ({error: false, payload, type: desktopNotification})
 export const createExitSearch = () => ({error: false, payload: undefined, type: exitSearch})
-export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'}>) => ({error: false, payload, type: inboxRefresh})
+export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
 export const createLoadOlderMessagesDueToScroll = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadOlderMessagesDueToScroll})
@@ -311,17 +310,9 @@ export const createResetLetThemIn = (
 export const createSelectConversation = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    fromUser?: boolean,
-    asAPreview?: boolean,
-    fromFilter?: boolean,
+    reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxSmall' | 'incrementalSync' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
   }>
 ) => ({error: false, payload, type: selectConversation})
-export const createSelectConversationDueToPush = (
-  payload: $ReadOnly<{
-    conversationIDKey: Types.ConversationIDKey,
-    phase: 'showImmediately' | 'loadNewContent',
-  }>
-) => ({error: false, payload, type: selectConversationDueToPush})
 export const createSendToPendingConversation = (
   payload: $ReadOnly<{
     users: Array<string>,
@@ -419,7 +410,6 @@ export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNo
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
-export type SelectConversationDueToPushPayload = More.ReturnType<typeof createSelectConversationDueToPush>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SendTypingPayload = More.ReturnType<typeof createSendTyping>
@@ -489,7 +479,6 @@ export type Actions =
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createSelectConversation>
-  | More.ReturnType<typeof createSelectConversationDueToPush>
   | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSendTyping>
   | More.ReturnType<typeof createSetInboxFilter>

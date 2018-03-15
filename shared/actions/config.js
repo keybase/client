@@ -306,7 +306,8 @@ function* _getAppState(): Generator<any, void, any> {
   }
 }
 
-const _setStartedDueToPush = () => Saga.put(ConfigGen.createSetStartedDueToPush())
+const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
@@ -323,7 +324,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     _loadAvatarHelperError
   )
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversationDueToPush, _setStartedDueToPush)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.fork(_getAppState)
 }
 
