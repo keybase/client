@@ -19,7 +19,7 @@ type Props = {
 
 const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: 16}}>
-    <Avatar size={16} teamname={teamname} style={{marginBottom: 2}} />
+    <Avatar size={isMobile ? 32 : 16} teamname={teamname} style={{marginBottom: 2}} />
     <Text type="BodySemibold">{teamname}</Text>
     <Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Text>
   </Box>
@@ -27,22 +27,25 @@ const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}
 
 const InfoPanelMenu = (props: Props) => {
   const addPeopleItems = [
-    {title: 'Add someone by username', subTitle: 'Keybase, Twitter, etc.', onClick: props.onAddPeople},
+    {
+      title: 'Add someone by username',
+      subTitle: 'Keybase, Twitter, etc.',
+      onClick: props.onAddPeople,
+      style: {borderTopWidth: 0},
+    },
     {
       title: isMobile ? 'Add someone from address book' : 'Add someone by email',
       onClick: props.onInvite,
-      style: {borderTopWidth: 0},
     },
   ]
   const channelItem = {
     title: props.isSmallTeam ? 'Make chat channels...' : 'Manage chat channels',
     onClick: props.onManageChannels,
     subTitle: props.isSmallTeam ? 'Turns this into a big team' : undefined,
-    style: {borderTopWidth: 0},
   }
   const items = [
     ...(props.canAddPeople ? addPeopleItems : []),
-    {title: 'View team', onClick: props.onViewTeam},
+    {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
     channelItem,
     {title: 'Leave team', onClick: props.onLeaveTeam, danger: true},
   ]
