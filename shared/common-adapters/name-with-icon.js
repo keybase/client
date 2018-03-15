@@ -7,7 +7,7 @@ import Icon from './icon'
 import {type IconType} from './icon.constants'
 import Text, {type TextType} from './text'
 import {ConnectedUsernames} from './usernames'
-import {collapseStyles, globalStyles, isMobile, styleSheetCreate} from '../styles'
+import {collapseStyles, globalStyles, isMobile, styleSheetCreate, platformStyles} from '../styles'
 
 type Size = 'small' | 'default' | 'large'
 
@@ -56,32 +56,27 @@ const NameWithIconVertical = (props: Props) => {
       <Box
         style={collapseStyles([
           styles.metaStyle,
+          styles.fullWidthTextContainer,
           {marginTop: adapterProps.metaMargin},
-          isMobile ? null : styles.fullWidthTextContainer,
           props.metaStyle,
         ])}
       >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
-          // TODO get lineclamping working here
           <ConnectedUsernames
             type={adapterProps.titleType}
-            containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
+            containerStyle={styles.vUsernameContainerStyle}
             inline={true}
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}
           />
         )}
         <TextOrComponent
-          style={isMobile ? null : [styles.fullWidthText, {whiteSpace: 'nowrap', display: 'unset'}]}
+          style={styles.fullWidthText}
           textType={adapterProps.metaOneType}
           val={props.metaOne}
         />
-        <TextOrComponent
-          style={isMobile ? null : [styles.fullWidthText, {whiteSpace: 'nowrap', display: 'unset'}]}
-          textType="BodySmall"
-          val={props.metaTwo}
-        />
+        <TextOrComponent style={styles.fullWidthText} textType="BodySmall" val={props.metaTwo} />
       </Box>
     </BoxComponent>
   )
@@ -154,8 +149,8 @@ const TextOrComponent = ({
 }
 
 const styles = styleSheetCreate({
-  fullWidthTextContainer: {width: '100%', textAlign: 'center'},
-  fullWidthText: {width: '100%'},
+  fullWidthText: platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
+  fullWidthTextContainer: platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
   hAvatarStyle: {marginRight: 16},
   hContainerStyle: {
     ...globalStyles.flexBoxRow,
@@ -176,9 +171,11 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
   },
-  vUsernameContainerStyle: {
-    textAlign: 'center',
-  },
+  vUsernameContainerStyle: platformStyles({
+    isElectron: {
+      textAlign: 'center',
+    },
+  }),
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
