@@ -41,7 +41,7 @@ export const Row = ({name, type, itemStyles, onOpen, openInFileUI}: RowProps) =>
 export const Placeholder = () => (
   <Box style={stylesCommonRow}>
     <Box style={stylesRowBox}>
-      <Icon type={placeholderIcon} style={iconPlaceholderIconStyle} />
+      <Icon type={placeholderIcon} style={stylePlaceholderIcon} />
       <Box style={folderBoxStyle}>
         <Box style={placeholderTextStyle} />
       </Box>
@@ -103,7 +103,7 @@ const stylesRowRightBox = {
   justifyContent: 'flex-end',
 }
 
-const iconPlaceholderIconStyle = {
+const stylePlaceholderIcon = {
   fontSize: 32,
   marginRight: globalMargins.small,
 }

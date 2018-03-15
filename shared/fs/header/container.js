@@ -52,11 +52,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             },
           ])
         ),
+  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (
   {kbfsEnabled},
-  {_onOpenBreadcrumb, _onOpenBreadcrumbDropdown, _openInFileUI, _openFinderPopup},
+  {onBack, _onOpenBreadcrumb, _onOpenBreadcrumbDropdown, _openInFileUI, _openFinderPopup},
   {path}
 ) => {
   let acc = Types.stringToPath('/')
@@ -79,6 +80,7 @@ const mergeProps = (
   }
   const isTeamPath = elems.length >= 2 && elems[1] === 'team'
   return {
+    onBack,
     onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) =>
       _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, evt),
     breadcrumbItems,
