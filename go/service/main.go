@@ -667,6 +667,7 @@ func (d *Service) OnLogin() error {
 	if !uid.IsNil() {
 		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
+		d.runTLFUpgrade()
 		go d.identifySelf()
 	}
 	return nil
