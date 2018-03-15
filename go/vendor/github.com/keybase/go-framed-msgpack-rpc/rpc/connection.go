@@ -111,9 +111,6 @@ func (t *connTransport) Finalize() {
 		t.transport.Close()
 	}
 	t.transport = t.stagedTransport
-	if t.stagedTransport != nil {
-		t.stagedTransport.Close()
-	}
 	t.stagedTransport = nil
 }
 
@@ -283,9 +280,6 @@ func (ct *ConnectionTransportTLS) Finalize() {
 		ct.transport.Close()
 	}
 	ct.transport = ct.stagedTransport
-	if ct.stagedTransport != nil {
-		ct.stagedTransport.Close()
-	}
 	ct.stagedTransport = nil
 	ct.srvRemote.Reset()
 }
