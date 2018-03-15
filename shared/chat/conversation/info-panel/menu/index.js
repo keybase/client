@@ -17,7 +17,11 @@ type Props = {
 const InfoPanelMenu = (props: Props) => {
   const addPeopleItems = [
     {title: 'Add someone by username', subTitle: 'Keybase, Twitter, etc.', onClick: props.onAddPeople},
-    {title: isMobile ? 'Add someone from address book' : 'Add someone by email', onClick: props.onInvite},
+    {
+      title: isMobile ? 'Add someone from address book' : 'Add someone by email',
+      onClick: props.onInvite,
+      style: {borderTopWidth: 0},
+    },
   ]
   const bigTeamItems = [{title: 'Manage chat channels', onClick: props.onManageChannels}]
   const items = [
