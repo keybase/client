@@ -54,6 +54,7 @@ type Service struct {
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
 	home                 *home.Home
+	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 }
 
 type Shutdowner interface {
@@ -75,6 +76,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
+		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 	}
 }
 
@@ -434,8 +436,7 @@ func (d *Service) identifySelf() {
 }
 
 func (d *Service) runTLFUpgrade() {
-	upgrader := tlfupgrade.NewBackgroundTLFUpdater(d.G())
-	upgrader.Run()
+	d.tlfUpgrader.Run()
 }
 
 func (d *Service) runBackgroundIdentifier() {
