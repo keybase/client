@@ -176,6 +176,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-feedback-96.png'),
   },
+  'icon-fancy-finder-132-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-finder-132-96.png'),
+  },
+  'icon-fancy-finder-enabled-132-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
+  },
   'icon-fancy-revoked-computer-150-x-64': {
     isFont: false,
     extension: 'png',

@@ -5,7 +5,19 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
-import {openInFileUISaga} from './fs-platform-specific'
+import {
+  openInFileUISaga,
+  fuseStatusSaga,
+  fuseStatusResultSaga,
+  installKBFS,
+  installKBFSSuccess,
+  installFuseSaga,
+  installDokanSaga,
+  uninstallKBFSConfirmSaga,
+  uninstallKBFS,
+  uninstallKBFSSuccess,
+} from './fs-platform-specific'
+import {isWindows} from '../constants/platform'
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
@@ -98,6 +110,16 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
+  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  if (isWindows) {
+    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+  } else {
+    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+  }
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
 }
 
 export default fsSaga
