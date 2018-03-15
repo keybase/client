@@ -1,6 +1,6 @@
 // @flow
 type Color = null | string
-type Dimension = string | number // TODO this is originally string | number but flow currently barfs on this. unclear why
+type Dimension = string | number
 
 export type _StylesCrossPlatform = {|
   alignContent?: 'flex-start' | 'flex-end' | 'center' | 'stretch' | 'space-between' | 'space-around',
