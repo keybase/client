@@ -20,26 +20,28 @@ class Left extends React.PureComponent<Props> {
     return (
       <Box
         style={{
-          marginTop: 2,
-          marginBottom: 2,
-          marginLeft: globalMargins.xtiny,
+          marginTop: 3,
+          marginBottom: 3,
+          marginLeft: globalMargins.tiny,
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
           justifyContent: 'flex-start',
         }}
       >
-        <Avatar size={12} username={author} style={{marginRight: globalMargins.xtiny}} />
-        <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
-          <ConnectedUsernames
-            inline={true}
-            type="BodySmall"
-            onUsernameClicked={onUsernameClicked}
-            colorFollowing={true}
-            underline={true}
-            usernames={[author]}
-          />{' '}
-          left {isBigTeam ? `#${channelname}` : teamname}
-        </Text>
+        <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
+        <Box style={globalStyles.flexBoxColumn}>
+          <Text title={formatTimeForMessages(timestamp)} type="BodySmallSemibold">
+            <ConnectedUsernames
+              inline={true}
+              type="BodySmallSemibold"
+              onUsernameClicked={onUsernameClicked}
+              colorFollowing={true}
+              underline={true}
+              usernames={[author]}
+            />
+          </Text>
+          <Text type="BodySmallSemibold">left {isBigTeam ? `#${channelname}` : teamname}</Text>
+        </Box>
       </Box>
     )
   }
