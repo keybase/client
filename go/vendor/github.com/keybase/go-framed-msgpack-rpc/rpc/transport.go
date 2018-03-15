@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/keybase/go-codec/codec"
 )
@@ -37,6 +38,9 @@ type Transporter interface {
 	// After done() is closed, successive calls to err return the
 	// same value.
 	err() error
+
+	// Close closes the transport and releases resources.
+	Close()
 }
 
 type connDecoder struct {
@@ -67,7 +71,8 @@ type transport struct {
 	protocols  *protocolHandler
 	calls      *callContainer
 	log        LogInterface
-	startCh    chan struct{}
+	closeOnce  sync.Once
+	startOnce  sync.Once
 	stopCh     chan struct{}
 
 	// Filled in right before stopCh is closed.
@@ -81,13 +86,9 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 	}
 	log := l.NewLog(cdec.RemoteAddr())
 
-	startCh := make(chan struct{}, 1)
-	startCh <- struct{}{}
-
 	ret := &transport{
 		cdec:      cdec,
 		log:       log,
-		startCh:   startCh,
 		stopCh:    make(chan struct{}),
 		protocols: newProtocolHandler(wef),
 		calls:     newCallContainer(),
@@ -100,6 +101,23 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 	return ret
 }
 
+func (t *transport) Close() {
+	t.closeOnce.Do(func() {
+		// Since the receiver might require the transport, we have to
+		// close it before terminating our loops
+		close(t.stopCh)
+		t.dispatcher.Close()
+		<-t.receiver.Close()
+
+		// First inform the encoder that it should close
+		encoderClosed := t.enc.Close()
+		// Unblock any remaining writes
+		t.cdec.Close()
+		// Wait for the encoder to finish handling the now unblocked writes
+		<-encoderClosed
+	})
+}
+
 func (t *transport) IsConnected() bool {
 	select {
 	case <-t.stopCh:
@@ -110,17 +128,9 @@ func (t *transport) IsConnected() bool {
 }
 
 func (t *transport) receiveFrames() <-chan struct{} {
-	select {
-	case <-t.startCh:
-		// First time -- start receiving frames.
-		go func() {
-			t.receiveFramesLoop()
-		}()
-
-	default:
-		// Subsequent times -- do nothing.
-	}
-
+	t.startOnce.Do(func() {
+		go t.receiveFramesLoop()
+	})
 	return t.stopCh
 }
 
@@ -154,18 +164,7 @@ func (t *transport) receiveFramesLoop() {
 	// ordering.
 	t.stopErr = err
 
-	// Since the receiver might require the transport, we have to
-	// close it before terminating our loops
-	close(t.stopCh)
-	t.dispatcher.Close()
-	<-t.receiver.Close()
-
-	// First inform the encoder that it should close
-	encoderClosed := t.enc.Close()
-	// Unblock any remaining writes
-	t.cdec.Close()
-	// Wait for the encoder to finish handling the now unblocked writes
-	<-encoderClosed
+	t.Close()
 }
 
 func (t *transport) getDispatcher() (dispatcher, error) {

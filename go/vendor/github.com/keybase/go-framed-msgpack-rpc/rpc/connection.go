@@ -95,6 +95,9 @@ func (t *connTransport) Dial(context.Context) (Transporter, error) {
 		return nil, err
 	}
 
+	if t.stagedTransport != nil {
+		t.stagedTransport.Close()
+	}
 	t.stagedTransport = NewTransport(t.conn, t.l, t.wef)
 	return t.stagedTransport, nil
 }
@@ -104,13 +107,25 @@ func (t *connTransport) IsConnected() bool {
 }
 
 func (t *connTransport) Finalize() {
+	if t.transport != nil {
+		t.transport.Close()
+	}
 	t.transport = t.stagedTransport
+	if t.stagedTransport != nil {
+		t.stagedTransport.Close()
+	}
 	t.stagedTransport = nil
 }
 
 func (t *connTransport) Close() {
 	t.conn.Close()
+	if t.transport != nil {
+		t.transport.Close()
+	}
 	t.transport = nil
+	if t.stagedTransport != nil {
+		t.stagedTransport.Close()
+	}
 	t.stagedTransport = nil
 }
 
@@ -246,6 +261,9 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	}
 	transport := NewTransport(conn, ct.logFactory, ct.wef)
 	ct.conn = conn
+	if ct.stagedTransport != nil {
+		ct.stagedTransport.Close()
+	}
 	ct.stagedTransport = transport
 	return transport, nil
 }
@@ -261,7 +279,13 @@ func (ct *ConnectionTransportTLS) IsConnected() bool {
 func (ct *ConnectionTransportTLS) Finalize() {
 	ct.mutex.Lock()
 	defer ct.mutex.Unlock()
+	if ct.transport != nil {
+		ct.transport.Close()
+	}
 	ct.transport = ct.stagedTransport
+	if ct.stagedTransport != nil {
+		ct.stagedTransport.Close()
+	}
 	ct.stagedTransport = nil
 	ct.srvRemote.Reset()
 }
@@ -272,6 +296,12 @@ func (ct *ConnectionTransportTLS) Close() {
 	defer ct.mutex.Unlock()
 	if ct.conn != nil {
 		ct.conn.Close()
+	}
+	if ct.transport != nil {
+		ct.transport.Close()
+	}
+	if ct.stagedTransport != nil {
+		ct.stagedTransport.Close()
 	}
 }
 
