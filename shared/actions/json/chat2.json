@@ -111,7 +111,10 @@
     "messageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "mentionsAt": "I.Set<string>",
+      "mentionsChannel": "'none' | 'all' | 'here'",
+      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>",
     },
     // Mark a message as deleted
     "messagesWereDeleted": {

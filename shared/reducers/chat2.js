@@ -149,7 +149,14 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     }
     case Chat2Gen.messageWasEdited: {
-      const {conversationIDKey, messageID, text} = action.payload
+      const {
+        conversationIDKey,
+        messageID,
+        text,
+        mentionsAt,
+        mentionsChannel,
+        mentionsChannelName,
+      } = action.payload
 
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
       if (!ordinal) {
@@ -165,6 +172,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 m.set('text', text)
                 m.set('hasBeenEdited', true)
                 m.set('submitState', null)
+                m.set('mentionsAt', mentionsAt)
+                m.set('mentionsChannel', mentionsChannel)
+                m.set('mentionsChannelName', mentionsChannelName)
               })
       )
     }

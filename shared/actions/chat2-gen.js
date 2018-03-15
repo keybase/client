@@ -241,6 +241,9 @@ export const createMessageWasEdited = (
     conversationIDKey: Types.ConversationIDKey,
     messageID: RPCChatTypes.MessageID,
     text: HiddenString,
+    mentionsAt: I.Set<string>,
+    mentionsChannel: 'none' | 'all' | 'here',
+    mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
   }>
 ) => ({error: false, payload, type: messageWasEdited})
 export const createMessagesAdd = (
