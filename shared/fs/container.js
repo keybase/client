@@ -49,12 +49,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
-  const pathItems = stateProps._itemNames
-    // TODO: hook up store when we have this in settings.
-    .filter(name => !name.startsWith('._') && name !== '.DS_Store' && name !== '.darwin')
-    .map(name =>
-      stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
-    )
+  const pathItems = stateProps._itemNames.map(name =>
+    stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
+  )
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
   const items = Constants.sortPathItems(pathItems, stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))

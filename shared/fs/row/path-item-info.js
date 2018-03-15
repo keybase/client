@@ -18,13 +18,9 @@ const PathItemInfo = ({lastModifiedTimestamp, lastWriter, wrap}: Props) => (
     {lastWriter ? (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>
         &nbsp;by&nbsp;
-        {isMobile ? (
-          lastWriter
-        ) : (
-          <Text type="BodySmall" style={writerStyle}>
-            {lastWriter}
-          </Text>
-        )}
+        <Text type="BodySmall" style={writerStyle}>
+          {lastWriter}
+        </Text>
       </Text>
     ) : (
       undefined

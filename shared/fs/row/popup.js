@@ -6,7 +6,9 @@ import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from './path-item-icon'
 import PathItemInfo from './path-item-info'
-import filesize from 'filesize'
+
+// TODO: use Constants.filesize after it's in.
+const filesize = s => `${(s / 1024).toString()} KB`
 
 type Props = {
   name: string,
@@ -24,45 +26,40 @@ type Props = {
   onHidden: () => void,
 }
 
-const Popup = ({
-  name,
-  size,
-  type,
-  lastModifiedTimestamp,
-  lastWriter,
-  childrenFolders,
-  childrenFiles,
-  itemStyles,
-  menuItems,
-  onHidden,
-}: Props) => {
+const Popup = (props: Props) => {
   const header = {
     title: 'yo',
     view: (
       <Box style={stylesHeader}>
-        <PathItemIcon spec={itemStyles.iconSpec} style={pathItemIconStyle} />
-        <Text type="BodySmallSemibold" style={{color: itemStyles.textColor}} lineClamp={1}>
-          {name}
+        <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
+        <Text type="BodySmallSemibold" style={{color: props.itemStyles.textColor}} lineClamp={1}>
+          {props.name}
         </Text>
-        {type === 'file' ? <Text type="BodySmall">{filesize(size)}</Text> : undefined}
-        {type === 'folder' ? (
+        {props.type === 'file' && <Text type="BodySmall">{filesize(props.size)}</Text>}
+        {props.type === 'folder' && (
           <Text type="BodySmall">
-            {childrenFolders ? `${childrenFolders} Folders` + (childrenFiles ? ', ' : '') : undefined}
-            {childrenFiles ? `${childrenFiles} Files` : undefined}
+            {props.childrenFolders
+              ? `${props.childrenFolders} Folders` + (props.childrenFiles ? ', ' : '')
+              : undefined}
+            {props.childrenFiles ? `${props.childrenFiles} Files` : undefined}
           </Text>
-        ) : (
-          undefined
         )}
-        <PathItemInfo lastModifiedTimestamp={lastModifiedTimestamp} lastWriter={lastWriter} wrap={true} />
+        <PathItemInfo
+          lastModifiedTimestamp={props.lastModifiedTimestamp}
+          lastWriter={props.lastWriter}
+          wrap={true}
+        />
       </Box>
     ),
   }
-  const items = menuItems.map(({onClick, title}) => ({
+  const items = props.menuItems.map(({onClick, title}) => ({
     onClick,
     title,
     view: <Text type="Body">{title}</Text>,
   }))
-  return <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={onHidden} />
+  return (
+    <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={props.onHidden} />
+  )
 }
 
 const pathItemIconStyle = {

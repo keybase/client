@@ -26,22 +26,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }
   },
   _openInFileUI: (path: Types.Path) => dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _onAction: (
-    path: Types.Path,
-    pathItem: Types.PathItem,
-    itemStyles: Types.ItemStyles,
-    targetRect?: ?ClientRect
-  ) => {
+  _onAction: (path: Types.Path, type: Types.PathType, targetRect?: ?ClientRect) => {
     // We may not have the folder loaded yet, but will need metadata to know
     // folder entry types in the popup. So dispatch an action now to load it.
-    pathItem.type === 'folder' && dispatch(FSGen.createFolderListLoad({path}))
+    type === 'folder' && dispatch(FSGen.createFolderListLoad({path}))
     dispatch(
       navigateAppend([
         {
           props: {
             path,
-            pathItem,
-            itemStyles,
             position: 'bottom right',
             targetRect,
           },
@@ -64,8 +57,7 @@ const mergeProps = ({_username, path, pathItem}, {_onOpen, _openInFileUI, _onAct
     onAction: (event: SyntheticEvent<>) =>
       _onAction(
         path,
-        pathItem,
-        itemStyles,
+        pathItem.type,
         isMobile ? undefined : (event.target: window.HTMLElement).getBoundingClientRect()
       ),
     itemStyles,

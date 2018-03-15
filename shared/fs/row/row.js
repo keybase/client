@@ -32,33 +32,25 @@ const HoverBox = isMobile
       },
     })
 
-export const Row = ({
-  name,
-  type,
-  lastModifiedTimestamp,
-  lastWriter,
-  itemStyles,
-  onOpen,
-  openInFileUI,
-  onAction,
-}: RowProps) => (
+export const Row = (props: RowProps) => (
   <Box>
     <Box style={stylesCommonRow}>
       <HoverBox style={stylesRowContainer}>
-        <ClickableBox onClick={onOpen} style={stylesRowBox}>
-          <PathItemIcon spec={itemStyles.iconSpec} style={pathItemIconStyle} />
+        <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
+          <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
           <Box style={folderBoxStyle}>
             <Text
-              type={itemStyles.textType}
-              style={rowTextStyles(itemStyles.textColor)}
+              type={props.itemStyles.textType}
+              style={rowTextStyles(props.itemStyles.textColor)}
               lineClamp={isMobile ? 1 : undefined}
             >
-              {name}
+              {props.name}
             </Text>
-            {type !== 'folder' ? (
-              <PathItemInfo lastModifiedTimestamp={lastModifiedTimestamp} lastWriter={lastWriter} />
-            ) : (
-              undefined
+            {props.type !== 'folder' && (
+              <PathItemInfo
+                lastModifiedTimestamp={props.lastModifiedTimestamp}
+                lastWriter={props.lastWriter}
+              />
             )}
           </Box>
         </ClickableBox>
@@ -67,14 +59,14 @@ export const Row = ({
             <Icon
               type="iconfont-finder"
               style={rowActionIconStyle}
-              onClick={openInFileUI}
+              onClick={props.openInFileUI}
               className="fs-path-item-hover-icon"
             />
           )}
           <Icon
             type="iconfont-ellipsis"
             style={rowActionIconStyle}
-            onClick={onAction}
+            onClick={props.onAction}
             className="fs-path-item-hover-icon"
           />
         </Box>
