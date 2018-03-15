@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, platformStyles} from '../../styles'
 
 import type {Props} from '.'
 
@@ -19,7 +19,7 @@ const Header = ({name, currentDevice, revokedAt}) => (
       type="Header"
       style={
         revokedAt
-          ? {color: globalColors.black_40, fontStyle: 'italic', textDecoration: 'line-through'}
+          ? {color: globalColors.black_40, fontStyle: 'italic', textDecorationLine: 'line-through'}
           : {fontStyle: 'italic'}
       }
     >
@@ -129,16 +129,18 @@ const stylesLine = {
   width: 2,
 }
 
-const stylesMeta = {
-  backgroundColor: globalColors.red,
-  borderRadius: 1,
-  color: globalColors.white,
-  fontSize: 10,
-  height: 11,
-  lineHeight: '11px',
-  paddingLeft: 2,
-  paddingRight: 2,
-  textTransform: 'uppercase',
-}
+const stylesMeta = platformStyles({
+  isElectron: {
+    backgroundColor: globalColors.red,
+    borderRadius: 1,
+    color: globalColors.white,
+    fontSize: 10,
+    height: 11,
+    lineHeight: '11px',
+    paddingLeft: 2,
+    paddingRight: 2,
+    textTransform: 'uppercase',
+  },
+})
 
 export default Render

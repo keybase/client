@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-codec/codec"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 )
@@ -57,7 +56,7 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 
 	// Decode encrypted box
 	var boxed boxedData
-	if err := decode(b, &boxed); err != nil {
+	if err := libkb.MPackDecode(b, &boxed); err != nil {
 		return true, err
 	}
 	if boxed.V > cryptoVersion {
@@ -73,7 +72,7 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 		return true, fmt.Errorf("failed to decrypt item")
 	}
 
-	if err = decode(pt, res); err != nil {
+	if err = libkb.MPackDecode(pt, res); err != nil {
 		return true, err
 	}
 
@@ -82,7 +81,7 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 
 func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}) error {
 	db := i.getDB(i.G())
-	dat, err := encode(data)
+	dat, err := libkb.MPackEncode(data)
 	if err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}
 	}
 
 	// Encode encrypted box
-	if dat, err = encode(boxed); err != nil {
+	if dat, err = libkb.MPackEncode(boxed); err != nil {
 		return err
 	}
 
@@ -117,21 +116,4 @@ func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}
 func (i *EncryptedDB) Delete(ctx context.Context, key libkb.DbKey) error {
 	db := i.getDB(i.G())
 	return db.Delete(key)
-}
-
-func encode(input interface{}) ([]byte, error) {
-	mh := codec.MsgpackHandle{WriteExt: true}
-	var data []byte
-	enc := codec.NewEncoderBytes(&data, &mh)
-	if err := enc.Encode(input); err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-func decode(data []byte, res interface{}) error {
-	mh := codec.MsgpackHandle{WriteExt: true}
-	dec := codec.NewDecoderBytes(data, &mh)
-	err := dec.Decode(res)
-	return err
 }

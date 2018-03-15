@@ -3,7 +3,7 @@ import last from 'lodash/last'
 import trim from 'lodash/trim'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles, collapseStyles} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
@@ -33,11 +33,13 @@ class UserItem extends Component<UserItemProps> {
         />
         <Text
           type="BodySemibold"
-          style={{
-            ...followingStateToStyle(followingState),
-            lineHeight: '18px',
-            marginLeft: globalMargins.xtiny,
-          }}
+          style={platformStyles({
+            common: {
+              ...followingStateToStyle(followingState),
+              lineHeight: 18,
+              marginLeft: globalMargins.xtiny,
+            },
+          })}
         >
           {username}
         </Text>
@@ -144,7 +146,7 @@ class UserInput extends Component<Props, State> {
               ref={el => {
                 this._textInput = el
               }}
-              inputStyle={{..._inputStyle, paddingLeft: inputLeftPadding}}
+              inputStyle={collapseStyles([_inputStyle, {paddingLeft: inputLeftPadding}])}
               placeholder={userItems.length ? '' : placeholder}
               value={usernameText}
               onChange={onChangeText}
@@ -205,14 +207,16 @@ const _inputLineStyle = {
   overflow: 'hidden',
 }
 
-const _inputStyle = {
-  ...getTextStyle('BodySemibold'),
-  flex: 1,
-  color: globalColors.black_75,
-  border: 'none',
-  outline: 'none',
-  lineHeight: '22px',
-  padding: 0,
-}
+const _inputStyle = platformStyles({
+  isElectron: {
+    ...getTextStyle('BodySemibold'),
+    flex: 1,
+    color: globalColors.black_75,
+    border: 'none',
+    outline: 'none',
+    lineHeight: 22,
+    padding: 0,
+  },
+})
 
 export default UserInput

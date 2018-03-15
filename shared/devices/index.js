@@ -4,7 +4,7 @@ import React, {PureComponent} from 'react'
 import {Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {OLDPopupMenu} from '../common-adapters/popup-menu'
 import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
 import {branch} from 'recompose'
 
 import type {MenuItem} from '../common-adapters/popup-menu.js'
@@ -162,19 +162,17 @@ const stylesPopup = isMobile
 
 const textStyle = isRevoked =>
   isRevoked
-    ? {
-        color: globalColors.black_40,
-        flex: 0,
-        ...(isMobile
-          ? {
-              textDecorationLine: 'line-through',
-              textDecorationStyle: 'solid',
-            }
-          : {
-              fontStyle: 'italic',
-              textDecoration: 'line-through',
-            }),
-      }
+    ? platformStyles({
+        common: {
+          color: globalColors.black_40,
+          flex: 0,
+          textDecorationLine: 'line-through',
+          textDecorationStyle: 'solid',
+        },
+        isElectron: {
+          fontStyle: 'italic',
+        },
+      })
     : {
         flex: 0,
       }

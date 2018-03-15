@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Icon, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, desktopStyles, platformStyles} from '../../styles'
 
 export type Props = {
   onReadMore: () => void,
@@ -34,7 +34,7 @@ const BetaNote = (props: Props) => (
       type="BodySmallSemibold"
       className="hover-underline"
       onClick={props.onReadMore}
-      style={{...globalStyles.clickable}}
+      style={platformStyles({isElectron: {...desktopStyles.clickable}})}
     >
       Read more about teams here
     </Text>

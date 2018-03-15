@@ -308,6 +308,30 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 	}
 }
 
+type InboxUIItemError struct {
+	Typ               ConversationErrorType   `codec:"typ" json:"typ"`
+	Message           string                  `codec:"message" json:"message"`
+	UnverifiedTLFName string                  `codec:"unverifiedTLFName" json:"unverifiedTLFName"`
+	RekeyInfo         *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
+	RemoteConv        UnverifiedInboxUIItem   `codec:"remoteConv" json:"remoteConv"`
+}
+
+func (o InboxUIItemError) DeepCopy() InboxUIItemError {
+	return InboxUIItemError{
+		Typ:               o.Typ.DeepCopy(),
+		Message:           o.Message,
+		UnverifiedTLFName: o.UnverifiedTLFName,
+		RekeyInfo: (func(x *ConversationErrorRekey) *ConversationErrorRekey {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RekeyInfo),
+		RemoteConv: o.RemoteConv.DeepCopy(),
+	}
+}
+
 type InboxUIItems struct {
 	Items      []InboxUIItem `codec:"items" json:"items"`
 	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -729,9 +753,9 @@ type ChatInboxConversationArg struct {
 }
 
 type ChatInboxFailedArg struct {
-	SessionID int                    `codec:"sessionID" json:"sessionID"`
-	ConvID    ConversationID         `codec:"convID" json:"convID"`
-	Error     ConversationErrorLocal `codec:"error" json:"error"`
+	SessionID int              `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID   `codec:"convID" json:"convID"`
+	Error     InboxUIItemError `codec:"error" json:"error"`
 }
 
 type ChatThreadCachedArg struct {

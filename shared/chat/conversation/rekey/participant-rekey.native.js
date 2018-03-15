@@ -9,7 +9,7 @@ import {
   HeaderHoc,
   ClickableBox,
 } from '../../../common-adapters/index.native'
-import {globalColors, globalStyles} from '../../../styles'
+import {globalColors, globalStyles, desktopStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'
 
@@ -64,7 +64,7 @@ const containerStyle = {
 
 const rowStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   minHeight: 56,
   alignItems: 'center',
 }

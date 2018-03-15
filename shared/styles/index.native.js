@@ -2,148 +2,56 @@
 import {StatusBar, StyleSheet} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
-import glamorous from 'glamorous-native'
+import * as Shared from './shared'
 
-const globalMargins = {
-  xtiny: 4,
-  tiny: 8,
-  small: 16,
-  medium: 24,
-  large: 40,
-  xlarge: 64,
-}
-
-const fontIOS = {
-  fontRegular: {
-    fontFamily: 'OpenSans',
-    fontWeight: '400',
-  },
-  fontSemibold: {
-    fontFamily: 'OpenSans',
-    fontWeight: '600',
-  },
-  fontBold: {
-    fontFamily: 'OpenSans',
-    fontWeight: '700',
-  },
-  italic: {
-    fontStyle: 'italic',
-  },
-  fontTerminal: {
-    fontFamily: 'Source Code Pro',
-  },
-  fontTerminalSemibold: {
-    fontFamily: 'Source Code Pro',
-    fontWeight: '600',
-  },
-}
-
-const fontAndroid = {
-  fontRegular: {
-    fontFamily: 'OpenSans',
-    fontWeight: 'normal',
-  },
-  fontSemibold: {
-    fontFamily: 'OpenSans-Semi',
-    fontWeight: 'bold',
-  },
-  fontBold: {
-    fontFamily: 'OpenSans',
-    fontWeight: 'bold',
-  },
-  italic: {
-    fontStyle: 'italic',
-  },
-  fontTerminal: {
-    fontFamily: 'SourceCodePro',
-  },
-  fontTerminalSemibold: {
-    fontFamily: 'SourceCodePro-Semi',
-    fontWeight: 'bold',
-  },
-}
-
-const font = isIOS ? fontIOS : fontAndroid
+const font = isIOS
+  ? {
+      fontBold: {fontFamily: 'OpenSans', fontWeight: '700'},
+      fontRegular: {fontFamily: 'OpenSans', fontWeight: '400'},
+      fontSemibold: {fontFamily: 'OpenSans', fontWeight: '600'},
+      fontTerminal: {fontFamily: 'Source Code Pro'},
+      fontTerminalSemibold: {fontFamily: 'Source Code Pro', fontWeight: '600'},
+      italic: {fontStyle: 'italic'},
+    }
+  : {
+      fontBold: {fontFamily: 'OpenSans', fontWeight: 'bold'},
+      fontRegular: {fontFamily: 'OpenSans', fontWeight: 'normal'},
+      fontSemibold: {fontFamily: 'OpenSans-Semi', fontWeight: 'bold'},
+      fontTerminal: {fontFamily: 'SourceCodePro'},
+      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
+      italic: {fontStyle: 'italic'},
+    }
 
 const util = {
-  flexBoxColumn: {
-    flexDirection: 'column',
-  },
-  flexBoxRow: {
-    flexDirection: 'row',
-  },
-  flexBoxCenter: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fillAbsolute: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    right: 0,
-    bottom: 0,
-  },
-  rounded: {
-    borderRadius: 3,
-  },
-  textDecoration: (type: string) => ({
-    textDecorationLine: type,
-  }),
+  ...Shared.util({}),
   loadingTextStyle: {
     backgroundColor: globalColors.lightGrey,
     height: 16,
   },
-  flexGrow: {
-    flexGrow: 1,
-  },
-  fullHeight: {
-    height: '100%',
+}
+
+export const desktopStyles = {
+  scrollable: {
+    // TODO remove this style entirely, use ScrollView
   },
 }
 
-const globalStyles = {
+export const mobileStyles = {}
+
+export const globalStyles = {
   ...font,
   ...util,
 }
 
 // FIXME: StatusBar.currentHeight returns undefined on iOS in RN 0.34
-const statusBarHeight = isAndroid ? StatusBar.currentHeight : 20
+export const statusBarHeight = isAndroid ? StatusBar.currentHeight : 20
+export const hairlineWidth = StyleSheet.hairlineWidth
+export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
+export const collapseStyles = (styles: Array<Object> | Object) => styles
+export const transition = (...properties: Array<string>) => ({})
+export const backgroundURL = (...path: Array<string>) => ({})
 
-function backgroundURL(...path: Array<string>): Object {
-  return {}
-}
-
-const hairlineWidth = StyleSheet.hairlineWidth
-const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
-const collapseStyles = (styles: Array<Object> | Object) => styles
-const lineHeight = (h: number) => h
-
-function transition(...properties: Array<string>): Object {
-  return {}
-}
-
-const backgroundModeToColor = {
-  Normal: globalColors.white,
-  Terminal: globalColors.darkBlue3,
-  Announcements: globalColors.blue,
-  Success: globalColors.green,
-  Information: globalColors.yellow,
-  HighRisk: globalColors.red,
-  Documentation: globalColors.darkBlue,
-}
-
-export {
-  backgroundModeToColor,
-  backgroundURL,
-  collapseStyles,
-  glamorous,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  hairlineWidth,
-  lineHeight,
-  statusBarHeight,
-  styleSheetCreate,
-  transition,
-}
 export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'
+export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
+export {default as glamorous} from 'glamorous-native'
+export {default as globalColors} from './colors'

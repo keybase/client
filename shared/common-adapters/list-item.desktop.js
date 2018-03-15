@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Box from './box'
-import {globalStyles} from '../styles'
+import {globalStyles, desktopStyles} from '../styles'
 import type {Props} from './list-item'
 
 class ListItem extends Component<Props> {
@@ -48,7 +48,7 @@ class ListItem extends Component<Props> {
 }
 
 function containerStyle(clickable) {
-  return clickable ? globalStyles.clickable : {}
+  return clickable ? desktopStyles.clickable : {}
 }
 
 function actionStyle(extraMargin) {

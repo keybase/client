@@ -3,7 +3,7 @@ import React, {Component, PureComponent} from 'react'
 import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {Avatar, Box, ProgressIndicator, Text} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 
 import type {Props, FriendshipUserInfo} from './friendships'
 
@@ -56,7 +56,7 @@ class UserEntry extends PureComponent<UserEntryProps> {
 }
 
 const userEntryContainerStyle = {
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'flex-start',

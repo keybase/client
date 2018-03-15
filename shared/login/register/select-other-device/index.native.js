@@ -127,7 +127,6 @@ const stylesDevicesContainer = {
 }
 const stylesRow = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
   alignItems: 'center',
   paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.small,

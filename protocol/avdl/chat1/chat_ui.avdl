@@ -74,6 +74,15 @@ protocol chatUi {
     array<ConversationMetadata> supersededBy;
   }
 
+  record InboxUIItemError {
+    ConversationErrorType typ;
+    string message;
+    string unverifiedTLFName;
+    // Only set if typ is for rekeying.
+    union { null, ConversationErrorRekey} rekeyInfo;
+    UnverifiedInboxUIItem remoteConv;
+  }
+
   record InboxUIItems {
     array<InboxUIItem> items;
     union { null, UIPagination } pagination;
@@ -142,7 +151,7 @@ protocol chatUi {
 
   void chatInboxUnverified(int sessionID, string inbox);
   void chatInboxConversation(int sessionID, string conv);
-  void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
+  void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;

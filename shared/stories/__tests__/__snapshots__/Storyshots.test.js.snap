@@ -711,6 +711,169 @@ exports[`Storyshots Chat/Conversation/InfoPanel Small team 1`] = `
 </div>
 `;
 
+exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (muted) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  color: #ffffff;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "#33a0ff",
+                "border": "solid 1px #33a0ff",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingTop": 16,
+          }
+        }
+      />
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (saved) 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -4508,11 +4671,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   font-weight: 400;
   white-space: nowrap;
   display: block;
-  overflow: hidden;
-  width: 100%;
-  text-overflow: ellipsis;
   min-height: 15px;
+  overflow: hidden;
   padding-right: 30px;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .glamor-4,
@@ -4593,11 +4756,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   font-weight: 700;
   white-space: nowrap;
   display: block;
-  overflow: hidden;
-  width: 100%;
-  text-overflow: ellipsis;
   min-height: 15px;
+  overflow: hidden;
   padding-right: 30px;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 <div
@@ -28432,7 +28595,8 @@ exports[`Storyshots Git DeleteRepo 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  text-decoration: line-through;
+  text-decoration-line: line-through;
+  -webkit-text-decoration-line: line-through;
 }
 
 .glamor-2,
@@ -28824,7 +28988,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
-  text-decoration: line-through;
+  text-decoration-line: line-through;
+  -webkit-text-decoration-line: line-through;
 }
 
 .glamor-4,
@@ -32641,11 +32806,11 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  align-self: center;
   border-radius: 2px;
   height: 11px;
   padding-left: 3px;
   padding-right: 3px;
-  align-self: center;
   text-transform: uppercase;
   background-color: #33a0ff;
   min-width: 16px;
@@ -33073,11 +33238,11 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  align-self: center;
   border-radius: 2px;
   height: 11px;
   padding-left: 3px;
   padding-right: 3px;
-  align-self: center;
   text-transform: uppercase;
   background-color: #33a0ff;
   min-width: 16px;
@@ -38711,8 +38876,8 @@ exports[`Storyshots Search Result 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -38743,8 +38908,8 @@ exports[`Storyshots Search Result 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -38759,8 +38924,8 @@ exports[`Storyshots Search Result 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -38776,8 +38941,8 @@ exports[`Storyshots Search Result 1`] = `
   font-family: OpenSans;
   font-weight: 600;
   font-style: italic;
-  overflow: hidden;
   flex: 1;
+  overflow: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   -webkit-flex: 1;
@@ -48453,11 +48618,11 @@ exports[`Storyshots Teams TeamList 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  align-self: center;
   border-radius: 1px;
   height: 11px;
   padding-left: 3px;
   padding-right: 3px;
-  align-self: center;
   text-transform: uppercase;
   background-color: #3dcc8e;
   margin-left: 4px;

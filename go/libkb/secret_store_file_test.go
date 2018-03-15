@@ -19,7 +19,7 @@ func testSSDir(t *testing.T) (string, func()) {
 	}
 
 	create := func(name, secret string) {
-		if err := ioutil.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), 0600); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -262,7 +262,7 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	// flip one bit
 	noise[0] ^= 0x01
 
-	if err := ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, 0600); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile); err != nil {
 		t.Fatal(err)
 	}
 

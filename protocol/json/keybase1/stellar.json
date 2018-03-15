@@ -1,0 +1,148 @@
+{
+  "protocol": "stellar",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "StellarAccountID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "StellarSecretKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "StellarRevision",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "EncryptedStellarSecretBundle",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "PerUserKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "StellarSecretBundleVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "StellarSecretBundleVersioned",
+      "switch": {
+        "type": "StellarSecretBundleVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "StellarSecretBundleV1"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StellarSecretBundleV1",
+      "fields": [
+        {
+          "type": "StellarRevision",
+          "name": "revision"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StellarSecretEntry"
+          },
+          "name": "accounts"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StellarSecretBundle",
+      "fields": [
+        {
+          "type": "StellarRevision",
+          "name": "revision"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StellarSecretEntry"
+          },
+          "name": "accounts"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "StellarAccountMode",
+      "symbols": [
+        "USER_0"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StellarSecretEntry",
+      "fields": [
+        {
+          "type": "StellarAccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "StellarAccountMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StellarSecretKey"
+          },
+          "name": "signers"
+        },
+        {
+          "type": "boolean",
+          "name": "isPrimary"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

@@ -15,7 +15,7 @@ import {
   codePageModeEnterText,
   codePageModeShowText,
 } from '../../../constants/login'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../../styles'
 import {getStyle} from '../../../common-adapters/text'
 
 import type {Props} from '.'
@@ -156,17 +156,21 @@ const stylesContainer = {
   alignItems: 'center',
   flex: 1,
 }
-const stylesPaperkey = {
-  ...getStyle('Header', 'Normal'),
-  ...globalStyles.fontTerminal,
-  color: globalColors.darkBlue,
-  display: 'inline-block',
-  lineHeight: '20px',
-  marginBottom: globalMargins.xlarge,
-  marginTop: globalMargins.medium,
-  maxWidth: 460,
-  textAlign: 'center',
-}
+const stylesPaperkey = platformStyles({
+  common: {
+    ...getStyle('Header', 'Normal'),
+    ...globalStyles.fontTerminal,
+    color: globalColors.darkBlue,
+    lineHeight: 20,
+    marginBottom: globalMargins.xlarge,
+    marginTop: globalMargins.medium,
+    maxWidth: 460,
+    textAlign: 'center',
+  },
+  isElectron: {
+    display: 'inline-block',
+  },
+})
 const stylesQrContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',

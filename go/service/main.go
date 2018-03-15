@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
@@ -54,6 +55,7 @@ type Service struct {
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
 	home                 *home.Home
+	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
 }
 
 type Shutdowner interface {
@@ -75,6 +77,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
+		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 	}
 }
 
@@ -282,11 +285,16 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
-	var err error
-	if err = d.setupTeams(); err != nil {
-		return err
-	}
-	return d.setupPVL()
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(d.setupTeams())
+	epick.Push(d.setupPVL())
+	epick.Push(d.setupEphemeralKeys())
+	return epick.Error()
+}
+
+func (d *Service) setupEphemeralKeys() error {
+	ephemeral.ServiceInit(d.G())
+	return nil
 }
 
 func (d *Service) setupTeams() error {
@@ -434,8 +442,7 @@ func (d *Service) identifySelf() {
 }
 
 func (d *Service) runTLFUpgrade() {
-	upgrader := tlfupgrade.NewBackgroundTLFUpdater(d.G())
-	upgrader.Run()
+	d.tlfUpgrader.Run()
 }
 
 func (d *Service) runBackgroundIdentifier() {
@@ -667,6 +674,7 @@ func (d *Service) OnLogin() error {
 	if !uid.IsNil() {
 		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
+		d.runTLFUpgrade()
 		go d.identifySelf()
 	}
 	return nil
@@ -698,6 +706,11 @@ func (d *Service) OnLogout() (err error) {
 	log("shutting down BG identifier")
 	if d.backgroundIdentifier != nil {
 		d.backgroundIdentifier.Logout()
+	}
+
+	log("shutting down TLF upgrader")
+	if d.tlfUpgrader != nil {
+		d.tlfUpgrader.Shutdown()
 	}
 
 	return nil
