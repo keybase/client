@@ -37,9 +37,9 @@ class Joined extends React.PureComponent<Props> {
           style={{marginRight: globalMargins.tiny}}
         />
         <Box style={globalStyles.flexBoxColumn}>
-          <Text title={formatTimeForMessages(timestamp)} type="BodySmallSemibold">
+          <Text type="BodySmallSemibold">
             {you === author ? (
-              <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
+              <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
                 You
               </Text>
             ) : (
@@ -53,7 +53,7 @@ class Joined extends React.PureComponent<Props> {
               />
             )}{' '}
           </Text>
-          <Text type="BodySmall">
+          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
             joined {isBigTeam ? `#${channelname}` : teamname}
             {'. '}
             {author === you &&

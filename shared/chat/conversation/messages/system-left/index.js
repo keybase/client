@@ -35,7 +35,7 @@ class Left extends React.PureComponent<Props> {
           style={{marginRight: globalMargins.tiny}}
         />
         <Box style={globalStyles.flexBoxColumn}>
-          <Text title={formatTimeForMessages(timestamp)} type="BodySmallSemibold">
+          <Text type="BodySmallSemibold">
             <ConnectedUsernames
               inline={true}
               type="BodySmallSemibold"
@@ -45,7 +45,9 @@ class Left extends React.PureComponent<Props> {
               usernames={[author]}
             />
           </Text>
-          <Text type="BodySmallSemibold">left {isBigTeam ? `#${channelname}` : teamname}</Text>
+          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
+            left {isBigTeam ? `#${channelname}` : teamname}.
+          </Text>
         </Box>
       </Box>
     )
