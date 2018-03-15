@@ -74,15 +74,18 @@ const mergeProps = (stateProps, dispatchProps) => {
     previous.author === message.author &&
     (previous.type === 'text' || previous.type === 'deleted')
 
-  const oldEnough =
-    !!previous &&
-    !!previous.timestamp &&
-    !!message.timestamp &&
+  const oldEnough = !!(
+    previous &&
+    previous.timestamp &&
+    message.timestamp &&
     message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+  )
 
   // Always show a timestamp if the previous message is a concise joined/left message
-  const previousIsJoinedLeft =
-    !!previous && (previous.type === 'systemJoined' || previous.type === 'systemLeft')
+  const previousIsJoinedLeft = !!(
+    previous &&
+    (previous.type === 'systemJoined' || previous.type === 'systemLeft')
+  )
 
   const timestamp =
     stateProps.orangeLineAbove || !previous || oldEnough || previousIsJoinedLeft
