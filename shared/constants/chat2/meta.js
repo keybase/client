@@ -239,6 +239,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsDesktop: 'never',
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never',
+  offline: false,
   orangeLineOrdinal: null,
   paginationKey: null,
   paginationMoreToLoad: true,

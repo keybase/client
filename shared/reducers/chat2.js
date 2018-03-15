@@ -33,6 +33,11 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    case Chat2Gen.setConversationOffline:
+      return metaMap.update(
+        action.payload.conversationIDKey,
+        meta => (meta ? meta.set('offline', action.payload.offline) : meta)
+      )
     case Chat2Gen.metaUpdatePagination:
       return metaMap.update(
         action.payload.conversationIDKey,
@@ -566,6 +571,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
     case Chat2Gen.metaUpdatePagination:
+    case Chat2Gen.setConversationOffline:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
