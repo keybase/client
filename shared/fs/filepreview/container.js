@@ -14,7 +14,7 @@ import * as Constants from '../../constants/fs'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
-  const meta = state.fs.pathInfos.get(path)
+  const meta = state.fs.pathItems.get(path)
   return {
     path,
     meta,

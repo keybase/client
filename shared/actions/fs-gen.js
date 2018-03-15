@@ -1,3 +1,4 @@
+// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier */
 
@@ -12,9 +13,10 @@ export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const filePreviewLoad = 'fs:filePreviewLoad'
+export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const fileTransferProgress = 'fs:fileTransferProgress'
 export const folderListLoad = 'fs:folderListLoad'
-export const filePreviewLoad = 'fs:filePreviewLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
@@ -24,7 +26,6 @@ export const installKBFS = 'fs:installKBFS'
 export const installKBFSResult = 'fs:installKBFSResult'
 export const openInFileUI = 'fs:openInFileUI'
 export const setFlags = 'fs:setFlags'
-export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const sortSetting = 'fs:sortSetting'
 export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
@@ -50,6 +51,13 @@ export const createDownloadStarted = (
     localPath: Types.LocalPath,
   }>
 ) => ({error: false, payload, type: downloadStarted})
+export const createFilePreviewLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: filePreviewLoad})
+export const createFilePreviewLoaded = (
+  payload: $ReadOnly<{
+    path: Types.Path,
+    meta: Types.PathItem,
+  }>
+) => ({error: false, payload, type: filePreviewLoaded})
 export const createFileTransferProgress = (
   payload: $ReadOnly<{
     key: string,
@@ -57,7 +65,6 @@ export const createFileTransferProgress = (
   }>
 ) => ({error: false, payload, type: fileTransferProgress})
 export const createFolderListLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: folderListLoad})
-export const createFilePreviewLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: filePreviewLoad})
 export const createFolderListLoaded = (
   payload: $ReadOnly<{
     path: Types.Path,
@@ -83,12 +90,6 @@ export const createSetFlags = (
     fuseInstalling?: boolean,
   }>
 ) => ({error: false, payload, type: setFlags})
-export const createFilePreviewLoaded = (
-  payload: $ReadOnly<{
-    path: Types.Path,
-    meta: Types.PathItemMetadata,
-  }>
-) => ({error: false, payload, type: filePreviewLoaded})
 export const createSortSetting = (
   payload: $ReadOnly<{
     path: Types.Path,
@@ -103,9 +104,10 @@ export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfe
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
+export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
+export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
 export type FileTransferProgressPayload = More.ReturnType<typeof createFileTransferProgress>
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
-export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
 export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
 export type FuseStatusPayload = More.ReturnType<typeof createFuseStatus>
 export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusResult>
@@ -115,7 +117,6 @@ export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
 export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSResult>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
-export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
@@ -127,9 +128,10 @@ export type Actions =
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>
   | More.ReturnType<typeof createDownloadStarted>
+  | More.ReturnType<typeof createFilePreviewLoad>
+  | More.ReturnType<typeof createFilePreviewLoaded>
   | More.ReturnType<typeof createFileTransferProgress>
   | More.ReturnType<typeof createFolderListLoad>
-  | More.ReturnType<typeof createFilePreviewLoad>
   | More.ReturnType<typeof createFolderListLoaded>
   | More.ReturnType<typeof createFuseStatus>
   | More.ReturnType<typeof createFuseStatusResult>
@@ -139,7 +141,6 @@ export type Actions =
   | More.ReturnType<typeof createInstallKBFSResult>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createSetFlags>
-  | More.ReturnType<typeof createFilePreviewLoaded>
   | More.ReturnType<typeof createSortSetting>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSConfirm>
