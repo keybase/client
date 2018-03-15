@@ -10,13 +10,6 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
-    "filePreviewLoad": {
-      "path": "Types.Path"
-    },
-    "filePreviewLoaded": {
-      "path": "Types.Path",
-      "meta": "Types.PathItem"
-    },
     "sortSetting": {
       "path": "Types.Path",
       "sortSetting": "Types.SortSetting"
