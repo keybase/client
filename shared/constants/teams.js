@@ -69,6 +69,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
   teamNameToConvIDs: I.Map(),
+  teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
   teamNameToLoadingInvites: I.Map(),

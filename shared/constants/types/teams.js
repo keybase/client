@@ -107,6 +107,7 @@ export type _State = {
   teamCreationError: string,
   teamCreationPending: boolean,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
+  teamNameToID: I.Map<Teamname, string>,
   teamNameToInvites: I.Map<
     Teamname,
     I.Set<

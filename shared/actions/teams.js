@@ -491,11 +491,13 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     const teammembercounts = {}
     const teamNameToRole = {}
     const teamNameToIsOpen = {}
+    const teamNameToID = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
       teamNameToIsOpen[team.fqName] = team.isOpenTeam
+      teamNameToID[team.fqName] = team.teamID
     })
 
     // Dismiss any stale badges for teams we're no longer in
@@ -521,6 +523,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
           teammembercounts: I.Map(teammembercounts),
           teamNameToIsOpen: I.Map(teamNameToIsOpen),
           teamNameToRole: I.Map(teamNameToRole),
+          teamNameToID: I.Map(teamNameToID),
         })
       )
     )
