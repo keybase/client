@@ -817,10 +817,14 @@ func TestJournalDoubleCrRemovalAfterQR(t *testing.T) {
 func TestJournalCoalescingConflictingCreates(t *testing.T) {
 	var busyWork []fileOp
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
+	listing := m{}
 	for i := 0; i < iters; i++ {
-		name := fmt.Sprintf("a/b/c/d/%d", i)
+		filename := fmt.Sprintf("%d", i)
+		fullname := fmt.Sprintf("a/b/c/d/%s", filename)
 		contents := fmt.Sprintf("hello%d", i)
-		busyWork = append(busyWork, mkfile(name, contents))
+		busyWork = append(busyWork, mkfile(fullname, contents))
+		listing["^"+filename+"$"] = "FILE"
+		listing["^"+crnameEsc(filename, bob)+"$"] = "FILE"
 	}
 
 	test(t, journal(), batchSize(1),
@@ -861,6 +865,12 @@ func TestJournalCoalescingConflictingCreates(t *testing.T) {
 			disableUpdates(),
 			reenableUpdates(),
 			flushJournal(),
+		),
+		as(alice,
+			lsdir("a/b/c/d", listing),
+		),
+		as(bob,
+			lsdir("a/b/c/d", listing),
 		),
 	)
 }

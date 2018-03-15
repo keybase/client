@@ -738,7 +738,8 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	for ptr := range unmergedChains.toUnrefPointers {
 		toUnref[ptr] = true
 	}
-	deletedBlocks := make(map[BlockPointer]bool)
+	deletedRefs := make(map[BlockPointer]bool)
+	deletedUnrefs := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
 		if ptr == zeroPtr || unmergedChains.doNotUnrefPointers[ptr] {
 			// A zero pointer can sneak in from the unrefs field of a
@@ -753,11 +754,12 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 		}
 		if isUnflushed {
 			blocksToDelete = append(blocksToDelete, ptr.ID)
-			deletedBlocks[ptr] = true
+			deletedUnrefs[ptr] = true
 			// No need to unreference this since we haven't flushed it yet.
 			continue
 		}
 
+		deletedRefs[ptr] = true
 		// Put the unrefs in a new resOp after the final operation, to
 		// cancel out any stray refs in earlier ops.
 		fup.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
@@ -771,11 +773,11 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	// (e.g., on a copied conflict file), we add an unref without
 	// removing the original ref, and if we remove the unref, the ref
 	// must go too.
-	if len(deletedBlocks) > 0 {
+	if len(deletedRefs) > 0 || len(deletedUnrefs) > 0 {
 		for _, op := range md.data.Changes.Ops {
 			var toDelRef []BlockPointer
 			for _, ref := range op.Refs() {
-				if deletedBlocks[ref] {
+				if deletedRefs[ref] || deletedUnrefs[ref] {
 					toDelRef = append(toDelRef, ref)
 				}
 			}
@@ -785,7 +787,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 			}
 			var toDelUnref []BlockPointer
 			for _, unref := range op.Unrefs() {
-				if deletedBlocks[unref] {
+				if deletedUnrefs[unref] {
 					toDelUnref = append(toDelUnref, unref)
 				}
 			}

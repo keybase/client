@@ -508,6 +508,47 @@ func createdFileWithConflictingWrite(unmergedChains, mergedChains *crChains,
 	return true
 }
 
+// createdFileWithNonzeroSizes checks two possibly-conflicting
+// createOps and returns true if the corresponding file has a non-zero
+// directory entry sizes in both the unmerged and merged branch.  We
+// need to check this sometimes, because a call to
+// `createdFileWithConflictingWrite` might not have access to syncOps
+// that have been resolved away in a previous iteration.  See
+// KBFS-2825 for details.
+func (cr *ConflictResolver) createdFileWithNonzeroSizes(
+	ctx context.Context, unmergedChains, mergedChains *crChains,
+	unmergedChain *crChain, mergedChain *crChain,
+	unmergedCop, mergedCop *createOp) (bool, error) {
+	lState := makeFBOLockState()
+	kmd := mergedChains.mostRecentChainMDInfo.kmd
+	mergedDirBlock, err := cr.fbo.blocks.GetDirBlockForReading(
+		ctx, lState, kmd, mergedChain.mostRecent,
+		mergedCop.getFinalPath().Branch, path{})
+	if err != nil {
+		return false, err
+	}
+	kmd = unmergedChains.mostRecentChainMDInfo.kmd
+	unmergedDirBlock, err := cr.fbo.blocks.GetDirBlockForReading(
+		ctx, lState, kmd, unmergedChain.mostRecent,
+		unmergedCop.getFinalPath().Branch, path{})
+	if err != nil {
+		return false, err
+	}
+	mergedEntry, mergedOk :=
+		mergedDirBlock.Children[mergedCop.NewName]
+	unmergedEntry, unmergedOk :=
+		unmergedDirBlock.Children[mergedCop.NewName]
+	if mergedOk && unmergedOk &&
+		mergedEntry.Size > 0 && unmergedEntry.Size > 0 {
+		cr.log.CDebugf(ctx,
+			"Not merging files named %s with non-zero sizes "+
+				"(merged=%d unmerged=%d)",
+			unmergedCop.NewName, mergedEntry.Size, unmergedEntry.Size)
+		return true, nil
+	}
+	return false, nil
+}
+
 // checkPathForMerge checks whether the given unmerged chain and path
 // contains any newly-created subdirectories that were created
 // simultaneously in the merged branch as well.  If so, it recursively
@@ -559,8 +600,20 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		mergedOriginal := mergedCop.Refs()[0]
 		if cop.Type != Dir {
 			// Only merge files if they don't both have writes.
+			// Double-check the directory blocks to see if the files
+			// have non-zero sizes, because an earlier resolution
+			// might have collapsed all the sync ops away.
 			if createdFileWithConflictingWrite(unmergedChains, mergedChains,
 				unmergedOriginal, mergedOriginal) {
+				continue
+			}
+			conflicts, err := cr.createdFileWithNonzeroSizes(
+				ctx, unmergedChains, mergedChains, unmergedChain, mergedChain,
+				cop, mergedCop)
+			if err != nil {
+				return nil, err
+			}
+			if conflicts {
 				continue
 			}
 		}
