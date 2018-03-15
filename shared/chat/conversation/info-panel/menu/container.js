@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/teams'
 import {connect, isMobile, type TypedState} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
-import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../../../actions/route-tree'
+import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
   const teamname = routeProps.get('teamname')
   return {
     onAddPeople: () => {

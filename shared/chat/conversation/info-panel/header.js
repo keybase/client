@@ -33,7 +33,6 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
         alignItems: 'center',
         marginLeft: globalMargins.small,
       }}
-      // $FlowIssue with ClickableBox
       onClick={_onClick}
     >
       <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
@@ -47,7 +46,6 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
       </Box>
       <Icon
         type="iconfont-gear"
-        // $FlowIssue with ClickableBox
         onClick={_onClickGear}
         style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
       />

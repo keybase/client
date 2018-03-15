@@ -1,10 +1,10 @@
 // @flow
 import {connect, isMobile} from '../../../../util/container'
 import {AddPeopleHow} from '.'
-import {navigateTo, navigateUp, switchTo} from '../../../../actions/route-tree'
+import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
   const teamname = routeProps.get('teamname')
   return {
     onAddPeople: () => {

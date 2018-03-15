@@ -66,7 +66,7 @@ type InfoPanelProps = {
 type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
-  onClick: any => void,
+  onClick: (?Element) => void,
 }
 
 type ParticipantRow = {
@@ -125,7 +125,7 @@ type SmallTeamHeaderRow = {
   teamname: string,
   participantCount: number,
   onViewTeam: () => void,
-  onClickGear: () => void,
+  onClickGear: (?Element) => void,
 }
 
 type BigTeamHeaderRow = {

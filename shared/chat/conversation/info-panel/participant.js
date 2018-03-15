@@ -35,7 +35,6 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
 const AddPeople = ({onClick}: {onClick: (?Element) => void}) => (
   <ClickableBox
     style={{...globalStyles.flexBoxRow}}
-    // $FlowIssue with ClickableBox
     onClick={evt => (isMobile ? onClick() : onClick(evt.currentTarget))}
   >
     <Box style={isMobile ? rowStyleMobile : rowStyle}>
