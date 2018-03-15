@@ -7931,28 +7931,6 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
 
 .glamor-33,
 [data-glamor-33] {
-  color: #33a0ff;
-}
-
-.glamor-33:hover,
-[data-glamor-33]:hover {
-  color: #66b8ff;
-}
-
-.glamor-34,
-[data-glamor-34] {
-  font-size: 14px;
-  line-height: 18px;
-  color: #33a0ff;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.glamor-35,
-[data-glamor-35] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -7964,8 +7942,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
   white-space: pre;
 }
 
-.glamor-36,
-[data-glamor-36] {
+.glamor-34,
+[data-glamor-34] {
   font-size: 14px;
   line-height: 18px;
   color: #ffffff;
@@ -9127,53 +9105,6 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
               <div
                 style={
                   Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "position": "absolute",
-                    "right": 32,
-                    "top": 32,
-                  }
-                }
-              >
-                <div>
-                  <span
-                    className="glamor-33"
-                    onClick={[Function]}
-                    onMouseEnter={undefined}
-                    onMouseLeave={undefined}
-                    style={
-                      Object {
-                        "WebkitFontSmoothing": "antialiased",
-                        "cursor": "pointer",
-                        "display": "block",
-                        "fontFamily": "kb",
-                        "fontSize": 16,
-                        "fontStyle": "normal",
-                        "fontVariant": "normal",
-                        "fontWeight": "normal",
-                        "lineHeight": 1,
-                        "marginRight": 4,
-                        "speak": "none",
-                        "textTransform": "none",
-                        "userSelect": "none",
-                      }
-                    }
-                  >
-                    
-                  </span>
-                </div>
-                <span
-                  className="glamor-34"
-                  onClick={[Function]}
-                  title={undefined}
-                >
-                  New chat channel
-                </span>
-              </div>
-              <div
-                style={
-                  Object {
                     "display": "flex",
                     "flex": 2,
                     "flexDirection": "column",
@@ -9234,7 +9165,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                       }
                     >
                       <span
-                        className="glamor-35"
+                        className="glamor-33"
                         onClick={undefined}
                         title={undefined}
                       >
@@ -9292,7 +9223,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                       }
                     >
                       <span
-                        className="glamor-36"
+                        className="glamor-34"
                         onClick={undefined}
                         title={undefined}
                       >
