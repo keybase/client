@@ -71,25 +71,24 @@ const metaMapReducer = (metaMap, action) => {
                   [].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)
                 )
               : I.OrderedSet(error.unverifiedTLFName.split(','))
-            const old = metaMap.get(conversationIDKey)
+
             const rekeyers = I.Set(
               error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )
-            return metaMap.set(
-              conversationIDKey,
-              Constants.makeConversationMeta({
-                conversationIDKey,
-                participants,
-                rekeyers,
-                snippet: error.message,
-                teamType: old ? old.teamType : 'adhoc',
-                teamname: old ? old.teamname : '',
-                timestamp: old ? old.timestamp : 0,
-                trustedState: 'error',
-              })
-            )
+            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv, username || '')
+            if (!newMeta) {
+              // public conversation, do nothing
+              return metaMap
+            }
+            newMeta = newMeta.merge({
+              participants,
+              rekeyers,
+              snippet: error.message,
+              trustedState: 'error',
+            })
+            return metaMap.set(conversationIDKey, newMeta)
           }
           default:
             return metaMap.update(

@@ -4,7 +4,7 @@ import moment from 'moment'
 
 import {intersperseFn} from '../../util/arrays'
 import {Avatar, Banner, Box, Button, Divider, Icon, Input, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, desktopStyles} from '../../styles'
 import {stateColors} from '../../util/tracker'
 import SubHeading from '../subheading'
 
@@ -195,7 +195,7 @@ function AcceptedInviteItem({
 }) {
   const nameColor = stateColors(invite.currentlyFollowing, invite.trackerState, globalColors.blue).username
   return (
-    <Box style={{...styleInviteItem, ...globalStyles.clickable, flexShrink: 0}} onClick={onClick}>
+    <Box style={{...styleInviteItem, ...desktopStyles.clickable, flexShrink: 0}} onClick={onClick}>
       <Avatar username={invite.username} size={32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text type="BodySemibold" style={{color: nameColor}}>

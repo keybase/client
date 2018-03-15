@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import Progress from './progress'
 
@@ -77,12 +77,16 @@ const stylesNameAndProgress = {
   justifyContent: 'center',
 }
 
-const stylesText = {
-  color: globalColors.white,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-}
+const stylesText = platformStyles({
+  common: {
+    color: globalColors.white,
+  },
+  isElectron: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+})
 
 const stylesProgressBox = {
   marginTop: -2,

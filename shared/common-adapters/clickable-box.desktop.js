@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {collapseStyles, globalStyles} from '../styles'
+import {collapseStyles, globalStyles, desktopStyles} from '../styles'
 
 import type {Props} from './clickable-box'
 
@@ -68,7 +68,7 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
         onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
         onMouseUp={this._onMouseUp}
         onClick={onClick}
-        style={collapseStyles([_containerStyle, onClick ? globalStyles.clickable : null, style])}
+        style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
       >
         {underlay}
         {children}

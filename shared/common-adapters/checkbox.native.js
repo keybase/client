@@ -44,7 +44,6 @@ class Checkbox extends Component<Props, State> {
 
   render() {
     const containerStyle = {
-      ...(this.props.disabled ? {} : globalStyles.clickable),
       opacity: this.props.disabled ? 0.4 : 1,
     }
     const onClick = this.props.disabled

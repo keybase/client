@@ -63,7 +63,7 @@ class InstalledBanner extends Component<Props, void> {
         <Box style={stylesContainer}>
           <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
             Your Keybase folders currently appear in your Finder under&nbsp;
-            <Text type="BodySmallPrimaryLink" style={globalStyles.fontTerminal} onClick={this._onOpen}>
+            <Text type="BodySmallPrimaryLink" style={{...globalStyles.fontTerminal}} onClick={this._onOpen}>
               /keybase
             </Text>
             .

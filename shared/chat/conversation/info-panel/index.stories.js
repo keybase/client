@@ -16,16 +16,12 @@ const onlyValidConversationsProps = {
 }
 
 const notificationProps = {
-  _resetSaveState: () => ({}),
-  channelWide: false,
-  desktop: 'onWhenAtMentioned',
-  mobile: 'never',
-  muted: false,
-  saveState: 'same',
-  toggleMuted: action('onMuteConversation'),
-  updateDesktop: action('onSetDesktop'),
-  updateMobile: action('onSetMobile'),
-  toggleChannelWide: action('onToggleChannelwide'),
+  _muteConversation: action('_muteConversation'),
+  _storeChannelWide: false,
+  _storeDesktop: 'onWhenAtMentioned',
+  _storeMobile: 'never',
+  _storeMuted: false,
+  _updateNotifications: action('_updateNotifications'),
 }
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {

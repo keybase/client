@@ -3,7 +3,7 @@ import last from 'lodash/last'
 import React, {Component} from 'react'
 import {TextInput, Animated} from 'react-native'
 import {Box, Text, Icon, ClickableBox} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
@@ -59,16 +59,18 @@ class UserItem extends Component<UserItemProps, UserItemState> {
           >
             <IconOrAvatar icon={icon} service={service} username={username} avatarSize={16} />
             <Animated.Text
-              style={{
-                ..._pillTextStyle,
-                ...usernameStyle,
-                ...globalStyles.fontSemibold,
-                color: selectAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [usernameStyle.color, globalColors.white],
-                }),
-                marginLeft: 3,
-              }}
+              style={[
+                _pillTextStyle,
+                usernameStyle,
+                globalStyles.fontSemibold,
+                {
+                  color: selectAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [usernameStyle.color, globalColors.white],
+                  }),
+                  marginLeft: 3,
+                },
+              ]}
             >
               {username}
             </Animated.Text>
@@ -76,10 +78,12 @@ class UserItem extends Component<UserItemProps, UserItemState> {
         </ClickableBox>
         <Text
           type="BodySemibold"
-          style={{
-            ..._pillTextStyle,
-            color: globalColors.black_20,
-          }}
+          style={[
+            _pillTextStyle,
+            {
+              color: globalColors.black_20,
+            },
+          ]}
         >
           ,
         </Text>
@@ -227,28 +231,32 @@ class UserInput extends Component<Props, State> {
 const _pillStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  borderRadius: 2,
   height: 24,
-  paddingTop: 2,
   paddingBottom: 2,
   paddingLeft: 1,
   paddingRight: 1,
-  borderRadius: 2,
-}
-
-const _pillTextStyle = {
-  fontSize: 14,
-  lineHeight: 20,
-  height: 22,
-}
-
-const _inputStyle = {
-  ...getTextStyle('BodySemibold'),
-  color: globalColors.black_75,
-  fontWeight: '600',
-  lineHeight: 20,
-  height: 22,
   paddingTop: 2,
-  paddingBottom: 2,
 }
+
+const _pillTextStyle = platformStyles({
+  isMobile: {
+    fontSize: 14,
+    height: 22,
+    lineHeight: 20,
+  },
+})
+
+const _inputStyle = platformStyles({
+  isMobile: {
+    ...getTextStyle('BodySemibold'),
+    color: globalColors.black_75,
+    fontWeight: '600',
+    height: 22,
+    lineHeight: 20,
+    paddingBottom: 2,
+    paddingTop: 2,
+  },
+})
 
 export default UserInput

@@ -5,7 +5,7 @@ import openURL from '../../../util/open-url'
 import {RPCError} from '../../../util/errors'
 import {constantsStatusCode} from '../../../constants/types/rpc-gen'
 import {Box, Text, Markdown} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import {globalStyles, globalMargins, isMobile, platformStyles} from '../../../styles'
 
 import type {Props} from '.'
 
@@ -239,10 +239,14 @@ const Render = ({onBack, error}: Props) => (
   </Container>
 )
 
-const centerText = {
-  textAlign: 'center',
-  ...(isMobile ? {} : {display: 'inline-block'}),
-}
+const centerText = platformStyles({
+  common: {
+    textAlign: 'center',
+  },
+  isElectron: {
+    display: 'inline-block',
+  },
+})
 
 const styleHeader = {
   alignSelf: 'center',

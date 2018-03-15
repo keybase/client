@@ -3,7 +3,7 @@ import List from './list'
 import React, {Component} from 'react'
 import {Box, TabBar, HeaderHoc} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 import {compose, defaultProps} from 'recompose'
 
 import type {Props} from '.'
@@ -108,10 +108,12 @@ const styleItem = {
   backgroundColor: globalColors.transparent,
 }
 
-const styleBadgeNumber = {
-  lineHeight: '13px',
-  fontSize: 11,
-}
+const styleBadgeNumber = platformStyles({
+  isMobile: {
+    lineHeight: 13,
+    fontSize: 11,
+  },
+})
 
 const itemContainerStyle = {
   ...globalStyles.flexBoxColumn,

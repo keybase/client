@@ -3,7 +3,7 @@ import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
 import type {Props} from './input'
 
@@ -381,11 +381,13 @@ const _errorStyle = {
   marginTop: globalMargins.xtiny,
 }
 
-const _floatingStyle = {
-  textAlign: 'center',
-  minHeight: _bodySmallTextStyle.lineHeight,
-  color: globalColors.blue,
-  display: 'block',
-}
+const _floatingStyle = platformStyles({
+  isElectron: {
+    textAlign: 'center',
+    minHeight: _bodySmallTextStyle.lineHeight,
+    color: globalColors.blue,
+    display: 'block',
+  },
+})
 
 export default Input

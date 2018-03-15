@@ -1,6 +1,6 @@
 // @flow
 import Banner from './install/banner'
-import InstallSecurityPrefs from './install/security-prefs'
+import InstallSecurityPrefs from './install/security-prefs.desktop'
 import List from './list'
 import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
