@@ -1,14 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import {Divider, HeaderHoc, List} from '../../../common-adapters'
+import {Box, Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
-import Participant from './participant'
-import {ManageTeam} from './manage-team'
-import {CaptionedButton, DangerButton} from './button-utils'
+import Participant, {AddPeople} from './participant'
+import {ParticipantCount} from './participant-count'
+import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -25,6 +25,8 @@ const listStyle = {
         marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
+
+const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
 type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey,
@@ -49,12 +51,23 @@ type InfoPanelProps = {
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
+  onAddPeople: (?Element) => void,
   onViewTeam: () => void,
+  onClickGear: (?Element) => void,
 
   // Used for big teams.
+  canEditChannel: boolean,
+  description: ?string,
+  onEditChannel: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
+
+type AddPeopleRow = {
+  type: 'add people',
+  key: 'add people',
+  onClick: (?Element) => void,
+}
 
 type ParticipantRow = {
   type: 'participant',
@@ -76,37 +89,51 @@ const getDividerStyle = (row: DividerRow) => ({
   marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
 })
 
+type SpacerRow = {
+  type: 'spacer',
+  key: string,
+  height: number,
+}
+
 type NotificationsRow = {
   type: 'notifications',
+  key: 'notifications',
 }
 
 type TurnIntoTeamRow = {
   type: 'turn into team',
+  key: 'turn into team',
   onShowNewTeamDialog: () => void,
 }
 
 type BlockThisConversationRow = {
   type: 'block this conversation',
+  key: 'block this conversation',
   onShowBlockConversationDialog: () => void,
 }
 
-type ManageTeamRow = {
-  type: 'manage team',
-  canManage: boolean,
+type ParticipantCountRow = {
+  type: 'participant count',
+  key: 'participant count',
   label: string,
   participantCount: number,
-  onViewTeam: () => void,
 }
 
 type SmallTeamHeaderRow = {
   type: 'small team header',
+  key: 'small team header',
   teamname: string,
   participantCount: number,
   onViewTeam: () => void,
+  onClickGear: (?Element) => void,
 }
 
 type BigTeamHeaderRow = {
   type: 'big team header',
+  key: 'big team header',
+  canEditChannel: boolean,
+  onEditChannel: () => void,
+  description: ?string,
   teamname: string,
   channelname: string,
   onViewTeam: () => void,
@@ -114,27 +141,32 @@ type BigTeamHeaderRow = {
 
 type JoinChannelRow = {
   type: 'join channel',
+  key: 'join channel',
   teamname: string,
   onJoinChannel: () => void,
 }
 
 type LeaveChannelRow = {
   type: 'leave channel',
+  key: 'leave channel',
   onLeaveConversation: () => void,
 }
 
 // All the row types that can appear in a small or big team header.
 type TeamHeaderRow =
   | DividerRow
+  | SpacerRow
   | NotificationsRow
-  | ManageTeamRow
+  | ParticipantCountRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
   | LeaveChannelRow
 
 type Row =
+  | AddPeopleRow
   | ParticipantRow
+  | SpacerRow
   | DividerRow
   | NotificationsRow
   | TurnIntoTeamRow
@@ -145,12 +177,18 @@ const typeSizeEstimator = (row: Row): number => {
   // The sizes below are retrieved by using the React DevTools
   // inspector on the appropriate components, including margins.
   switch (row.type) {
+    case 'add people':
+      return 48
+
     case 'participant':
       return 56
 
     case 'divider':
       const style = getDividerStyle(row)
       return 1 + style.marginTop + style.marginBottom
+
+    case 'spacer':
+      return row.height
 
     case 'notifications':
       return 270
@@ -159,22 +197,24 @@ const typeSizeEstimator = (row: Row): number => {
       return 47
 
     case 'block this conversation':
-      return 44
+      return 17
 
-    case 'manage team':
+    case 'participant count':
       return 15
 
     case 'small team header':
       return 32
 
     case 'big team header':
+      // This depends on how long the description is
+      // ballpark estimate between an empty and 1-line description
       return 57
 
     case 'join channel':
       return 47
 
     case 'leave channel':
-      return 44
+      return 17
 
     default:
       // eslint-disable-next-line no-unused-expressions
@@ -186,11 +226,16 @@ const typeSizeEstimator = (row: Row): number => {
 class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
+      case 'add people':
+        return <AddPeople key="add people" onClick={row.onClick} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
       case 'divider':
         return <Divider key={`divider ${row.key}`} style={getDividerStyle(row)} />
+
+      case 'spacer':
+        return <Spacer height={row.height} key={`spacer ${row.key}`} />
 
       case 'notifications':
         return <Notifications key="notifications" conversationIDKey={this.props.selectedConversationIDKey} />
@@ -207,21 +252,20 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'block this conversation':
         return (
-          <DangerButton
+          <CaptionedDangerIcon
             key="block this conversation"
-            label="Block this conversation"
+            caption="Block this conversation"
             onClick={row.onShowBlockConversationDialog}
+            icon="iconfont-remove"
           />
         )
 
-      case 'manage team':
+      case 'participant count':
         return (
-          <ManageTeam
-            key="manage team"
-            canManage={row.canManage}
+          <ParticipantCount
+            key="participant count"
             label={row.label}
             participantCount={row.participantCount}
-            onClick={row.onViewTeam}
           />
         )
 
@@ -232,6 +276,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname={row.teamname}
             participantCount={row.participantCount}
             onClick={row.onViewTeam}
+            onClickGear={row.onClickGear}
           />
         )
 
@@ -239,7 +284,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return (
           <BigTeamHeader
             key="big team header"
+            canEditChannel={row.canEditChannel}
+            onEditChannel={row.onEditChannel}
             channelname={row.channelname}
+            description={row.description}
             teamname={row.teamname}
             onClick={row.onViewTeam}
           />
@@ -256,7 +304,14 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       case 'leave channel':
-        return <DangerButton key="leave channel" label="Leave channel" onClick={row.onLeaveConversation} />
+        return (
+          <CaptionedDangerIcon
+            key="leave channel"
+            onClick={row.onLeaveConversation}
+            caption="Leave channel"
+            icon="iconfont-leave"
+          />
+        )
 
       default:
         // eslint-disable-next-line no-unused-expressions
@@ -266,6 +321,15 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   render() {
+    // Desktop uses the key returned by _renderRow (e.g. `divider X`)
+    // mobile uses the `key` prop supplied on these row objects
+    // use this to ensure we don't repeat a number for the arbitrary keys
+    let keyState = 0
+    const nextKey = () => {
+      keyState++
+      return keyState.toString()
+    }
+
     const props = this.props
     const participants: Array<ParticipantRow> = props.participants.map(p => ({
       type: 'participant',
@@ -278,53 +342,60 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const participantCount = participants.length
 
     let rows: Array<Row>
-    const {teamname, channelname, onViewTeam} = props
+    const {teamname, channelname, onViewTeam, onClickGear} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
+      const smallTeamHeaderRow = {
+        type: 'small team header',
+        key: 'small team header',
+        teamname,
+        participantCount,
+        onViewTeam,
+        onClickGear,
+      }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
-          {
-            type: 'small team header',
-            teamname,
-            participantCount,
-            onViewTeam,
-          },
+          {type: 'spacer', key: nextKey(), height: globalMargins.small},
+          smallTeamHeaderRow,
           {
             type: 'divider',
-            key: '1',
+            key: nextKey(),
             marginBottom: 20,
             marginTop: 20,
           },
           {
             type: 'notifications',
+            key: 'notifications',
           },
           {
             type: 'divider',
-            key: '2',
+            key: nextKey(),
           },
           {
-            type: 'manage team',
-            canManage: props.admin,
+            type: 'participant count',
+            key: 'participant count',
             label: 'In this team',
             participantCount,
-            onViewTeam: onViewTeam,
           },
         ]
       } else {
         // Big team.
         const headerRow = {
           type: 'big team header',
+          key: 'big team header',
+          canEditChannel: props.canEditChannel,
+          onEditChannel: props.onEditChannel,
+          description: props.description,
           teamname,
           channelname,
           onViewTeam,
         }
-        const manageTeamRow = {
-          type: 'manage team',
-          canManage: props.admin && channelname === 'general',
+        const participantCountRow = {
+          type: 'participant count',
+          key: 'participant count',
           label: 'In this channel',
           participantCount,
-          onViewTeam,
         }
 
         if (props.isPreview) {
@@ -332,78 +403,111 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           headerRows = [
             headerRow,
             {
-              type: 'divider',
-              key: '1',
+              type: 'spacer',
+              key: nextKey(),
+              height: globalMargins.tiny,
             },
             {
               type: 'join channel',
+              key: 'join channel',
               teamname,
               onJoinChannel: props.onJoinChannel,
             },
             {
               type: 'divider',
-              key: '2',
+              key: nextKey(),
+              marginBottom: globalMargins.tiny,
             },
-            manageTeamRow,
+            smallTeamHeaderRow,
+            {
+              type: 'divider',
+              key: nextKey(),
+              marginTop: globalMargins.tiny,
+            },
+            participantCountRow,
           ]
         } else {
           // Big team, no preview.
           headerRows = [
             headerRow,
             {
+              type: 'spacer',
+              key: nextKey(),
+              height: globalMargins.tiny,
+            },
+            ...(props.channelname !== 'general'
+              ? [
+                  {
+                    type: 'leave channel',
+                    key: 'leave channel',
+                    onLeaveConversation: props.onLeaveConversation,
+                  },
+                ]
+              : []),
+            {
               type: 'divider',
-              key: '1',
+              key: nextKey(),
+              marginBottom: globalMargins.tiny,
+            },
+            smallTeamHeaderRow,
+            {
+              type: 'divider',
+              key: nextKey(),
+              marginTop: globalMargins.tiny,
             },
             {
               type: 'notifications',
+              key: 'notifications',
             },
             {
               type: 'divider',
-              key: '2',
-              marginBottom: globalMargins.tiny,
+              key: nextKey(),
             },
-            {
-              type: 'leave channel',
-              onLeaveConversation: props.onLeaveConversation,
-            },
-            {
-              type: 'divider',
-              key: '3',
-              marginTop: globalMargins.tiny,
-            },
-            manageTeamRow,
+            participantCountRow,
           ]
         }
       }
       rows = headerRows.concat(participants)
+      if (props.admin && props.teamname && !props.isPreview) {
+        rows = rows.concat({type: 'add people', key: 'add people', onClick: props.onAddPeople})
+      }
     } else {
       // Conversation.
       rows = participants.concat([
         {
           type: 'divider',
-          key: '1',
+          key: nextKey(),
           marginBottom: 10,
           marginTop: 10,
         },
         {
           type: 'turn into team',
+          key: 'turn into team',
           onShowNewTeamDialog: props.onShowNewTeamDialog,
         },
         {
           type: 'divider',
-          key: '2',
+          key: nextKey(),
+          marginTop: 10,
         },
         {
           type: 'notifications',
+          key: 'notifications',
         },
         {
           type: 'divider',
-          key: '3',
-          marginBottom: 10,
+          key: nextKey(),
+          marginBottom: globalMargins.small,
         },
         {
           type: 'block this conversation',
+          key: 'block this conversation',
           onShowBlockConversationDialog: props.onShowBlockConversationDialog,
+        },
+        {
+          type: 'spacer',
+          key: nextKey(),
+          height: globalMargins.small,
         },
       ])
     }

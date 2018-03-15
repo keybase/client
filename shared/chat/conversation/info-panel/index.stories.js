@@ -57,25 +57,33 @@ const conversationProps = {
   channelname: null,
   smallTeam: false,
   admin: false,
+  canEditChannel: true,
+  description: "You shouldn't be seeing this",
 
   onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
   onShowNewTeamDialog: action('onShowNewTeamDialog'),
 
+  onAddPeople: unexpected('onAddPeople'),
   onViewTeam: unexpected('onViewTeam'),
+  onClickGear: unexpected('onClickGear'),
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
+  onEditChannel: unexpected('onEditChannel'),
 }
 
 const teamCommonProps = {
   ...commonProps,
   teamname: 'someteam',
   channelname: 'somechannel',
+  canEditChannel: true,
 
   onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
 
+  onAddPeople: action('onAddPeople'),
   onViewTeam: action('onViewTeam'),
+  onClickGear: action('onClickGear'),
 }
 
 const smallTeamProps = {
@@ -83,15 +91,19 @@ const smallTeamProps = {
   isPreview: false,
   smallTeam: true,
   admin: false,
+  description: "You shouldn't be seeing this",
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
+  onEditChannel: unexpected('onEditChannel'),
 }
 
 const bigTeamCommonProps = {
   ...teamCommonProps,
   smallTeam: false,
   admin: false,
+  description: 'The best channel',
+  onEditChannel: action('onEditChannel'),
 }
 
 const bigTeamPreviewProps = {
