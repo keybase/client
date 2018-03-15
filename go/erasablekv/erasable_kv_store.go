@@ -275,7 +275,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	files, err := filepath.Glob(s.storageDir + "/*")
+	files, err := filepath.Glob(s.storageDir + string(os.PathSeparator) + "*")
 	if err != nil {
 		return keys, err
 	}
@@ -283,7 +283,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 		if strings.HasSuffix(file, noiseSuffix) {
 			continue
 		}
-		parts := strings.Split(file, s.storageDir+"/")
+		parts := strings.Split(file, s.storageDir+string(os.PathSeparator))
 		keys = append(keys, parts[1])
 	}
 	return keys, nil
