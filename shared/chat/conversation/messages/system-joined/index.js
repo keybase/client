@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import UserNotice from '../user-notice'
 import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -19,6 +20,10 @@ class Joined extends React.PureComponent<Props> {
   render() {
     const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
     const {author, timestamp} = this.props.message
+    if (author === you) {
+      // Bring more attention to the current user joining
+      return <JoinedUserNotice {...this.props} />
+    }
     return (
       <Box
         style={{
@@ -37,22 +42,14 @@ class Joined extends React.PureComponent<Props> {
           style={{marginRight: globalMargins.tiny}}
         />
         <Box style={globalStyles.flexBoxColumn}>
-          <Text type="BodySmallSemibold">
-            {you === author ? (
-              <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-                You
-              </Text>
-            ) : (
-              <ConnectedUsernames
-                inline={true}
-                type="BodySmallSemibold"
-                onUsernameClicked={onUsernameClicked}
-                colorFollowing={true}
-                underline={true}
-                usernames={[author]}
-              />
-            )}{' '}
-          </Text>
+          <ConnectedUsernames
+            inline={true}
+            type="BodySmallSemibold"
+            onUsernameClicked={onUsernameClicked}
+            colorFollowing={true}
+            underline={true}
+            usernames={[author]}
+          />
           <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
             joined {isBigTeam ? `#${channelname}` : teamname}
             {'. '}
@@ -65,6 +62,53 @@ class Joined extends React.PureComponent<Props> {
           </Text>
         </Box>
       </Box>
+    )
+  }
+}
+
+class JoinedUserNotice extends React.PureComponent<Props> {
+  render() {
+    const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
+    const {author, timestamp} = this.props.message
+    return (
+      <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blue4}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+          {formatTimeForMessages(timestamp)}
+        </Text>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+          {you === author ? (
+            'You'
+          ) : (
+            <ConnectedUsernames
+              inline={true}
+              type="BodySmallSemibold"
+              onUsernameClicked={onUsernameClicked}
+              colorFollowing={true}
+              underline={true}
+              usernames={[author]}
+            />
+          )}{' '}
+          joined{' '}
+          {isBigTeam ? (
+            `#${channelname}`
+          ) : (
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+              {teamname}
+            </Text>
+          )}.
+        </Text>
+        {author === you &&
+          isBigTeam && (
+            <Text
+              backgroundMode="Announcements"
+              onClick={onManageChannels}
+              style={{color: globalColors.blue}}
+              type="BodySmallSemibold"
+            >
+              Manage channel subscriptions.
+            </Text>
+          )}
+      </UserNotice>
     )
   }
 }

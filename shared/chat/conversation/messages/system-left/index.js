@@ -38,7 +38,7 @@ class Left extends React.PureComponent<Props> {
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="BodySmallSemibold">
             {you === author ? (
-              <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+              <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black_60}}>
                 You
               </Text>
             ) : (
