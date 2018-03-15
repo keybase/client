@@ -28450,17 +28450,24 @@ exports[`Storyshots Files Root 1`] = `
           }
         }
       >
-        <div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "minHeight": 48,
+            }
+          }
+        >
           <div
             style={
               Object {
                 "alignItems": "center",
-                "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-                "borderBottomWidth": 1,
                 "display": "flex",
                 "flexDirection": "row",
                 "justifyContent": "center",
-                "minHeight": 48,
               }
             }
           >
