@@ -727,12 +727,20 @@ const loadMoreMessages = (
   )
 
   const actions = [
+    Saga.identity(conversationIDKey),
     Saga.call(loadThreadChanMapRpc.run),
     // clear if we loaded from a push
     Saga.put(Chat2Gen.createClearLoading({key: 'pushLoad'})),
   ]
 
   return Saga.sequentially(actions)
+}
+
+const loadMoreMessagesSuccess = (results: ?Array<any>) => {
+  if (!results) return
+  const conversationIDKey: Types.ConversationIDKey = results[0]
+  const res: RPCChatTypes.NonblockFetchRes = results[1].payload.params
+  return Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: res.offline}))
 }
 
 // If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
@@ -1793,7 +1801,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
     ],
-    loadMoreMessages
+    loadMoreMessages,
+    loadMoreMessagesSuccess
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, previewConversation)

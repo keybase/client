@@ -24,6 +24,7 @@ export type _ConversationMeta = {
   notificationsDesktop: NotificationsType,
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
+  offline: boolean,
   orangeLineOrdinal: ?Ordinal,
   paginationKey: ?PaginationKey,
   paginationMoreToLoad: boolean,
