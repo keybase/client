@@ -190,7 +190,8 @@ func (r *root) findKBFSMount(ctx context.Context) (
 		if i < 0 {
 			continue
 		}
-		if len(mp) > i+len(str) && mp[i+len(str)] != '/' {
+		if len(mp) > i+len(str) && mp[i+len(str)] != '/' &&
+			mp[i+len(str)] != ' ' {
 			continue
 		}
 
