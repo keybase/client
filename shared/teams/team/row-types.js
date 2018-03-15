@@ -31,6 +31,7 @@ type MemberRow = {
   username: string,
   teamname: string,
   key: string,
+  roleType: Types.TeamRoleType,
 }
 
 /* Subteams rows */
