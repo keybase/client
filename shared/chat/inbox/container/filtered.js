@@ -12,13 +12,13 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
   return (
     namesMinusYou.reduce((total, p) => {
       if (p === lcFilter) {
-        return total + 1 // exact match
+        return total + 100 // exact match
       } else {
         const idx = p.indexOf(lcFilter)
         if (idx === 0) {
-          return total + 0.8 // prefix match
+          return total + 75 // prefix match
         } else if (idx !== -1) {
-          return total + 0.5 // sub match
+          return total + 10 // sub match
         } else {
           return total
         }
@@ -47,10 +47,11 @@ const getFilteredRowsAndMetadata = createSelector(
             lcYou,
             [...(meta.teamname || '').split(','), ...meta.participants.toArray()].filter(Boolean)
           ),
+          timestamp: meta.timestamp,
         }
       })
       .filter(r => r.score > 0)
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => (a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score))
       .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
       .valueSeq()
       .toArray()
