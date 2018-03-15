@@ -23,6 +23,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "fromUser?": "boolean", // true if this is a direct result of the user clicking
       "asAPreview?": "boolean", // true if you want to preview the conversation
+      "fromFilter?": "boolean", // true if using arrow keys on filter, edge case we don't want to exit filter
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // forceImmediate to make it immediately. Normally conversations are made when you actually send text
