@@ -9,7 +9,6 @@ export const roleDescMap = {
   admin:
     'Can manage team member roles, create subteams and channels, and write and read in chats and folders.',
   owner: 'Gets all the admin rights + can delete team. (A team can have multiple owners.)',
-  reset: 'Has reset their account',
 }
 
 export const roleIconMap = {
