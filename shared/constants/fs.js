@@ -187,10 +187,10 @@ export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
 
   if (!meta) return ''
   const size = meta.size
-  if (size >= tib) return `${Math.round(size / tib)}tb`
-  if (size >= gib) return `${Math.round(size / gib)}gb`
-  if (size >= mib) return `${Math.round(size / mib)}mb`
-  if (size >= kib) return `${Math.round(size / kib)}kb`
+  if (size >= tib) return `${Math.round(size / tib)}TB`
+  if (size >= gib) return `${Math.round(size / gib)}GB`
+  if (size >= mib) return `${Math.round(size / mib)}MB`
+  if (size >= kib) return `${Math.round(size / kib)}KB`
   return '' + size
 }
 
