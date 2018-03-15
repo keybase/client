@@ -12,7 +12,7 @@ import (
 
 /*
 The box posted to the server is base64(msgpack(EncryptedStellarSecretBundle)).
-EncryptedStellarSecretBundle := is secretbox(key, bundlepack, randomnonce).
+EncryptedStellarSecretBundle := secretbox(key, bundlepack, randomnonce).
 key := HMAC(PUKSeed[gen], "Derived-User-NaCl-SecretBox-StellarBundle-1")
 bundlepack := msgpack(StellarSecretBundleVersioned)
 */
