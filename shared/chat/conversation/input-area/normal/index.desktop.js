@@ -276,7 +276,6 @@ const editingTabStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   backgroundColor: globalColors.yellow_60,
-  height: 48,
   padding: 4,
 }
 

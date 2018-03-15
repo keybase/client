@@ -170,11 +170,11 @@ export default compose(
 
         if (!isMobile) {
           const i = this.props.inputGetRef()
-          setImmediate(() => {
-            if (i) {
+          if (i) {
+            setImmediate(() => {
               i.moveCursorToEnd()
-            }
-          })
+            })
+          }
         }
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
