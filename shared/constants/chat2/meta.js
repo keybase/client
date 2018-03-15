@@ -210,6 +210,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    description: i.headline,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
@@ -233,6 +234,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
   conversationIDKey: Types.stringToConversationIDKey(''),
+  description: '',
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',

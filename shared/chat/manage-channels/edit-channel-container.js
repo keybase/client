@@ -5,12 +5,13 @@ import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import EditChannel from './edit-channel'
-import {connect, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
-  const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+  const teamname =
+    routeProps.get('teamname') || Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
   const waitingForSave = anyWaiting(
     state,
     `updateTopic:${conversationIDKey}`,
@@ -18,10 +19,12 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     `getChannels:${teamname}`
   )
   const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
+  const _needsLoad = !channelName
   const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
   const yourRole = Constants.getRole(state, teamname) || 'reader'
   const canDelete = (yourRole && (Constants.isAdmin(yourRole) || Constants.isOwner(yourRole))) || false
   return {
+    _needsLoad,
     conversationIDKey,
     teamname,
     channelName,
@@ -35,6 +38,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   const conversationIDKey = routeProps.get('conversationIDKey')
 
   return {
+    _loadChannels: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
     onCancel: () => dispatch(navigateUp()),
     _updateChannelName: (newChannelName: string) =>
       dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName})),
@@ -56,6 +60,8 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
     onConfirmedDelete: dispatchProps.onConfirmedDelete,
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
+    _needsLoad: stateProps._needsLoad,
+    _loadChannels: () => dispatchProps._loadChannels(stateProps.teamname),
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {
         if (newChannelName !== stateProps.channelName) {
@@ -74,7 +80,16 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
 }
 const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey}>,
+  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname?: string}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
-}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
+}> = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount: function() {
+      if (this.props._needsLoad) {
+        this.props._loadChannels()
+      }
+    },
+  })
+)(EditChannel)
 export default ConnectedEditChannel

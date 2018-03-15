@@ -4,6 +4,7 @@ import Files from './container'
 import FilePreview from './filepreview/container'
 import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './header/breadcrumb-popup'
+import FinderPopupMenu from './finder-popup'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
@@ -21,6 +22,10 @@ const _folderRoute = {
     },
     sortbarAction: {
       component: RelativePopupHoc(SortBarPopupMenu),
+      tags: makeLeafTags({layerOnTop: true}),
+    },
+    finderAction: {
+      component: RelativePopupHoc(FinderPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
     },
   },
