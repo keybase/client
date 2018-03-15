@@ -11,7 +11,7 @@ const statusToIcon: {[key: IconStatus]: IconType} = {
   error: 'icon-message-status-error-24',
 }
 
-const encryptingTimeout = 100
+const encryptingTimeout = 600
 const sentTimeout = 400
 
 const shownEncryptingSet = new Set()
