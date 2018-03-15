@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Input, Icon} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalStyles, desktopStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
 export type Props = {
@@ -64,7 +64,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
         type={'iconfont-folder-open'}
         onClick={onSubmit}
         style={{
-          ...globalStyles.clickable,
+          ...desktopStyles.clickable,
           color: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
         }}
       />

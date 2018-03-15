@@ -2,6 +2,7 @@
 import * as Types from '../constants/types/search'
 import * as React from 'react'
 import {Avatar, Icon} from '../common-adapters'
+import {type StylesCrossPlatform} from '../styles'
 
 import type {AvatarSize} from '../common-adapters/avatar'
 import type {IconType} from '../common-adapters/icon'
@@ -11,7 +12,7 @@ type Props = {|
   username: ?string,
   icon: ?IconType,
   avatarSize: AvatarSize,
-  style?: {},
+  style?: StylesCrossPlatform,
 |}
 
 const IconOrAvatar = ({service, username, icon, avatarSize, style}: Props) =>

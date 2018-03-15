@@ -2,14 +2,18 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-import {globalColors, globalStyles, isMobile} from '../styles'
+import {globalColors, globalStyles, isMobile, platformStyles} from '../styles'
 import {storiesOf, action} from '../stories/storybook'
 
 const SmallGap = () => <Box style={{minHeight: 24}} />
 const LargeGap = () => <Box style={{minHeight: 36}} />
 
 const displayBlock = {
-  style: isMobile ? {} : {display: 'block'},
+  style: platformStyles({
+    isElectron: {
+      display: 'block',
+    },
+  }),
 }
 const foregroundMode = {
   backgroundMode: 'Normal',

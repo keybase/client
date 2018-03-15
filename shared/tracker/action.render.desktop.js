@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
@@ -125,7 +125,7 @@ export function calcFooterHeight(loggedIn: boolean): number {
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.noSelect,
+  ...desktopStyles.noSelect,
   backgroundColor: globalColors.white_90,
   width: '100%',
   height: calcFooterHeight(true),

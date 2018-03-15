@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import {StandardScreen, Box, Text, Icon, Button} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import type {Props} from '.'
 
 // TODO remove this for a common banner
@@ -126,16 +125,18 @@ const stylesLine = {
   width: 2,
 }
 
-const stylesMeta = {
-  backgroundColor: globalColors.red,
-  borderRadius: 2,
-  color: globalColors.white,
-  fontSize: 12,
-  height: 15,
-  lineHeight: 15,
-  marginTop: globalMargins.xtiny,
-  paddingLeft: 2,
-  paddingRight: 2,
-}
+const stylesMeta = platformStyles({
+  isMobile: {
+    backgroundColor: globalColors.red,
+    borderRadius: 2,
+    color: globalColors.white,
+    fontSize: 12,
+    height: 15,
+    lineHeight: 15,
+    marginTop: globalMargins.xtiny,
+    paddingLeft: 2,
+    paddingRight: 2,
+  },
+})
 
 export default Render

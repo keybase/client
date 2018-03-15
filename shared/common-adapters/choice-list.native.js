@@ -71,7 +71,6 @@ class ChoiceList extends Component<Props, State> {
 
 const styleEntry = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
   paddingTop: globalMargins.tiny,
   paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.small,

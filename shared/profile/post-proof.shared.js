@@ -37,7 +37,7 @@ export function propsForPlatform(props: Props): MoreProps {
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
             Please tweet the text below{' '}
-            <Text type="BodySemiboldItalic" style={globalStyles.italic}>
+            <Text type="BodySemiboldItalic" style={{...globalStyles.italic}}>
               exactly as it appears.
             </Text>
           </Text>
@@ -94,7 +94,7 @@ export function propsForPlatform(props: Props): MoreProps {
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
             Please add the below text{' '}
-            <Text type="BodySemibold" style={globalStyles.italic}>
+            <Text type="BodySemibold" style={{...globalStyles.italic}}>
               exactly as it appears
             </Text>{' '}
             to your profile.

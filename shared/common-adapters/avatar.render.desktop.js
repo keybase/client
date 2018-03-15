@@ -1,7 +1,7 @@
 // @flow
 import Icon from './icon'
 import * as React from 'react'
-import {globalStyles, globalColors, glamorous} from '../styles'
+import {globalColors, glamorous, desktopStyles} from '../styles'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -129,7 +129,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
       <div
         onClick={this.props.onClick}
         style={{
-          ...globalStyles.noSelect,
+          ...desktopStyles.noSelect,
           height: this.props.size,
           maxWidth: this.props.size,
           minHeight: this.props.size,

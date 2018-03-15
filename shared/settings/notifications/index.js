@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalMargins, isMobile, desktopStyles} from '../../styles'
 import type {NotificationsSettingsState} from '../../constants/types/settings'
 import type {Props} from './index'
 
@@ -72,7 +72,7 @@ const Notifications = (props: Props) =>
       <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
     </Box>
   ) : (
-    <Box style={{...globalStyles.scrollable, flex: 1, padding: globalMargins.small}}>
+    <Box style={{...desktopStyles.scrollable, flex: 1, padding: globalMargins.small}}>
       <Group
         allowEdit={props.allowEdit}
         groupName="email"
