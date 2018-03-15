@@ -39,6 +39,8 @@ export default function(state: Types.State = initialState, action: LoginGen.Acti
           )
     case LoginGen.waitingForResponse:
       return state.set('waitingForResponse', action.payload.waiting)
+    case LoginGen.loginError:
+      return state.set('loginError', action.payload.error)
     case LoginGen.provisioningError:
     case LoginGen.resetQRCodeScanned: // fallthrough
       return state.set('codePageQrCodeScanned', false)

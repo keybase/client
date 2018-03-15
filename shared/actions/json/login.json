@@ -52,6 +52,9 @@
     "setOtherDeviceCodeState": {
       "codePageOtherDeviceRole": "Types.DeviceRole"
     },
+    "loginError": {
+      "error": "string"
+    },
     "provisioningError": {
       "error": "Error"
     },
