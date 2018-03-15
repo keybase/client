@@ -8,12 +8,14 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
 import {teamsTab} from '../../../constants/tabs'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  // ? because this isn't a route on desktop, and headerHoc is mobile only
+  navigateUp?: typeof Route.navigateUp,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -21,16 +23,20 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
 
   let admin = false
+  let canEditChannel = false
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
     admin = yourOperations.renameChannel
+    canEditChannel = yourOperations.editChannelDescription
   }
 
   return {
     _participants: meta.participants,
     _infoMap: state.users.infoMap,
     admin,
+    canEditChannel,
     channelname: meta.channelname,
+    description: meta.description,
     isPreview: meta.membershipType === 'youArePreviewing',
     selectedConversationIDKey: conversationIDKey,
     smallTeam: meta.teamType !== 'big',
@@ -38,13 +44,39 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
+  _onAddPeople: (teamname: string, target) =>
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {
+            teamname,
+            position: 'bottom left',
+            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
+          },
+          selected: 'addPeopleHow',
+        },
+      ])
+    ),
+  _onOpenMenu: (teamname: string, isSmallTeam: boolean, target) =>
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {
+            teamname,
+            isSmallTeam,
+            position: 'bottom left',
+            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
+          },
+          selected: 'infoPanelMenu',
+        },
+      ])
+    ),
+  _onBack: () => dispatch(navigateUp && navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-  _onLeaveConversation: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-  _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
-  _onShowBlockConversationDialog: (conversationIDKey: Types.ConversationIDKey) => {
+  onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+  onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  onShowBlockConversationDialog: () => {
     dispatch(
       Route.navigateAppend([
         {
@@ -54,7 +86,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
-  _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
+  onShowNewTeamDialog: () => {
     dispatch(
       Route.navigateAppend([
         {
@@ -68,6 +100,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Route.navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
+  _onEditChannel: (teamname: string) =>
+    dispatch(Route.navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
@@ -80,12 +114,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
+  onAddPeople: (target: ?Element) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
-  onJoinChannel: () => dispatchProps._onJoinChannel(stateProps.selectedConversationIDKey),
-  onLeaveConversation: () => dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey),
-  onShowBlockConversationDialog: () =>
-    dispatchProps._onShowBlockConversationDialog(stateProps.selectedConversationIDKey),
-  onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
+  onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
+  onJoinChannel: dispatchProps.onJoinChannel,
+  onLeaveConversation: dispatchProps.onLeaveConversation,
+  onClickGear: (target: ?Element) =>
+    dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
+  onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
+  onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
   onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
@@ -96,7 +133,7 @@ const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergePro
 type SelectorOwnProps = {
   conversationIDKey: ?Types.ConversationIDKey,
   routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile its a route
-  navigateUp?: () => void,
+  navigateUp?: typeof Route.navigateUp,
 }
 
 const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) => {

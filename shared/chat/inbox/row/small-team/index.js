@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, isMobile} from '../../../../styles'
+import {globalStyles, globalColors, isMobile, desktopStyles} from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
@@ -93,7 +93,7 @@ const rowHeight = isMobile ? 64 : 56
 
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   flexShrink: 0,
   maxHeight: rowHeight,

@@ -3,7 +3,7 @@ import * as React from 'react'
 import openURL from '../util/open-url'
 import {Avatar, Box, Button, Icon, Text, HeaderHoc} from '../common-adapters'
 import capitalize from 'lodash/capitalize'
-import {globalColors, globalStyles, globalMargins} from '../styles'
+import {globalColors, globalStyles, globalMargins, platformStyles} from '../styles'
 import {platformToLogo24} from '../constants/search'
 
 import type {Props} from './non-user-profile'
@@ -12,12 +12,7 @@ const NonUserRender = (props: Props) => (
   <Box style={styleContainer}>
     <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
     <Box style={styleBioBlurb}>
-      <Avatar
-        style={globalStyles.clickable}
-        onClick={() => openURL(props.profileUrl)}
-        url={props.avatar}
-        size={112}
-      />
+      <Avatar onClick={() => openURL(props.profileUrl)} url={props.avatar} size={112} />
       <Box style={styleUsernameRow} onClick={() => openURL(props.profileUrl)}>
         <Icon type={platformToLogo24(props.serviceName)} />
         <Text type="HeaderBig" selectable={true} style={styleUsername}>
@@ -66,7 +61,6 @@ const styleBioBlurb = {
 
 const styleUsernameRow = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
   alignItems: 'center',
   marginTop: globalMargins.tiny,
 }
@@ -80,11 +74,13 @@ const styleFullname = {
   marginTop: 2,
 }
 
-const styleServiceLabel = {
-  fontSize: 13,
-  lineHeight: 17,
-  marginTop: globalMargins.xtiny,
-}
+const styleServiceLabel = platformStyles({
+  common: {
+    fontSize: 13,
+    lineHeight: 17,
+    marginTop: globalMargins.xtiny,
+  },
+})
 
 const styleDetails = {
   marginLeft: globalMargins.medium,

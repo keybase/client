@@ -2,7 +2,7 @@
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {AvatarSize} from './avatar'
@@ -19,7 +19,7 @@ class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading
               alignItems: 'flex-end',
               zIndex: 2,
               position: 'relative',
-              ...globalStyles.fadeOpacity,
+              ...desktopStyles.fadeOpacity,
               opacity: this.props.loading ? 1 : 0,
             }}
           >
@@ -32,7 +32,7 @@ class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading
               }}
             />
           </Box>
-          <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
+          <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
             <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 157}} />
             <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 87}} />
             <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 117}} />
@@ -82,7 +82,7 @@ class BioRender extends Component<Props> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              ...globalStyles.fadeOpacity,
+              ...desktopStyles.fadeOpacity,
               alignItems: 'flex-end',
               zIndex: 2,
               position: 'relative',
@@ -91,7 +91,7 @@ class BioRender extends Component<Props> {
           >
             <Avatar
               onClick={() => this.props.onClickAvatar(username)}
-              style={globalStyles.clickable}
+              style={platformStyles({isElectron: desktopStyles.clickable})}
               username={username}
               size={avatarSize}
               following={currentlyFollowing && !editFns}
@@ -107,7 +107,7 @@ class BioRender extends Component<Props> {
               </Box>
             )}
           </Box>
-          <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
+          <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
               type="HeaderBig"
               selectable={true}
@@ -138,14 +138,14 @@ class BioRender extends Component<Props> {
               )}
             {userInfo.followersCount !== -1 && (
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
-                <Text type="BodySmall" style={globalStyles.fontBold}>
+                <Text type="BodySmall" style={{...globalStyles.fontBold}}>
                   {userInfo.followersCount}
                   <Text type="BodySmall">&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
                 </Text>
                 <Text type="BodySmall">&nbsp; &middot; &nbsp;</Text>
                 <Text type="BodySmall">
                   Following&nbsp;
-                  <Text type="BodySmall" style={globalStyles.fontBold}>
+                  <Text type="BodySmall" style={{...globalStyles.fontBold}}>
                     {userInfo.followingCount}
                   </Text>
                 </Text>
@@ -248,10 +248,12 @@ const stylesFullname = {
   textAlign: 'center',
   color: globalColors.black_75,
 }
-const stylesFollowLabel = {
-  fontSize: 11,
-  textTransform: 'uppercase',
-}
+const stylesFollowLabel = platformStyles({
+  isElectron: {
+    fontSize: 11,
+    textTransform: 'uppercase',
+  },
+})
 const stylesBio = {
   paddingLeft: 30,
   paddingRight: 30,

@@ -9,6 +9,13 @@
   "types": [
     {
       "type": "record",
+      "name": "EkGeneration",
+      "fields": [],
+      "lint": "ignore",
+      "typedef": "int64"
+    },
+    {
+      "type": "record",
       "name": "DeviceEkMetadata",
       "fields": [
         {
@@ -17,9 +24,27 @@
           "jsonkey": "device_ephemeral_dh_public"
         },
         {
-          "type": "int",
-          "name": "generation",
-          "jsonkey": "generation"
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "generation"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DeviceEk",
+      "fields": [
+        {
+          "type": "Bytes32",
+          "name": "seed"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "generation"
         },
         {
           "type": "HashMeta",

@@ -21,7 +21,7 @@ import {
 } from '../common-adapters'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
 import {findDOMNode} from 'react-dom'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {Proof} from '../constants/types/tracker'
@@ -495,7 +495,7 @@ const styleProofs = {
 
 const styleFolderLine = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'flex-start',
   minHeight: 24,
   color: globalColors.black_60,
@@ -528,7 +528,7 @@ const styleProofMenu = {
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: globalColors.black_10,
@@ -563,10 +563,10 @@ const styleShowcasedTeamAvatar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
-  height: globalStyles.medium,
-  minHeight: globalStyles.medium,
-  minWidth: globalStyles.medium,
-  width: globalStyles.medium,
+  height: globalMargins.medium,
+  minHeight: globalMargins.medium,
+  minWidth: globalMargins.medium,
+  width: globalMargins.medium,
 }
 
 const styleShowcasedTeamName = {

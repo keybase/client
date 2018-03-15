@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
-import {globalColors, globalStyles} from '../../../styles'
+import {globalColors, globalStyles, platformStyles, desktopStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'
 
@@ -10,7 +10,7 @@ const Row = ({username, onUsernameClicked}) => (
     <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
     <Box style={innerRowStyle}>
       <Usernames inline={true} type="BodySemibold" users={[{username}]} />
-      <Text type="BodySmall" style={{lineHeight: '17px'}}>
+      <Text type="BodySmall" style={platformStyles({isElectron: {lineHeight: '17px'}})}>
         Can rekey this chat by opening the Keybase app.
       </Text>
     </Box>
@@ -59,7 +59,7 @@ const containerStyle = {
 
 const rowStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   minHeight: 48,
 }
 

@@ -4,7 +4,7 @@ import Text from './text'
 import BackButton from './back-button'
 import Box from './box'
 import Icon from './icon'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 
 import type {Props} from './header-hoc'
 
@@ -79,7 +79,7 @@ const _backButtonIconStyleThemed = {
 }
 
 const _styleClose = {
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   position: 'absolute',
   right: globalMargins.small,
   top: globalMargins.small,

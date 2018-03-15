@@ -242,6 +242,9 @@ protocol Common {
       // per-user secrets one for every generation.
       @lint("ignore")
       array<PerUserKey> perUserKeys;
+
+      // All resets that follow user incarnations with device keys.
+      array<ResetSummary> resets;
   }
 
   record UserOrTeamLite {

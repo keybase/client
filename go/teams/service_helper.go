@@ -1280,12 +1280,11 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 
-	isRoleOrAbove := func(role keybase1.TeamRole) (bool, error) {
-
-		return teamRole.IsOrAbove(role), nil
+	isRoleOrAbove := func(role keybase1.TeamRole) bool {
+		return teamRole.IsOrAbove(role)
 	}
 
-	isWriter := func() (bool, error) {
+	isWriter := func() bool {
 		return isRoleOrAbove(keybase1.TeamRole_WRITER)
 	}
 
@@ -1328,10 +1327,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		return ret, err
 	}
 	var admin bool
-	admin, err = isRoleOrAbove(keybase1.TeamRole_ADMIN)
-	if err != nil {
-		return ret, err
-	}
+	admin = isRoleOrAbove(keybase1.TeamRole_ADMIN)
 
 	ret.ManageMembers = admin || implicitAdmin
 	ret.ManageSubteams = admin || implicitAdmin
@@ -1354,10 +1350,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		ret.LeaveTeam = leaveTeam
 	}
 
-	ret.CreateChannel, err = isWriter()
-	if err != nil {
-		return ret, err
-	}
+	ret.CreateChannel = isWriter()
 
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
@@ -1365,8 +1358,8 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	}
 
 	ret.DeleteChannel = admin
-	ret.RenameChannel = admin
-	ret.EditChannelDescription = admin
+	ret.RenameChannel = isWriter()
+	ret.EditChannelDescription = isWriter()
 	ret.DeleteChatHistory = admin
 
 	return ret, err

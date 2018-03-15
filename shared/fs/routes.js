@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import Files from './container'
 import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './header/breadcrumb-popup'
+import FinderPopupMenu from './finder-popup'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import RowPopupMenu from './row/popup-container'
@@ -20,6 +21,10 @@ const _folderRoute = {
     },
     rowAction: {
       component: RelativePopupHoc(RowPopupMenu),
+      tags: makeLeafTags({layerOnTop: true}),
+    },
+    finderAction: {
+      component: RelativePopupHoc(FinderPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
     },
   },

@@ -139,7 +139,6 @@ const stylesIgnoreDivider = {
 }
 
 const stylesDividerText = {
-  ...globalStyles.clickable,
   marginRight: 7,
 }
 

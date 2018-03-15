@@ -5,7 +5,6 @@ package engine
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -119,7 +118,7 @@ func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
 	// do this to the wrong user. Please do not copy this code :)
 	ctx.LogUI.Info("Deleting %s's secret keys file...", e.username.String())
 	filename := e.G().SKBFilenameForUser(e.username)
-	err = os.Remove(filename)
+	err = libkb.ShredFile(filename)
 	if err != nil {
 		return fmt.Errorf("Failed to delete secret key file: %s", err)
 	}

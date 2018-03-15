@@ -176,6 +176,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-feedback-96.png'),
   },
+  'icon-fancy-finder-132-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-finder-132-96.png'),
+  },
+  'icon-fancy-finder-enabled-132-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
+  },
   'icon-fancy-revoked-computer-150-x-64': {
     isFont: false,
     extension: 'png',
@@ -663,13 +673,13 @@ const iconMeta_ = {
   },
   'icon-message-status-sending-24': {
     isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-message-status-sending-24.png'),
+    extension: 'gif',
+    require: require('../images/icons/icon-message-status-sending-24.gif'),
   },
   'icon-message-status-sent-24': {
     isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-message-status-sent-24.png'),
+    extension: 'gif',
+    require: require('../images/icons/icon-message-status-sent-24.gif'),
   },
   'icon-mutual-follow-21': {
     isFont: false,

@@ -66,6 +66,7 @@ export const selectConversation = 'chat2:selectConversation'
 export const selectConversationDueToPush = 'chat2:selectConversationDueToPush'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
@@ -241,6 +242,9 @@ export const createMessageWasEdited = (
     conversationIDKey: Types.ConversationIDKey,
     messageID: RPCChatTypes.MessageID,
     text: HiddenString,
+    mentionsAt: I.Set<string>,
+    mentionsChannel: 'none' | 'all' | 'here',
+    mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
   }>
 ) => ({error: false, payload, type: messageWasEdited})
 export const createMessagesAdd = (
@@ -267,7 +271,7 @@ export const createMetaNeedsUpdating = (
 export const createMetaReceivedError = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    error: ?RPCChatTypes.ConversationErrorLocal,
+    error: ?RPCChatTypes.InboxUIItemError,
     username: ?string,
   }>
 ) => ({error: false, payload, type: metaReceivedError})
@@ -333,6 +337,12 @@ export const createSendTyping = (
     typing: boolean,
   }>
 ) => ({error: false, payload, type: sendTyping})
+export const createSetConversationOffline = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    offline: boolean,
+  }>
+) => ({error: false, payload, type: setConversationOffline})
 export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
 export const createSetLoading = (
   payload: $ReadOnly<{
@@ -422,6 +432,7 @@ export type SelectConversationDueToPushPayload = More.ReturnType<typeof createSe
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SendTypingPayload = More.ReturnType<typeof createSendTyping>
+export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConversationOffline>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
@@ -491,6 +502,7 @@ export type Actions =
   | More.ReturnType<typeof createSelectConversationDueToPush>
   | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSendTyping>
+  | More.ReturnType<typeof createSetConversationOffline>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>

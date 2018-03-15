@@ -17,6 +17,7 @@ export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 export type _ConversationMeta = {
   channelname: string,
   conversationIDKey: Common.ConversationIDKey,
+  description: string,
   inboxVersion: number,
   isMuted: boolean,
   wasFinalizedBy: string, // a conversation can be finalized but not superseded
@@ -24,6 +25,7 @@ export type _ConversationMeta = {
   notificationsDesktop: NotificationsType,
   notificationsMobile: NotificationsType,
   notificationsGlobalIgnoreMentions: boolean,
+  offline: boolean,
   orangeLineOrdinal: ?Ordinal,
   paginationKey: ?PaginationKey,
   paginationMoreToLoad: boolean,

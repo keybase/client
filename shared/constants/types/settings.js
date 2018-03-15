@@ -71,6 +71,7 @@ type DevMenuTab = 'settingsTabs:devMenuTab'
 type DevicesTab = 'settingsTabs:devicesTab'
 type FeedbackTab = 'settingsTabs:feedbackTab'
 type FoldersTab = 'settingsTabs:foldersTab'
+type FsTab = 'settingsTabs:fsTab'
 type GitTab = 'settingsTabs:gitTab'
 type InvitationsTab = 'settingsTabs:invitationsTab'
 type LandingTab = 'settingsTabs:landingTab'
@@ -92,6 +93,7 @@ export type Tab =
   | DevicesTab
   | GitTab
   | FoldersTab
+  | FsTab
   | ScreenprotectorTab
   | PassphraseTab
 

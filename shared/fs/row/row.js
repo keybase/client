@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, isMobile, glamorous} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, glamorous, platformStyles} from '../../styles'
 import memoize from 'lodash/memoize'
 import {Box, ClickableBox, Icon, Text, Divider} from '../../common-adapters'
 import PathItemIcon from './path-item-icon'
@@ -149,13 +149,15 @@ const iconPlaceholderIconStyle = {
   marginRight: globalMargins.small,
 }
 
-const rowTextStyles = memoize(color => ({
-  color,
-  ...(isMobile
-    ? {}
-    : {
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-      }),
-}))
+const rowTextStyles = memoize(color =>
+  platformStyles({
+    common: {
+      color,
+    },
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  })
+)

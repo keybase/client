@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type {Props} from './clear-history.render'
 import {Confirm, Box, Text, Icon, Usernames} from '../../common-adapters'
-import {globalColors} from '../../styles'
+import {globalColors, platformStyles} from '../../styles'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
@@ -19,7 +19,10 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           suffix="?"
           containerStyle={{display: 'inline-flex', justifyContent: 'center'}}
         />
-        <Text type="Header" style={{...textColorThemed[theme], whiteSpace: 'pre'}}>
+        <Text
+          type="Header"
+          style={platformStyles({isElectron: {...textColorThemed[theme], whiteSpace: 'pre'}})}
+        >
           {' '}
           ({folderSize})
         </Text>

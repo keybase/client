@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import PopupMenu from '../../common-adapters/popup-menu'
+import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import {Avatar, Box, Text} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {type RouteProps} from '../../route-tree/render-route'
+import {isMobile} from '../../constants/platform'
 
 type PopupMenuProps = RouteProps<
   {
@@ -33,14 +34,13 @@ const BreadcrumbPopupMenu = ({routeProps}: PopupMenuProps) => {
     title: i.name,
     view: itemView(i.name, isTeamPath && idx === items.length - 3),
   }))
-  return <PopupMenu items={popupItems} style={stylePopup} onHidden={onHidden} />
+  return <ModalLessPopupMenu items={popupItems} style={stylePopup} onHidden={onHidden} />
 }
 
 const stylePopup = {
-  position: 'absolute',
-  left: -28,
-  top: 24,
-  width: 196,
+  width: isMobile ? '100%' : 196,
+  marginTop: isMobile ? undefined : 12,
+  marginLeft: isMobile ? undefined : -12,
 }
 
 const stylesMenuText = {

@@ -15,7 +15,6 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import HiddenString from '../../util/hidden-string'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -277,9 +276,11 @@ const onIncomingMessage = (incoming: RPCChatTypes.IncomingMessage, state: TypedS
       switch (body.messageType) {
         case RPCChatTypes.commonMessageType.edit:
           if (body.edit) {
-            const text = new HiddenString(body.edit.body || '')
             actions.push(
-              Chat2Gen.createMessageWasEdited({conversationIDKey, messageID: body.edit.messageID, text})
+              Chat2Gen.createMessageWasEdited({
+                conversationIDKey,
+                ...Constants.uiMessageEditToMessage(body.edit, cMsg.valid),
+              })
             )
           }
           break
@@ -622,6 +623,11 @@ const loadMoreMessages = (
 
   const meta = Constants.getMeta(state, conversationIDKey)
 
+  if (meta.membershipType === 'youAreReset' || !meta.rekeyers.isEmpty()) {
+    logger.info('Load thread bail: we are reset')
+    return
+  }
+
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
     paginationKey = meta.paginationKey
     numberOfMessagesToLoad = numMessagesOnScrollback
@@ -721,12 +727,20 @@ const loadMoreMessages = (
   )
 
   const actions = [
+    Saga.identity(conversationIDKey),
     Saga.call(loadThreadChanMapRpc.run),
     // clear if we loaded from a push
     Saga.put(Chat2Gen.createClearLoading({key: 'pushLoad'})),
   ]
 
   return Saga.sequentially(actions)
+}
+
+const loadMoreMessagesSuccess = (results: ?Array<any>) => {
+  if (!results) return
+  const conversationIDKey: Types.ConversationIDKey = results[0]
+  const res: RPCChatTypes.NonblockFetchRes = results[1].payload.params
+  return Saga.put(Chat2Gen.createSetConversationOffline({conversationIDKey, offline: res.offline}))
 }
 
 // If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
@@ -1787,7 +1801,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
     ],
-    loadMoreMessages
+    loadMoreMessages,
+    loadMoreMessagesSuccess
   )
 
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, previewConversation)

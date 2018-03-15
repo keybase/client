@@ -1612,6 +1612,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 	// Convert the device keys.
 	var deviceKeysV1 []PublicKey
 	var revokedDeviceKeysV1 []RevokedKey
+	var resets []ResetSummary
 	for _, keyV2 := range uV2.Current.DeviceKeys {
 		if keyV2.Base.Revocation != nil {
 			revokedDeviceKeysV1 = append(revokedDeviceKeysV1, RevokedKeyV1FromDeviceKeyV2(keyV2))
@@ -1627,6 +1628,9 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 	for _, incarnation := range uV2.PastIncarnations {
 		for _, keyV2 := range incarnation.DeviceKeys {
 			deletedDeviceKeysV1 = append(deletedDeviceKeysV1, PublicKeyV1FromDeviceKeyV2(keyV2))
+		}
+		if reset := incarnation.Reset; reset != nil {
+			resets = append(resets, *reset)
 		}
 	}
 	sort.Slice(deletedDeviceKeysV1, func(i, j int) bool { return deletedDeviceKeysV1[i].KID < deletedDeviceKeysV1[j].KID })
@@ -1652,6 +1656,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			PGPKeyCount:       len(pgpKeysV1),
 			Uvv:               uV2.Uvv,
 			PerUserKeys:       uV2.Current.PerUserKeys,
+			Resets:            resets,
 		},
 		PGPKeys:      pgpKeysV1,
 		RemoteTracks: remoteTracks,
@@ -2313,4 +2318,32 @@ func (r ResetLink) Summarize() ResetSummary {
 		ResetSeqno: r.ResetSeqno,
 		Type:       r.Type,
 	}
+}
+
+// CheckInvariants checks that the bundle satisfies
+// 1. No duplicate account IDs
+// 2. At most one primary account
+func (s StellarSecretBundle) CheckInvariants() error {
+	accountIDs := make(map[StellarAccountID]bool)
+	names := make(map[string]bool)
+	var foundPrimary bool
+	for _, entry := range s.Accounts {
+		_, found := accountIDs[entry.AccountID]
+		if found {
+			return fmt.Errorf("duplicate account ID: %v", entry.AccountID)
+		}
+		accountIDs[entry.AccountID] = true
+		_, found = names[entry.Name]
+		if found {
+			return fmt.Errorf("duplicate account name: %v", entry.Name)
+		}
+		names[entry.Name] = true
+		if entry.IsPrimary {
+			if foundPrimary {
+				return fmt.Errorf("multiple primary accounts")
+			}
+			foundPrimary = true
+		}
+	}
+	return nil
 }

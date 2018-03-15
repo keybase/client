@@ -1,14 +1,19 @@
 // @flow
 import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
+import * as Config from '../constants/config'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Types from '../constants/types/fs'
+import * as Constants from '../constants/fs'
+import * as Electron from 'electron'
 import fs from 'fs'
-import * as Constants from '../constants/config'
 import type {TypedState} from '../constants/reducer'
-import {shell} from 'electron'
-import {isLinux, isWindows} from '../constants/platform'
-import {navigateTo, switchTo} from './route-tree'
+import {fileUIName, isLinux, isWindows} from '../constants/platform'
+import {navigateTo} from './route-tree'
 import {fsTab} from '../constants/tabs'
 import logger from '../logger'
+import {spawn, execFileSync} from 'child_process'
+import path from 'path'
 
 type pathType = 'file' | 'directory'
 
@@ -43,7 +48,7 @@ function openInDefaultDirectory(openPath: string): Promise<*> {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      shell.openExternal(url, {}, err => {
+      Electron.shell.openExternal(url, {}, err => {
         if (err) {
           reject(err)
           return
@@ -78,7 +83,7 @@ function _open(openPath: string): Promise<*> {
     getPathType(openPath).then(typ => {
       if (typ === 'directory') {
         if (isWindows) {
-          if (!shell.openItem(openPath)) {
+          if (!Electron.shell.openItem(openPath)) {
             reject(new Error(`Unable to open item: ${openPath}`))
             return
           }
@@ -87,7 +92,7 @@ function _open(openPath: string): Promise<*> {
           return
         }
       } else if (typ === 'file') {
-        if (!shell.showItemInFolder(openPath)) {
+        if (!Electron.shell.showItemInFolder(openPath)) {
           reject(new Error(`Unable to open item in folder: ${openPath}`))
           return
         }
@@ -101,11 +106,150 @@ function _open(openPath: string): Promise<*> {
 }
 
 export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
-  const openPath = path || Constants.defaultKBFSPath
-  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const openPath = path || Config.defaultKBFSPath
+  const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(_open, openPath)
   } else {
-    return Saga.sequentially([Saga.put(navigateTo([], [fsTab])), Saga.put(switchTo([fsTab]))])
+    return Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(openPath)}, selected: 'folder'}]))
   }
+}
+
+function waitForMount(attempt: number): Promise<*> {
+  return new Promise((resolve, reject) => {
+    // Read the KBFS path waiting for files to exist, which means it's mounted
+    // TODO: should handle current mount directory
+    fs.readdir(Config.defaultKBFSPath, (err, files) => {
+      if (!err && files.length > 0) {
+        resolve(true)
+      } else if (attempt > 15) {
+        reject(new Error(`${Config.defaultKBFSPath} is unavailable. Please try again.`))
+      } else {
+        setTimeout(() => {
+          waitForMount(attempt + 1).then(resolve, reject)
+        }, 1000)
+      }
+    })
+  })
+}
+
+function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.put(FsGen.createSetFlags({kbfsOpening: true}))
+  try {
+    yield Saga.call(waitForMount, 0)
+    // TODO: should handle current mount directory
+    yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Config.defaultKBFSPath}}))
+  } finally {
+    yield Saga.put(FsGen.createSetFlags({kbfsOpening: false}))
+  }
+}
+
+export const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+export const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
+  Saga.sequentially([
+    Saga.put(FsGen.createInstallKBFSResult({result})),
+    Saga.put(FsGen.createSetFlags({kbfsOpening: true, kbfsInstalling: false})),
+    Saga.call(waitForMountAndOpenSaga),
+  ])
+
+export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
+  // If our kextStarted status changed, finish KBFS install
+  if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
+    return Saga.call(installKBFS)
+  }
+}
+
+export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  const prevStatus = state.favorite.fuseStatus
+
+  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
+  if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
+    // Check if another Dokan we didn't install mounted the filesystem
+    const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
+    if (kbfsMount && fs.existsSync(kbfsMount)) {
+      status.installStatus = RPCTypes.installInstallStatus.installed
+      status.installAction = RPCTypes.installInstallAction.none
+      status.kextStarted = true
+    }
+  }
+  yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
+}
+
+export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
+  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
+  const fuseResults =
+    result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
+  const kextPermissionError =
+    fuseResults.length > 0 && fuseResults[0].exitCode === Constants.ExitCodeFuseKextPermissionError
+
+  if (kextPermissionError) {
+    // Add a small delay here, since on 10.13 the OS will be a little laggy
+    // when showing a kext permission error.
+    yield Saga.delay(1e3)
+  }
+
+  yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
+  yield Saga.put(FsGen.createFuseStatus())
+  yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
+}
+
+export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
+  const dialog = Electron.dialog || Electron.remote.dialog
+  dialog.showMessageBox(
+    {
+      buttons: ['Remove & Restart', 'Cancel'],
+      detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
+      message: `Remove Keybase from ${fileUIName}`,
+      type: 'question',
+    },
+    resp => (resp ? undefined : action.payload.onSuccess())
+  )
+}
+
+export function uninstallKBFS() {
+  return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
+}
+
+export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
+  // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+  const app = Electron.remote.app
+  app.relaunch()
+  app.exit(0)
+}
+
+// Invoking the cached installer package has to happen from the topmost process
+// or it won't be visible to the user. The service also does this to support command line
+// operations.
+function installCachedDokan(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    logger.info('Invoking dokan installer')
+    const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
+    try {
+      execFileSync(dokanPath, [])
+    } catch (err) {
+      logger.error('installCachedDokan caught', err)
+      reject(err)
+      return
+    }
+    // restart the service, particularly kbfsdokan
+    // based on desktop/app/start-win-service.js
+    const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+    if (!binPath) {
+      return
+    }
+    const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
+    const args = [binPath, 'ctl', 'watchdog2']
+
+    spawn(rqPath, args, {
+      detached: true,
+      stdio: 'ignore',
+    })
+
+    resolve()
+  })
+}
+
+export function installDokanSaga() {
+  return Saga.call(installCachedDokan)
 }

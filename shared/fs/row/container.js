@@ -1,20 +1,21 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FSGen from '../../actions/fs-gen'
+import * as FsGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
-import {navigateAppend} from '../../actions/route-tree'
+import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {Row} from './row'
-import {isMobile} from '../../styles'
+import {isMobile, isLinux} from '../../constants/platform'
 
-type OwnProps = {
-  path: Types.Path,
-}
-
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {path}) => {
   const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
   const _username = state.config.username || undefined
-  return {_username, path, pathItem}
+  return {
+    _username,
+    path,
+    kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
+    pathItem,
+  }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -43,9 +44,25 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       ])
     )
   },
+  _openFinderPopup: isMobile
+    ? () => undefined
+    : (evt?: SyntheticEvent<>) =>
+        dispatch(
+          navigateAppend([
+            {
+              props: {
+                targetRect: evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null,
+                position: 'bottom right',
+                onHidden: () => dispatch(navigateUp()),
+                onInstall: () => dispatch(FsGen.createInstallFuse()),
+              },
+              selected: 'finderAction',
+            },
+          ])
+        ),
 })
 
-const mergeProps = ({_username, path, pathItem}, {_onOpen, _openInFileUI, _onAction}) => {
+const mergeProps = ({_username, path, pathItem, kbfsEnabled}, {_onOpen, _openInFileUI, _onAction, _openFinderPopup}) => {
   const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
   return {
     name: pathItem.name,
@@ -53,7 +70,7 @@ const mergeProps = ({_username, path, pathItem}, {_onOpen, _openInFileUI, _onAct
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
     lastWriter: pathItem.lastWriter,
     onOpen: () => _onOpen(pathItem.type, path),
-    openInFileUI: () => _openInFileUI(path),
+    openInFileUI: kbfsEnabled ? () => _openInFileUI(path) : _openFinderPopup,
     onAction: (event: SyntheticEvent<>) =>
       _onAction(
         path,

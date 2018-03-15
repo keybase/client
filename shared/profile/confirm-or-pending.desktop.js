@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Button, PlatformIcon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
 import type {Props} from './confirm-or-pending'
@@ -58,10 +58,14 @@ const Render = (props: Props) => {
   )
 }
 
-const stylePlatformUsername = {
-  color: globalColors.blue,
-  maxWidth: 400,
-  overflowWrap: 'break-word',
-}
+const stylePlatformUsername = platformStyles({
+  common: {
+    color: globalColors.blue,
+    maxWidth: 400,
+  },
+  isElectron: {
+    overflowWrap: 'break-word',
+  },
+})
 
 export default Render

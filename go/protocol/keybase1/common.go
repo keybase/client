@@ -638,6 +638,7 @@ type UserPlusKeys struct {
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 	DeletedDeviceKeys []PublicKey       `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
 	PerUserKeys       []PerUserKey      `codec:"perUserKeys" json:"perUserKeys"`
+	Resets            []ResetSummary    `codec:"resets" json:"resets"`
 }
 
 func (o UserPlusKeys) DeepCopy() UserPlusKeys {
@@ -692,6 +693,17 @@ func (o UserPlusKeys) DeepCopy() UserPlusKeys {
 			}
 			return ret
 		})(o.PerUserKeys),
+		Resets: (func(x []ResetSummary) []ResetSummary {
+			if x == nil {
+				return nil
+			}
+			var ret []ResetSummary
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Resets),
 	}
 }
 

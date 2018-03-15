@@ -3,7 +3,7 @@ import * as shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalStyles, globalColors, glamorous} from '../styles'
+import {globalColors, glamorous, desktopStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
@@ -73,7 +73,7 @@ class Icon extends Component<Exact<Props>, void> {
         fontWeight: 'normal',
         fontVariant: 'normal',
         textTransform: 'none',
-        lineHeight: 1,
+        lineHeight: 1, // NOT 1px, just 1
         WebkitFontSmoothing: 'antialiased',
         ...this.props.style,
       }
@@ -87,11 +87,11 @@ class Icon extends Component<Exact<Props>, void> {
             alt={this.props.hint}
             color={color}
             style={{
-              ...globalStyles.noSelect,
+              ...desktopStyles.noSelect,
               ...styles.icon,
               ...fontSizeHint,
               ...cleanStyle,
-              ...(onClick ? globalStyles.clickable : {}),
+              ...(onClick ? desktopStyles.clickable : {}),
             }}
             className={this.props.className || ''}
             onMouseEnter={this.props.onMouseEnter}
@@ -110,9 +110,9 @@ class Icon extends Component<Exact<Props>, void> {
           draggable="false"
           title={this.props.hint}
           style={{
-            ...globalStyles.noSelect,
+            ...desktopStyles.noSelect,
             ...this.props.style,
-            ...(onClick ? globalStyles.clickable : {}),
+            ...(onClick ? desktopStyles.clickable : {}),
           }}
           onClick={onClick}
           srcSet={iconTypeToSrcSet(iconType)}

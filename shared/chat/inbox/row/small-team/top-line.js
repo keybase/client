@@ -2,7 +2,7 @@
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
 import {Text, PlaintextUsernames, Box} from '../../../../common-adapters'
-import {globalStyles, globalColors, lineHeight, isMobile} from '../../../../styles'
+import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../styles'
 
 type Props = {
   hasUnread: boolean,
@@ -73,7 +73,9 @@ class SimpleTopLine extends React.Component<Props> {
         <Text
           key="0"
           type="BodySmall"
-          style={{...boldOverride, color: subColor, lineHeight: lineHeight(height), backgroundColor}}
+          style={platformStyles({
+            common: {...boldOverride, color: subColor, lineHeight: height, backgroundColor},
+          })}
         >
           {timestamp}
         </Text>

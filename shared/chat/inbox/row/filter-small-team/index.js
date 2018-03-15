@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import {globalStyles, isMobile} from '../../../../styles'
+import {globalStyles, isMobile, desktopStyles} from '../../../../styles'
 
 type Props = {
   backgroundColor: string,
@@ -69,7 +69,7 @@ const rowHeight = isMobile ? 64 : 56
 
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   flexShrink: 0,
   maxHeight: rowHeight,
   minHeight: rowHeight,
