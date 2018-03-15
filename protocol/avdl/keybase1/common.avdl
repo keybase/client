@@ -242,6 +242,8 @@ protocol Common {
       // per-user secrets one for every generation.
       @lint("ignore")
       array<PerUserKey> perUserKeys;
+
+      array<ResetSummaryWithEldestSeqno> resets;
   }
 
   record UserOrTeamLite {

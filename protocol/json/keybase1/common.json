@@ -558,6 +558,13 @@
           },
           "name": "perUserKeys",
           "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetSummaryWithEldestSeqno"
+          },
+          "name": "resets"
         }
       ]
     },

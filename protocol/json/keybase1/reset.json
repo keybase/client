@@ -114,6 +114,20 @@
           "name": "type"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ResetSummaryWithEldestSeqno",
+      "fields": [
+        {
+          "type": "ResetSummary",
+          "name": "resetSummary"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
     }
   ],
   "messages": {},

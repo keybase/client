@@ -628,16 +628,17 @@ func (o PerUserKey) DeepCopy() PerUserKey {
 }
 
 type UserPlusKeys struct {
-	Uid               UID               `codec:"uid" json:"uid"`
-	Username          string            `codec:"username" json:"username"`
-	EldestSeqno       Seqno             `codec:"eldestSeqno" json:"eldestSeqno"`
-	Status            StatusCode        `codec:"status" json:"status"`
-	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
-	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
-	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
-	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
-	DeletedDeviceKeys []PublicKey       `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
-	PerUserKeys       []PerUserKey      `codec:"perUserKeys" json:"perUserKeys"`
+	Uid               UID                           `codec:"uid" json:"uid"`
+	Username          string                        `codec:"username" json:"username"`
+	EldestSeqno       Seqno                         `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status            StatusCode                    `codec:"status" json:"status"`
+	DeviceKeys        []PublicKey                   `codec:"deviceKeys" json:"deviceKeys"`
+	RevokedDeviceKeys []RevokedKey                  `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
+	PGPKeyCount       int                           `codec:"pgpKeyCount" json:"pgpKeyCount"`
+	Uvv               UserVersionVector             `codec:"uvv" json:"uvv"`
+	DeletedDeviceKeys []PublicKey                   `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
+	PerUserKeys       []PerUserKey                  `codec:"perUserKeys" json:"perUserKeys"`
+	Resets            []ResetSummaryWithEldestSeqno `codec:"resets" json:"resets"`
 }
 
 func (o UserPlusKeys) DeepCopy() UserPlusKeys {
@@ -692,6 +693,17 @@ func (o UserPlusKeys) DeepCopy() UserPlusKeys {
 			}
 			return ret
 		})(o.PerUserKeys),
+		Resets: (func(x []ResetSummaryWithEldestSeqno) []ResetSummaryWithEldestSeqno {
+			if x == nil {
+				return nil
+			}
+			var ret []ResetSummaryWithEldestSeqno
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Resets),
 	}
 }
 

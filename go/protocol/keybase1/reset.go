@@ -115,6 +115,18 @@ func (o ResetSummary) DeepCopy() ResetSummary {
 	}
 }
 
+type ResetSummaryWithEldestSeqno struct {
+	ResetSummary ResetSummary `codec:"resetSummary" json:"resetSummary"`
+	EldestSeqno  Seqno        `codec:"eldestSeqno" json:"eldestSeqno"`
+}
+
+func (o ResetSummaryWithEldestSeqno) DeepCopy() ResetSummaryWithEldestSeqno {
+	return ResetSummaryWithEldestSeqno{
+		ResetSummary: o.ResetSummary.DeepCopy(),
+		EldestSeqno:  o.EldestSeqno.DeepCopy(),
+	}
+}
+
 type ResetInterface interface {
 }
 

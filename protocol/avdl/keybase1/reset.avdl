@@ -45,4 +45,10 @@ protocol Reset {
     ResetType type;
   }
 
+  // ResetSummaryWithEldestSeqno also includes the EldestSeqno at the time of the reset
+  record ResetSummaryWithEldestSeqno {
+    ResetSummary resetSummary;
+    Seqno eldestSeqno;
+  }
+
 }

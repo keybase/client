@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func TestExportAllIncarnationsAfterReset(t *testing.T) {
@@ -109,4 +110,12 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	require.True(t, reset.Ctime > keybase1.UnixTime(1419826703))
 	require.True(t, reset.MerkleRoot.Seqno > keybase1.Seqno(0))
 	require.Equal(t, reset.Type, keybase1.ResetType_RESET)
+
+	// While we're here, also check that UPK v1 has the right reset summaries.
+	upk1, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, fu.UID(), keybase1.KID(""))
+	require.NoError(t, err)
+	require.Equal(t, len(upk1.Resets), 1)
+	require.Equal(t, upk1.Resets[0].EldestSeqno, keybase1.Seqno(1))
+	require.Equal(t, upk1.Resets[0].ResetSummary.Type, keybase1.ResetType_RESET)
+
 }
