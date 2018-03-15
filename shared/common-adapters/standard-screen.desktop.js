@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, HeaderHoc} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
@@ -31,7 +31,7 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.scrollable,
+  ...desktopStyles.scrollable,
   flex: 1,
   alignItems: 'stretch',
   position: 'relative',

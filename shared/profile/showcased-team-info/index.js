@@ -25,9 +25,7 @@ const TeamInfo = (props: Props) => (
     <Text type="Header">{props.teamname}</Text>
 
     <Box style={globalStyles.flexBoxRow}>
-      <Text type="BodySmall" style={{textTransform: 'uppercase'}}>
-        TEAM
-      </Text>
+      <Text type="BodySmall">TEAM</Text>
       {props.openTeam && <Meta title="OPEN" style={styleMeta} />}
     </Box>
 
@@ -54,7 +52,7 @@ const TeamInfo = (props: Props) => (
               : props.openTeam ? 'Join team' : 'Request to join'
           }
           small={!isMobile}
-          style={{marginTop: globalStyles.tiny}}
+          style={{marginTop: globalMargins.tiny}}
           type={
             props.teamJoinSuccess || props.youHaveRequestedAccess
               ? props.openTeam ? 'PrimaryGreen' : 'Secondary'

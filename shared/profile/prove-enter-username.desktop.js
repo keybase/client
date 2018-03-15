@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import {platformText} from './prove-enter-username.shared'
 
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -127,7 +127,7 @@ const styleContainer = {
 }
 
 const styleClose = {
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   position: 'absolute',
   right: 16,
   top: 16,

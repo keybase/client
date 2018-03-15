@@ -1,6 +1,5 @@
 // @flow
 import {globalStyles, globalColors} from '../styles'
-
 import type {MetaType, TextType, Background} from './text'
 
 function defaultColor(backgroundMode: ?Background) {
@@ -32,10 +31,10 @@ function fontSizeToSizeStyle(fontSize: number): ?Object {
     '11': 15,
   }[String(fontSize)]
 
-  const lineHeight = height ? `${height}px` : null
+  const _lineHeight = height ? `${height}px` : null
   return {
     fontSize,
-    lineHeight,
+    lineHeight: _lineHeight,
   }
 }
 

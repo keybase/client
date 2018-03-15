@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, ClickableBox, Avatar, Text, ConnectedUsernames} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import {globalStyles, globalMargins, isMobile, desktopStyles, platformStyles} from '../../../styles'
 
 type Props = {
   fullname: string,
@@ -12,7 +12,7 @@ type Props = {
 const Participant = ({fullname, username, onShowProfile}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
     <ClickableBox key={username} onClick={() => onShowProfile(username)}>
-      <Box style={isMobile ? rowStyleMobile : rowStyle}>
+      <Box style={rowStyle}>
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -32,16 +32,19 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
   </Box>
 )
 
-const rowStyle = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
-  minHeight: 48,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-}
+const rowStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    minHeight: 48,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+  },
+  isElectron: {
+    ...desktopStyles.clickable,
+  },
+  isMobile: {
+    minHeight: 56,
+  },
+})
 
-const rowStyleMobile = {
-  ...rowStyle,
-  minHeight: 56,
-}
 export default Participant

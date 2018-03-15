@@ -3,13 +3,13 @@ import React, {Component} from 'react'
 import Text from './text'
 import type {Props, DefaultProps} from './header'
 import {Icon} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, desktopStyles, platformStyles} from '../styles'
 
 class Header extends Component<Props> {
   static defaultProps: DefaultProps
 
   renderDefault() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? globalStyles.windowDragging : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? desktopStyles.windowDragging : {}
     return (
       <div
         style={{
@@ -32,7 +32,7 @@ class Header extends Component<Props> {
   }
 
   renderStrong() {
-    const maybeWindowDraggingStyle = this.props.windowDragging ? globalStyles.windowDragging : {}
+    const maybeWindowDraggingStyle = this.props.windowDragging ? desktopStyles.windowDragging : {}
     return (
       <div
         style={{
@@ -46,7 +46,10 @@ class Header extends Component<Props> {
           <Text
             type="Header"
             backgroundMode="Announcements"
-            style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}
+            style={platformStyles({
+              common: {flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6},
+              isElectron: {cursor: 'default'},
+            })}
           >
             {this.props.title}
           </Text>
@@ -75,7 +78,7 @@ Header.defaultProps = {type: 'Default', windowDragging: true}
 const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    ...globalStyles.noSelect,
+    ...desktopStyles.noSelect,
     paddingLeft: 10,
     paddingRight: 10,
   },
@@ -95,8 +98,8 @@ const styles = {
   },
 
   closeIcon: {
-    ...globalStyles.windowDraggingClickable,
-    ...globalStyles.clickable,
+    ...desktopStyles.windowDraggingClickable,
+    ...desktopStyles.clickable,
   },
 }
 

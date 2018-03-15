@@ -2,24 +2,26 @@
 import * as React from 'react'
 import Text from './text'
 import type {Props} from './meta'
-import {globalColors} from '../styles'
+import {globalColors, platformStyles} from '../styles'
 
 const Meta = ({title, style}: Props) => (
   <Text
     type="Header"
-    style={{
-      color: globalColors.white,
-      borderRadius: 2,
-      fontSize: 10,
-      fontWeight: '700',
-      height: 11,
-      lineHeight: '11px',
-      paddingLeft: 3,
-      paddingRight: 3,
-      alignSelf: 'flex-start',
-      textTransform: 'uppercase',
-      ...style,
-    }}
+    style={platformStyles({
+      isElectron: {
+        alignSelf: 'flex-start',
+        borderRadius: 2,
+        color: globalColors.white,
+        fontSize: 10,
+        fontWeight: '700',
+        height: 11,
+        lineHeight: 11,
+        paddingLeft: 3,
+        paddingRight: 3,
+        textTransform: 'uppercase',
+        ...style,
+      },
+    })}
   >
     {title}
   </Text>

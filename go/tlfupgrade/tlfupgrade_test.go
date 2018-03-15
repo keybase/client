@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -33,6 +34,8 @@ func (t *testChatHelper) UpgradeKBFSToImpteam(context.Context, string, chat1.TLF
 func TestBackgroundTLFUpdater(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestBackgroundTLFUpdater", 1)
 	defer tc.Cleanup()
+	_, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	require.NoError(t, err)
 
 	api := &testAPIServer{}
 	u := NewBackgroundTLFUpdater(tc.G)

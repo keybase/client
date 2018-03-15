@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Button, Icon, ButtonBar} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
@@ -93,7 +93,7 @@ const stylesMessage = {
 }
 
 const stylesContainer = {
-  ...globalStyles.windowDragging,
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
   justifyContent: 'space-between',
   cursor: 'default',
@@ -105,7 +105,7 @@ const stylesContainer = {
 }
 
 const stylesClose = {
-  ...globalStyles.windowDraggingClickable,
+  ...desktopStyles.windowDraggingClickable,
   position: 'absolute',
   right: 8,
   top: 8,
@@ -122,11 +122,13 @@ const stylesLinkBox = {
   backgroundColor: globalColors.white,
 }
 
-const stylesLink = {
-  ...globalStyles.windowDraggingClickable,
-  marginLeft: 7,
-  color: globalColors.green2,
-}
+const stylesLink = platformStyles({
+  isElectron: {
+    ...desktopStyles.windowDraggingClickable,
+    marginLeft: 7,
+    color: globalColors.green2,
+  },
+})
 
 const stylesNext = {
   ...globalStyles.flexBoxColumn,

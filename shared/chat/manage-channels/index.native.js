@@ -11,7 +11,7 @@ import {
   Icon,
   HeaderHoc,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props, RowProps} from '.'
@@ -130,7 +130,7 @@ const Header = (props: Props) => (
       <Avatar isTeam={true} teamname={props.teamname} size={12} />
       <Text
         type="BodySmallSemibold"
-        style={{fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
+        style={platformStyles({isMobile: {fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}})}
         lineClamp={1}
       >
         {props.teamname}

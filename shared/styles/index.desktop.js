@@ -1,16 +1,15 @@
 // @flow
-// Styles from our designers
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
 import isArray from 'lodash/isArray'
-import glamorous from 'glamorous'
+import * as Shared from './shared'
 
-const windowStyle = {
-  minWidth: 600,
-  minHeight: 400,
-  width: 800, // Default width
+export const windowStyle = {
   height: 600, // Default height
+  minHeight: 400,
+  minWidth: 600,
+  width: 800, // Default width
 }
 
 const fontCommon = {
@@ -19,6 +18,11 @@ const fontCommon = {
 }
 
 const font = {
+  fontBold: {
+    ...fontCommon,
+    fontFamily: 'OpenSans',
+    fontWeight: '700',
+  },
   fontRegular: {
     ...fontCommon,
     fontFamily: 'OpenSans',
@@ -29,11 +33,6 @@ const font = {
     fontFamily: 'OpenSans',
     fontWeight: 600,
   },
-  fontBold: {
-    ...fontCommon,
-    fontFamily: 'OpenSans',
-    fontWeight: '700',
-  },
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
@@ -43,54 +42,32 @@ const font = {
     fontFamily: 'Source Code Pro',
     fontWeight: 600,
   },
-}
-
-const flexBoxCommon = {
-  display: 'flex',
-}
-
-const globalMargins = {
-  xtiny: 4,
-  tiny: 8,
-  small: 16,
-  medium: 24,
-  large: 40,
-  xlarge: 64,
+  italic: {
+    fontStyle: 'italic',
+  },
 }
 
 const util = {
-  flexBoxColumn: {
-    ...flexBoxCommon,
-    flexDirection: 'column',
+  ...Shared.util({flexCommon: {display: 'flex'}}),
+  loadingTextStyle: {
+    backgroundColor: globalColors.lightGrey,
+    height: 16,
+    marginBottom: Shared.globalMargins.tiny,
+    marginTop: Shared.globalMargins.tiny,
   },
-  flexBoxRow: {
-    ...flexBoxCommon,
-    flexDirection: 'row',
-  },
-  flexBoxCenter: {
-    ...flexBoxCommon,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fillAbsolute: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    right: 0,
-    bottom: 0,
-  },
-  flexGrow: {
-    flexGrow: 1,
-  },
-  fullHeight: {
-    height: '100%',
-  },
-  scrollable: {
-    overflowY: 'auto',
-  },
-  noSelect: {
-    userSelect: 'none',
-  },
+  scrollable: {overflowY: 'auto'},
+}
+
+export const globalStyles = {
+  ...font,
+  ...util,
+}
+
+export const mobileStyles = {}
+export const desktopStyles = {
+  clickable: {cursor: 'pointer'},
+  fadeOpacity: {transition: 'opacity .25s ease-in-out'},
+  noSelect: {userSelect: 'none'},
   windowDragging: {
     // allow frameless window dragging
     WebkitAppRegion: 'drag',
@@ -99,50 +76,17 @@ const util = {
     // allow things in frameless regions to be clicked and not dragged
     WebkitAppRegion: 'no-drag',
   },
-  rounded: {
-    borderRadius: 3,
-  },
-  clickable: {
-    cursor: 'pointer',
-  },
-  topMost: {
-    zIndex: 9999,
-  },
-  textDecoration: (type: string) => ({
-    textDecoration: type,
-  }),
-  loadingTextStyle: {
-    backgroundColor: globalColors.lightGrey,
-    height: 16,
-    marginTop: globalMargins.tiny,
-    marginBottom: globalMargins.tiny,
-  },
-  fadeOpacity: {
-    transition: 'opacity .25s ease-in-out',
-  },
 }
 
-const globalStyles = {
-  ...font,
-  ...util,
-  italic: {
-    fontStyle: 'italic',
-  },
-}
+export const transition = (...properties: Array<string>) => ({
+  transition: properties.map(p => `${p} 0.1s ease-out`).join(', '),
+})
 
-function transition(...properties: Array<string>): Object {
-  return {
-    transition: properties.map(p => `${p} 0.1s ease-out`).join(', '),
-  }
-}
+export const transitionColor = () => ({
+  transition: 'background 0.2s linear',
+})
 
-function transitionColor(): Object {
-  return {
-    transition: 'background 0.2s linear',
-  }
-}
-
-function backgroundURL(...to: Array<string>): string {
+export const backgroundURL = (...to: Array<string>) => {
   const goodPath = [...to]
 
   if (goodPath && goodPath.length) {
@@ -160,9 +104,9 @@ function backgroundURL(...to: Array<string>): string {
   return ''
 }
 
-const hairlineWidth = 1
-const styleSheetCreate = (obj: Object) => obj
-const collapseStyles = (styles: Array<Object> | Object) => {
+export const hairlineWidth = 1
+export const styleSheetCreate = (obj: Object) => obj
+export const collapseStyles = (styles: Array<Object> | Object) => {
   if (isArray) {
     return styles.reduce((map, item) => {
       return {...map, ...item}
@@ -171,31 +115,7 @@ const collapseStyles = (styles: Array<Object> | Object) => {
     return styles
   }
 }
-const lineHeight = (h: number) => `${h}px`
-
-const backgroundModeToColor = {
-  Normal: globalColors.white,
-  Terminal: globalColors.darkBlue3,
-  Announcements: globalColors.blue,
-  Success: globalColors.green,
-  Information: globalColors.yellow,
-  HighRisk: globalColors.red,
-  Documentation: globalColors.darkBlue,
-}
-
-export {
-  backgroundModeToColor,
-  backgroundURL,
-  collapseStyles,
-  glamorous,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  lineHeight,
-  hairlineWidth,
-  styleSheetCreate,
-  transition,
-  transitionColor,
-  windowStyle,
-}
 export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'
+export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
+export {default as glamorous} from 'glamorous'
+export {default as globalColors} from './colors'

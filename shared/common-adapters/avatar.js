@@ -15,7 +15,7 @@ import {
   withHandlers,
   withStateHandlers,
 } from '../util/container'
-import {globalStyles} from '../styles'
+import {desktopStyles, collapseStyles} from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import type {Props, AvatarSize} from './avatar'
 
@@ -171,12 +171,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let style
   if (ownProps.style) {
     if (ownProps.onClick) {
-      style = {...ownProps.style, ...globalStyles.clickable}
+      style = {...ownProps.style, ...desktopStyles.clickable}
     } else {
       style = ownProps.style
     }
   } else if (ownProps.onClick) {
-    style = globalStyles.clickable
+    style = desktopStyles.clickable
   }
 
   let url
@@ -330,12 +330,12 @@ const mockOwnToViewProps = (props: Props) => {
   let style
   if (props.style) {
     if (props.onClick) {
-      style = {...props.style, ...globalStyles.clickable}
+      style = collapseStyles([props.style, desktopStyles.clickable])
     } else {
       style = props.style
     }
   } else if (props.onClick) {
-    style = globalStyles.clickable
+    style = desktopStyles.clickable
   }
 
   return {

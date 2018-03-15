@@ -158,3 +158,7 @@ func (p ThreadPager) MakePage(res []Message, reqed int, maxDeletedUpto chat1.Mes
 func (p ThreadPager) MakeIndex(msg Message) ([]byte, error) {
 	return p.encode(msg.GetMessageID())
 }
+
+func (p ThreadPager) MakeIndexByID(msgID chat1.MessageID) ([]byte, error) {
+	return p.encode(msgID)
+}

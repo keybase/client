@@ -3,7 +3,7 @@
 import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, transition, isMobile} from '../../styles'
+import {globalStyles, globalColors, globalMargins, transition, isMobile, platformStyles} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
 
@@ -133,31 +133,32 @@ const styleServices = {
   justifyContent: 'center',
 }
 
-const serviceTooltipPlatformStyle = isMobile
-  ? {
-      height: 26,
-      paddingBottom: globalMargins.xtiny,
-      paddingTop: globalMargins.xtiny,
-      top: -32,
-      width: 100,
-    }
-  : {
-      ...transition('opacity'),
-      lineHeight: '22px',
-      cursor: 'default',
-      height: 22,
-      width: 90,
-      top: -28,
-    }
+const serviceTooltipPlatformStyle = platformStyles({
+  isElectron: {
+    ...transition('opacity'),
+    cursor: 'default',
+    height: 22,
+    lineHeight: '22px',
+    top: -28,
+    width: 90,
+  },
+  isMobile: {
+    height: 26,
+    paddingBottom: globalMargins.xtiny,
+    paddingTop: globalMargins.xtiny,
+    top: -32,
+    width: 100,
+  },
+})
 
 const serviceTooltipStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
   backgroundColor: globalColors.black_60,
-  ...serviceTooltipPlatformStyle,
   borderRadius: 20,
+  justifyContent: 'center',
   position: 'absolute',
+  ...serviceTooltipPlatformStyle,
 }
 
 export default Filter

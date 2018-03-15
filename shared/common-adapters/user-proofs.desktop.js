@@ -7,7 +7,7 @@ import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
 import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import {defaultColor} from '../common-adapters/icon.shared'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {metaNone} from '../constants/tracker'
 
 function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Node {
@@ -100,10 +100,12 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
                 inline={true}
                 type="Body"
                 className="hover-underline"
-                style={{
-                  ...shared.proofNameStyle(proof),
-                  ...globalStyles.clickable,
-                }}
+                style={platformStyles({
+                  isElectron: {
+                    ...shared.proofNameStyle(proof),
+                    ...desktopStyles.clickable,
+                  },
+                })}
               >
                 {proof.name}
               </Text>
@@ -266,7 +268,7 @@ const styleRow = {
 
 const styleMissingProofRow = {
   ...styleRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
 }
 
 const iconContainer = {
@@ -279,7 +281,7 @@ const iconContainer = {
 }
 
 const styleService = {
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   color: globalColors.black_75,
   marginRight: globalMargins.tiny,
   height: 16,
@@ -291,7 +293,7 @@ const styleService = {
 }
 
 const styleStatusIcon = {
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   width: 20,
   height: 20,
   minWidth: 20,
@@ -313,23 +315,27 @@ const styleProofNameLabelContainer = {
   flex: 1,
 }
 
-const styleProofName = {
-  ...globalStyles.clickable,
-  display: 'inline-block',
-  wordBreak: 'break-all',
-  flex: 1,
-  transition: '0.15s color',
-}
+const styleProofName = platformStyles({
+  isElectron: {
+    ...desktopStyles.clickable,
+    display: 'inline-block',
+    wordBreak: 'break-all',
+    flex: 1,
+    transition: '0.15s color',
+  },
+})
 
-const styleProofType = {
-  color: globalColors.black_20,
-  wordBreak: 'normal',
-}
+const styleProofType = platformStyles({
+  isElectron: {
+    color: globalColors.black_20,
+    wordBreak: 'normal',
+  },
+})
 
 const styleProofMenuButton = {
   ...styleStatusIcon,
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   marginLeft: 10,
   minWidth: 34, // reserve space for menu dropdown caret
   alignItems: 'center',
