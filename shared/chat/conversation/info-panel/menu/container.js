@@ -16,6 +16,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     _hasCanPerform,
     canAddPeople: yourOperations.manageMembers,
     isSmallTeam,
+    teamname,
+    memberCount: Constants.getTeamMemberCount(state, teamname),
   }
 }
 

@@ -1,11 +1,14 @@
 // @flow
 import * as React from 'react'
 import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
-import {isMobile} from '../../../../styles'
+import {Avatar, Box, Text} from '../../../../common-adapters'
+import {globalStyles, isMobile} from '../../../../styles'
 
 type Props = {
   canAddPeople: boolean,
   isSmallTeam: boolean,
+  memberCount: number,
+  teamname: string,
   onAddPeople: () => void,
   onClose: () => void,
   onInvite: () => void,
@@ -13,6 +16,14 @@ type Props = {
   onManageChannels: () => void,
   onViewTeam: () => void,
 }
+
+const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: 16}}>
+    <Avatar size={16} teamname={teamname} style={{marginBottom: 2}} />
+    <Text type="BodySemibold">{teamname}</Text>
+    <Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Text>
+  </Box>
+)
 
 const InfoPanelMenu = (props: Props) => {
   const addPeopleItems = [
@@ -36,10 +47,20 @@ const InfoPanelMenu = (props: Props) => {
     {title: 'Leave team', onClick: props.onLeaveTeam, danger: true},
   ]
 
+  const header = {
+    title: 'header',
+    view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
+  }
+
   return isMobile ? (
-    <PopupMenu onHidden={props.onClose} style={{overflow: 'visible'}} items={items} />
+    <PopupMenu header={header} onHidden={props.onClose} style={{overflow: 'visible'}} items={items} />
   ) : (
-    <ModalLessPopupMenu onHidden={() => {}} style={{overflow: 'visible', width: 200}} items={items} />
+    <ModalLessPopupMenu
+      header={header}
+      onHidden={() => {}}
+      style={{overflow: 'visible', width: 200}}
+      items={items}
+    />
   )
 }
 
