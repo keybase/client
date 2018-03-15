@@ -562,7 +562,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ResetSummaryWithEldestSeqno"
+            "items": "ResetSummary"
           },
           "name": "resets"
         }

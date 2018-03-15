@@ -110,12 +110,13 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	require.True(t, reset.Ctime > keybase1.UnixTime(1419826703))
 	require.True(t, reset.MerkleRoot.Seqno > keybase1.Seqno(0))
 	require.Equal(t, reset.Type, keybase1.ResetType_RESET)
+	require.Equal(t, reset.EldestSeqno, keybase1.Seqno(1))
 
 	// While we're here, also check that UPK v1 has the right reset summaries.
 	upk1, err := libkb.LoadUserPlusKeys(context.TODO(), tc.G, fu.UID(), keybase1.KID(""))
 	require.NoError(t, err)
 	require.Equal(t, len(upk1.Resets), 1)
 	require.Equal(t, upk1.Resets[0].EldestSeqno, keybase1.Seqno(1))
-	require.Equal(t, upk1.Resets[0].ResetSummary.Type, keybase1.ResetType_RESET)
+	require.Equal(t, upk1.Resets[0].Type, keybase1.ResetType_RESET)
 
 }

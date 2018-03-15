@@ -60,9 +60,9 @@ func (o ResetMerkleRoot) DeepCopy() ResetMerkleRoot {
 }
 
 type ResetPrev struct {
-	EldestKID   *KID   `codec:"eldestKID,omitempty" json:"eldest_kid,omitempty"`
-	EldestSeqno Seqno  `codec:"eldestSeqno" json:"public_seqno"`
-	Reset       SHA512 `codec:"reset" json:"reset"`
+	EldestKID *KID   `codec:"eldestKID,omitempty" json:"eldest_kid,omitempty"`
+	LastSeqno Seqno  `codec:"lastSeqno" json:"public_seqno"`
+	Reset     SHA512 `codec:"reset" json:"reset"`
 }
 
 func (o ResetPrev) DeepCopy() ResetPrev {
@@ -74,8 +74,8 @@ func (o ResetPrev) DeepCopy() ResetPrev {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EldestKID),
-		EldestSeqno: o.EldestSeqno.DeepCopy(),
-		Reset:       o.Reset.DeepCopy(),
+		LastSeqno: o.LastSeqno.DeepCopy(),
+		Reset:     o.Reset.DeepCopy(),
 	}
 }
 
@@ -100,30 +100,20 @@ func (o ResetLink) DeepCopy() ResetLink {
 }
 
 type ResetSummary struct {
-	Ctime      UnixTime        `codec:"ctime" json:"ctime"`
-	MerkleRoot ResetMerkleRoot `codec:"merkleRoot" json:"merkleRoot"`
-	ResetSeqno Seqno           `codec:"resetSeqno" json:"resetSeqno"`
-	Type       ResetType       `codec:"type" json:"type"`
+	Ctime       UnixTime        `codec:"ctime" json:"ctime"`
+	MerkleRoot  ResetMerkleRoot `codec:"merkleRoot" json:"merkleRoot"`
+	ResetSeqno  Seqno           `codec:"resetSeqno" json:"resetSeqno"`
+	EldestSeqno Seqno           `codec:"eldestSeqno" json:"eldestSeqno"`
+	Type        ResetType       `codec:"type" json:"type"`
 }
 
 func (o ResetSummary) DeepCopy() ResetSummary {
 	return ResetSummary{
-		Ctime:      o.Ctime.DeepCopy(),
-		MerkleRoot: o.MerkleRoot.DeepCopy(),
-		ResetSeqno: o.ResetSeqno.DeepCopy(),
-		Type:       o.Type.DeepCopy(),
-	}
-}
-
-type ResetSummaryWithEldestSeqno struct {
-	ResetSummary ResetSummary `codec:"resetSummary" json:"resetSummary"`
-	EldestSeqno  Seqno        `codec:"eldestSeqno" json:"eldestSeqno"`
-}
-
-func (o ResetSummaryWithEldestSeqno) DeepCopy() ResetSummaryWithEldestSeqno {
-	return ResetSummaryWithEldestSeqno{
-		ResetSummary: o.ResetSummary.DeepCopy(),
-		EldestSeqno:  o.EldestSeqno.DeepCopy(),
+		Ctime:       o.Ctime.DeepCopy(),
+		MerkleRoot:  o.MerkleRoot.DeepCopy(),
+		ResetSeqno:  o.ResetSeqno.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Type:        o.Type.DeepCopy(),
 	}
 }
 

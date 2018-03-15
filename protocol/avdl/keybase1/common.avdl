@@ -243,7 +243,8 @@ protocol Common {
       @lint("ignore")
       array<PerUserKey> perUserKeys;
 
-      array<ResetSummaryWithEldestSeqno> resets;
+      // All resets that follow user incarnations with device keys.
+      array<ResetSummary> resets;
   }
 
   record UserOrTeamLite {
