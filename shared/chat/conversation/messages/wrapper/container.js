@@ -51,6 +51,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
   _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
@@ -106,6 +108,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     messageFailed: stateProps.messageFailed,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onCancel: stateProps.isYou
+      ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
+      : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
