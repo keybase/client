@@ -28,7 +28,12 @@ class Left extends React.PureComponent<Props> {
           justifyContent: 'flex-start',
         }}
       >
-        <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
+        <Avatar
+          onClick={() => onUsernameClicked(author)}
+          size={24}
+          username={author}
+          style={{marginRight: globalMargins.tiny}}
+        />
         <Box style={globalStyles.flexBoxColumn}>
           <Text title={formatTimeForMessages(timestamp)} type="BodySmallSemibold">
             <ConnectedUsernames

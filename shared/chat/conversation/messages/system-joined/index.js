@@ -30,7 +30,12 @@ class Joined extends React.PureComponent<Props> {
           justifyContent: 'flex-start',
         }}
       >
-        <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
+        <Avatar
+          onClick={() => onUsernameClicked(author)}
+          size={24}
+          username={author}
+          style={{marginRight: globalMargins.tiny}}
+        />
         <Box style={globalStyles.flexBoxColumn}>
           <Text title={formatTimeForMessages(timestamp)} type="BodySmallSemibold">
             {you === author ? (
@@ -48,17 +53,12 @@ class Joined extends React.PureComponent<Props> {
               />
             )}{' '}
           </Text>
-          <Text type="BodySmallSemibold">
+          <Text type="BodySmall">
             joined {isBigTeam ? `#${channelname}` : teamname}
             {'. '}
             {author === you &&
               isBigTeam && (
-                <Text
-                  title=""
-                  onClick={onManageChannels}
-                  style={{color: globalColors.blue}}
-                  type="BodySmallSemibold"
-                >
+                <Text title="" onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmall">
                   Manage channel subscriptions.
                 </Text>
               )}
