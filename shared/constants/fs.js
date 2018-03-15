@@ -179,7 +179,7 @@ const itemStylesTeamTlf = memoize((teamName: string) => ({
   textType: folderTextType,
 }))
 
-export const humanReadableFileSize = (meta : Types.PathItemMetadata) => {
+export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
   const kib = 1024
   const mib = kib * kib
   const gib = mib * kib
