@@ -25,6 +25,7 @@ const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
 
 const Row = (
   props: RowProps & {
+    canEditChannels: boolean,
     selected: boolean,
     onToggle: () => void,
     showEdit: boolean,
@@ -55,14 +56,16 @@ const Row = (
         {props.description}
       </Text>
     </Box>
-    <Edit
-      style={{
-        ...globalStyles.flexBoxRow,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-      }}
-      onClick={props.onEdit}
-    />
+    {props.canEditChannels && (
+      <Edit
+        style={{
+          ...globalStyles.flexBoxRow,
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+        }}
+        onClick={props.onEdit}
+      />
+    )}
   </Box>
 )
 
@@ -78,15 +81,18 @@ const _rowBox = {
 const ManageChannels = (props: Props) => (
   <Box style={_boxStyle}>
     <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
-      <Box style={_createStyle}>
-        <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-        <Text type="BodyBigLink" onClick={props.onCreate}>
-          New chat channel
-        </Text>
-      </Box>
+      {props.canCreateChannels && (
+        <Box style={_createStyle}>
+          <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
+          <Text type="BodyBigLink" onClick={props.onCreate}>
+            New chat channel
+          </Text>
+        </Box>
+      )}
       {props.channels.map(c => (
         <Row
           key={c.name}
+          canEditChannels={props.canEditChannels}
           description={c.description}
           name={c.name}
           selected={props.nextChannelState[c.name]}

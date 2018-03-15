@@ -59,6 +59,8 @@ const load = () => {
         <ManageChannels
           teamname="stripe.usa"
           numChannels={23}
+          canEditChannels={true}
+          canCreateChannels={true}
           channels={channels}
           onClose={action('onClose')}
           onToggle={action('onToggle')}
@@ -80,6 +82,8 @@ const load = () => {
         <ManageChannels
           teamname="stripe.usa"
           numChannels={23}
+          canEditChannels={false}
+          canCreateChannels={false}
           channels={channels}
           onClose={action('onClose')}
           onToggle={action('onToggle')}

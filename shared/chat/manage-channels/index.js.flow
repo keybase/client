@@ -9,6 +9,8 @@ export type RowProps = {
 }
 
 export type Props = {
+  canCreateChannels: boolean,
+  canEditChannels: boolean,
   channels: Array<RowProps & {convID: ConversationIDKey}>,
   onCreate: () => void,
   onToggle: (channel: string) => void,
