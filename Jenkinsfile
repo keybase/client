@@ -265,9 +265,9 @@ helpers.rootLinuxNode(env, {
                     test_macos: {
                         // TODO: If we re-enable tests other than Go tests on
                         // macOS, this check should go away.
-                        if (hasGoChanges) {
+                        if (true) { // hasGoChanges) {
                             def mountDir='/Volumes/untitled/client'
-                            helpers.nodeWithCleanup('macstadium', {}, {
+                            helpers.nodeWithCleanup('macstadium_temp', {}, {
                                     sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
                                 }) {
                                 def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
@@ -301,7 +301,7 @@ helpers.rootLinuxNode(env, {
                                         //    }
                                         //},
                                         test_macos_go: {
-                                            if (hasGoChanges) {
+                                            if (true) { // hasGoChanges) {
                                                 testGo("test_macos_go_")
                                             }
                                         }
