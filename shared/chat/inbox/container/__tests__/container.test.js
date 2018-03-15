@@ -17,7 +17,7 @@ describe('inbox container tests', () => {
     expect(_testing.score('nothing', 'myname', ['a', 'b', 'c'])).toBe(0)
   })
   it('searching for exact', () => {
-    const oneExactScore = 1 / 3
+    const oneExactScore = 100 / 3
     expect(_testing.score('exact', 'myname', ['exact', 'b', 'c'])).toBeCloseTo(oneExactScore)
     expect(_testing.score('exact', 'myname', ['a', 'exact', 'c'])).toBeCloseTo(oneExactScore)
     expect(_testing.score('exact', 'myname', ['a', 'b', 'exact'])).toBeCloseTo(oneExactScore)
