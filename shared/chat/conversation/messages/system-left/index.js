@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalMargins, globalStyles} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -11,11 +11,12 @@ type Props = {
   message: Types.MessageSystemLeft,
   onUsernameClicked: (username: string) => void,
   teamname: string,
+  you: string,
 }
 
 class Left extends React.PureComponent<Props> {
   render() {
-    const {channelname, isBigTeam, teamname, onUsernameClicked} = this.props
+    const {channelname, isBigTeam, teamname, onUsernameClicked, you} = this.props
     const {author, timestamp} = this.props.message
     return (
       <Box
@@ -36,14 +37,20 @@ class Left extends React.PureComponent<Props> {
         />
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="BodySmallSemibold">
-            <ConnectedUsernames
-              inline={true}
-              type="BodySmallSemibold"
-              onUsernameClicked={onUsernameClicked}
-              colorFollowing={true}
-              underline={true}
-              usernames={[author]}
-            />
+            {you === author ? (
+              <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+                You
+              </Text>
+            ) : (
+              <ConnectedUsernames
+                inline={true}
+                type="BodySmallSemibold"
+                onUsernameClicked={onUsernameClicked}
+                colorFollowing={true}
+                underline={true}
+                usernames={[author]}
+              />
+            )}{' '}
           </Text>
           <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
             left {isBigTeam ? `#${channelname}` : teamname}.
