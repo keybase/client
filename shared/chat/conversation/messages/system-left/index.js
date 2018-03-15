@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalMargins} from '../../../../styles'
+import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {globalMargins, globalStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -20,15 +20,19 @@ class Left extends React.PureComponent<Props> {
     return (
       <Box
         style={{
-          marginLeft: globalMargins.xtiny,
           marginTop: 2,
           marginBottom: 2,
+          marginLeft: globalMargins.xtiny,
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'flex-start',
         }}
       >
-        <Text title={formatTimeForMessages(timestamp)} type="BodySmallItalic">
+        <Avatar size={12} username={author} style={{marginRight: globalMargins.xtiny}} />
+        <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
           <ConnectedUsernames
             inline={true}
-            type="BodySmallItalic"
+            type="BodySmall"
             onUsernameClicked={onUsernameClicked}
             colorFollowing={true}
             underline={true}

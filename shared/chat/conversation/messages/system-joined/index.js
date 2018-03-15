@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalColors, globalMargins} from '../../../../styles'
+import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -22,20 +22,24 @@ class Joined extends React.PureComponent<Props> {
     return (
       <Box
         style={{
-          marginLeft: globalMargins.xtiny,
           marginTop: 2,
           marginBottom: 2,
+          marginLeft: globalMargins.xtiny,
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'flex-start',
         }}
       >
-        <Text title={formatTimeForMessages(timestamp)} type="BodySmallItalic">
+        <Avatar size={12} username={author} style={{marginRight: globalMargins.xtiny}} />
+        <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
           {you === author ? (
-            <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black_40}}>
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
               You
             </Text>
           ) : (
             <ConnectedUsernames
               inline={true}
-              type="BodySmallItalic"
+              type="BodySmall"
               onUsernameClicked={onUsernameClicked}
               colorFollowing={true}
               underline={true}
@@ -46,12 +50,7 @@ class Joined extends React.PureComponent<Props> {
           {'. '}
           {author === you &&
             isBigTeam && (
-              <Text
-                title=""
-                onClick={onManageChannels}
-                style={{color: globalColors.blue}}
-                type="BodySmallItalic"
-              >
+              <Text title="" onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmall">
                 Manage channel subscriptions.
               </Text>
             )}
