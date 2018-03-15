@@ -68,23 +68,28 @@ func (b *BackgroundTLFUpdater) Run() {
 
 func (b *BackgroundTLFUpdater) runAll() {
 	b.Lock()
+	defer b.Unlock()
+	uid := b.G().Env.GetUID()
+	if uid.IsNil() {
+		b.debug(context.Background(), "not logged in, not starting")
+		return
+	}
 	if !b.running && b.G().Env.GetChatMemberType() != "kbfs" {
 		b.debug(context.Background(), "starting up")
 		b.shutdownCh = make(chan struct{})
 		b.running = true
 		go b.runAppType(keybase1.TeamApplication_CHAT)
 	}
-	b.Unlock()
 }
 
 func (b *BackgroundTLFUpdater) Shutdown() error {
 	b.Lock()
+	defer b.Unlock()
 	if b.running {
 		b.debug(context.Background(), "shutting down")
 		b.running = false
 		close(b.shutdownCh)
 	}
-	b.Unlock()
 	return nil
 }
 
