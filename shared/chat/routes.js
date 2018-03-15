@@ -131,6 +131,11 @@ const createChannelRoute = makeRouteDefNode({
   tags: makeLeafTags({hideStatusBar: true}),
   children: {},
 })
+const infoPanelMenuRoute = makeRouteDefNode({
+  children: {},
+  component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
+  tags: makeLeafTags({layerOnTop: true}),
+})
 
 const routeTree = isMobile
   ? makeRouteDefNode({
@@ -140,6 +145,8 @@ const routeTree = isMobile
           return manageChannelsRoute
         } else if (key === 'createChannel') {
           return createChannelRoute
+        } else if (key === 'infoPanelMenu') {
+          return infoPanelMenuRoute
         }
 
         return conversationRoute

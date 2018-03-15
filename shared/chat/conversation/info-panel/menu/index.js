@@ -23,7 +23,9 @@ const InfoPanelMenu = (props: Props) => {
       style: {borderTopWidth: 0},
     },
   ]
-  const bigTeamItems = [{title: 'Manage chat channels', onClick: props.onManageChannels}]
+  const bigTeamItems = [
+    {title: 'Manage chat channels', onClick: props.onManageChannels, style: {borderTopWidth: 0}},
+  ]
   const items = [
     ...(props.canAddPeople ? addPeopleItems : []),
     {title: 'View team', onClick: props.onViewTeam},

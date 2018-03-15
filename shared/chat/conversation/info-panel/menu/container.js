@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
-import {connect, isMobile, type TypedState} from '../../../../util/container'
+import {createGetTeamOperations} from '../../../../actions/teams-gen'
+import {compose, connect, isMobile, lifecycle, type TypedState} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
@@ -9,7 +10,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   const isSmallTeam = routeProps.get('isSmallTeam')
   const yourOperations = Constants.getCanPerform(state, teamname)
+  // We can get here without loading canPerform
+  const _hasCanPerform = Constants.hasCanPerform(state, teamname)
   return {
+    _hasCanPerform,
     canAddPeople: yourOperations.manageMembers,
     isSmallTeam,
   }
@@ -18,6 +22,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
   const teamname = routeProps.get('teamname')
   return {
+    _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
     onAddPeople: () => {
       !isMobile && dispatch(navigateUp())
       dispatch(
@@ -57,4 +62,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(InfoPanelMenu)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentDidMount: function() {
+      if (!this.props._hasCanPerform) {
+        this.props._loadOperations()
+      }
+    },
+  })
+)(InfoPanelMenu)
