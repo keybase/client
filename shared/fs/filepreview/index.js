@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import {humanReadableFileSize} from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {formatTimeForMessages} from '../../util/timestamp'
@@ -23,21 +24,6 @@ const FilePreviewHeader = ({title, desc}: FilePreviewHeaderProps) => (
 type FilePreviewProps = {
   path: Types.Path,
   meta: Types.PathItemMetadata,
-}
-
-const humanReadableFileSize = meta => {
-  const kib = 1024
-  const mib = kib * kib
-  const gib = mib * kib
-  const tib = gib * kib
-
-  if (!meta) return ''
-  const size = meta.size
-  if (size >= tib) return `${Math.round(size / tib)}tb`
-  if (size >= gib) return `${Math.round(size / gib)}gb`
-  if (size >= mib) return `${Math.round(size / mib)}mb`
-  if (size >= kib) return `${Math.round(size / kib)}kb`
-  return '' + size
 }
 
 class FilePreview extends React.PureComponent<FilePreviewProps> {

@@ -179,6 +179,21 @@ const itemStylesTeamTlf = memoize((teamName: string) => ({
   textType: folderTextType,
 }))
 
+export const humanReadableFileSize = meta => {
+  const kib = 1024
+  const mib = kib * kib
+  const gib = mib * kib
+  const tib = gib * kib
+
+  if (!meta) return ''
+  const size = meta.size
+  if (size >= tib) return `${Math.round(size / tib)}tb`
+  if (size >= gib) return `${Math.round(size / gib)}gb`
+  if (size >= mib) return `${Math.round(size / mib)}mb`
+  if (size >= kib) return `${Math.round(size / kib)}kb`
+  return '' + size
+}
+
 export const getItemStyles = (
   pathElems: Array<string>,
   type: Types.PathType,
