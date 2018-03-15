@@ -65,18 +65,19 @@ type GlobalContext struct {
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
 
-	cacheMu        *sync.RWMutex   // protects all caches
-	ProofCache     *ProofCache     // where to cache proof results
-	TrackCache     *TrackCache     // cache of IdentifyOutcomes for tracking purposes
-	Identify2Cache Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
-	LinkCache      *LinkCache      // cache of ChainLinks
-	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
-	teamLoader     TeamLoader      // Play back teams for id/name properties
-	itciCacher     LRUer           // Cacher for implicit team conflict info
-	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
-	fullSelfer     FullSelfer      // a loader that gets the full self object
-	pvlSource      PvlSource       // a cache and fetcher for pvl
-	PayloadCache   *PayloadCache   // cache of ChainLink payload json wrappers
+	cacheMu         *sync.RWMutex   // protects all caches
+	ProofCache      *ProofCache     // where to cache proof results
+	TrackCache      *TrackCache     // cache of IdentifyOutcomes for tracking purposes
+	Identify2Cache  Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
+	LinkCache       *LinkCache      // cache of ChainLinks
+	upakLoader      UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader      TeamLoader      // Play back teams for id/name properties
+	deviceEKStorage DeviceEKStorage // Store device ephemeral keys
+	itciCacher      LRUer           // Cacher for implicit team conflict info
+	CardCache       *UserCardCache  // cache of keybase1.UserCard objects
+	fullSelfer      FullSelfer      // a loader that gets the full self object
+	pvlSource       PvlSource       // a cache and fetcher for pvl
+	PayloadCache    *PayloadCache   // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -464,12 +465,10 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 	g.LocalDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetDbFilename))
 	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename))
 
-	e1 := g.LocalDb.Open()
-	e2 := g.LocalChatDb.Open()
-	if e1 != nil {
-		return e1
-	}
-	return e2
+	epick := FirstErrorPicker{}
+	epick.Push(g.LocalDb.Open())
+	epick.Push(g.LocalChatDb.Open())
+	return epick.Error()
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
@@ -487,6 +486,12 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamLoader
+}
+
+func (g *GlobalContext) GetDeviceEKStorage() DeviceEKStorage {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.deviceEKStorage
 }
 
 func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
@@ -622,8 +627,9 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 		return err
 	}
 
-	// secretStore must be created after SetCommandLine and ConfigureUsage in order
-	// to correctly use -H,-home flag and config vars for remember_passphrase.
+	// secretStore must be created after SetCommandLine and ConfigureUsage in
+	// order to correctly use -H,-home flag and config vars for
+	// remember_passphrase.
 	g.secretStoreMu.Lock()
 	g.secretStore = NewSecretStoreLocked(g)
 	g.secretStoreMu.Unlock()
@@ -990,6 +996,12 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamLoader = l
+}
+
+func (g *GlobalContext) SetDeviceEKStorage(s DeviceEKStorage) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.deviceEKStorage = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {

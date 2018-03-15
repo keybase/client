@@ -3,11 +3,12 @@ import React from 'react'
 import {storiesOf, action} from '../../../../stories/storybook'
 import {Notifications} from './index'
 
-const common = {
+const defaultProps = {
   channelWide: false,
   desktop: 'onWhenAtMentioned',
   mobile: 'never',
   muted: false,
+  saveState: 'same',
   toggleChannelWide: action('onToggleChannelwide'),
   toggleMuted: action('toggleMuted'),
   updateDesktop: action('updateDesktop'),
@@ -16,10 +17,11 @@ const common = {
 
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanelNotifications', module)
-    .add('Notifications (unsaved)', () => <Notifications {...common} saveState="same" />)
+    .add('Notifications (unsaved)', () => <Notifications {...defaultProps} saveState="same" />)
+    .add('Notifications (muted)', () => <Notifications {...defaultProps} muted={true} />)
     .add('Notifications (saving)', () => (
       <Notifications
-        {...common}
+        {...defaultProps}
         channelWide={true}
         desktop="onAnyActivity"
         mobile="onWhenAtMentioned"
@@ -28,7 +30,7 @@ const load = () => {
     ))
     .add('Notifications (saved)', () => (
       <Notifications
-        {...common}
+        {...defaultProps}
         channelWide={true}
         desktop="onAnyActivity"
         mobile="onWhenAtMentioned"

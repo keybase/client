@@ -622,6 +622,11 @@ const loadMoreMessages = (
 
   const meta = Constants.getMeta(state, conversationIDKey)
 
+  if (meta.membershipType === 'youAreReset' || !meta.rekeyers.isEmpty()) {
+    logger.info('Load thread bail: we are reset')
+    return
+  }
+
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
     paginationKey = meta.paginationKey
     numberOfMessagesToLoad = numMessagesOnScrollback

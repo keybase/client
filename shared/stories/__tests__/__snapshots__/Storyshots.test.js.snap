@@ -711,6 +711,169 @@ exports[`Storyshots Chat/Conversation/InfoPanel Small team 1`] = `
 </div>
 `;
 
+exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (muted) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  color: #ffffff;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  color: rgba(0, 0, 0, 0.20);
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "column",
+          "paddingLeft": 16,
+          "paddingRight": 16,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "marginBottom": 4,
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "#33a0ff",
+                "border": "solid 1px #33a0ff",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-0"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-1"
+            onClick={undefined}
+            title={undefined}
+          >
+            Mute all notifications
+          </span>
+        </div>
+        <div>
+          <span
+            className="glamor-2"
+            onClick={null}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            style={
+              Object {
+                "WebkitFontSmoothing": "antialiased",
+                "fontFamily": "kb",
+                "fontSize": 16,
+                "fontStyle": "normal",
+                "fontVariant": "normal",
+                "fontWeight": "normal",
+                "lineHeight": 1,
+                "marginLeft": 4,
+                "speak": "none",
+                "textTransform": "none",
+                "userSelect": "none",
+              }
+            }
+          >
+            
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingTop": 16,
+          }
+        }
+      />
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (saved) 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -19298,7 +19461,7 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
-          srcSet="icons/icon-message-status-sending-24.png 1x, icons/icon-message-status-sending-24@2x.png 2x"
+          srcSet="icons/icon-message-status-sending-24.gif 1x, icons/icon-message-status-sending-24@2x.gif 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",
@@ -19315,7 +19478,7 @@ exports[`Storyshots Common Icon 1`] = `
           className={undefined}
           draggable="false"
           onClick={[Function]}
-          srcSet="icons/icon-message-status-sent-24.png 1x, icons/icon-message-status-sent-24@2x.png 2x"
+          srcSet="icons/icon-message-status-sent-24.gif 1x, icons/icon-message-status-sent-24@2x.gif 2x"
           style={
             Object {
               "borderColor": "rgba(0, 0, 0, 0.05)",

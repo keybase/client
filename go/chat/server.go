@@ -268,7 +268,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.Conv.GetConvID(),
-					Error:     *convRes.Err,
+					Error:     utils.PresentConversationErrorLocal(*convRes.Err),
 				})
 
 				// If we get a transient failure, add this to the retrier queue
@@ -2707,27 +2707,10 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 	if conv.GetMembersType() != chat1.ConversationMembersType_KBFS {
 		return fmt.Errorf("cannot upgrade %v conversation", conv.GetMembersType())
 	}
-
-	var cryptKeys []keybase1.CryptKey
 	tlfID := conv.Info.Triple.Tlfid
 	tlfName := conv.Info.TlfName
 	public := conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
-	ni, err := CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, conv.GetMembersType(), public)
-	if err != nil {
-		return err
-	}
-	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
-		cryptKeys = append(cryptKeys, keybase1.CryptKey{
-			KeyGeneration: key.Generation(),
-			Key:           key.Material(),
-		})
-	}
-	tlfName = ni.CanonicalName
-	h.Debug(ctx, "UpgradeKBFSConversationToImpteam: upgrading: TlfName: %s TLFID: %s public: %v keys: %d",
-		tlfName, tlfID, public, len(cryptKeys))
-
-	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
-		public, keybase1.TeamApplication_CHAT, cryptKeys)
+	return h.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, tlfID, public)
 }
 
 func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpArg) (res chat1.GetSearchRegexpRes, err error) {

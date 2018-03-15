@@ -51,7 +51,7 @@ class GitPush extends React.PureComponent<Props> {
                 type="BodySmallSemibold"
                 style={repoID ? {color: globalColors.black_60} : undefined}
                 onClick={repoID ? () => this.props.onViewGitRepo(repoID, team) : undefined}
-              >{`${repo}/${branchName}`}</Text>:
+              >{` ${repo}/${branchName}`}</Text>:
             </Text>
             <Box style={globalStyles.flexBoxColumn}>
               {(ref.commits || []).map((commit, i) => (

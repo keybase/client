@@ -112,7 +112,7 @@ func HasSecretStore() bool {
 }
 
 func (k KeychainSecretStore) GetUsersWithStoredSecrets() ([]string, error) {
-	users, err := keychain.GetAccountsForService(k.context.GetStoredSecretServiceName())
+	users, err := keychain.GetAccountsForService(k.serviceName())
 	if err != nil {
 		k.context.GetLog().Debug("KeychainSecretStore.GetUsersWithStoredSecrets() error: %s", err)
 		return nil, err
