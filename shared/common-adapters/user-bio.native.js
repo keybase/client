@@ -184,9 +184,7 @@ const stylesAvatarWrapper = (avatarSize: number) => ({
   height: avatarSize,
   marginTop: -avatarSize / 2,
 })
-const stylesAvatar = {
-  ...globalStyles.clickable,
-}
+const stylesAvatar = {}
 const stylesContent = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
@@ -208,7 +206,6 @@ const stylesFollowLabel = {
   color: globalColors.black_40,
 }
 const stylesFollowing = {
-  ...globalStyles.clickable,
   color: globalColors.black_40,
   marginBottom: globalMargins.xtiny,
   marginTop: globalMargins.xtiny,

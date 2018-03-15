@@ -9,7 +9,7 @@ import {
   Text,
   PopupDialog,
 } from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile, desktopStyles} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
@@ -108,7 +108,7 @@ const AddPeople = (props: Props) => (
           searchKey={'addToTeamSearch'}
         />
       </Box>
-      <Box style={{...globalStyles.scrollable, flex: 1}}>
+      <Box style={{...desktopStyles.scrollable, flex: 1}}>
         {props.showSearchPending ? (
           <ProgressIndicator style={{width: 24}} />
         ) : (

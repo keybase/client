@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
@@ -32,6 +33,7 @@ import (
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -281,11 +283,16 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
-	var err error
-	if err = d.setupTeams(); err != nil {
-		return err
-	}
-	return d.setupPVL()
+	epick := libkb.FirstErrorPicker{}
+	epick.Push(d.setupTeams())
+	epick.Push(d.setupPVL())
+	epick.Push(d.setupEphemeralKeys())
+	return epick.Error()
+}
+
+func (d *Service) setupEphemeralKeys() error {
+	ephemeral.ServiceInit(d.G())
+	return nil
 }
 
 func (d *Service) setupTeams() error {
@@ -314,6 +321,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
+	d.runTLFUpgrade()
 	go d.identifySelf()
 }
 
@@ -429,6 +437,11 @@ func (d *Service) identifySelf() {
 			d.G().Log.Debug("identifySelf: updated full self cache for: %s", self.GetName())
 		}
 	}
+}
+
+func (d *Service) runTLFUpgrade() {
+	upgrader := tlfupgrade.NewBackgroundTLFUpdater(d.G())
+	upgrader.Run()
 }
 
 func (d *Service) runBackgroundIdentifier() {

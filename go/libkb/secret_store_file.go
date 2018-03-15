@@ -4,8 +4,6 @@
 package libkb
 
 import (
-	"crypto/sha256"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,10 +11,7 @@ import (
 	"runtime"
 )
 
-const noiseLen = 1024 * 1024 * 2
-
 type secretBytes [LKSecLen]byte
-type noiseBytes [noiseLen]byte
 
 var ErrSecretForUserNotFound = NotFoundError{Msg: "No secret found for user"}
 
@@ -91,9 +86,9 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 
 	var xorFixed secretBytes
 	copy(xorFixed[:], xor)
-	var noiseFixed noiseBytes
+	var noiseFixed NoiseBytes
 	copy(noiseFixed[:], noise)
-	secret, err := s.noiseXOR(xorFixed, noiseFixed)
+	secret, err := NoiseXOR(xorFixed, noiseFixed)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -101,43 +96,19 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) makeNoise() (noiseBytes, error) {
-	var nb noiseBytes
-	noise, err := RandBytes(noiseLen)
-	if err != nil {
-		return nb, err
-	}
-	copy(nb[:], noise)
-	return nb, nil
-}
-
-func (s *SecretStoreFile) noiseXOR(secret secretBytes, noise noiseBytes) ([]byte, error) {
-	sum := sha256.Sum256(noise[:])
-	if len(sum) != len(secret) {
-		return nil, errors.New("LKSecLen or sha256.Size is no longer 32")
-	}
-
-	xor := make([]byte, len(sum))
-	for i := 0; i < len(sum); i++ {
-		xor[i] = sum[i] ^ secret[i]
-	}
-
-	return xor, nil
-}
-
 func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
-	noise, err := s.makeNoise()
+	noise, err := MakeNoise()
 	if err != nil {
 		return err
 	}
 	var secretFixed secretBytes
 	copy(secretFixed[:], secret.Bytes())
-	xor, err := s.noiseXOR(secretFixed, noise)
+	xor, err := NoiseXOR(secretFixed, noise)
 	if err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(s.dir, 0700); err != nil {
+	if err := os.MkdirAll(s.dir, PermDir); err != nil {
 		return err
 	}
 
@@ -156,10 +127,10 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
-		if err := fsec.Chmod(0600); err != nil {
+		if err := fsec.Chmod(PermFile); err != nil {
 			return err
 		}
-		if err := fnoise.Chmod(0600); err != nil {
+		if err := fnoise.Chmod(PermFile); err != nil {
 			return err
 		}
 	}
@@ -184,6 +155,15 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 		return err
 	}
 
+	// NOTE: Pre-existing maybe-bug: I think this step breaks atomicity. It's
+	// possible that the rename below fails, in which case we'll have already
+	// destroyed the previous value.
+
+	// On Unix we could solve this by hard linking the old file to a new tmp
+	// location, and then shredding it after the rename. On Windows, I think
+	// we'd need to somehow call the ReplaceFile Win32 function (which Go
+	// doesn't expose anywhere as far as I know, so this would require CGO) to
+	// take advantage of its lpBackupFileName param.
 	if exists {
 		// shred the existing secret
 		if err := s.clearSecretV2(username); err != nil {
@@ -198,10 +178,10 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecF
 		return err
 	}
 
-	if err := os.Chmod(finalSec, 0600); err != nil {
+	if err := os.Chmod(finalSec, PermFile); err != nil {
 		return err
 	}
-	if err := os.Chmod(finalNoise, 0600); err != nil {
+	if err := os.Chmod(finalNoise, PermFile); err != nil {
 		return err
 	}
 

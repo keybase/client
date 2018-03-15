@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
 import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, desktopStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {remote} from 'electron'
 import throttle from 'lodash/throttle'
@@ -54,7 +54,7 @@ class MenubarRender extends Component<Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor}
+    const menuStyle = {...desktopStyles.clickable, color: menuColor, hoverColor: menuColor}
 
     return (
       <Box style={styles.container}>
@@ -166,7 +166,7 @@ class MenubarRender extends Component<Props, State> {
           </Box>
           <Icon
             style={{
-              ...globalStyles.clickable,
+              ...desktopStyles.clickable,
               color: globalColors.black_40,
               hoverColor: globalColors.black,
               width: 16,
@@ -254,7 +254,7 @@ const BadgeIcon = ({
 
   return (
     <Box
-      style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
+      style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
       <Icon

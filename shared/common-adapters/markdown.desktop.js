@@ -6,15 +6,17 @@ import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 
 import type {Props} from './markdown'
 
-const wrapStyle = {
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-}
+const wrapStyle = platformStyles({
+  isElectron: {
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+})
 
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
@@ -27,26 +29,55 @@ const codeSnippetStyle = {
   paddingRight: globalMargins.xtiny,
 }
 
-const codeSnippetBlockStyle = {
-  ...codeSnippetStyle,
-  ...wrapStyle,
-  backgroundColor: globalColors.beige,
-  color: globalColors.black_75,
-  display: 'block',
-  marginBottom: globalMargins.xtiny,
-  marginTop: globalMargins.xtiny,
-  paddingBottom: globalMargins.xtiny,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-  paddingTop: globalMargins.xtiny,
-}
+const codeSnippetBlockStyle = platformStyles({
+  common: {
+    ...wrapStyle,
+    ...codeSnippetStyle,
+    backgroundColor: globalColors.beige,
+    color: globalColors.black_75,
+    marginBottom: globalMargins.xtiny,
+    marginTop: globalMargins.xtiny,
+    paddingBottom: globalMargins.xtiny,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+    paddingTop: globalMargins.xtiny,
+  },
+  isElectron: {
+    display: 'block',
+  },
+})
 
-const textBlockStyle = {display: 'block', ...wrapStyle, color: 'inherit', fontWeight: 'inherit'}
-const linkStyle = {...wrapStyle, fontWeight: 'inherit'}
-const neutralPreviewStyle = {color: 'inherit', fontWeight: 'inherit'}
+const textBlockStyle = platformStyles({
+  common: {...wrapStyle},
+  isElectron: {display: 'block', color: 'inherit', fontWeight: 'inherit'},
+})
+const linkStyle = platformStyles({
+  common: {
+    ...wrapStyle,
+  },
+  isElectron: {fontWeight: 'inherit'},
+})
+const neutralPreviewStyle = platformStyles({
+  isElectron: {color: 'inherit', fontWeight: 'inherit'},
+})
 const boldStyle = {...wrapStyle, color: 'inherit'}
-const italicStyle = {...wrapStyle, color: 'inherit', fontStyle: 'italic', fontWeight: 'inherit'}
-const strikeStyle = {...wrapStyle, color: 'inherit', fontWeight: 'inherit', textDecoration: 'line-through'}
+const italicStyle = platformStyles({
+  common: {
+    ...wrapStyle,
+  },
+  isElectron: {color: 'inherit', fontStyle: 'italic', fontWeight: 'inherit'},
+})
+
+const strikeStyle = platformStyles({
+  common: {
+    ...wrapStyle,
+  },
+  isElectron: {
+    color: 'inherit',
+    fontWeight: 'inherit',
+    textDecoration: 'line-through',
+  },
+})
 const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
 
 function previewCreateComponent(type, key, children, options) {
@@ -150,7 +181,7 @@ class Markdown extends PureComponent<Props> {
       this.props.meta
     )
     return (
-      <Text type="Body" style={{whiteSpace: 'pre', ...this.props.style}}>
+      <Text type="Body" style={platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}>
         {content}
       </Text>
     )

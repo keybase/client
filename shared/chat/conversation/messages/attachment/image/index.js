@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, ClickableBox, Icon, ProgressBar} from '../../../../../common-adapters'
-import {globalStyles, globalMargins, globalColors, fileUIName, isMobile} from '../../../../../styles'
+import {globalStyles, globalMargins, globalColors, fileUIName, platformStyles} from '../../../../../styles'
 import {ImageRender} from './image-render'
 
 type Props = {
@@ -83,15 +83,14 @@ class ImageAttachment extends React.PureComponent<Props> {
   }
 }
 
-const titleStyle = {
-  ...(isMobile
-    ? {
-        backgroundColor: globalColors.fastBlank,
-      }
-    : {
-        wordBreak: 'break-word',
-      }),
-}
+const titleStyle = platformStyles({
+  isMobile: {
+    backgroundColor: globalColors.fastBlank,
+  },
+  isElectron: {
+    wordBreak: 'break-word',
+  },
+})
 
 const progressLabelStyle = {
   color: globalColors.black_40,

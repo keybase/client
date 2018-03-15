@@ -270,7 +270,7 @@ export const createMetaNeedsUpdating = (
 export const createMetaReceivedError = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    error: ?RPCChatTypes.ConversationErrorLocal,
+    error: ?RPCChatTypes.InboxUIItemError,
     username: ?string,
   }>
 ) => ({error: false, payload, type: metaReceivedError})

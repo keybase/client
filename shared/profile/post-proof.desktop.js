@@ -3,7 +3,7 @@ import * as shared from './post-proof.shared'
 import * as React from 'react'
 import {Box, Button, CopyableText, Icon, LinkWithIcon, PlatformIcon, Text} from '../common-adapters'
 import {clipboard} from 'electron'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 
 import type {Props} from './post-proof'
 
@@ -118,14 +118,14 @@ const styleContainer = {
   position: 'relative',
   paddingTop: globalMargins.large,
   paddingBottom: globalMargins.large,
-  ...globalStyles.scrollable,
+  ...desktopStyles.scrollable,
 }
 
 const styleClose = {
   position: 'absolute',
   top: globalMargins.small,
   right: globalMargins.small,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   color: globalColors.black_10,
 }
 

@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import {compose, withHandlers, withStateHandlers} from 'recompose'
@@ -301,15 +301,17 @@ const styleIcon = {
   paddingTop: globalMargins.tiny,
 }
 
-const styleFooter = {
-  color: globalColors.black_20,
-  cursor: 'text',
-  marginBottom: globalMargins.xtiny,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
-  marginTop: 0,
-  textAlign: 'right',
-}
+const styleFooter = platformStyles({
+  isElectron: {
+    color: globalColors.black_20,
+    cursor: 'text',
+    marginBottom: globalMargins.xtiny,
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+    marginTop: 0,
+    textAlign: 'right',
+  },
+})
 
 export default compose(
   withStateHandlers(

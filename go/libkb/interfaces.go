@@ -613,6 +613,13 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type DeviceEKStorage interface {
+	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error)
+	Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error)
+	GetAll(ctx context.Context) (deviceEKs map[keybase1.EkGeneration]keybase1.DeviceEk, err error)
+	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
+}
+
 type ImplicitTeamConflictInfoCacher interface {
 	Get(context.Context, bool, keybase1.TeamID) *keybase1.ImplicitTeamConflictInfo
 	Put(context.Context, bool, keybase1.TeamID, keybase1.ImplicitTeamConflictInfo) error
@@ -720,4 +727,5 @@ type ChatHelper interface {
 		membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
+	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 }

@@ -1532,6 +1532,14 @@ export const simpleFSPathType = {
   kbfs: 1,
 }
 
+export const stellarStellarAccountMode = {
+  user: 0,
+}
+
+export const stellarStellarSecretBundleVersion = {
+  v1: 1,
+}
+
 export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
 
 export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
@@ -2159,7 +2167,9 @@ export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: Inco
 
 export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceEkMetadata = $ReadOnly<{kid: KID, generation: Int, hashMeta: HashMeta}>
+export type DeviceEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta}>
+
+export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration}>
 
 export type DeviceID = String
 
@@ -2191,11 +2201,15 @@ export type ED25519Signature = any
 
 export type ED25519SignatureInfo = $ReadOnly<{sig: ED25519Signature, publicKey: ED25519PublicKey}>
 
+export type EkGeneration = Int64
+
 export type Email = $ReadOnly<{email: String, isVerified: Boolean}>
 
 export type EncryptedBytes32 = any
 
 export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
+
+export type EncryptedStellarSecretBundle = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerUserKeyGeneration}>
 
 export type ErrorNum = Int
 
@@ -3536,6 +3550,24 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+
+export type StellarAccountID = String
+
+export type StellarAccountMode = 0 // USER_0
+
+export type StellarRevision = Uint64
+
+export type StellarSecretBundle = $ReadOnly<{revision: StellarRevision, accounts?: ?Array<StellarSecretEntry>}>
+
+export type StellarSecretBundleV1 = $ReadOnly<{revision: StellarRevision, accounts?: ?Array<StellarSecretEntry>}>
+
+export type StellarSecretBundleVersion = 1 // V1_1
+
+export type StellarSecretBundleVersioned = {version: 1, v1: ?StellarSecretBundleV1}
+
+export type StellarSecretEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, signers?: ?Array<StellarSecretKey>, isPrimary: Boolean, name: String}>
+
+export type StellarSecretKey = String
 
 export type Stream = $ReadOnly<{fd: Int}>
 

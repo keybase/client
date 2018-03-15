@@ -7,7 +7,7 @@ import {
   globalMargins,
   styleSheetCreate,
   collapseStyles,
-  lineHeight,
+  platformStyles,
 } from '../../../../styles'
 import {isMobile, isAndroid} from '../../../../constants/platform'
 
@@ -50,11 +50,13 @@ class BottomLine extends PureComponent<Props> {
           <Text
             type="BodySmallSemibold"
             backgroundMode="Terminal"
-            style={{
-              color: globalColors.white,
-              fontSize: 11,
-              lineHeight: lineHeight(14),
-            }}
+            style={platformStyles({
+              common: {
+                color: globalColors.white,
+                fontSize: 11,
+                lineHeight: 14,
+              },
+            })}
           >
             REKEY NEEDED
           </Text>
@@ -65,11 +67,13 @@ class BottomLine extends PureComponent<Props> {
         <Text
           type="BodySmallSemibold"
           backgroundMode="Terminal"
-          style={{
-            color: globalColors.red,
-            fontSize: 11,
-            lineHeight: lineHeight(14),
-          }}
+          style={platformStyles({
+            common: {
+              color: globalColors.red,
+              fontSize: 11,
+              lineHeight: 14,
+            },
+          })}
         >
           You have to be let back in.
         </Text>
@@ -147,45 +151,32 @@ const resetStyle = {
   marginRight: 6,
 }
 
-const noWrapStyle = {
-  display: 'block',
-  overflow: 'hidden',
-  width: '100%',
-  ...(isMobile
-    ? {}
-    : {
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-      }),
-}
-
-const mobileBottomLineCommon = {
-  backgroundColor: globalColors.fastBlank,
-  color: globalColors.black_40,
-  fontSize: 13,
-  lineHeight: lineHeight(17),
-  marginTop: 2,
-  paddingRight: 30,
-}
-
-const mobileBottomLine = isAndroid
-  ? {
-      ...mobileBottomLineCommon,
-      lineHeight: undefined,
-    }
-  : mobileBottomLineCommon
-
 const styles = styleSheetCreate({
-  bottomLine: isMobile
-    ? mobileBottomLine
-    : {
-        ...noWrapStyle,
-        color: globalColors.black_40,
-        fontSize: 11,
-        lineHeight: lineHeight(15),
-        minHeight: 15,
-        paddingRight: 30,
-      },
+  bottomLine: platformStyles({
+    isAndroid: {
+      lineHeight: undefined,
+    },
+    isElectron: {
+      color: globalColors.black_40,
+      display: 'block',
+      fontSize: 11,
+      lineHeight: '15px',
+      minHeight: 15,
+      overflow: 'hidden',
+      paddingRight: 30,
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '100%',
+    },
+    isMobile: {
+      backgroundColor: globalColors.fastBlank,
+      color: globalColors.black_40,
+      fontSize: 13,
+      lineHeight: 17,
+      marginTop: 2,
+      paddingRight: 30,
+    },
+  }),
 })
 
 export {BottomLine}

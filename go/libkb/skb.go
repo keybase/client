@@ -24,7 +24,7 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-// DebugDumpKey is used only in debugging. For now it's now in
+// DebugDumpKey is used only in debugging. For now it's not in
 // use but we might need it in the future.
 func DebugDumpKey(g *GlobalContext, name string, b []byte) {
 	tmp, err := ioutil.TempFile(os.TempDir(), "dump-"+name)

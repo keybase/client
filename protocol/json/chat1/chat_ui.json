@@ -307,6 +307,35 @@
     },
     {
       "type": "record",
+      "name": "InboxUIItemError",
+      "fields": [
+        {
+          "type": "ConversationErrorType",
+          "name": "typ"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "unverifiedTLFName"
+        },
+        {
+          "type": [
+            null,
+            "ConversationErrorRekey"
+          ],
+          "name": "rekeyInfo"
+        },
+        {
+          "type": "UnverifiedInboxUIItem",
+          "name": "remoteConv"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "InboxUIItems",
       "fields": [
         {
@@ -698,7 +727,7 @@
         },
         {
           "name": "error",
-          "type": "ConversationErrorLocal"
+          "type": "InboxUIItemError"
         }
       ],
       "response": null

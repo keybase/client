@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {HeaderProps} from './header.render'
@@ -74,7 +74,7 @@ const styleOuter = {
 }
 
 const styleHeader = {
-  ...globalStyles.windowDragging,
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxRow,
   cursor: 'default',
   height: 90,
@@ -84,23 +84,27 @@ const styleHeader = {
 }
 
 const styleClose = {
-  ...globalStyles.clickable,
-  ...globalStyles.windowDraggingClickable,
+  ...desktopStyles.clickable,
+  ...desktopStyles.windowDraggingClickable,
   zIndex: 2,
   position: 'absolute',
   top: 7,
   right: 9,
 }
 
-const styleText = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: globalColors.white,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  marginBottom: 40,
-  textAlign: 'center',
-  lineHeight: 'normal',
-}
+const styleText = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    color: globalColors.white,
+    flex: 1,
+    justifyContent: 'center',
+    marginBottom: 40,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+    textAlign: 'center',
+  },
+  isElectron: {
+    lineHeight: 'normal',
+  },
+})

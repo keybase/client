@@ -68,7 +68,7 @@
     // Got some inbox errors
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "error": "?RPCChatTypes.ConversationErrorLocal",
+      "error": "?RPCChatTypes.InboxUIItemError",
       "username": "?string"
     },
     // We got a status update saying it was blocked or ignored

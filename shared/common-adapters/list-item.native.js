@@ -8,10 +8,9 @@ import {globalStyles} from '../styles'
 // TODO Add swipe for action
 class ListItem extends Component<Props> {
   render() {
-    const clickable = !!this.props.onClick
     const height = {Large: 64, Small: 48}[this.props.type] // minimum height
     const listItem = (
-      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(clickable), ...this.props.containerStyle}}>
+      <Box style={{...globalStyles.flexBoxRow, ...this.props.containerStyle}}>
         <Box style={{height, width: 0}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
           <Box
@@ -49,12 +48,6 @@ class ListItem extends Component<Props> {
       </Box>
     )
     return <ClickableBox onClick={this.props.onClick}>{listItem}</ClickableBox>
-  }
-}
-
-function containerStyle(clickable) {
-  return {
-    ...(clickable ? globalStyles.clickable : {}),
   }
 }
 
