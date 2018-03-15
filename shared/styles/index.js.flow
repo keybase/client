@@ -28,9 +28,9 @@ declare export var globalStyles: {
 }
 declare export var desktopStyles: {
   clickable?: CSS._StylesDesktop,
-  scrollable?: CSS._StylesDesktop, // TODO this is used a lot of places like its a global style but we should use scrollview instead
   fadeOpacity?: CSS._StylesDesktop,
   noSelect?: CSS._StylesDesktop,
+  scrollable?: CSS._StylesDesktop, // TODO this is used a lot of places like its a global style but we should use scrollview instead
   windowDragging?: CSS._StylesDesktop,
   windowDraggingClickable?: CSS._StylesDesktop,
 }
