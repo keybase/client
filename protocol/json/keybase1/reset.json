@@ -52,7 +52,7 @@
         },
         {
           "type": "Seqno",
-          "name": "eldestSeqno",
+          "name": "lastSeqno",
           "jsonkey": "public_seqno"
         },
         {
@@ -108,6 +108,10 @@
         {
           "type": "Seqno",
           "name": "resetSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
         },
         {
           "type": "ResetType",
