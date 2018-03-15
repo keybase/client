@@ -4125,7 +4125,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 			if !ok {
 				// New directories that aren't otherwise dirty need to
 				// be added to both the `lbc` and `resolvedPaths` so
-				// they are properly synced.
+				// they are properly synced, and removed from the
+				// dirty block.
 				dblock, err = fbo.blocks.GetDirtyDir(
 					ctx, lState, md, newPath, blockWrite)
 				if err != nil {
@@ -4135,6 +4136,14 @@ func (fbo *folderBranchOps) syncAllLocked(
 				if !fbo.nodeCache.IsUnlinked(newNode) {
 					resolvedPaths[newPointer] = newPath
 				}
+				cleanups = append(cleanups,
+					func(ctx context.Context, lState *lockState, err error) {
+						if err != nil {
+							return
+						}
+						fbo.blocks.ClearCachedDirEntry(lState, newPath)
+						fbo.status.rmDirtyNode(newNode)
+					})
 			}
 
 			if len(dblock.Children) > 0 {
