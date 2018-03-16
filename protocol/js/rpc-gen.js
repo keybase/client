@@ -3942,7 +3942,7 @@ export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
-export type UserEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time, metadata: UserEkMetadata}>
+export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 

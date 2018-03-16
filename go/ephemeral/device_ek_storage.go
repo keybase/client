@@ -21,10 +21,10 @@ type DeviceEKMap map[keybase1.EkGeneration]keybase1.DeviceEk
 type DeviceEKStorage struct {
 	libkb.Contextified
 	sync.Mutex
-	indexOnce *sync.Once
 	storage   erasablekv.ErasableKVStore
 	cache     DeviceEKMap
 	keyPrefix string
+	indexed   bool
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
@@ -33,7 +33,6 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(DeviceEKMap),
-		indexOnce:    new(sync.Once),
 		keyPrefix:    keyPrefix,
 	}
 }
@@ -99,11 +98,11 @@ func (s *DeviceEKStorage) Delete(ctx context.Context, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
-	s.indexOnce.Do(func() {
+	if !s.indexed {
 		defer s.G().CTrace(ctx, "DeviceEKStorage#indexInner", func() error { return err })()
 		keys, err := s.storage.AllKeys(ctx)
 		if err != nil {
-			return
+			return err
 		}
 		for _, key := range keys {
 			key = strings.TrimSuffix(key, filepath.Ext(key))
@@ -113,23 +112,27 @@ func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
 				// strings.HasPrefix above.
 				g, err := strconv.ParseUint(parts[1], 10, 64)
 				if err != nil {
-					return
+					return err
 				}
 				generation := keybase1.EkGeneration(g)
 				deviceEK, err := s.get(ctx, generation)
 				if err != nil {
-					return
+					return err
 				}
 				s.cache[generation] = deviceEK
 			}
 		}
-	})
-	return err
+		s.indexed = true
+	}
+	return nil
 }
 
 // Used for testing
 func (s *DeviceEKStorage) ClearCache() {
+	s.Lock()
+	defer s.Unlock()
 	s.cache = make(DeviceEKMap)
+	s.indexed = false
 }
 
 func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs DeviceEKMap, err error) {

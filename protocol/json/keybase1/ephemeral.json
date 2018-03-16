@@ -104,19 +104,6 @@
           "name": "seed"
         },
         {
-          "type": "EkGeneration",
-          "name": "generation"
-        },
-        {
-          "type": "HashMeta",
-          "name": "hashMeta",
-          "jsonkey": "hash_meta"
-        },
-        {
-          "type": "Time",
-          "name": "ctime"
-        },
-        {
           "type": "UserEkMetadata",
           "name": "metadata"
         }

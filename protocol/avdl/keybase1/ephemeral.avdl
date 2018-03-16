@@ -39,10 +39,6 @@ protocol ephemeral {
 
   record UserEk {
     Bytes32 seed;
-    EkGeneration generation;
-    @jsonkey("hash_meta")
-    HashMeta hashMeta;
-    Time ctime;
     UserEkMetadata metadata;
   }
 }

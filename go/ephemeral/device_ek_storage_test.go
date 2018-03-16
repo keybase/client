@@ -4,18 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceEKStorage(t *testing.T) {
-	tc := libkb.SetupTest(t, "deviceEK storage", 1)
+	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
-
-	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
-	require.NoError(t, err)
 
 	tests := []keybase1.DeviceEk{
 		{
@@ -55,7 +51,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	s := NewDeviceEKStorage(tc.G)
 
 	for _, test := range tests {
-		err = s.Put(context.Background(), test.Metadata.Generation, test)
+		err := s.Put(context.Background(), test.Metadata.Generation, test)
 		require.NoError(t, err)
 
 		deviceEK, err := s.Get(context.Background(), test.Metadata.Generation)

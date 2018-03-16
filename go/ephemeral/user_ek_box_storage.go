@@ -17,15 +17,14 @@ type UserEKMap map[keybase1.EkGeneration]keybase1.UserEk
 type UserEKBoxStorage struct {
 	libkb.Contextified
 	sync.Mutex
-	indexOnce *sync.Once
-	cache     UserEKBoxMap
+	indexed bool
+	cache   UserEKBoxMap
 }
 
 func NewUserEKBoxStorage(g *libkb.GlobalContext) *UserEKBoxStorage {
 	return &UserEKBoxStorage{
 		Contextified: libkb.NewContextified(g),
 		cache:        make(UserEKBoxMap),
-		indexOnce:    new(sync.Once),
 	}
 }
 
@@ -38,13 +37,16 @@ func (s *UserEKBoxStorage) dbKey() libkb.DbKey {
 }
 
 func (s *UserEKBoxStorage) index(ctx context.Context) (err error) {
-	s.indexOnce.Do(func() {
+	if !s.indexed {
 		defer s.G().CTrace(ctx, "UserEKBoxStorage#indexInner", func() error { return err })()
 		key := s.dbKey()
 		_, err = s.G().GetKVStore().GetInto(&s.cache, key)
-		return
-	})
-	return err
+		if err != nil {
+			return err
+		}
+		s.indexed = true
+	}
+	return nil
 }
 
 func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
@@ -66,20 +68,6 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 	// We don't have anything in our cache, fetch from the server
 	return s.fetchAndPut(ctx, generation)
 }
-
-//// REMOVE AFTER REBASE
-// TODO this is being implemented during userEKGeneration, swap this out once that is merged
-type UserEKMetadata struct {
-	Kid        keybase1.KID
-	Generation keybase1.EkGeneration
-	HashMeta   keybase1.HashMeta
-}
-
-func verifyUserEKSig(sig string) (m keybase1.UserEkMetadata, err error) {
-	return m, err
-}
-
-//// REMOVE AFTER REBASE
 
 type UserEKBoxedResponse struct {
 	Result struct {
@@ -115,15 +103,28 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	// Before we store anything, let's verify that the server returned
 	// signature is valid and the KID it has signed matches the boxed seed.
 	// Otherwise something's fishy..
-	userEKMetadata, err := verifyUserEKSig(result.Result.Sig)
+	userEKMetadata, wrongKID, err := VerifySigWithLatestPUK(ctx, s.G(), result.Result.Sig)
+
+	// Check the wrongKID condition before checking the error, since an error
+	// is still returned in this case. TODO: Turn this warning into an error
+	// after EK support is sufficiently widespread.
+	if wrongKID {
+		s.G().Log.CWarningf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
+		return userEK, nil
+	}
 	if err != nil {
+		return userEK, err
+	}
+
+	if userEKMetadata == nil { // shouldn't happen
+		s.G().Log.CWarningf(ctx, "No error but got nil userEKMetadata")
 		return userEK, err
 	}
 
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
 		DeviceEkGeneration: result.Result.DeviceEKGeneration,
-		Metadata:           userEKMetadata,
+		Metadata:           *userEKMetadata,
 	}
 
 	userEK, err = s.unbox(ctx, userEKBoxed)
@@ -131,16 +132,16 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 		return userEK, err
 	}
 
-	// TODO Uncomment after rebase
-	//keypair, err := UserEKSeed(userEK.Seed).DeriveDHKey()
-	//if err != nil {
-	//	return userEK, err
+	seed := UserEKSeed(userEK.Seed)
+	keypair, err := seed.DeriveDHKey()
+	if err != nil {
+		return userEK, err
 
-	//}
+	}
 
-	//if !keypair.GetKID().Equal(userEKMetadata.Kid) {
-	//	return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKMetadata.Kid)
-	//}
+	if !keypair.GetKID().Equal(userEKMetadata.Kid) {
+		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKMetadata.Kid)
+	}
 
 	// Store the boxed version, return the unboxed
 	err = s.put(generation, userEKBoxed)
@@ -223,6 +224,13 @@ func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKMap, err e
 	return userEKs, err
 }
 
+// Used for testing
+func (s *UserEKBoxStorage) ClearCache() {
+	s.Lock()
+	defer s.Unlock()
+	s.cache = make(UserEKBoxMap)
+}
+
 func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#MaxGeneration", func() error { return err })()
 	s.Lock()
@@ -234,7 +242,7 @@ func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration key
 
 	for generation := range s.cache {
 		if generation > maxGeneration {
-			generation = maxGeneration
+			maxGeneration = generation
 		}
 	}
 	return maxGeneration, nil

@@ -72,20 +72,14 @@ func (o UserEkBoxed) DeepCopy() UserEkBoxed {
 }
 
 type UserEk struct {
-	Seed       Bytes32        `codec:"seed" json:"seed"`
-	Generation EkGeneration   `codec:"generation" json:"generation"`
-	HashMeta   HashMeta       `codec:"hashMeta" json:"hash_meta"`
-	Ctime      Time           `codec:"ctime" json:"ctime"`
-	Metadata   UserEkMetadata `codec:"metadata" json:"metadata"`
+	Seed     Bytes32        `codec:"seed" json:"seed"`
+	Metadata UserEkMetadata `codec:"metadata" json:"metadata"`
 }
 
 func (o UserEk) DeepCopy() UserEk {
 	return UserEk{
-		Seed:       o.Seed.DeepCopy(),
-		Generation: o.Generation.DeepCopy(),
-		HashMeta:   o.HashMeta.DeepCopy(),
-		Ctime:      o.Ctime.DeepCopy(),
-		Metadata:   o.Metadata.DeepCopy(),
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
 	}
 }
 
