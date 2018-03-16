@@ -21,14 +21,6 @@ func newDeviceEphemeralSeed() (seed DeviceEKSeed, err error) {
 	return DeviceEKSeed(randomSeed), nil
 }
 
-func newDeviceEKSeedFromBytes(b []byte) (s DeviceEKSeed, err error) {
-	seed, err := newEKSeedFromBytes(b)
-	if err != nil {
-		return s, err
-	}
-	return DeviceEKSeed(seed), nil
-}
-
 func (s *DeviceEKSeed) DeriveDHKey() (key *libkb.NaclDHKeyPair, err error) {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonDeviceEKEncryption)
 }
@@ -60,7 +52,7 @@ func getServerMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext) (maxGener
 	// We may not have an EK yet, let's try with this and fail if the server
 	// rejects.
 	g.Log.CDebugf(ctx, "No deviceEK found on the server")
-	return maxGeneration, nil
+	return 0, nil
 }
 
 func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (metadata keybase1.DeviceEkMetadata, err error) {
@@ -102,10 +94,9 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (metadata k
 		}
 		generation++
 		metadata, err = signAndPublishDeviceEK(ctx, g, generation, dhKeypair, currentMerkleRoot)
-	}
-
-	if err != nil {
-		return metadata, err
+		if err != nil {
+			return metadata, err
+		}
 	}
 
 	err = storage.Put(ctx, generation, keybase1.DeviceEk{

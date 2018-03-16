@@ -10,7 +10,7 @@ import (
 )
 
 type UserEKBoxMap map[keybase1.EkGeneration]keybase1.UserEkBoxed
-type UserEKMap map[keybase1.EkGeneration]keybase1.UserEk
+type UserEKUnboxedMap map[keybase1.EkGeneration]keybase1.UserEk
 
 // We cache UserEKBoxes from the server in memory and a persist to a local
 // KVStore.
@@ -36,17 +36,17 @@ func (s *UserEKBoxStorage) dbKey() libkb.DbKey {
 	}
 }
 
-func (s *UserEKBoxStorage) index(ctx context.Context) (err error) {
+func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, err error) {
 	if !s.indexed {
 		defer s.G().CTrace(ctx, "UserEKBoxStorage#indexInner", func() error { return err })()
 		key := s.dbKey()
 		_, err = s.G().GetKVStore().GetInto(&s.cache, key)
 		if err != nil {
-			return err
+			return s.cache, err
 		}
 		s.indexed = true
 	}
-	return nil
+	return s.cache, nil
 }
 
 func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
@@ -54,13 +54,13 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 	s.Lock()
 	defer s.Unlock()
 
-	err = s.index(ctx)
+	cache, err := s.getCache(ctx)
 	if err != nil {
 		return userEK, err
 	}
 
 	// Try cache first
-	userEKBoxed, ok := s.cache[generation]
+	userEKBoxed, ok := cache[generation]
 	if ok {
 		return s.unbox(ctx, userEKBoxed)
 	}
@@ -144,21 +144,26 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	}
 
 	// Store the boxed version, return the unboxed
-	err = s.put(generation, userEKBoxed)
+	err = s.put(ctx, generation, userEKBoxed)
 	return userEK, err
 }
 
 func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Put", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	return s.put(generation, userEKBoxed)
+	return s.put(ctx, generation, userEKBoxed)
 }
 
-func (s *UserEKBoxStorage) put(generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
+func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#Put", func() error { return err })()
+
 	key := s.dbKey()
-	s.cache[generation] = userEKBoxed
-	err = s.G().GetKVStore().PutObj(key, nil, s.cache)
+	cache, err := s.getCache(ctx)
+	if err != nil {
+		return err
+	}
+	cache[generation] = userEKBoxed
+	err = s.G().GetKVStore().PutObj(key, nil, cache)
 	if err != nil {
 		return err
 	}
@@ -199,22 +204,26 @@ func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGen
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#Delete", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	delete(s.cache, generation)
+	cache, err := s.getCache(ctx)
+	if err != nil {
+		return err
+	}
+	delete(cache, generation)
 	key := s.dbKey()
-	return s.G().GetKVStore().PutObj(key, nil, s.cache)
+	return s.G().GetKVStore().PutObj(key, nil, cache)
 }
 
-func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKMap, err error) {
+func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKUnboxedMap, err error) {
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#GetAll", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	err = s.index(ctx)
+	cache, err := s.getCache(ctx)
 	if err != nil {
 		return userEKs, err
 	}
 
-	userEKs = make(UserEKMap)
-	for generation, userEKBoxed := range s.cache {
+	userEKs = make(UserEKUnboxedMap)
+	for generation, userEKBoxed := range cache {
 		userEK, err := s.unbox(ctx, userEKBoxed)
 		if err != nil {
 			return userEKs, err
@@ -235,12 +244,12 @@ func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration key
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#MaxGeneration", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	err = s.index(ctx)
+	cache, err := s.getCache(ctx)
 	if err != nil {
 		return maxGeneration, err
 	}
 
-	for generation := range s.cache {
+	for generation := range cache {
 		if generation > maxGeneration {
 			maxGeneration = generation
 		}

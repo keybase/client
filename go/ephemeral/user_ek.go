@@ -92,17 +92,20 @@ func PublishNewUserEK(ctx context.Context, g *libkb.GlobalContext) (metadata key
 		generation = activeMetadata.Generation
 		generation++
 		metadata, myUserEKBoxed, err = signAndPublishUserEK(ctx, g, generation, seed, currentMerkleRoot)
+		if err != nil {
+			return metadata, err
+		}
 	}
 
-	if err != nil {
-		return metadata, err
+	if myUserEKBoxed == nil {
+		g.Log.CDebugf(ctx, "No box made for own deviceEK")
+	} else {
+		err = storage.Put(ctx, generation, *myUserEKBoxed)
 	}
-
-	err = storage.Put(ctx, generation, myUserEKBoxed)
 	return metadata, err
 }
 
-func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, seed UserEKSeed, currentMerkleRoot *libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, myUserEKBoxed keybase1.UserEkBoxed, err error) {
+func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, seed UserEKSeed, currentMerkleRoot *libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
 
 	dhKeypair, err := seed.DeriveDHKey()
 	if err != nil {
@@ -163,7 +166,7 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 		boxes = append(boxes, boxMetadata)
 
 		if deviceID == myDeviceID {
-			myUserEKBoxed = keybase1.UserEkBoxed{
+			myUserEKBoxed = &keybase1.UserEkBoxed{
 				Box:                box,
 				DeviceEkGeneration: deviceEK.Generation,
 				Metadata:           metadata,

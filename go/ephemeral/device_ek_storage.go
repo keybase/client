@@ -28,7 +28,7 @@ type DeviceEKStorage struct {
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
-	keyPrefix := fmt.Sprintf("%s-%s", deviceEKPrefix, g.Env.GetUsername())
+	keyPrefix := fmt.Sprintf("%s-%s-", deviceEKPrefix, g.Env.GetUsername())
 	return &DeviceEKStorage{
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
@@ -38,7 +38,22 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 }
 
 func (s *DeviceEKStorage) key(generation keybase1.EkGeneration) string {
-	return fmt.Sprintf("%s-%d.ek", s.keyPrefix, generation)
+	return fmt.Sprintf("%s%d.ek", s.keyPrefix, generation)
+}
+
+func (s *DeviceEKStorage) keyToGeneration(key string) (generation keybase1.EkGeneration, err error) {
+	if !strings.HasPrefix(key, s.keyPrefix) {
+		return generation, fmt.Errorf("Invalid key %s, missing key prefix", key)
+	}
+	key = strings.TrimSuffix(key, filepath.Ext(key))
+	parts := strings.Split(key, s.keyPrefix)
+	// We can expect two elements in `parts` here since we check
+	// strings.HasPrefix above.
+	g, err := strconv.ParseUint(parts[1], 10, 64)
+	if err != nil {
+		return generation, err
+	}
+	return keybase1.EkGeneration(g), nil
 }
 
 func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error) {
@@ -97,34 +112,27 @@ func (s *DeviceEKStorage) Delete(ctx context.Context, generation keybase1.EkGene
 	return s.storage.Erase(ctx, key)
 }
 
-func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
+func (s *DeviceEKStorage) getCache(ctx context.Context) (deviceEKs DeviceEKMap, err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#getCache", func() error { return err })()
 	if !s.indexed {
-		defer s.G().CTrace(ctx, "DeviceEKStorage#indexInner", func() error { return err })()
 		keys, err := s.storage.AllKeys(ctx)
 		if err != nil {
-			return err
+			return deviceEKs, err
 		}
 		for _, key := range keys {
-			key = strings.TrimSuffix(key, filepath.Ext(key))
-			if strings.HasPrefix(key, deviceEKPrefix) {
-				parts := strings.Split(key, deviceEKPrefix)
-				// We can expect two elements in `parts` here since we check
-				// strings.HasPrefix above.
-				g, err := strconv.ParseUint(parts[1], 10, 64)
-				if err != nil {
-					return err
-				}
-				generation := keybase1.EkGeneration(g)
-				deviceEK, err := s.get(ctx, generation)
-				if err != nil {
-					return err
-				}
-				s.cache[generation] = deviceEK
+			generation, err := s.keyToGeneration(key)
+			if err != nil {
+				return deviceEKs, err
 			}
+			deviceEK, err := s.get(ctx, generation)
+			if err != nil {
+				return deviceEKs, err
+			}
+			s.cache[generation] = deviceEK
 		}
 		s.indexed = true
 	}
-	return nil
+	return s.cache, nil
 }
 
 // Used for testing
@@ -140,8 +148,7 @@ func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs DeviceEKMap, er
 	s.Lock()
 	defer s.Unlock()
 
-	err = s.index(ctx)
-	return s.cache, err
+	return s.getCache(ctx)
 }
 
 func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
@@ -149,11 +156,11 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 	s.Lock()
 	defer s.Unlock()
 
-	err = s.index(ctx)
+	cache, err := s.getCache(ctx)
 	if err != nil {
 		return maxGeneration, err
 	}
-	for generation := range s.cache {
+	for generation := range cache {
 		if generation > maxGeneration {
 			maxGeneration = generation
 		}
