@@ -284,7 +284,6 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 	w, ok := k.inProgress[opid]
 	if ok {
 		w.progress.EndEstimate = keybase1.ToTime(k.config.Clock().Now())
-		k.inProgress[opid] = w
 	}
 	k.lock.Unlock()
 	if ok {
@@ -326,7 +325,6 @@ func (k *SimpleFS) setProgressTotals(
 	w.progress.BytesTotal = totalBytes
 	w.progress.FilesTotal = totalFiles
 	w.progress.Start = keybase1.ToTime(k.config.Clock().Now())
-	k.inProgress[opid] = w
 }
 
 func (k *SimpleFS) updateReadProgress(
@@ -347,7 +345,6 @@ func (k *SimpleFS) updateReadProgress(
 		// Our original total was wrong or we didn't get one.
 		w.progress.FilesTotal = w.progress.FilesRead
 	}
-	k.inProgress[opid] = w
 }
 
 func (k *SimpleFS) updateWriteProgress(
@@ -368,7 +365,6 @@ func (k *SimpleFS) updateWriteProgress(
 		// Our original total was wrong or we didn't get one.
 		w.progress.FilesTotal = w.progress.FilesWritten
 	}
-	k.inProgress[opid] = w
 }
 
 // SimpleFSList - Begin list of items in directory at path
@@ -581,12 +577,11 @@ var _ io.Reader = (*progressReader)(nil)
 
 func (pr *progressReader) Read(p []byte) (n int, err error) {
 	n, err = pr.input.Read(p)
-	if err != nil {
-		return n, err
+	if n > 0 {
+		// Update read progress, even for errors.
+		pr.k.updateReadProgress(pr.opID, int64(n), 0)
 	}
-
-	pr.k.updateReadProgress(pr.opID, int64(n), 0)
-	return n, nil
+	return n, err
 }
 
 type progressWriter struct {
@@ -599,12 +594,11 @@ var _ io.Writer = (*progressWriter)(nil)
 
 func (pw *progressWriter) Write(p []byte) (n int, err error) {
 	n, err = pw.output.Write(p)
-	if err != nil {
-		return n, err
+	if n > 0 {
+		// Update write progress, even for errors.
+		pw.k.updateWriteProgress(pw.opID, int64(n), 0)
 	}
-
-	pw.k.updateWriteProgress(pw.opID, int64(n), 0)
-	return n, nil
+	return n, err
 }
 
 func (k *SimpleFS) doCopyFromSource(
