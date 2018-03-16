@@ -39,49 +39,35 @@ const showCrown: BoolTypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {
-    active,
-    youCanManageMembers,
-    following,
-    fullName,
-    onChat,
-    onClick,
-    roleType,
-    username,
-    you,
-    onReAddToTeam,
-    onRemoveFromTeam,
-    onShowTracker,
-  } = props
   let crown, fullNameLabel, resetLabel
-  if (active && roleType && showCrown[roleType]) {
+  if (props.active && props.roleType && showCrown[props.roleType]) {
     crown = (
       <Icon
         // $FlowIssue "some string with unknown value"
-        type={'iconfont-crown-' + roleType}
+        type={'iconfont-crown-' + props.roleType}
         style={{
-          color: roleIconColorMap[roleType],
+          color: roleIconColorMap[props.roleType],
           fontSize: isMobile ? 16 : 12,
           marginRight: globalMargins.xtiny,
         }}
       />
     )
   }
-  if (fullName && active) {
+  if (props.fullName && props.active) {
     fullNameLabel = (
       <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
-        {fullName} •
+        {props.fullName} •
       </Text>
     )
   }
-  if (!active) {
-    resetLabel = youCanManageMembers
+  if (!props.active) {
+    resetLabel = props.youCanManageMembers
       ? 'Has reset their account'
       : 'Has reset their account; admins can re-invite'
   }
 
   return (
-    <Box style={active ? stylesContainer : stylesContainerReset}>
+    <Box style={props.active ? stylesContainer : stylesContainerReset}>
       <Box
         style={{
           ...globalStyles.flexBoxRow,
@@ -98,21 +84,23 @@ export const TeamMemberRow = (props: Props) => {
             flexGrow: 1,
             alignItems: 'center',
           }}
-          onClick={active || isMobile ? onClick : onShowTracker}
+          onClick={props.active || isMobile ? props.onClick : props.onShowTracker}
         >
-          <Avatar username={username} size={isMobile ? 48 : 32} />
+          <Avatar username={props.username} size={isMobile ? 48 : 32} />
           <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
             <Box style={globalStyles.flexBoxRow}>
               <Usernames
                 type="BodySemibold"
                 colorFollowing={true}
-                users={[{username, following, you: you === username}]}
+                users={[
+                  {username: props.username, following: props.following, you: props.you === props.username},
+                ]}
               />
             </Box>
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
               {fullNameLabel}
               {crown}
-              {!active && (
+              {!props.active && (
                 <Text
                   type="BodySmall"
                   style={{
@@ -128,25 +116,25 @@ export const TeamMemberRow = (props: Props) => {
                 </Text>
               )}
               <Text type="BodySmall">
-                {!!active && !!roleType && typeToLabel[roleType]}
+                {!!props.active && !!props.roleType && typeToLabel[props.roleType]}
                 {resetLabel}
               </Text>
             </Box>
           </Box>
         </ClickableBox>
-        {!active &&
+        {!props.active &&
           !isMobile &&
-          youCanManageMembers && (
+          props.youCanManageMembers && (
             <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
               <ButtonBar>
-                <Button small={true} label="Re-Admit" onClick={onReAddToTeam} type="PrimaryGreen" />
-                <Button small={true} label="Remove" onClick={onRemoveFromTeam} type="Secondary" />
+                <Button small={true} label="Re-Admit" onClick={props.onReAddToTeam} type="PrimaryGreen" />
+                <Button small={true} label="Remove" onClick={props.onRemoveFromTeam} type="Secondary" />
               </ButtonBar>
             </Box>
           )}
         <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
           <Icon
-            onClick={onChat}
+            onClick={props.onChat}
             style={{
               fontSize: isMobile ? 20 : 16,
               marginLeft: globalMargins.small,
@@ -156,13 +144,13 @@ export const TeamMemberRow = (props: Props) => {
           />
         </Box>
       </Box>
-      {!active &&
+      {!props.active &&
         isMobile &&
-        youCanManageMembers && (
+        props.youCanManageMembers && (
           <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
             <ButtonBar direction="row">
-              <Button small={true} label="Re-Admit" onClick={onReAddToTeam} type="PrimaryGreen" />
-              <Button small={true} label="Remove" onClick={onRemoveFromTeam} type="Secondary" />
+              <Button small={true} label="Re-Admit" onClick={props.onReAddToTeam} type="PrimaryGreen" />
+              <Button small={true} label="Remove" onClick={props.onRemoveFromTeam} type="Secondary" />
             </ButtonBar>
           </Box>
         )}
