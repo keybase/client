@@ -317,6 +317,7 @@ export const createSelectConversation = (
     conversationIDKey: Types.ConversationIDKey,
     fromUser?: boolean,
     asAPreview?: boolean,
+    fromFilter?: boolean,
   }>
 ) => ({error: false, payload, type: selectConversation})
 export const createSelectConversationDueToPush = (

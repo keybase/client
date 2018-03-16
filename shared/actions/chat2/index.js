@@ -752,7 +752,7 @@ const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
     : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
-  Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+  action.payload.fromFilter ? undefined : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
