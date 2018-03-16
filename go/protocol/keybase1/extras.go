@@ -1351,6 +1351,13 @@ func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *Publi
 	return nil, nil
 }
 
+// HasKID returns true if u has the given KID in any of its incarnations.
+// Useful for deciding if we should repoll a stale UPAK in the UPAK loader.
+func (u UserPlusKeysV2AllIncarnations) HasKID(kid KID) bool {
+	incarnation, _ := u.FindKID(kid)
+	return (incarnation != nil)
+}
+
 func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if k.Base.Kid.Equal(needle) {

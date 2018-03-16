@@ -375,6 +375,23 @@
       "response": "UserPlusKeys",
       "doc": "Load a user + device keys from the server."
     },
+    "loadUserPlusKeysV2": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "pollForKID",
+          "type": "KID"
+        }
+      ],
+      "response": "UserPlusKeysV2AllIncarnations"
+    },
     "loadPublicKeys": {
       "request": [
         {
