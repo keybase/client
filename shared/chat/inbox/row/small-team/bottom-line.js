@@ -20,6 +20,7 @@ type Props = {
   youNeedToRekey: boolean,
   youAreReset: boolean,
   hasResetUsers: boolean,
+  isSelected: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -33,6 +34,7 @@ class BottomLine extends PureComponent<Props> {
       backgroundColor,
       hasResetUsers,
       youAreReset,
+      isSelected,
     } = this.props
     let content
 
@@ -69,13 +71,13 @@ class BottomLine extends PureComponent<Props> {
           backgroundMode="Terminal"
           style={platformStyles({
             common: {
-              color: globalColors.red,
-              fontSize: 11,
+              color: isSelected ? globalColors.white : globalColors.red,
+              fontSize: isMobile ? 13 : 11,
               lineHeight: 14,
             },
           })}
         >
-          You have to be let back in.
+          Participants have to let you back in.
         </Text>
       )
     } else if (participantNeedToRekey) {
