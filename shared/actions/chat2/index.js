@@ -719,7 +719,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       reason:
-        action.type.reason === 'push'
+        reason === 'push'
           ? RPCChatTypes.localGetThreadNonblockReason.push
           : RPCChatTypes.localGetThreadNonblockReason.general,
     },
@@ -753,7 +753,9 @@ const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
     : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.fromFilter ? undefined : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+  action.payload.reason === 'inboxFilterArrow'
+    ? undefined
+    : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
@@ -1523,13 +1525,6 @@ const markThreadAsRead = (
     | NavigateActions,
   state: TypedState
 ) => {
-  if (action.type === Chat2Gen.selectConversation) {
-    if (!action.payload.fromUser) {
-      logger.info('marking read bail on non-user selecting')
-      return
-    }
-  }
-
   const conversationIDKey = Constants.getSelectedConversation(state)
 
   if (!conversationIDKey) {
