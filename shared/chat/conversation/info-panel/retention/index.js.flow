@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
 
-type RetentionPolicy =
+type Item = {label: string, value: number}
+
+export type RetentionPolicy =
   | {
       type: 'retain',
     }
@@ -15,19 +17,18 @@ type RetentionPolicy =
 
 export type Props = {
   policy: RetentionPolicy,
-  teamPolicy: RetentionPolicy,
+  teamPolicy?: RetentionPolicy,
   type: 'simple' | 'automatic',
   onSelect?: number => void,
 }
 
 export type ViewProps = {
   selected: RetentionPolicy,
-  teamPolicy: RetentionPolicy,
+  teamPolicy?: RetentionPolicy,
   onSelect: number => void,
-  items: Array<{
-    label: string,
-    value: number,
-  }>,
+  items: Array<Item>,
+  selectedItem: Item,
+  teamItem?: Item,
 }
 
 export default function(props: Props): React.Node {}
