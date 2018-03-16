@@ -95,7 +95,7 @@ public class MainActivity extends ReactActivity {
         if (listener != null) {
             listener.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-        if (permissions.length > 1 && permissions[0].equals("android.permission.READ_CONTACTS")) {
+        if (permissions.length > 0 && permissions[0].equals("android.permission.READ_CONTACTS")) {
             // Call callback wrapper with results
             ContactsPermissionsWrapper.callbackWrapper(requestCode, permissions, grantResults);
         }
