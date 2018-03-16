@@ -718,6 +718,8 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	id := h.ResolvedWriters()[0]
 	tlfID := h.tlfID
 
+	jServer.PauseBackgroundWork(ctx, tlfID)
+
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
