@@ -19,6 +19,7 @@ import git from '../git/index.stories'
 import icon from '../common-adapters/icon.stories'
 import nameWithIcon from '../common-adapters/name-with-icon.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
+import retention from '../chat/conversation/info-panel/retention/index.stories'
 import roles from '../teams/role-picker/index.stories'
 import search from '../search/search.stories'
 import teams from '../teams/index.stories'
@@ -55,6 +56,7 @@ const stories = {
   peopleFollowNotification,
   peopleFollowSuggestions,
   radiobutton,
+  retention,
   roles,
   search,
   teams,

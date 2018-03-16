@@ -1,0 +1,6 @@
+// @flow
+import * as React from 'react'
+import type {Props} from '.'
+
+export type {Props}
+export default function(props: Props): React.Node {}
