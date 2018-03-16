@@ -12,7 +12,7 @@ import (
 
 const noBackup = "com.apple.metadata:com_apple_backup_excludeItem com.apple.backupd"
 
-func SetDisableBackup(ctx context.Context, g *libkb.GlobalContext, name string) {
+func SetDisableBackup(ctx context.Context, g *libkb.GlobalContext, name string) error {
 	path := filepath.Dir(name)
 	filename := filepath.Base(name)
 	// CrashPlan respects this metadata flag as does TimeMachine.
@@ -21,4 +21,5 @@ func SetDisableBackup(ctx context.Context, g *libkb.GlobalContext, name string) 
 	if err != nil {
 		g.Log.CDebugf(ctx, "Unable to write xattr %s", filepath.Join(path, filename))
 	}
+	return err
 }

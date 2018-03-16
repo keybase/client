@@ -19,7 +19,8 @@ func TestErasableKVStore(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	s := NewFileErasableKVStore(tc.G)
+	subDir := ""
+	s := NewFileErasableKVStore(tc.G, subDir)
 	key := "test-key"
 	value := "value"
 
@@ -36,7 +37,7 @@ func TestErasableKVStore(t *testing.T) {
 
 	// Test noise file corruption
 	noiseName := fmt.Sprintf("%s%s", key, noiseSuffix)
-	storageDir := getStorageDir(tc.G)
+	storageDir := getStorageDir(tc.G, subDir)
 	noiseFilePath := filepath.Join(storageDir, noiseName)
 	noise, err := ioutil.ReadFile(noiseFilePath)
 	require.NoError(t, err)
