@@ -2338,6 +2338,9 @@ func (s StellarBundle) CheckInvariants() error {
 			}
 			foundPrimary = true
 		}
+		if entry.Mode == StellarAccountMode_NONE {
+			return errors.New("account missing mode")
+		}
 	}
 	if s.Revision < 1 {
 		return fmt.Errorf("revision %v < 1", s.Revision)

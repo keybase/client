@@ -176,17 +176,20 @@ func (o StellarBundleSecretV1) DeepCopy() StellarBundleSecretV1 {
 type StellarAccountMode int
 
 const (
-	StellarAccountMode_USER StellarAccountMode = 0
+	StellarAccountMode_NONE StellarAccountMode = 0
+	StellarAccountMode_USER StellarAccountMode = 1
 )
 
 func (o StellarAccountMode) DeepCopy() StellarAccountMode { return o }
 
 var StellarAccountModeMap = map[string]StellarAccountMode{
-	"USER": 0,
+	"NONE": 0,
+	"USER": 1,
 }
 
 var StellarAccountModeRevMap = map[StellarAccountMode]string{
-	0: "USER",
+	0: "NONE",
+	1: "USER",
 }
 
 func (e StellarAccountMode) String() string {

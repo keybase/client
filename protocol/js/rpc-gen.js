@@ -1533,7 +1533,8 @@ export const simpleFSPathType = {
 }
 
 export const stellarStellarAccountMode = {
-  user: 0,
+  none: 0,
+  user: 1,
 }
 
 export const stellarStellarBundleVersion = {
@@ -3555,7 +3556,9 @@ export type StatusCode =
 
 export type StellarAccountID = String
 
-export type StellarAccountMode = 0 // USER_0
+export type StellarAccountMode =
+  | 0 // NONE_0
+  | 1 // USER_1
 
 export type StellarBundle = $ReadOnly<{revision: StellarRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<StellarEntry>}>
 

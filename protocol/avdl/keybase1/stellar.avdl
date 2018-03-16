@@ -38,7 +38,8 @@ protocol stellar {
   }
 
   enum StellarAccountMode {
-    USER_0 // Each of the user's devices has access to the keys
+    NONE_0,
+    USER_1 // Each of the user's devices has access to the keys
   }
 
   // Server-visible attributes of an account.

@@ -120,7 +120,8 @@
       "type": "enum",
       "name": "StellarAccountMode",
       "symbols": [
-        "USER_0"
+        "NONE_0",
+        "USER_1"
       ]
     },
     {
