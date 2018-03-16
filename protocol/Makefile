@@ -17,7 +17,7 @@ config:
 # as long as they have messages in them. BUT you can override this
 # check via -f. So the two files specified here via -f don't have
 # messages but should be made into .json's...
-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl $(AVDL2JSON) | config
+build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDL2JSON) | config
 	@mkdir -p json/keybase1
 	@mkdir -p json/gregor1
 	@mkdir -p json/chat1

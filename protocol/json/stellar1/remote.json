@@ -28,24 +28,6 @@
     },
     {
       "type": "record",
-      "name": "EncryptedNote",
-      "fields": [
-        {
-          "type": "int",
-          "name": "v"
-        },
-        {
-          "type": "bytes",
-          "name": "e"
-        },
-        {
-          "type": "bytes",
-          "name": "n"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "Asset",
       "fields": [
         {
@@ -82,6 +64,28 @@
     },
     {
       "type": "record",
+      "name": "EncryptedNote",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.KID",
+          "name": "KID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TransactionSummary",
       "fields": [
         {
@@ -97,8 +101,8 @@
           "name": "note"
         },
         {
-          "type": "string",
-          "name": "assetType"
+          "type": "Asset",
+          "name": "asset"
         },
         {
           "type": "string",
@@ -143,8 +147,8 @@
           "name": "TransactionHash"
         },
         {
-          "type": "string",
-          "name": "assetType"
+          "type": "Asset",
+          "name": "asset"
         },
         {
           "type": "string",
@@ -319,6 +323,10 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        },
+        {
+          "name": "count",
+          "type": "int"
         }
       ],
       "response": {
@@ -326,7 +334,7 @@
         "items": "TransactionSummary"
       }
     },
-    "txDetails": {
+    "transaction": {
       "request": [
         {
           "name": "uid",
