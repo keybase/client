@@ -8,7 +8,7 @@ import Avatar from './avatar'
 import get from 'lodash/get'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 
 // TODO this thing does 4 different things. a lot of the main nav logic is in here which isn't used by anything else. Split this apart!
 
@@ -35,7 +35,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
     return (
       <Box
         style={{
-          ...globalStyles.clickable,
+          ...desktopStyles.clickable,
           [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
           padding: '8px 12px',
           ...this.props.style,
@@ -43,12 +43,16 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
       >
         <Text
           type="BodySmallSemibold"
-          style={{
-            ...globalStyles.clickable,
-            color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
-            fontSize: 11,
-            ...underlineStyle,
-          }}
+          style={platformStyles({
+            common: {
+              color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
+              fontSize: 11,
+            },
+            isElectron: {
+              ...desktopStyles.clickable,
+              ...underlineStyle,
+            },
+          })}
         >
           {this.props.label}
         </Text>
@@ -97,14 +101,16 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
     return (
       <Box
         className={'nav-item-avatar' + (this.props.selected ? ' selected' : '')}
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          cursor: 'pointer',
-          justifyContent: 'center',
-          position: 'relative',
-          ...this.props.style,
-        }}
+        style={platformStyles({
+          isElectron: {
+            ...globalStyles.flexBoxColumn,
+            alignItems: 'center',
+            cursor: 'pointer',
+            justifyContent: 'center',
+            position: 'relative',
+            ...this.props.style,
+          },
+        })}
         onClick={this.props.onClick}
       >
         {this.props.selected && <HighlightLine />}
@@ -130,7 +136,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
               color: undefined,
               fontSize: 11,
               textAlign: 'center',
-              ...globalStyles.clickable,
+              ...desktopStyles.clickable,
               ...this.props.styleLabel,
               marginTop: 3,
             }}
@@ -187,7 +193,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         {!!this.props.label && (
           <Text
             type="BodySemibold"
-            style={{color, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}
+            style={{color, textAlign: 'center', ...desktopStyles.clickable, ...this.props.styleLabel}}
           >
             {this.props.label}
           </Text>
@@ -277,24 +283,26 @@ const stylesContainer = {
 
 const stylesTabBarButtonIcon = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   flex: 1,
   alignItems: 'center',
   paddingLeft: 20,
   position: 'relative',
 }
 
-const stylesIcon = {
-  height: 14,
-  paddingRight: 6,
-  lineHeight: '16px',
-  marginBottom: 2,
-  textAlign: 'center',
-}
+const stylesIcon = platformStyles({
+  common: {
+    height: 14,
+    paddingRight: 6,
+    lineHeight: 16,
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+})
 
 const stylesTabBarNavIcon = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',

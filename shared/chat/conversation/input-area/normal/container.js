@@ -13,11 +13,13 @@ import {
   withProps,
   lifecycle,
   connect,
+  isMobile,
+  type TypedState,
+  type Dispatch,
 } from '../../../../util/container'
 import throttle from 'lodash/throttle'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
-import type {TypedState, Dispatch} from '../../../../util/container'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -140,6 +142,8 @@ export default compose(
       _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
         if (e.key === 'ArrowUp' && !props.text) {
           props.onEditLastMessage()
+        } else if (e.key === 'Escape') {
+          props.onCancelEditing()
         }
       },
       inputBlur: props => () => input && input.blur(),
@@ -163,11 +167,15 @@ export default compose(
             : ''
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
-        const i = this.props.inputGetRef()
-        // Might be a better way to do this but this is simple for now
-        setImmediate(() => {
-          i && i.select()
-        })
+
+        if (!isMobile) {
+          const i = this.props.inputGetRef()
+          if (i) {
+            setImmediate(() => {
+              i.moveCursorToEnd()
+            })
+          }
+        }
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
         this.props.setText(text, true)

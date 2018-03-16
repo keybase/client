@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Chat2Gen from './chat2-gen'
 import * as KBFSGen from './kbfs-gen'
+import * as FsGen from './fs-gen'
 import * as ConfigGen from './config-gen'
 import * as TeamsGen from './teams-gen'
 import * as LoginGen from './login-gen'
@@ -126,6 +127,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
       dispatch(getBootstrapStatus()),
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
+      dispatch(FsGen.createFuseStatus()),
     ])
       .then(() => {
         dispatch(ConfigGen.createBootstrapSuccess())

@@ -127,6 +127,27 @@ const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMen
   }
 }
 
+export const uiMessageEditToMessage = (
+  edit: RPCChatTypes.MessageEdit,
+  valid: RPCChatTypes.UIMessageValid
+) => {
+  const text = new HiddenString(edit.body || '')
+
+  const mentionsAt = I.Set(valid.atMentions || [])
+  const mentionsChannel = channelMentionToMentionsChannel(valid.channelMention)
+  const mentionsChannelName = I.Map(
+    (valid.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
+  )
+
+  return {
+    mentionsAt,
+    mentionsChannel,
+    mentionsChannelName,
+    messageID: edit.messageID,
+    text,
+  }
+}
+
 const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
   switch (body.systemType) {
     case RPCChatTypes.localMessageSystemType.addedtoteam: {

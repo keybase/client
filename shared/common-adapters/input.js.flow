@@ -59,4 +59,5 @@ declare export default class Input extends Component<Props> {
   blur: () => void;
   focus: () => void;
   select: () => void;
+  moveCursorToEnd: () => void;
 }

@@ -159,7 +159,7 @@ const styles = styleSheetCreate({
     paddingTop: globalMargins.xtiny,
   },
   fail: {color: globalColors.red},
-  failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
+  failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},

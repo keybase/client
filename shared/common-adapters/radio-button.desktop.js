@@ -3,7 +3,7 @@ import * as React from 'react'
 import Text from './text'
 import glamorous from 'glamorous'
 import type {Props} from './radio-button'
-import {globalStyles, globalColors, transition} from '../styles'
+import {globalStyles, globalColors, transition, desktopStyles} from '../styles'
 
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
@@ -27,7 +27,7 @@ const StyledRadio = glamorous(glamorous.Div)(
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
   <div
-    style={{...styleContainer, ...(disabled ? {} : globalStyles.clickable), ...style}}
+    style={{...styleContainer, ...(disabled ? {} : desktopStyles.clickable), ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <StyledRadio disabled={disabled} selected={selected}>

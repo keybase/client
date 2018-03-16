@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {compose, withStateHandlers} from '../../util/container'
+import {compose, withStateHandlers, lifecycle} from '../../util/container'
 import DeleteChannel from './delete-channel'
 import {Avatar, Text, Box, Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
@@ -103,7 +103,17 @@ const EditChannel: React.ComponentType<Props> = compose(
       onChangeChannelName: () => newChannelName => ({newChannelName}),
       onChangeTopic: () => newTopic => ({newTopic}),
     }
-  )
+  ),
+  lifecycle({
+    componentWillReceiveProps: function(nextProps: Props) {
+      if (nextProps.channelName !== this.props.channelName) {
+        this.props.onChangeChannelName(nextProps.channelName)
+      }
+      if (nextProps.topic !== this.props.topic) {
+        this.props.onChangeTopic(nextProps.topic)
+      }
+    },
+  })
 )(isMobile ? _EditChannelOnStandardScreen : EditChannelBare)
 
 const _boxStyle = {

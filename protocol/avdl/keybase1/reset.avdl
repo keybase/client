@@ -23,7 +23,7 @@ protocol Reset {
     @jsonkey("eldest_kid")
     union { null, KID } eldestKID;
     @jsonkey("public_seqno")
-    Seqno eldestSeqno;
+    Seqno lastSeqno;
     SHA512 reset;
   }
 
@@ -42,7 +42,7 @@ protocol Reset {
     UnixTime ctime;
     ResetMerkleRoot merkleRoot;
     Seqno resetSeqno;
+    Seqno eldestSeqno; // eldestSeqno right before the reset
     ResetType type;
   }
-
 }

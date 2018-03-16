@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as RPCTypes from './rpc-gen'
 import {type IconType} from '../../common-adapters/icon'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -13,7 +14,7 @@ export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
-  lastWriter?: string,
+  lastWriter: string,
   progress: ProgressType,
 }
 
@@ -82,6 +83,11 @@ export type _State = {
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, TransferState>,
+  fuseStatus: ?RPCTypes.FuseStatus,
+  kbfsOpening: boolean,
+  kbfsInstalling: boolean,
+  fuseInstalling: boolean,
+  kextPermissionError: boolean,
 }
 export type State = I.RecordOf<_State>
 

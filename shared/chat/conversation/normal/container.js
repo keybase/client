@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import * as RouteTree from '../../../actions/route-tree'
 import Normal from '.'
@@ -7,7 +8,8 @@ import {compose, connect, withStateHandlers, type TypedState} from '../../../uti
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const showLoader = !!state.chat2.loadingMap.get(`loadingThread:${conversationIDKey}`)
-  return {conversationIDKey, showLoader}
+  const meta = Constants.getMeta(state, conversationIDKey)
+  return {conversationIDKey, showLoader, threadLoadedOffline: meta.offline}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -28,6 +30,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onOpenInfoPanelMobile: () => dispatchProps._onOpenInfoPanelMobile(stateProps.conversationIDKey),
     onShowTracker: dispatchProps.onShowTracker,
     showLoader: stateProps.showLoader,
+    threadLoadedOffline: stateProps.threadLoadedOffline,
   }
 }
 

@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Text, ConnectedUsernames} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
-import {globalColors, globalMargins} from '../../../../styles'
+import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -17,6 +17,56 @@ type Props = {
 }
 
 class Joined extends React.PureComponent<Props> {
+  render() {
+    const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
+    const {author, timestamp} = this.props.message
+    if (author === you) {
+      // Bring more attention to the current user joining
+      return <JoinedUserNotice {...this.props} />
+    }
+    return (
+      <Box
+        style={{
+          marginTop: 3,
+          marginBottom: 3,
+          marginLeft: globalMargins.tiny,
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+        }}
+      >
+        <Avatar
+          onClick={() => onUsernameClicked(author)}
+          size={24}
+          username={author}
+          style={{marginRight: globalMargins.tiny}}
+        />
+        <Box style={globalStyles.flexBoxColumn}>
+          <ConnectedUsernames
+            inline={true}
+            type="BodySmallSemibold"
+            onUsernameClicked={onUsernameClicked}
+            colorFollowing={true}
+            underline={true}
+            usernames={[author]}
+          />
+          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
+            joined {isBigTeam ? `#${channelname}` : teamname}
+            {'. '}
+            {author === you &&
+              isBigTeam && (
+                <Text title="" onClick={onManageChannels} style={{color: globalColors.blue}} type="BodySmall">
+                  Manage channel subscriptions.
+                </Text>
+              )}
+          </Text>
+        </Box>
+      </Box>
+    )
+  }
+}
+
+class JoinedUserNotice extends React.PureComponent<Props> {
   render() {
     const {channelname, isBigTeam, onManageChannels, you, teamname, onUsernameClicked} = this.props
     const {author, timestamp} = this.props.message

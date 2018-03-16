@@ -129,6 +129,9 @@ const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleTy
 const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
   state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], initialCanUserPerform)
 
+const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.entities.hasIn(['teams', 'teamNameToCanPerform', teamname])
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -158,6 +161,7 @@ export {
   getConvIdsFromTeamName,
   getRole,
   getCanPerform,
+  hasCanPerform,
   userIsActiveInTeamHelper,
   getTeamNameFromConvID,
   getChannelInfoFromConvID,

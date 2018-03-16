@@ -248,7 +248,7 @@ func (e *Env) GetMountDir() (string, error) {
 					panic("Invalid run mode")
 				}
 				return filepath.Join(volumes, fmt.Sprintf(
-					"%s's %s", user.Username, runmodeName))
+					"%s (%s)", runmodeName, user.Username))
 			case "linux":
 				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			default:

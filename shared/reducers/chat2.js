@@ -33,6 +33,11 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    case Chat2Gen.setConversationOffline:
+      return metaMap.update(
+        action.payload.conversationIDKey,
+        meta => (meta ? meta.set('offline', action.payload.offline) : meta)
+      )
     case Chat2Gen.metaUpdatePagination:
       return metaMap.update(
         action.payload.conversationIDKey,
@@ -149,7 +154,14 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     }
     case Chat2Gen.messageWasEdited: {
-      const {conversationIDKey, messageID, text} = action.payload
+      const {
+        conversationIDKey,
+        messageID,
+        text,
+        mentionsAt,
+        mentionsChannel,
+        mentionsChannelName,
+      } = action.payload
 
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
       if (!ordinal) {
@@ -165,6 +177,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 m.set('text', text)
                 m.set('hasBeenEdited', true)
                 m.set('submitState', null)
+                m.set('mentionsAt', mentionsAt)
+                m.set('mentionsChannel', mentionsChannel)
+                m.set('mentionsChannelName', mentionsChannelName)
               })
       )
     }
@@ -552,6 +567,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
     case Chat2Gen.metaUpdatePagination:
+    case Chat2Gen.setConversationOffline:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

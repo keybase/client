@@ -36,6 +36,28 @@
     },
     "openInFileUI": {
       "path?": "string"
-    }
+    },
+    "fuseStatus": {},
+    "fuseStatusResult": {
+      "prevStatus": "?RPCTypes.FuseStatus",
+      "status": "RPCTypes.FuseStatus"
+    },
+    "setFlags": {
+      "kbfsOpening?": "boolean",
+      "kbfsInstalling?": "boolean",
+      "fuseInstalling?": "boolean"
+    },
+    "installFuse": {},
+    "installFuseResult": {
+      "kextPermissionError": "boolean"
+    },
+    "installKBFS": {},
+    "installKBFSResult": {
+      "result": "RPCTypes.InstallResult"
+    },
+    "uninstallKBFSConfirm": {
+      "onSuccess": "() => void"
+    },
+    "uninstallKBFS": {}
   }
 }

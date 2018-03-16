@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type {Props} from './row'
 import {Icon, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, transition} from '../../../styles'
+import {globalStyles, globalColors, transition, desktopStyles} from '../../../styles'
 
 const realCSS = `
   .register-row { background-color: ${globalColors.white}; }
@@ -37,7 +37,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
 
 const stylesRowContainer = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   transition: 'background 0.1s ease-out',
   minHeight: 100,
   maxHeight: 100,

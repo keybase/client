@@ -5,7 +5,19 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/fs'
-import {openInFileUISaga} from './fs-platform-specific'
+import {
+  openInFileUISaga,
+  fuseStatusSaga,
+  fuseStatusResultSaga,
+  installKBFS,
+  installKBFSSuccess,
+  installFuseSaga,
+  installDokanSaga,
+  uninstallKBFSConfirmSaga,
+  uninstallKBFS,
+  uninstallKBFSSuccess,
+} from './fs-platform-specific'
+import {isWindows} from '../constants/platform'
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
@@ -27,6 +39,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const direntToMetadata = (d: RPCTypes.Dirent) => ({
     name: d.name,
     lastModifiedTimestamp: d.time,
+    lastWriter: 'jareddunn' + (d.name.length < 10 ? '' : 'andfriendsandfriends'), // TODO fix this when we have it from RPC
     size: d.size,
   })
 
@@ -37,14 +50,22 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       : Constants.makeFile(direntToMetadata(d)),
   ]
 
+  // Get metadata fields of the directory that we just loaded from state to
+  // avoid override them.
+  const state = yield Saga.select()
+  const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
+
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
     entries.map(direntToPathAndPathItem).concat([
       [
         rootPath,
         Constants.makeFolder({
+          lastModifiedTimestamp,
+          lastWriter,
+          size,
+          name: Types.getPathName(rootPath),
           children: I.List(entries.map(d => d.name)),
           progress: 'loaded',
-          name: Types.getPathName(rootPath),
         }),
       ],
     ])
@@ -63,7 +84,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
   yield Saga.put(FsGen.createDownloadStarted({key, path, localPath}))
 
-  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRpcPromise, {
+  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.kbfs,
@@ -98,6 +119,16 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
+  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  if (isWindows) {
+    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+  } else {
+    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+  }
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
 }
 
 export default fsSaga

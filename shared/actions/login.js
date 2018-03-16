@@ -510,7 +510,13 @@ function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> 
 
       if (error) {
         logger.debug('login call error', error)
-        yield Saga.call(handleProvisioningError, error)
+        if (error.code === RPCTypes.constantsStatusCode.scbadloginpassword) {
+          // Stay on the login form
+          yield Saga.put(LoginGen.createLoginError({error: 'Looks like a bad passphrase.'}))
+        } else {
+          // Show the error on the error page
+          yield Saga.call(handleProvisioningError, error)
+        }
       } else {
         yield Saga.call(navBasedOnLoginAndInitialState)
       }

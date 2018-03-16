@@ -135,7 +135,7 @@
   // for darwin in the `GetMountDir` function of `libkb/env.go`.
   NSString *appName = [self appName];
   NSString *userName = NSUserName();
-  NSString *mount = NSStringWithFormat(@"%@'s %@", userName, appName);
+  NSString *mount = NSStringWithFormat(@"%@ (%@)", appName, userName);
   return [KBPath pathInDir:@"/Volumes" path:mount options:0];
 }
 
