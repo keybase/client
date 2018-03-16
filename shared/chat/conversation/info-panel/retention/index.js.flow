@@ -1,0 +1,33 @@
+// @flow
+import * as React from 'react'
+
+type RetentionPolicy =
+  | {
+      type: 'retain',
+    }
+  | {
+      type: 'inherit',
+    }
+  | {
+      type: 'expire',
+      days: number,
+    }
+
+export type Props = {
+  policy: RetentionPolicy,
+  teamPolicy: RetentionPolicy,
+  type: 'simple' | 'automatic',
+  onSelect?: number => void,
+}
+
+export type ViewProps = {
+  selected: RetentionPolicy,
+  teamPolicy: RetentionPolicy,
+  onSelect: number => void,
+  items: Array<{
+    label: string,
+    value: number,
+  }>,
+}
+
+export default function(props: Props): React.Node {}
