@@ -69,7 +69,7 @@ public class MainActivity extends ReactActivity {
 
         super.onCreate(savedInstanceState);
 
-        // Hide splash screen background after 3s.
+        // Hide splash screen background after 300ms.
         // This prevents the image from being visible behind the app, such as during a
         // keyboard show animation.
         final Window mainWindow = this.getWindow();
@@ -79,7 +79,7 @@ public class MainActivity extends ReactActivity {
                     mainWindow.setBackgroundDrawableResource(R.color.white);
                 }
             },
-        3000);
+        300);
     }
 
     @Override
