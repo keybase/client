@@ -746,7 +746,7 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
 
 // If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
 const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.asAPreview
+  action.payload.reason === 'preview'
     ? Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
         convID: Types.keyToConversationID(action.payload.conversationIDKey),
       })
