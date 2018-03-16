@@ -120,7 +120,7 @@ function configurePush() {
   return eventChannel(dispatch => {
     if (RNEmitter) {
       // If android launched due to push
-      RNEmitter.addListener('androidIntentNotification', payload => {
+      RNEmitter.addListener('androidIntentNotification', () => {
         if (lastPush) {
           // if plaintext is on we get this but not the real message if we're backgrounded, so convert it to a non-silent type
           if (lastPush.type === 'chat.newmessageSilent_2') {

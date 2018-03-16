@@ -71,11 +71,13 @@ public class MainActivity extends ReactActivity {
 
         super.onCreate(savedInstanceState);
 
-        ReactContext currentContext = getReactInstanceManager().getCurrentReactContext();
-        if (currentContext != null) {
-            currentContext
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit("androidIntentNotification", getIntent().getExtras().containsKey("notification"));
+        if (getIntent().getExtras().containsKey("notification")) {
+            ReactContext currentContext = getReactInstanceManager().getCurrentReactContext();
+            if (currentContext != null) {
+                currentContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit("androidIntentNotification", "");
+            }
         }
 
         // Hide splash screen background after 300ms.
