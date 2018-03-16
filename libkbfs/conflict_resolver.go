@@ -509,7 +509,7 @@ func createdFileWithConflictingWrite(unmergedChains, mergedChains *crChains,
 }
 
 // createdFileWithNonzeroSizes checks two possibly-conflicting
-// createOps and returns true if the corresponding file has a non-zero
+// createOps and returns true if the corresponding file has non-zero
 // directory entry sizes in both the unmerged and merged branch.  We
 // need to check this sometimes, because a call to
 // `createdFileWithConflictingWrite` might not have access to syncOps

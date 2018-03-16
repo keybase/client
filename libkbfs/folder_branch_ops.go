@@ -4057,7 +4057,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 
 		// On a successful sync, clean up the cached entries and the
-		// dirty blocks.
+		// dirty blocks.  TODO: avoid closures by saving `dir` and
+		// `node` in a list for deferred processing.
 		cleanups = append(cleanups,
 			func(ctx context.Context, lState *lockState, err error) {
 				if err != nil {
@@ -4136,6 +4137,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 				if !fbo.nodeCache.IsUnlinked(newNode) {
 					resolvedPaths[newPointer] = newPath
 				}
+				// TODO: avoid closures by saving `newPath` and
+				// `newNode` in a list for deferred processing.
 				cleanups = append(cleanups,
 					func(ctx context.Context, lState *lockState, err error) {
 						if err != nil {
