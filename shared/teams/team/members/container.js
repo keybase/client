@@ -16,15 +16,26 @@ const getOrderedMemberArray = (
   you: ?string,
   listYouFirst: boolean
 ): Array<Types.MemberInfo> => {
-  let youInfo
   let info = memberInfo
-  if (you && !listYouFirst) {
-    youInfo = memberInfo.find(member => member.username === you)
-    if (youInfo) {
-      info = memberInfo.delete(youInfo)
-    }
-  }
   let returnArray = info.toArray().sort((a, b) => {
+    if (!a.active) {
+      if (!b.active) {
+        // both are inactive, compare usernames
+        return a.username.localeCompare(b.username)
+      }
+      // b is active, should go later
+      return -1
+    } else if (!b.active) {
+      // b is inactive, should come first
+      return 1
+    }
+    if (listYouFirst && you) {
+      if (a.username === you) {
+        return -1
+      } else if (b.username === you) {
+        return 1
+      }
+    }
     if (!a.type) {
       if (!b.type) {
         // both have no type, compare usernames
@@ -43,9 +54,6 @@ const getOrderedMemberArray = (
     return order[a.type] - order[b.type]
   })
 
-  if (youInfo) {
-    returnArray.unshift(youInfo)
-  }
   return returnArray
 }
 
@@ -70,6 +78,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       teamname: ownProps.teamname,
       active: member.active,
       key: member.username + member.active.toString(),
+      roleType: member.type,
     })),
   }
 }

@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
@@ -8,6 +7,7 @@ import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
+import * as TrackerGen from '../../../../actions/tracker-gen'
 
 import type {MemberRow as OwnProps} from '../../row-types'
 export type {OwnProps}
@@ -16,7 +16,6 @@ type StateProps = {
   following: boolean,
   active: boolean,
   you: ?string,
-  _members: I.Set<Types.MemberInfo>,
   youCanManageMembers: boolean,
 }
 
@@ -24,7 +23,6 @@ const mapStateToProps = (
   state: TypedState,
   {active, fullName, teamname, username}: OwnProps
 ): StateProps => ({
-  _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
   active,
   following: amIFollowing(state, username),
   fullName: state.config.username === username ? 'You' : fullName,
@@ -40,6 +38,7 @@ type DispatchProps = {
   onClick: () => void,
   _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => void,
   _onRemoveFromTeam: (teamname: string, username: string) => void,
+  _onShowTracker: (username: string) => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
@@ -76,20 +75,21 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
       })
     )
   },
+  _onShowTracker: (username: string) => {
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
-  const user =
-    stateProps._members && stateProps._members.find(member => member.username === ownProps.username)
-  const type = user ? user.type : null
   return {
     ...ownProps,
     ...stateProps,
-    type,
     onChat: () => dispatchProps._onChat(),
     onClick: dispatchProps.onClick,
-    onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, type),
+    onReAddToTeam: () =>
+      dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, ownProps.roleType),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
+    onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
   }
 }
 
