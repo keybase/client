@@ -8,6 +8,7 @@ export type PreMentionHocProps = {
   channelName: ?string,
   isEditing: boolean,
   focusInputCounter: number,
+  clearInboxFilter: () => void,
   inputBlur: () => void,
   inputClear: () => void,
   inputFocus: () => void,
@@ -54,7 +55,6 @@ export type MentionHocProps = {
   mentionFilter: string,
   mentionPopupOpen: boolean,
   setMentionPopupOpen: (setOpen: boolean) => void,
-  clearInboxFilter: () => void,
 }
 
 export type Props = PreMentionHocProps & MentionHocProps
