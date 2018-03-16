@@ -98,6 +98,7 @@ class EngineRpcCall {
     this._rpc = rpc
     this._cleanedUp = false
     this._request = request
+    this._finishedErrorShouldCancel = finishedErrorShouldCancel || false
     this._subSagaChannel = Saga.channel(Saga.buffers.expanding(10))
     this._waitingActionCreator = waitingActionCreator
     // $FlowIssue with this
