@@ -123,6 +123,7 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
           yield Saga.put(
             Chat2Gen.createSelectConversation({
               conversationIDKey: ChatTypes.stringToConversationIDKey(conversation),
+              reason: 'savedLastState',
             })
           )
           yield Saga.put(
