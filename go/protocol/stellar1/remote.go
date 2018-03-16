@@ -32,30 +32,6 @@ func (o KeybaseTransactionID) DeepCopy() KeybaseTransactionID {
 	})(o)
 }
 
-type EncryptedNote struct {
-	V int    `codec:"v" json:"v"`
-	E []byte `codec:"e" json:"e"`
-	N []byte `codec:"n" json:"n"`
-}
-
-func (o EncryptedNote) DeepCopy() EncryptedNote {
-	return EncryptedNote{
-		V: o.V,
-		E: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.E),
-		N: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.N),
-	}
-}
-
 type Asset struct {
 	Type   string `codec:"type" json:"type"`
 	Code   string `codec:"code" json:"code"`
@@ -84,11 +60,37 @@ func (o Balance) DeepCopy() Balance {
 	}
 }
 
+type EncryptedNote struct {
+	V   int          `codec:"v" json:"v"`
+	E   []byte       `codec:"e" json:"e"`
+	N   []byte       `codec:"n" json:"n"`
+	KID keybase1.KID `codec:"KID" json:"KID"`
+}
+
+func (o EncryptedNote) DeepCopy() EncryptedNote {
+	return EncryptedNote{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.N),
+		KID: o.KID.DeepCopy(),
+	}
+}
+
 type TransactionSummary struct {
 	StellarID   TransactionID        `codec:"stellarID" json:"stellarID"`
 	KeybaseID   KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
 	Note        EncryptedNote        `codec:"note" json:"note"`
-	AssetType   string               `codec:"assetType" json:"assetType"`
+	Asset       Asset                `codec:"asset" json:"asset"`
 	Amount      string               `codec:"amount" json:"amount"`
 	StellarFrom AccountID            `codec:"stellarFrom" json:"stellarFrom"`
 	StellarTo   AccountID            `codec:"stellarTo" json:"stellarTo"`
@@ -101,7 +103,7 @@ func (o TransactionSummary) DeepCopy() TransactionSummary {
 		StellarID:   o.StellarID.DeepCopy(),
 		KeybaseID:   o.KeybaseID.DeepCopy(),
 		Note:        o.Note.DeepCopy(),
-		AssetType:   o.AssetType,
+		Asset:       o.Asset.DeepCopy(),
 		Amount:      o.Amount,
 		StellarFrom: o.StellarFrom.DeepCopy(),
 		StellarTo:   o.StellarTo.DeepCopy(),
@@ -115,7 +117,7 @@ type Operation struct {
 	OpType          string       `codec:"opType" json:"opType"`
 	CreatedAt       int          `codec:"createdAt" json:"createdAt"`
 	TransactionHash string       `codec:"TransactionHash" json:"TransactionHash"`
-	AssetType       string       `codec:"assetType" json:"assetType"`
+	Asset           Asset        `codec:"asset" json:"asset"`
 	Amount          string       `codec:"amount" json:"amount"`
 	StellarFrom     AccountID    `codec:"stellarFrom" json:"stellarFrom"`
 	StellarTo       AccountID    `codec:"stellarTo" json:"stellarTo"`
@@ -129,7 +131,7 @@ func (o Operation) DeepCopy() Operation {
 		OpType:          o.OpType,
 		CreatedAt:       o.CreatedAt,
 		TransactionHash: o.TransactionHash,
-		AssetType:       o.AssetType,
+		Asset:           o.Asset.DeepCopy(),
 		Amount:          o.Amount,
 		StellarFrom:     o.StellarFrom.DeepCopy(),
 		StellarTo:       o.StellarTo.DeepCopy(),
@@ -240,9 +242,10 @@ type BalancesArg struct {
 type RecentTransactionsArg struct {
 	Uid       keybase1.UID `codec:"uid" json:"uid"`
 	AccountID AccountID    `codec:"accountID" json:"accountID"`
+	Count     int          `codec:"count" json:"count"`
 }
 
-type TxDetailsArg struct {
+type TransactionArg struct {
 	Uid keybase1.UID  `codec:"uid" json:"uid"`
 	Id  TransactionID `codec:"id" json:"id"`
 }
@@ -255,7 +258,7 @@ type SubmitPaymentArg struct {
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	RecentTransactions(context.Context, RecentTransactionsArg) ([]TransactionSummary, error)
-	TxDetails(context.Context, TxDetailsArg) (TransactionDetails, error)
+	Transaction(context.Context, TransactionArg) (TransactionDetails, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 }
 
@@ -295,18 +298,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"txDetails": {
+			"transaction": {
 				MakeArg: func() interface{} {
-					ret := make([]TxDetailsArg, 1)
+					ret := make([]TransactionArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TxDetailsArg)
+					typedArgs, ok := args.(*[]TransactionArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]TxDetailsArg)(nil), args)
+						err = rpc.NewTypeError((*[]TransactionArg)(nil), args)
 						return
 					}
-					ret, err = i.TxDetails(ctx, (*typedArgs)[0])
+					ret, err = i.Transaction(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -345,8 +348,8 @@ func (c RemoteClient) RecentTransactions(ctx context.Context, __arg RecentTransa
 	return
 }
 
-func (c RemoteClient) TxDetails(ctx context.Context, __arg TxDetailsArg) (res TransactionDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.txDetails", []interface{}{__arg}, &res)
+func (c RemoteClient) Transaction(ctx context.Context, __arg TransactionArg) (res TransactionDetails, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.transaction", []interface{}{__arg}, &res)
 	return
 }
 
