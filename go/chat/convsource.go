@@ -920,6 +920,17 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return res, nil
 }
 
+func (s *HybridConversationSource) expungeNotify(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, mergeRes storage.MergeResult) {
+	if mergeRes.Expunged != nil {
+		act := chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
+			ConvID:  convID,
+			Expunge: *mergeRes.Expunged,
+		})
+		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
+	}
+}
+
 // Expunge from storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) Expunge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (err error) {
@@ -933,14 +944,7 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	if mergeRes.DeletedHistory {
-		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
-			ConvID:     convID,
-			UpdateType: chat1.StaleUpdateType_CLEAR,
-		}}
-		// It is ok to send notifications while hodling the lock because it's a re-entrant-ish lock.
-		s.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
-	}
+	s.expungeNotify(ctx, uid, convID, mergeRes)
 	return nil
 }
 
@@ -952,13 +956,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	if mergeRes.DeletedHistory {
-		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
-			ConvID:     convID,
-			UpdateType: chat1.StaleUpdateType_CLEAR,
-		}}
-		s.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
-	}
+	s.expungeNotify(ctx, uid, convID, mergeRes)
 	return nil
 }
 

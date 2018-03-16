@@ -622,11 +622,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
-			activity = chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
-				ConvID:  nm.ConvID,
-				Expunge: nm.Expunge,
-				Conv:    g.presentUIItem(conv),
-			})
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 			return
