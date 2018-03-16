@@ -639,9 +639,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
-	if g.conn != nil && conn != g.conn {
+	g.connMutex.Lock()
+	if conn != g.conn {
+		g.connMutex.Unlock()
 		return chat.ErrDuplicateConnection
 	}
+	g.connMutex.Unlock()
 
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
