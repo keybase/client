@@ -19,14 +19,15 @@ func TestSetDisableBackup(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	s := NewFileErasableKVStore(tc.G)
+	subDir := ""
+	s := NewFileErasableKVStore(tc.G, subDir)
 	key := "test-key"
 	value := "value"
 
 	err = s.Put(context.Background(), key, value)
 	require.NoError(t, err)
 
-	storageDir := getStorageDir(tc.G)
+	storageDir := getStorageDir(tc.G, subDir)
 	// Check that we set noBackup on the key
 	metadata, err := xattr.Get(storageDir, key)
 	require.NoError(t, err)

@@ -13,7 +13,8 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const deviceEKPrefix = "device-eks/device-ephemeral-key"
+const deviceEKPrefix = "device-ephemeral-key"
+const deviceEKSubDir = "device-eks"
 
 type DeviceEKStorage struct {
 	libkb.Contextified
@@ -28,7 +29,7 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 	keyPrefix := fmt.Sprintf("%s-%s", deviceEKPrefix, g.Env.GetUsername().String())
 	return &DeviceEKStorage{
 		Contextified: libkb.NewContextified(g),
-		storage:      erasablekv.NewFileErasableKVStore(g),
+		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(map[keybase1.EkGeneration]keybase1.DeviceEk),
 		indexOnce:    new(sync.Once),
 		keyPrefix:    keyPrefix,
