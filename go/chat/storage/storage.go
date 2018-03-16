@@ -483,7 +483,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 }
 
 // Apply any new DeleteHistory from msgs.
-// Returns whether local deletes happened.
+// Returns a non-nil expunge if deletes happened.
 // Shortcircuits so it's ok to call a lot.
 // The actual effect will be to delete upto the max of `expungeExplicit` (which can be nil)
 //   and the DeleteHistory-type messages.
@@ -566,7 +566,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 }
 
 // Apply a delete history.
-// Returns whether local deletes happened.
+// Returns a non-nil expunge if deletes happened.
 // Always runs through local messages.
 func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, expunge chat1.Expunge) (*chat1.Expunge, Error) {
