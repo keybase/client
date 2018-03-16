@@ -17,6 +17,8 @@ import android.view.WindowManager;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -69,7 +71,16 @@ public class MainActivity extends ReactActivity {
 
         super.onCreate(savedInstanceState);
 
-        // Hide splash screen background after 3s.
+        if (getIntent().getExtras().containsKey("notification")) {
+            ReactContext currentContext = getReactInstanceManager().getCurrentReactContext();
+            if (currentContext != null) {
+                currentContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit("androidIntentNotification", "");
+            }
+        }
+
+        // Hide splash screen background after 300ms.
         // This prevents the image from being visible behind the app, such as during a
         // keyboard show animation.
         final Window mainWindow = this.getWindow();
@@ -79,7 +90,7 @@ public class MainActivity extends ReactActivity {
                     mainWindow.setBackgroundDrawableResource(R.color.white);
                 }
             },
-        3000);
+        300);
     }
 
     @Override
