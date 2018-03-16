@@ -4,12 +4,30 @@ import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
-import {PushNotificationIOS, CameraRoll, ActionSheetIOS, AsyncStorage, Linking} from 'react-native'
+import {
+  PushNotificationIOS,
+  CameraRoll,
+  ActionSheetIOS,
+  AsyncStorage,
+  Linking,
+  NativeModules,
+  NativeEventEmitter,
+} from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
 import {isIOS} from '../constants/platform'
 
 const shownPushPrompt = 'shownPushPrompt'
+// Used to listen to the java intent for notifications
+let RNEmitter
+// Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background
+// If we're killed it all works. clicking on the notification launches us and we get the onNotify callback and it all works
+// If we're backgrounded we get the silent or the silent and real. To work around this we:
+// 1. Plumb through the intent from the java side if we relaunch due to push
+// 2. We store the last push and re-use it when this event is emitted to just 'rerun' the push
+if (!isIOS) {
+  RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
+}
 
 function requestPushPermissions(): Promise<*> {
   return isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
@@ -97,8 +115,31 @@ function displayNewMessageNotification(text: string, convID: ?string, badgeCount
   })
 }
 
+let lastPush = null
 function configurePush() {
   return eventChannel(dispatch => {
+    if (RNEmitter) {
+      // If android launched due to push
+      RNEmitter.addListener('androidIntentNotification', payload => {
+        if (lastPush) {
+          // if plaintext is on we get this but not the real message if we're backgrounded, so convert it to a non-silent type
+          if (lastPush.type === 'chat.newmessageSilent_2') {
+            lastPush.type = 'chat.newmessage'
+            // grab convo id
+            lastPush.convID = lastPush.c
+          }
+          // emulate like the user clicked it while we're killed
+          lastPush.userInteraction = true // force this true
+          dispatch(
+            PushGen.createNotification({
+              notification: lastPush,
+            })
+          )
+          lastPush = null
+        }
+      })
+    }
+
     PushNotifications.configure({
       onRegister: token => {
         let tokenType: ?PushTypes.TokenType
@@ -142,6 +183,9 @@ function configurePush() {
           data: undefined,
           userInfo: undefined,
         }
+
+        // bookkeep for android special handling
+        lastPush = merged
         dispatch(
           PushGen.createNotification({
             notification: merged,

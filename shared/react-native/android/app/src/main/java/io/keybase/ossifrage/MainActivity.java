@@ -17,6 +17,8 @@ import android.view.WindowManager;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -68,6 +70,13 @@ public class MainActivity extends ReactActivity {
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
+
+        ReactContext currentContext = getReactInstanceManager().getCurrentReactContext();
+        if (currentContext != null) {
+            currentContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("androidIntentNotification", getIntent().getExtras().containsKey("notification"));
+        }
 
         // Hide splash screen background after 300ms.
         // This prevents the image from being visible behind the app, such as during a
