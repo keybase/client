@@ -147,10 +147,6 @@ function configurePush() {
             notification: merged,
           })
         )
-        if (isIOS) {
-          // MUST tell ios we're done, see the docs
-          notification.finish(PushNotificationIOS.FetchResult.NoData)
-        }
       },
       onError: error => {
         dispatch(
