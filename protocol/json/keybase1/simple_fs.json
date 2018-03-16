@@ -73,6 +73,10 @@
         {
           "type": "DirentType",
           "name": "direntType"
+        },
+        {
+          "type": "User",
+          "name": "lastWriterUnverified"
         }
       ]
     },
