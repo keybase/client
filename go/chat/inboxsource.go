@@ -54,7 +54,12 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	res = inbox
 	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
-		if conv.Conv.GetFinalizeInfo() != nil && conv.Conv.GetFinalizeInfo().ResetUser == username {
+		if conv.Conv.GetMembersType() == chat1.ConversationMembersType_KBFS &&
+			conv.Conv.GetFinalizeInfo() != nil &&
+			// If reset user is the current user, or is blank (only way such a thing could be in our
+			// inbox is if the current user is the one that reset)
+			(conv.Conv.GetFinalizeInfo().ResetUser == username ||
+				conv.Conv.GetFinalizeInfo().ResetUser == "") {
 			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
 			continue
 		}
