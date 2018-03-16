@@ -120,6 +120,16 @@ func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByN
 	return
 }
 
+func (h *UserHandler) LoadUserPlusKeysV2(netCtx context.Context, arg keybase1.LoadUserPlusKeysV2Arg) (ret keybase1.UserPlusKeysV2AllIncarnations, err error) {
+	netCtx = libkb.WithLogTag(netCtx, "LUPK2")
+	defer h.G().CTrace(netCtx, fmt.Sprintf("+ UserHandler#LoadUserPlusKeysV2(%+v)", arg), func() error { return err })()
+	p, err := h.G().GetUPAKLoader().LoadV2WithKID(netCtx, arg.Uid, arg.PollForKID)
+	if p != nil {
+		ret = *p
+	}
+	return ret, err
+}
+
 func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
 	netCtx = libkb.WithLogTag(netCtx, "LUPK")
 	h.G().Log.CDebugf(netCtx, "+ UserHandler#LoadUserPlusKeys(%+v)", arg)

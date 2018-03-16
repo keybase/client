@@ -1891,6 +1891,10 @@ export const userLoadUserPlusKeysRpcChannelMap = (configKeys: Array<string>, req
 
 export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error: RPCError, result: UserLoadUserPlusKeysResult) => (error ? reject(error) : resolve(result))))
 
+export const userLoadUserPlusKeysV2RpcChannelMap = (configKeys: Array<string>, request: UserLoadUserPlusKeysV2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeysV2', request)
+
+export const userLoadUserPlusKeysV2RpcPromise = (request: UserLoadUserPlusKeysV2RpcParam): Promise<UserLoadUserPlusKeysV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeysV2', request, (error: RPCError, result: UserLoadUserPlusKeysV2Result) => (error ? reject(error) : resolve(result))))
+
 export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
 
 export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error: RPCError, result: UserLoadUserResult) => (error ? reject(error) : resolve(result))))
@@ -3959,6 +3963,8 @@ export type UserLoadUserByNameRpcParam = $ReadOnly<{username: String, incomingCa
 
 export type UserLoadUserPlusKeysRpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type UserLoadUserPlusKeysV2RpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type UserLoadUserRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserLogPoint = $ReadOnly<{role: TeamRole, sigMeta: SignatureMetadata}>
@@ -4194,6 +4200,7 @@ type UserLoadPublicKeysResult = ?Array<PublicKey>
 type UserLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 type UserLoadUserByNameResult = User
 type UserLoadUserPlusKeysResult = UserPlusKeys
+type UserLoadUserPlusKeysV2Result = UserPlusKeysV2AllIncarnations
 type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
