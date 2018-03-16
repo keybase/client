@@ -58,6 +58,6 @@ protocol ae { // AE = "Authenticated Encryption"
 	//
 	// c = "call"
 	// n = "notify"
-	AuthEnc c(string n, AuthEnc a, union { null, Handshake } handshake);
-	void n(string n, AuthEnc a, union { null, Handshake } handshake) oneway;
+	AuthEnc c(string n, AuthEnc a, union { null, Handshake } h);
+	void n(string n, AuthEnc a, union { null, Handshake } h) oneway;
 }
