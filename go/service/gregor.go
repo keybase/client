@@ -639,7 +639,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
-	if conn != g.conn {
+	if g.conn != nil && conn != g.conn {
 		return chat.ErrDuplicateConnection
 	}
 
