@@ -6,7 +6,7 @@ import {connect, type TypedState, type Dispatch} from '../util/container'
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch, {convID}) => ({
-  onClick: currentPath => dispatch(Chat2Gen.createSelectConversation({conversationIDKey: convID})),
+  onClick: () => dispatch(Chat2Gen.createSelectConversation({conversationIDKey: convID})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Channel)
