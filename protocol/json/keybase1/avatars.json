@@ -1,0 +1,63 @@
+{
+  "protocol": "avatars",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "Url",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Format",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "LoadUserAvatarsByUsernameRes",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "Url",
+              "keys": "Format"
+            },
+            "keys": "string"
+          },
+          "name": "picmap"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "loadUserAvatarsByUsername": {
+      "request": [
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "formats",
+          "type": {
+            "type": "array",
+            "items": "Format"
+          }
+        }
+      ],
+      "response": "LoadUserAvatarsByUsernameRes"
+    }
+  },
+  "namespace": "keybase.1"
+}
