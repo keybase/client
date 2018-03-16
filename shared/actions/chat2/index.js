@@ -380,10 +380,7 @@ const onChatInboxSynced = (syncRes, getState) => {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
             actions.unshift(
-              Chat2Gen.createSelectConversationDueToPush({
-                conversationIDKey: selectedConversation,
-                phase: 'loadNewContent',
-              })
+              Chat2Gen.createMarkConversationsStale({conversationIDKeys: [selectedConversation]})
             )
           }
           arr.push(meta)
@@ -577,20 +574,16 @@ const loadMoreMessages = (
 
   // Get the conversationIDKey
   let key = null
+  let reason: string = ''
 
-  if (action.type === Chat2Gen.selectConversationDueToPush) {
-    key = Constants.getSelectedConversation(state)
-    // not selected still?
-    if (action.payload.conversationIDKey !== key) {
-      return
-    }
-  } else if (action.type === Chat2Gen.setPendingConversationUsers) {
+  if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (state.chat2.pendingSelected) {
       const toFind = I.Set(action.payload.users.concat([state.config.username]))
       key = state.chat2.metaMap.findKey(meta =>
         // Ignore the order of participants
         meta.participants.toSet().equals(toFind)
       )
+      reason = 'building a search'
     }
   } else if (action.type === Chat2Gen.markConversationsStale) {
     key = Constants.getSelectedConversation(state)
@@ -598,6 +591,10 @@ const loadMoreMessages = (
     if (action.payload.conversationIDKeys.indexOf(key) === -1) {
       return
     }
+    reason = 'got stale'
+  } else if (action.type === Chat2Gen.selectConversation) {
+    key = action.payload.conversationIDKey
+    reason = action.payload.reason || 'selected'
   } else {
     key = action.payload.conversationIDKey
   }
@@ -693,7 +690,7 @@ const loadMoreMessages = (
 
   logger.info(
     `Load thread: calling rpc convo: ${conversationIDKey} paginationKey: ${paginationKey ||
-      ''} num: ${numberOfMessagesToLoad}`
+      ''} num: ${numberOfMessagesToLoad} reason: ${reason}`
   )
 
   const loadingKey = `loadingThread:${conversationIDKey}`
@@ -721,6 +718,10 @@ const loadMoreMessages = (
         markAsRead: false,
         messageTypes: loadThreadMessageTypes,
       },
+      reason:
+        action.type.reason === 'push'
+          ? RPCChatTypes.localGetThreadNonblockReason.push
+          : RPCChatTypes.localGetThreadNonblockReason.general,
     },
     false,
     (loading: boolean) => Chat2Gen.createSetLoading({key: loadingKey, loading})
@@ -730,7 +731,7 @@ const loadMoreMessages = (
     Saga.identity(conversationIDKey),
     Saga.call(loadThreadChanMapRpc.run),
     // clear if we loaded from a push
-    Saga.put(Chat2Gen.createClearLoading({key: 'pushLoad'})),
+    Saga.put(Chat2Gen.createClearLoading({key: `pushLoad:${conversationIDKey}`})),
   ]
 
   return Saga.sequentially(actions)
@@ -745,14 +746,14 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
 
 // If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
 const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.asAPreview
+  action.payload.reason === 'preview'
     ? Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
         convID: Types.keyToConversationID(action.payload.conversationIDKey),
       })
     : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
-  Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+  action.payload.fromFilter ? undefined : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
@@ -769,7 +770,7 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
         dispatch(
           Chat2Gen.createSelectConversation({
             conversationIDKey,
-            fromUser: false,
+            reason: 'desktopNotification',
           })
         )
         dispatch(Route.switchTo([chatTab]))
@@ -946,7 +947,7 @@ const sendToPendingConversationSuccess = (
     // Emulate us getting an inbox item so we don't have to unbox it before sending
     Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
     // Select it
-    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'})),
     // Post it
     Saga.put(updatedSendingAction),
   ])
@@ -1002,7 +1003,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   // Did we search for an existing conversation? if so exit it
   const exitSearch = state.chat2.pendingSelected
     ? [
-        Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+        Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'existingSearch'})),
         Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
       ]
     : []
@@ -1086,7 +1087,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // There is an existing conversation, select it
   if (conversationIDKey) {
     return Saga.sequentially([
-      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
       Saga.put(Chat2Gen.createNavigateToThread()),
     ])
   }
@@ -1126,6 +1127,7 @@ const selectTheNewestConversation = (
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: meta.conversationIDKey,
+        reason: 'findNewestConversation',
       })
     )
   }
@@ -1631,7 +1633,10 @@ const mobileClearSelectedConversation = (_: any, state: TypedState) => {
   const inboxSelected = routePath.size === 1 && routePath.get(0) === chatTab
   if (inboxSelected) {
     return Saga.put(
-      Chat2Gen.createSelectConversation({conversationIDKey: Types.stringToConversationIDKey('')})
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Types.stringToConversationIDKey(''),
+        reason: 'clearSelected',
+      })
     )
   }
 }
@@ -1757,13 +1762,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation
-    yield Saga.safeTakeEveryPure(
-      [
-        a => a.type === Chat2Gen.selectConversationDueToPush && a.payload.phase === 'showImmediately',
-        Chat2Gen.selectConversation,
-      ],
-      navigateToThread
-    )
+    yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, messageAttachmentNativeShare)
     yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
     // Unselect the conversation when we go to the inbox
@@ -1796,7 +1795,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     [
       Chat2Gen.selectConversation,
-      Chat2Gen.selectConversationDueToPush,
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
@@ -1857,7 +1855,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [
       Chat2Gen.messagesAdd,
       Chat2Gen.selectConversation,
-      Chat2Gen.selectConversationDueToPush,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       AppGen.changedFocus,
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),

@@ -95,7 +95,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
     _onPreview: (conversationIDKey: ChatTypes.ConversationIDKey, previousPath?: string[]) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, asAPreview: true}))
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'preview'}))
       dispatch(
         navigateTo([
           chatTab,
@@ -107,7 +107,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
     },
     _onView: (conversationIDKey: ChatTypes.ConversationIDKey) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'manageView'}))
       dispatch(switchTo([chatTab]))
     },
   }

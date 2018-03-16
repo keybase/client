@@ -7,6 +7,7 @@ import {createGetProfile} from '../../../../actions/tracker-gen'
 
 const mapStateToProps = (state: TypedState, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),
+  you: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -25,6 +26,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     message: ownProps.message,
     onUsernameClicked: dispatchProps.onUsernameClicked,
     teamname: _meta.teamname,
+    you: stateProps.you,
   }
 }
 

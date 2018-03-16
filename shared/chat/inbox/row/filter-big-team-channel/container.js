@@ -4,14 +4,11 @@ import * as Route from '../../../../actions/route-tree'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {connect, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (_, {teamname, channelname}) => ({
-  channelname,
-  teamname,
-})
+const mapStateToProps = (_, {teamname, channelname}) => ({channelname, teamname})
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
   onSelectConversation: () => {
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxBig'}))
     if (isMobile) {
       dispatch(Route.navigateAppend(['conversation']))
     }

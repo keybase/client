@@ -1,4 +1,4 @@
-package ephemeral
+package erasablekv
 
 import (
 	"fmt"
@@ -27,6 +27,11 @@ type boxedData struct {
 // ***
 const cryptoVersion = 1
 const noiseSuffix = ".ns"
+const storageSubDir = "eraseablekvstore"
+
+func getStorageDir(g *libkb.GlobalContext) string {
+	return filepath.Join(g.Env.GetDataDir(), storageSubDir)
+}
 
 type ErasableKVStore interface {
 	Put(ctx context.Context, key string, val interface{}) error
@@ -43,7 +48,7 @@ type ErasableKVStore interface {
 type FileErasableKVStore struct {
 	libkb.Contextified
 	sync.Mutex
-	storagePath string
+	storageDir string
 }
 
 var _ ErasableKVStore = (*FileErasableKVStore)(nil)
@@ -51,12 +56,12 @@ var _ ErasableKVStore = (*FileErasableKVStore)(nil)
 func NewFileErasableKVStore(g *libkb.GlobalContext) *FileErasableKVStore {
 	return &FileErasableKVStore{
 		Contextified: libkb.NewContextified(g),
-		storagePath:  g.Env.GetDataDir(),
+		storageDir:   getStorageDir(g),
 	}
 }
 
 func (s *FileErasableKVStore) filepath(key string) string {
-	return filepath.Join(s.storagePath, key)
+	return filepath.Join(s.storageDir, key)
 }
 
 func (s *FileErasableKVStore) noiseKey(key string) string {
@@ -158,12 +163,14 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 		return err
 	}
 
-	tmp, err := ioutil.TempFile(s.storagePath, key)
+	tmp, err := ioutil.TempFile(s.storageDir, key)
 	if err != nil {
 		return err
 	}
 	// remove the temp file if it still exists at the end of this function
 	defer libkb.ShredFile(tmp.Name())
+
+	SetDisableBackup(ctx, s.G(), tmp.Name())
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
@@ -192,6 +199,7 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	if err := os.Rename(tmp.Name(), filepath); err != nil {
 		return err
 	}
+	SetDisableBackup(ctx, s.G(), filepath)
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
@@ -267,7 +275,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	files, err := filepath.Glob(s.storagePath)
+	files, err := filepath.Glob(s.storageDir + string(os.PathSeparator) + "*")
 	if err != nil {
 		return keys, err
 	}
@@ -275,7 +283,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 		if strings.HasSuffix(file, noiseSuffix) {
 			continue
 		}
-		parts := strings.Split(file, s.storagePath)
+		parts := strings.Split(file, s.storageDir+string(os.PathSeparator))
 		keys = append(keys, parts[1])
 	}
 	return keys, nil

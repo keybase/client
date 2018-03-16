@@ -31,6 +31,10 @@
         {
           "type": "EkGeneration",
           "name": "generation"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
         }
       ]
     },
@@ -50,6 +54,57 @@
           "type": "HashMeta",
           "name": "hashMeta",
           "jsonkey": "hash_meta"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEkMetadata",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid",
+          "jsonkey": "user_ephemeral_dh_public"
+        },
+        {
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEk",
+      "fields": [
+        {
+          "type": "Bytes32",
+          "name": "seed"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
         }
       ]
     }

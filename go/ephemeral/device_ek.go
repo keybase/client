@@ -11,16 +11,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
-
-func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
-	bs, err := libkb.RandBytes(32)
-	if err != nil {
-		return seed, err
-	}
-	return libkb.MakeByte32(bs), nil
-}
-
 type DeviceEKSeed keybase1.Bytes32
 
 func newDeviceEphemeralSeed() (seed DeviceEKSeed, err error) {
@@ -55,7 +45,7 @@ func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) er
 }
 
 func getServerMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext) (maxGeneration keybase1.EkGeneration, err error) {
-	deviceEKs, err := GetOwnDeviceEKs(ctx, g)
+	deviceEKs, err := GetOwnActiveDeviceEKMetadata(ctx, g)
 	if err != nil {
 		return maxGeneration, err
 	}
@@ -69,6 +59,8 @@ func getServerMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext) (maxGener
 }
 
 func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keybase1.DeviceEkMetadata, err error) {
+	defer g.CTrace(ctx, "PublishNewDeviceEK", func() error { return err })()
+
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return data, err
@@ -116,6 +108,7 @@ func PublishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext) (data keyba
 		Seed:       keybase1.Bytes32(seed),
 		Generation: generation,
 		HashMeta:   currentMerkleRoot.HashMeta(),
+		Ctime:      keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()),
 	})
 	return data, err
 }
@@ -125,6 +118,7 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   currentMerkleRoot.HashMeta(),
+		Ctime:      keybase1.TimeFromSeconds(currentMerkleRoot.Ctime()),
 	}
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
@@ -149,16 +143,16 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 	return metadata, nil
 }
 
-type DeviceEKResponseElement struct {
-	MerklePayload string `json:"merkle_payload"`
-	Sig           string `json:"sig"`
-}
-
 type DeviceEKsResponse struct {
-	Results []DeviceEKResponseElement `json:"results"`
+	Results []struct {
+		MerklePayload string `json:"merkle_payload"`
+		Sig           string `json:"sig"`
+	} `json:"results"`
 }
 
-func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.DeviceEkMetadata, error) {
+func GetOwnActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext) (activeDeviceEKMetadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
+	defer g.CTrace(ctx, "GetOwnActiveDeviceEKMetadata", func() error { return err })()
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_eks",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -186,7 +180,7 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 	//    with is within one week of the current root. The server deliberately
 	//    avoids doing this filtering for us, and finding expired keys in the
 	//    results here is expected. We silently drop them.
-	currentDeviceEKs := []keybase1.DeviceEkMetadata{}
+	activeDeviceEKMetadata = map[keybase1.DeviceID]keybase1.DeviceEkMetadata{}
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return nil, err
@@ -220,15 +214,15 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 		}
 
 		// Decode the signed JSON.
-		var signedMetadata keybase1.DeviceEkMetadata
-		err = json.Unmarshal(payload, &signedMetadata)
+		var verifiedMetadata keybase1.DeviceEkMetadata
+		err = json.Unmarshal(payload, &verifiedMetadata)
 		if err != nil {
 			return nil, err
 		}
 
 		// Check the hash of the Merkle payload, confirm it matches what was signed, and parse it.
 		computedHash := sha256.Sum256([]byte(element.MerklePayload))
-		if !bytes.Equal(signedMetadata.HashMeta, computedHash[:]) {
+		if !bytes.Equal(verifiedMetadata.HashMeta, computedHash[:]) {
 			return nil, fmt.Errorf("supplied merkle root doesn't match signed hash meta")
 		}
 		var signedMerkleRoot libkb.MerkleRootPayloadUnpacked
@@ -242,14 +236,13 @@ func GetOwnDeviceEKs(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.De
 		// and skip them.
 		ageSecs := currentMerkleRoot.Ctime() - signedMerkleRoot.Ctime
 		if ageSecs > KeyLifetimeSecs {
-			g.Log.CDebugf(ctx, "skipping expired deviceEK %s for device KID %s", signedMetadata.Kid, matchingDevice.KID)
+			g.Log.CDebugf(ctx, "skipping stale deviceEK %s for device KID %s", verifiedMetadata.Kid, matchingDevice.KID)
 			continue
 		}
 
-		// This key is valid and current. Add it to the list we're about to
-		// return.
-		currentDeviceEKs = append(currentDeviceEKs, signedMetadata)
+		// This key is valid and current. Add it to the return set.
+		activeDeviceEKMetadata[matchingDevice.DeviceID] = verifiedMetadata
 	}
 
-	return currentDeviceEKs, nil
+	return activeDeviceEKMetadata, nil
 }

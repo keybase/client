@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
     const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
     if (goodRows.length) {
       const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterArrow'}))
     }
   },
   _onHotkey: (cmd: string, focusFilter: () => void) => {

@@ -39,6 +39,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const direntToMetadata = (d: RPCTypes.Dirent) => ({
     name: d.name,
     lastModifiedTimestamp: d.time,
+    lastWriter: 'jareddunn' + (d.name.length < 10 ? '' : 'andfriendsandfriends'), // TODO fix this when we have it from RPC
     size: d.size,
   })
 
@@ -49,14 +50,22 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       : Constants.makeFile(direntToMetadata(d)),
   ]
 
+  // Get metadata fields of the directory that we just loaded from state to
+  // avoid override them.
+  const state = yield Saga.select()
+  const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
+
   const pathItems: I.Map<Types.Path, Types.PathItem> = I.Map(
     entries.map(direntToPathAndPathItem).concat([
       [
         rootPath,
         Constants.makeFolder({
+          lastModifiedTimestamp,
+          lastWriter,
+          size,
+          name: Types.getPathName(rootPath),
           children: I.List(entries.map(d => d.name)),
           progress: 'loaded',
-          name: Types.getPathName(rootPath),
         }),
       ],
     ])
@@ -75,7 +84,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
   yield Saga.put(FsGen.createDownloadStarted({key, path, localPath}))
 
-  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRpcPromise, {
+  yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
     src: {
       PathType: RPCTypes.simpleFSPathType.kbfs,

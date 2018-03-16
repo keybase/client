@@ -2,12 +2,13 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
+import {Avatar, BackButton, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 
 export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
   dropdownItems: Array<Types.PathBreadcrumbItem>,
   isTeamPath: boolean,
+  onBack: () => void,
   onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) => void,
   openInFileUI: () => void,
 }
@@ -16,6 +17,7 @@ const FolderHeader = ({
   dropdownItems,
   breadcrumbItems,
   isTeamPath,
+  onBack,
   onOpenBreadcrumbDropdown,
   openInFileUI,
 }: FolderHeaderProps) => (
@@ -23,6 +25,10 @@ const FolderHeader = ({
     {breadcrumbItems.length === 1 ? (
       <Box style={folderHeaderStyleRoot}>
         <Text type="BodyBig">Keybase Files</Text>
+      </Box>
+    ) : isMobile ? (
+      <Box style={styleFolderHeaderContainer}>
+        <BackButton title={null} onClick={onBack} style={{marginLeft: globalMargins.small}} />
       </Box>
     ) : (
       <Box style={styleFolderHeaderContainer}>
