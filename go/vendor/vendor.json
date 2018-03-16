@@ -446,6 +446,12 @@
 			"revisionTime": "2017-09-10T13:46:14Z"
 		},
 		{
+			"checksumSHA1": "Lm/IsrUTXFXtxwDQk+HQDRTitVc=",
+			"path": "github.com/pkg/xattr",
+			"revision": "bc67bfc801466b4b8e62df951397972652fa8414",
+			"revisionTime": "2018-02-23T11:29:58Z"
+		},
+		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
