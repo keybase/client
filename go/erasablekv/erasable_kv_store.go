@@ -62,13 +62,11 @@ func NewFileErasableKVStore(g *libkb.GlobalContext, subDir string) *FileErasable
 }
 
 func (s *FileErasableKVStore) filepath(key string) string {
-	key = url.QueryEscape(key)
-	return filepath.Join(s.storageDir, key)
+	return filepath.Join(s.storageDir, url.QueryEscape(key))
 }
 
 func (s *FileErasableKVStore) noiseKey(key string) string {
-	key = url.QueryEscape(key)
-	return fmt.Sprintf("%s%s", key, noiseSuffix)
+	return fmt.Sprintf("%s%s", url.QueryEscape(key), noiseSuffix)
 }
 
 func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes libkb.NoiseBytes) (fkey [32]byte, err error) {
@@ -282,19 +280,18 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	files, err := filepath.Glob(s.storageDir + string(os.PathSeparator) + "*")
+	files, err := ioutil.ReadDir(s.storageDir)
 	if err != nil {
 		return keys, err
 	}
 	for _, file := range files {
-		if strings.HasSuffix(file, noiseSuffix) {
+		filename := filepath.Base(file.Name())
+		if strings.HasSuffix(filename, noiseSuffix) {
 			continue
 		}
-		parts := strings.Split(file, s.storageDir+string(os.PathSeparator))
-		key := parts[1]
-		key, err = url.QueryUnescape(key)
+		key, err := url.QueryUnescape(filename)
 		if err != nil {
-			return keys, err
+			return []string{}, err
 		}
 		keys = append(keys, key)
 	}
