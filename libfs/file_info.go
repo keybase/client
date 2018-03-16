@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -65,7 +66,51 @@ func (fi *FileInfo) IsDir() bool {
 	return fi.ei.Type == libkbfs.Dir
 }
 
+// LastWriterGetter is an interface for something that can return the
+// last KBFS writer of a directory entry.
+type LastWriterGetter interface {
+	LastWriter() (keybase1.User, error)
+}
+
+type fileInfoSys struct {
+	fi *FileInfo
+}
+
+var _ LastWriterGetter = fileInfoSys{}
+
+func (fis fileInfoSys) LastWriter() (keybase1.User, error) {
+	if fis.fi.node == nil {
+		// This won't return any last writer for symlinks themselves.
+		// TODO: if we want symlink last writers, we'll need to add a
+		// new interface to KBFSOps to get them.
+		return keybase1.User{}, nil
+	}
+	md, err := fis.fi.fs.config.KBFSOps().GetNodeMetadata(
+		fis.fi.fs.ctx, fis.fi.node)
+	if err != nil {
+		return keybase1.User{}, err
+	}
+	lastWriterName := md.LastWriterUnverified
+	_, id, err := fis.fi.fs.config.KBPKI().Resolve(
+		fis.fi.fs.ctx, lastWriterName.String())
+	if err != nil {
+		return keybase1.User{}, err
+	}
+	uid, err := id.AsUser()
+	if err != nil {
+		return keybase1.User{}, err
+	}
+	return keybase1.User{
+		Uid:      uid,
+		Username: lastWriterName.String(),
+	}, nil
+}
+
+func (fis fileInfoSys) EntryInfo() libkbfs.EntryInfo {
+	return fis.fi.ei
+}
+
 // Sys implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Sys() interface{} {
-	return fi.ei
+	return fileInfoSys{fi}
 }

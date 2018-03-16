@@ -182,6 +182,10 @@ func TestList(t *testing.T) {
 
 	listResult, err = sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
+	require.Equal(
+		t, "jdoe", listResult.Entries[0].LastWriterUnverified.Username)
+	require.Equal(
+		t, "jdoe", listResult.Entries[1].LastWriterUnverified.Username)
 
 	assert.Len(t, listResult.Entries, 2, "Expected 2 directory entries in listing")
 
@@ -209,6 +213,8 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+	require.Equal(
+		t, "jdoe", listResult.Entries[0].LastWriterUnverified.Username)
 
 	// Assume we've exhausted the list now, so expect error
 	_, err = sfs.SimpleFSReadList(ctx, opid)

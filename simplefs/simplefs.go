@@ -240,9 +240,10 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 	return res, nil
 }
 
-func setStat(de *keybase1.Dirent, fi os.FileInfo) {
+func setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
+
 	t := libkbfs.File
 	if fi.IsDir() {
 		t = libkbfs.Dir
@@ -252,6 +253,15 @@ func setStat(de *keybase1.Dirent, fi os.FileInfo) {
 		t = libkbfs.Sym
 	}
 	de.DirentType = deTy2Ty(t)
+
+	if lwg, ok := fi.Sys().(libfs.LastWriterGetter); ok {
+		lastWriter, err := lwg.LastWriter()
+		if err != nil {
+			return err
+		}
+		de.LastWriterUnverified = lastWriter
+	}
+	return nil
 }
 
 func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
@@ -421,7 +431,10 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 				}
 				for _, fi := range fis {
 					var d keybase1.Dirent
-					setStat(&d, fi)
+					err := setStat(&d, fi)
+					if err != nil {
+						return err
+					}
 					d.Name = fi.Name()
 					res = append(res, d)
 				}
@@ -465,7 +478,10 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 			var des []keybase1.Dirent
 			if !fi.IsDir() {
 				var d keybase1.Dirent
-				setStat(&d, fi)
+				err := setStat(&d, fi)
+				if err != nil {
+					return err
+				}
 				d.Name = fi.Name()
 				des = append(des, d)
 				// Leave paths empty so we can skip the loop below.
@@ -484,7 +500,10 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 				}
 				for _, fi := range fis {
 					var de keybase1.Dirent
-					setStat(&de, fi)
+					err := setStat(&de, fi)
+					if err != nil {
+						return err
+					}
 					de.Name = fi.Name()
 					des = append(des, de)
 					if fi.IsDir() {
@@ -1095,8 +1114,8 @@ func wrapStat(fi os.FileInfo, err error) (keybase1.Dirent, error) {
 		return keybase1.Dirent{}, err
 	}
 	var de keybase1.Dirent
-	setStat(&de, fi)
-	return de, nil
+	err = setStat(&de, fi)
+	return de, err
 }
 
 // SimpleFSStat - Get info about file
