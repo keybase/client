@@ -104,6 +104,10 @@ class ConversationInput extends Component<InputProps> {
     this.props.setChannelMentionPopupOpen(false)
   }
 
+  _onFocus = () => {
+    this.props.clearInboxFilter()
+  }
+
   render() {
     return (
       <Box
@@ -159,6 +163,7 @@ class ConversationInput extends Component<InputProps> {
             <Input
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
+              onFocus={this._onFocus}
               small={true}
               style={styleInput}
               ref={this.props.inputSetRef}
