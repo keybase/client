@@ -9,12 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const v1 = keybase1.StellarSecretBundleVersion_V1
+const v1 = keybase1.StellarBundleVersion_V1
 
 type canned struct {
 	pukSeedB64 string
 	pukGen     int
-	outerB64   string
+	encB64     string
+	visB64     string
 }
 
 func (c *canned) puk(t *testing.T) (puk libkb.PerUserKeySeed) {
@@ -30,10 +31,12 @@ func (c *canned) gen() keybase1.PerUserKeyGeneration {
 }
 
 var cans = []canned{
-	{"sTwIOJ9nGIW1H+ruwX1yXwomu72JmmhMbORjhzEA1Is=", 3, "hKFlxNFm/UeXfI1g5p97qljKSb/slFsmAPgImHN74OlxgTseWKJ36sbREgWlqISAM2yvzR1d/2MqpfO9+6hvi3r1gaO1exEgBCMUddrpI+oFwuPLHqATa6Q5y0c/scfRcLJdUf+NHD+7QubB0Sb3fg9Ln6k4BLz3aUxxUZaoEnOF5JKfEd30M0Xcb/qC0GHwKzC2vYaajyBq7NTO46UJDji3eO+y61cHLQ56Ui4qc64P6HO/H78NFKHMijnxPtFZnBO/SitxVNRu7aWsTc0SEs6SM/zCsqNnZW4DoW7EGP+i1y3+JhzofplQXDzXGzs0aDC6zFkuU6F2AQ=="},
-	{"dO/t7WzeXmuQF+8vitbxrTZZcLasJDLiWre0j9E0WYY=", 3, "hKFlxNEGzWSdEAoPP0VUOFiGi+F4knwYPYiFBeQmZzdUaPOJ5j0F1hMxtPx0MV/6WOLWEBNs8MNIH7owuMyQMf6oVH2P8S8+r5dUXBrfoC37BYd/zoA/AheN2LGFwLNCOU4HZFtaUwSxqQNdkM/MRt9PvxPTWz+ivZwoV1zMj+f2Nx8+t/2FYBDLCGLui4g16cExl3PH5P+w9VQa/QjWUFHTBSr1fInudKTjxfcm2gN6Nsb6msook1VZwrfOAgAgsc889WK6com1WMsFFCvG12gLdzvuJqNnZW4DoW7EGBEEUn+mRL1bPTqf47dZiHspRiusRLv3Z6F2AQ=="},
+	{"BGYPk8x7VXMRvHzfaceTUks9W9Vx91BHJC5ukiI0xE8=", 3, "hKFlxORQo+AglN4EmjCZ7/0c/Lg/OMh0QOjkr86fMnYGFAL5yQVlQKb4KEzKwDQOkVY1nWnMCLqKY4z36KtdJ2Es09ae4QAluWLHbHYruAdzZjyCCR4yc/sF9XLahdHeqqivuKGjxfLLV+Al8ZXlcbZ+j+++E8E/szPyK4FzUrH4VK+RFWhNFDd5fl1r5jt7BDzzkfkZRTFxeaUlHgl8tB3Ks3uyrs6wsRA9H4QV3jYNPO4xDZ3YtrRbpTFuglui38B8z87sIkubNhy1XKH/kIGd7j62fGO5TGG7QHC0SwJz3OWAY2DlIhajZ2VuA6FuxBgkiHiy6QrIxBfjIiIV/CVXZPn/3uvEM8uhdgE=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0RHUlVOTlRURUhGU0dHTk5FTklGQ1hMSEk1RkdDUk5CNTU0SEhZR0RQQlY1RDNPQ0taQlNaTzKpaXNQcmltYXJ5w6Rtb2RlAKRwcmV2wKhyZXZpc2lvbgE="},
+	{"B4r8s6QrEfgO/gJT5k2+x3fykfLQMZWJJVUakZmwsm4=", 3, "hKFlxOSL8f9p79FDdEs47rxZnwKfg+94pzF6GHFZpM+6z0n8PzNGg3cBeM+hpPlzhJoWBhTg1TKIHZ3WWK+91tTYvpA2xkrWXUZpzvQdqqsBGpTPAnb0O7Ob4jKrt2brjewdoJn7BxH6BmrlTau9tmtQj05Yb1VEEYMx35PrcSK3+bw4tQUhhRezr7wMixR0bdXwqpxdx7Yz9Ovupf90h7INw2CT+drWAFB1zTqLul1PVvwQsddj85qC2tuSdUCakbZ/gY03CHNpVh1a1W65tJxkoaXg2DuiIUcrIe+SeHXIlsNU5fIF2YyjZ2VuA6FuxBiUZpnIvcrLcWe34kDGfpQYVWEvZrEClvKhdgE=", "g6hhY2NvdW50c5GDqWFjY291bnRJRNk4R0FaN1VJT0xSQ1dYWFBHQkEzSjRQM1dDNjZHUlNWSVhQWERDRktLVDcyNlRWT1JNUjU3UU9QQUypaXNQcmltYXJ5w6Rtb2RlAKRwcmV2wKhyZXZpc2lvbgE="},
 	// this one has two primary accounts.
-	{"q/kPfnlbgK312LrI9xLtHPxXw66a4apEz6mgdM3J4WY=", 3, "hKFlxQF0Gopd0H+DTbHDr49361EXfyDWTVRfc1AzSwlP0DPUtOjbX0hedU9OyFAYSmr82FpTl8O8m+bKgk9GngT7Dm51pudCpuxANQ7LoOI5hlHJXWeDimS2Q/UzHt7nZxztsE9++RR5vE4tnsdSH0IbC8Br88OgNp+wIE7WzTehVCHyvU7QHmH7nbZTT8S78FMKO9MVRcpXUKA00fx35yLKcJ5XaXhS2sv+bVh4K4LL/iY1wdPyUQMhqQhstM+NZMBP8JzkSpYILg5bKF2u5Tmo01HA6LqbE/Jezw/iQ5I/rJ/sXX5ctxjKoH1IHeT7ObtuTtAopEk3XJsN8gL0sWAxc/IFAmHKMYPsMPq3hh3cAhwTwYxkdqRJGFk1l9X7ErhbOkQmLvjkLZwhzNPOGjf5TUbJLd4Wk0hQx+BOKegL299LHvIzBYFpMxVdL21IN+zDze56D7pwyXzBB1iHur+qGMthtepI9oHqEF66ToRQCvqMI/7bVl1Vo2dlbgOhbsQYrBSyc5ycfisWyYWdqMFKwahbYuwH7rbXoXYB"},
+	{"KHUq4YZME7s30g/R+cQkwONToYIoZxgDriV0C3Vn+Po=", 3, "hKFlxQF2oTmeYwShzWTA0m54gdPPdM77ZYpaWm7Y7I9NzDKSapG6AutL0Vc2620McAFo1KuK0IjEtX0xh3bfY0yBPcUjQSuX7B9nNlvm25NcNEUYY+s7vlcOvNcsolCsPzT3jgXcs9qkmnlJWqGFHvqmuxAfVjirSa1Tx7SpLdD1lS8T5kCN9yX8lxNwS1sQHj4XZ1s798v8Wklh5bIVlvqEuCWF3o84+KXAosrx4fu/pPO7TsvcPusKxe3MeVmZ/2cftZCufK3RkiBMKliF/6tLxnLtwdqi0KBpuhh9tj1jlWNFDIcrP2gC/faz9JZ6oh4Ve+lfwuyVcfOcWU7X3u6T+KAplLj0HwEWlANMoXXKYIa/IwFlAlxCWa4zkQHj7H6ymEwu5gI/jV4r4m9Z2b6/WEmg+DmIDiB0zSS3cvGZs0je6hURAwaoUIhSOXVEwtQ17k4U++iJIMxSOf+Ft/k3yP8X/ceJeW+zv9b2GSoCzi7aktnG/BVrcpmjZ2VuA6FuxBiGG3oFPJdO64/uvd1xb087GH0RIR2ZPGChdgE=", "g6hhY2NvdW50c5KDqWFjY291bnRJRNk4R0NRTDZHSE9NNllaQUlGUUE3T0VCS1JLWlFPU0NYUzVNV05NU1JXRFpZTFBMQ1pXR0hSQ1dLVjSpaXNQcmltYXJ5w6Rtb2RlAIOpYWNjb3VudElE2ThHQ1VIRUVCQ0JMSE9ZTVBaUEpWNFBMUkVSUlJRTFg0Q1dERkxUT0k0U0xERUlJVEZQRkRRV0xOWalpc1ByaW1hcnnDpG1vZGUApHByZXbAqHJldmlzaW9uAQ=="},
+	// this one has the accounts in different orders on the inside and outside
+	{"jLb/t4BwNkBOTnAyLUeHWkAxUQRG1Umnn50xNMlZVeI=", 3, "hKFlxQF2A+vdA4GJqi6u8Pvu/uhESSlauGGWFymRPEuCR3fKXl6Ms0X3kyw9mVAGzWXNOlht/h5qtf5WcyZYrV7PXK0yPcgyay3EnbzcSdPdKJwV9Srplv5IjlFQATYVVi9QDhNR+caPdh/KpG3sWQ6TK8dIKHEosgze6C4vk5MMqSYD4RHAaPzx3tk/QdrwMyebGCuOGa7u8WLl7bwWH2BwXc+AcqtlBN76FMv3BOEn0xzumeSeAwW9QuNAWvi30Rd+KTAnYCeUpOnjH0mEGBtcvxicNVknT/GOkgTU7Bcws0rLG8wCL6ky288SnKtcxOw7jQgyciL/AZyIEcPE/Z+RXjcKfgcHo+PWmaHmPXLGQiFbmCzdP2N+1m0lW0A8Ye3CYaW4FkVbFe7HggRty4k3xrbbR8GjE1A9AvHbyoa1vAjTHLm/QnqVslXNp3raYpAuYuANuwUUCELfUrug5647VokzTepKiEhQs0FGo5L6SpfAiPkmM3DOp1OjZ2VuA6FuxBjxuftzcissPIfzECF4AZ3kMnkLnBgQv9ahdgE=", "g6hhY2NvdW50c5KDqWFjY291bnRJRNk4R0NRTDZHSE9NNllaQUlGUUE3T0VCS1JLWlFPU0NYUzVNV05NU1JXRFpZTFBMQ1pXR0hSQ1dLVjSpaXNQcmltYXJ5wqRtb2RlAIOpYWNjb3VudElE2ThHQ1VIRUVCQ0JMSE9ZTVBaUEpWNFBMUkVSUlJRTFg0Q1dERkxUT0k0U0xERUlJVEZQRkRRV0xOWalpc1ByaW1hcnnCpG1vZGUApHByZXbAqHJldmlzaW9uAQ=="},
 }
 
 func TestBundleRoundtrip(t *testing.T) {
@@ -42,60 +45,130 @@ func TestBundleRoundtrip(t *testing.T) {
 	t.Logf("puk seed (hex): %v", base64.StdEncoding.EncodeToString(puk[:]))
 	t.Logf("puk gen: %v", pukGen)
 
-	enc, resB64, err := Box(bundle, pukGen, puk)
+	res, err := Box(bundle, pukGen, puk)
 	require.NoError(t, err)
-	t.Logf("outer b64: %v", resB64)
-	require.True(t, len(resB64) > 100)
-	require.Equal(t, 1, enc.V)
-	require.True(t, len(enc.E) > 100)
-	require.Equal(t, pukGen, enc.Gen)
+	t.Logf("outer enc b64: %v", res.EncB64)
+	t.Logf("outer vis b64: %v", res.VisB64)
+	t.Logf("enc.N b64: %v", base64.StdEncoding.EncodeToString(res.Enc.N[:]))
+	t.Logf("enc.E b64: %v", base64.StdEncoding.EncodeToString(res.Enc.E))
+	require.Equal(t, v1, res.FormatVersion)
+	require.True(t, len(res.EncB64) > 100)
+	require.Equal(t, 1, res.Enc.V)
+	require.True(t, len(res.Enc.E) > 100)
+	require.Equal(t, pukGen, res.Enc.Gen)
 
-	enc2, err := Decode(resB64)
+	dec2, err := Decode(res.EncB64)
 	require.NoError(t, err)
-	require.Equal(t, enc, enc2)
+	require.Equal(t, res.Enc, dec2.Enc)
 
-	bundle2, v, err := Unbox(enc2, puk)
+	bundle2, v, err := Unbox(dec2, res.VisB64, puk)
 	require.NoError(t, err)
-	require.Equal(t, bundle, bundle2)
+	bundle2ForComparison := bundle2.DeepCopy()
+	bundle2ForComparison.OwnHash = nil
+	require.Equal(t, bundle, bundle2ForComparison)
 	require.Equal(t, v1, v)
+	require.Nil(t, bundle2.Prev)
 }
 
-func TestBundleRoundtripCorruption(t *testing.T) {
-	bundle := sampleBundle()
-	puk, pukGen := mkPuk(t, 3)
+func TestBundlePrevs(t *testing.T) {
+	bundle1src := sampleBundle()
+	puk1, pukGen1 := mkPuk(t, 1)
+	puk2, pukGen2 := mkPuk(t, 2)
 
-	_, resB64, err := Box(bundle, pukGen, puk)
+	res1, err := Box(bundle1src, pukGen1, puk1)
+	require.NoError(t, err)
+
+	dec1, err := Decode(res1.EncB64)
+	require.NoError(t, err)
+	require.Equal(t, pukGen1, dec1.Enc.Gen)
+	bundle1, _, err := Unbox(dec1, res1.VisB64, puk1)
+	require.NoError(t, err)
+	require.Nil(t, bundle1.Prev, "first box should have no prev")
+
+	bundle2src := bundle1.DeepCopy()
+	bundle2src.Prev = bundle1.OwnHash
+	bundle2src.Accounts[0].Name = "squirrel fund"
+	res2, err := Box(bundle2src, pukGen2, puk2)
+	require.NoError(t, err)
+
+	dec2, err := Decode(res2.EncB64)
+	require.NoError(t, err)
+	bundle2, _, err := Unbox(dec2, res2.VisB64, puk2)
+	require.NoError(t, err)
+	require.Equal(t, "squirrel fund", bundle2.Accounts[0].Name, "account should be renamed")
+	require.Equal(t, bundle1.OwnHash, bundle2.Prev, "bundle 2 should prev bundle 1")
+	require.NotNil(t, bundle2.Prev)
+
+	bundle3src := bundle1.DeepCopy()
+	bundle3src.Prev = bundle2.OwnHash
+	bundle3src.Accounts[0].IsPrimary = false
+	res3, err := Box(bundle3src, pukGen2, puk2)
+	require.NoError(t, err)
+
+	enc3, err := Decode(res3.EncB64)
+	require.NoError(t, err)
+	bundle3, _, err := Unbox(enc3, res3.VisB64, puk2)
+	require.NoError(t, err)
+	require.False(t, bundle3.Accounts[0].IsPrimary, "account should not be primary")
+	require.Equal(t, bundle2.OwnHash, bundle3.Prev, "bundle 3 should prev bundle 2")
+}
+
+func TestBundleRoundtripCorruptionEnc(t *testing.T) {
+	bundle := sampleBundle()
+	puk, pukGen := mkPuk(t, 4)
+
+	res, err := Box(bundle, pukGen, puk)
 	require.NoError(t, err)
 	replaceWith := "a"
-	if resB64[85] == 'a' {
+	if res.EncB64[85] == 'a' {
 		replaceWith = "b"
 	}
-	resB64 = resB64[:85] + replaceWith + resB64[86:]
+	res.EncB64 = res.EncB64[:85] + replaceWith + res.EncB64[86:]
 
-	enc2, err := Decode(resB64)
+	dec2, err := Decode(res.EncB64)
 	require.NoError(t, err)
 
-	_, _, err = Unbox(enc2, puk)
+	_, _, err = Unbox(dec2, res.VisB64, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret box open failed")
 }
 
+func TestBundleRoundtripCorruptionVis(t *testing.T) {
+	bundle := sampleBundle()
+	puk, pukGen := mkPuk(t, 3)
+
+	res, err := Box(bundle, pukGen, puk)
+	require.NoError(t, err)
+	replaceWith := "a"
+	if res.VisB64[85] == 'a' {
+		replaceWith = "b"
+	}
+	res.VisB64 = res.VisB64[:85] + replaceWith + res.VisB64[86:]
+
+	dec2, err := Decode(res.EncB64)
+	require.NoError(t, err)
+
+	_, _, err = Unbox(dec2, res.VisB64, puk)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "hash mismatch")
+}
+
 func TestCanned(t *testing.T) {
 	c := cans[0]
-	enc, err := Decode(c.outerB64)
+	dec, err := Decode(c.encB64)
 	require.NoError(t, err)
-	require.Equal(t, 1, enc.V)
-	require.Equal(t, c.gen(), enc.Gen)
-	require.Equal(t, "/6LXLf4mHOh+mVBcPNcbOzRoMLrMWS5T", base64.StdEncoding.EncodeToString(enc.N[:]))
-	b64EncE := "Zv1Hl3yNYOafe6pYykm/7JRbJgD4CJhze+DpcYE7Hliid+rG0RIFpaiEgDNsr80dXf9jKqXzvfuob4t69YGjtXsRIAQjFHXa6SPqBcLjyx6gE2ukOctHP7HH0XCyXVH/jRw/u0LmwdEm934PS5+pOAS892lMcVGWqBJzheSSnxHd9DNF3G/6gtBh8Cswtr2Gmo8gauzUzuOlCQ44t3jvsutXBy0OelIuKnOuD+hzvx+/DRShzIo58T7RWZwTv0orcVTUbu2lrE3NEhLOkjP8wrI="
-	require.Equal(t, b64EncE, base64.StdEncoding.EncodeToString(enc.E))
+	require.Equal(t, 1, dec.Enc.V)
+	require.Equal(t, c.gen(), dec.Enc.Gen)
+	require.Equal(t, "JIh4sukKyMQX4yIiFfwlV2T5/97rxDPL", base64.StdEncoding.EncodeToString(dec.Enc.N[:]))
+	b64EncE := "UKPgIJTeBJowme/9HPy4PzjIdEDo5K/OnzJ2BhQC+ckFZUCm+ChMysA0DpFWNZ1pzAi6imOM9+irXSdhLNPWnuEAJblix2x2K7gHc2Y8ggkeMnP7BfVy2oXR3qqor7iho8Xyy1fgJfGV5XG2fo/vvhPBP7Mz8iuBc1Kx+FSvkRVoTRQ3eX5da+Y7ewQ885H5GUUxcXmlJR4JfLQdyrN7sq7OsLEQPR+EFd42DTzuMQ2d2La0W6UxboJbot/AfM/O7CJLmzYctVyh/5CBne4+tnxjuUxhu0BwtEsCc9zlgGNg5SIW"
+	require.Equal(t, b64EncE, base64.StdEncoding.EncodeToString(dec.Enc.E))
 
-	bundle, v, err := Unbox(enc, c.puk(t))
+	bundle, v, err := Unbox(dec, c.visB64, c.puk(t))
 	require.NoError(t, err)
 	require.Equal(t, v1, v)
 	require.Equal(t, keybase1.StellarRevision(1), bundle.Revision)
 	require.Len(t, bundle.Accounts, 1)
-	refAccount := keybase1.StellarSecretEntry{
+	refAccount := keybase1.StellarEntry{
 		AccountID: "GDGRUNNTTEHFSGGNNENIFCXLHI5FGCRNB554HHYGDPBV5D3OCKZBSZO2",
 		Mode:      keybase1.StellarAccountMode_USER,
 		Signers:   []keybase1.StellarSecretKey{"SAGWDNEMLK2Z65NXQUGP6UMR4MDYZ3UQSUXLIEZU6KENJXEHEGIS23BT"},
@@ -109,35 +182,52 @@ func TestCannedWrongKey(t *testing.T) {
 	c := cans[1]
 	puk := c.puk(t)
 	puk[3] = byte(8)
-	enc, err := Decode(c.outerB64)
+	dec, err := Decode(c.encB64)
 	require.NoError(t, err)
-	_, _, err = Unbox(enc, puk)
+	_, err = Decrypt(dec.Enc, puk)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "secret box open failed")
+	_, _, err = Unbox(dec, c.visB64, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "secret box open failed")
 }
 
-func TestCannedUnboxInvariantViolation(t *testing.T) {
+func TestCannedUnboxInvariantViolationMultiplePrimary(t *testing.T) {
 	c := cans[2]
-	enc, err := Decode(c.outerB64)
+	dec, err := Decode(c.encB64)
 	require.NoError(t, err)
-	_, _, err = Unbox(enc, c.puk(t))
+	_, err = Decrypt(dec.Enc, c.puk(t))
+	require.NoError(t, err)
+	_, _, err = Unbox(dec, c.visB64, c.puk(t))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "multiple primary accounts")
 }
 
-func TestBoxInvariantViolation(t *testing.T) {
+func TestCannedUnboxInvariantViolationOrderMismatch(t *testing.T) {
+	c := cans[3]
+	dec, err := Decode(c.encB64)
+	require.NoError(t, err)
+	_, err = Decrypt(dec.Enc, c.puk(t))
+	require.NoError(t, err)
+	_, _, err = Unbox(dec, c.visB64, c.puk(t))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "mismatched account ID")
+}
+
+func TestBoxInvariantViolationDuplicateAccount(t *testing.T) {
 	bundle := bundleDuplicateAccountIDs()
 	puk, pukGen := mkPuk(t, 3)
 
-	_, _, err := Box(bundle, pukGen, puk)
+	_, err := Box(bundle, pukGen, puk)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "duplicate account ID")
 }
 
-func sampleBundle() keybase1.StellarSecretBundle {
-	return keybase1.StellarSecretBundle{
+func sampleBundle() keybase1.StellarBundle {
+	return keybase1.StellarBundle{
 		Revision: 1,
-		Accounts: []keybase1.StellarSecretEntry{{
+		Prev:     nil,
+		Accounts: []keybase1.StellarEntry{{
 			AccountID: "GDRDPWSPKOEUNYZMWKNEC3WZTEDPT6XYGDWNO4VIASTFFZYS5WII2762",
 			Mode:      keybase1.StellarAccountMode_USER,
 			Signers:   []keybase1.StellarSecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
@@ -147,10 +237,11 @@ func sampleBundle() keybase1.StellarSecretBundle {
 	}
 }
 
-func bundleDuplicateAccountIDs() keybase1.StellarSecretBundle {
-	return keybase1.StellarSecretBundle{
+func bundleDuplicateAccountIDs() keybase1.StellarBundle {
+	return keybase1.StellarBundle{
 		Revision: 1,
-		Accounts: []keybase1.StellarSecretEntry{{
+		Prev:     nil,
+		Accounts: []keybase1.StellarEntry{{
 			AccountID: "GDRDPWSPKOEUNYZMWKNEC3WZTEDPT6XYGDWNO4VIASTFFZYS5WII2762",
 			Mode:      keybase1.StellarAccountMode_USER,
 			Signers:   []keybase1.StellarSecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
