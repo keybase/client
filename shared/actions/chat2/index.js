@@ -380,10 +380,7 @@ const onChatInboxSynced = (syncRes, getState) => {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
             actions.unshift(
-              Chat2Gen.createSelectConversation({
-                conversationIDKey: selectedConversation,
-                reason: 'incrementalSync',
-              })
+              Chat2Gen.createMarkConversationsStale({conversationIDKeys: [selectedConversation]})
             )
           }
           arr.push(meta)

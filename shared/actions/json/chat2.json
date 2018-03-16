@@ -30,7 +30,6 @@
           "'inboxBig'", // inbox row
           "'inboxFilterArrow'", // arrow keys in inbox filter
           "'inboxSmall'", // inbox row
-          "'incrementalSync'", // got sync call of selected
           "'jumpFromReset'", // from older reset convo
           "'jumpToReset'", // going to an older reset convo
           "'justCreated'", // just made it and select it
