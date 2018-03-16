@@ -5,7 +5,7 @@ import {humanReadableFileSize} from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {formatTimeForMessages} from '../../util/timestamp'
-import FolderHeader from '../header/header-container'
+import FolderHeader from '../header/container'
 
 type FilePreviewHeaderProps = {
   title: string,
