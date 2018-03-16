@@ -33,6 +33,11 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
 
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
+    case Chat2Gen.setConversationOffline:
+      return metaMap.update(
+        action.payload.conversationIDKey,
+        meta => (meta ? meta.set('offline', action.payload.offline) : meta)
+      )
     case Chat2Gen.metaUpdatePagination:
       return metaMap.update(
         action.payload.conversationIDKey,
@@ -71,25 +76,24 @@ const metaMapReducer = (metaMap, action) => {
                   [].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)
                 )
               : I.OrderedSet(error.unverifiedTLFName.split(','))
-            const old = metaMap.get(conversationIDKey)
+
             const rekeyers = I.Set(
               error.typ === RPCChatTypes.localConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )
-            return metaMap.set(
-              conversationIDKey,
-              Constants.makeConversationMeta({
-                conversationIDKey,
-                participants,
-                rekeyers,
-                snippet: error.message,
-                teamType: old ? old.teamType : 'adhoc',
-                teamname: old ? old.teamname : '',
-                timestamp: old ? old.timestamp : 0,
-                trustedState: 'error',
-              })
-            )
+            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv, username || '')
+            if (!newMeta) {
+              // public conversation, do nothing
+              return metaMap
+            }
+            newMeta = newMeta.merge({
+              participants,
+              rekeyers,
+              snippet: error.message,
+              trustedState: 'error',
+            })
+            return metaMap.set(conversationIDKey, newMeta)
           }
           default:
             return metaMap.update(
@@ -150,7 +154,14 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     }
     case Chat2Gen.messageWasEdited: {
-      const {conversationIDKey, messageID, text} = action.payload
+      const {
+        conversationIDKey,
+        messageID,
+        text,
+        mentionsAt,
+        mentionsChannel,
+        mentionsChannelName,
+      } = action.payload
 
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
       if (!ordinal) {
@@ -166,6 +177,9 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 m.set('text', text)
                 m.set('hasBeenEdited', true)
                 m.set('submitState', null)
+                m.set('mentionsAt', mentionsAt)
+                m.set('mentionsChannel', mentionsChannel)
+                m.set('mentionsChannelName', mentionsChannelName)
               })
       )
     }
@@ -250,10 +264,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return loading.set(action.payload.key, count)
         }
       })
-    case Chat2Gen.selectConversationDueToPush:
-      if (action.payload.phase !== 'showImmediately') {
-        return state
-      }
     // fallthrough actually select it
     case Chat2Gen.selectConversation:
       return state.withMutations(s => {
@@ -557,6 +567,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.notificationSettingsUpdated:
     case Chat2Gen.metaDelete:
     case Chat2Gen.metaUpdatePagination:
+    case Chat2Gen.setConversationOffline:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

@@ -814,6 +814,7 @@ protocol local {
 
   void setConvRetentionLocal(ConversationID convID, RetentionPolicy policy);
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
+  union { null, RetentionPolicy } getTeamRetentionLocal(keybase1.TeamID teamID);
 
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 

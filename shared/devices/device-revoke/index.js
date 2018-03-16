@@ -83,7 +83,7 @@ const styleName = {
   color: globalColors.red,
   fontStyle: 'italic',
   marginTop: 4,
-  textDecoration: 'line-through',
+  textDecorationLine: 'line-through',
 }
 
 const styleDevicesContainer = {

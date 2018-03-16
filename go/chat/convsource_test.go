@@ -441,6 +441,10 @@ func (f failingUpak) PutUserToCache(ctx context.Context, user *libkb.User) error
 	require.Fail(f.t, "PutUserToCache call")
 	return nil
 }
+func (f failingUpak) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	require.Fail(f.t, "LoadV2WithKID call")
+	return nil, nil
+}
 
 func TestGetThreadCaching(t *testing.T) {
 	ctx, world, ri, _, sender, _ := setupTest(t, 1)

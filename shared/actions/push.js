@@ -141,12 +141,12 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         handledPushThisSession = true
         const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
         yield Saga.put(
-          Chat2Gen.createSelectConversationDueToPush({
+          Chat2Gen.createSelectConversation({
             conversationIDKey,
-            phase: 'showImmediately',
+            reason: 'push',
           })
         )
-        yield Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: true}))
+        yield Saga.put(Chat2Gen.createSetLoading({key: `pushLoad:${conversationIDKey}`, loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
       } else if (payload.type === 'follow') {
         const {username} = payload

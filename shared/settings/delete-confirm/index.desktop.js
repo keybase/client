@@ -21,7 +21,7 @@ function DeleteConfirm(props: Props) {
       </Avatar>
       <Text
         type="BodyError"
-        style={{...globalStyles.italic, textDecoration: 'line-through', ...globalStyles.fontSemibold}}
+        style={{...globalStyles.italic, textDecorationLine: 'line-through', ...globalStyles.fontSemibold}}
       >
         {props.username}
       </Text>

@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
-import {globalStyles, glamorous} from '../styles'
+import {glamorous, desktopStyles} from '../styles'
 import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
@@ -91,7 +91,7 @@ function getStyle(
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
-  const clickableStyle = clickable ? globalStyles.clickable : null
+  const clickableStyle = clickable ? desktopStyles.clickable : null
   const selectableStyle = selectable
     ? {
         userSelect: 'text',
@@ -115,3 +115,4 @@ function getStyle(
 export {getStyle}
 
 export default Text
+export {Text as TextMixed}

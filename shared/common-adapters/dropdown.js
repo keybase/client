@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import Icon from './icon'
-import {globalStyles, globalColors, globalMargins, glamorous, isMobile} from '../styles'
+import {globalStyles, globalColors, globalMargins, glamorous, isMobile, desktopStyles} from '../styles'
 
 type Props = {
   onChanged: (selected: React.Node) => void,
@@ -68,7 +68,7 @@ class Dropdown extends React.Component<Props, State> {
                 <Box
                   style={{
                     ...globalStyles.flexBoxColumn,
-                    ...globalStyles.scrollable,
+                    ...desktopStyles.scrollable,
                     border: `1px solid ${globalColors.blue}`,
                     borderRadius: 4,
                     maxHeight: 300,

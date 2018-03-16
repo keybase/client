@@ -360,15 +360,33 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID, tl
 		if err != nil {
 			return team, err
 		}
-		team, err = teams.Load(ctx, g, ltarg(teamID))
-		if err != nil {
-			return team, err
+		loadAttempt := func(repoll bool) error {
+			arg := ltarg(teamID)
+			arg.ForceRepoll = arg.ForceRepoll || repoll
+			team, err = teams.Load(ctx, g, arg)
+			if err != nil {
+				return err
+			}
+			if !tlfID.EqString(team.KBFSTLFID()) {
+				return ImpteamUpgradeBadteamError{
+					Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
+				}
+			}
+			return nil
 		}
-		if !tlfID.EqString(team.KBFSTLFID()) {
-			return team, ImpteamUpgradeBadteamError{
-				Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
+		if err = loadAttempt(false); err != nil {
+			if _, ok := err.(ImpteamUpgradeBadteamError); ok {
+				// try again on bad team, might have had an old team cached
+				g.Log.CDebugf(ctx, "++Chat: LoadTeam: trying again: %s", err)
+				if err = loadAttempt(true); err != nil {
+					return team, err
+				}
+			} else {
+				//generic error we bail out
+				return team, err
 			}
 		}
+
 		impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
 		if err != nil {
 			return team, err

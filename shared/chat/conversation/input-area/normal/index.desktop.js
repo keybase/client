@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import {compose, withHandlers, withStateHandlers} from 'recompose'
@@ -104,84 +104,106 @@ class ConversationInput extends Component<InputProps> {
     this.props.setChannelMentionPopupOpen(false)
   }
 
+  _onFocus = () => {
+    this.props.clearInboxFilter()
+  }
+
   render() {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.switchMention}
-            filter={this.props.mentionFilter}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && <MentionCatcher onClick={this._channelMentionCatcherClick} />}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.switchChannelMention}
-            filter={this.props.channelMentionFilter}
-          />
-        )}
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <input
-            type="file"
-            style={{display: 'none'}}
-            ref={this.props.filePickerSetRef}
-            onChange={this._pickFile}
-            multiple={true}
-          />
-          <Input
-            className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-            autoFocus={false}
-            small={true}
-            style={styleInput}
-            ref={this.props.inputSetRef}
-            hintText="Write a message"
-            hideUnderline={true}
-            onChangeText={this.props.setText}
-            value={this.props.text}
-            multiline={true}
-            rowsMin={1}
-            rowsMax={5}
-            onKeyDown={this.props.onKeyDown}
-            onKeyUp={this.props.onKeyUp}
-            onEnterKeyDown={this.props.onEnterKeyDown}
-          />
-          {this.props.emojiPickerOpen && (
-            <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
-          )}
-          {this.props.isEditing && (
-            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing} style={cancelStyle}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          borderTop: `solid 1px ${globalColors.black_05}`,
+          width: '100%',
+        }}
+      >
+        {this.props.isEditing && (
+          <Box style={editingTabStyle}>
+            <Text type="BodySmall">Editing:</Text>
+            <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
               Cancel
             </Text>
+          </Box>
+        )}
+        <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, width: '100%'}}>
+          {this.props.mentionPopupOpen && <MentionCatcher onClick={this._mentionCatcherClick} />}
+          {this.props.mentionPopupOpen && (
+            <MentionHud
+              conversationIDKey={this.props.conversationIDKey}
+              selectDownCounter={this.props.downArrowCounter}
+              selectUpCounter={this.props.upArrowCounter}
+              pickSelectedUserCounter={this.props.pickSelectedCounter}
+              onPickUser={this.props.insertMention}
+              onSelectUser={this.props.switchMention}
+              filter={this.props.mentionFilter}
+            />
           )}
-          <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
-          <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <Text
-            type="BodySmall"
-            style={{
-              flexGrow: 1,
-              marginBottom: globalMargins.xtiny,
-              marginLeft: globalMargins.tiny,
-              textAlign: 'left',
-            }}
-          >
-            {isTyping(this.props.typing)}
-          </Text>
-          <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this.props.inputFocus}>
-            *bold*, _italics_, `code`, >quote
-          </Text>
+          {this.props.channelMentionPopupOpen && (
+            <MentionCatcher onClick={this._channelMentionCatcherClick} />
+          )}
+          {this.props.channelMentionPopupOpen && (
+            <ChannelMentionHud
+              conversationIDKey={this.props.conversationIDKey}
+              selectDownCounter={this.props.downArrowCounter}
+              selectUpCounter={this.props.upArrowCounter}
+              pickSelectedChannelCounter={this.props.pickSelectedCounter}
+              onPickChannel={this.props.insertChannelMention}
+              onSelectChannel={this.props.switchChannelMention}
+              filter={this.props.channelMentionFilter}
+            />
+          )}
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <input
+              type="file"
+              style={{display: 'none'}}
+              ref={this.props.filePickerSetRef}
+              onChange={this._pickFile}
+              multiple={true}
+            />
+            <Input
+              className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+              autoFocus={false}
+              onFocus={this._onFocus}
+              small={true}
+              style={styleInput}
+              ref={this.props.inputSetRef}
+              hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
+              hideUnderline={true}
+              onChangeText={this.props.setText}
+              value={this.props.text}
+              multiline={true}
+              rowsMin={1}
+              rowsMax={5}
+              onKeyDown={this.props.onKeyDown}
+              onKeyUp={this.props.onKeyUp}
+              onEnterKeyDown={this.props.onEnterKeyDown}
+            />
+            {this.props.emojiPickerOpen && (
+              <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+            )}
+            <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+            <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+            <Text
+              type="BodySmall"
+              style={{
+                flexGrow: 1,
+                marginBottom: globalMargins.xtiny,
+                marginLeft: globalMargins.tiny,
+                textAlign: 'left',
+              }}
+            >
+              {isTyping(this.props.typing)}
+            </Text>
+            <Text
+              type="BodySmall"
+              style={{...styleFooter, textAlign: 'right'}}
+              onClick={this.props.inputFocus}
+            >
+              *bold*, _italics_, `code`, >quote
+            </Text>
+          </Box>
         </Box>
       </Box>
     )
@@ -255,6 +277,13 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Box>
 )
 
+const editingTabStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
+  backgroundColor: globalColors.yellow_60,
+  padding: 4,
+}
+
 const styleMentionHud = {
   borderRadius: 4,
   boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
@@ -265,31 +294,29 @@ const styleMentionHud = {
 }
 
 const styleInput = {
+  backgroundColor: globalColors.white,
   flex: 1,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   marginTop: globalMargins.tiny,
   textAlign: 'left',
 }
-
 const styleIcon = {
   paddingRight: globalMargins.tiny,
   paddingTop: globalMargins.tiny,
 }
 
-const styleFooter = {
-  color: globalColors.black_20,
-  cursor: 'text',
-  marginBottom: globalMargins.xtiny,
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.tiny,
-  marginTop: 0,
-  textAlign: 'right',
-}
-
-const cancelStyle = {
-  marginRight: globalMargins.tiny,
-}
+const styleFooter = platformStyles({
+  isElectron: {
+    color: globalColors.black_20,
+    cursor: 'text',
+    marginBottom: globalMargins.xtiny,
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+    marginTop: 0,
+    textAlign: 'right',
+  },
+})
 
 export default compose(
   withStateHandlers(

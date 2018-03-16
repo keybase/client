@@ -14,6 +14,7 @@ export const addNewDevice = 'login:addNewDevice'
 export const chooseGPGMethod = 'login:chooseGPGMethod'
 export const clearQRCode = 'login:clearQRCode'
 export const configuredAccounts = 'login:configuredAccounts'
+export const loginError = 'login:loginError'
 export const logout = 'login:logout'
 export const logoutDone = 'login:logoutDone'
 export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
@@ -47,6 +48,7 @@ export const createChooseGPGMethod = (payload: $ReadOnly<{exportKey: boolean}>) 
 export const createClearQRCode = () => ({error: false, payload: undefined, type: clearQRCode})
 export const createConfiguredAccounts = (payload: $ReadOnly<{accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>}>) => ({error: false, payload, type: configuredAccounts})
 export const createConfiguredAccountsError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: configuredAccounts})
+export const createLoginError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: loginError})
 export const createLogout = () => ({error: false, payload: undefined, type: logout})
 export const createLogoutDone = () => ({error: false, payload: undefined, type: logoutDone})
 export const createNavBasedOnLoginAndInitialState = () => ({error: false, payload: undefined, type: navBasedOnLoginAndInitialState})
@@ -94,6 +96,7 @@ export type AddNewDevicePayload = More.ReturnType<typeof createAddNewDevice>
 export type ChooseGPGMethodPayload = More.ReturnType<typeof createChooseGPGMethod>
 export type ClearQRCodePayload = More.ReturnType<typeof createClearQRCode>
 export type ConfiguredAccountsPayload = More.ReturnType<typeof createConfiguredAccounts>
+export type LoginErrorPayload = More.ReturnType<typeof createLoginError>
 export type LogoutDonePayload = More.ReturnType<typeof createLogoutDone>
 export type LogoutPayload = More.ReturnType<typeof createLogout>
 export type NavBasedOnLoginAndInitialStatePayload = More.ReturnType<typeof createNavBasedOnLoginAndInitialState>
@@ -129,6 +132,7 @@ export type Actions =
   | More.ReturnType<typeof createClearQRCode>
   | More.ReturnType<typeof createConfiguredAccounts>
   | More.ReturnType<typeof createConfiguredAccountsError>
+  | More.ReturnType<typeof createLoginError>
   | More.ReturnType<typeof createLogout>
   | More.ReturnType<typeof createLogoutDone>
   | More.ReturnType<typeof createNavBasedOnLoginAndInitialState>

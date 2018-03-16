@@ -64,8 +64,24 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissTransfer: {
       return state.removeIn(['transfers', action.payload.key])
     }
+    case FsGen.fuseStatusResult:
+      return state.merge({fuseStatus: action.payload.status})
+    case FsGen.setFlags:
+      return state.merge(action.payload)
+    case FsGen.installFuse:
+      return state.merge({fuseInstalling: true, kextPermissionError: false})
+    case FsGen.installFuseResult:
+      // To prevent races, we overlap flags set to true. So we don't unset the
+      // fuseInstalling flag here.
+      return state.merge(action.payload)
+    case FsGen.installKBFS:
+      return state.merge({kbfsInstalling: true})
     case FsGen.download:
     case FsGen.openInFileUI:
+    case FsGen.fuseStatus:
+    case FsGen.installKBFSResult:
+    case FsGen.uninstallKBFSConfirm:
+    case FsGen.uninstallKBFS:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

@@ -291,6 +291,12 @@ type LoadUserPlusKeysArg struct {
 	PollForKID KID `codec:"pollForKID" json:"pollForKID"`
 }
 
+type LoadUserPlusKeysV2Arg struct {
+	SessionID  int `codec:"sessionID" json:"sessionID"`
+	Uid        UID `codec:"uid" json:"uid"`
+	PollForKID KID `codec:"pollForKID" json:"pollForKID"`
+}
+
 type LoadPublicKeysArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -370,6 +376,7 @@ type UserInterface interface {
 	LoadUserByName(context.Context, LoadUserByNameArg) (User, error)
 	// Load a user + device keys from the server.
 	LoadUserPlusKeys(context.Context, LoadUserPlusKeysArg) (UserPlusKeys, error)
+	LoadUserPlusKeysV2(context.Context, LoadUserPlusKeysV2Arg) (UserPlusKeysV2AllIncarnations, error)
 	// Load public keys for a user.
 	LoadPublicKeys(context.Context, LoadPublicKeysArg) ([]PublicKey, error)
 	// Load my public keys (for logged in user).
@@ -508,6 +515,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.LoadUserPlusKeys(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loadUserPlusKeysV2": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadUserPlusKeysV2Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadUserPlusKeysV2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadUserPlusKeysV2Arg)(nil), args)
+						return
+					}
+					ret, err = i.LoadUserPlusKeysV2(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -766,6 +789,11 @@ func (c UserClient) LoadUserByName(ctx context.Context, __arg LoadUserByNameArg)
 // Load a user + device keys from the server.
 func (c UserClient) LoadUserPlusKeys(ctx context.Context, __arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadUserPlusKeysV2(ctx context.Context, __arg LoadUserPlusKeysV2Arg) (res UserPlusKeysV2AllIncarnations, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []interface{}{__arg}, &res)
 	return
 }
 

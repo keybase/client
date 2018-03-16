@@ -605,6 +605,32 @@ func (o OpDescription) DeepCopy() OpDescription {
 	}
 }
 
+type OpProgress struct {
+	Start        Time     `codec:"start" json:"start"`
+	EndEstimate  Time     `codec:"endEstimate" json:"endEstimate"`
+	OpType       AsyncOps `codec:"opType" json:"opType"`
+	BytesTotal   int64    `codec:"bytesTotal" json:"bytesTotal"`
+	BytesRead    int64    `codec:"bytesRead" json:"bytesRead"`
+	BytesWritten int64    `codec:"bytesWritten" json:"bytesWritten"`
+	FilesTotal   int64    `codec:"filesTotal" json:"filesTotal"`
+	FilesRead    int64    `codec:"filesRead" json:"filesRead"`
+	FilesWritten int64    `codec:"filesWritten" json:"filesWritten"`
+}
+
+func (o OpProgress) DeepCopy() OpProgress {
+	return OpProgress{
+		Start:        o.Start.DeepCopy(),
+		EndEstimate:  o.EndEstimate.DeepCopy(),
+		OpType:       o.OpType.DeepCopy(),
+		BytesTotal:   o.BytesTotal,
+		BytesRead:    o.BytesRead,
+		BytesWritten: o.BytesWritten,
+		FilesTotal:   o.FilesTotal,
+		FilesRead:    o.FilesRead,
+		FilesWritten: o.FilesWritten,
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Path Path `codec:"path" json:"path"`
@@ -740,7 +766,7 @@ type SimpleFSInterface interface {
 	// Cancels a running operation, like copy.
 	SimpleFSCancel(context.Context, OpID) error
 	// Check progress of pending operation
-	SimpleFSCheck(context.Context, OpID) (Progress, error)
+	SimpleFSCheck(context.Context, OpID) (OpProgress, error)
 	// Get all the outstanding operations
 	SimpleFSGetOps(context.Context) ([]OpDescription, error)
 	// Blocking wait for the pending operation to finish
@@ -1164,7 +1190,7 @@ func (c SimpleFSClient) SimpleFSCancel(ctx context.Context, opID OpID) (err erro
 }
 
 // Check progress of pending operation
-func (c SimpleFSClient) SimpleFSCheck(ctx context.Context, opID OpID) (res Progress, err error) {
+func (c SimpleFSClient) SimpleFSCheck(ctx context.Context, opID OpID) (res OpProgress, err error) {
 	__arg := SimpleFSCheckArg{OpID: opID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheck", []interface{}{__arg}, &res)
 	return

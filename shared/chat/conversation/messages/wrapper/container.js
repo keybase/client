@@ -51,6 +51,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
   _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
@@ -74,14 +76,23 @@ const mergeProps = (stateProps, dispatchProps) => {
     previous.author === message.author &&
     (previous.type === 'text' || previous.type === 'deleted')
 
-  const oldEnough =
+  const oldEnough = !!(
     previous &&
     previous.timestamp &&
     message.timestamp &&
     message.timestamp - previous.timestamp > howLongBetweenTimestampsMs
+  )
+
+  // Always show a timestamp if the previous message is a concise joined/left message
+  const previousIsJoinedLeft = !!(
+    previous &&
+    (previous.type === 'systemJoined' || previous.type === 'systemLeft')
+  )
 
   const timestamp =
-    stateProps.orangeLineAbove || !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null
+    stateProps.orangeLineAbove || !previous || oldEnough || previousIsJoinedLeft
+      ? formatTimeForMessages(message.timestamp)
+      : null
   const includeHeader = !previous || !continuingTextBlock || !!timestamp
   let failureDescription = null
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
@@ -106,6 +117,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     messageFailed: stateProps.messageFailed,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onCancel: stateProps.isYou
+      ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
+      : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)

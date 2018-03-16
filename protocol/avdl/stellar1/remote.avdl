@@ -1,0 +1,101 @@
+@namespace("stellar.1") protocol remote {
+
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+
+  @typedef("string") record AccountID {}
+  @typedef("string") record TransactionID {}
+  @typedef("bytes")  record KeybaseTransactionID {}
+
+  record Asset {
+    string type;
+    string code;
+    string issuer;
+  }
+
+  record Balance {
+    Asset asset;
+    string amount;
+    string limit;
+  }
+
+  record EncryptedNote {
+    int v;             // version 
+    bytes e;           // encrypted data
+    bytes n;           // nonce
+    keybase1.KID KID;  // public key data was encrypted for
+  }
+
+  record TransactionSummary {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+
+    EncryptedNote note;
+
+    Asset asset;
+    string amount;
+    AccountID stellarFrom;
+    AccountID stellarTo;
+    keybase1.UID keybaseFrom;
+    keybase1.UID keybaseTo;
+  }
+
+  record Operation {
+    string ID;
+    string opType;
+    int createdAt;
+    string TransactionHash;
+
+    Asset asset;
+    string amount;
+    AccountID stellarFrom;
+    AccountID stellarTo;
+    keybase1.UID keybaseFrom;
+    keybase1.UID keybaseTo;
+  }
+
+  record TransactionDetails {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+    string Hash;
+    int ledger;
+    int ledgerCloseTime;
+    AccountID sourceAccount;
+    string sourceAccountSequence;
+    int feePaid;
+
+    EncryptedNote note;
+
+    array<string> signatures;
+
+    array<Operation> operations;
+  }
+
+  record PaymentPost {
+    AccountID from;
+    AccountID to;
+    uint64 sequenceNumber;
+    string keybaseFrom;
+    string keybaseTo;
+
+    string transactionType;
+    string xlmAmount;
+    string displayAmount;
+    string displayCurrency;
+
+    EncryptedNote note;
+
+    string signedTransaction;
+  }
+
+  record PaymentResult {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+    int Ledger;
+  }
+  
+  array<Balance> balances(keybase1.UID uid, AccountID accountID);
+  array<TransactionSummary> recentTransactions(keybase1.UID uid, AccountID accountID, int count);
+  TransactionDetails transaction(keybase1.UID uid, TransactionID id);
+
+  PaymentResult submitPayment(keybase1.UID uid, PaymentPost payment);
+}

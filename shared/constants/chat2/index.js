@@ -93,6 +93,7 @@ export {
   makePendingTextMessage,
   pathToAttachmentType,
   rpcErrorToString,
+  uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,
 } from './message'

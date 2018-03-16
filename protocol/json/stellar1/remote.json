@@ -1,0 +1,365 @@
+{
+  "protocol": "remote",
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "AccountID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TransactionID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KeybaseTransactionID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "Asset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "issuer"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Balance",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "limit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedNote",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.KID",
+          "name": "KID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TransactionSummary",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "EncryptedNote",
+          "name": "note"
+        },
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "AccountID",
+          "name": "stellarFrom"
+        },
+        {
+          "type": "AccountID",
+          "name": "stellarTo"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "keybaseFrom"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "keybaseTo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Operation",
+      "fields": [
+        {
+          "type": "string",
+          "name": "ID"
+        },
+        {
+          "type": "string",
+          "name": "opType"
+        },
+        {
+          "type": "int",
+          "name": "createdAt"
+        },
+        {
+          "type": "string",
+          "name": "TransactionHash"
+        },
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "AccountID",
+          "name": "stellarFrom"
+        },
+        {
+          "type": "AccountID",
+          "name": "stellarTo"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "keybaseFrom"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "keybaseTo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TransactionDetails",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "string",
+          "name": "Hash"
+        },
+        {
+          "type": "int",
+          "name": "ledger"
+        },
+        {
+          "type": "int",
+          "name": "ledgerCloseTime"
+        },
+        {
+          "type": "AccountID",
+          "name": "sourceAccount"
+        },
+        {
+          "type": "string",
+          "name": "sourceAccountSequence"
+        },
+        {
+          "type": "int",
+          "name": "feePaid"
+        },
+        {
+          "type": "EncryptedNote",
+          "name": "note"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "signatures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Operation"
+          },
+          "name": "operations"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentPost",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "from"
+        },
+        {
+          "type": "AccountID",
+          "name": "to"
+        },
+        {
+          "type": "uint64",
+          "name": "sequenceNumber"
+        },
+        {
+          "type": "string",
+          "name": "keybaseFrom"
+        },
+        {
+          "type": "string",
+          "name": "keybaseTo"
+        },
+        {
+          "type": "string",
+          "name": "transactionType"
+        },
+        {
+          "type": "string",
+          "name": "xlmAmount"
+        },
+        {
+          "type": "string",
+          "name": "displayAmount"
+        },
+        {
+          "type": "string",
+          "name": "displayCurrency"
+        },
+        {
+          "type": "EncryptedNote",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "signedTransaction"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "int",
+          "name": "Ledger"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "balances": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Balance"
+      }
+    },
+    "recentTransactions": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "count",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TransactionSummary"
+      }
+    },
+    "transaction": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "id",
+          "type": "TransactionID"
+        }
+      ],
+      "response": "TransactionDetails"
+    },
+    "submitPayment": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "payment",
+          "type": "PaymentPost"
+        }
+      ],
+      "response": "PaymentResult"
+    }
+  },
+  "namespace": "stellar.1"
+}

@@ -68,6 +68,14 @@ class ConversationInput extends Component<Props> {
           />
         )}
         <Box style={styles.container}>
+          {this.props.isEditing && (
+            <Box style={styles.editingTabStyle}>
+              <Text type="BodySmall">Editing:</Text>
+              <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
+                Cancel
+              </Text>
+            </Box>
+          )}
           {isIOS ? (
             <Input
               autoCorrect={true}
@@ -202,10 +210,9 @@ const styles = styleSheetCreate({
     alignItems: 'center',
     alignSelf: isIOS ? 'flex-end' : 'center',
     justifyContent: 'center',
-    paddingBottom: globalMargins.xtiny,
+    paddingBottom: 12,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.small,
-    paddingTop: globalMargins.xtiny,
   },
   container: {
     ...globalStyles.flexBoxRow,
@@ -215,12 +222,12 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    ...(isIOS
-      ? {
-          paddingBottom: globalMargins.tiny,
-          paddingTop: globalMargins.tiny,
-        }
-      : {}),
+  },
+  editingTabStyle: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    backgroundColor: globalColors.yellow_60,
+    height: '100%',
   },
   input: {
     flex: 1,

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
 import {Box, Button, Text, Checkbox} from '../../common-adapters'
 
 type Props = {
@@ -110,7 +110,14 @@ class Developer extends React.Component<Props, DeveloperState> {
         <Text
           type="BodySmallSemibold"
           onClick={this._onLabelClick}
-          style={{...(isMobile ? {} : {cursor: 'default'}), textAlign: 'center'}}
+          style={platformStyles({
+            common: {
+              textAlign: 'center',
+            },
+            isElectron: {
+              cursor: 'default',
+            },
+          })}
         >
           {isMobile
             ? `Please don't do anything here unless instructed to by a developer.`

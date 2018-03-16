@@ -58,18 +58,20 @@ const EditedMark = () => (
   </Text>
 )
 
-const Failure = ({failureDescription, onEdit, onRetry}) => {
-  const error = `${failureDescription ? ` -  ${failureDescription}` : ''}. `
-  const resolveByEdit = failureDescription === 'message is too long'
+const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
+  const error = `${failureDescription}. `
+  const resolveByEdit = failureDescription === 'Failed to send: message is too long'
   return (
     <Text type="BodySmall">
-      <Text type="BodySmall" style={styles.failStyleFace}>
-        {'┏(>_<)┓'}
-      </Text>
       <Text type="BodySmall" style={styles.fail}>
-        {' '}
         {error}
       </Text>
+      {!!onCancel && (
+        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onCancel}>
+          Cancel
+        </Text>
+      )}
+      {!!onCancel && <Text type="BodySmall"> or </Text>}
       {!!onEdit &&
         resolveByEdit && (
           <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
@@ -142,6 +144,7 @@ class MessageWrapper extends React.PureComponent<Props> {
                   failureDescription={props.failureDescription}
                   onRetry={props.onRetry}
                   onEdit={props.onEdit}
+                  onCancel={props.onCancel}
                 />
               )}
             </Box>
@@ -163,8 +166,7 @@ const styles = styleSheetCreate({
     paddingTop: globalMargins.xtiny,
   },
   fail: {color: globalColors.red},
-  failStyleFace: {color: globalColors.red, fontSize: 9},
-  failStyleUnderline: {color: globalColors.red, ...globalStyles.textDecoration('underline')},
+  failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
@@ -200,7 +202,7 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     width: 32,
   },
-  userAvatar: {width: 32},
+  userAvatar: {marginTop: isMobile ? -4 : -5, width: 32},
   username: {
     alignSelf: 'flex-start',
     backgroundColor: globalColors.fastBlank,

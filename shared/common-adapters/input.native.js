@@ -107,6 +107,10 @@ class Input extends Component<Props, State> {
     // this._input && this._input.select()
   }
 
+  moveCursorToEnd = () => {
+    // not implemented on mobile
+  }
+
   blur() {
     this._input && this._input.blur()
   }

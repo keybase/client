@@ -22,6 +22,7 @@ export type Props = {
   onShowMenu: any => void, // weak typing cause we swap out how this works on mobile/desktop
   onRetry: null | (() => void),
   onEdit: null | (() => void),
+  onCancel: null | (() => void),
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
   showTeamOffer: boolean,

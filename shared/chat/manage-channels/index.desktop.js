@@ -31,6 +31,7 @@ const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
 
 const Row = (
   props: RowProps & {
+    canEditChannels: boolean,
     selected: boolean,
     onToggle: () => void,
     showEdit: boolean,
@@ -68,16 +69,17 @@ const Row = (
           </Text>
           <Text type="BodySmall">{props.description}</Text>
         </Box>
-        {props.showEdit && (
-          <Edit
-            style={{
-              ...globalStyles.flexBoxRow,
-              flex: 1,
-              justifyContent: 'flex-end',
-            }}
-            onClick={props.onEdit}
-          />
-        )}
+        {props.showEdit &&
+          props.canEditChannels && (
+            <Edit
+              style={{
+                ...globalStyles.flexBoxRow,
+                flex: 1,
+                justifyContent: 'flex-end',
+              }}
+              onClick={props.onEdit}
+            />
+          )}
       </Box>
     </Box>
   </Box>
@@ -105,6 +107,7 @@ const ManageChannels = (props: Props) => (
         {props.channels.map(c => (
           <Row
             key={c.name}
+            canEditChannels={props.canEditChannels}
             description={c.description}
             name={c.name}
             selected={props.nextChannelState[c.name]}
@@ -115,12 +118,14 @@ const ManageChannels = (props: Props) => (
           />
         ))}
       </ScrollView>
-      <Box style={_createStyle}>
-        <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-        <Text type="BodyBigLink" onClick={props.onCreate}>
-          New chat channel
-        </Text>
-      </Box>
+      {props.canCreateChannels && (
+        <Box style={_createStyle}>
+          <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
+          <Text type="BodyBigLink" onClick={props.onCreate}>
+            New chat channel
+          </Text>
+        </Box>
+      )}
       <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
         <ButtonBar>
           <Button type="Secondary" label="Cancel" onClick={props.onClose} />

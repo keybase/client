@@ -3,12 +3,41 @@
 protocol ephemeral {
   import idl "common.avdl";
 
+  @lint("ignore")
+  @typedef("int64")
+  record EkGeneration {}
+
   record DeviceEkMetadata {
     @jsonkey("device_ephemeral_dh_public")
     KID kid;
-    @jsonkey("generation")
-    int generation;
     @jsonkey("hash_meta")
     HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record DeviceEk {
+    Bytes32 seed;
+    EkGeneration generation;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    Time ctime;
+  }
+
+  record UserEkMetadata {
+    @jsonkey("user_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record UserEk {
+    Bytes32 seed;
+    EkGeneration generation;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    Time ctime;
   }
 }

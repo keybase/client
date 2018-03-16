@@ -3,7 +3,7 @@ import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './checkbox'
-import {globalStyles, globalColors, transition} from '../styles'
+import {globalStyles, globalColors, transition, desktopStyles} from '../styles'
 
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
@@ -29,7 +29,7 @@ class Checkbox extends Component<Props> {
       opacity: this.props.disabled && this.props.checked ? 0.4 : 1,
     }
 
-    const clickableStyle = this.props.disabled ? {} : globalStyles.clickable
+    const clickableStyle = this.props.disabled ? {} : desktopStyles.clickable
 
     return (
       <div

@@ -11,7 +11,11 @@
       "link": "string"
     },
     "mobileAppState": {
-      "nextAppState": "'active' | 'background' | 'inactive'"
+      "nextAppState": [
+        "'active'",
+        "'background'",
+        "'inactive'"
+      ]
     },
     "showMain": {}
   }

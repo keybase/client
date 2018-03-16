@@ -3,7 +3,7 @@ import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
 import type {Props} from './input'
 
@@ -145,6 +145,13 @@ class Input extends React.PureComponent<Props, State> {
   blur = () => {
     const n = this._input && this._inputNode()
     n && n.blur()
+  }
+
+  moveCursorToEnd = () => {
+    const n = this._input && this._inputNode()
+    if (n && this.props.value) {
+      n.selectionStart = n.selectionEnd = this.props.value.length
+    }
   }
 
   insertTextAtCursor = (text: string) => {
@@ -381,11 +388,13 @@ const _errorStyle = {
   marginTop: globalMargins.xtiny,
 }
 
-const _floatingStyle = {
-  textAlign: 'center',
-  minHeight: _bodySmallTextStyle.lineHeight,
-  color: globalColors.blue,
-  display: 'block',
-}
+const _floatingStyle = platformStyles({
+  isElectron: {
+    textAlign: 'center',
+    minHeight: _bodySmallTextStyle.lineHeight,
+    color: globalColors.blue,
+    display: 'block',
+  },
+})
 
 export default Input

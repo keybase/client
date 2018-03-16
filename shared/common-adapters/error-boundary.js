@@ -4,10 +4,7 @@ import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
-import {globalStyles, globalColors, isMobile, globalMargins} from '../styles'
-
-// NOTE: componentDidCatch doesn't currently work with react-native:
-// https://github.com/facebook/react-native/issues/15571 .
+import {globalStyles, globalColors, isMobile, globalMargins, platformStyles} from '../styles'
 
 // Although not mentioned in
 // https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
@@ -39,9 +36,11 @@ const detailContainerStyle = {
   minWidth: '75%',
 }
 
-const detailStyle = {
-  whiteSpace: 'pre',
-}
+const detailStyle = platformStyles({
+  isElectron: {
+    whiteSpace: 'pre',
+  },
+})
 
 const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: FallbackProps) => {
   return (

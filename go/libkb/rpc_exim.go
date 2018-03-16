@@ -1366,7 +1366,7 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 	if resets := u.leaf.resets; resets != nil {
 		for _, l := range resets.chain {
 			tmp := l.Summarize()
-			resetMap[l.Prev.EldestSeqno] = &tmp
+			resetMap[l.Prev.LastSeqno] = &tmp
 		}
 	}
 
@@ -1381,7 +1381,11 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 			cki := lastLink.cki
 			eldestSeqno := subchain[0].GetSeqno()
 			lastSeqno := lastLink.GetSeqno()
-			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, eldestSeqno, kf, status, resetMap[lastSeqno]))
+			reset := resetMap[lastSeqno]
+			if reset != nil {
+				reset.EldestSeqno = eldestSeqno
+			}
+			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, eldestSeqno, kf, status, reset))
 		}
 	}
 

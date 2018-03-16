@@ -26,6 +26,9 @@ class Thread extends React.Component<Props, State> {
   _list: any
   _keepIdxVisible: number = -1
   _lastRowIdx: number = -1
+  // ScrolltoRow sometimes triggers load more. This'll all go away when we ditch react-virtualized. for now this fixes
+  // if you edit your last message that'l cause a load more sometimes due to scrolltop being 0 incorrectly
+  _ignoreScrollUpTill: number = 0
 
   state = {
     isLockedToBottom: true,
@@ -40,6 +43,14 @@ class Thread extends React.Component<Props, State> {
       this._keepIdxVisible = -1
     }
     this._lastRowIdx = -1 // always reset this to be safe
+
+    if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
+      const idx = this.props.messageOrdinals.indexOf(this.props.editingOrdinal)
+      if (idx !== -1) {
+        this._ignoreScrollUpTill = Date.now() + 1000
+        this._list && this._list.scrollToRow(idx)
+      }
+    }
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -73,7 +84,13 @@ class Thread extends React.Component<Props, State> {
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
-      this.props.loadMoreMessages()
+      const now = Date.now()
+      if (!this._ignoreScrollUpTill || this._ignoreScrollUpTill < now) {
+        this._ignoreScrollUpTill = 0
+        this.props.loadMoreMessages()
+      } else {
+        console.log('skipping due to ignoreScrollUpTill')
+      }
     }
   }, 500)
 

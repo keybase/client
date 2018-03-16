@@ -33,35 +33,16 @@ const SaveStateComponent = ({saveState}) => {
   }
 }
 
-export const Notifications = (props: Props) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
-    }}
-  >
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        marginBottom: globalMargins.xtiny,
-      }}
-    >
-      <Checkbox checked={props.muted} onCheck={props.toggleMuted} label="Mute all notifications" />
-      <Icon
-        type="iconfont-shh"
-        style={{
-          color: globalColors.black_20,
-          marginLeft: globalMargins.xtiny,
-          ...(isMobile ? {fontSize: 24} : {}),
-        }}
-      />
-    </Box>
-
+const UnmutedNotificationPrefs = (props: Props) => (
+  <React.Fragment>
     <Checkbox
       checked={!props.channelWide}
-      label="Ignore @here and @channel mentions"
+      label=""
+      labelComponent={
+        <Text type="Body">
+          Ignore <Text type="BodySemibold">@here</Text> and <Text type="BodySemibold">@channel</Text> mentions
+        </Text>
+      }
       onCheck={props.toggleChannelWide}
     />
 
@@ -130,6 +111,35 @@ export const Notifications = (props: Props) => (
         label={'Never'}
       />
     </Box>
+  </React.Fragment>
+)
+
+export const Notifications = (props: Props) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    }}
+  >
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: globalMargins.xtiny,
+      }}
+    >
+      <Checkbox checked={props.muted} onCheck={props.toggleMuted} label="Mute all notifications" />
+      <Icon
+        type="iconfont-shh"
+        style={{
+          color: globalColors.black_20,
+          marginLeft: globalMargins.xtiny,
+          ...(isMobile ? {fontSize: 24} : {}),
+        }}
+      />
+    </Box>
+    {!props.muted && <UnmutedNotificationPrefs {...props} />}
     <Box style={styleSaveState}>
       <SaveStateComponent saveState={props.saveState} />
     </Box>

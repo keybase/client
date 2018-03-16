@@ -634,15 +634,18 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) error {
-	g.Lock()
-	defer g.Unlock()
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
+	g.connMutex.Lock()
 	if conn != g.conn {
+		g.connMutex.Unlock()
 		return chat.ErrDuplicateConnection
 	}
+	g.connMutex.Unlock()
 
+	g.Lock()
+	defer g.Unlock()
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 

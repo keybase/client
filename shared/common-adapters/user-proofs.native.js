@@ -207,7 +207,6 @@ const styleRow = {
   // RN-BUG: set maxWidth once that prop is supported
 }
 const styleService = {
-  ...globalStyles.clickable,
   color: globalColors.black_75,
   fontSize: 20,
   marginRight: globalMargins.xtiny,
@@ -248,9 +247,7 @@ const styleProofNameLabelContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
 }
-const styleProofName = {
-  ...globalStyles.clickable,
-}
+const styleProofName = {}
 const styleProofType = {
   color: globalColors.black_20,
 }

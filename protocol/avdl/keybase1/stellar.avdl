@@ -1,0 +1,54 @@
+@namespace("keybase.1")
+
+protocol stellar {
+  import idl "common.avdl";
+
+  @typedef("string") record StellarAccountID {}
+  @typedef("string") record StellarSecretKey {}
+  @typedef("uint64") @lint("ignore") record StellarRevision {}
+
+  // The same format as in chat1.EncryptedData (and KBFS, Git)
+  record EncryptedStellarSecretBundle {
+    int   v;                  // version = 1
+    bytes e;                  // encrypted msgpacked StellarSecretBundleVersioned (output of secretbox)
+    BoxNonce n;               // nonce
+    PerUserKeyGeneration gen; // PUK generation that was used
+  }
+
+  enum StellarSecretBundleVersion {
+    V1_1
+  }
+
+  variant StellarSecretBundleVersioned switch (StellarSecretBundleVersion version) {
+    case V1 : StellarSecretBundleV1;
+  }
+
+  record StellarSecretBundleV1 {
+    StellarRevision revision;
+    array<StellarSecretEntry> accounts;
+  }
+
+  // Unversioned struct for local use only.
+  record StellarSecretBundle {
+    StellarRevision revision;
+    // AccountID and name should be unique.
+    // At most one account should be primary.
+    array<StellarSecretEntry> accounts;
+  }
+
+  enum StellarAccountMode {
+    USER_0 // Each of the user's devices has access to the keys
+  }
+
+  // One stellar account.
+  // In both StellarSecretBundle{Versioned}, so may need to split
+  // when making protocol changes.
+  record StellarSecretEntry {
+    StellarAccountID accountID;
+    StellarAccountMode mode;
+    array<StellarSecretKey> signers;
+    boolean isPrimary; // whether this is the primary account (public)
+    string name;
+  }
+
+}

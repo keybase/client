@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text} from '../../common-adapters'
-import {globalStyles, isMobile} from '../../styles'
+import {globalStyles, platformStyles} from '../../styles'
 
 const owl = `
  ,___,
@@ -20,9 +20,13 @@ function EmptyResults({style}: {style?: Object}) {
   )
 }
 
-const owlStyle = {
-  textAlign: 'center',
-  ...(isMobile ? {} : {whiteSpace: 'pre'}),
-}
+const owlStyle = platformStyles({
+  common: {
+    textAlign: 'center',
+  },
+  isElectron: {
+    whiteSpace: 'pre',
+  },
+})
 
 export default EmptyResults

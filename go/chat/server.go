@@ -268,7 +268,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.Conv.GetConvID(),
-					Error:     *convRes.Err,
+					Error:     utils.PresentConversationErrorLocal(*convRes.Err),
 				})
 
 				// If we get a transient failure, add this to the retrier queue
@@ -377,7 +377,6 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
 		err = libkb.LoginRequiredError{}
@@ -2686,6 +2685,30 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 	return err
 }
 
+func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *chat1.RetentionPolicy, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetTeamRetentionLocal(%s)", teamID)()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	tlfID, err := chat1.MakeTLFID(teamID.String())
+	if err != nil {
+		return res, err
+	}
+	p := chat1.Pagination{Num: 1}
+	ib, _, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
+		TlfID: &tlfID,
+	}, &p)
+	if err != nil {
+		return res, err
+	}
+	if len(ib.ConvsUnverified) != 1 {
+		return res, errors.New("no conversations found")
+	}
+	return ib.ConvsUnverified[0].Conv.TeamRetention, nil
+}
+
 func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID chat1.ConversationID) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "UpgradeKBFSConversationToImpteam(%s)", convID)()
@@ -2707,27 +2730,10 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 	if conv.GetMembersType() != chat1.ConversationMembersType_KBFS {
 		return fmt.Errorf("cannot upgrade %v conversation", conv.GetMembersType())
 	}
-
-	var cryptKeys []keybase1.CryptKey
 	tlfID := conv.Info.Triple.Tlfid
 	tlfName := conv.Info.TlfName
 	public := conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
-	ni, err := CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, conv.GetMembersType(), public)
-	if err != nil {
-		return err
-	}
-	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
-		cryptKeys = append(cryptKeys, keybase1.CryptKey{
-			KeyGeneration: key.Generation(),
-			Key:           key.Material(),
-		})
-	}
-	tlfName = ni.CanonicalName
-	h.Debug(ctx, "UpgradeKBFSConversationToImpteam: upgrading: TlfName: %s TLFID: %s public: %v keys: %d",
-		tlfName, tlfID, public, len(cryptKeys))
-
-	return teams.UpgradeTLFIDToImpteam(ctx, h.G().ExternalG(), tlfName, keybase1.TLFID(tlfID.String()),
-		public, keybase1.TeamApplication_CHAT, cryptKeys)
+	return h.G().ChatHelper.UpgradeKBFSToImpteam(ctx, tlfName, tlfID, public)
 }
 
 func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpArg) (res chat1.GetSearchRegexpRes, err error) {

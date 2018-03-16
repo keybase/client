@@ -67,6 +67,7 @@ protocol user {
     Load a user + device keys from the server.
     */
   UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, KID pollForKID);
+  UserPlusKeysV2AllIncarnations loadUserPlusKeysV2(int sessionID, UID uid, KID pollForKID);
 
   /**
     Load public keys for a user.

@@ -13,11 +13,13 @@ import {
   withProps,
   lifecycle,
   connect,
+  isMobile,
+  type TypedState,
+  type Dispatch,
 } from '../../../../util/container'
 import throttle from 'lodash/throttle'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
-import type {TypedState, Dispatch} from '../../../../util/container'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -75,36 +77,36 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
+  clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  return {
-    _editingMessage: stateProps._editingMessage,
-    _onSubmit: (text: string) => {
-      const em = stateProps._editingMessage
-      if (em) {
-        if (em.type === 'text' && em.text.stringValue() === text) {
-          dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-        } else {
-          dispatchProps._onEditMessage(em, text)
-        }
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  _editingMessage: stateProps._editingMessage,
+  _onSubmit: (text: string) => {
+    const em = stateProps._editingMessage
+    if (em) {
+      if (em.type === 'text' && em.text.stringValue() === text) {
+        dispatchProps._onCancelEditing(stateProps.conversationIDKey)
       } else {
-        dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
+        dispatchProps._onEditMessage(em, text)
       }
-      ownProps.onScrollDown()
-    },
-    channelName: stateProps._meta.channelname,
-    conversationIDKey: stateProps.conversationIDKey,
-    focusInputCounter: ownProps.focusInputCounter,
-    isEditing: !!stateProps._editingMessage,
-    isLoading: false,
-    onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-    sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
-    typing: stateProps.typing,
-  }
-}
+    } else {
+      dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
+    }
+    ownProps.onScrollDown()
+  },
+  channelName: stateProps._meta.channelname,
+  clearInboxFilter: dispatchProps.clearInboxFilter,
+  conversationIDKey: stateProps.conversationIDKey,
+  focusInputCounter: ownProps.focusInputCounter,
+  isEditing: !!stateProps._editingMessage,
+  isLoading: false,
+  onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+  onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+  onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
+  typing: stateProps.typing,
+})
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
@@ -140,6 +142,8 @@ export default compose(
       _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
         if (e.key === 'ArrowUp' && !props.text) {
           props.onEditLastMessage()
+        } else if (e.key === 'Escape') {
+          props.onCancelEditing()
         }
       },
       inputBlur: props => () => input && input.blur(),
@@ -163,11 +167,15 @@ export default compose(
             : ''
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
-        const i = this.props.inputGetRef()
-        // Might be a better way to do this but this is simple for now
-        setImmediate(() => {
-          i && i.select()
-        })
+
+        if (!isMobile) {
+          const i = this.props.inputGetRef()
+          if (i) {
+            setImmediate(() => {
+              i.moveCursorToEnd()
+            })
+          }
+        }
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
         this.props.setText(text, true)

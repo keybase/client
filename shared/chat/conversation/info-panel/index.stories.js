@@ -16,16 +16,12 @@ const onlyValidConversationsProps = {
 }
 
 const notificationProps = {
-  _resetSaveState: () => ({}),
-  channelWide: false,
-  desktop: 'onWhenAtMentioned',
-  mobile: 'never',
-  muted: false,
-  saveState: 'same',
-  toggleMuted: action('onMuteConversation'),
-  updateDesktop: action('onSetDesktop'),
-  updateMobile: action('onSetMobile'),
-  toggleChannelWide: action('onToggleChannelwide'),
+  _muteConversation: action('_muteConversation'),
+  _storeChannelWide: false,
+  _storeDesktop: 'onWhenAtMentioned',
+  _storeMobile: 'never',
+  _storeMuted: false,
+  _updateNotifications: action('_updateNotifications'),
 }
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
@@ -61,25 +57,33 @@ const conversationProps = {
   channelname: null,
   smallTeam: false,
   admin: false,
+  canEditChannel: true,
+  description: "You shouldn't be seeing this",
 
   onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
   onShowNewTeamDialog: action('onShowNewTeamDialog'),
 
+  onAddPeople: unexpected('onAddPeople'),
   onViewTeam: unexpected('onViewTeam'),
+  onClickGear: unexpected('onClickGear'),
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
+  onEditChannel: unexpected('onEditChannel'),
 }
 
 const teamCommonProps = {
   ...commonProps,
   teamname: 'someteam',
   channelname: 'somechannel',
+  canEditChannel: true,
 
   onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
 
+  onAddPeople: action('onAddPeople'),
   onViewTeam: action('onViewTeam'),
+  onClickGear: action('onClickGear'),
 }
 
 const smallTeamProps = {
@@ -87,15 +91,19 @@ const smallTeamProps = {
   isPreview: false,
   smallTeam: true,
   admin: false,
+  description: "You shouldn't be seeing this",
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
+  onEditChannel: unexpected('onEditChannel'),
 }
 
 const bigTeamCommonProps = {
   ...teamCommonProps,
   smallTeam: false,
   admin: false,
+  description: 'The best channel',
+  onEditChannel: action('onEditChannel'),
 }
 
 const bigTeamPreviewProps = {

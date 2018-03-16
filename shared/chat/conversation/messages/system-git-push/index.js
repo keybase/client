@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -51,7 +51,7 @@ class GitPush extends React.PureComponent<Props> {
                 type="BodySmallSemibold"
                 style={repoID ? {color: globalColors.black_60} : undefined}
                 onClick={repoID ? () => this.props.onViewGitRepo(repoID, team) : undefined}
-              >{`${repo}/${branchName}`}</Text>:
+              >{` ${repo}/${branchName}`}</Text>:
             </Text>
             <Box style={globalStyles.flexBoxColumn}>
               {(ref.commits || []).map((commit, i) => (
@@ -76,11 +76,13 @@ class GitPush extends React.PureComponent<Props> {
                       <Text
                         type="Terminal"
                         selectable={true}
-                        style={{
-                          color: globalColors.blue,
-                          fontSize: 11,
-                          lineHeight: isMobile ? 16 : 1.3,
-                        }}
+                        style={platformStyles({
+                          common: {
+                            color: globalColors.blue,
+                            fontSize: 11,
+                            lineHeight: 16,
+                          },
+                        })}
                       >
                         {commit.commitHash.substr(0, 8)}
                       </Text>
