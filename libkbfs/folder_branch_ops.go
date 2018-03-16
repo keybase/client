@@ -1508,9 +1508,11 @@ func (fbo *folderBranchOps) initMDLocked(
 		md.GetTlfHandle().GetCanonicalName()); err != nil {
 		return err
 	}
-	if err = fbo.config.BlockCache().Put(
-		info.BlockPointer, fbo.id(), newDblock, TransientEntry); err != nil {
-		return err
+	err = fbo.config.BlockCache().Put(
+		info.BlockPointer, fbo.id(), newDblock, TransientEntry)
+	if err != nil {
+		fbo.log.CDebugf(
+			ctx, "Error caching new block %v: %+v", info.BlockPointer, err)
 	}
 
 	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
@@ -1518,7 +1520,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	err = fbo.finalizeBlocks(bps)
+	err = fbo.finalizeBlocks(ctx, bps)
 	if err != nil {
 		return err
 	}
@@ -2186,7 +2188,8 @@ func isRetriableError(err error, retries int) bool {
 	return recoverable && retries < maxRetriesOnRecoverableErrors
 }
 
-func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
+func (fbo *folderBranchOps) finalizeBlocks(
+	ctx context.Context, bps *blockPutState) error {
 	if bps == nil {
 		return nil
 	}
@@ -2200,7 +2203,8 @@ func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
 		}
 		if err := bcache.Put(newPtr, fbo.id(), blockState.block,
 			TransientEntry); err != nil {
-			return err
+			fbo.log.CDebugf(
+				ctx, "Error caching new block %v: %+v", newPtr, err)
 		}
 	}
 	return nil
@@ -2269,7 +2273,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// have already succeeded. Returning EINTR makes application thinks the file
 	// is not created successfully.
 
-	err = fbo.finalizeBlocks(bps)
+	err = fbo.finalizeBlocks(ctx, bps)
 	if err != nil {
 		return err
 	}
@@ -2543,7 +2547,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 	oldPrevRoot := md.PrevRoot()
 
-	err = fbo.finalizeBlocks(bps)
+	err = fbo.finalizeBlocks(ctx, bps)
 	if err != nil {
 		return err
 	}
@@ -6103,7 +6107,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 
 	// Put the blocks into the cache so that, even if we fail below,
 	// future attempts may reuse the blocks.
-	err := fbo.finalizeBlocks(bps)
+	err := fbo.finalizeBlocks(ctx, bps)
 	if err != nil {
 		return err
 	}
