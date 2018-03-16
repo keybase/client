@@ -488,7 +488,7 @@ func NewHybridInboxSource(g *globals.Context,
 	return s
 }
 
-func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
+func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) (types.Inbox, *chat1.RateLimit, error) {
 
 	// Insta fail if we are offline
@@ -518,6 +518,13 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	})
 	if err != nil {
 		return types.Inbox{}, ib.RateLimit, err
+	}
+	// Need to run expunge on anything we fetch from the server
+	for _, conv := range ib.Inbox.Full().Conversations {
+		expunge := conv.GetExpunge()
+		if expunge != nil {
+			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+		}
 	}
 
 	return types.Inbox{
@@ -605,7 +612,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		}
 
 		// Go to the remote on miss
-		res, rl, err = s.fetchRemoteInbox(ctx, query, p)
+		res, rl, err = s.fetchRemoteInbox(ctx, uid, query, p)
 		if err != nil {
 			return res, rl, err
 		}
