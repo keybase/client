@@ -130,10 +130,12 @@ export default compose(
       }
 
       // keep first item selected if filter changes
-      if (nextProps.filter && this.props.filter !== nextProps.filter && nextProps.rows.length > 0) {
-        const row = nextProps.rows[0]
-        if (row.conversationIDKey) {
-          this.props.onSelect(row.conversationIDKey)
+      if (!isMobile) {
+        if (nextProps.filter && this.props.filter !== nextProps.filter && nextProps.rows.length > 0) {
+          const row = nextProps.rows[0]
+          if (row.conversationIDKey) {
+            this.props.onSelect(row.conversationIDKey)
+          }
         }
       }
     },

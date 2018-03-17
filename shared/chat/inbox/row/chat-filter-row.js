@@ -155,7 +155,7 @@ const loadingContainer = {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.blue5,
+  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   justifyContent: 'space-between',
   minHeight: 48,
   paddingLeft: globalMargins.small,
