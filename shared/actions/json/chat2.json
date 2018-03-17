@@ -215,7 +215,9 @@
       "username": "string"
     },
     // You're done searching
-    "exitSearch": { },
+    "exitSearch": {
+      "canceled": "boolean"
+    },
     // Update the pending conversation users
     "setPendingConversationUsers": {
       "users": "Array<string>",

@@ -298,3 +298,12 @@ export const getRowParticipants = (meta: Types.ConversationMeta, username: strin
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)
+
+export const findConversationFromParticipants = (state: TypedState, participants: I.Set<string>) => {
+  const toFind = participants.concat([state.config.username])
+  return state.chat2.metaMap.findKey(
+    meta =>
+      // Ignore the order of participants
+      meta.teamType === 'adhoc' && meta.participants.toSet().equals(toFind)
+  )
+}

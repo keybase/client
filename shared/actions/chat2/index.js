@@ -578,11 +578,7 @@ const loadMoreMessages = (
 
   if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (state.chat2.pendingSelected) {
-      const toFind = I.Set(action.payload.users.concat([state.config.username]))
-      key = state.chat2.metaMap.findKey(meta =>
-        // Ignore the order of participants
-        meta.participants.toSet().equals(toFind)
-      )
+      key = Constants.findConversationFromParticipants(state, I.Set(action.payload.users))
       reason = 'building a search'
     }
   } else if (action.type === Chat2Gen.markConversationsStale) {
@@ -753,7 +749,7 @@ const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
     : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
-  (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
+  action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged'
     ? undefined
     : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
@@ -944,8 +940,6 @@ const sendToPendingConversationSuccess = (
     Saga.put(Chat2Gen.createExitSearch()),
     // Clear the dummy messages from the pending conversation
     Saga.put(Chat2Gen.createClearPendingConversation()),
-    // Exit pending mode
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
     // Emulate us getting an inbox item so we don't have to unbox it before sending
     Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
     // Select it
@@ -1136,10 +1130,18 @@ const selectTheNewestConversation = (
 }
 
 const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
+  const conversationIDKey = Constants.findConversationFromParticipants(
+    state,
+    state.chat2.pendingConversationUsers
+  )
   return Saga.sequentially([
     Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+    ...(action.payload.canceled
+      ? []
+      : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
   ])
 }
 
