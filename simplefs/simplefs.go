@@ -535,7 +535,6 @@ func recursiveByteAndFileCount(fs billy.Filesystem) (
 			if err != nil {
 				return 0, 0, err
 			}
-			var chrootBytes int64
 			chrootBytes, chrootFiles, err := recursiveByteAndFileCount(chrootFS)
 			if err != nil {
 				return 0, 0, err

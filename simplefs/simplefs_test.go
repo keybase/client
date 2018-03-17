@@ -536,11 +536,14 @@ func TestCopyProgress(t *testing.T) {
 		ctx, t, sfs, opid, keybase1.AsyncOps_COPY, path1, path2, true)
 
 	t.Log("Wait for the first mkdir")
-	select {
-	case <-waitCh:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+	waitFn := func() {
+		select {
+		case <-waitCh:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}
+	waitFn()
 
 	// Check the progress -- there shouldn't be any yet.
 	progress, err := sfs.SimpleFSCheck(ctx, opid)
@@ -557,11 +560,7 @@ func TestCopyProgress(t *testing.T) {
 	unblockCh <- struct{}{}
 
 	t.Log("Wait for the first file")
-	select {
-	case <-waitCh:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
-	}
+	waitFn()
 
 	clock.Add(1 * time.Minute)
 	expectedProgress.FilesRead = 1
@@ -576,11 +575,7 @@ func TestCopyProgress(t *testing.T) {
 	unblockCh <- struct{}{}
 
 	t.Log("Wait for the second file")
-	select {
-	case <-waitCh:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
-	}
+	waitFn()
 
 	clock.Add(1 * time.Minute)
 	expectedProgress.FilesRead = 2
