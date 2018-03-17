@@ -753,7 +753,7 @@ const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
     : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'inboxFilterArrow'
+  (action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged')
     ? undefined
     : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 

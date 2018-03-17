@@ -29,6 +29,7 @@
           "'findNewestConversation'", // find a new chat to select
           "'inboxBig'", // inbox row
           "'inboxFilterArrow'", // arrow keys in inbox filter
+          "'inboxFilterChanged'", // inbox filter made first one selected
           "'inboxSmall'", // inbox row
           "'jumpFromReset'", // from older reset convo
           "'jumpToReset'", // going to an older reset convo
