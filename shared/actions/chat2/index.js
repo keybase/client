@@ -937,7 +937,7 @@ const sendToPendingConversationSuccess = (
 
   return Saga.sequentially([
     // Clear the search
-    Saga.put(Chat2Gen.createExitSearch()),
+    Saga.put(Chat2Gen.createExitSearch({canceled: true})),
     // Clear the dummy messages from the pending conversation
     Saga.put(Chat2Gen.createClearPendingConversation()),
     // Emulate us getting an inbox item so we don't have to unbox it before sending
