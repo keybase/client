@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
-  _onSelect: (conversationIDKey: ?Types.ConversationIDKey) =>
+  _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (
     rows: Array<Inbox.RowItem>,
