@@ -1139,7 +1139,7 @@ const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => 
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-    ...(action.payload.canceled
+    ...(action.payload.canceled || !conversationIDKey
       ? []
       : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
   ])
