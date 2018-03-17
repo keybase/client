@@ -1,5 +1,5 @@
-@namespace("meta.1")
-protocol ae { // AE = "Authenticated Encryption"
+@namespace("emom.1") // EMOM = "Encrypted Msgpack Over Msgpack"
+protocol ae {        // AE   = "Authenticated Encryption"
 
 	// We use abbreviations here extensively to save bandwidth
 
@@ -48,16 +48,25 @@ protocol ae { // AE = "Authenticated Encryption"
 
 	record SignedAuthToken {
 		AuthToken t; // the auth token parts
+		KID       d; // The KID of the signing (device) key
 		bytes     s; // the EdDSA signature of the msgpack of the AuthToken
 	}
 
-	//
+	record Arg {
+		AuthEnc                    a; // AuthEnc of a RequestPlaintext
+		union { null, Handshake }  h; // handshake, non-null only on first message
+		@internal("rpc.SeqNumber") s; // for internal use only, pass back the RPC seqno; will never go over wire
+	}
+
+	record Res {
+		AuthEnc                    a; // AuthEnc of a RequestPlaintext
+		@internal("rpc.SeqNumber") s; // for internal use only, pass back the RPC seqno; will never go over wire
+	}
+
 	// (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.
-	// The handshake field is only supplied on the first call in the session, and otherwise can
-	// be nil.
 	//
 	// c = "call"
 	// n = "notify"
-	AuthEnc c(string n, AuthEnc a, union { null, Handshake } h);
-	void n(string n, AuthEnc a, union { null, Handshake } h) oneway;
+	Res c(Arg a);
+	void n(Arg a) oneway;
 }
