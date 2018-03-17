@@ -28567,7 +28567,7 @@ exports[`Storyshots Files Preview 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          15KB
+          15 KB
         </span>
         <div
           onClick={[Function]}
