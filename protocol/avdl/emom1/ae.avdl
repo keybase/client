@@ -14,9 +14,9 @@ protocol ae {        // AE   = "Authenticated Encryption"
 	@typedef("long")  record Time {}
 
 	record Handshake {
-		int   v; // version of the entire scheme
-	    int   s; // server KID sequence number
-		KID   k; // user ephemeral KID
+		int v; // version of the entire scheme
+	    int s; // server KID sequence number
+		KID k; // user ephemeral KID
 	}
 
 	record MsgpackHeader {
@@ -59,7 +59,7 @@ protocol ae {        // AE   = "Authenticated Encryption"
 	}
 
 	record Res {
-		AuthEnc                     a; // AuthEnc of a RequestPlaintext
+		AuthEnc                     a; // AuthEnc of a ResponePlaintext
 		@internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
 	}
 
