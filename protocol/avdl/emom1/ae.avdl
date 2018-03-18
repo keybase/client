@@ -59,8 +59,8 @@ protocol ae {        // AE   = "Authenticated Encryption"
 	}
 
 	record Res {
-		AuthEnc                    a; // AuthEnc of a RequestPlaintext
-		@internal("rpc.SeqNumber") s; // for internal use only, pass back the RPC seqno; will never go over wire
+		AuthEnc                     a; // AuthEnc of a RequestPlaintext
+		@internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
 	}
 
 	// (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.
