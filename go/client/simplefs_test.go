@@ -138,8 +138,8 @@ func (s SimpleFSMock) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) err
 }
 
 // SimpleFSCheck - Check progress of pending operation
-func (s SimpleFSMock) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
-	return 0, nil
+func (s SimpleFSMock) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.OpProgress, error) {
+	return keybase1.OpProgress{}, nil
 }
 
 // SimpleFSGetOps - Get all the outstanding operations

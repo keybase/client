@@ -133,6 +133,7 @@ helpers.rootLinuxNode(env, {
                                     test_linux_js: { withEnv([
                                         "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                         "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                        "NODE_OPTIONS=--max-old-space-size=4096",
                                     ]) {
                                         dir("shared") {
                                             stage("JS Tests") {

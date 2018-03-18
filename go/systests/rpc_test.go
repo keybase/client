@@ -54,6 +54,8 @@ func TestRPCs(t *testing.T) {
 	testLoadAllPublicKeysUnverified(t, tc2.G)
 	stage("testLoadUserWithNoKeys")
 	testLoadUserWithNoKeys(t, tc2.G)
+	stage("test LoadUserPlusKeysV2")
+	testLoadUserPlusKeysV2(t, tc2.G)
 	stage("testCheckDevicesForUser")
 	testCheckDevicesForUser(t, tc2.G)
 	stage("testIdentify2")
@@ -157,6 +159,25 @@ func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
 			t.Fatalf("unknown key in response: %s", key.KID)
 		}
 	}
+}
+
+func testLoadUserPlusKeysV2(t *testing.T, g *libkb.GlobalContext) {
+	cli, err := client.GetUserClient(g)
+	if err != nil {
+		t.Fatalf("failed to get a user client: %v", err)
+	}
+
+	kid := keybase1.KID("012012a40a6b77a9de5e48922262870565900f5689e179761ea8c8debaa586bfd0090a")
+	uid := keybase1.UID("359c7644857203be38bfd3bf79bf1819")
+
+	frank, err := cli.LoadUserPlusKeysV2(context.TODO(), keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: kid})
+	require.NoError(t, err)
+	require.NotNil(t, frank)
+	require.Equal(t, len(frank.PastIncarnations), 0)
+	require.Equal(t, frank.Current.Username, "t_frank")
+	_, found := frank.Current.DeviceKeys[kid]
+	require.True(t, found)
+	require.Nil(t, frank.Current.Reset)
 }
 
 func testLoadUserWithNoKeys(t *testing.T, g *libkb.GlobalContext) {

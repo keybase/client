@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
 import type {Props} from './container'
-import {Box, HeaderHoc} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
-import {NativeScrollView} from '../../common-adapters/index.native'
+import {Box, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (

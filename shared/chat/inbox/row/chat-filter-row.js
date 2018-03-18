@@ -39,11 +39,11 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
 
   _stopEditing = () => {
     this.setState({isEditing: false})
-    this.props.onSetFilter('')
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
+      this.props.onSetFilter('')
       this._stopEditing()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -60,6 +60,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
     if (!isMobile) {
       e.preventDefault()
       e.stopPropagation()
+      this.props.onSetFilter('')
       this._stopEditing()
       this._input && this._input.blur()
     }
@@ -154,7 +155,7 @@ const loadingContainer = {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.blue5,
+  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   justifyContent: 'space-between',
   minHeight: 48,
   paddingLeft: globalMargins.small,
