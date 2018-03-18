@@ -53,9 +53,9 @@ protocol ae {        // AE   = "Authenticated Encryption"
 	}
 
 	record Arg {
-		AuthEnc                    a; // AuthEnc of a RequestPlaintext
-		union { null, Handshake }  h; // handshake, non-null only on first message
-		@internal("rpc.SeqNumber") s; // for internal use only, pass back the RPC seqno; will never go over wire
+		AuthEnc                     a; // AuthEnc of a RequestPlaintext
+		union { null, Handshake }   h; // handshake, non-null only on first message
+		@internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
 	}
 
 	record Res {
