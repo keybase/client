@@ -77,36 +77,36 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
+  clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  return {
-    _editingMessage: stateProps._editingMessage,
-    _onSubmit: (text: string) => {
-      const em = stateProps._editingMessage
-      if (em) {
-        if (em.type === 'text' && em.text.stringValue() === text) {
-          dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-        } else {
-          dispatchProps._onEditMessage(em, text)
-        }
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  _editingMessage: stateProps._editingMessage,
+  _onSubmit: (text: string) => {
+    const em = stateProps._editingMessage
+    if (em) {
+      if (em.type === 'text' && em.text.stringValue() === text) {
+        dispatchProps._onCancelEditing(stateProps.conversationIDKey)
       } else {
-        dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
+        dispatchProps._onEditMessage(em, text)
       }
-      ownProps.onScrollDown()
-    },
-    channelName: stateProps._meta.channelname,
-    conversationIDKey: stateProps.conversationIDKey,
-    focusInputCounter: ownProps.focusInputCounter,
-    isEditing: !!stateProps._editingMessage,
-    isLoading: false,
-    onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-    sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
-    typing: stateProps.typing,
-  }
-}
+    } else {
+      dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
+    }
+    ownProps.onScrollDown()
+  },
+  channelName: stateProps._meta.channelname,
+  clearInboxFilter: dispatchProps.clearInboxFilter,
+  conversationIDKey: stateProps.conversationIDKey,
+  focusInputCounter: ownProps.focusInputCounter,
+  isEditing: !!stateProps._editingMessage,
+  isLoading: false,
+  onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+  onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+  onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
+  typing: stateProps.typing,
+})
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)

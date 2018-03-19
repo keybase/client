@@ -284,7 +284,7 @@ const _createNewTeamFromConversation = function*(
       }
       yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
       if (state.chat2.pendingSelected) {
-        yield Saga.put(Chat2Gen.createExitSearch())
+        yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
         yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
       }
     } catch (error) {

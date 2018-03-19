@@ -8,6 +8,7 @@ export type PreMentionHocProps = {
   channelName: ?string,
   isEditing: boolean,
   focusInputCounter: number,
+  clearInboxFilter: () => void,
   inputBlur: () => void,
   inputClear: () => void,
   inputFocus: () => void,

@@ -27,6 +27,7 @@ type UPAKLoader interface {
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
+	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -670,6 +671,29 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 		err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
 	}
 	return NormalizedUsername(""), "", "", err
+}
+
+func (u *CachedUPAKLoader) loadUserWithKIDAndInfo(ctx context.Context, uid keybase1.UID, kid keybase1.KID, info *CachedUserLoadInfo) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid)
+
+	// First iteration through, say it's OK to load a stale user. IF the KID is
+	// missing, then the second time through, we request a fresh object.
+	staleOK := []bool{true, false}
+	for _, b := range staleOK {
+		arg = arg.WithStaleOK(b)
+		ret, _, err = u.loadWithInfo(arg, info, nil, false)
+		if err == nil && ret != nil && (kid.IsNil() || ret.HasKID(kid)) {
+			return ret, nil
+		}
+	}
+	if err == nil {
+		err = NotFoundError{fmt.Sprintf("UID/KID pair %s/%s not found", uid, kid)}
+	}
+	return nil, err
+}
+
+func (u *CachedUPAKLoader) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	return u.loadUserWithKIDAndInfo(ctx, uid, kid, nil)
 }
 
 func (u *CachedUPAKLoader) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error) {

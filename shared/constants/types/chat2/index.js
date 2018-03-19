@@ -9,7 +9,6 @@ export type PendingMode = 'none' | 'searchingForUsers' | 'fixedSetOfUsers'
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
-  beforeSearchSelectedConversation: ?Common.ConversationIDKey, // to help reselect the previous conversation after exiting search
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   loadingMap: I.Map<string, number>, // reasons why we're loading

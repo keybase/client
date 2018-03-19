@@ -7,4 +7,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func SetDisableBackup(ctx context.Context, g *libkb.GlobalContext, name string) {}
+func SetDisableBackup(ctx context.Context, g *libkb.GlobalContext, name string) error {
+	return nil
+}

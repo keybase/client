@@ -187,10 +187,10 @@ func (s *SimpleFSHandler) SimpleFSCancel(ctx context.Context, arg keybase1.OpID)
 }
 
 // SimpleFSCheck - Check progress of pending operation
-func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
+func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.OpProgress, error) {
 	cli, err := s.client()
 	if err != nil {
-		return 0, err
+		return keybase1.OpProgress{}, err
 	}
 	return cli.SimpleFSCheck(ctx, arg)
 }

@@ -25,6 +25,8 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
+  _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (
     rows: Array<Inbox.RowItem>,
     selectedConversationIDKey: ?Types.ConversationIDKey,
@@ -79,6 +81,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
   onNewChat: dispatchProps.onNewChat,
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
   onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
   onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
   onSetFilter: dispatchProps.onSetFilter,
@@ -123,6 +126,16 @@ export default compose(
         }, [])
         if (toUnbox.length) {
           nextProps.onUntrustedInboxVisible(toUnbox)
+        }
+      }
+
+      // keep first item selected if filter changes
+      if (!isMobile) {
+        if (nextProps.filter && this.props.filter !== nextProps.filter && nextProps.rows.length > 0) {
+          const row = nextProps.rows[0]
+          if (row.conversationIDKey) {
+            this.props.onSelect(row.conversationIDKey)
+          }
         }
       }
     },

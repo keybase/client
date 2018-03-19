@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -33,6 +34,49 @@ func NewCmdSimpleFSGetStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	}
 }
 
+func (c *CmdSimpleFSGetStatus) printOpProgress(
+	ui libkb.TerminalUI, progress keybase1.OpProgress,
+	files, written, first bool) (wroteFirst bool) {
+	var n, d int64
+	var label string
+	if files {
+		d = progress.FilesTotal
+		label = "files "
+		if written {
+			n = progress.FilesWritten
+			if progress.OpType == keybase1.AsyncOps_REMOVE {
+				label += "removed"
+			} else {
+				label += "written"
+			}
+		} else {
+			n = progress.FilesRead
+			label += "read"
+		}
+	} else {
+		d = progress.BytesTotal
+		label = "bytes "
+		if written {
+			n = progress.BytesWritten
+			label += "written"
+		} else {
+			n = progress.BytesRead
+			label += "read"
+		}
+	}
+	if d <= 0 {
+		return false
+	}
+	header := "Progress: "
+	if !first {
+		header = "          "
+	}
+
+	ui.Printf("%s%d/%d %s (%.2f%%)\n",
+		header, n, d, label, 100*float64(n)/float64(d))
+	return true
+}
+
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSGetStatus) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
@@ -46,8 +90,28 @@ func (c *CmdSimpleFSGetStatus) Run() error {
 	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("progress: %d\n", progress)
+	ui.Printf("Op type: %s\n", progress.OpType)
 
+	// TODO: humanize the larger numbers into KB, MB, GB, etc.
+	switch progress.OpType {
+	case keybase1.AsyncOps_LIST, keybase1.AsyncOps_LIST_RECURSIVE:
+		c.printOpProgress(ui, progress, true, false, true)
+	case keybase1.AsyncOps_READ:
+		c.printOpProgress(ui, progress, false, false, true)
+	case keybase1.AsyncOps_WRITE:
+		c.printOpProgress(ui, progress, false, true, true)
+	case keybase1.AsyncOps_COPY, keybase1.AsyncOps_MOVE:
+		wroteFirst := c.printOpProgress(ui, progress, false, false, true)
+		c.printOpProgress(ui, progress, false, true, !wroteFirst)
+		c.printOpProgress(ui, progress, true, false, !wroteFirst)
+		c.printOpProgress(ui, progress, true, true, !wroteFirst)
+	case keybase1.AsyncOps_REMOVE:
+		c.printOpProgress(ui, progress, true, true, true)
+	}
+	if progress.EndEstimate > 0 {
+		timeRemaining := time.Until(keybase1.FromTime(progress.EndEstimate))
+		ui.Printf("Estimated time remaining: %s\n", timeRemaining)
+	}
 	return err
 }
 

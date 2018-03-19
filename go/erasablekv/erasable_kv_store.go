@@ -3,6 +3,7 @@ package erasablekv
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,8 +30,8 @@ const cryptoVersion = 1
 const noiseSuffix = ".ns"
 const storageSubDir = "eraseablekvstore"
 
-func getStorageDir(g *libkb.GlobalContext) string {
-	return filepath.Join(g.Env.GetDataDir(), storageSubDir)
+func getStorageDir(g *libkb.GlobalContext, subDir string) string {
+	return filepath.Join(g.Env.GetDataDir(), storageSubDir, subDir)
 }
 
 type ErasableKVStore interface {
@@ -53,19 +54,19 @@ type FileErasableKVStore struct {
 
 var _ ErasableKVStore = (*FileErasableKVStore)(nil)
 
-func NewFileErasableKVStore(g *libkb.GlobalContext) *FileErasableKVStore {
+func NewFileErasableKVStore(g *libkb.GlobalContext, subDir string) *FileErasableKVStore {
 	return &FileErasableKVStore{
 		Contextified: libkb.NewContextified(g),
-		storageDir:   getStorageDir(g),
+		storageDir:   getStorageDir(g, subDir),
 	}
 }
 
 func (s *FileErasableKVStore) filepath(key string) string {
-	return filepath.Join(s.storageDir, key)
+	return filepath.Join(s.storageDir, url.QueryEscape(key))
 }
 
 func (s *FileErasableKVStore) noiseKey(key string) string {
-	return fmt.Sprintf("%s%s", key, noiseSuffix)
+	return fmt.Sprintf("%s%s", url.QueryEscape(key), noiseSuffix)
 }
 
 func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes libkb.NoiseBytes) (fkey [32]byte, err error) {
@@ -170,7 +171,9 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	// remove the temp file if it still exists at the end of this function
 	defer libkb.ShredFile(tmp.Name())
 
-	SetDisableBackup(ctx, s.G(), tmp.Name())
+	if SetDisableBackup(ctx, s.G(), tmp.Name()); err != nil {
+		return err
+	}
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
@@ -199,7 +202,9 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	if err := os.Rename(tmp.Name(), filepath); err != nil {
 		return err
 	}
-	SetDisableBackup(ctx, s.G(), filepath)
+	if SetDisableBackup(ctx, s.G(), filepath); err != nil {
+		return err
+	}
 
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
@@ -275,16 +280,20 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	files, err := filepath.Glob(s.storageDir + string(os.PathSeparator) + "*")
+	files, err := ioutil.ReadDir(s.storageDir)
 	if err != nil {
 		return keys, err
 	}
 	for _, file := range files {
-		if strings.HasSuffix(file, noiseSuffix) {
+		filename := filepath.Base(file.Name())
+		if strings.HasSuffix(filename, noiseSuffix) {
 			continue
 		}
-		parts := strings.Split(file, s.storageDir+string(os.PathSeparator))
-		keys = append(keys, parts[1])
+		key, err := url.QueryUnescape(filename)
+		if err != nil {
+			return []string{}, err
+		}
+		keys = append(keys, key)
 	}
 	return keys, nil
 }
