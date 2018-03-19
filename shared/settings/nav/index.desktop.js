@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/settings'
+import flags from '../../util/feature-flags'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
 
@@ -46,6 +47,13 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         badgeNumber={0}
         onClick={() => onTabChange(Constants.advancedTab)}
       />
+      {flags.fsEnabled && (
+        <SettingsItem
+          text="Files"
+          selected={selectedTab === Constants.fsTab}
+          onClick={() => onTabChange(Constants.fsTab)}
+        />
+      )}
       <SettingsItem
         text="Delete Me"
         selected={selectedTab === Constants.deleteMeTab}

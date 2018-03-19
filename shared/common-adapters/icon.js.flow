@@ -5,7 +5,7 @@ import type {IconType} from './icon.constants'
 export type Props = {
   type: IconType,
   hint?: string,
-  onClick?: (event: SyntheticEvent<>) => void,
+  onClick?: (event: SyntheticEvent<Element>) => void,
   onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,

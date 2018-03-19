@@ -19,7 +19,12 @@ import {
 import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
-import {getConvIdsFromTeamName, getChannelInfoFromConvID} from '../../constants/teams'
+import {
+  getCanPerform,
+  getConvIdsFromTeamName,
+  getChannelInfoFromConvID,
+  hasCanPerform,
+} from '../../constants/teams'
 import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
@@ -29,6 +34,14 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
   const convIDs = getConvIdsFromTeamName(state, teamname)
   const you = state.config.username
+  const yourOperations = getCanPerform(state, teamname)
+  // We can get here without loading team operations
+  // if we manage channels on mobile without loading the conversation first
+  const _hasOperations = hasCanPerform(state, teamname)
+
+  const canEditChannels =
+    yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
+  const canCreateChannels = yourOperations.createChannel
 
   const channels = convIDs
     .map(convID => {
@@ -50,6 +63,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const currentPath = pathSelector(state)
 
   return {
+    _hasOperations,
+    canCreateChannels,
+    canEditChannels,
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
@@ -60,6 +76,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
+    _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
@@ -78,7 +95,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
     _onPreview: (conversationIDKey: ChatTypes.ConversationIDKey, previousPath?: string[]) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, asAPreview: true}))
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'preview'}))
       dispatch(
         navigateTo([
           chatTab,
@@ -90,7 +107,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
     },
     _onView: (conversationIDKey: ChatTypes.ConversationIDKey) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, fromUser: true}))
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'manageView'}))
       dispatch(switchTo([chatTab]))
     },
   }
@@ -141,6 +158,9 @@ export default compose(
     },
     componentDidMount: function() {
       this.props._loadChannels()
+      if (!this.props._hasOperations) {
+        this.props._loadOperations()
+      }
     },
   }),
   withPropsOnChange(['oldChannelState', 'nextChannelState'], props => ({

@@ -13,6 +13,7 @@ protocol ephemeral {
     @jsonkey("hash_meta")
     HashMeta hashMeta;
     EkGeneration generation;
+    Time ctime;
   }
 
   record DeviceEk {
@@ -20,5 +21,23 @@ protocol ephemeral {
     EkGeneration generation;
     @jsonkey("hash_meta")
     HashMeta hashMeta;
+    Time ctime;
+  }
+
+  record UserEkMetadata {
+    @jsonkey("user_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record UserEk {
+    Bytes32 seed;
+    EkGeneration generation;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    Time ctime;
   }
 }

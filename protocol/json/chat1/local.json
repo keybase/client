@@ -3338,6 +3338,18 @@
       ],
       "response": null
     },
+    "getTeamRetentionLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": [
+        null,
+        "RetentionPolicy"
+      ]
+    },
     "upgradeKBFSConversationToImpteam": {
       "request": [
         {

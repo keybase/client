@@ -5,6 +5,7 @@ import Settings from './'
 import LandingContainer from './landing/container'
 import UpdatePayment from './payment/container'
 import AdvancedContainer from './advanced/container'
+import FilesContainer from './files/container'
 import DBNukeConfirm from './db-nuke-confirm/container'
 import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
@@ -80,6 +81,10 @@ const routeTree = makeRouteDefNode({
           tags: makeLeafTags({modal: true}),
         },
       },
+    },
+    [Constants.fsTab]: {
+      component: FilesContainer,
+      children: {},
     },
   },
 })

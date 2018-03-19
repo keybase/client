@@ -22,7 +22,7 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
         completePortion: transferState.completePortion,
         progressText: Math.round((1 - transferState.completePortion) * 4).toString() + ' s', // TODO: fix this when we have real estimate
         isDone: transferState.isDone,
-        open: () => opener(transferState.localPath),
+        open: transferState.isDone ? () => opener(transferState.localPath) : undefined,
         dismiss: () => dismisser(key),
         key,
       })),

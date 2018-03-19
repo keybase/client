@@ -9,12 +9,11 @@ import {
   Text,
   Icon,
   Usernames,
-  Meta,
 } from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
 import {roleIconColorMap} from '../../../role-picker/index.meta'
 import {typeToLabel} from '../../../../constants/teams'
-import {type BoolTypeMap} from '../../../../constants/types/teams'
+import {type BoolTypeMap, type TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   active: boolean,
@@ -25,12 +24,14 @@ export type Props = {
   onClick: () => void,
   onReAddToTeam: () => void,
   onRemoveFromTeam: () => void,
-  type: ?string,
+  onShowTracker: () => void,
+  roleType: ?TeamRoleType,
   username: string,
   you: ?string,
 }
 
 const showCrown: BoolTypeMap = {
+  reset: false,
   admin: true,
   owner: true,
   reader: false,
@@ -38,98 +39,102 @@ const showCrown: BoolTypeMap = {
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {
-    active,
-    youCanManageMembers,
-    following,
-    fullName,
-    onChat,
-    onClick,
-    type,
-    username,
-    you,
-    onReAddToTeam,
-    onRemoveFromTeam,
-  } = props
   let crown, fullNameLabel, resetLabel
-  if (active && type && showCrown[type]) {
+  if (props.active && props.roleType && showCrown[props.roleType]) {
     crown = (
       <Icon
         // $FlowIssue "some string with unknown value"
-        type={'iconfont-crown-' + type}
+        type={'iconfont-crown-' + props.roleType}
         style={{
-          color: roleIconColorMap[type],
+          color: roleIconColorMap[props.roleType],
           fontSize: isMobile ? 16 : 12,
           marginRight: globalMargins.xtiny,
         }}
       />
     )
   }
-  if (fullName && active) {
+  if (props.fullName && props.active) {
     fullNameLabel = (
       <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
-        {fullName} •
+        {props.fullName} •
       </Text>
     )
   }
-  if (!active) {
-    resetLabel = youCanManageMembers
+  if (!props.active) {
+    resetLabel = props.youCanManageMembers
       ? 'Has reset their account'
       : 'Has reset their account; admins can re-invite'
   }
+
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flexShrink: 0,
-        height: isMobile ? 56 : 48,
-        padding: globalMargins.tiny,
-        width: '100%',
-      }}
-    >
-      <ClickableBox
-        style={{...globalStyles.flexBoxRow, flexGrow: 1, alignItems: 'center'}}
-        onClick={active ? onClick : undefined}
+    <Box style={props.active ? stylesContainer : stylesContainerReset}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flexShrink: 0,
+          height: isMobile ? 56 : 48,
+          padding: globalMargins.tiny,
+          width: '100%',
+        }}
       >
-        <Avatar username={username} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Box style={globalStyles.flexBoxRow}>
-            <Usernames
-              type="BodySemibold"
-              colorFollowing={true}
-              users={[{username, following, you: you === username}]}
-            />
-            {!active && (
-              <Meta
-                title="LOCKED OUT"
-                style={{background: globalColors.red, marginLeft: globalMargins.xtiny, marginTop: 4}}
+        <ClickableBox
+          style={{
+            ...globalStyles.flexBoxRow,
+            flexGrow: 1,
+            alignItems: 'center',
+          }}
+          onClick={props.active || isMobile ? props.onClick : props.onShowTracker}
+        >
+          <Avatar username={props.username} size={isMobile ? 48 : 32} />
+          <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+            <Box style={globalStyles.flexBoxRow}>
+              <Usernames
+                type="BodySemibold"
+                colorFollowing={true}
+                users={[
+                  {username: props.username, following: props.following, you: props.you === props.username},
+                ]}
               />
-            )}
+            </Box>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+              {fullNameLabel}
+              {crown}
+              {!props.active && (
+                <Text
+                  type="BodySmall"
+                  style={{
+                    ...globalStyles.fontBold,
+                    color: globalColors.white,
+                    backgroundColor: globalColors.red,
+                    marginRight: globalMargins.xtiny,
+                    paddingLeft: globalMargins.xtiny,
+                    paddingRight: globalMargins.xtiny,
+                  }}
+                >
+                  LOCKED OUT
+                </Text>
+              )}
+              <Text type="BodySmall">
+                {!!props.active && !!props.roleType && typeToLabel[props.roleType]}
+                {resetLabel}
+              </Text>
+            </Box>
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {fullNameLabel}
-            {crown}
-            <Text type="BodySmall">
-              {!!active && !!type && typeToLabel[type]}
-              {resetLabel}
-            </Text>
-          </Box>
-        </Box>
-      </ClickableBox>
-      {!active &&
-        youCanManageMembers && (
-          <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-            <ButtonBar>
-              <Button small={true} label="Admit" onClick={onReAddToTeam} type="Primary" />
-              <Button small={true} label="Remove" onClick={onRemoveFromTeam} type="Secondary" />
-            </ButtonBar>
-          </Box>
-        )}
-      {(active || !isMobile) && (
+        </ClickableBox>
+        {!props.active &&
+          !isMobile &&
+          props.youCanManageMembers && (
+            <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+              <ButtonBar>
+                <Button small={true} label="Re-Admit" onClick={props.onReAddToTeam} type="PrimaryGreen" />
+                <Button small={true} label="Remove" onClick={props.onRemoveFromTeam} type="Secondary" />
+              </ButtonBar>
+            </Box>
+          )}
         <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
           <Icon
-            onClick={onChat}
+            onClick={props.onChat}
             style={{
               fontSize: isMobile ? 20 : 16,
               marginLeft: globalMargins.small,
@@ -138,7 +143,31 @@ export const TeamMemberRow = (props: Props) => {
             type="iconfont-chat"
           />
         </Box>
-      )}
+      </Box>
+      {!props.active &&
+        isMobile &&
+        props.youCanManageMembers && (
+          <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+            <ButtonBar direction="row">
+              <Button small={true} label="Re-Admit" onClick={props.onReAddToTeam} type="PrimaryGreen" />
+              <Button small={true} label="Remove" onClick={props.onRemoveFromTeam} type="Secondary" />
+            </ButtonBar>
+          </Box>
+        )}
     </Box>
   )
+}
+
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1,
+  width: '100%',
+  height: '100%',
+  position: 'relative',
+}
+
+const stylesContainerReset = {
+  ...stylesContainer,
+  backgroundColor: globalColors.blue4,
 }

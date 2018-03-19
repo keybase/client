@@ -4,6 +4,7 @@
 .*/node_modules/react-native.*
 .*/node_modules/react-navigation.*
 .*/node_modules/metro-bundler.*
+.*/node_modules/metro.*
 .*/react-native/android/app/.*
 .*/react/node_modules/.*
 ../protocol/.*

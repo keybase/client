@@ -280,7 +280,7 @@ const _createNewTeamFromConversation = function*(
       }
       yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
       if (state.chat2.pendingSelected) {
-        yield Saga.put(Chat2Gen.createExitSearch())
+        yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
         yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
       }
     } catch (error) {
@@ -630,7 +630,9 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     )
 
     // Select the new channel, and switch to the chat tab.
-    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey}))
+    yield Saga.put(
+      Chat2Gen.createSelectConversation({conversationIDKey: newConversationIDKey, reason: 'teamChat'})
+    )
     yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))

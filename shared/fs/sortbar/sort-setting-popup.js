@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {type RouteProps} from '../../route-tree/render-route'
-import PopupMenu from '../../common-adapters/popup-menu'
+import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import {Icon, Box, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 
@@ -25,14 +25,19 @@ const stylesSortSetting = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  minHeight: isMobile ? 24 : 24,
+  minHeight: 24,
 }
 
-const stylesPopup = {
-  position: 'absolute',
-  left: 88,
-  top: 80,
-}
+const stylesPopup = !isMobile
+  ? {
+      position: 'absolute',
+      left: 88,
+      top: 80,
+    }
+  : {
+      width: '100%',
+    }
+
 const stylesIcon = {
   marginRight: globalMargins.tiny,
   color: globalColors.black_75,
@@ -61,7 +66,17 @@ const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
       ),
     }
   })
-  return <PopupMenu items={popupItems} style={stylesPopup} onHidden={onHidden} />
+  return (
+    <ModalLessPopupMenu
+      header={{
+        title: '',
+        view: undefined,
+      }}
+      items={popupItems}
+      style={stylesPopup}
+      onHidden={onHidden}
+    />
+  )
 }
 
 export default SortBarPopupMenu

@@ -46,7 +46,7 @@ func (c *CmdSimpleFSStat) Run() error {
 	}
 
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
+	ui.Printf("%s\t%s\t%d\t%s\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name, e.LastWriterUnverified.Username)
 
 	return err
 }

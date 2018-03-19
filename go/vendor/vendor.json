@@ -295,10 +295,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "ZnAvhum5nZfQmxQgbVAcVFePehM=",
+			"checksumSHA1": "X2BcPzXoodWwobqI+DYKXPPlT3I=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "d5c3e33aacf1bccedc64b0a3965736e1f261bcdb",
-			"revisionTime": "2018-02-05T22:52:15Z"
+			"revision": "a1a8266e43439a8704b7ce500d91888b6a9a1e2b",
+			"revisionTime": "2018-03-15T23:23:27Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -444,6 +444,12 @@
 			"path": "github.com/pkg/errors",
 			"revision": "2b3a18b5f0fb6b4f9190549597d3f962c02bc5eb",
 			"revisionTime": "2017-09-10T13:46:14Z"
+		},
+		{
+			"checksumSHA1": "Lm/IsrUTXFXtxwDQk+HQDRTitVc=",
+			"path": "github.com/pkg/xattr",
+			"revision": "bc67bfc801466b4b8e62df951397972652fa8414",
+			"revisionTime": "2018-02-23T11:29:58Z"
 		},
 		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",

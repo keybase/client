@@ -55,7 +55,6 @@ const util = {
     marginBottom: Shared.globalMargins.tiny,
     marginTop: Shared.globalMargins.tiny,
   },
-  scrollable: {overflowY: 'auto'},
 }
 
 export const globalStyles = {
@@ -68,6 +67,7 @@ export const desktopStyles = {
   clickable: {cursor: 'pointer'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
   noSelect: {userSelect: 'none'},
+  scrollable: {overflowY: 'auto'},
   windowDragging: {
     // allow frameless window dragging
     WebkitAppRegion: 'drag',

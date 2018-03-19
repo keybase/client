@@ -9,7 +9,6 @@ import {isMobile} from '../platform'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
-  beforeSearchSelectedConversation: null,
   editingMap: I.Map(),
   inboxFilter: '',
   loadingMap: I.Map(),
@@ -73,6 +72,7 @@ export const isUserActivelyLookingAtThisThread = (
 }
 
 export {
+  findConversationFromParticipants,
   getConversationIDKeyMetasToLoad,
   getRowParticipants,
   getRowStyles,
@@ -93,6 +93,7 @@ export {
   makePendingTextMessage,
   pathToAttachmentType,
   rpcErrorToString,
+  uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,
 } from './message'

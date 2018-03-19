@@ -8,17 +8,19 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const deviceEKPrefix = "device-eks/device-ephemeral-key"
+const deviceEKPrefix = "device-ephemeral-key"
+const deviceEKSubDir = "device-eks"
 
 type DeviceEKStorage struct {
 	libkb.Contextified
 	sync.Mutex
 	indexOnce *sync.Once
-	storage   ErasableKVStore
+	storage   erasablekv.ErasableKVStore
 	cache     map[keybase1.EkGeneration]keybase1.DeviceEk
 	keyPrefix string
 }
@@ -27,7 +29,7 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 	keyPrefix := fmt.Sprintf("%s-%s", deviceEKPrefix, g.Env.GetUsername().String())
 	return &DeviceEKStorage{
 		Contextified: libkb.NewContextified(g),
-		storage:      NewFileErasableKVStore(g),
+		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(map[keybase1.EkGeneration]keybase1.DeviceEk),
 		indexOnce:    new(sync.Once),
 		keyPrefix:    keyPrefix,
@@ -121,11 +123,6 @@ func (s *DeviceEKStorage) index(ctx context.Context) (err error) {
 		}
 	})
 	return err
-}
-
-// Used for testing
-func (s *DeviceEKStorage) ClearCache() {
-	s.cache = make(map[keybase1.EkGeneration]keybase1.DeviceEk)
 }
 
 func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs map[keybase1.EkGeneration]keybase1.DeviceEk, err error) {

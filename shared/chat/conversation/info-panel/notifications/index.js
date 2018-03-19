@@ -37,7 +37,12 @@ const UnmutedNotificationPrefs = (props: Props) => (
   <React.Fragment>
     <Checkbox
       checked={!props.channelWide}
-      label="Ignore @here and @channel mentions"
+      label=""
+      labelComponent={
+        <Text type="Body">
+          Ignore <Text type="BodySemibold">@here</Text> and <Text type="BodySemibold">@channel</Text> mentions
+        </Text>
+      }
       onCheck={props.toggleChannelWide}
     />
 

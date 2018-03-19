@@ -2,9 +2,6 @@ package ephemeral
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
-	"path/filepath"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
@@ -84,22 +81,4 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, 2, maxGeneration)
 
-	// Test noise file corruption
-	generation := keybase1.EkGeneration(2)
-	username := tc.G.Env.GetUsername().String()
-	noiseName := fmt.Sprintf("%s-%s-%d.ek%s", deviceEKPrefix, username, generation, noiseSuffix)
-	noiseFilePath := filepath.Join(tc.G.Env.GetDataDir(), noiseName)
-	noise, err := ioutil.ReadFile(noiseFilePath)
-	require.NoError(t, err)
-
-	// flip one bit
-	noise[0] ^= 0x01
-
-	err = ioutil.WriteFile(noiseFilePath, noise, libkb.PermFile)
-	require.NoError(t, err)
-
-	s.ClearCache()
-	corrupt, err := s.Get(context.Background(), generation)
-	require.Error(t, err)
-	require.NotEqual(t, corrupt, tests[int(generation)])
 }

@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Chat2Gen from './chat2-gen'
 import * as KBFSGen from './kbfs-gen'
+import * as FsGen from './fs-gen'
 import * as ConfigGen from './config-gen'
 import * as TeamsGen from './teams-gen'
 import * as LoginGen from './login-gen'
@@ -126,6 +127,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
       dispatch(getBootstrapStatus()),
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
+      dispatch(FsGen.createFuseStatus()),
     ])
       .then(() => {
         dispatch(ConfigGen.createBootstrapSuccess())
@@ -306,7 +308,8 @@ function* _getAppState(): Generator<any, void, any> {
   }
 }
 
-const _setStartedDueToPush = () => Saga.put(ConfigGen.createSetStartedDueToPush())
+const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
@@ -323,7 +326,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     _loadAvatarHelperError
   )
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversationDueToPush, _setStartedDueToPush)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.fork(_getAppState)
 }
 

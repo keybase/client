@@ -1533,10 +1533,11 @@ export const simpleFSPathType = {
 }
 
 export const stellarStellarAccountMode = {
-  user: 0,
+  none: 0,
+  user: 1,
 }
 
-export const stellarStellarSecretBundleVersion = {
+export const stellarStellarBundleVersion = {
   v1: 1,
 }
 
@@ -1891,6 +1892,10 @@ export const userLoadUserPlusKeysRpcChannelMap = (configKeys: Array<string>, req
 
 export const userLoadUserPlusKeysRpcPromise = (request: UserLoadUserPlusKeysRpcParam): Promise<UserLoadUserPlusKeysResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeys', request, (error: RPCError, result: UserLoadUserPlusKeysResult) => (error ? reject(error) : resolve(result))))
 
+export const userLoadUserPlusKeysV2RpcChannelMap = (configKeys: Array<string>, request: UserLoadUserPlusKeysV2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUserPlusKeysV2', request)
+
+export const userLoadUserPlusKeysV2RpcPromise = (request: UserLoadUserPlusKeysV2RpcParam): Promise<UserLoadUserPlusKeysV2Result> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUserPlusKeysV2', request, (error: RPCError, result: UserLoadUserPlusKeysV2Result) => (error ? reject(error) : resolve(result))))
+
 export const userLoadUserRpcChannelMap = (configKeys: Array<string>, request: UserLoadUserRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.loadUser', request)
 
 export const userLoadUserRpcPromise = (request: UserLoadUserRpcParam): Promise<UserLoadUserResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.loadUser', request, (error: RPCError, result: UserLoadUserResult) => (error ? reject(error) : resolve(result))))
@@ -2167,9 +2172,9 @@ export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: Inco
 
 export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta}>
+export type DeviceEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time}>
 
-export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration}>
+export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
 export type DeviceID = String
 
@@ -2177,7 +2182,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType}>
+export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User}>
 
 export type DirentType =
   | 0 // FILE_0
@@ -2209,7 +2214,7 @@ export type EncryptedBytes32 = any
 
 export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
 
-export type EncryptedStellarSecretBundle = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerUserKeyGeneration}>
+export type EncryptedStellarBundle = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerUserKeyGeneration}>
 
 export type ErrorNum = Int
 
@@ -2419,6 +2424,8 @@ export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gre
 export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
+
+export type Hash = Bytes
 
 export type HashMeta = Bytes
 
@@ -2851,6 +2858,8 @@ export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRec
 
 export type OpID = any
 
+export type OpProgress = $ReadOnly<{start: Time, endEstimate: Time, opType: AsyncOps, bytesTotal: Int64, bytesRead: Int64, bytesWritten: Int64, filesTotal: Int64, filesRead: Int64, filesWritten: Int64}>
+
 export type OpenFlags =
   | 0 // READ_0
   | 1 // REPLACE_1
@@ -3191,9 +3200,9 @@ export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot,
 
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
 
-export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, eldestSeqno: Seqno, reset: SHA512}>
+export type ResetPrev = $ReadOnly<{eldestKID?: ?KID, lastSeqno: Seqno, reset: SHA512}>
 
-export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, type: ResetType}>
+export type ResetSummary = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, resetSeqno: Seqno, eldestSeqno: Seqno, type: ResetType}>
 
 export type ResetType =
   | 0 // NONE_0
@@ -3553,21 +3562,29 @@ export type StatusCode =
 
 export type StellarAccountID = String
 
-export type StellarAccountMode = 0 // USER_0
+export type StellarAccountMode =
+  | 0 // NONE_0
+  | 1 // USER_1
+
+export type StellarBundle = $ReadOnly<{revision: StellarRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<StellarEntry>}>
+
+export type StellarBundleSecretV1 = $ReadOnly<{visibleHash: Hash, accounts?: ?Array<StellarSecretEntry>}>
+
+export type StellarBundleSecretVersioned = {version: 1, v1: ?StellarBundleSecretV1}
+
+export type StellarBundleVersion = 1 // V1_1
+
+export type StellarBundleVisibleV1 = $ReadOnly<{revision: StellarRevision, prev: Hash, accounts?: ?Array<StellarVisibleEntry>}>
+
+export type StellarEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, isPrimary: Boolean, signers?: ?Array<StellarSecretKey>, name: String}>
 
 export type StellarRevision = Uint64
 
-export type StellarSecretBundle = $ReadOnly<{revision: StellarRevision, accounts?: ?Array<StellarSecretEntry>}>
-
-export type StellarSecretBundleV1 = $ReadOnly<{revision: StellarRevision, accounts?: ?Array<StellarSecretEntry>}>
-
-export type StellarSecretBundleVersion = 1 // V1_1
-
-export type StellarSecretBundleVersioned = {version: 1, v1: ?StellarSecretBundleV1}
-
-export type StellarSecretEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, signers?: ?Array<StellarSecretKey>, isPrimary: Boolean, name: String}>
+export type StellarSecretEntry = $ReadOnly<{accountID: StellarAccountID, signers?: ?Array<StellarSecretKey>, name: String}>
 
 export type StellarSecretKey = String
+
+export type StellarVisibleEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, isPrimary: Boolean}>
 
 export type Stream = $ReadOnly<{fd: Int}>
 
@@ -3925,6 +3942,10 @@ export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
+export type UserEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time}>
+
+export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserInterestingPeopleRpcParam = $ReadOnly<{maxUsers: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3955,6 +3976,8 @@ export type UserLoadUserByNameRpcParam = $ReadOnly<{username: String, incomingCa
 
 export type UserLoadUserPlusKeysRpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type UserLoadUserPlusKeysV2RpcParam = $ReadOnly<{uid: UID, pollForKID: KID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type UserLoadUserRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type UserLogPoint = $ReadOnly<{role: TeamRole, sigMeta: SignatureMetadata}>
@@ -3971,7 +3994,7 @@ export type UserOrTeamResult =
 
 export type UserPlusAllKeys = $ReadOnly<{base: UserPlusKeys, pgpKeys?: ?Array<PublicKey>, remoteTracks?: ?Array<RemoteTrack>}>
 
-export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>}>
+export type UserPlusKeys = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, deviceKeys?: ?Array<PublicKey>, revokedDeviceKeys?: ?Array<RevokedKey>, pgpKeyCount: Int, uvv: UserVersionVector, deletedDeviceKeys?: ?Array<PublicKey>, perUserKeys?: ?Array<PerUserKey>, resets?: ?Array<ResetSummary>}>
 
 export type UserPlusKeysV2 = $ReadOnly<{uid: UID, username: String, eldestSeqno: Seqno, status: StatusCode, perUserKeys?: ?Array<PerUserKey>, deviceKeys: {[key: string]: PublicKeyV2NaCl}, pgpKeys: {[key: string]: PublicKeyV2PGPSummary}, remoteTracks: {[key: string]: RemoteTrack}, reset?: ?ResetSummary}>
 
@@ -4130,7 +4153,7 @@ type SignupGetInvitationCodeResult = String
 type SignupSignupResult = SignupRes
 type SigsSigListJSONResult = String
 type SigsSigListResult = ?Array<Sig>
-type SimpleFSSimpleFSCheckResult = Progress
+type SimpleFSSimpleFSCheckResult = OpProgress
 type SimpleFSSimpleFSGetOpsResult = ?Array<OpDescription>
 type SimpleFSSimpleFSMakeOpidResult = OpID
 type SimpleFSSimpleFSReadListResult = SimpleFSListResult
@@ -4190,6 +4213,7 @@ type UserLoadPublicKeysResult = ?Array<PublicKey>
 type UserLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 type UserLoadUserByNameResult = User
 type UserLoadUserPlusKeysResult = UserPlusKeys
+type UserLoadUserPlusKeysV2Result = UserPlusKeysV2AllIncarnations
 type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>

@@ -21,8 +21,27 @@
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "fromUser?": "boolean", // true if this is a direct result of the user clicking
-      "asAPreview?": "boolean", // true if you want to preview the conversation
+        // why this happened, sometimes there's different side effects
+        "reason": [
+          "'clearSelected'", // deselect
+          "'desktopNotification'", // clicked notification
+          "'existingSearch'", // searching and found one
+          "'findNewestConversation'", // find a new chat to select
+          "'inboxBig'", // inbox row
+          "'inboxFilterArrow'", // arrow keys in inbox filter
+          "'inboxFilterChanged'", // inbox filter made first one selected
+          "'inboxSmall'", // inbox row
+          "'jumpFromReset'", // from older reset convo
+          "'jumpToReset'", // going to an older reset convo
+          "'justCreated'", // just made it and select it
+          "'manageView'", // clicked from manage screen
+          "'messageLink'", // link in a message
+          "'preview'", // preview from manage screen
+          "'push'", // from a push
+          "'savedLastState'", // last seen chat tab
+          "'startFoundExisting'", // starting a conversation and found one already
+          "'teamChat'", // from team
+        ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // forceImmediate to make it immediately. Normally conversations are made when you actually send text
@@ -39,7 +58,16 @@
     "setupChatHandlers": {},
     // Refresh the inbox
     "inboxRefresh": {
-      "reason": "'bootstrap' | 'teamTypeChanged' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'inboxStale' | 'joinedAConversation' | 'leftAConversation' | 'componentNeverLoaded'", // why this happened for logging
+      "reason": [
+        "'bootstrap'",
+        "'componentNeverLoaded'",
+        "'inboxStale'",
+        "'inboxSyncedClear'",
+        "'inboxSyncedUnknown'",
+        "'joinedAConversation'",
+        "'leftAConversation'",
+        "'teamTypeChanged'",
+      ]
     },
     // Update the 'jump to conversation' filter
     "setInboxFilter": {
@@ -86,7 +114,11 @@
       // sent = we sent it
       // incoming = a streaming message
       // threadLoad = we're loading more messages on select / scroll
-      "context": "{type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}",
+      "context": [
+        "{type: 'sent'}",
+        "{type: 'incoming'}",
+        "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}",
+      ],
       "messages": "Array<Types.Message>"
     },
     // Got an error sending a message
@@ -111,7 +143,10 @@
     "messageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "mentionsAt": "I.Set<string>",
+      "mentionsChannel": "'none' | 'all' | 'here'",
+      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>",
     },
     // Mark a message as deleted
     "messagesWereDeleted": {
@@ -180,7 +215,9 @@
       "username": "string"
     },
     // You're done searching
-    "exitSearch": { },
+    "exitSearch": {
+      "canceled": "boolean"
+    },
     // Update the pending conversation users
     "setPendingConversationUsers": {
       "users": "Array<string>",
@@ -189,7 +226,10 @@
     // Actually starting a conversation from a search. SendingAction is what happens after the chat is created
     "sendToPendingConversation": {
       "users": "Array<string>",
-      "sendingAction": "More.ReturnType<typeof createMessageSend> | More.ReturnType<typeof createAttachmentUpload>"
+      "sendingAction": [
+      "More.ReturnType<typeof createMessageSend>",
+      "More.ReturnType<typeof createAttachmentUpload>"
+      ]
     },
     // We've made a new conversation successfully and want to cleanup the pending info now
     "clearPendingConversation": {
@@ -292,11 +332,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
     },
-    // Special handling of the push actions. we want to select a conversation and load it at the right time and avoid all other work
-    "selectConversationDueToPush": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "phase": "'showImmediately' | 'loadNewContent'"
-    },
     // We're changing the notification settings
     "updateNotificationSettings": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -313,6 +348,11 @@
     "blockConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
+    },
+    // Conversation was loaded and is offline
+    "setConversationOffline": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "offline": "boolean",
     }
   }
 }
