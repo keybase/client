@@ -2,13 +2,9 @@
 import * as React from 'react'
 import {globalStyles, isMobile} from '../../../../styles'
 import {Box, Text} from '../../../../common-adapters'
-import type {MenuItem} from '../../../../common-adapters/popup-menu'
+import PopupMenu, {type MenuItem, ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
 import {ModalPositionRelative} from '../../../../common-adapters/relative-popup-hoc'
-import PopupMenu, {
-  ModalLessPopupMenu,
-  type RetentionPolicy,
-  type _RetentionPolicy,
-} from '../../../../constants/types/teams'
+import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
 
 export type Props = {
   policy: RetentionPolicy,
@@ -19,7 +15,7 @@ export type Props = {
 
 type State = {
   selected: _RetentionPolicy,
-  items: Array<{title: string, onClick: () => any}>,
+  items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
   dropdownRect: ?ClientRect,
 }
@@ -112,8 +108,9 @@ class RetentionPicker extends React.Component<Props, State> {
         {this.state.showMenu && (
           <OptionsPopup
             targetRect={this.state.dropdownRect}
-            position="top right"
+            position="top left"
             onClosePopup={this._hideMenu}
+            onHide={this._hideMenu}
             popupNode={<Box />}
             style={{backgroundColor: 'white'}}
             items={this.state.items}
@@ -124,15 +121,16 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 }
 
-const RenderOptions = ({items}: {items: Array<{title: string, onClick: () => any}>}) => (
-  <Box style={{...globalStyles.flexBoxColumn}}>
-    {items.map(item => (
-      <Box style={{...globalStyles.flexBoxRow}} onClick={item.onClick} key={item.title}>
-        {item.title}
-      </Box>
-    ))}
-  </Box>
-)
+const RenderOptions = (props: {items: Array<MenuItem | 'Divider' | null>, onHide: () => any}) =>
+  isMobile ? (
+    <PopupMenu onHidden={props.onHide} style={{overflow: 'visible'}} items={props.items} />
+  ) : (
+    <ModalLessPopupMenu
+      onHidden={props.onHide}
+      style={{overflow: 'visible', width: 220}}
+      items={props.items}
+    />
+  )
 // TODO mobile
 const OptionsPopup = ModalPositionRelative(RenderOptions)
 
