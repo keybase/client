@@ -77,7 +77,7 @@ class BottomLine extends PureComponent<Props> {
             },
           })}
         >
-          Participants have to let you back in.
+          Participants should let you back in.
         </Text>
       )
     } else if (participantNeedToRekey) {
