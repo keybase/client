@@ -1308,7 +1308,7 @@ func (e *Env) WantsSystemd() bool {
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
-func (e *Env) ForceSecretStoreFile() bool {
+func (e *Env) DarwinForceSecretStoreFile() bool {
 	return (e.GetRunMode() == DevelRunMode &&
 		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
 }
