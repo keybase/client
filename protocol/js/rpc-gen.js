@@ -79,6 +79,10 @@ export const SimpleFSSimpleFSCopyRpcChannelMap = (configKeys: Array<string>, req
 
 export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const SimpleFSSimpleFSDumpDebuggingInfoRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request)
+
+export const SimpleFSSimpleFSDumpDebuggingInfoRpcPromise = (request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
 
 export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => (error ? reject(error) : resolve(result))))
@@ -3392,6 +3396,8 @@ export type SimpleFSSimpleFSCloseRpcParam = $ReadOnly<{opID: OpID, incomingCallM
 export type SimpleFSSimpleFSCopyRecursiveRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
