@@ -28,18 +28,25 @@ func NewUserEKBoxStorage(g *libkb.GlobalContext) *UserEKBoxStorage {
 	}
 }
 
-func (s *UserEKBoxStorage) dbKey() libkb.DbKey {
-	key := fmt.Sprintf("user-ek-box-%s", s.G().Env.GetUsername())
+func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err error) {
+	uv, err := getCurrentUserUV(ctx, s.G())
+	if err != nil {
+		return dbKey, err
+	}
+	key := fmt.Sprintf("user-ephemeral-key-box-%s-%s", s.G().Env.GetUsername(), uv.EldestSeqno)
 	return libkb.DbKey{
 		Typ: libkb.DBUserEKBox,
 		Key: key,
-	}
+	}, nil
 }
 
 func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, err error) {
 	if !s.indexed {
 		defer s.G().CTrace(ctx, "UserEKBoxStorage#indexInner", func() error { return err })()
-		key := s.dbKey()
+		key, err := s.dbKey(ctx)
+		if err != nil {
+			return s.cache, err
+		}
 		_, err = s.G().GetKVStore().GetInto(&s.cache, key)
 		if err != nil {
 			return s.cache, err
@@ -155,9 +162,12 @@ func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGenera
 }
 
 func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Put", func() error { return err })()
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#put", func() error { return err })()
 
-	key := s.dbKey()
+	key, err := s.dbKey(ctx)
+	if err != nil {
+		return err
+	}
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return err
@@ -209,7 +219,10 @@ func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGen
 		return err
 	}
 	delete(cache, generation)
-	key := s.dbKey()
+	key, err := s.dbKey(ctx)
+	if err != nil {
+		return err
+	}
 	return s.G().GetKVStore().PutObj(key, nil, cache)
 }
 

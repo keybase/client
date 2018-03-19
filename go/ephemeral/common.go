@@ -1,6 +1,7 @@
 package ephemeral
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -34,4 +35,12 @@ func newEKSeedFromBytes(b []byte) (seed keybase1.Bytes32, err error) {
 	}
 	copy(seed[:], b)
 	return seed, nil
+}
+
+func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1.UserVersion, err error) {
+	err = g.GetFullSelfer().WithSelf(ctx, func(u *libkb.User) error {
+		ret = u.ToUserVersion()
+		return nil
+	})
+	return ret, err
 }
