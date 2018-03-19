@@ -7,7 +7,14 @@ import Icon from './icon'
 import {type IconType} from './icon.constants'
 import Text, {type TextType} from './text'
 import {ConnectedUsernames} from './usernames'
-import {collapseStyles, globalStyles, isMobile, styleSheetCreate, platformStyles} from '../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  isMobile,
+  styleSheetCreate,
+  platformStyles,
+  type StylesCrossPlatform,
+} from '../styles'
 
 type Size = 'small' | 'default' | 'large'
 
@@ -135,7 +142,7 @@ const TextOrComponent = ({
 }: {
   val: string | React.Node,
   textType: TextType,
-  style?: any,
+  style?: StylesCrossPlatform,
 }) => {
   if (typeof val === 'string') {
     return (
