@@ -1533,10 +1533,11 @@ export const simpleFSPathType = {
 }
 
 export const stellarStellarAccountMode = {
-  user: 0,
+  none: 0,
+  user: 1,
 }
 
-export const stellarStellarSecretBundleVersion = {
+export const stellarStellarBundleVersion = {
   v1: 1,
 }
 
@@ -2213,7 +2214,7 @@ export type EncryptedBytes32 = any
 
 export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
 
-export type EncryptedStellarSecretBundle = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerUserKeyGeneration}>
+export type EncryptedStellarBundle = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerUserKeyGeneration}>
 
 export type ErrorNum = Int
 
@@ -2423,6 +2424,8 @@ export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gre
 export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
+
+export type Hash = Bytes
 
 export type HashMeta = Bytes
 
@@ -3559,21 +3562,29 @@ export type StatusCode =
 
 export type StellarAccountID = String
 
-export type StellarAccountMode = 0 // USER_0
+export type StellarAccountMode =
+  | 0 // NONE_0
+  | 1 // USER_1
+
+export type StellarBundle = $ReadOnly<{revision: StellarRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<StellarEntry>}>
+
+export type StellarBundleSecretV1 = $ReadOnly<{visibleHash: Hash, accounts?: ?Array<StellarSecretEntry>}>
+
+export type StellarBundleSecretVersioned = {version: 1, v1: ?StellarBundleSecretV1}
+
+export type StellarBundleVersion = 1 // V1_1
+
+export type StellarBundleVisibleV1 = $ReadOnly<{revision: StellarRevision, prev: Hash, accounts?: ?Array<StellarVisibleEntry>}>
+
+export type StellarEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, isPrimary: Boolean, signers?: ?Array<StellarSecretKey>, name: String}>
 
 export type StellarRevision = Uint64
 
-export type StellarSecretBundle = $ReadOnly<{revision: StellarRevision, accounts?: ?Array<StellarSecretEntry>}>
-
-export type StellarSecretBundleV1 = $ReadOnly<{revision: StellarRevision, accounts?: ?Array<StellarSecretEntry>}>
-
-export type StellarSecretBundleVersion = 1 // V1_1
-
-export type StellarSecretBundleVersioned = {version: 1, v1: ?StellarSecretBundleV1}
-
-export type StellarSecretEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, signers?: ?Array<StellarSecretKey>, isPrimary: Boolean, name: String}>
+export type StellarSecretEntry = $ReadOnly<{accountID: StellarAccountID, signers?: ?Array<StellarSecretKey>, name: String}>
 
 export type StellarSecretKey = String
+
+export type StellarVisibleEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, isPrimary: Boolean}>
 
 export type Stream = $ReadOnly<{fd: Int}>
 

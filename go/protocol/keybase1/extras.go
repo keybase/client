@@ -2330,9 +2330,8 @@ func (r ResetLink) Summarize() ResetSummary {
 // CheckInvariants checks that the bundle satisfies
 // 1. No duplicate account IDs
 // 2. At most one primary account
-func (s StellarSecretBundle) CheckInvariants() error {
+func (s StellarBundle) CheckInvariants() error {
 	accountIDs := make(map[StellarAccountID]bool)
-	names := make(map[string]bool)
 	var foundPrimary bool
 	for _, entry := range s.Accounts {
 		_, found := accountIDs[entry.AccountID]
@@ -2340,16 +2339,14 @@ func (s StellarSecretBundle) CheckInvariants() error {
 			return fmt.Errorf("duplicate account ID: %v", entry.AccountID)
 		}
 		accountIDs[entry.AccountID] = true
-		_, found = names[entry.Name]
-		if found {
-			return fmt.Errorf("duplicate account name: %v", entry.Name)
-		}
-		names[entry.Name] = true
 		if entry.IsPrimary {
 			if foundPrimary {
 				return errors.New("multiple primary accounts")
 			}
 			foundPrimary = true
+		}
+		if entry.Mode == StellarAccountMode_NONE {
+			return errors.New("account missing mode")
 		}
 	}
 	if s.Revision < 1 {
