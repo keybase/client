@@ -215,11 +215,12 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-type AvatarHelperAction = {payload: {names: Array<string>}}
+type AvatarRPCCall = any => Promise<any>
+type AvatarHelperAction = {payload: {rpc_call: AvatarRPCCall, names: Array<string>}}
 function _loadAvatarHelper(action: AvatarHelperAction) {
-  const {names} = action.payload
-  return Saga.call(RPCTypes.avatarsLoadUserAvatarsRpcPromise, {
-    usernames: names,
+  const {rpc_call, names} = action.payload
+  return Saga.call(rpc_call, {
+    names,
     formats: ['square_200', 'square_360', 'square_40'],
   })
 }
@@ -262,7 +263,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
 
     if (names.length) {
       yield Saga.put({
-        payload: {names},
+        payload: {rpc_call: RPCTypes.avatarsLoadUserAvatarsRpcPromise, names},
         type: '_loadAvatarHelper',
       })
     }
@@ -283,7 +284,7 @@ function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
 
     if (names.length) {
       yield Saga.put({
-        payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
+        payload: {rpc_call: RPCTypes.avatarsLoadTeamAvatarsRpcPromise, names},
         type: '_loadAvatarHelper',
       })
     }
