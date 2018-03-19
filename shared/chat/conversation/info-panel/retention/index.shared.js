@@ -1,21 +1,22 @@
 // @flow
 import {compose, withProps} from '../../../../util/container'
-import type {Props, RetentionPolicy} from './'
+import type {RetentionPolicy} from '../../../../constants/types/teams'
+import type {Props} from './'
 
-const daysToItem = (days: number) => {
+const daysToItem = (days: number | 'retain') => {
   let label = ''
-  if (days > 0) {
+  if (days === 'retain') {
+    label = 'Keep forever'
+  } else if (days > 0) {
     label = `${days} day`
     if (days > 1) {
       label += 's'
     }
-  } else {
-    label = 'Keep forever'
   }
   return {label, value: days}
 }
 
-const items = [1, 7, 30, 90, 365, -1].map(daysToItem)
+const items = [1, 7, 30, 90, 365, 'retain'].map(daysToItem)
 const policyToDays = (policy: RetentionPolicy, parent?: RetentionPolicy) => {
   switch (policy.type) {
     case 'inherit':
@@ -24,8 +25,10 @@ const policyToDays = (policy: RetentionPolicy, parent?: RetentionPolicy) => {
       } else {
         throw new Error(`RetentionPicker: Got policy of type 'inherit' without an inheritable policy`)
       }
-    case 'custom':
+    case 'expire':
       return policy.days
+    case 'retain':
+      return 'retain'
   }
   return 0
 }

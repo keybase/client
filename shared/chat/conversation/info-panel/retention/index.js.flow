@@ -1,16 +1,8 @@
 // @flow
 import * as React from 'react'
+import type {RetentionPolicy} from '../../../../constants/types/teams'
 
 type Item = {label: string, value: number}
-
-export type RetentionPolicy =
-  | {
-      type: 'inherit',
-    }
-  | {
-      type: 'custom',
-      days: number,
-    }
 
 export type Props = {
   policy: RetentionPolicy,

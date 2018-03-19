@@ -56,6 +56,11 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
   joinAs: 1,
 })
 
+export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Record({
+  type: 'retain',
+  days: 0,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
   convIDToChannelInfo: I.Map(),
@@ -77,6 +82,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToResetUsers: I.Map(),
+  teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
   teamNameToSubteams: I.Map(),
   teamNameToCanPerform: I.Map(),
