@@ -186,9 +186,9 @@ export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, r
 
 export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
-export const avatarsLoadUserAvatarsByUsernameRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadUserAvatarsByUsernameRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadUserAvatarsByUsername', request)
+export const avatarsLoadUserAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadUserAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadUserAvatars', request)
 
-export const avatarsLoadUserAvatarsByUsernameRpcPromise = (request: AvatarsLoadUserAvatarsByUsernameRpcParam): Promise<AvatarsLoadUserAvatarsByUsernameResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatarsByUsername', request, (error: RPCError, result: AvatarsLoadUserAvatarsByUsernameResult) => (error ? reject(error) : resolve(result))))
+export const avatarsLoadUserAvatarsRpcPromise = (request: AvatarsLoadUserAvatarsRpcParam): Promise<AvatarsLoadUserAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatars', request, (error: RPCError, result: AvatarsLoadUserAvatarsResult) => (error ? reject(error) : resolve(result))))
 
 export const backendCommonBlockType = {
   data: 0,
@@ -1965,7 +1965,11 @@ export type AsyncOps =
   | 5 // MOVE_5
   | 6 // REMOVE_6
 
-export type AvatarsLoadUserAvatarsByUsernameRpcParam = $ReadOnly<{usernames?: ?Array<String>, formats?: ?Array<Format>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AvatarFormat = String
+
+export type AvatarUrl = String
+
+export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{usernames?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2315,8 +2319,6 @@ export type ForkType =
   | 3 // LAUNCHD_3
   | 4 // SYSTEMD_4
 
-export type Format = String
-
 export type FsListRpcParam = $ReadOnly<{path: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type FullName = String
@@ -2664,7 +2666,7 @@ export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
 export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean}>
 
-export type LoadUserAvatarsByUsernameRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: Url}}}>
+export type LoadUserAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
 
 export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
 
@@ -3948,8 +3950,6 @@ export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResu
 
 export type UnixTime = Long
 
-export type Url = String
-
 export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
@@ -4048,7 +4048,7 @@ type ApiserverGetResult = APIRes
 type ApiserverGetWithSessionResult = APIRes
 type ApiserverPostJSONResult = APIRes
 type ApiserverPostResult = APIRes
-type AvatarsLoadUserAvatarsByUsernameResult = LoadUserAvatarsByUsernameRes
+type AvatarsLoadUserAvatarsResult = LoadUserAvatarsRes
 type BadgerGetBadgeStateResult = BadgeState
 type BlockArchiveReferenceResult = ?Array<BlockReference>
 type BlockArchiveReferenceWithCountResult = DowngradeReferenceRes

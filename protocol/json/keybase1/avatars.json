@@ -9,27 +9,27 @@
   "types": [
     {
       "type": "record",
-      "name": "Url",
+      "name": "AvatarUrl",
       "fields": [],
       "typedef": "string"
     },
     {
       "type": "record",
-      "name": "Format",
+      "name": "AvatarFormat",
       "fields": [],
       "typedef": "string"
     },
     {
       "type": "record",
-      "name": "LoadUserAvatarsByUsernameRes",
+      "name": "LoadUserAvatarsRes",
       "fields": [
         {
           "type": {
             "type": "map",
             "values": {
               "type": "map",
-              "values": "Url",
-              "keys": "Format"
+              "values": "AvatarUrl",
+              "keys": "AvatarFormat"
             },
             "keys": "string"
           },
@@ -39,7 +39,7 @@
     }
   ],
   "messages": {
-    "loadUserAvatarsByUsername": {
+    "loadUserAvatars": {
       "request": [
         {
           "name": "usernames",
@@ -52,11 +52,11 @@
           "name": "formats",
           "type": {
             "type": "array",
-            "items": "Format"
+            "items": "AvatarFormat"
           }
         }
       ],
-      "response": "LoadUserAvatarsByUsernameRes"
+      "response": "LoadUserAvatarsRes"
     }
   },
   "namespace": "keybase.1"

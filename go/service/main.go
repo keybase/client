@@ -17,6 +17,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
@@ -304,6 +305,11 @@ func (d *Service) setupTeams() error {
 
 func (d *Service) setupPVL() error {
 	pvlsource.NewPvlSourceAndInstall(d.G())
+	return nil
+}
+
+func (d *Service) setupAvatars() error {
+	d.G().AvatarSource = avatars.NewSimpleSource(d.G())
 	return nil
 }
 

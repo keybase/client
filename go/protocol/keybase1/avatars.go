@@ -8,36 +8,36 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Url string
+type AvatarUrl string
 
-func (o Url) DeepCopy() Url {
+func (o AvatarUrl) DeepCopy() AvatarUrl {
 	return o
 }
 
-type Format string
+type AvatarFormat string
 
-func (o Format) DeepCopy() Format {
+func (o AvatarFormat) DeepCopy() AvatarFormat {
 	return o
 }
 
-type LoadUserAvatarsByUsernameRes struct {
-	Picmap map[string]map[Format]Url `codec:"picmap" json:"picmap"`
+type LoadUserAvatarsRes struct {
+	Picmap map[string]map[AvatarFormat]AvatarUrl `codec:"picmap" json:"picmap"`
 }
 
-func (o LoadUserAvatarsByUsernameRes) DeepCopy() LoadUserAvatarsByUsernameRes {
-	return LoadUserAvatarsByUsernameRes{
-		Picmap: (func(x map[string]map[Format]Url) map[string]map[Format]Url {
+func (o LoadUserAvatarsRes) DeepCopy() LoadUserAvatarsRes {
+	return LoadUserAvatarsRes{
+		Picmap: (func(x map[string]map[AvatarFormat]AvatarUrl) map[string]map[AvatarFormat]AvatarUrl {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[string]map[Format]Url)
+			ret := make(map[string]map[AvatarFormat]AvatarUrl)
 			for k, v := range x {
 				kCopy := k
-				vCopy := (func(x map[Format]Url) map[Format]Url {
+				vCopy := (func(x map[AvatarFormat]AvatarUrl) map[AvatarFormat]AvatarUrl {
 					if x == nil {
 						return nil
 					}
-					ret := make(map[Format]Url)
+					ret := make(map[AvatarFormat]AvatarUrl)
 					for k, v := range x {
 						kCopy := k.DeepCopy()
 						vCopy := v.DeepCopy()
@@ -52,31 +52,31 @@ func (o LoadUserAvatarsByUsernameRes) DeepCopy() LoadUserAvatarsByUsernameRes {
 	}
 }
 
-type LoadUserAvatarsByUsernameArg struct {
-	Usernames []string `codec:"usernames" json:"usernames"`
-	Formats   []Format `codec:"formats" json:"formats"`
+type LoadUserAvatarsArg struct {
+	Usernames []string       `codec:"usernames" json:"usernames"`
+	Formats   []AvatarFormat `codec:"formats" json:"formats"`
 }
 
 type AvatarsInterface interface {
-	LoadUserAvatarsByUsername(context.Context, LoadUserAvatarsByUsernameArg) (LoadUserAvatarsByUsernameRes, error)
+	LoadUserAvatars(context.Context, LoadUserAvatarsArg) (LoadUserAvatarsRes, error)
 }
 
 func AvatarsProtocol(i AvatarsInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.avatars",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"loadUserAvatarsByUsername": {
+			"loadUserAvatars": {
 				MakeArg: func() interface{} {
-					ret := make([]LoadUserAvatarsByUsernameArg, 1)
+					ret := make([]LoadUserAvatarsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]LoadUserAvatarsByUsernameArg)
+					typedArgs, ok := args.(*[]LoadUserAvatarsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]LoadUserAvatarsByUsernameArg)(nil), args)
+						err = rpc.NewTypeError((*[]LoadUserAvatarsArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUserAvatarsByUsername(ctx, (*typedArgs)[0])
+					ret, err = i.LoadUserAvatars(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -89,7 +89,7 @@ type AvatarsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c AvatarsClient) LoadUserAvatarsByUsername(ctx context.Context, __arg LoadUserAvatarsByUsernameArg) (res LoadUserAvatarsByUsernameRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.avatars.loadUserAvatarsByUsername", []interface{}{__arg}, &res)
+func (c AvatarsClient) LoadUserAvatars(ctx context.Context, __arg LoadUserAvatarsArg) (res LoadUserAvatarsRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.avatars.loadUserAvatars", []interface{}{__arg}, &res)
 	return
 }

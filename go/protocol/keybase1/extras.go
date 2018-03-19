@@ -2361,3 +2361,7 @@ func (s StellarBundle) CheckInvariants() error {
 	}
 	return nil
 }
+
+func (f AvatarFormat) String() string {
+	return string(f)
+}

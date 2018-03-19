@@ -64,6 +64,7 @@ type GlobalContext struct {
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
+	AvatarSource     AvatarSource         // load user avatar urls
 
 	cacheMu         *sync.RWMutex   // protects all caches
 	ProofCache      *ProofCache     // where to cache proof results
@@ -218,6 +219,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
+
 	return g
 }
 

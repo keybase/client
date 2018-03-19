@@ -2,12 +2,12 @@
 protocol avatars {
     import idl "common.avdl";
 
-    @typedef("string") record Url {}
-    @typedef("string") record Format {}
+    @typedef("string") record AvatarUrl {}
+    @typedef("string") record AvatarFormat {}
 
-    record LoadUserAvatarsByUsernameRes {
-        map<string, map<Format, Url>> picmap;
+    record LoadUserAvatarsRes {
+        map<string, map<AvatarFormat, AvatarUrl>> picmap;
     }
 
-    LoadUserAvatarsByUsernameRes loadUserAvatarsByUsername(array<string> usernames, array<Format> formats);
+    LoadUserAvatarsRes loadUserAvatars(array<string> usernames, array<AvatarFormat> formats);
 }
