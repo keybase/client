@@ -199,6 +199,8 @@ const (
 	DBChatBodyHashIndex        = 0xfc
 	DBPvl                      = 0xfd
 	DBChatConvFailures         = 0xfe
+	DBUserEKBox                = 0xff
+	DBTeamEKBox                = 0xff // TODO what should we use here?
 )
 
 const (

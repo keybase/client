@@ -30,18 +30,14 @@ func (o DeviceEkMetadata) DeepCopy() DeviceEkMetadata {
 }
 
 type DeviceEk struct {
-	Seed       Bytes32      `codec:"seed" json:"seed"`
-	Generation EkGeneration `codec:"generation" json:"generation"`
-	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
-	Ctime      Time         `codec:"ctime" json:"ctime"`
+	Seed     Bytes32          `codec:"seed" json:"seed"`
+	Metadata DeviceEkMetadata `codec:"metadata" json:"metadata"`
 }
 
 func (o DeviceEk) DeepCopy() DeviceEk {
 	return DeviceEk{
-		Seed:       o.Seed.DeepCopy(),
-		Generation: o.Generation.DeepCopy(),
-		HashMeta:   o.HashMeta.DeepCopy(),
-		Ctime:      o.Ctime.DeepCopy(),
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
 	}
 }
 
@@ -61,19 +57,71 @@ func (o UserEkMetadata) DeepCopy() UserEkMetadata {
 	}
 }
 
+type UserEkBoxed struct {
+	Box                string         `codec:"box" json:"box"`
+	DeviceEkGeneration EkGeneration   `codec:"deviceEkGeneration" json:"device_ek_generation"`
+	Metadata           UserEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o UserEkBoxed) DeepCopy() UserEkBoxed {
+	return UserEkBoxed{
+		Box:                o.Box,
+		DeviceEkGeneration: o.DeviceEkGeneration.DeepCopy(),
+		Metadata:           o.Metadata.DeepCopy(),
+	}
+}
+
 type UserEk struct {
-	Seed       Bytes32      `codec:"seed" json:"seed"`
-	Generation EkGeneration `codec:"generation" json:"generation"`
-	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
-	Ctime      Time         `codec:"ctime" json:"ctime"`
+	Seed     Bytes32        `codec:"seed" json:"seed"`
+	Metadata UserEkMetadata `codec:"metadata" json:"metadata"`
 }
 
 func (o UserEk) DeepCopy() UserEk {
 	return UserEk{
-		Seed:       o.Seed.DeepCopy(),
-		Generation: o.Generation.DeepCopy(),
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type TeamEkMetadata struct {
+	Kid        KID          `codec:"kid" json:"team_ephemeral_dh_public"`
+	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
+	Generation EkGeneration `codec:"generation" json:"generation"`
+	Ctime      Time         `codec:"ctime" json:"ctime"`
+}
+
+func (o TeamEkMetadata) DeepCopy() TeamEkMetadata {
+	return TeamEkMetadata{
+		Kid:        o.Kid.DeepCopy(),
 		HashMeta:   o.HashMeta.DeepCopy(),
+		Generation: o.Generation.DeepCopy(),
 		Ctime:      o.Ctime.DeepCopy(),
+	}
+}
+
+type TeamEkBoxed struct {
+	Box              string         `codec:"box" json:"box"`
+	UserEkGeneration EkGeneration   `codec:"userEkGeneration" json:"user_ek_generation"`
+	Metadata         TeamEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeamEkBoxed) DeepCopy() TeamEkBoxed {
+	return TeamEkBoxed{
+		Box:              o.Box,
+		UserEkGeneration: o.UserEkGeneration.DeepCopy(),
+		Metadata:         o.Metadata.DeepCopy(),
+	}
+}
+
+type TeamEk struct {
+	Seed     Bytes32        `codec:"seed" json:"seed"`
+	Metadata TeamEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeamEk) DeepCopy() TeamEk {
+	return TeamEk{
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
 	}
 }
 

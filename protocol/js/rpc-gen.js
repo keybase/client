@@ -2172,7 +2172,7 @@ export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: Inco
 
 export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time}>
+export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
@@ -3661,6 +3661,12 @@ export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 
+export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
+
+export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
+
+export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type TeamEncryptedKBFSKeysetHash = String
@@ -3942,7 +3948,9 @@ export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
-export type UserEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time}>
+export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
+
+export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 

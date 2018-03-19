@@ -47,17 +47,8 @@
           "name": "seed"
         },
         {
-          "type": "EkGeneration",
-          "name": "generation"
-        },
-        {
-          "type": "HashMeta",
-          "name": "hashMeta",
-          "jsonkey": "hash_meta"
-        },
-        {
-          "type": "Time",
-          "name": "ctime"
+          "type": "DeviceEkMetadata",
+          "name": "metadata"
         }
       ]
     },
@@ -87,6 +78,25 @@
     },
     {
       "type": "record",
+      "name": "UserEkBoxed",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "deviceEkGeneration",
+          "jsonkey": "device_ek_generation"
+        },
+        {
+          "type": "UserEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserEk",
       "fields": [
         {
@@ -94,8 +104,19 @@
           "name": "seed"
         },
         {
-          "type": "EkGeneration",
-          "name": "generation"
+          "type": "UserEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkMetadata",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid",
+          "jsonkey": "team_ephemeral_dh_public"
         },
         {
           "type": "HashMeta",
@@ -103,8 +124,45 @@
           "jsonkey": "hash_meta"
         },
         {
+          "type": "EkGeneration",
+          "name": "generation"
+        },
+        {
           "type": "Time",
           "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkBoxed",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "userEkGeneration",
+          "jsonkey": "user_ek_generation"
+        },
+        {
+          "type": "TeamEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEk",
+      "fields": [
+        {
+          "type": "Bytes32",
+          "name": "seed"
+        },
+        {
+          "type": "TeamEkMetadata",
+          "name": "metadata"
         }
       ]
     }

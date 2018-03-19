@@ -19,7 +19,7 @@ func TestNewDeviceEK(t *testing.T) {
 	publishedMetadata, err := PublishNewDeviceEK(context.Background(), tc.G)
 	require.NoError(t, err)
 
-	fetchedDevices, err := GetOwnActiveDeviceEKMetadata(context.Background(), tc.G)
+	fetchedDevices, err := GetActiveDeviceEKMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(fetchedDevices))
