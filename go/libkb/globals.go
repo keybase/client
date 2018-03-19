@@ -218,6 +218,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
+
 	return g
 }
 

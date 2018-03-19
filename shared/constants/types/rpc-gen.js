@@ -186,6 +186,14 @@ export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, r
 
 export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const avatarsLoadTeamAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadTeamAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadTeamAvatars', request)
+
+export const avatarsLoadTeamAvatarsRpcPromise = (request: AvatarsLoadTeamAvatarsRpcParam): Promise<AvatarsLoadTeamAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadTeamAvatars', request, (error: RPCError, result: AvatarsLoadTeamAvatarsResult) => (error ? reject(error) : resolve(result))))
+
+export const avatarsLoadUserAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadUserAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadUserAvatars', request)
+
+export const avatarsLoadUserAvatarsRpcPromise = (request: AvatarsLoadUserAvatarsRpcParam): Promise<AvatarsLoadUserAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatars', request, (error: RPCError, result: AvatarsLoadUserAvatarsResult) => (error ? reject(error) : resolve(result))))
+
 export const backendCommonBlockType = {
   data: 0,
   md: 1,
@@ -1961,6 +1969,14 @@ export type AsyncOps =
   | 5 // MOVE_5
   | 6 // REMOVE_6
 
+export type AvatarFormat = String
+
+export type AvatarUrl = String
+
+export type AvatarsLoadTeamAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
@@ -2651,6 +2667,8 @@ export type LinkID = String
 export type ListArgs = $ReadOnly<{opID: OpID, path: Path}>
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
+
+export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
 
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
@@ -4036,6 +4054,8 @@ type ApiserverGetResult = APIRes
 type ApiserverGetWithSessionResult = APIRes
 type ApiserverPostJSONResult = APIRes
 type ApiserverPostResult = APIRes
+type AvatarsLoadTeamAvatarsResult = LoadAvatarsRes
+type AvatarsLoadUserAvatarsResult = LoadAvatarsRes
 type BadgerGetBadgeStateResult = BadgeState
 type BlockArchiveReferenceResult = ?Array<BlockReference>
 type BlockArchiveReferenceWithCountResult = DowngradeReferenceRes
