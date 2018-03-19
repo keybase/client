@@ -20,12 +20,12 @@ func (o AvatarFormat) DeepCopy() AvatarFormat {
 	return o
 }
 
-type LoadUserAvatarsRes struct {
+type LoadAvatarsRes struct {
 	Picmap map[string]map[AvatarFormat]AvatarUrl `codec:"picmap" json:"picmap"`
 }
 
-func (o LoadUserAvatarsRes) DeepCopy() LoadUserAvatarsRes {
-	return LoadUserAvatarsRes{
+func (o LoadAvatarsRes) DeepCopy() LoadAvatarsRes {
+	return LoadAvatarsRes{
 		Picmap: (func(x map[string]map[AvatarFormat]AvatarUrl) map[string]map[AvatarFormat]AvatarUrl {
 			if x == nil {
 				return nil
@@ -63,8 +63,8 @@ type LoadTeamAvatarsArg struct {
 }
 
 type AvatarsInterface interface {
-	LoadUserAvatars(context.Context, LoadUserAvatarsArg) (LoadUserAvatarsRes, error)
-	LoadTeamAvatars(context.Context, LoadTeamAvatarsArg) (LoadUserAvatarsRes, error)
+	LoadUserAvatars(context.Context, LoadUserAvatarsArg) (LoadAvatarsRes, error)
+	LoadTeamAvatars(context.Context, LoadTeamAvatarsArg) (LoadAvatarsRes, error)
 }
 
 func AvatarsProtocol(i AvatarsInterface) rpc.Protocol {
@@ -111,12 +111,12 @@ type AvatarsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c AvatarsClient) LoadUserAvatars(ctx context.Context, __arg LoadUserAvatarsArg) (res LoadUserAvatarsRes, err error) {
+func (c AvatarsClient) LoadUserAvatars(ctx context.Context, __arg LoadUserAvatarsArg) (res LoadAvatarsRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.avatars.loadUserAvatars", []interface{}{__arg}, &res)
 	return
 }
 
-func (c AvatarsClient) LoadTeamAvatars(ctx context.Context, __arg LoadTeamAvatarsArg) (res LoadUserAvatarsRes, err error) {
+func (c AvatarsClient) LoadTeamAvatars(ctx context.Context, __arg LoadTeamAvatarsArg) (res LoadAvatarsRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.avatars.loadTeamAvatars", []interface{}{__arg}, &res)
 	return
 }

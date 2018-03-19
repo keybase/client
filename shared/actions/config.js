@@ -231,7 +231,7 @@ function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
   // ignore all other errors
 }
 
-function _loadAvatarHelperSuccess(resp: RPCTypes.LoadUserAvatarsRes) {
+function _loadAvatarHelperSuccess(resp: RPCTypes.LoadAvatarsRes) {
   const nameToUrlMap = {}
   Object.keys(resp.picmap).forEach(function(v) {
     const urlMap = {

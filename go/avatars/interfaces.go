@@ -8,7 +8,8 @@ import (
 )
 
 type Source interface {
-	LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (keybase1.LoadUserAvatarsRes, error)
+	LoadUsers(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	LoadTeams(context.Context, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
 }
 
 func CreateSourceFromEnv(g *libkb.GlobalContext) Source {

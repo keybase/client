@@ -23,6 +23,10 @@ func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source avatars
 
 var _ keybase1.AvatarsInterface = (*AvatarHandler)(nil)
 
-func (h *AvatarHandler) LoadUserAvatars(ctx context.Context, arg keybase1.LoadUserAvatarsArg) (keybase1.LoadUserAvatarsRes, error) {
-	return h.source.LoadUsers(ctx, arg.Usernames, arg.Formats)
+func (h *AvatarHandler) LoadUserAvatars(ctx context.Context, arg keybase1.LoadUserAvatarsArg) (keybase1.LoadAvatarsRes, error) {
+	return h.source.LoadUsers(ctx, arg.Names, arg.Formats)
+}
+
+func (h *AvatarHandler) LoadTeamAvatars(ctx context.Context, arg keybase1.LoadTeamAvatarsArg) (keybase1.LoadAvatarsRes, error) {
+	return h.source.LoadTeams(ctx, arg.Names, arg.Formats)
 }

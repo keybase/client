@@ -2668,11 +2668,11 @@ export type ListArgs = $ReadOnly<{opID: OpID, path: Path}>
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 
+export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
+
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
 export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean}>
-
-export type LoadUserAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
 
 export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
 
@@ -4054,8 +4054,8 @@ type ApiserverGetResult = APIRes
 type ApiserverGetWithSessionResult = APIRes
 type ApiserverPostJSONResult = APIRes
 type ApiserverPostResult = APIRes
-type AvatarsLoadTeamAvatarsResult = LoadUserAvatarsRes
-type AvatarsLoadUserAvatarsResult = LoadUserAvatarsRes
+type AvatarsLoadTeamAvatarsResult = LoadAvatarsRes
+type AvatarsLoadUserAvatarsResult = LoadAvatarsRes
 type BadgerGetBadgeStateResult = BadgeState
 type BlockArchiveReferenceResult = ?Array<BlockReference>
 type BlockArchiveReferenceWithCountResult = DowngradeReferenceRes

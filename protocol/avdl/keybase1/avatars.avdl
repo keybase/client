@@ -5,10 +5,10 @@ protocol avatars {
     @typedef("string") record AvatarUrl {}
     @typedef("string") record AvatarFormat {}
 
-    record LoadUserAvatarsRes {
+    record LoadAvatarsRes {
         map<string, map<AvatarFormat, AvatarUrl>> picmap;
     }
 
-    LoadUserAvatarsRes loadUserAvatars(array<string> names, array<AvatarFormat> formats);
-    LoadUserAvatarsRes loadTeamAvatars(array<string> names, array<AvatarFormat> formats);
+    LoadAvatarsRes loadUserAvatars(array<string> names, array<AvatarFormat> formats);
+    LoadAvatarsRes loadTeamAvatars(array<string> names, array<AvatarFormat> formats);
 }
