@@ -60,7 +60,7 @@ const EditedMark = () => (
 
 const Failure = ({failureDescription, onEdit, onRetry}) => {
   const error = `${failureDescription}. `
-  const resolveByEdit = failureDescription === 'message is too long'
+  const resolveByEdit = failureDescription === 'Failed to send: message is too long'
   return (
     <Text type="BodySmall">
       <Text type="BodySmall" style={styles.fail}>

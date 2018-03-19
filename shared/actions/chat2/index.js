@@ -498,6 +498,16 @@ const setupChatHandlers = () => {
             : null
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
+        case RPCChatTypes.notifyChatChatActivityType.expunge:
+          const expungeInfo: ?RPCChatTypes.ExpungeInfo = activity.expunge
+          return expungeInfo
+            ? [
+                Chat2Gen.createMessagesWereDeleted({
+                  conversationIDKey: Types.conversationIDToKey(expungeInfo.convID),
+                  upToMessageID: expungeInfo.expunge.upto,
+                }),
+              ]
+            : null
         default:
           break
       }
