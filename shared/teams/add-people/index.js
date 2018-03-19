@@ -39,6 +39,7 @@ type Props = {
   onRoleChange: (role: TeamRoleType) => void,
   name: string,
   role: TeamRoleType,
+  showSearchPending: boolean,
   sendNotification: boolean,
   setSendNotification: (sendNotification: boolean) => void,
 }
