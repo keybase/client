@@ -165,7 +165,7 @@ export const createDesktopNotification = (
     body: string,
   }>
 ) => ({error: false, payload, type: desktopNotification})
-export const createExitSearch = () => ({error: false, payload: undefined, type: exitSearch})
+export const createExitSearch = (payload: $ReadOnly<{canceled: boolean}>) => ({error: false, payload, type: exitSearch})
 export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
@@ -314,7 +314,7 @@ export const createResetLetThemIn = (
 export const createSelectConversation = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxSmall' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+    reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
   }>
 ) => ({error: false, payload, type: selectConversation})
 export const createSendToPendingConversation = (

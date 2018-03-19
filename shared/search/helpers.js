@@ -33,7 +33,9 @@ type OutProps = {
 }
 */
 const clearSearchHoc = withHandlers({
-  onClearSearch: ({onExitSearch}) => () => onExitSearch(),
+  // use existing onClearSearch if exists. TODO change how this whole thing works. so confusing
+  onClearSearch: ({onExitSearch, onClearSearch}) =>
+    onClearSearch ? () => onClearSearch() : () => onExitSearch(),
 })
 
 type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}

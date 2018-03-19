@@ -6,48 +6,74 @@ protocol stellar {
   @typedef("string") record StellarAccountID {}
   @typedef("string") record StellarSecretKey {}
   @typedef("uint64") @lint("ignore") record StellarRevision {}
+  @typedef("bytes")  record Hash {}
 
   // The same format as in chat1.EncryptedData (and KBFS, Git)
-  record EncryptedStellarSecretBundle {
+  record EncryptedStellarBundle {
     int   v;                  // version = 1
-    bytes e;                  // encrypted msgpacked StellarSecretBundleVersioned (output of secretbox)
+    bytes e;                  // encrypted msgpacked StellarBundleSecretVersioned (output of secretbox)
     BoxNonce n;               // nonce
     PerUserKeyGeneration gen; // PUK generation that was used
   }
 
-  enum StellarSecretBundleVersion {
+  enum StellarBundleVersion {
     V1_1
   }
 
-  variant StellarSecretBundleVersioned switch (StellarSecretBundleVersion version) {
-    case V1 : StellarSecretBundleV1;
+  variant StellarBundleSecretVersioned switch (StellarBundleVersion version) {
+    case V1 : StellarBundleSecretV1;
   }
 
-  record StellarSecretBundleV1 {
+  // There is no versioned form of BundleVisible because it is versioned
+  // by BundleSecret's version field.
+  record StellarBundleVisibleV1 {
     StellarRevision revision;
-    array<StellarSecretEntry> accounts;
+    Hash prev; // SHA256 of previous msgpack(EncryptedStellarBundle)
+    array<StellarVisibleEntry> accounts;
   }
 
-  // Unversioned struct for local use only.
-  record StellarSecretBundle {
-    StellarRevision revision;
-    // AccountID and name should be unique.
-    // At most one account should be primary.
+  record StellarBundleSecretV1 {
+    Hash visibleHash; // SHA256 of msgpack(StellarBundleVisibleV1)
     array<StellarSecretEntry> accounts;
   }
 
   enum StellarAccountMode {
-    USER_0 // Each of the user's devices has access to the keys
+    NONE_0,
+    USER_1 // Each of the user's devices has access to the keys
   }
 
-  // One stellar account.
-  // In both StellarSecretBundle{Versioned}, so may need to split
-  // when making protocol changes.
-  record StellarSecretEntry {
+  // Server-visible attributes of an account.
+  record StellarVisibleEntry {
     StellarAccountID accountID;
     StellarAccountMode mode;
-    array<StellarSecretKey> signers;
     boolean isPrimary; // whether this is the primary account (public)
+  }
+
+  // Secret attributes of an account.
+  record StellarSecretEntry {
+    StellarAccountID accountID;
+    array<StellarSecretKey> signers;
+    string name;
+  }
+
+  // Unversioned struct for local use only.
+  record StellarBundle {
+    StellarRevision revision;
+    Hash prev;
+    // SHA256 of this msgpack(EncryptedStellarBundle)
+    // Not serialized. Only set if this bundle was decrypted.
+    Hash ownHash;
+    // AccountID and name should be unique.
+    // At most one account should be primary.
+    array<StellarEntry> accounts;
+  }
+
+  // Combined stellar entry for local use only.
+  record StellarEntry {
+    StellarAccountID accountID;
+    StellarAccountMode mode;
+    boolean isPrimary; // whether this is the primary account
+    array<StellarSecretKey> signers;
     string name;
   }
 
