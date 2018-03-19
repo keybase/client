@@ -155,6 +155,8 @@ func (d *ImpatientDebugDumper) dump(ctx context.Context) {
 			"to read as a Homosapien.", buf.String())
 }
 
+// ForceDump dumps all debug info to the log, if it hasn't done so
+// recently according to the rate-limiter.
 func (d *ImpatientDebugDumper) ForceDump(ctx context.Context) {
 	d.dump(ctx)
 }
