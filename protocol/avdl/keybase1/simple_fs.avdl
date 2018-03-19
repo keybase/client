@@ -251,4 +251,9 @@ protocol SimpleFS {
    Blocking wait for the pending operation to finish
    */
   void simpleFSWait(OpID opID);
+
+  /**
+   Instructs KBFS to dump debugging info into its logs.
+   */
+  void simpleFSDumpDebuggingInfo();
 }
