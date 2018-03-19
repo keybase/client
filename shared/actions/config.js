@@ -215,13 +215,15 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-type AvatarRPCCall = any => Promise<any>
-type AvatarHelperAction = {payload: {rpc_call: AvatarRPCCall, names: Array<string>}}
+type AvatarHelperAction = {payload: {type: 'user' | 'team', names: Array<string>}}
+
 function _loadAvatarHelper(action: AvatarHelperAction) {
-  const {rpc_call, names} = action.payload
-  return Saga.call(rpc_call, {
-    names,
+  const {type, names} = action.payload
+  const call =
+    type === 'user' ? RPCTypes.avatarsLoadUserAvatarsRpcPromise : RPCTypes.avatarsLoadTeamAvatarsRpcPromise
+  return Saga.call(call, {
     formats: ['square_200', 'square_360', 'square_40'],
+    names,
   })
 }
 
@@ -233,15 +235,16 @@ function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
 }
 
 function _loadAvatarHelperSuccess(resp: RPCTypes.LoadAvatarsRes) {
-  const nameToUrlMap = {}
-  Object.keys(resp.picmap).forEach(function(v) {
-    const urlMap = {
-      ...(resp.picmap[v]['square_200'] ? {'200': resp.picmap[v]['square_200']} : null),
-      ...(resp.picmap[v]['square_360'] ? {'360': resp.picmap[v]['square_360']} : null),
-      ...(resp.picmap[v]['square_40'] ? {'40': resp.picmap[v]['square_40']} : null),
+  const pm = resp.picmap
+  const nameToUrlMap = Object.keys(pm).reduce(function(map, u) {
+    const user = pm[u]
+    map[u] = {
+      ...(user['square_200'] ? {'200': user['square_200']} : {}),
+      ...(user['square_360'] ? {'360': user['square_360']} : {}),
+      ...(user['square_40'] ? {'40': user['square_40']} : {}),
     }
-    nameToUrlMap[v] = urlMap
-  })
+    return map
+  }, {})
   return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
 }
 
@@ -262,10 +265,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
     _avatarsToLoad = _avatarsToLoad.skip(maxAvatarsPerLoad)
 
     if (names.length) {
-      yield Saga.put({
-        payload: {rpc_call: RPCTypes.avatarsLoadUserAvatarsRpcPromise, names},
-        type: '_loadAvatarHelper',
-      })
+      yield Saga.put({payload: {names, type: 'user'}, type: '_loadAvatarHelper'})
     }
   }
 }
@@ -283,10 +283,7 @@ function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
     _teamAvatarsToLoad = _teamAvatarsToLoad.skip(maxAvatarsPerLoad)
 
     if (names.length) {
-      yield Saga.put({
-        payload: {rpc_call: RPCTypes.avatarsLoadTeamAvatarsRpcPromise, names},
-        type: '_loadAvatarHelper',
-      })
+      yield Saga.put({payload: {names, type: 'team'}, type: '_loadAvatarHelper'})
     }
   }
 }
