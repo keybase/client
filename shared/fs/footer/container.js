@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
 import Footer, {type FooterProps} from './footer'
 import * as FsGen from '../../actions/fs-gen'
@@ -20,7 +21,7 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
       .map(([key, transferState]) => ({
         filename: Types.getLocalPathName(transferState.localPath),
         completePortion: transferState.completePortion,
-        progressText: Math.round((1 - transferState.completePortion) * 4).toString() + ' s', // TODO: fix this when we have real estimate
+        progressText: Constants.formatDurationFromNowTo(transferState.endEstimate),
         isDone: transferState.isDone,
         open: transferState.isDone ? () => opener(transferState.localPath) : undefined,
         dismiss: () => dismisser(key),

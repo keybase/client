@@ -65,6 +65,7 @@ export type _TransferState = {
   path: Path,
   localPath: LocalPath,
   completePortion: number,
+  endEstimate?: number,
   error?: string,
   isDone: boolean,
   startedAt: number,

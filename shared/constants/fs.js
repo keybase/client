@@ -6,6 +6,7 @@ import {globalColors} from '../styles'
 import {downloadFilePath} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
 import memoize from 'lodash/memoize'
+import moment from 'moment'
 
 export const defaultPath = '/keybase'
 
@@ -59,6 +60,7 @@ export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record
   path: Types.stringToPath(''),
   localPath: '',
   completePortion: 0,
+  endEstimate: undefined,
   error: undefined,
   isDone: false,
   startedAt: 0,
@@ -226,3 +228,17 @@ export const makeDownloadKey = (path: Types.Path, localPath: string) =>
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
+
+export const formatDurationFromNowTo = (timeInFuture?: number): string => {
+  if (!timeInFuture) {
+    return '? s'
+  }
+  const d = moment.duration(-moment().diff(timeInFuture))
+  if (d.hours()) {
+    return `${d.hours()} hr`
+  } else if (d.minutes()) {
+    return `${d.minutes()} min`
+  } else {
+    return `${d.seconds()} s`
+  }
+}

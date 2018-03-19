@@ -53,6 +53,7 @@ export const createFileTransferProgress = (
   payload: $ReadOnly<{
     key: string,
     completePortion: number,
+    endEstimate?: number,
   }>
 ) => ({error: false, payload, type: fileTransferProgress})
 export const createFolderListLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: folderListLoad})

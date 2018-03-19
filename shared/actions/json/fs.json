@@ -29,7 +29,8 @@
     },
     "fileTransferProgress": {
       "key": "string",
-      "completePortion": "number"
+      "completePortion": "number",
+      "endEstimate?": "number"
     },
     "dismissTransfer": {
       "key": "string"

@@ -96,13 +96,18 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
   })
 
-  // Fake out progress until we have the real thing.
-  // TODO: have the real thing.
-  const total = 6
-  for (let progress = 0; progress < total - 1; ++progress) {
+  let completePortion = 0
+  while (completePortion < 1) {
     yield Saga.delay(500)
-    yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
-    yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: progress / total}))
+    const progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    completePortion = progress.bytesWritten / progress.bytesTotal
+    yield Saga.put(
+      FsGen.createFileTransferProgress({
+        key,
+        endEstimate: progress.endEstimate,
+        completePortion,
+      })
+    )
   }
 
   let error
