@@ -2182,7 +2182,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType}>
+export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User}>
 
 export type DirentType =
   | 0 // FILE_0

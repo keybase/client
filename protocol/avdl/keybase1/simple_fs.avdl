@@ -49,7 +49,11 @@ protocol SimpleFS {
     int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
     string name;
     DirentType direntType;
-  }
+    // The last writer of this directory entry.  NOTE: this is NOT
+    // cryptographically verified; users with write access to the TLF could
+    // in theory spoof the last writer if they modify their client.
+    User lastWriterUnverified;
+}
 
   @typedef("int")
   record ErrorNum {}
