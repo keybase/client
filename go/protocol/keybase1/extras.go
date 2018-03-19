@@ -2275,6 +2275,13 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	if req.CompletedInvites == nil {
+		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
+	}
+	req.CompletedInvites[inviteID] = uv
+}
+
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
