@@ -9,7 +9,12 @@ import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
 import {connect, type Dispatch} from '../util/container'
 
-import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
+import type {
+  Position,
+  RelativePopupHocType,
+  RelativePopupProps,
+  ModalPositionRelativeProps,
+} from './relative-popup-hoc'
 
 const modalRoot = document.getElementById('modal-root')
 
@@ -174,13 +179,6 @@ function computePopupStyle(
   }
   return style
 }
-
-type ModalPositionRelativeProps<PP> = {
-  targetRect: ?ClientRect,
-  position: Position,
-  onClosePopup: () => void,
-  style?: Object,
-} & PP
 
 function ModalPositionRelative<PP>(
   WrappedComponent: React.ComponentType<PP>

@@ -19,8 +19,20 @@ export type RelativePopupProps<PP: {}> = {
 
 export type RelativePopupHocType<PP> = (
   PopupComponent: React.ComponentType<PP>
-) => React.ComponentType<RelativePopupProps<PP>>;
+) => React.ComponentType<RelativePopupProps<PP>>
 
-declare var RelativePopupHoc: RelativePopupHocType<*>;
+declare var RelativePopupHoc: RelativePopupHocType<*>
+
+// ModalPositionRelative is desktop only
+export type ModalPositionRelativeProps<PP> = {
+  targetRect: ?ClientRect,
+  position: Position,
+  onClosePopup: () => void,
+  style?: Object,
+} & PP
+
+declare export function ModalPositionRelative<PP>(
+  WrappedComponent: React.ComponentType<PP>
+): React.ComponentType<ModalPositionRelativeProps<PP>>
 
 export default RelativePopupHoc

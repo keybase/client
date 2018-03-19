@@ -16,9 +16,16 @@ const load = () => {
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
     .add('Team expires / we retain', () => (
-      <RetentionPicker policy={policyRetain} teamPolicy={policyRetain} onSelect={action('onSelect')} />
+      <RetentionPicker
+        isTeamWide={false}
+        policy={policyRetain}
+        teamPolicy={policy30Days}
+        onSelect={action('onSelect')}
+      />
     ))
-    .add('Team-wide', () => <RetentionPicker policy={policy30Days} onSelect={action('onSelect')} />)
+    .add('Team-wide', () => (
+      <RetentionPicker isTeamWide={true} policy={policy30Days} onSelect={action('onSelect')} />
+    ))
 }
 
 export default load
