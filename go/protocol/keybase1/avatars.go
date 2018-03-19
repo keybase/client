@@ -53,12 +53,18 @@ func (o LoadUserAvatarsRes) DeepCopy() LoadUserAvatarsRes {
 }
 
 type LoadUserAvatarsArg struct {
-	Usernames []string       `codec:"usernames" json:"usernames"`
-	Formats   []AvatarFormat `codec:"formats" json:"formats"`
+	Names   []string       `codec:"names" json:"names"`
+	Formats []AvatarFormat `codec:"formats" json:"formats"`
+}
+
+type LoadTeamAvatarsArg struct {
+	Names   []string       `codec:"names" json:"names"`
+	Formats []AvatarFormat `codec:"formats" json:"formats"`
 }
 
 type AvatarsInterface interface {
 	LoadUserAvatars(context.Context, LoadUserAvatarsArg) (LoadUserAvatarsRes, error)
+	LoadTeamAvatars(context.Context, LoadTeamAvatarsArg) (LoadUserAvatarsRes, error)
 }
 
 func AvatarsProtocol(i AvatarsInterface) rpc.Protocol {
@@ -81,6 +87,22 @@ func AvatarsProtocol(i AvatarsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loadTeamAvatars": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadTeamAvatarsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadTeamAvatarsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadTeamAvatarsArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadTeamAvatars(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -91,5 +113,10 @@ type AvatarsClient struct {
 
 func (c AvatarsClient) LoadUserAvatars(ctx context.Context, __arg LoadUserAvatarsArg) (res LoadUserAvatarsRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.avatars.loadUserAvatars", []interface{}{__arg}, &res)
+	return
+}
+
+func (c AvatarsClient) LoadTeamAvatars(ctx context.Context, __arg LoadTeamAvatarsArg) (res LoadUserAvatarsRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.avatars.loadTeamAvatars", []interface{}{__arg}, &res)
 	return
 }

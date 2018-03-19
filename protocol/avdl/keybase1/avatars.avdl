@@ -9,5 +9,6 @@ protocol avatars {
         map<string, map<AvatarFormat, AvatarUrl>> picmap;
     }
 
-    LoadUserAvatarsRes loadUserAvatars(array<string> usernames, array<AvatarFormat> formats);
+    LoadUserAvatarsRes loadUserAvatars(array<string> names, array<AvatarFormat> formats);
+    LoadUserAvatarsRes loadTeamAvatars(array<string> names, array<AvatarFormat> formats);
 }

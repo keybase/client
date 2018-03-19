@@ -186,6 +186,10 @@ export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, r
 
 export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const avatarsLoadTeamAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadTeamAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadTeamAvatars', request)
+
+export const avatarsLoadTeamAvatarsRpcPromise = (request: AvatarsLoadTeamAvatarsRpcParam): Promise<AvatarsLoadTeamAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadTeamAvatars', request, (error: RPCError, result: AvatarsLoadTeamAvatarsResult) => (error ? reject(error) : resolve(result))))
+
 export const avatarsLoadUserAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadUserAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadUserAvatars', request)
 
 export const avatarsLoadUserAvatarsRpcPromise = (request: AvatarsLoadUserAvatarsRpcParam): Promise<AvatarsLoadUserAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatars', request, (error: RPCError, result: AvatarsLoadUserAvatarsResult) => (error ? reject(error) : resolve(result))))
@@ -1969,7 +1973,9 @@ export type AvatarFormat = String
 
 export type AvatarUrl = String
 
-export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{usernames?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type AvatarsLoadTeamAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4048,6 +4054,7 @@ type ApiserverGetResult = APIRes
 type ApiserverGetWithSessionResult = APIRes
 type ApiserverPostJSONResult = APIRes
 type ApiserverPostResult = APIRes
+type AvatarsLoadTeamAvatarsResult = LoadUserAvatarsRes
 type AvatarsLoadUserAvatarsResult = LoadUserAvatarsRes
 type BadgerGetBadgeStateResult = BadgeState
 type BlockArchiveReferenceResult = ?Array<BlockReference>

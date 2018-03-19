@@ -62,6 +62,7 @@ func (s *SimpleSource) LoadUsers(ctx context.Context, usernames []string, format
 	farg := s.formatArg(formats)
 	arg.Args.Add("usernames", libkb.S{Val: uarg})
 	arg.Args.Add("formats", libkb.S{Val: farg})
+	s.debug(ctx, "issuing user avatar req: uarg: %s farg: %s", uarg, farg)
 	var apiRes apiUserAvatarRes
 	if err := s.api().GetDecode(arg, &apiRes); err != nil {
 		s.debug(ctx, "LoadUsers: API fail: %s", err)

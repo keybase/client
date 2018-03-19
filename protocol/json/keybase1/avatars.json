@@ -42,7 +42,26 @@
     "loadUserAvatars": {
       "request": [
         {
-          "name": "usernames",
+          "name": "names",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "formats",
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          }
+        }
+      ],
+      "response": "LoadUserAvatarsRes"
+    },
+    "loadTeamAvatars": {
+      "request": [
+        {
+          "name": "names",
           "type": {
             "type": "array",
             "items": "string"
