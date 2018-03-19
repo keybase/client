@@ -325,7 +325,6 @@ func TestImpTeamWithRooterConflict(t *testing.T) {
 }
 
 func TestImpTeamWithMultipleRooters(t *testing.T) {
-	t.Skip("doesn't pass after return -> break fix")
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -345,37 +344,41 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	require.NotEqual(t, team1, team2)
 
-	// Kick rekeyd so rooter proof notifications arrive faster.
 	alice.kickTeamRekeyd()
-
 	bob.proveRooter()
 	charlie.proveRooter()
 
 	toSeqno := keybase1.Seqno(2)
-	var winningTeam keybase1.TeamID
+	var found bool
 	for i := 0; i < 10; i++ {
 		select {
 		case arg := <-alice.notifications.changeCh:
 			t.Logf("membership change received: %+v", arg)
 			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				t.Logf("change matched with %q", arg.TeamID)
-				winningTeam = arg.TeamID
+				found = true
 				break
 			}
 		case <-time.After(1 * time.Second):
 		}
 	}
 
+	require.True(t, found) // Expect "winning team" to be found.
+
 	displayName := strings.Join([]string{alice.username, bob.username, charlie.username}, ",")
 	teamFinal, err := alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, teamFinal, winningTeam)
+	require.True(t, teamFinal == team1 || teamFinal == team2)
 
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
-	require.Error(t, err)
+	tid, err := alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
+	t.Logf("looking up team %s gives %v %v", displayNameRooter1, tid, err)
+	require.NoError(t, err)
+	require.Equal(t, teamFinal, tid)
 
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
-	require.Error(t, err)
+	tid, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamFinal, tid)
+	t.Logf("looking up team %s gives %v %v", displayNameRooter2, tid, err)
 }
 
 func TestClearSocialInvitesOnAdd(t *testing.T) {
