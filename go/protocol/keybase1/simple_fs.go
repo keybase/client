@@ -152,18 +152,20 @@ func (e DirentType) String() string {
 }
 
 type Dirent struct {
-	Time       Time       `codec:"time" json:"time"`
-	Size       int        `codec:"size" json:"size"`
-	Name       string     `codec:"name" json:"name"`
-	DirentType DirentType `codec:"direntType" json:"direntType"`
+	Time                 Time       `codec:"time" json:"time"`
+	Size                 int        `codec:"size" json:"size"`
+	Name                 string     `codec:"name" json:"name"`
+	DirentType           DirentType `codec:"direntType" json:"direntType"`
+	LastWriterUnverified User       `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
 	return Dirent{
-		Time:       o.Time.DeepCopy(),
-		Size:       o.Size,
-		Name:       o.Name,
-		DirentType: o.DirentType.DeepCopy(),
+		Time:                 o.Time.DeepCopy(),
+		Size:                 o.Size,
+		Name:                 o.Name,
+		DirentType:           o.DirentType.DeepCopy(),
+		LastWriterUnverified: o.LastWriterUnverified.DeepCopy(),
 	}
 }
 

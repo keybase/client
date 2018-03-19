@@ -2275,6 +2275,13 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	if req.CompletedInvites == nil {
+		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
+	}
+	req.CompletedInvites[inviteID] = uv
+}
+
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
@@ -2330,9 +2337,8 @@ func (r ResetLink) Summarize() ResetSummary {
 // CheckInvariants checks that the bundle satisfies
 // 1. No duplicate account IDs
 // 2. At most one primary account
-func (s StellarSecretBundle) CheckInvariants() error {
+func (s StellarBundle) CheckInvariants() error {
 	accountIDs := make(map[StellarAccountID]bool)
-	names := make(map[string]bool)
 	var foundPrimary bool
 	for _, entry := range s.Accounts {
 		_, found := accountIDs[entry.AccountID]
@@ -2340,16 +2346,14 @@ func (s StellarSecretBundle) CheckInvariants() error {
 			return fmt.Errorf("duplicate account ID: %v", entry.AccountID)
 		}
 		accountIDs[entry.AccountID] = true
-		_, found = names[entry.Name]
-		if found {
-			return fmt.Errorf("duplicate account name: %v", entry.Name)
-		}
-		names[entry.Name] = true
 		if entry.IsPrimary {
 			if foundPrimary {
 				return errors.New("multiple primary accounts")
 			}
 			foundPrimary = true
+		}
+		if entry.Mode == StellarAccountMode_NONE {
+			return errors.New("account missing mode")
 		}
 	}
 	if s.Revision < 1 {

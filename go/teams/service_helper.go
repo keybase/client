@@ -304,7 +304,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		hasPUK := len(upak.Current.PerUserKeys) > 0
 
 		tx := CreateAddMemberTx(t)
-		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, existingRole); err != nil {
+		if err := tx.ReAddMemberToImplicitTeam(uv, hasPUK, existingRole); err != nil {
 			return err
 		}
 
