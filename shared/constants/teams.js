@@ -4,6 +4,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import invert from 'lodash/invert'
 
 import type {Service} from './types/search'
@@ -160,6 +161,35 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 
+const secondsToDays = (seconds: number) => seconds / (3600 * 24)
+const serviceRetentionPolicyToRetentionPolicy = (
+  policy: ?RPCChatTypes.RetentionPolicy
+): Types.RetentionPolicy => {
+  // !policy implies a default policy of retainment
+  let retentionPolicy: Types.RetentionPolicy = makeRetentionPolicy({type: 'retain'})
+  if (policy) {
+    // replace retentionPolicy with whatever is explicitly set
+    switch (policy.typ) {
+      case RPCChatTypes.commonRetentionPolicyType.retain:
+        retentionPolicy = makeRetentionPolicy({type: 'retain'})
+        break
+      case RPCChatTypes.commonRetentionPolicyType.expire:
+        if (!policy.expire) {
+          throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
+        }
+        retentionPolicy = makeRetentionPolicy({
+          type: 'expire',
+          days: secondsToDays(policy.expire.age),
+        })
+        break
+      case RPCChatTypes.commonRetentionPolicyType.inherit:
+        // this is an invalid response for a team policy
+        throw new Error(`RPC returned retention polict of type 'inherit' for team policy`)
+    }
+  }
+  return retentionPolicy
+}
+
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
 
@@ -189,4 +219,5 @@ export {
   isAdmin,
   isOwner,
   isSubteam,
+  serviceRetentionPolicyToRetentionPolicy,
 }

@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import RetentionPicker from '../../../chat/conversation/info-panel/retention/container'
 
 // initial settings
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
     newOpenTeamRole: Types.TeamRoleType,
     setNewOpenTeamRole: (Types.TeamRoleType) => void
   ) => void,
+  teamname: Types.Teamname,
   yourOperations: Types.TeamOperations,
   waitingForSavePublicity: boolean,
 }
@@ -256,6 +258,7 @@ export class Settings extends React.Component<Props, State> {
               onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
+            <RetentionPicker teamname={this.props.teamname} />
           </Box>
         )}
         <Box

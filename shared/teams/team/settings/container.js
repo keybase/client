@@ -57,6 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
+    ...ownProps,
     savePublicity: settings => dispatchProps._savePublicity(ownProps.teamname, settings),
     setOpenTeamRole: dispatchProps.setOpenTeamRole,
   }

@@ -103,10 +103,25 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
 
 const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolicyPayload) {
   const {teamname} = action.payload
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const teamID = Constants.getTeamID(state, teamname)
-  const retentionPolicy = yield Saga.call(RPCChatTypes.localGetTeamRetentionLocalRpcPromise, {teamID})
-  console.log(retentionPolicy)
+  const policy: RPCChatTypes.RetentionPolicy = yield Saga.call(
+    RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
+    {teamID}
+  )
+  let retentionPolicy: Types.RetentionPolicy = Constants.makeRetentionPolicy()
+  try {
+    retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
+  } catch (err) {
+    logger.error(err.message)
+    throw err
+  } finally {
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(
+      replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[teamname, retentionPolicy]]))
+    )
+  }
 }
 
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
