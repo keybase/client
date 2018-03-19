@@ -102,7 +102,11 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
 }
 
 const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolicyPayload) {
-  // TODO
+  const {teamname} = action.payload
+  const state: TypedState = yield Saga.select()
+  const teamID = Constants.getTeamID(state, teamname)
+  const retentionPolicy = yield Saga.call(RPCChatTypes.localGetTeamRetentionLocalRpcPromise, {teamID})
+  console.log(retentionPolicy)
 }
 
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {

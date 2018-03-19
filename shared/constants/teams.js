@@ -142,6 +142,12 @@ const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.entities.getIn(['teams', 'teammembercounts', teamname], 0)
 
+const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
+  state.entities.getIn(['teams', 'teamNameToID', teamname], '')
+
+const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
+  state.entities.getIn(['teams', 'teamNameToRetentionPolicy', teamname], null)
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -177,6 +183,8 @@ export {
   getTeamNameFromConvID,
   getChannelInfoFromConvID,
   getChannelNameFromConvID,
+  getTeamID,
+  getTeamRetentionPolicy,
   getTopicFromConvID,
   isAdmin,
   isOwner,
