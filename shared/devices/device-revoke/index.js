@@ -12,6 +12,7 @@ export type Props = {
   name: string,
   onCancel: () => void,
   onSubmit: () => void,
+  waiting: boolean,
 }
 
 const Header = ({name, icon}) => (

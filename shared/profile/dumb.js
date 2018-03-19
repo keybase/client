@@ -241,6 +241,7 @@ const propsBase: RenderProps = {
   followers,
   following,
   error: null,
+  serverActive: false,
   trackerState: normal,
   currentlyFollowing: false,
   currentFriendshipsTab: 'Followers',

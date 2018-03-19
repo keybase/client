@@ -9,6 +9,7 @@ import {branch} from 'recompose'
 
 type Props = {
   expandedSet: I.Set<string>,
+  loading: boolean,
   onShowDelete: (id: string) => void,
   onNewPersonalRepo: () => void,
   onNewTeamRepo: () => void,

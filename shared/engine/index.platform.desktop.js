@@ -27,6 +27,7 @@ function windowsHack() {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
+  // $FlowIssue doens't know about process.type
   if (!isWindows || process.type !== 'renderer') {
     return
   }
