@@ -39,6 +39,13 @@ func (tx *AddMemberTx) IsEmpty() bool {
 // of AddMemberTx API. Users of this API should avoid lowercase
 // methods and fields at all cost, even from same package.
 
+// Methods modifying payloads are supposed to always succeed given the
+// preconditions are satisfied. If not, the usual result is either a
+// no-op or an invalid transaction that is rejected by team player
+// pre-check or by the server. Public methods should make sure that
+// internal methods are always called with these preconditions
+// satisfied.
+
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
 	for _, v := range tx.payloads {
 		if ret, ok := v.(*SCTeamInvites); ok {
@@ -64,17 +71,22 @@ func (tx *AddMemberTx) changeMembershipPayload() *keybase1.TeamChangeReq {
 }
 
 func (tx *AddMemberTx) removeMember(uv keybase1.UserVersion) {
+	// Precondition: UV is a cryptomember.
 	payload := tx.changeMembershipPayload()
 	payload.None = append(payload.None, uv)
 }
 
 func (tx *AddMemberTx) addMember(uv keybase1.UserVersion, role keybase1.TeamRole) {
+	// Preconditions: UV is a PUKful user, role is valid enum value
+	// and not NONE.
 	payload := tx.changeMembershipPayload()
 	payload.AddUVWithRole(uv, role)
 }
 
 func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	role keybase1.TeamRole, inviteID keybase1.TeamInviteID) {
+	// Preconditions: UV is a PUKful user, role is valid and not NONE,
+	// invite exists.
 	payload := tx.changeMembershipPayload()
 	payload.AddUVWithRole(uv, role)
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
@@ -90,9 +102,9 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 }
 
 // createInvite queues Keybase-type invite for given UV and role.
-// Warning: role has to be correct value for TeamRole enum, otherwise
-// this function will do nothing, silently.
 func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
+	// Preconditions: UV is a PUKless user, and not already in the
+	// team, role is valid enum value and not NONE or OWNER.
 	payload := tx.invitePayload()
 
 	invite := SCTeamInvite{
