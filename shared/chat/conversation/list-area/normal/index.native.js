@@ -44,7 +44,6 @@ class ConversationList extends React.PureComponent<Props, State> {
         ordinal !== this.state.calledLoadMoreDueToOrdinal
       ) {
         this.setState({calledLoadMoreDueToOrdinal: ordinal})
-        console.log('aaa calling load more', ordinal, top)
         this.props.loadMoreMessages()
       }
     }
