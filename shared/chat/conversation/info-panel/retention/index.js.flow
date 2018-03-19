@@ -5,27 +5,23 @@ type Item = {label: string, value: number}
 
 export type RetentionPolicy =
   | {
-      type: 'retain',
-    }
-  | {
       type: 'inherit',
     }
   | {
-      type: 'expire',
+      type: 'custom',
       days: number,
     }
 
 export type Props = {
   policy: RetentionPolicy,
   teamPolicy?: RetentionPolicy,
-  type: 'simple' | 'automatic',
-  onSelect?: number => void,
+  onSelect?: (number | string) => void,
 }
 
 export type ViewProps = {
   selected: RetentionPolicy,
   teamPolicy?: RetentionPolicy,
-  onSelect: number => void,
+  onSelect: (number | string) => void,
   items: Array<Item>,
   selectedItem: Item,
   teamItem?: Item,

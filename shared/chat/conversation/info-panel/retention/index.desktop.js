@@ -19,7 +19,10 @@ const View = (props: ViewProps) => {
   if (props.teamItem) {
     items.unshift(itemToNode(props.teamItem))
   }
-  return <Dropdown items={items} selected={selectedItem} onChanged={item => {}} />
+  return (
+    // $FlowIssue doesn't know about the `key` prop of React.Node
+    <Dropdown items={items} selected={selectedItem} onChanged={item => props.onSelect(item && item.key)} />
+  )
 }
 
 const daysToItem = (days: number) => {
@@ -38,14 +41,13 @@ const daysToItem = (days: number) => {
 const items = [1, 7, 30, 90, 365, -1].map(daysToItem)
 const policyToDays = (policy: RetentionPolicy, parent?: RetentionPolicy) => {
   switch (policy.type) {
-    case 'retain':
-      return -1
     case 'inherit':
       if (parent) {
         return policyToDays(parent)
+      } else {
+        throw new Error(`RetentionPicker: Got policy of type 'inherit' without an inheritable policy`)
       }
-      return 0
-    case 'expire':
+    case 'custom':
       return policy.days
   }
   return 0
@@ -59,8 +61,8 @@ const Hoc = compose(
       selectedItem: policyToItem(props.policy, props.teamPolicy),
     }
     if (props.teamPolicy) {
-      const teamItem = policyToItem(props.teamPolicy)
-      teamItem.label = `Use team default (${teamItem.label})`
+      const inheritType = policyToItem(props.teamPolicy)
+      const teamItem = {label: `Use team default (${inheritType.label})`, value: 'inherit'}
       viewProps = {...viewProps, teamItem}
     }
     return viewProps
