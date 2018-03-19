@@ -80,6 +80,9 @@ type SimpleFS struct {
 	// The function to call for constructing a new KBFS file system.
 	// Overrideable for testing purposes.
 	newFS newFSFunc
+	// For dumping debug info to the logs.
+	idd *libkbfs.ImpatientDebugDumper
+
 	// lock protects handles and inProgress
 	lock sync.RWMutex
 	// handles contains handles opened by SimpleFSOpen,
@@ -121,6 +124,7 @@ func newSimpleFS(config libkbfs.Config) *SimpleFS {
 		inProgress: map[keybase1.OpID]*inprogress{},
 		log:        log,
 		newFS:      defaultNewFS,
+		idd:        libkbfs.NewImpatientDebugDumperForForcedDumps(config),
 	}
 }
 
@@ -1261,4 +1265,12 @@ func (k *SimpleFS) SimpleFSWait(ctx context.Context, opid keybase1.OpID) error {
 		return errNoResult
 	}
 	return err
+}
+
+// SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
+// into its logs.
+func (k *SimpleFS) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
+	ctx = k.makeContext(ctx)
+	k.idd.ForceDump(ctx)
+	return nil
 }

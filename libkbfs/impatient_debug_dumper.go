@@ -119,7 +119,20 @@ func NewImpatientDebugDumper(config Config, dumpIn time.Duration) *ImpatientDebu
 	return d
 }
 
-func (d *ImpatientDebugDumper) dump(tracker *ctxTimeTracker) {
+// NewImpatientDebugDumperForForcedDumps creates a new
+// *ImpatientDebugDumper, just as above, though without launching any
+// background goroutines or allowing the user to begin any
+// time-tracked tasks
+func NewImpatientDebugDumperForForcedDumps(config Config) *ImpatientDebugDumper {
+	return &ImpatientDebugDumper{
+		config: config,
+		log:    config.MakeLogger("IGD"),
+		limiter: rate.NewLimiter(
+			rate.Every(impatientDebugDumperDumpMinInterval), 1),
+	}
+}
+
+func (d *ImpatientDebugDumper) dump(ctx context.Context) {
 	if !d.limiter.Allow() {
 		// Use a limiter to avoid dumping too much into log accidently.
 		return
@@ -136,10 +149,14 @@ func (d *ImpatientDebugDumper) dump(tracker *ctxTimeTracker) {
 	}
 	gzipper.Close()
 	base64er.Close()
-	d.log.CDebugf(tracker.ctx,
+	d.log.CDebugf(ctx,
 		"Operation exceeded max wait time. dump>gzip>base64: %q "+
 			"Pipe the quoted content into ` | base64 -d | gzip -d ` "+
 			"to read as a Homosapien.", buf.String())
+}
+
+func (d *ImpatientDebugDumper) ForceDump(ctx context.Context) {
+	d.dump(ctx)
 }
 
 func (d *ImpatientDebugDumper) dumpTick() {
@@ -170,7 +187,7 @@ func (d *ImpatientDebugDumper) dumpTick() {
 		if t.isExpired(d.config.Clock()) {
 			// This operation isn't done, and it has expired. So dump debug
 			// information and move on.
-			d.dump(t)
+			d.dump(t.ctx)
 			d.chronologicalTimeTrackerList.popFront()
 			continue
 		}
@@ -197,6 +214,9 @@ func (d *ImpatientDebugDumper) dumpLoop(shutdownCh <-chan struct{}) {
 // be called once the associated operation is done, likely in a defer
 // statement.
 func (d *ImpatientDebugDumper) Begin(ctx context.Context) (done func()) {
+	if d.chronologicalTimeTrackerList == nil {
+		return nil
+	}
 	tracker := &ctxTimeTracker{
 		ctx:       ctx,
 		expiresAt: d.config.Clock().Now().Add(d.dumpIn),
@@ -209,5 +229,7 @@ func (d *ImpatientDebugDumper) Begin(ctx context.Context) (done func()) {
 
 // Shutdown shuts down d idempotently.
 func (d *ImpatientDebugDumper) Shutdown() {
-	d.shutdownFunc()
+	if d.shutdownFunc != nil {
+		d.shutdownFunc()
+	}
 }
