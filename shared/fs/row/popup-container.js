@@ -56,7 +56,7 @@ const mergeProps = (
   return {
     type: pathItem ? pathItem.type : 'unknown',
     lastModifiedTimestamp: pathItem.lastModifiedTimestamp,
-    lastWriter: pathItem.lastWriter,
+    lastWriter: pathItem.lastWriter.username,
     name: pathItem.name,
     size: pathItem.size,
     childrenFolders,

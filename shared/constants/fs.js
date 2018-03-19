@@ -20,7 +20,7 @@ export const ExitCodeAuthCanceledError = 6
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: '',
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   children: I.List(),
@@ -30,7 +30,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: '',
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'file',
@@ -39,7 +39,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: '',
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'unknown',

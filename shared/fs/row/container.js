@@ -66,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   name: stateProps.pathItem.name,
   type: stateProps.pathItem.type,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
-  lastWriter: stateProps.pathItem.lastWriter,
+  lastWriter: stateProps.pathItem.lastWriter.username,
   onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),
   openInFileUI: stateProps.kbfsEnabled
     ? () => dispatchProps._openInFileUI(stateProps.path)

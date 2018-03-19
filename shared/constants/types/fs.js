@@ -14,7 +14,7 @@ export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
-  lastWriter: string,
+  lastWriter: RPCTypes.User,
   progress: ProgressType,
 }
 
