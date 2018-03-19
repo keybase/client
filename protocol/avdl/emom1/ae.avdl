@@ -4,12 +4,11 @@ protocol ae {        // AE   = "Authenticated Encryption"
   // We use abbreviations here extensively to save bandwidth
 
   record AuthEnc {
-    long  n; // nonce bottom 63 bits
+    long  n; // nonce bottom 64 bits (various monotonically over all types)
     bytes e; // encrypted data
   }
 
   @typedef("bytes") record KID   {}
-  @typedef("bytes") record Hash  {}
   @typedef("bytes") record UID   {}
   @typedef("long")  record Time  {}
   @typedef("long")  record Seqno {}
@@ -20,31 +19,26 @@ protocol ae {        // AE   = "Authenticated Encryption"
     KID k; // user ephemeral KID
   }
 
-  record MsgpackHeader {
-    int t; // type field
-    int s; // seqno
-  }
-
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record RequestPlaintext {
-    MsgpackHeader                   h; // msgpack headder
+    union { null, SignedAuthToken } f; // "first"; only sent on first payload
+    union { null, Seqno }           s; // seqno; non-null for calls; null for notifies
     string                          n; // method name
     bytes                           a; // arg, msgpacked
-    union { null, SignedAuthToken } f; // "first"; only sent on first payload
   }
 
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record ResponsePlaintext {
-    MsgpackHeader h; // msgpack header
-    bytes         r; // reply, msgpacked
+    Seqno s; // the seqno that the caller specified; must match to detect tampering
+    bytes r; // reply, msgpacked
   }
 
   record AuthToken {
-    UID   u; // UID the auth token is for
-    Time  e; // expiration time, in milliseconds from the epoch (for purge of server replay cache)
-    KID   k; // user ephemeral KID
+    UID  u; // UID the auth token is for
+    Time e; // expiration time, in milliseconds from the epoch (for purge of server replay cache)
+    KID  k; // user ephemeral KID
   }
 
   record SignedAuthToken {
@@ -54,14 +48,12 @@ protocol ae {        // AE   = "Authenticated Encryption"
   }
 
   record Arg {
-    AuthEnc                     a; // AuthEnc of a RequestPlaintext
-    union { null, Handshake }   h; // handshake, non-null only on first message
-    @internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
+    AuthEnc                   a; // AuthEnc of a RequestPlaintext
+    union { null, Handshake } h; // handshake, non-null only on first message
   }
 
   record Res {
-    AuthEnc                     a; // AuthEnc of a ResponePlaintext
-    @internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
+    AuthEnc a; // AuthEnc of a ResponePlaintext
   }
 
   // (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.

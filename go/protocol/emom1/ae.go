@@ -36,17 +36,6 @@ func (o KID) DeepCopy() KID {
 	})(o)
 }
 
-type Hash []byte
-
-func (o Hash) DeepCopy() Hash {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
 type UID []byte
 
 func (o UID) DeepCopy() UID {
@@ -64,6 +53,12 @@ func (o Time) DeepCopy() Time {
 	return o
 }
 
+type Seqno int64
+
+func (o Seqno) DeepCopy() Seqno {
+	return o
+}
+
 type Handshake struct {
 	V int `codec:"v" json:"v"`
 	S int `codec:"s" json:"s"`
@@ -78,35 +73,15 @@ func (o Handshake) DeepCopy() Handshake {
 	}
 }
 
-type MsgpackHeader struct {
-	T int `codec:"t" json:"t"`
-	S int `codec:"s" json:"s"`
-}
-
-func (o MsgpackHeader) DeepCopy() MsgpackHeader {
-	return MsgpackHeader{
-		T: o.T,
-		S: o.S,
-	}
-}
-
 type RequestPlaintext struct {
-	H MsgpackHeader    `codec:"h" json:"h"`
+	F *SignedAuthToken `codec:"f,omitempty" json:"f,omitempty"`
+	S *Seqno           `codec:"s,omitempty" json:"s,omitempty"`
 	N string           `codec:"n" json:"n"`
 	A []byte           `codec:"a" json:"a"`
-	F *SignedAuthToken `codec:"f,omitempty" json:"f,omitempty"`
 }
 
 func (o RequestPlaintext) DeepCopy() RequestPlaintext {
 	return RequestPlaintext{
-		H: o.H.DeepCopy(),
-		N: o.N,
-		A: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.A),
 		F: (func(x *SignedAuthToken) *SignedAuthToken {
 			if x == nil {
 				return nil
@@ -114,17 +89,31 @@ func (o RequestPlaintext) DeepCopy() RequestPlaintext {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.F),
+		S: (func(x *Seqno) *Seqno {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.S),
+		N: o.N,
+		A: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.A),
 	}
 }
 
 type ResponsePlaintext struct {
-	H MsgpackHeader `codec:"h" json:"h"`
-	R []byte        `codec:"r" json:"r"`
+	S Seqno  `codec:"s" json:"s"`
+	R []byte `codec:"r" json:"r"`
 }
 
 func (o ResponsePlaintext) DeepCopy() ResponsePlaintext {
 	return ResponsePlaintext{
-		H: o.H.DeepCopy(),
+		S: o.S.DeepCopy(),
 		R: (func(x []byte) []byte {
 			if x == nil {
 				return nil
@@ -170,7 +159,6 @@ func (o SignedAuthToken) DeepCopy() SignedAuthToken {
 type Arg struct {
 	A AuthEnc    `codec:"a" json:"a"`
 	H *Handshake `codec:"h,omitempty" json:"h,omitempty"`
-	s rpc.SeqNumber
 }
 
 func (o Arg) DeepCopy() Arg {
@@ -183,19 +171,16 @@ func (o Arg) DeepCopy() Arg {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.H),
-		s: o.s,
 	}
 }
 
 type Res struct {
 	A AuthEnc `codec:"a" json:"a"`
-	s rpc.SeqNumber
 }
 
 func (o Res) DeepCopy() Res {
 	return Res{
 		A: o.A.DeepCopy(),
-		s: o.s,
 	}
 }
 
