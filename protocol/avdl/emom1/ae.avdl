@@ -8,14 +8,15 @@ protocol ae {        // AE   = "Authenticated Encryption"
     bytes e; // encrypted data
   }
 
-  @typedef("bytes") record KID  {}
-  @typedef("bytes") record Hash {}
-  @typedef("bytes") record UID  {}
-  @typedef("long")  record Time {}
+  @typedef("bytes") record KID   {}
+  @typedef("bytes") record Hash  {}
+  @typedef("bytes") record UID   {}
+  @typedef("long")  record Time  {}
+  @typedef("long")  record Seqno {}
 
   record Handshake {
     int v; // version of the entire scheme
-      int s; // server KID sequence number
+    int s; // server KID sequence number
     KID k; // user ephemeral KID
   }
 
@@ -27,7 +28,7 @@ protocol ae {        // AE   = "Authenticated Encryption"
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record RequestPlaintext {
-      MsgpackHeader                   h; // msgpack headder
+    MsgpackHeader                   h; // msgpack headder
     string                          n; // method name
     bytes                           a; // arg, msgpacked
     union { null, SignedAuthToken } f; // "first"; only sent on first payload
@@ -36,7 +37,7 @@ protocol ae {        // AE   = "Authenticated Encryption"
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record ResponsePlaintext {
-      MsgpackHeader h; // msgpack header
+    MsgpackHeader h; // msgpack header
     bytes         r; // reply, msgpacked
   }
 
