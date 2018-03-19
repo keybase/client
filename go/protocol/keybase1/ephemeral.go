@@ -83,6 +83,48 @@ func (o UserEk) DeepCopy() UserEk {
 	}
 }
 
+type TeamEkMetadata struct {
+	Kid        KID          `codec:"kid" json:"team_ephemeral_dh_public"`
+	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
+	Generation EkGeneration `codec:"generation" json:"generation"`
+	Ctime      Time         `codec:"ctime" json:"ctime"`
+}
+
+func (o TeamEkMetadata) DeepCopy() TeamEkMetadata {
+	return TeamEkMetadata{
+		Kid:        o.Kid.DeepCopy(),
+		HashMeta:   o.HashMeta.DeepCopy(),
+		Generation: o.Generation.DeepCopy(),
+		Ctime:      o.Ctime.DeepCopy(),
+	}
+}
+
+type TeamEkBoxed struct {
+	Box              string         `codec:"box" json:"box"`
+	UserEkGeneration EkGeneration   `codec:"userEkGeneration" json:"user_ek_generation"`
+	Metadata         TeamEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeamEkBoxed) DeepCopy() TeamEkBoxed {
+	return TeamEkBoxed{
+		Box:              o.Box,
+		UserEkGeneration: o.UserEkGeneration.DeepCopy(),
+		Metadata:         o.Metadata.DeepCopy(),
+	}
+}
+
+type TeamEk struct {
+	Seed     Bytes32        `codec:"seed" json:"seed"`
+	Metadata TeamEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeamEk) DeepCopy() TeamEk {
+	return TeamEk{
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
 type EphemeralInterface interface {
 }
 

@@ -33,7 +33,7 @@ func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err er
 	if err != nil {
 		return dbKey, err
 	}
-	key := fmt.Sprintf("user-ephemeral-key-box-%s-%s", s.G().Env.GetUsername(), uv.EldestSeqno)
+	key := fmt.Sprintf("user-ephemeral-key-boxes-%s-%s", s.G().Env.GetUsername(), uv.EldestSeqno)
 	return libkb.DbKey{
 		Typ: libkb.DBUserEKBox,
 		Key: key,
@@ -59,7 +59,6 @@ func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, er
 func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#Get", func() error { return err })()
 	s.Lock()
-	defer s.Unlock()
 
 	cache, err := s.getCache(ctx)
 	if err != nil {
@@ -69,10 +68,12 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 	// Try cache first
 	userEKBoxed, ok := cache[generation]
 	if ok {
+		s.Unlock()
 		return s.unbox(ctx, userEKBoxed)
 	}
 
 	// We don't have anything in our cache, fetch from the server
+	s.Unlock() // fetchAndPut will lock during Put
 	return s.fetchAndPut(ctx, generation)
 }
 
@@ -151,18 +152,14 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	}
 
 	// Store the boxed version, return the unboxed
-	err = s.put(ctx, generation, userEKBoxed)
+	err = s.Put(ctx, generation, userEKBoxed)
 	return userEK, err
 }
 
 func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#Put", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	return s.put(ctx, generation, userEKBoxed)
-}
-
-func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#put", func() error { return err })()
 
 	key, err := s.dbKey(ctx)
 	if err != nil {

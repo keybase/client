@@ -41,4 +41,25 @@ protocol ephemeral {
     Bytes32 seed;
     UserEkMetadata metadata;
   }
+
+  record TeamEkMetadata {
+    @jsonkey("team_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record TeamEkBoxed {
+    string box;
+    @jsonkey("user_ek_generation")
+    EkGeneration userEkGeneration;
+    TeamEkMetadata metadata;
+  }
+
+  record TeamEk {
+    Bytes32 seed;
+    TeamEkMetadata metadata;
+  }
 }
