@@ -274,14 +274,19 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 			if convLocal.Error != nil {
 				continue
 			}
+			topicName := utils.GetTopicName(convLocal)
 			rcm := &types.RemoteConversationMetadata{
-				TopicName: utils.GetTopicName(convLocal),
+				TopicName: topicName,
 				Headline:  utils.GetHeadline(convLocal),
 				Snippet:   utils.GetConvSnippet(convLocal),
 			}
 			switch convLocal.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
-				// don't fill out things that don't get shown in inbox for team chats
+				// Only write out participant names for general channel for teams, only thing needed
+				// by frontend
+				if topicName == globals.DefaultTeamTopic {
+					rcm.WriterNames = convLocal.Names()
+				}
 			default:
 				rcm.WriterNames = convLocal.Names()
 				rcm.ResetParticipants = convLocal.Info.ResetNames
