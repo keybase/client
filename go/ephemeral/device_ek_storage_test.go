@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -12,7 +13,7 @@ import (
 func TestDeviceEKStorage(t *testing.T) {
 	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
-
+	now := keybase1.Time(time.Now().Unix())
 	tests := []keybase1.DeviceEk{
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic0"))),
@@ -20,6 +21,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(0),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
 				Kid:        keybase1.KID(""),
+				Ctime:      now - KeyLifetimeSecs*2,
 			},
 		},
 		{
@@ -28,6 +30,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(1),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta1"),
 				Kid:        keybase1.KID(""),
+				Ctime:      now - KeyLifetimeSecs + 1,
 			},
 		},
 		{
@@ -36,6 +39,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(2),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta2"),
 				Kid:        keybase1.KID(""),
+				Ctime:      now,
 			},
 		},
 		{
@@ -44,6 +48,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(3),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta3"),
 				Kid:        keybase1.KID(""),
+				Ctime:      now,
 			},
 		},
 	}
@@ -76,9 +81,9 @@ func TestDeviceEKStorage(t *testing.T) {
 	}
 
 	// Test Delete
-	require.NoError(t, s.Delete(context.Background(), keybase1.EkGeneration(0)))
+	require.NoError(t, s.Delete(context.Background(), keybase1.EkGeneration(2)))
 
-	deviceEK, err = s.Get(context.Background(), keybase1.EkGeneration(0))
+	deviceEK, err = s.Get(context.Background(), keybase1.EkGeneration(2))
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
@@ -91,6 +96,10 @@ func TestDeviceEKStorage(t *testing.T) {
 
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.EqualValues(t, 2, maxGeneration)
+	require.EqualValues(t, 1, maxGeneration)
 
+	expired, err := s.DeleteExpired(context.Background())
+	expected := []keybase1.EkGeneration{0}
+	require.NoError(t, err)
+	require.Equal(t, expected, expired)
 }
