@@ -9,7 +9,7 @@ import {
   collapseStyles,
   platformStyles,
 } from '../../../../styles'
-import {isMobile, isAndroid} from '../../../../constants/platform'
+import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   backgroundColor: ?string,
@@ -114,9 +114,9 @@ class BottomLine extends PureComponent<Props> {
         <Box
           style={{
             ...globalStyles.flexBoxRow,
+            alignItems: 'center',
             flexGrow: 1,
             height: '100%',
-            alignItems: 'center',
             position: 'relative',
           }}
         >
