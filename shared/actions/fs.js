@@ -96,19 +96,18 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
   })
 
-  let completePortion = 0
-  while (completePortion < 1) {
+  let progress
+  do {
     yield Saga.delay(500)
-    const progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
-    completePortion = progress.bytesWritten / progress.bytesTotal
+    progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
     yield Saga.put(
       FsGen.createFileTransferProgress({
         key,
         endEstimate: progress.endEstimate,
-        completePortion,
+        completePortion: progress.bytesWritten / progress.bytesTotal,
       })
     )
-  }
+  } while (progress.bytesWritten < progress.bytesTotal)
 
   let error
   try {
