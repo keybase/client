@@ -30,7 +30,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(1),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta1"),
 				Kid:        keybase1.KID(""),
-				Ctime:      now - KeyLifetimeSecs + 1,
+				Ctime:      now - KeyLifetimeSecs*2,
 			},
 		},
 		{
@@ -99,7 +99,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.EqualValues(t, 1, maxGeneration)
 
 	expired, err := s.DeleteExpired(context.Background())
-	expected := []keybase1.EkGeneration{0}
+	expected := []keybase1.EkGeneration{0, 1}
 	require.NoError(t, err)
 	require.Equal(t, expected, expired)
 }
