@@ -35,6 +35,10 @@ func (tx *AddMemberTx) IsEmpty() bool {
 	return len(tx.payloads) == 0
 }
 
+// Internal AddMemberTx methods. They should not be used by consumers
+// of AddMemberTx API. Users of this API should avoid lowercase
+// methods and fields at all cost, even from same package.
+
 func (tx *AddMemberTx) invitePayload() *SCTeamInvites {
 	for _, v := range tx.payloads {
 		if ret, ok := v.(*SCTeamInvites); ok {
@@ -76,16 +80,6 @@ func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
 }
 
-func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) {
-	payload := tx.invitePayload()
-	if payload.Cancel == nil {
-		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
-	} else {
-		tmp := append(*payload.Cancel, SCTeamInviteID(id))
-		payload.Cancel = &tmp
-	}
-}
-
 func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite {
 	var tmp []SCTeamInvite
 	if list != nil {
@@ -95,6 +89,9 @@ func appendToInviteList(inv SCTeamInvite, list *[]SCTeamInvite) *[]SCTeamInvite 
 	return &tmp
 }
 
+// createInvite queues Keybase-type invite for given UV and role.
+// Warning: role has to be correct value for TeamRole enum, otherwise
+// this function will do nothing, silently.
 func (tx *AddMemberTx) createInvite(uv keybase1.UserVersion, role keybase1.TeamRole) {
 	payload := tx.invitePayload()
 
@@ -127,6 +124,8 @@ func (tx *AddMemberTx) sweepCryptoMembers(uid keybase1.UID) {
 	}
 }
 
+// sweepCryptoMembersOlderThan will queue "removes" for all cryptomembers
+// with same UID as given and EldestSeqno lower than in given UV.
 func (tx *AddMemberTx) sweepCryptoMembersOlderThan(uv keybase1.UserVersion) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
@@ -185,6 +184,10 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		return NewSubteamOwnersError()
 	}
 
+	if err := assertValidNewTeamMemberRole(role); err != nil {
+		return err
+	}
+
 	hasPUK := len(user.PerUserKeys) > 0
 	if !hasPUK {
 		g.Log.CDebugf(ctx, "Invite required for %v", uv)
@@ -239,6 +242,38 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 		tx.addMember(uv, role)
 	}
 	return nil
+}
+
+func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) error {
+	// Find the right payload first
+	payload := tx.findChangeReqForUV(uv)
+	if payload == nil {
+		return fmt.Errorf("could not find uv %v in transaction", uv)
+	}
+
+	team := tx.team
+	for _, invite := range team.chain().inner.ActiveInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid.Equal(uv.Uid) {
+				if payload.CompletedInvites == nil {
+					payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+				}
+				payload.CompletedInvites[invite.Id] = uv.PercentForm()
+			}
+		}
+	}
+
+	return nil
+}
+
+func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
+	switch role {
+	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+		return nil
+	default:
+		return fmt.Errorf("Unexpected role: %v (%d)", role, int(role))
+	}
 }
 
 // AddMemberByUsername will add member by UV and role. It checks if
@@ -389,28 +424,6 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	return nil
 }
 
-func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) error {
-	// Find the right payload first
-	payload := tx.findChangeReqForUV(uv)
-	if payload == nil {
-		return fmt.Errorf("could not find uv %v in transaction", uv)
-	}
-
-	team := tx.team
-	for _, invite := range team.chain().inner.ActiveInvites {
-		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
-			if inviteUv.Uid.Equal(uv.Uid) {
-				if payload.CompletedInvites == nil {
-					payload.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
-				}
-				payload.CompletedInvites[invite.Id] = uv.PercentForm()
-			}
-		}
-	}
-
-	return nil
-}
-
 func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
 	if err := assertValidNewTeamMemberRole(role); err != nil {
 		return err
@@ -440,13 +453,13 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK
 	return nil
 }
 
-func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
-	switch role {
-	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER,
-		keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-		return nil
-	default:
-		return fmt.Errorf("Unexpected role: %v (%d)", role, int(role))
+func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID) {
+	payload := tx.invitePayload()
+	if payload.Cancel == nil {
+		payload.Cancel = &[]SCTeamInviteID{SCTeamInviteID(id)}
+	} else {
+		tmp := append(*payload.Cancel, SCTeamInviteID(id))
+		payload.Cancel = &tmp
 	}
 }
 
