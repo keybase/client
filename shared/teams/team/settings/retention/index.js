@@ -132,9 +132,9 @@ const RenderOptions = (props: {items: Array<MenuItem | 'Divider' | null>, onHide
     />
   )
 // TODO mobile
-const OptionsPopup = ModalPositionRelative(RenderOptions)
+const OptionsPopup = isMobile ? RenderOptions : ModalPositionRelative(RenderOptions)
 
-// Utilities for transforming retention policies <-> menu items
+// Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
   switch (p.type) {
     case 'retain':
