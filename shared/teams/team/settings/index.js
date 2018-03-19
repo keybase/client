@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import RetentionPicker from '../../../chat/conversation/info-panel/retention/container'
+import RetentionPicker from './retention/container'
 
 // initial settings
 type Props = {
