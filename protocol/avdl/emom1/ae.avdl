@@ -1,72 +1,72 @@
 @namespace("emom.1") // EMOM = "Encrypted Msgpack Over Msgpack"
 protocol ae {        // AE   = "Authenticated Encryption"
 
-	// We use abbreviations here extensively to save bandwidth
+  // We use abbreviations here extensively to save bandwidth
 
-	record AuthEnc {
-		long  n; // nonce bottom 63 bits
-		bytes e; // encrypted data
-	}
+  record AuthEnc {
+    long  n; // nonce bottom 63 bits
+    bytes e; // encrypted data
+  }
 
-	@typedef("bytes") record KID  {}
-	@typedef("bytes") record Hash {}
-	@typedef("bytes") record UID  {}
-	@typedef("long")  record Time {}
+  @typedef("bytes") record KID  {}
+  @typedef("bytes") record Hash {}
+  @typedef("bytes") record UID  {}
+  @typedef("long")  record Time {}
 
-	record Handshake {
-		int v; // version of the entire scheme
-	    int s; // server KID sequence number
-		KID k; // user ephemeral KID
-	}
+  record Handshake {
+    int v; // version of the entire scheme
+      int s; // server KID sequence number
+    KID k; // user ephemeral KID
+  }
 
-	record MsgpackHeader {
-		int t; // type field
-		int s; // seqno
-	}
+  record MsgpackHeader {
+    int t; // type field
+    int s; // seqno
+  }
 
-	// Encrypt this structure and insert it into the `e` field of the AuthEnc structure
-	// above.
-	record RequestPlaintext {
-	    MsgpackHeader                   h; // msgpack headder
-		string                          n; // method name
-		bytes                           a; // arg, msgpacked
-		union { null, SignedAuthToken } f; // "first"; only sent on first payload
-	}
+  // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
+  // above.
+  record RequestPlaintext {
+      MsgpackHeader                   h; // msgpack headder
+    string                          n; // method name
+    bytes                           a; // arg, msgpacked
+    union { null, SignedAuthToken } f; // "first"; only sent on first payload
+  }
 
-	// Encrypt this structure and insert it into the `e` field of the AuthEnc structure
-	// above.
-	record ResponsePlaintext {
-	    MsgpackHeader h; // msgpack header
-		bytes         r; // reply, msgpacked
-	}
+  // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
+  // above.
+  record ResponsePlaintext {
+      MsgpackHeader h; // msgpack header
+    bytes         r; // reply, msgpacked
+  }
 
-	record AuthToken {
-		UID   u; // UID the auth token is for
-		Time  e; // expiration time, in milliseconds from the epoch (for purge of server replay cache)
-		KID   k; // user ephemeral KID
-	}
+  record AuthToken {
+    UID   u; // UID the auth token is for
+    Time  e; // expiration time, in milliseconds from the epoch (for purge of server replay cache)
+    KID   k; // user ephemeral KID
+  }
 
-	record SignedAuthToken {
-		AuthToken t; // the auth token parts
-		KID       d; // The KID of the signing (device) key
-		bytes     s; // the EdDSA signature of the msgpack of the AuthToken
-	}
+  record SignedAuthToken {
+    AuthToken t; // the auth token parts
+    KID       d; // The KID of the signing (device) key
+    bytes     s; // the EdDSA signature of the msgpack of the AuthToken
+  }
 
-	record Arg {
-		AuthEnc                     a; // AuthEnc of a RequestPlaintext
-		union { null, Handshake }   h; // handshake, non-null only on first message
-		@internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
-	}
+  record Arg {
+    AuthEnc                     a; // AuthEnc of a RequestPlaintext
+    union { null, Handshake }   h; // handshake, non-null only on first message
+    @internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
+  }
 
-	record Res {
-		AuthEnc                     a; // AuthEnc of a ResponePlaintext
-		@internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
-	}
+  record Res {
+    AuthEnc                     a; // AuthEnc of a ResponePlaintext
+    @internal("") rpc.SeqNumber s; // for internal use only, pass back the RPC seqno; will never go over wire
+  }
 
-	// (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.
-	//
-	// c = "call"
-	// n = "notify"
-	Res c(Arg a);
-	void n(Arg a) oneway;
+  // (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.
+  //
+  // c = "call"
+  // n = "notify"
+  Res c(Arg a);
+  void n(Arg a) oneway;
 }
