@@ -57,6 +57,7 @@ type Service struct {
 	backgroundIdentifier *BackgroundIdentifier
 	home                 *home.Home
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
+	avatarLoader         avatars.Source
 }
 
 type Shutdowner interface {
@@ -79,6 +80,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
+		avatarLoader:     avatars.CreateSourceFromEnv(g),
 	}
 }
 
@@ -136,6 +138,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
+		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -305,11 +308,6 @@ func (d *Service) setupTeams() error {
 
 func (d *Service) setupPVL() error {
 	pvlsource.NewPvlSourceAndInstall(d.G())
-	return nil
-}
-
-func (d *Service) setupAvatars() error {
-	d.G().AvatarSource = avatars.NewSimpleSource(d.G())
 	return nil
 }
 

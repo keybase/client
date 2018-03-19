@@ -729,7 +729,3 @@ type ChatHelper interface {
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 }
-
-type AvatarSource interface {
-	LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (keybase1.LoadUserAvatarsRes, error)
-}
