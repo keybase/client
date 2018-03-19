@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, isMobile} from '../../../../styles'
-import {Box, Text} from '../../../../common-adapters'
+import {Box, ClickableBox, Text} from '../../../../common-adapters'
 import PopupMenu, {type MenuItem, ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
 import {ModalPositionRelative} from '../../../../common-adapters/relative-popup-hoc'
 import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
@@ -30,7 +30,7 @@ class RetentionPicker extends React.Component<Props, State> {
     dropdownRect: null,
   }
 
-  _labelBox: ?Box
+  _labelBox: ?ClickableBox
 
   _onSelect = (val: number | 'retain' | 'inherit') => {
     let selected: _RetentionPolicy
@@ -88,7 +88,7 @@ class RetentionPicker extends React.Component<Props, State> {
     }
   }
 
-  _setRef = (box: ?Box) => {
+  _setRef = (box: ?ClickableBox) => {
     this._labelBox = box
   }
 
@@ -103,7 +103,7 @@ class RetentionPicker extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box ref={this._setRef} onClick={this._showMenu} style={{...globalStyles.flexBoxRow}}>
+      <ClickableBox ref={this._setRef} onClick={this._showMenu} style={{...globalStyles.flexBoxRow}}>
         {this.props.policy && <Text type="BodySemibold">{this._label()}</Text>}
         {this.state.showMenu && (
           <OptionsPopup
@@ -116,14 +116,14 @@ class RetentionPicker extends React.Component<Props, State> {
             items={this.state.items}
           />
         )}
-      </Box>
+      </ClickableBox>
     )
   }
 }
 
 const RenderOptions = (props: {items: Array<MenuItem | 'Divider' | null>, onHide: () => any}) =>
   isMobile ? (
-    <PopupMenu onHidden={props.onHide} style={{overflow: 'visible'}} items={props.items} />
+    <PopupMenu onHidden={props.onHide} style={globalStyles.fillAbsolute} items={props.items} />
   ) : (
     <ModalLessPopupMenu
       onHidden={props.onHide}
