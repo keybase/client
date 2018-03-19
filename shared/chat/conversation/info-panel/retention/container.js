@@ -3,28 +3,21 @@ import {connect, compose, lifecycle, type TypedState} from '../../../../util/con
 import {getTeamRetentionPolicy, makeRetentionPolicy} from '../../../../constants/teams'
 import {createGetTeamRetentionPolicy} from '../../../../actions/teams-gen'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
-import type {RetentionPolicy} from '../../../../constants/types/teams'
 import RetentionPicker from './'
 
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
   teamname: string,
+  isTeamWide: boolean,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   // let policy: ?RetentionPolicy // TODO
-  let teamPolicy: ?RetentionPolicy
-  let _loaded = true
-
-  teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
-  if (!teamPolicy) {
-    _loaded = false
-  }
+  const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
 
   return {
-    _loaded,
-    policy: makeRetentionPolicy({}),
-    teamPolicy,
+    policy: ownProps.isTeamWide ? teamPolicy : makeRetentionPolicy({}),
+    teamPolicy: ownProps.isTeamWide ? undefined : teamPolicy,
   }
 }
 

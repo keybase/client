@@ -36,13 +36,16 @@ const policyToItem = (policy: RetentionPolicy, parent?: RetentionPolicy) =>
   daysToItem(policyToDays(policy, parent))
 const Hoc = compose(
   withProps((props: Props) => {
+    if (!props.policy) {
+      return
+    }
     let viewProps = {
       items,
       selectedItem: policyToItem(props.policy, props.teamPolicy),
     }
     if (props.teamPolicy) {
-      const inheritType = policyToItem(props.teamPolicy)
-      const teamItem = {label: `Use team default (${inheritType.label})`, value: 'inherit'}
+      const inheritItem = policyToItem(props.teamPolicy)
+      const teamItem = {label: `Use team default (${inheritItem.label})`, value: 'inherit'}
       viewProps = {...viewProps, teamItem}
     }
     return viewProps

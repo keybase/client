@@ -258,7 +258,7 @@ export class Settings extends React.Component<Props, State> {
               onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-            <RetentionPicker teamname={this.props.teamname} />
+            <RetentionPicker teamname={this.props.teamname} isTeamWide={true} />
           </Box>
         )}
         <Box

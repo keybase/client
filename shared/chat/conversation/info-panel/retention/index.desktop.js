@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Dropdown, Text} from '../../../../common-adapters'
+import {Box, Dropdown, Text, ProgressIndicator} from '../../../../common-adapters'
 import {globalStyles} from '../../../../styles'
 import {Hoc} from './index.shared'
 import type {ViewProps} from './'
@@ -14,6 +14,9 @@ const itemToNode = item => (
 )
 
 const View = (props: ViewProps) => {
+  if (!props.policy) {
+    return <ProgressIndicator />
+  }
   const items = props.items.map(itemToNode)
   const selectedItem = itemToNode(props.selectedItem)
   if (props.teamItem) {
