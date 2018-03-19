@@ -122,7 +122,8 @@ func NewImpatientDebugDumper(config Config, dumpIn time.Duration) *ImpatientDebu
 // NewImpatientDebugDumperForForcedDumps creates a new
 // *ImpatientDebugDumper, just as above, though without launching any
 // background goroutines or allowing the user to begin any
-// time-tracked tasks
+// time-tracked tasks.  `ForceDump` is the only way to obtain a dump
+// from a dumper constructed with this function.
 func NewImpatientDebugDumperForForcedDumps(config Config) *ImpatientDebugDumper {
 	return &ImpatientDebugDumper{
 		config: config,
