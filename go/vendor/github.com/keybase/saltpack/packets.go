@@ -3,7 +3,11 @@
 
 package saltpack
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/keybase/go-codec/codec"
+)
 
 type receiverKeys struct {
 	_struct       bool   `codec:",toarray"`
@@ -53,6 +57,28 @@ type encryptionBlockV1 struct {
 type encryptionBlockV2 struct {
 	encryptionBlockV1
 	IsFinal bool `codec:"final"`
+}
+
+// Make *encryptionBlockV2 implement codec.Selfer to encode IsFinal
+// first, to preserve the behavior noticed in this issue:
+// https://github.com/keybase/saltpack/pull/43 .
+
+var _ codec.Selfer = (*encryptionBlockV2)(nil)
+
+func (b *encryptionBlockV2) CodecEncodeSelf(e *codec.Encoder) {
+	e.MustEncode([]interface{}{
+		b.IsFinal,
+		b.HashAuthenticators,
+		b.PayloadCiphertext,
+	})
+}
+
+func (b *encryptionBlockV2) CodecDecodeSelf(d *codec.Decoder) {
+	d.MustDecode([]interface{}{
+		&b.IsFinal,
+		&b.HashAuthenticators,
+		&b.PayloadCiphertext,
+	})
 }
 
 func (h *EncryptionHeader) validate(versionValidator func(Version) error) error {
@@ -144,4 +170,26 @@ type signatureBlockV1 struct {
 type signatureBlockV2 struct {
 	signatureBlockV1
 	IsFinal bool `codec:"final"`
+}
+
+// Make *signatureBlockV2 implement codec.Selfer to encode IsFinal
+// first, to preserve the behavior noticed in this issue:
+// https://github.com/keybase/saltpack/pull/43 .
+
+var _ codec.Selfer = (*signatureBlockV2)(nil)
+
+func (b *signatureBlockV2) CodecEncodeSelf(e *codec.Encoder) {
+	e.MustEncode([]interface{}{
+		b.IsFinal,
+		b.Signature,
+		b.PayloadChunk,
+	})
+}
+
+func (b *signatureBlockV2) CodecDecodeSelf(d *codec.Decoder) {
+	d.MustDecode([]interface{}{
+		&b.IsFinal,
+		&b.Signature,
+		&b.PayloadChunk,
+	})
 }
