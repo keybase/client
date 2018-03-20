@@ -84,7 +84,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
-    case FsGen.installKBFSResult:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.uninstallKBFS:
       return state

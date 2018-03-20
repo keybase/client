@@ -23,7 +23,6 @@ export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
-export const installKBFSResult = 'fs:installKBFSResult'
 export const openInFileUI = 'fs:openInFileUI'
 export const setFlags = 'fs:setFlags'
 export const sortSetting = 'fs:sortSetting'
@@ -84,7 +83,6 @@ export const createFuseStatusResult = (
 export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
 export const createInstallFuseResult = (payload: $ReadOnly<{kextPermissionError: boolean}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
-export const createInstallKBFSResult = (payload: $ReadOnly<{result: RPCTypes.InstallResult}>) => ({error: false, payload, type: installKBFSResult})
 export const createOpenInFileUI = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: openInFileUI})
 export const createSetFlags = (
   payload: $ReadOnly<{
@@ -117,7 +115,6 @@ export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusRes
 export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
 export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
-export type InstallKBFSResultPayload = More.ReturnType<typeof createInstallKBFSResult>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
@@ -141,7 +138,6 @@ export type Actions =
   | More.ReturnType<typeof createInstallFuse>
   | More.ReturnType<typeof createInstallFuseResult>
   | More.ReturnType<typeof createInstallKBFS>
-  | More.ReturnType<typeof createInstallKBFSResult>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSortSetting>

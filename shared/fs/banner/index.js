@@ -1,26 +1,27 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Button, Checkbox} from '../../common-adapters'
+import * as Types from '../../constants/types/fs'
+import {Box, Text, Icon, Button} from '../../common-adapters'
 import {fileUIName, isMobile} from '../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
   kbfsEnabled: boolean,
   inProgress: boolean,
+  canDismiss: boolean,
+  showBanner: boolean,
+  path?: Types.Path,
+  onDismiss: () => void,
   onInstall: () => void,
   onUninstall: () => void,
 }
 
-const checkBoxComponent = (kbfsEnabled: boolean) => (
-  <Box style={globalStyles.flexBoxColumn}>
-    <Text type="Body">Enable Keybase in {fileUIName}</Text>
-    <Text type="BodySmall">Access your Keybase files just like you normally do with your local files.</Text>
-  </Box>
-)
-
-const Files = isMobile
+const Banner = isMobile
   ? () => <Box />
-  : ({kbfsEnabled, inProgress, onInstall, onUninstall}: Props) => {
+  : ({kbfsEnabled, showBanner, onInstall, onUninstall}: Props) => {
+      if (kbfsEnabled && !showBanner) {
+        return <Box />
+      }
       const iconType = kbfsEnabled ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'
       const bannerStyle = {
         ...globalStyles.flexBoxRow,
@@ -52,25 +53,11 @@ const Files = isMobile
         )
       }
       return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <Box style={bannerStyle}>
-            <Box style={bannerIconStyle}>
-              <Icon type={iconType} />
-            </Box>
-            <Box style={bannerTextContentStyle}>{bannerContent}</Box>
+        <Box style={bannerStyle}>
+          <Box style={bannerIconStyle}>
+            <Icon type={iconType} />
           </Box>
-          <Box style={mainContentStyle}>
-            <Box style={contentHeaderStyle}>
-              <Text type="BodySmallSemibold">{fileUIName} integration</Text>
-              <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
-            </Box>
-            <Checkbox
-              onCheck={kbfsEnabled ? onUninstall : onInstall}
-              labelComponent={checkBoxComponent(kbfsEnabled)}
-              checked={kbfsEnabled}
-              disabled={inProgress}
-            />
-          </Box>
+          <Box style={bannerTextContentStyle}>{bannerContent}</Box>
         </Box>
       )
     }
@@ -88,27 +75,9 @@ const bannerTextContentStyle = {
   paddingRight: globalMargins.xlarge + globalMargins.medium,
 }
 
-const mainContentStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  paddingTop: globalMargins.medium,
-  paddingLeft: globalMargins.tiny,
-}
-
-const contentHeaderStyle = {
-  ...globalStyles.flexBoxRow,
-  paddingBottom: globalMargins.tiny,
-}
-
-const contentHeaderIconStyle = {
-  fontSize: 16,
-  color: globalColors.black_20,
-  paddingLeft: globalMargins.tiny,
-}
-
 const textStyle = {
   color: globalColors.white,
   paddingBottom: globalMargins.small,
 }
 
-export default Files
+export default Banner
