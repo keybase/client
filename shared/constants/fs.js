@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
-import {downloadFilePath} from '../util/file'
+import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
 import memoize from 'lodash/memoize'
 
@@ -56,6 +56,7 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
 export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
   type: 'download',
   entryType: 'unknown',
+  intent: 'none',
   path: Types.stringToPath(''),
   localPath: '',
   completePortion: 0,
@@ -242,3 +243,10 @@ export const makeDownloadKey = (path: Types.Path, localPath: string) =>
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
+export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
+  downloadFilePathNoSearch(Types.getPathName(p))
+
+export const isImage = (name: string): boolean => {
+  const lower = name.toLowerCase()
+  return ['.png', '.jpg', '.jpeg', '.mp4'].reduce((found, current) => found || lower.endsWith(current), false)
+}

@@ -2,17 +2,19 @@
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, Text} from '../../common-adapters'
+import memoize from 'lodash/memoize'
 
 type ProgressProps = {
   completePortion: number,
   text: string,
+  width: number,
 }
 
-const Progress = ({completePortion, text}: ProgressProps) => (
+const Progress = ({completePortion, text, width}: ProgressProps) => (
   <Box style={stylesOuter}>
     <Box style={stylesTubeBox}>
-      <Box style={stylesTube} />
-      <Box style={{...stylesTubeStuffing, width: completePortion * 40}} />
+      <Box style={stylesTube(width)} />
+      <Box style={{...stylesTubeStuffing(width), width: completePortion * width}} />
     </Box>
     <Text type="BodySmallSemibold" style={stylesText}>
       {text}
@@ -30,19 +32,19 @@ const stylesTubeBox = {
   marginRight: globalMargins.xtiny,
 }
 
-const stylesTube = {
+const stylesTube = memoize(width => ({
   backgroundColor: globalColors.black_20,
   borderRadius: 4.5,
   height: 4,
   marginTop: 3,
-  width: 40,
-}
+  width,
+}))
 
-const stylesTubeStuffing = {
-  ...stylesTube,
+const stylesTubeStuffing = width => ({
+  ...stylesTube(width),
   backgroundColor: globalColors.white,
   marginTop: -4,
-}
+})
 
 const stylesText = platformStyles({
   common: {

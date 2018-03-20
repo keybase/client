@@ -36,6 +36,7 @@ export const createDownload = (
   payload: $ReadOnly<{
     path: Types.Path,
     localPath?: string,
+    intent: Types.TransferIntent,
   }>
 ) => ({error: false, payload, type: download})
 export const createDownloadFinished = (
@@ -49,6 +50,7 @@ export const createDownloadStarted = (
     key: string,
     path: Types.Path,
     localPath: Types.LocalPath,
+    intent: Types.TransferIntent,
   }>
 ) => ({error: false, payload, type: downloadStarted})
 export const createFilePreviewLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: filePreviewLoad})

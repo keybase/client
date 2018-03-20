@@ -37,6 +37,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           props: {
             path,
             position: 'bottom right',
+            isShare: false,
             targetRect,
           },
           selected: 'rowAction',

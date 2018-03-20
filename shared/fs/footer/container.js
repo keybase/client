@@ -16,7 +16,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
   ({
-    downloads: Array.from(stateProps.transfers.filter(transferState => transferState.type === 'download'))
+    downloads: Array.from(
+      stateProps.transfers.filter(
+        transferState => transferState.type === 'download' && transferState.intent === 'none'
+      )
+    )
       .sort(([_a, a], [_b, b]) => b.startedAt - a.startedAt) // newer first
       .map(([key, transferState]) => ({
         filename: Types.getLocalPathName(transferState.localPath),

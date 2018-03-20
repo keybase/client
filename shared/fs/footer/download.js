@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import Progress from './progress'
+import Progress from '../common/progress'
 
 export type DownloadProps = {
   filename: string,
@@ -17,7 +17,7 @@ const Download = (props: DownloadProps) => (
   <Box style={stylesDownload}>
     <Box style={stylesIconBox}>
       <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-download'} style={stylesIconLeft} />
-    </Box>
+    </Box>{' '}
     <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
       <Box style={stylesNameAndProgress}>
         <Text type="BodySmallSemibold" style={stylesText}>
@@ -25,7 +25,7 @@ const Download = (props: DownloadProps) => (
         </Text>
         {!props.isDone && (
           <Box style={stylesProgressBox}>
-            <Progress completePortion={props.completePortion} text={props.progressText} />
+            <Progress completePortion={props.completePortion} text={props.progressText} width={40} />
           </Box>
         )}
       </Box>
