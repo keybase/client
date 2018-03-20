@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -195,6 +196,32 @@ func (s *DeviceEKStorage) GetAll(ctx context.Context) (deviceEKs DeviceEKMap, er
 	defer s.Unlock()
 
 	return s.getCache(ctx)
+}
+
+func (s *DeviceEKStorage) GetAllActive(ctx context.Context, merkleRoot libkb.MerkleRoot) (metadatas []keybase1.DeviceEkMetadata, err error) {
+	defer s.G().CTrace(ctx, "GetAllActive", func() error { return err })()
+	s.Lock()
+	defer s.Unlock()
+
+	cache, err := s.getCache(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	activeKeysInOrder := []keybase1.DeviceEkMetadata{}
+	for _, deviceEK := range cache {
+		// Skip expired keys. Expired keys are spared from deletion past for a
+		// window past their expiry date, in case they're needed for
+		// decryption, but they're never signed over or used for encryption.
+		if ctimeIsStale(deviceEK.Metadata.Ctime, merkleRoot) {
+			continue
+		}
+		// Collect out of order, then sort below.
+		activeKeysInOrder = append(activeKeysInOrder, deviceEK.Metadata)
+	}
+	sort.Slice(activeKeysInOrder, func(a, b int) bool { return activeKeysInOrder[a].Generation < activeKeysInOrder[b].Generation })
+
+	return activeKeysInOrder, nil
 }
 
 func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {

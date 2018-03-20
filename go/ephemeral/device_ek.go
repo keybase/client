@@ -1,9 +1,7 @@
 package ephemeral
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 
@@ -21,7 +19,7 @@ func newDeviceEphemeralSeed() (seed DeviceEKSeed, err error) {
 	return DeviceEKSeed(randomSeed), nil
 }
 
-func (s *DeviceEKSeed) DeriveDHKey() (key *libkb.NaclDHKeyPair, err error) {
+func (s *DeviceEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonDeviceEKEncryption)
 }
 
@@ -42,7 +40,7 @@ func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (e
 
 func getServerMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (maxGeneration keybase1.EkGeneration, err error) {
 	defer g.CTrace(ctx, "getServerMaxDeviceEK", func() error { return err })()
-	deviceEKs, err := getActiveDeviceEKMetadata(ctx, g, merkleRoot)
+	deviceEKs, err := getAllDeviceEKMetadataMaybeStale(ctx, g, merkleRoot)
 	if err != nil {
 		return maxGeneration, err
 	}
@@ -64,11 +62,7 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 	if err != nil {
 		return metadata, err
 	}
-
-	dhKeypair, err := seed.DeriveDHKey()
-	if err != nil {
-		return metadata, err
-	}
+	dhKeypair := seed.DeriveDHKey()
 
 	storage := g.GetDeviceEKStorage()
 	generation, err := storage.MaxGeneration(ctx)
@@ -105,6 +99,12 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 }
 
 func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
+	storage := g.GetDeviceEKStorage()
+	existingKeys, err := storage.GetAllActive(ctx, merkleRoot)
+	if err != nil {
+		return metadata, err
+	}
+
 	metadata = keybase1.DeviceEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
@@ -114,17 +114,23 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		// extra round trip.
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
-	metadataJSON, err := json.Marshal(metadata)
+	statement := keybase1.DeviceEkStatement{
+		CurrentDeviceEk: metadata,
+		// TODO: Make the server more forgiving if this list is wrong?
+		ExistingDeviceEks: existingKeys,
+	}
+
+	statementJSON, err := json.Marshal(statement)
 	if err != nil {
 		return metadata, err
 	}
 
-	// Sign the metadata blob with the device's long term signing key.
+	// Sign the statement blob with the device's long term signing key.
 	signingKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
 		return metadata, err
 	}
-	signedPacket, _, err := signingKey.SignToString(metadataJSON)
+	signedPacket, _, err := signingKey.SignToString(statementJSON)
 	if err != nil {
 		return metadata, err
 	}
@@ -138,14 +144,11 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 }
 
 type deviceEKsResponse struct {
-	Results []struct {
-		MerklePayload string `json:"merkle_payload"`
-		Sig           string `json:"sig"`
-	} `json:"results"`
+	Sigs []string `json:"sigs"`
 }
 
-func getActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "GetActiveDeviceEKMetadata", func() error { return err })()
+func getAllDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
+	defer g.CTrace(ctx, "getAllDeviceEKMetadataMaybeStale", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_eks",
@@ -164,75 +167,74 @@ func getActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext, merk
 		return nil, err
 	}
 
-	// The client now needs to verify several things about these blobs its
-	// received:
-	// 1) Each is validly signed.
-	// 2) The signing key belongs to one of the current user's devices.
-	// 3) The merkle payload supplied by the server matches the hash that's
-	//    been signed over.
-	// 4) The key hasn't stale. That is, the Merkle root it was delegated
-	//    with is within one week of the current root. The server deliberately
-	//    avoids doing this filtering for us, and finding stale keys in the
-	//    results here is expected. We silently drop them.
+	// Make a map of the user's own active devices, by KID. We'll use this to
+	// match deviceEK sigs with the device that issued them below. (Checking
+	// the signing key is intentionally the only way to do this, so that we're
+	// forced to check authenticity.)
+	kidToDevice := map[keybase1.KID]keybase1.PublicKey{}
+	self, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, g.Env.GetUID()))
+	if err != nil {
+		return nil, err
+	}
+	for _, device := range self.Base.DeviceKeys {
+		if device.IsRevoked {
+			continue
+		}
+		kidToDevice[device.KID] = device
+	}
+
+	// The client now needs to verify two things about these blobs its
+	// received: 1) Each is validly signed. 2) The signing key belongs to one
+	// of the current user's devices.
 	metadata = map[keybase1.DeviceID]keybase1.DeviceEkMetadata{}
-	for _, element := range parsedResponse.Results {
+	for _, sig := range parsedResponse.Sigs {
 		// Verify the sig.
-		signerKey, payload, _, err := libkb.NaclVerifyAndExtract(element.Sig)
+		signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 		if err != nil {
 			return nil, err
 		}
 
-		// Verify the signing key corresponds to a device.
-		var matchingDevice *keybase1.PublicKey
-		self, _, err := g.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(ctx, g, g.Env.GetUID()))
-		if err != nil {
-			return nil, err
-		}
-		for _, device := range self.Base.DeviceKeys {
-			if !device.KID.Equal(signerKey.GetKID()) {
-				continue
-			}
-			if device.IsRevoked {
-				return nil, fmt.Errorf("deviceEK returned for revoked device KID %s", signerKey.GetKID())
-			}
-			deviceDummyVar := device
-			matchingDevice = &deviceDummyVar
-			break
-		}
-		if matchingDevice == nil {
+		// Find the device that matches the signing key. This checks
+		// authenticity.
+		matchingDevice, ok := kidToDevice[signerKey.GetKID()]
+		if !ok {
 			return nil, fmt.Errorf("deviceEK returned for unknown device KID %s", signerKey.GetKID())
 		}
 
 		// Decode the signed JSON.
-		var verifiedMetadata keybase1.DeviceEkMetadata
-		err = json.Unmarshal(payload, &verifiedMetadata)
+		var verifiedStatement keybase1.DeviceEkStatement
+		err = json.Unmarshal(payload, &verifiedStatement)
 		if err != nil {
 			return nil, err
 		}
 
-		// Check the hash of the Merkle payload, confirm it matches what was signed, and parse it.
-		computedHash := sha256.Sum256([]byte(element.MerklePayload))
-		if !bytes.Equal(verifiedMetadata.HashMeta, computedHash[:]) {
-			return nil, fmt.Errorf("supplied merkle root doesn't match signed hash meta")
-		}
-		var signedMerkleRoot libkb.MerkleRootPayloadUnpacked
-		err = json.Unmarshal([]byte(element.MerklePayload), &signedMerkleRoot)
-		if err != nil {
-			return nil, err
-		}
-
-		// Check whether the key is stale. This isn't considered an error,
-		// since the server doesn't do this check for us. We log these cases
-		// and skip them.
-		ageSecs := keybase1.TimeFromSeconds(merkleRoot.Ctime() - signedMerkleRoot.Ctime)
-		if ageSecs > KeyLifetimeSecs {
-			g.Log.CDebugf(ctx, "skipping stale deviceEK %s for device KID %s", verifiedMetadata.Kid, matchingDevice.KID)
-			continue
-		}
-
-		// This key is valid and current. Add it to the return set.
-		metadata[matchingDevice.DeviceID] = verifiedMetadata
+		metadata[matchingDevice.DeviceID] = verifiedStatement.CurrentDeviceEk
 	}
 
 	return metadata, nil
+}
+
+// getAllActiveDeviceEKMetadata fetches the latest deviceEK for each of your
+// devices, filtering out the ones that are stale.
+func getAllActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata map[keybase1.DeviceID]keybase1.DeviceEkMetadata, err error) {
+	defer g.CTrace(ctx, "getAllActiveDeviceEKMetadata", func() error { return err })()
+
+	maybeStale, err := getAllDeviceEKMetadataMaybeStale(ctx, g, merkleRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	active := map[keybase1.DeviceID]keybase1.DeviceEkMetadata{}
+	for deviceID, metadata := range maybeStale {
+		// Check whether the key is stale. This isn't considered an error,
+		// since the server doesn't do this check for us. We log these cases
+		// and skip them.
+		if ctimeIsStale(metadata.Ctime, merkleRoot) {
+			g.Log.CDebugf(ctx, "skipping stale deviceEK %s for device KID %s", metadata.Kid, deviceID)
+			continue
+		}
+		active[deviceID] = metadata
+	}
+
+	return active, nil
 }

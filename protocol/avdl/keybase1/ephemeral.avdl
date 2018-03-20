@@ -7,6 +7,19 @@ protocol ephemeral {
   @typedef("int64")
   record EkGeneration {}
 
+  // NOTE: The device/user/team structs are very similar here, so it might seem
+  // like a good idea to unify them. However! One thing we have to be careful
+  // with is that signatures of one type don't get confused for another type.
+  // Thus we use distinct field names like "device_ephemeral_dh_public" and
+  // "user_ephemeral_dh_public". If anyone ever tries to refactor all these
+  // structs, please be careful with this detail.
+  record DeviceEkStatement {
+    @jsonkey("current_device_ek")
+    DeviceEkMetadata currentDeviceEk;
+    @jsonkey("existing_device_eks")
+    array<DeviceEkMetadata> existingDeviceEks;
+  }
+
   record DeviceEkMetadata {
     @jsonkey("device_ephemeral_dh_public")
     KID kid;
@@ -19,6 +32,13 @@ protocol ephemeral {
   record DeviceEk {
     Bytes32 seed;
     DeviceEkMetadata metadata;
+  }
+
+  record UserEkStatement {
+    @jsonkey("current_user_ek")
+    UserEkMetadata currentUserEk;
+    @jsonkey("existing_user_eks")
+    array<UserEkMetadata> existingUserEks;
   }
 
   record UserEkMetadata {

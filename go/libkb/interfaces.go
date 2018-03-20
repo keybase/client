@@ -616,6 +616,7 @@ type TeamLoader interface {
 type DeviceEKStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error)
 	Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error)
+	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) (metadatas []keybase1.DeviceEkMetadata, err error)
 	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()

@@ -14,6 +14,10 @@ const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 // Everyday we want to generate a new key if possible
 const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
 
+func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() > KeyLifetimeSecs
+}
+
 // We should wrap any entry points to the library with this before we're ready
 // to fully release it.
 func ShouldRun(g *libkb.GlobalContext) bool {
@@ -29,13 +33,16 @@ func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 
 }
 
-func deriveDHKey(k keybase1.Bytes32, reason libkb.DeriveReason) (key *libkb.NaclDHKeyPair, err error) {
+func deriveDHKey(k keybase1.Bytes32, reason libkb.DeriveReason) *libkb.NaclDHKeyPair {
 	derived, err := libkb.DeriveFromSecret(k, reason)
 	if err != nil {
-		return nil, err
+		panic("This should never fail: " + err.Error())
 	}
 	keypair, err := libkb.MakeNaclDHKeyPairFromSecret(derived)
-	return &keypair, err
+	if err != nil {
+		panic("This should never fail: " + err.Error())
+	}
+	return &keypair
 }
 
 func newEKSeedFromBytes(b []byte) (seed keybase1.Bytes32, err error) {

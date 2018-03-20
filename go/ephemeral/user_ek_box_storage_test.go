@@ -36,8 +36,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 
 	seed := UserEKSeed(userEK.Seed)
-	keypair, err := seed.DeriveDHKey()
-	require.NoError(t, err)
+	keypair := seed.DeriveDHKey()
 	require.Equal(t, userEKMetadata.Kid, keypair.GetKID())
 
 	// Test MaxGeneration
@@ -57,8 +56,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.True(t, ok)
 
 	seed = UserEKSeed(userEK.Seed)
-	keypair, err = seed.DeriveDHKey()
-	require.NoError(t, err)
+	keypair = seed.DeriveDHKey()
 	require.Equal(t, userEKMetadata.Kid, keypair.GetKID())
 
 	// Let's delete our deviceEK and verify we can't unbox the userEK

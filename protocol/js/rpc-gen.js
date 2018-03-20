@@ -2201,6 +2201,8 @@ export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
+export type DeviceEkStatement = $ReadOnly<{currentDeviceEk: DeviceEkMetadata, existingDeviceEks?: ?Array<DeviceEkMetadata>}>
+
 export type DeviceID = String
 
 export type DeviceType =
@@ -3980,6 +3982,8 @@ export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
+export type UserEkStatement = $ReadOnly<{currentUserEk: UserEkMetadata, existingUserEks?: ?Array<UserEkMetadata>}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

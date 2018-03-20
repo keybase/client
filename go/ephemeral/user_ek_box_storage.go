@@ -110,7 +110,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	// Before we store anything, let's verify that the server returned
 	// signature is valid and the KID it has signed matches the boxed seed.
 	// Otherwise something's fishy..
-	userEKMetadata, wrongKID, err := verifySigWithLatestPUK(ctx, s.G(), result.Result.Sig)
+	userEKStatement, wrongKID, err := verifySigWithLatestPUK(ctx, s.G(), result.Result.Sig)
 
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
@@ -123,15 +123,15 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 		return userEK, err
 	}
 
-	if userEKMetadata == nil { // shouldn't happen
-		s.G().Log.CWarningf(ctx, "No error but got nil userEKMetadata")
+	if userEKStatement == nil { // shouldn't happen
+		s.G().Log.CWarningf(ctx, "No error but got nil userEKStatement")
 		return userEK, err
 	}
 
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
 		DeviceEkGeneration: result.Result.DeviceEKGeneration,
-		Metadata:           *userEKMetadata,
+		Metadata:           userEKStatement.CurrentUserEk,
 	}
 
 	userEK, err = s.unbox(ctx, userEKBoxed)
@@ -140,14 +140,10 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	}
 
 	seed := UserEKSeed(userEK.Seed)
-	keypair, err := seed.DeriveDHKey()
-	if err != nil {
-		return userEK, err
+	keypair := seed.DeriveDHKey()
 
-	}
-
-	if !keypair.GetKID().Equal(userEKMetadata.Kid) {
-		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKMetadata.Kid)
+	if !keypair.GetKID().Equal(userEKStatement.CurrentUserEk.Kid) {
+		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKStatement.CurrentUserEk.Kid)
 	}
 
 	// Store the boxed version, return the unboxed
@@ -189,10 +185,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKBoxed keybase1.UserE
 	}
 
 	deviceSeed := DeviceEKSeed(deviceEK.Seed)
-	deviceKeypair, err := deviceSeed.DeriveDHKey()
-	if err != nil {
-		return userEK, err
-	}
+	deviceKeypair := deviceSeed.DeriveDHKey()
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
