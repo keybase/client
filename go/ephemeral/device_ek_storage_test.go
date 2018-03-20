@@ -17,43 +17,44 @@ func TestDeviceEKStorage(t *testing.T) {
 	defer tc.Cleanup()
 
 	now := keybase1.Time(time.Now().Unix())
-	merkleRoot, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
+	merkleRoot := *merkleRootPtr
 
 	tests := []keybase1.DeviceEk{
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic0"))),
 			Metadata: keybase1.DeviceEkMetadata{
-				Generation: keybase1.EkGeneration(0),
+				Generation: 0,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
-				Kid:        keybase1.KID(""),
+				Kid:        "",
 				Ctime:      now - KeyLifetimeSecs*3,
 			},
 		},
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic1"))),
 			Metadata: keybase1.DeviceEkMetadata{
-				Generation: keybase1.EkGeneration(1),
+				Generation: 1,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta1"),
-				Kid:        keybase1.KID(""),
+				Kid:        "",
 				Ctime:      now - KeyLifetimeSecs*3,
 			},
 		},
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic2"))),
 			Metadata: keybase1.DeviceEkMetadata{
-				Generation: keybase1.EkGeneration(2),
+				Generation: 2,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta2"),
-				Kid:        keybase1.KID(""),
+				Kid:        "",
 				Ctime:      now,
 			},
 		},
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic3"))),
 			Metadata: keybase1.DeviceEkMetadata{
-				Generation: keybase1.EkGeneration(3),
+				Generation: 3,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta3"),
-				Kid:        keybase1.KID(""),
+				Kid:        "",
 				Ctime:      now,
 			},
 		},
@@ -75,6 +76,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
+	s.ClearCache()
 	// Test GetAll
 	deviceEKs, err := s.GetAll(context.Background())
 	require.NoError(t, err)
@@ -87,9 +89,9 @@ func TestDeviceEKStorage(t *testing.T) {
 	}
 
 	// Test Delete
-	require.NoError(t, s.Delete(context.Background(), keybase1.EkGeneration(2)))
+	require.NoError(t, s.Delete(context.Background(), 2))
 
-	deviceEK, err = s.Get(context.Background(), keybase1.EkGeneration(2))
+	deviceEK, err = s.Get(context.Background(), 2)
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
@@ -98,7 +100,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, 3, maxGeneration)
 
-	require.NoError(t, s.Delete(context.Background(), keybase1.EkGeneration(3)))
+	require.NoError(t, s.Delete(context.Background(), 3))
 
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)
@@ -120,7 +122,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	err = erasableStorage.Put(context.Background(), badEldestSeqnoKey, keybase1.DeviceEk{})
 	require.NoError(t, err)
 
-	expired, err := s.DeleteExpired(context.Background(), *merkleRoot)
+	expired, err := s.DeleteExpired(context.Background(), merkleRoot)
 	expected := []keybase1.EkGeneration{0, 1}
 	require.NoError(t, err)
 	require.Equal(t, expected, expired)

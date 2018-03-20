@@ -10,7 +10,10 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// Keys last at most one week
 const KeyLifetimeSecs = keybase1.Time(time.Hour * 24 * 7) // one week
+// Everyday we want to generate a new key if possible
+const KeyGenLifetimeSecs = keybase1.Time(time.Hour * 24) // one day
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(libkb.NaclDHKeysize)

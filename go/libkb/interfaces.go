@@ -629,6 +629,10 @@ type UserEKBoxStorage interface {
 	ClearCache()
 }
 
+type EKLib interface {
+	KeygenIfNeeded(ctx context.Context) error
+}
+
 type ImplicitTeamConflictInfoCacher interface {
 	Get(context.Context, bool, keybase1.TeamID) *keybase1.ImplicitTeamConflictInfo
 	Put(context.Context, bool, keybase1.TeamID, keybase1.ImplicitTeamConflictInfo) error

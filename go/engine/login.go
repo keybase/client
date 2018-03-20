@@ -154,7 +154,6 @@ func (e *Login) notProvisionedErr(err error) bool {
 	}
 
 	e.G().Log.Debug("notProvisioned, not handling error %s (err type: %T)", err, err)
-
 	return false
 }
 

@@ -202,6 +202,7 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 	s.Lock()
 	defer s.Unlock()
 
+	maxGeneration = -1
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return maxGeneration, err
