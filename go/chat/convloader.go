@@ -163,9 +163,10 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	b.activeLoadMu.Lock()
 	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(Context(ictx, b.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, b.identNotifier))
+	ctx := b.activeLoadCtx
 	b.activeLoadMu.Unlock()
 	if b.testingNameInfoSource != nil {
-		CtxKeyFinder(b.activeLoadCtx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
+		CtxKeyFinder(ctx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
 	}
 	defer func() {
 		b.activeLoadMu.Lock()
@@ -177,27 +178,24 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := &chat1.Pagination{Num: 50}
-	_, _, err := b.G().ConvSource.Pull(b.activeLoadCtx, task.convID, uid, query, pagination)
+	_, _, err := b.G().ConvSource.Pull(ctx, task.convID, uid, query, pagination)
 	if err != nil {
-		b.Debug(b.activeLoadCtx, "ConvSource.Pull error: %s (%T)", err, err)
+		b.Debug(ctx, "ConvSource.Pull error: %s (%T)", err, err)
 		if _, ok := err.(*TransientUnboxingError); ok && task.attempt+1 < bgLoaderMaxAttempts {
-			b.Debug(b.activeLoadCtx, "transient error, retrying")
+			b.Debug(ctx, "transient error, retrying")
 			task.attempt++
 			task.lastAttemptAt = time.Now()
-			b.enqueue(b.activeLoadCtx, task)
+			b.enqueue(ctx, task)
 			return
 		}
-
-		b.Debug(b.activeLoadCtx, "failed to load conv %s", task.convID)
-
+		b.Debug(ctx, "failed to load conv %s", task.convID)
 		return
 	}
-
-	b.Debug(b.activeLoadCtx, "loaded conversation %s", task.convID)
+	b.Debug(ctx, "loaded conversation %s", task.convID)
 
 	// if testing, put the convID on the loads channel
 	if b.loads != nil {
-		b.Debug(b.activeLoadCtx, "putting convID %s on loads chan", task.convID)
+		b.Debug(ctx, "putting convID %s on loads chan", task.convID)
 		b.loads <- task.convID
 	}
 }
