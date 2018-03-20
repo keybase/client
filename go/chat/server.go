@@ -170,6 +170,18 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
+func (h *Server) suspendConvLoader(ctx context.Context) func() {
+	h.G().ConvLoader.CancelActiveLoad(ctx)
+	h.G().ConvLoader.Stop(ctx)
+	return func() {
+		h.G().ConvLoader.Start(ctx, h.getUID())
+	}
+}
+
+func (h *Server) getUID() gregor1.UID {
+	return gregor1.UID(h.G().Env.GetUID().ToBytes())
+}
+
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
@@ -180,6 +192,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: result obtained offline")
 		}
 	}()
+	defer h.suspendConvLoader(ctx)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
@@ -502,6 +515,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		}
 	}()
+	defer h.suspendConvLoader(ctx)()
 	defer func() {
 		if res.Offline {
 			h.Debug(ctx, "GetThreadNonblock: result obtained offline")
@@ -1164,6 +1178,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
+	defer h.suspendConvLoader(ctx)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalNonblockRes{}, err
 	}

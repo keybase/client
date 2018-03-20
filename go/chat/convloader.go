@@ -32,10 +32,15 @@ type BackgroundConvLoader struct {
 	utils.DebugLabeler
 	sync.Mutex
 
+	uid           gregor1.UID
 	started       bool
 	queue         chan clTask
-	stop          chan bool
+	stop          chan chan struct{}
 	identNotifier types.IdentifyNotifier
+
+	activeLoadMu       sync.Mutex
+	activeLoadCtx      context.Context
+	activeLoadCancelFn context.CancelFunc
 
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
@@ -48,7 +53,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stop:          make(chan bool),
+		stop:          make(chan chan struct{}),
 		identNotifier: NewCachingIdentifyNotifier(g),
 	}
 	b.identNotifier.ResetOnGUIConnect()
@@ -63,30 +68,41 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	defer b.Unlock()
 
 	if b.started {
-		b.stop <- true
+		b.stop <- make(chan struct{})
 	}
 
 	b.newQueue()
 
 	b.started = true
-	go b.loop(uid)
+	b.uid = uid
+	go b.loop()
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
 
-	if b.started {
-		b.stop <- true
-		b.started = false
-	}
 	ch := make(chan struct{})
-	close(ch)
+	if b.started {
+		b.stop <- ch
+		b.started = false
+	} else {
+		close(ch)
+	}
 	return ch
 }
 
 func (b *BackgroundConvLoader) Queue(ctx context.Context, convID chat1.ConversationID) error {
 	return b.enqueue(ctx, clTask{convID: convID})
+}
+
+func (b *BackgroundConvLoader) CancelActiveLoad(ctx context.Context) {
+	b.activeLoadMu.Lock()
+	defer b.activeLoadMu.Unlock()
+	if b.activeLoadCtx != nil {
+		b.Debug(b.activeLoadCtx, "canceling active load")
+		b.activeLoadCancelFn()
+	}
 }
 
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
@@ -108,8 +124,9 @@ func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource)
 	b.testingNameInfoSource = ni
 }
 
-func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
+func (b *BackgroundConvLoader) loop() {
 	bgctx := context.Background()
+	uid := b.uid
 	b.Debug(bgctx, "starting conv loader loop for %s", uid)
 	for {
 		// get a convID from queue, or stop
@@ -126,8 +143,9 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
 			}
 			time.Sleep(duration)
 			b.load(bgctx, task, uid)
-		case <-b.stop:
+		case ch := <-b.stop:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
+			close(ch)
 			return
 		}
 	}
@@ -140,38 +158,46 @@ func (b *BackgroundConvLoader) newQueue() {
 	b.queue = make(chan clTask, 200)
 }
 
-func (b *BackgroundConvLoader) load(ctx context.Context, task clTask, uid gregor1.UID) {
-	b.Debug(ctx, "loading conversation %s", task.convID)
-
-	var breaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks, b.identNotifier)
+func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) {
+	b.Debug(ictx, "loading conversation %s", task.convID)
+	b.activeLoadMu.Lock()
+	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(Context(ictx, b.G(),
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, b.identNotifier))
+	b.activeLoadMu.Unlock()
 	if b.testingNameInfoSource != nil {
-		CtxKeyFinder(ctx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
+		CtxKeyFinder(b.activeLoadCtx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
 	}
+	defer func() {
+		b.activeLoadMu.Lock()
+		b.activeLoadCancelFn()
+		b.activeLoadCtx = nil
+		b.activeLoadCancelFn = nil
+		b.activeLoadMu.Unlock()
+	}()
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := &chat1.Pagination{Num: 50}
-	_, _, err := b.G().ConvSource.Pull(ctx, task.convID, uid, query, pagination)
+	_, _, err := b.G().ConvSource.Pull(b.activeLoadCtx, task.convID, uid, query, pagination)
 	if err != nil {
-		b.Debug(ctx, "ConvSource.Pull error: %s (%T)", err, err)
+		b.Debug(b.activeLoadCtx, "ConvSource.Pull error: %s (%T)", err, err)
 		if _, ok := err.(*TransientUnboxingError); ok && task.attempt+1 < bgLoaderMaxAttempts {
-			b.Debug(ctx, "transient error, retrying")
+			b.Debug(b.activeLoadCtx, "transient error, retrying")
 			task.attempt++
 			task.lastAttemptAt = time.Now()
-			b.enqueue(ctx, task)
+			b.enqueue(b.activeLoadCtx, task)
 			return
 		}
 
-		b.Debug(ctx, "failed to load conv %s", task.convID)
+		b.Debug(b.activeLoadCtx, "failed to load conv %s", task.convID)
 
 		return
 	}
 
-	b.Debug(ctx, "loaded conversation %s", task.convID)
+	b.Debug(b.activeLoadCtx, "loaded conversation %s", task.convID)
 
 	// if testing, put the convID on the loads channel
 	if b.loads != nil {
-		b.Debug(ctx, "putting convID %s on loads chan", task.convID)
+		b.Debug(b.activeLoadCtx, "putting convID %s on loads chan", task.convID)
 		b.loads <- task.convID
 	}
 }
