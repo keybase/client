@@ -5,6 +5,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
 import type {_ConversationMeta} from '../types/chat2/meta'
+import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isIOS, isAndroid} from '../platform'
@@ -298,3 +299,12 @@ export const getRowParticipants = (meta: Types.ConversationMeta, username: strin
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)
+
+export const findConversationFromParticipants = (state: TypedState, participants: I.Set<string>) => {
+  const toFind = participants.concat([state.config.username])
+  return state.chat2.metaMap.findKey(
+    meta =>
+      // Ignore the order of participants
+      meta.teamType === 'adhoc' && meta.participants.toSet().equals(toFind)
+  )
+}

@@ -478,7 +478,11 @@ func TestStorageDeleteHistory(t *testing.T) {
 	}
 	merge := func(msgsUnsorted []chat1.MessageUnboxed, expectedDeletedHistory bool) {
 		res := mustMerge(t, storage, convID, uid, sortMessagesDesc(msgsUnsorted))
-		require.Equal(t, expectedDeletedHistory, res.DeletedHistory, "deleted history merge response")
+		if expectedDeletedHistory {
+			require.NotNil(t, res.Expunged, "deleted history merge response")
+		} else {
+			require.Nil(t, res.Expunged, "deleted history merge response")
+		}
 		t.Logf("merge complete")
 	}
 
@@ -631,13 +635,21 @@ func TestStorageExpunge(t *testing.T) {
 	}
 	merge := func(msgsUnsorted []chat1.MessageUnboxed, expectedDeletedHistory bool) {
 		res := mustMerge(t, storage, convID, uid, sortMessagesDesc(msgsUnsorted))
-		require.Equal(t, expectedDeletedHistory, res.DeletedHistory, "deleted history merge response")
+		if expectedDeletedHistory {
+			require.NotNil(t, res.Expunged, "deleted history merge response")
+		} else {
+			require.Nil(t, res.Expunged, "deleted history merge response")
+		}
 		t.Logf("merge complete")
 	}
 	expunge := func(upto chat1.MessageID, expectedDeletedHistory bool) {
 		res, err := storage.Expunge(context.Background(), convID, uid, chat1.Expunge{Upto: upto})
 		require.NoError(t, err)
-		require.Equal(t, expectedDeletedHistory, res.DeletedHistory, "deleted history in expunge result")
+		if expectedDeletedHistory {
+			require.NotNil(t, res.Expunged, "deleted history merge response")
+		} else {
+			require.Nil(t, res.Expunged, "deleted history merge response")
+		}
 	}
 
 	t.Logf("initial merge")

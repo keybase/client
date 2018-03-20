@@ -36,6 +36,7 @@ const stylesLoading = {
 }
 
 export type SortBarProps = {
+  folderIsPending: boolean,
   sortSetting: Types._SortSetting,
   onOpenSortSettingPopup: () => void,
 }

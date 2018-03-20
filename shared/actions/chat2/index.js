@@ -495,6 +495,16 @@ const setupChatHandlers = () => {
             : null
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
+        case RPCChatTypes.notifyChatChatActivityType.expunge:
+          const expungeInfo: ?RPCChatTypes.ExpungeInfo = activity.expunge
+          return expungeInfo
+            ? [
+                Chat2Gen.createMessagesWereDeleted({
+                  conversationIDKey: Types.conversationIDToKey(expungeInfo.convID),
+                  upToMessageID: expungeInfo.expunge.upto,
+                }),
+              ]
+            : null
         default:
           break
       }
@@ -578,11 +588,7 @@ const loadMoreMessages = (
 
   if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (state.chat2.pendingSelected) {
-      const toFind = I.Set(action.payload.users.concat([state.config.username]))
-      key = state.chat2.metaMap.findKey(meta =>
-        // Ignore the order of participants
-        meta.participants.toSet().equals(toFind)
-      )
+      key = Constants.findConversationFromParticipants(state, I.Set(action.payload.users))
       reason = 'building a search'
     }
   } else if (action.type === Chat2Gen.markConversationsStale) {
@@ -627,6 +633,11 @@ const loadMoreMessages = (
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
     paginationKey = meta.paginationKey
+    // no more to load
+    if (!paginationKey) {
+      logger.info('Load thread bail: scrolling back and no pagination key')
+      return
+    }
     numberOfMessagesToLoad = numMessagesOnScrollback
   } else {
     numberOfMessagesToLoad = numMessagesOnInitialLoad
@@ -719,7 +730,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       reason:
-        action.type.reason === 'push'
+        reason === 'push'
           ? RPCChatTypes.localGetThreadNonblockReason.push
           : RPCChatTypes.localGetThreadNonblockReason.general,
     },
@@ -753,7 +764,9 @@ const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
     : null
 
 const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.fromFilter ? undefined : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
+  action.payload.reason === 'inboxFilterArrow' || action.payload.reason === 'inboxFilterChanged'
+    ? undefined
+    : Saga.put(Chat2Gen.createSetInboxFilter({filter: ''}))
 
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
@@ -939,11 +952,9 @@ const sendToPendingConversationSuccess = (
 
   return Saga.sequentially([
     // Clear the search
-    Saga.put(Chat2Gen.createExitSearch()),
+    Saga.put(Chat2Gen.createExitSearch({canceled: true})),
     // Clear the dummy messages from the pending conversation
     Saga.put(Chat2Gen.createClearPendingConversation()),
-    // Exit pending mode
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
     // Emulate us getting an inbox item so we don't have to unbox it before sending
     Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
     // Select it
@@ -1134,10 +1145,18 @@ const selectTheNewestConversation = (
 }
 
 const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
+  const conversationIDKey = Constants.findConversationFromParticipants(
+    state,
+    state.chat2.pendingConversationUsers
+  )
   return Saga.sequentially([
     Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+    ...(action.payload.canceled || !conversationIDKey
+      ? []
+      : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
   ])
 }
 
@@ -1523,13 +1542,6 @@ const markThreadAsRead = (
     | NavigateActions,
   state: TypedState
 ) => {
-  if (action.type === Chat2Gen.selectConversation) {
-    if (!action.payload.fromUser) {
-      logger.info('marking read bail on non-user selecting')
-      return
-    }
-  }
-
   const conversationIDKey = Constants.getSelectedConversation(state)
 
   if (!conversationIDKey) {

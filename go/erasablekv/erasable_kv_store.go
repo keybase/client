@@ -36,7 +36,7 @@ func getStorageDir(g *libkb.GlobalContext, subDir string) string {
 
 type ErasableKVStore interface {
 	Put(ctx context.Context, key string, val interface{}) error
-	Get(ctx context.Context, key string) (interface{}, error)
+	Get(ctx context.Context, key string, val interface{}) error
 	Erase(ctx context.Context, key string) error
 	AllKeys(ctx context.Context) ([]string, error)
 }
@@ -83,31 +83,27 @@ func (s *FileErasableKVStore) getEncryptionKey(ctx context.Context, noiseBytes l
 	return fkey, nil
 }
 
-func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes libkb.NoiseBytes) (val interface{}, err error) {
+func (s *FileErasableKVStore) unbox(ctx context.Context, data []byte, noiseBytes libkb.NoiseBytes, val interface{}) (err error) {
 	defer s.G().CTrace(ctx, "FileErasableKVStore#unbox", func() error { return err })()
 	// Decode encrypted box
 	var boxed boxedData
 	if err := libkb.MPackDecode(data, &boxed); err != nil {
-		return val, err
+		return err
 	}
 	if boxed.V > cryptoVersion {
-		return val, fmt.Errorf("unexpected crypto version: %d current: %d", boxed.V,
+		return fmt.Errorf("unexpected crypto version: %d current: %d", boxed.V,
 			cryptoVersion)
 	}
 	enckey, err := s.getEncryptionKey(ctx, noiseBytes)
 	if err != nil {
-		return val, err
+		return err
 	}
 	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
 	if !ok {
-		return val, fmt.Errorf("failed to unbox item")
+		return fmt.Errorf("failed to unbox item")
 	}
 
-	if err = libkb.MPackDecode(pt, val); err != nil {
-		return val, err
-	}
-
-	return val, nil
+	return libkb.MPackDecode(pt, val)
 }
 
 func (s *FileErasableKVStore) box(ctx context.Context, val interface{}, noiseBytes libkb.NoiseBytes) (data []byte, err error) {
@@ -215,33 +211,28 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	return nil
 }
 
-func (s *FileErasableKVStore) Get(ctx context.Context, key string) (value interface{}, err error) {
+func (s *FileErasableKVStore) Get(ctx context.Context, key string, val interface{}) (err error) {
 	defer s.G().CTrace(ctx, "FileErasableKVStore#Get", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
-	return s.get(ctx, key)
+	return s.get(ctx, key, val)
 }
 
-func (s *FileErasableKVStore) get(ctx context.Context, key string) (val interface{}, err error) {
+func (s *FileErasableKVStore) get(ctx context.Context, key string, val interface{}) (err error) {
 	noiseKey := s.noiseKey(key)
 	noise, err := s.read(ctx, noiseKey)
 	if err != nil {
-		return val, err
+		return err
 	}
 	var noiseBytes libkb.NoiseBytes
 	copy(noiseBytes[:], noise)
 
 	data, err := s.read(ctx, key)
 	if err != nil {
-		return val, err
+		return err
 	}
 
-	val, err = s.unbox(ctx, data, noiseBytes)
-	if err != nil {
-		return val, err
-	}
-
-	return val, err
+	return s.unbox(ctx, data, noiseBytes, val)
 }
 
 func (s *FileErasableKVStore) read(ctx context.Context, key string) (data []byte, err error) {

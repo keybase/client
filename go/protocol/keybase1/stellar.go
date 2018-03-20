@@ -26,15 +26,26 @@ func (o StellarRevision) DeepCopy() StellarRevision {
 	return o
 }
 
-type EncryptedStellarSecretBundle struct {
+type Hash []byte
+
+func (o Hash) DeepCopy() Hash {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
+type EncryptedStellarBundle struct {
 	V   int                  `codec:"v" json:"v"`
 	E   []byte               `codec:"e" json:"e"`
 	N   BoxNonce             `codec:"n" json:"n"`
 	Gen PerUserKeyGeneration `codec:"gen" json:"gen"`
 }
 
-func (o EncryptedStellarSecretBundle) DeepCopy() EncryptedStellarSecretBundle {
-	return EncryptedStellarSecretBundle{
+func (o EncryptedStellarBundle) DeepCopy() EncryptedStellarBundle {
+	return EncryptedStellarBundle{
 		V: o.V,
 		E: (func(x []byte) []byte {
 			if x == nil {
@@ -47,37 +58,37 @@ func (o EncryptedStellarSecretBundle) DeepCopy() EncryptedStellarSecretBundle {
 	}
 }
 
-type StellarSecretBundleVersion int
+type StellarBundleVersion int
 
 const (
-	StellarSecretBundleVersion_V1 StellarSecretBundleVersion = 1
+	StellarBundleVersion_V1 StellarBundleVersion = 1
 )
 
-func (o StellarSecretBundleVersion) DeepCopy() StellarSecretBundleVersion { return o }
+func (o StellarBundleVersion) DeepCopy() StellarBundleVersion { return o }
 
-var StellarSecretBundleVersionMap = map[string]StellarSecretBundleVersion{
+var StellarBundleVersionMap = map[string]StellarBundleVersion{
 	"V1": 1,
 }
 
-var StellarSecretBundleVersionRevMap = map[StellarSecretBundleVersion]string{
+var StellarBundleVersionRevMap = map[StellarBundleVersion]string{
 	1: "V1",
 }
 
-func (e StellarSecretBundleVersion) String() string {
-	if v, ok := StellarSecretBundleVersionRevMap[e]; ok {
+func (e StellarBundleVersion) String() string {
+	if v, ok := StellarBundleVersionRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type StellarSecretBundleVersioned struct {
-	Version__ StellarSecretBundleVersion `codec:"version" json:"version"`
-	V1__      *StellarSecretBundleV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+type StellarBundleSecretVersioned struct {
+	Version__ StellarBundleVersion   `codec:"version" json:"version"`
+	V1__      *StellarBundleSecretV1 `codec:"v1,omitempty" json:"v1,omitempty"`
 }
 
-func (o *StellarSecretBundleVersioned) Version() (ret StellarSecretBundleVersion, err error) {
+func (o *StellarBundleSecretVersioned) Version() (ret StellarBundleVersion, err error) {
 	switch o.Version__ {
-	case StellarSecretBundleVersion_V1:
+	case StellarBundleVersion_V1:
 		if o.V1__ == nil {
 			err = errors.New("unexpected nil value for V1__")
 			return ret, err
@@ -86,8 +97,8 @@ func (o *StellarSecretBundleVersioned) Version() (ret StellarSecretBundleVersion
 	return o.Version__, nil
 }
 
-func (o StellarSecretBundleVersioned) V1() (res StellarSecretBundleV1) {
-	if o.Version__ != StellarSecretBundleVersion_V1 {
+func (o StellarBundleSecretVersioned) V1() (res StellarBundleSecretV1) {
+	if o.Version__ != StellarBundleVersion_V1 {
 		panic("wrong case accessed")
 	}
 	if o.V1__ == nil {
@@ -96,17 +107,17 @@ func (o StellarSecretBundleVersioned) V1() (res StellarSecretBundleV1) {
 	return *o.V1__
 }
 
-func NewStellarSecretBundleVersionedWithV1(v StellarSecretBundleV1) StellarSecretBundleVersioned {
-	return StellarSecretBundleVersioned{
-		Version__: StellarSecretBundleVersion_V1,
+func NewStellarBundleSecretVersionedWithV1(v StellarBundleSecretV1) StellarBundleSecretVersioned {
+	return StellarBundleSecretVersioned{
+		Version__: StellarBundleVersion_V1,
 		V1__:      &v,
 	}
 }
 
-func (o StellarSecretBundleVersioned) DeepCopy() StellarSecretBundleVersioned {
-	return StellarSecretBundleVersioned{
+func (o StellarBundleSecretVersioned) DeepCopy() StellarBundleSecretVersioned {
+	return StellarBundleSecretVersioned{
 		Version__: o.Version__.DeepCopy(),
-		V1__: (func(x *StellarSecretBundleV1) *StellarSecretBundleV1 {
+		V1__: (func(x *StellarBundleSecretV1) *StellarBundleSecretV1 {
 			if x == nil {
 				return nil
 			}
@@ -116,19 +127,21 @@ func (o StellarSecretBundleVersioned) DeepCopy() StellarSecretBundleVersioned {
 	}
 }
 
-type StellarSecretBundleV1 struct {
-	Revision StellarRevision      `codec:"revision" json:"revision"`
-	Accounts []StellarSecretEntry `codec:"accounts" json:"accounts"`
+type StellarBundleVisibleV1 struct {
+	Revision StellarRevision       `codec:"revision" json:"revision"`
+	Prev     Hash                  `codec:"prev" json:"prev"`
+	Accounts []StellarVisibleEntry `codec:"accounts" json:"accounts"`
 }
 
-func (o StellarSecretBundleV1) DeepCopy() StellarSecretBundleV1 {
-	return StellarSecretBundleV1{
+func (o StellarBundleVisibleV1) DeepCopy() StellarBundleVisibleV1 {
+	return StellarBundleVisibleV1{
 		Revision: o.Revision.DeepCopy(),
-		Accounts: (func(x []StellarSecretEntry) []StellarSecretEntry {
+		Prev:     o.Prev.DeepCopy(),
+		Accounts: (func(x []StellarVisibleEntry) []StellarVisibleEntry {
 			if x == nil {
 				return nil
 			}
-			var ret []StellarSecretEntry
+			var ret []StellarVisibleEntry
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
@@ -138,14 +151,14 @@ func (o StellarSecretBundleV1) DeepCopy() StellarSecretBundleV1 {
 	}
 }
 
-type StellarSecretBundle struct {
-	Revision StellarRevision      `codec:"revision" json:"revision"`
-	Accounts []StellarSecretEntry `codec:"accounts" json:"accounts"`
+type StellarBundleSecretV1 struct {
+	VisibleHash Hash                 `codec:"visibleHash" json:"visibleHash"`
+	Accounts    []StellarSecretEntry `codec:"accounts" json:"accounts"`
 }
 
-func (o StellarSecretBundle) DeepCopy() StellarSecretBundle {
-	return StellarSecretBundle{
-		Revision: o.Revision.DeepCopy(),
+func (o StellarBundleSecretV1) DeepCopy() StellarBundleSecretV1 {
+	return StellarBundleSecretV1{
+		VisibleHash: o.VisibleHash.DeepCopy(),
 		Accounts: (func(x []StellarSecretEntry) []StellarSecretEntry {
 			if x == nil {
 				return nil
@@ -163,17 +176,20 @@ func (o StellarSecretBundle) DeepCopy() StellarSecretBundle {
 type StellarAccountMode int
 
 const (
-	StellarAccountMode_USER StellarAccountMode = 0
+	StellarAccountMode_NONE StellarAccountMode = 0
+	StellarAccountMode_USER StellarAccountMode = 1
 )
 
 func (o StellarAccountMode) DeepCopy() StellarAccountMode { return o }
 
 var StellarAccountModeMap = map[string]StellarAccountMode{
-	"USER": 0,
+	"NONE": 0,
+	"USER": 1,
 }
 
 var StellarAccountModeRevMap = map[StellarAccountMode]string{
-	0: "USER",
+	0: "NONE",
+	1: "USER",
 }
 
 func (e StellarAccountMode) String() string {
@@ -183,18 +199,29 @@ func (e StellarAccountMode) String() string {
 	return ""
 }
 
-type StellarSecretEntry struct {
+type StellarVisibleEntry struct {
 	AccountID StellarAccountID   `codec:"accountID" json:"accountID"`
 	Mode      StellarAccountMode `codec:"mode" json:"mode"`
-	Signers   []StellarSecretKey `codec:"signers" json:"signers"`
 	IsPrimary bool               `codec:"isPrimary" json:"isPrimary"`
+}
+
+func (o StellarVisibleEntry) DeepCopy() StellarVisibleEntry {
+	return StellarVisibleEntry{
+		AccountID: o.AccountID.DeepCopy(),
+		Mode:      o.Mode.DeepCopy(),
+		IsPrimary: o.IsPrimary,
+	}
+}
+
+type StellarSecretEntry struct {
+	AccountID StellarAccountID   `codec:"accountID" json:"accountID"`
+	Signers   []StellarSecretKey `codec:"signers" json:"signers"`
 	Name      string             `codec:"name" json:"name"`
 }
 
 func (o StellarSecretEntry) DeepCopy() StellarSecretEntry {
 	return StellarSecretEntry{
 		AccountID: o.AccountID.DeepCopy(),
-		Mode:      o.Mode.DeepCopy(),
 		Signers: (func(x []StellarSecretKey) []StellarSecretKey {
 			if x == nil {
 				return nil
@@ -206,8 +233,61 @@ func (o StellarSecretEntry) DeepCopy() StellarSecretEntry {
 			}
 			return ret
 		})(o.Signers),
+		Name: o.Name,
+	}
+}
+
+type StellarBundle struct {
+	Revision StellarRevision `codec:"revision" json:"revision"`
+	Prev     Hash            `codec:"prev" json:"prev"`
+	OwnHash  Hash            `codec:"ownHash" json:"ownHash"`
+	Accounts []StellarEntry  `codec:"accounts" json:"accounts"`
+}
+
+func (o StellarBundle) DeepCopy() StellarBundle {
+	return StellarBundle{
+		Revision: o.Revision.DeepCopy(),
+		Prev:     o.Prev.DeepCopy(),
+		OwnHash:  o.OwnHash.DeepCopy(),
+		Accounts: (func(x []StellarEntry) []StellarEntry {
+			if x == nil {
+				return nil
+			}
+			var ret []StellarEntry
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Accounts),
+	}
+}
+
+type StellarEntry struct {
+	AccountID StellarAccountID   `codec:"accountID" json:"accountID"`
+	Mode      StellarAccountMode `codec:"mode" json:"mode"`
+	IsPrimary bool               `codec:"isPrimary" json:"isPrimary"`
+	Signers   []StellarSecretKey `codec:"signers" json:"signers"`
+	Name      string             `codec:"name" json:"name"`
+}
+
+func (o StellarEntry) DeepCopy() StellarEntry {
+	return StellarEntry{
+		AccountID: o.AccountID.DeepCopy(),
+		Mode:      o.Mode.DeepCopy(),
 		IsPrimary: o.IsPrimary,
-		Name:      o.Name,
+		Signers: (func(x []StellarSecretKey) []StellarSecretKey {
+			if x == nil {
+				return nil
+			}
+			var ret []StellarSecretKey
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Signers),
+		Name: o.Name,
 	}
 }
 

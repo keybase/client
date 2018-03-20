@@ -10,6 +10,7 @@ export type Props = {
   canJoinTeam: boolean,
   canManageMembers: boolean,
   description: string,
+  loading?: boolean,
   memberCount: number,
   openTeam: boolean,
   role: ?Types.TeamRoleType,

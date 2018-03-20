@@ -152,18 +152,20 @@ func (e DirentType) String() string {
 }
 
 type Dirent struct {
-	Time       Time       `codec:"time" json:"time"`
-	Size       int        `codec:"size" json:"size"`
-	Name       string     `codec:"name" json:"name"`
-	DirentType DirentType `codec:"direntType" json:"direntType"`
+	Time                 Time       `codec:"time" json:"time"`
+	Size                 int        `codec:"size" json:"size"`
+	Name                 string     `codec:"name" json:"name"`
+	DirentType           DirentType `codec:"direntType" json:"direntType"`
+	LastWriterUnverified User       `codec:"lastWriterUnverified" json:"lastWriterUnverified"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
 	return Dirent{
-		Time:       o.Time.DeepCopy(),
-		Size:       o.Size,
-		Name:       o.Name,
-		DirentType: o.DirentType.DeepCopy(),
+		Time:                 o.Time.DeepCopy(),
+		Size:                 o.Size,
+		Name:                 o.Name,
+		DirentType:           o.DirentType.DeepCopy(),
+		LastWriterUnverified: o.LastWriterUnverified.DeepCopy(),
 	}
 }
 
@@ -722,6 +724,9 @@ type SimpleFSWaitArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
+type SimpleFSDumpDebuggingInfoArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path
 	// Retrieve results with readList()
@@ -771,6 +776,8 @@ type SimpleFSInterface interface {
 	SimpleFSGetOps(context.Context) ([]OpDescription, error)
 	// Blocking wait for the pending operation to finish
 	SimpleFSWait(context.Context, OpID) error
+	// Instructs KBFS to dump debugging info into its logs.
+	SimpleFSDumpDebuggingInfo(context.Context) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1071,6 +1078,17 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSDumpDebuggingInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSDumpDebuggingInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSDumpDebuggingInfo(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1206,5 +1224,11 @@ func (c SimpleFSClient) SimpleFSGetOps(ctx context.Context) (res []OpDescription
 func (c SimpleFSClient) SimpleFSWait(ctx context.Context, opID OpID) (err error) {
 	__arg := SimpleFSWaitArg{OpID: opID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWait", []interface{}{__arg}, nil)
+	return
+}
+
+// Instructs KBFS to dump debugging info into its logs.
+func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDumpDebuggingInfo", []interface{}{SimpleFSDumpDebuggingInfoArg{}}, nil)
 	return
 }

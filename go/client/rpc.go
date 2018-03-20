@@ -6,7 +6,8 @@ package client
 import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -387,5 +388,14 @@ func GetBadgerClient(g *libkb.GlobalContext) (cli keybase1.BadgerClient, err err
 		return cli, err
 	}
 	cli = keybase1.BadgerClient{Cli: rcli}
+	return cli, nil
+}
+
+func GetWalletClient(g *libkb.GlobalContext) (cli stellar1.RemoteClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = stellar1.RemoteClient{Cli: rcli}
 	return cli, nil
 }

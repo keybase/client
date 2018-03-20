@@ -1,23 +1,37 @@
 // @flow
 import {MentionHud} from '.'
 import {connect} from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
+import * as I from 'immutable'
 
-const mapStateToProps = (state, {filter, conversationIDKey}) => ({
-  _filter: filter,
-  _infoMap: state.users.infoMap,
-  _participants: Constants.getMeta(state, conversationIDKey).participants,
-  conversationIDKey,
-})
+const mapStateToProps = (state, {filter, conversationIDKey}) => {
+  return {
+    _filter: filter,
+    _infoMap: state.users.infoMap,
+    _metaMap: state.chat2.metaMap,
+    conversationIDKey,
+  }
+}
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  conversationIDKey: stateProps.conversationIDKey,
-  filter: stateProps._filter.toLowerCase(),
-  users: stateProps._participants
-    .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
-    .toArray(),
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const meta = stateProps._metaMap.get(stateProps.conversationIDKey)
+  let participants = meta ? meta.participants : I.Set()
+  // Get the general channel participants instead
+  if (meta && meta.teamType === 'big' && meta.channelname !== 'general') {
+    const m = stateProps._metaMap.find(m => m.teamname === meta.teamname && m.channelname === 'general')
+    if (m) {
+      participants = m.participants
+    }
+  }
+
+  return {
+    ...ownProps,
+    conversationIDKey: stateProps.conversationIDKey,
+    filter: stateProps._filter.toLowerCase(),
+    users: participants
+      .map(p => ({fullName: stateProps._infoMap.getIn([p, 'fullname'], ''), username: p}))
+      .toArray(),
+  }
+}
 
 const ConnectedMentionHud = connect(mapStateToProps, () => ({}), mergeProps)(MentionHud)
 
