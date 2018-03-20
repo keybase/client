@@ -134,6 +134,9 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
+// suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
+// a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
+// conv loader.
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
 	if canceled := h.G().ConvLoader.Suspend(ctx); canceled {
 		h.Debug(ctx, "suspendConvLoader: canceled background task")
