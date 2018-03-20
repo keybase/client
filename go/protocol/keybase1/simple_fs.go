@@ -299,15 +299,43 @@ func (e AsyncOps) String() string {
 	return ""
 }
 
+type ListFilter int
+
+const (
+	ListFilter_NO_FILTER         ListFilter = 0
+	ListFilter_FILTER_ALL_HIDDEN ListFilter = 1
+)
+
+func (o ListFilter) DeepCopy() ListFilter { return o }
+
+var ListFilterMap = map[string]ListFilter{
+	"NO_FILTER":         0,
+	"FILTER_ALL_HIDDEN": 1,
+}
+
+var ListFilterRevMap = map[ListFilter]string{
+	0: "NO_FILTER",
+	1: "FILTER_ALL_HIDDEN",
+}
+
+func (e ListFilter) String() string {
+	if v, ok := ListFilterRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ListArgs struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Path Path `codec:"path" json:"path"`
+	OpID   OpID       `codec:"opID" json:"opID"`
+	Path   Path       `codec:"path" json:"path"`
+	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
 func (o ListArgs) DeepCopy() ListArgs {
 	return ListArgs{
-		OpID: o.OpID.DeepCopy(),
-		Path: o.Path.DeepCopy(),
+		OpID:   o.OpID.DeepCopy(),
+		Path:   o.Path.DeepCopy(),
+		Filter: o.Filter.DeepCopy(),
 	}
 }
 
@@ -634,13 +662,15 @@ func (o OpProgress) DeepCopy() OpProgress {
 }
 
 type SimpleFSListArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Path Path `codec:"path" json:"path"`
+	OpID   OpID       `codec:"opID" json:"opID"`
+	Path   Path       `codec:"path" json:"path"`
+	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
 type SimpleFSListRecursiveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Path Path `codec:"path" json:"path"`
+	OpID   OpID       `codec:"opID" json:"opID"`
+	Path   Path       `codec:"path" json:"path"`
+	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
 type SimpleFSReadListArg struct {
