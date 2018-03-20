@@ -28527,7 +28527,7 @@ exports[`Storyshots Files Preview 1`] = `
             onClick={undefined}
             title={undefined}
           >
-            Modified on Feb 07 10:55 AM by foobar
+            Modified on [mocked] by foobar
           </span>
         </div>
       </div>
