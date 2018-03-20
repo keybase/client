@@ -32,10 +32,10 @@ class RetentionPicker extends React.Component<Props, State> {
     let selected: _RetentionPolicy
     if (typeof val === 'number') {
       selected = {type: 'expire', days: val}
-    } else if (val === 'retain') {
-      selected = {type: 'retain', days: 0}
-    } else {
+    } else if (val === 'inherit') {
       selected = {type: 'inherit', days: 0}
+    } else {
+      selected = {type: 'retain', days: 0}
     }
     this.setState({selected})
     const changed = !(selected.type === this.props.policy.type && selected.days === this.props.policy.days)
@@ -92,7 +92,7 @@ class RetentionPicker extends React.Component<Props, State> {
 
   render() {
     return this.props.policy ? (
-      <React.Fragment>
+      <Box style={globalStyles.flexBoxColumn}>
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
           <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
@@ -112,7 +112,7 @@ class RetentionPicker extends React.Component<Props, State> {
             Individual channels can override this.
           </Text>
         )}
-      </React.Fragment>
+      </Box>
     ) : (
       <ProgressIndicator />
     )
@@ -136,7 +136,6 @@ const dropdownStyle = platformStyles({
     borderRadius: 100,
     borderStyle: 'solid',
     borderWidth: 1,
-    color: globalColors.lightGrey2,
     minWidth: 220,
     paddingRight: globalMargins.small,
   },
@@ -164,7 +163,8 @@ const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
       if (!parent) {
         throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
       }
-      return policyToLabel(parent)
+      const label = policyToLabel(parent)
+      return `Use team default (${label})`
   }
   return ''
 }
