@@ -1,25 +1,31 @@
 // @flow
-// An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
-// import * as Virtualized from 'react-virtualized'
+/*
+ * Use waypoints to hold children
+ * get loading scroll position to work
+ * measure waypoint children and replace w/ a div when off screen of the same size
+ *
+ */
+
 import * as React from 'react'
 import Message from '../../messages'
-import Measure from 'react-measure'
+// import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
 // import {ErrorBoundary} from '../../../../common-adapters'
 // import clipboard from '../../../../desktop/clipboard'
-import debounce from 'lodash/debounce'
+// import debounce from 'lodash/debounce'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
 type State = {
-  isLockedToBottom: boolean,
+  // isLockedToBottom: boolean,
   // listRerender: number,
 }
 
 // const lockedToBottomSlop = 20
 
 class Thread extends React.Component<Props, State> {
+  _isLockedToBottom: boolean = true
   // _cellCache = new Virtualized.CellMeasurerCache({
   // fixedWidth: true,
   // keyMapper: (rowIndex: number) => this.props.messageOrdinals.get(rowIndex),
@@ -33,12 +39,41 @@ class Thread extends React.Component<Props, State> {
   // _ignoreScrollUpTill: number = 0
 
   state = {
-    isLockedToBottom: true,
+    // isLockedToBottom: true,
     // listRerender: 0,
     // selectedMessageKey: null,
   }
 
+  _oldScrollHeight = 0
+  componentWillUpdate(prevProps: Props, prevState: State) {
+    if (this._scrollableRef) {
+      this._oldScrollHeight = this._scrollableRef.scrollHeight
+      console.log(
+        'willtop:',
+        this._scrollableRef.scrollTop,
+        'scrollH: ',
+        this._scrollableRef.scrollHeight,
+        'clientH',
+        this._scrollableRef.clientHeight
+      )
+    } else {
+      this._oldScrollHeight = 0
+    }
+  }
   componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this._scrollableRef) {
+      console.log(
+        'didtop:',
+        this._scrollableRef.scrollTop,
+        'scrollH: ',
+        this._scrollableRef.scrollHeight,
+        'clientH',
+        this._scrollableRef.clientHeight
+      )
+      console.log('top: oldh: ', this._oldScrollHeight)
+      this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight - this._oldScrollHeight
+    }
+    this._oldScrollHeight = 0
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
     // if (this._keepIdxVisible !== -1) {
     // this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
@@ -52,7 +87,7 @@ class Thread extends React.Component<Props, State> {
     // this._list && this._list.scrollToRow(idx)
     // }
     // }
-    if (this.state.isLockedToBottom && this._scrollableRef) {
+    if (this._isLockedToBottom && this._scrollableRef) {
       this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
     }
   }
@@ -60,7 +95,8 @@ class Thread extends React.Component<Props, State> {
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
       // this._cellCache.clearAll()
-      this.setState({isLockedToBottom: true})
+      // this.setState({isLockedToBottom: true})
+      this._isLockedToBottom = true
     }
     // if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
     // if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
@@ -157,41 +193,53 @@ class Thread extends React.Component<Props, State> {
   _setScrollableRef = r => {
     this._scrollableRef = r
 
-    if (this.state.isLockedToBottom && this._scrollableRef) {
+    // if (this.state.isLockedToBottom && this._scrollableRef) {
+    if (this._isLockedToBottom && this._scrollableRef) {
       this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
     }
   }
 
   _waypointTopOnEnter = data => {
     console.log('aaa top load more messages')
-    // this.props.loadMoreMessages()
+    this.props.loadMoreMessages()
   }
   _waypointBottomOnEnter = data => {
     console.log('aaa bottom locked')
-    this.setState({isLockedToBottom: true})
+    // this.setState({isLockedToBottom: true})
+    this._isLockedToBottom = true
   }
   _waypointBottomOnLeave = data => {
     console.log('aaa bottom unlocked')
-    this.setState({isLockedToBottom: false})
+    this._isLockedToBottom = false
+    // this.setState({isLockedToBottom: false})
   }
-  _waypointMessageOnEnter = data => {
-    console.log('aaa message enter', data)
+  _waypointMessageOnEnter = (data, key) => {
+    console.log('aaa message enter', key, data)
+    if (key === this._topKey) {
+      console.log('aaa message enter TOP KEY', key, data)
+    }
   }
-  _waypointMessageOnLeave = data => {
-    console.log('aaa message leave', data)
+  _waypointMessageOnLeave = (data, key) => {
+    console.log('aaa message leave', key, data)
+    if (key === this._topKey) {
+      console.log('aaa message leave TOP KEY', key, data)
+    }
   }
 
   _makeWaypointMessage = (key, children) => (
     <Waypoint
       key={`waypoint: ${key}`}
-      onEnter={this._waypointMessageOnEnter}
-      onLeave={this._waypointMessageOnLeave}
+      onEnter={data => this._waypointMessageOnEnter(data, key)}
+      onLeave={data => this._waypointMessageOnLeave(data, key)}
     >
       <div>{children}</div>
     </Waypoint>
   )
 
+  _topKey: any = null
+
   render() {
+    this._topKey = null
     const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
 
     const rows = []
@@ -201,11 +249,12 @@ class Thread extends React.Component<Props, State> {
       </Waypoint>
     )
 
-    let waypointKey = 0
     let waypointChildren = []
+    let messageKey
     for (var index = 0; index < rowCount; ++index) {
       const ordinal = this.props.messageOrdinals.get(index)
       const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
+      messageKey = ordinal
 
       waypointChildren.push(
         <Message
@@ -217,15 +266,18 @@ class Thread extends React.Component<Props, State> {
         />
       )
 
-      if (waypointChildren.length === 10) {
-        rows.push(this._makeWaypointMessage(waypointKey++, waypointChildren))
+      if (ordinal % 10 === 0) {
+        rows.push(this._makeWaypointMessage(messageKey, waypointChildren))
+        if (!this._topKey) {
+          this._topKey = messageKey
+        }
         waypointChildren = []
       }
     }
 
     // leftovers
     if (waypointChildren.length > 0) {
-      rows.push(this._makeWaypointMessage(waypointKey++, waypointChildren))
+      rows.push(this._makeWaypointMessage(messageKey, waypointChildren))
     }
 
     rows.push(
@@ -311,14 +363,14 @@ const containerStyle = {
   ...globalStyles.flexBoxColumn,
   contain: 'strict',
   flex: 1,
-  position: 'relative',
   overflowX: 'hidden',
   overflowY: 'auto',
+  position: 'relative',
 }
 
-const listStyle = {
-  outline: 'none',
-  overflowX: 'hidden',
-}
+// const listStyle = {
+// outline: 'none',
+// overflowX: 'hidden',
+// }
 
 export default Thread
