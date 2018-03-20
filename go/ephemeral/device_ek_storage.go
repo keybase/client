@@ -214,17 +214,11 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 	return maxGeneration, nil
 }
 
-func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot *libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
+func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
 	defer s.G().CTrace(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
-	if merkleRoot == nil {
-		merkleRoot, err = s.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
-		if err != nil {
-			return nil, err
-		}
-	}
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return nil, err
