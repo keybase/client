@@ -34,13 +34,15 @@ type BackgroundConvLoader struct {
 
 	uid           gregor1.UID
 	started       bool
-	queue         chan clTask
-	stop          chan chan struct{}
+	queueCh       chan clTask
+	stopCh        chan chan struct{}
+	suspendCh     chan chan struct{}
+	resumeCh      chan struct{}
 	identNotifier types.IdentifyNotifier
 
-	activeLoadMu       sync.Mutex
 	activeLoadCtx      context.Context
 	activeLoadCancelFn context.CancelFunc
+	suspendCount       int
 
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
@@ -53,7 +55,8 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stop:          make(chan chan struct{}),
+		stopCh:        make(chan chan struct{}),
+		suspendCh:     make(chan chan struct{}, 10),
 		identNotifier: NewCachingIdentifyNotifier(g),
 	}
 	b.identNotifier.ResetOnGUIConnect()
@@ -68,7 +71,7 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	defer b.Unlock()
 
 	if b.started {
-		b.stop <- make(chan struct{})
+		b.stopCh <- make(chan struct{})
 	}
 
 	b.newQueue()
@@ -84,7 +87,7 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 
 	ch := make(chan struct{})
 	if b.started {
-		b.stop <- ch
+		b.stopCh <- ch
 		b.started = false
 	} else {
 		close(ch)
@@ -96,13 +99,24 @@ func (b *BackgroundConvLoader) Queue(ctx context.Context, convID chat1.Conversat
 	return b.enqueue(ctx, clTask{convID: convID})
 }
 
-func (b *BackgroundConvLoader) CancelActiveLoad(ctx context.Context) {
-	b.activeLoadMu.Lock()
-	defer b.activeLoadMu.Unlock()
+func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
+	b.Lock()
+	defer b.Unlock()
 	if b.activeLoadCtx != nil {
 		b.Debug(b.activeLoadCtx, "canceling active load")
 		b.activeLoadCancelFn()
+		canceled = true
 	}
+	if b.suspendCount == 0 {
+		b.resumeCh = make(chan struct{})
+		b.suspendCh <- b.resumeCh
+	}
+	b.suspendCount++
+	return canceled
+}
+
+func (b *BackgroundConvLoader) Resume(ctx context.Context) {
+
 }
 
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
@@ -110,7 +124,7 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	defer b.Unlock()
 
 	select {
-	case b.queue <- task:
+	case b.queueCh <- task:
 		b.Debug(ctx, "added %s to queue", task.convID)
 	default:
 		b.Debug(ctx, "queue is full, not adding %s", task.convID)
@@ -131,7 +145,7 @@ func (b *BackgroundConvLoader) loop() {
 	for {
 		// get a convID from queue, or stop
 		select {
-		case task := <-b.queue:
+		case task := <-b.queueCh:
 			// always wait a short amount of time to avoid
 			// flood of conversation loads
 			duration := bgLoaderInitDelay
@@ -143,7 +157,7 @@ func (b *BackgroundConvLoader) loop() {
 			}
 			time.Sleep(duration)
 			b.load(bgctx, task, uid)
-		case ch := <-b.stop:
+		case ch := <-b.stopCh:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
 			close(ch)
 			return
@@ -152,28 +166,28 @@ func (b *BackgroundConvLoader) loop() {
 }
 
 func (b *BackgroundConvLoader) newQueue() {
-	if b.queue != nil {
-		close(b.queue)
+	if b.queueCh != nil {
+		close(b.queueCh)
 	}
-	b.queue = make(chan clTask, 200)
+	b.queueCh = make(chan clTask, 200)
 }
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) {
 	b.Debug(ictx, "loading conversation %s", task.convID)
-	b.activeLoadMu.Lock()
+	b.Lock()
 	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(Context(ictx, b.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, b.identNotifier))
 	ctx := b.activeLoadCtx
-	b.activeLoadMu.Unlock()
+	b.Unlock()
 	if b.testingNameInfoSource != nil {
 		CtxKeyFinder(ctx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
 	}
 	defer func() {
-		b.activeLoadMu.Lock()
+		b.Lock()
 		b.activeLoadCancelFn()
 		b.activeLoadCtx = nil
 		b.activeLoadCancelFn = nil
-		b.activeLoadMu.Unlock()
+		b.Unlock()
 	}()
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}

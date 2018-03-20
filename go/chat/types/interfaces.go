@@ -175,7 +175,8 @@ type ConvLoader interface {
 	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID) error
-	CancelActiveLoad(ctx context.Context)
+	Suspend(ctx context.Context) bool
+	Resume(ctx context.Context)
 }
 
 type PushHandler interface {
