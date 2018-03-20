@@ -1694,10 +1694,28 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
 
-	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs,
-		keybase1.GitPushType_DEFAULT, "", commits)
-	if err != nil {
-		return nil, err
+	// Remove any errored commits so that we don't send an update
+	// message about them.
+	for refspec := range refspecs {
+		refStr := refspec.String()
+		start := strings.Index(refStr, ":") + 1
+		dst := refStr[start:]
+
+		if results[dst] != nil {
+			r.log.CDebugf(
+				ctx, "Removing commit result for errored push on refspec %s",
+				refspec)
+			refName := plumbing.ReferenceName(refspec.Src())
+			delete(commits, refName)
+		}
+	}
+
+	if len(commits) > 0 {
+		err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs,
+			keybase1.GitPushType_DEFAULT, "", commits)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = r.checkGC(ctx)
