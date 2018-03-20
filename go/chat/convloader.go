@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 const (
@@ -41,6 +42,10 @@ type BackgroundConvLoader struct {
 	resumeCh      chan struct{}
 	identNotifier types.IdentifyNotifier
 
+	clock          clockwork.Clock
+	foregroundWait time.Duration
+	initialWait    time.Duration
+
 	activeLoadCtx      context.Context
 	activeLoadCancelFn context.CancelFunc
 	suspendCount       int
@@ -54,17 +59,44 @@ var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 
 func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
-		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stopCh:        make(chan chan struct{}),
-		suspendCh:     make(chan chan struct{}, 10),
-		identNotifier: NewCachingIdentifyNotifier(g),
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
+		stopCh:         make(chan chan struct{}),
+		suspendCh:      make(chan chan struct{}, 10),
+		identNotifier:  NewCachingIdentifyNotifier(g),
+		clock:          clockwork.NewRealClock(),
+		foregroundWait: 5 * time.Second,
+		initialWait:    5 * time.Second,
 	}
 	b.identNotifier.ResetOnGUIConnect()
 
 	b.newQueue()
 
 	return b
+}
+
+func (b *BackgroundConvLoader) monitorAppState() {
+	ctx := context.Background()
+	suspended := false
+	b.Debug(ctx, "monitorAppState: starting up")
+	for {
+		state := <-b.G().AppState.NextUpdate()
+		switch state {
+		case keybase1.AppState_FOREGROUND:
+			b.Debug(ctx, "monitorAppState: foregrounded")
+			// Only resume if we had suspended earlier
+			if suspended {
+				b.Debug(ctx, "monitorAppState: resuming load thread after: %v", b.foregroundWait)
+				b.clock.Sleep(b.foregroundWait)
+				b.Resume(ctx)
+				suspended = false
+			}
+		case keybase1.AppState_BACKGROUND:
+			b.Debug(ctx, "monitorAppState: backgrounded, suspending upgrade thread")
+			b.Suspend(ctx)
+			suspended = true
+		}
+	}
 }
 
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
@@ -132,7 +164,6 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
-
 	select {
 	case b.queueCh <- task:
 		b.Debug(ctx, "added %s to queue", task.convID)
@@ -140,7 +171,6 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 		b.Debug(ctx, "queue is full, not adding %s", task.convID)
 		return errors.New("queue is full")
 	}
-
 	return nil
 }
 
@@ -181,7 +211,7 @@ func (b *BackgroundConvLoader) loop() {
 					duration = bgLoaderInitDelay
 				}
 			}
-			time.Sleep(duration)
+			b.clock.Sleep(duration)
 			b.load(bgctx, task, uid)
 		case ch := <-b.suspendCh:
 			waitForResume(ch)
