@@ -4,8 +4,8 @@ import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, glamorous, platformStyles} from '../../styles'
 import memoize from 'lodash/memoize'
 import {Box, ClickableBox, Icon, Text, Divider} from '../../common-adapters'
-import PathItemIcon from './path-item-icon'
-import PathItemInfo from './path-item-info'
+import PathItemIcon from '../common/path-item-icon'
+import PathItemInfo from '../common/path-item-info'
 
 type RowProps = {
   name: string,
