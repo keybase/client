@@ -15,7 +15,11 @@ import (
 func TestDeviceEKStorage(t *testing.T) {
 	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
+
 	now := keybase1.Time(time.Now().Unix())
+	merkleRoot, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+
 	tests := []keybase1.DeviceEk{
 		{
 			Seed: keybase1.Bytes32(libkb.MakeByte32([]byte("deviceekseed-deviceekseed-devic0"))),
@@ -23,7 +27,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(0),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
 				Kid:        keybase1.KID(""),
-				Ctime:      now - KeyLifetimeSecs*2,
+				Ctime:      now - KeyLifetimeSecs*3,
 			},
 		},
 		{
@@ -32,7 +36,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: keybase1.EkGeneration(1),
 				HashMeta:   keybase1.HashMeta("fakeHashMeta1"),
 				Kid:        keybase1.KID(""),
-				Ctime:      now - KeyLifetimeSecs*2,
+				Ctime:      now - KeyLifetimeSecs*3,
 			},
 		},
 		{
@@ -116,8 +120,6 @@ func TestDeviceEKStorage(t *testing.T) {
 	err = erasableStorage.Put(context.Background(), badEldestSeqnoKey, keybase1.DeviceEk{})
 	require.NoError(t, err)
 
-	merkleRoot, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
-	require.NoError(t, err)
 	expired, err := s.DeleteExpired(context.Background(), *merkleRoot)
 	expected := []keybase1.EkGeneration{0, 1}
 	require.NoError(t, err)
