@@ -61,11 +61,11 @@ export type {
 export type {ConversationIDKey} from './common'
 
 export {
-  outboxIDToString,
-  stringToOutboxID,
   numberToMessageID,
   numberToOrdinal,
   ordinalToNumber,
+  outboxIDToString,
+  stringToOutboxID,
 } from './message'
 export {stringToPaginationKey} from './meta'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'
