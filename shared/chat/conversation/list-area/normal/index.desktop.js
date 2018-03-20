@@ -3,6 +3,7 @@
 // import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
 import Message from '../../messages'
+import Waypoint from 'react-waypoint'
 // import {ErrorBoundary} from '../../../../common-adapters'
 // import clipboard from '../../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
@@ -175,10 +176,15 @@ class Thread extends React.Component<Props, State> {
     }
   }, 100)
 
+  _waypointOnEnter = props => {
+    console.log('aaa', props)
+  }
+
   render() {
     const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
 
     const rows = []
+    rows.push(<Waypoint onEnter={this._waypointOnEnter} />)
     for (var index = 0; index < rowCount; ++index) {
       const ordinal = this.props.messageOrdinals.get(index)
       const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
@@ -192,6 +198,7 @@ class Thread extends React.Component<Props, State> {
         />
       )
     }
+    rows.push(<Waypoint onEnter={this._waypointOnEnter} />)
 
     return (
       <div
