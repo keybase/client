@@ -228,11 +228,7 @@ const makeRenderThreadConfig = () => {
   // Have to inject some additional code if we're using HMR
   const HMREntries =
     flags.isHot && flags.isDev && !flags.isTreeShake
-      ? [
-          'react-hot-loader/patch',
-          'webpack-dev-server/client?http://localhost:4000',
-          'webpack/hot/only-dev-server',
-        ]
+      ? ['webpack-dev-server/client?http://localhost:4000', 'webpack/hot/only-dev-server']
       : []
 
   const makeEntries = () => {

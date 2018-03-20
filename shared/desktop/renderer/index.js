@@ -2,6 +2,7 @@
 /*
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
+import {hot} from 'react-hot-loader'
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as AppGen from '../../actions/app-gen'
@@ -18,7 +19,6 @@ import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import {loginRouteTree} from '../../app/routes'
-import {AppContainer} from 'react-hot-loader'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
@@ -142,17 +142,20 @@ const FontLoader = () => (
   </div>
 )
 
+const AppBeforeHot = ({store, MainComponent}) => (
+  <Root store={store}>
+    <div style={{display: 'flex', flex: 1}}>
+      <RemoteProxies />
+      <FontLoader />
+      <MainComponent />
+    </div>
+  </Root>
+)
+const App = hot(module)(AppBeforeHot)
+
 function render(store, MainComponent) {
   ReactDOM.render(
-    <AppContainer>
-      <Root store={store}>
-        <div style={{display: 'flex', flex: 1}}>
-          <RemoteProxies />
-          <FontLoader />
-          <MainComponent />
-        </div>
-      </Root>
-    </AppContainer>,
+    <App store={store} MainComponent={MainComponent} />,
     // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
@@ -190,7 +193,7 @@ function load() {
   const store = setupStore()
   setupRoutes(store)
   setupApp(store)
-  setupHMR(store)
+  // setupHMR(store)
   render(store, Main)
 }
 

@@ -11,7 +11,8 @@
         "globals": [
           "Error"
         ]
-      }
+      },
+      "react-hot-loader/babel"
     ]
   ],
   "env": {
