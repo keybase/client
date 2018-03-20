@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -65,12 +66,11 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		suspendCh:      make(chan chan struct{}, 10),
 		identNotifier:  NewCachingIdentifyNotifier(g),
 		clock:          clockwork.NewRealClock(),
-		foregroundWait: 5 * time.Second,
-		initialWait:    5 * time.Second,
+		foregroundWait: time.Second,
 	}
 	b.identNotifier.ResetOnGUIConnect()
-
 	b.newQueue()
+	go b.monitorAppState()
 
 	return b
 }
@@ -92,7 +92,7 @@ func (b *BackgroundConvLoader) monitorAppState() {
 				suspended = false
 			}
 		case keybase1.AppState_BACKGROUND:
-			b.Debug(ctx, "monitorAppState: backgrounded, suspending upgrade thread")
+			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
 			b.Suspend(ctx)
 			suspended = true
 		}
@@ -102,22 +102,22 @@ func (b *BackgroundConvLoader) monitorAppState() {
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.Lock()
 	defer b.Unlock()
-
 	if b.started {
 		b.stopCh <- make(chan struct{})
 	}
-
 	b.newQueue()
-
 	b.started = true
 	b.uid = uid
+	// On mobile fresh start, apply the foreground wait
+	if b.G().GetAppType() == libkb.MobileAppType {
+		b.clock.Sleep(b.foregroundWait)
+	}
 	go b.loop()
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
-
 	ch := make(chan struct{})
 	if b.started {
 		b.stopCh <- ch
