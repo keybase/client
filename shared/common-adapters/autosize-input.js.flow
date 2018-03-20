@@ -7,7 +7,7 @@ export type Props = {
   placeholder?: ?string,
   inputStyle?: Object,
   onChange: (text: string) => void,
-  onKeyDown?: (ev: SyntheticInputEvent<>) => void,
+  onKeyDown?: (ev: SyntheticKeyboardEvent<>) => void,
   onFocus?: (ev: SyntheticInputEvent<>) => void,
   onBlur?: (ev: SyntheticInputEvent<>) => void,
 }

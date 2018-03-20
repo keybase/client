@@ -118,6 +118,9 @@ func (mr *MerkleResets) verifyAndLoad(ctx context.Context, g *GlobalContext, urc
 	// Verify the chain starting at the tail and going to the front.
 	curr := mr.chainTail.Hash
 	last := true
+	foundDelete := false
+	lastWasDelete := false
+
 	for i := len(urc) - 1; i >= 0; i-- {
 		resetSeqno := i + 1
 		link := urc[i].link
@@ -130,12 +133,25 @@ func (mr *MerkleResets) verifyAndLoad(ctx context.Context, g *GlobalContext, urc
 			err = mkerr("wrong seqno at seqno %d", resetSeqno)
 			return err
 		}
-		if link.Type == keybase1.ResetType_DELETE && !last {
-			err = mkerr("delete can only happen at the end of a reset chain")
-			return err
+		if link.Type == keybase1.ResetType_DELETE {
+			if last {
+				lastWasDelete = true
+			}
+			foundDelete = true
 		}
 		curr = link.Prev.Reset
 		last = false
+	}
+
+	// NOTE(max) 2018-03-19
+	// We should have checked that deletes were only visible at the end of the reset chain.
+	// However, there was a bug in the migrate script, and if you had an account that did
+	// several resets and then a delete, all were marked as deletes! This check isn't ideal, but
+	// it's good enough -- we just want to make sure that a delete is indeed a tombstone,
+	// and that if there are any deletes in the chain, then the last must be a delete.
+	if foundDelete && !lastWasDelete {
+		err = mkerr("found a delete that didn't tombstone the user")
+		return err
 	}
 
 	if curr != nil {

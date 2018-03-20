@@ -212,3 +212,13 @@ func (s *SimpleFSHandler) SimpleFSWait(ctx context.Context, arg keybase1.OpID) e
 	}
 	return cli.SimpleFSWait(ctx, arg)
 }
+
+// SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
+// into its logs.
+func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSDumpDebuggingInfo(ctx)
+}

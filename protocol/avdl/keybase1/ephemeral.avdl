@@ -18,10 +18,7 @@ protocol ephemeral {
 
   record DeviceEk {
     Bytes32 seed;
-    EkGeneration generation;
-    @jsonkey("hash_meta")
-    HashMeta hashMeta;
-    Time ctime;
+    DeviceEkMetadata metadata;
   }
 
   record UserEkMetadata {
@@ -33,11 +30,15 @@ protocol ephemeral {
     Time ctime;
   }
 
+  record UserEkBoxed {
+    string box;
+    @jsonkey("device_ek_generation")
+    EkGeneration deviceEkGeneration;
+    UserEkMetadata metadata;
+  }
+
   record UserEk {
     Bytes32 seed;
-    EkGeneration generation;
-    @jsonkey("hash_meta")
-    HashMeta hashMeta;
-    Time ctime;
+    UserEkMetadata metadata;
   }
 }
