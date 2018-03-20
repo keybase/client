@@ -188,6 +188,7 @@
     "json5": "0.5.1",
     "klaw-sync": "3.0.2",
     "minimist": "1.2.0",
+    "moment-timezone": "^0.5.14",
     "null-loader": "0.1.1",
     "pegjs": "0.10.0",
     "raf": "3.4.0",
