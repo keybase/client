@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalStyles} from '../../styles'
-import {StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapters'
+import {PopupDialog, StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapters'
 
 import type {Props} from './render'
 
@@ -49,7 +49,12 @@ const styleContainer = {
 
 const styleEditProfile = {
   marginTop: 35,
-  minWidth: 450,
+  minWidth: 600,
 }
 
-export default EditProfileRender
+const PopupWrapped = (props: RolePickerProps) => (
+  <PopupDialog styleCover={{zIndex: 20}} onClose={props.onCancel}>
+    <EditProfileRender {...props} />
+  </PopupDialog>
+)
+export default PopupWrapped

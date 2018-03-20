@@ -348,7 +348,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
                       <Text type="BodySmallSemibold">Teams</Text>
                       <Icon
-                        style={{marginRight: globalMargins.small}}
+                        style={{marginRight: globalMargins.tiny}}
                         type="iconfont-edit"
                         onClick={this.props.onClickShowcaseOffer}
                       />

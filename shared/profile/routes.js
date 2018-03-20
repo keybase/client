@@ -66,10 +66,15 @@ const profileRoute = makeRouteDefNode({
       component: SearchPopup,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
+    showcaseTeamOffer: {
+      children: {},
+      component: EditProfile,
+      tags: makeLeafTags({layerOnTop: true}),
+    },
     showcasedTeamInfo: {
       children: {},
       component: isMobile ? ShowcasedTeamInfo : RelativePopupHoc(ShowcasedTeamInfo),
-      tags: makeLeafTags({layerOnTop: true}),
+      tags: makeLeafTags({layerOnTop: false}),
     },
   },
 })

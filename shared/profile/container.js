@@ -79,6 +79,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
         },
       ])
     ),
+  onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
@@ -152,6 +153,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
     onClickShowcased: (event, teamname) => dispatchProps.onClickShowcased(event, teamname),
+    onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
     onFollow: () => dispatchProps.onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
     onUnfollow: () => dispatchProps.onUnfollow(username),
