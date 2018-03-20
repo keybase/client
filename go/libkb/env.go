@@ -689,6 +689,12 @@ func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
 }
 
+// If true, do not logout after user.key_change notification handler
+// decides that current device has been revoked.
+func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
+	return e.Test.SkipLogoutIfRevokedCheck
+}
+
 func (e *Env) GetProxy() string {
 	return e.GetString(
 		func() string { return e.cmd.GetProxy() },
