@@ -6,7 +6,7 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import RetentionPicker from './retention/container'
 
-// initial settings
+// initial settings (except retention policy)
 type Props = {
   ignoreAccessRequests: boolean,
   publicityAnyMember: boolean,
@@ -31,11 +31,13 @@ type NewSettings = {
   newPublicityTeam: boolean,
   newOpenTeam: boolean,
   newOpenTeamRole: Types.TeamRoleType,
+  newRetentionPolicy: Types._RetentionPolicy,
 }
 
 // new settings
 type State = NewSettings & {
   publicitySettingsChanged: boolean,
+  retentionPolicyChanged: boolean,
 }
 
 type SettingProps = Props &
@@ -168,7 +170,9 @@ export class Settings extends React.Component<Props, State> {
       newPublicityTeam: this.props.publicityTeam,
       newOpenTeam: this.props.openTeam,
       newOpenTeamRole: this.props.openTeamRole,
+      newRetentionPolicy: {type: 'retain', days: 0}, // placeholder
       publicitySettingsChanged: false,
+      retentionPolicyChanged: false,
     }
   }
 
@@ -202,14 +206,15 @@ export class Settings extends React.Component<Props, State> {
   }
 
   setPublicitySettingsChanged = () => {
-    const publicitySettingsChanged = !(
-      this.state.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
-      this.state.newOpenTeam === this.props.openTeam &&
-      this.state.newOpenTeamRole === this.props.openTeamRole &&
-      this.state.newPublicityAnyMember === this.props.publicityAnyMember &&
-      this.state.newPublicityMember === this.props.publicityMember &&
-      this.state.newPublicityTeam === this.props.publicityTeam
-    )
+    const publicitySettingsChanged =
+      !(
+        this.state.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
+        this.state.newOpenTeam === this.props.openTeam &&
+        this.state.newOpenTeamRole === this.props.openTeamRole &&
+        this.state.newPublicityAnyMember === this.props.publicityAnyMember &&
+        this.state.newPublicityMember === this.props.publicityMember &&
+        this.state.newPublicityTeam === this.props.publicityTeam
+      ) || this.state.retentionPolicyChanged
     this.setState({publicitySettingsChanged})
   }
 
@@ -228,6 +233,10 @@ export class Settings extends React.Component<Props, State> {
     this.props.setOpenTeamRole(this.state.newOpenTeamRole, newOpenTeamRole =>
       this.setState({newOpenTeamRole})
     )
+  }
+
+  _onSelectRetentionPolicy = (p: Types._RetentionPolicy, changed: boolean) => {
+    this.setState({newRetentionPolicy: p, retentionPolicyChanged: changed}, this.setPublicitySettingsChanged)
   }
 
   render() {
@@ -258,7 +267,12 @@ export class Settings extends React.Component<Props, State> {
               onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-            <RetentionPicker teamname={this.props.teamname} isTeamWide={true} />
+            <RetentionPicker
+              type="simple"
+              onSelect={this._onSelectRetentionPolicy}
+              teamname={this.props.teamname}
+              isTeamWide={true}
+            />
           </Box>
         )}
         <Box

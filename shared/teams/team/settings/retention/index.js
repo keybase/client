@@ -8,7 +8,7 @@ import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants
 export type Props = {
   policy: RetentionPolicy,
   teamPolicy?: RetentionPolicy,
-  onSelect?: _RetentionPolicy => void,
+  onSelect: (policy: _RetentionPolicy, changed: boolean) => void,
   isTeamWide: boolean,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
 }
@@ -40,7 +40,8 @@ class RetentionPicker extends React.Component<Props, State> {
       selected = {type: 'inherit', days: 0}
     }
     this.setState({selected})
-    this.props.onSelect && this.props.onSelect(selected)
+    const changed = !(selected.type === this.props.policy.type && selected.days === this.props.policy.days)
+    this.props.onSelect(selected, changed)
   }
 
   _makeItems = () => {

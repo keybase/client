@@ -1,15 +1,20 @@
 // @flow
 import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
 import {getTeamRetentionPolicy, makeRetentionPolicy} from '../../../../constants/teams'
+import {type _RetentionPolicy} from '../../../../constants/types/teams'
 import {createGetTeamRetentionPolicy} from '../../../../actions/teams-gen'
 import {navigateAppend} from '../../../../actions/route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
 
+// type 'simple' = we pass up selected values and parent deals with showing warning popup
+// type 'auto' = we show the popup and handle everything (TODO DESKTOP-6062)
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
   teamname: string,
-  isTeamWide: boolean,
+  isTeamWide: boolean, // the state where this is false is TODO in DESKTOP-6062
+  type: 'simple' | 'auto',
+  onSelect: ?(policy: _RetentionPolicy, changed: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -22,7 +27,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {teamname, onSelect, type}: OwnProps) => ({
   _loadTeamPolicy: () => dispatch(createGetTeamRetentionPolicy({teamname})),
   onShowDropdown: (items, target) =>
     dispatch(
@@ -33,6 +38,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
         },
       ])
     ),
+  onSelect: (policy: _RetentionPolicy, changed: boolean) => {
+    if (type === 'simple' && onSelect) {
+      onSelect(policy, changed)
+    } else {
+      // show popup etc (TODO DESKTOP-6062)
+    }
+  },
 })
 
 export default compose(
