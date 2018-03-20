@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, isMobile} from '../../../../styles'
-import {Box, ClickableBox, Text} from '../../../../common-adapters'
-import PopupMenu, {type MenuItem, ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
-import {ModalPositionRelative} from '../../../../common-adapters/relative-popup-hoc'
+import {ClickableBox, Text} from '../../../../common-adapters'
+import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
 
 export type Props = {
@@ -11,13 +10,13 @@ export type Props = {
   teamPolicy?: RetentionPolicy,
   onSelect?: _RetentionPolicy => void,
   isTeamWide: boolean,
+  onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
 }
 
 type State = {
   selected: _RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
-  dropdownRect: ?ClientRect,
 }
 
 const commonOptions = [1, 7, 30, 90, 365]
@@ -27,7 +26,6 @@ class RetentionPicker extends React.Component<Props, State> {
     selected: {type: 'retain', days: 0},
     items: [],
     showMenu: false,
-    dropdownRect: null,
   }
 
   _labelBox: ?ClickableBox
@@ -92,47 +90,19 @@ class RetentionPicker extends React.Component<Props, State> {
     this._labelBox = box
   }
 
-  _showMenu = (evt: SyntheticEvent<Element>) => {
-    this.setState({
-      dropdownRect: isMobile ? null : evt.currentTarget.getBoundingClientRect(),
-      showMenu: true,
-    })
+  _onShowDropdown = (evt: SyntheticEvent<Element>) => {
+    const target = isMobile ? null : evt.currentTarget
+    this.props.onShowDropdown(this.state.items, target)
   }
-
-  _hideMenu = () => this.setState({showMenu: false})
 
   render() {
     return (
-      <ClickableBox ref={this._setRef} onClick={this._showMenu} style={{...globalStyles.flexBoxRow}}>
+      <ClickableBox ref={this._setRef} onClick={this._onShowDropdown} style={{...globalStyles.flexBoxRow}}>
         {this.props.policy && <Text type="BodySemibold">{this._label()}</Text>}
-        {this.state.showMenu && (
-          <OptionsPopup
-            targetRect={this.state.dropdownRect}
-            position="top left"
-            onClosePopup={this._hideMenu}
-            onHide={this._hideMenu}
-            popupNode={<Box />}
-            style={{backgroundColor: 'white'}}
-            items={this.state.items}
-          />
-        )}
       </ClickableBox>
     )
   }
 }
-
-const RenderOptions = (props: {items: Array<MenuItem | 'Divider' | null>, onHide: () => any}) =>
-  isMobile ? (
-    <PopupMenu onHidden={props.onHide} style={globalStyles.fillAbsolute} items={props.items} />
-  ) : (
-    <ModalLessPopupMenu
-      onHidden={props.onHide}
-      style={{overflow: 'visible', width: 220}}
-      items={props.items}
-    />
-  )
-// TODO mobile
-const OptionsPopup = isMobile ? RenderOptions : ModalPositionRelative(RenderOptions)
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {

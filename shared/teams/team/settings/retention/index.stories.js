@@ -10,22 +10,20 @@ const policyRetain = makeRetentionPolicy({type: 'retain'})
 // const policyInherit = {type: 'inherit'}
 const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
 
+const actions = {
+  onSelect: action('onSelect'),
+  onShowDropdown: action('onShowDropdown'),
+}
+
 const load = () => {
   storiesOf('Chat/Teams/Retention', module)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
     .add('Team expires / we retain', () => (
-      <RetentionPicker
-        isTeamWide={false}
-        policy={policyRetain}
-        teamPolicy={policy30Days}
-        onSelect={action('onSelect')}
-      />
+      <RetentionPicker isTeamWide={false} policy={policyRetain} teamPolicy={policy30Days} {...actions} />
     ))
-    .add('Team-wide', () => (
-      <RetentionPicker isTeamWide={true} policy={policy30Days} onSelect={action('onSelect')} />
-    ))
+    .add('Team-wide', () => <RetentionPicker isTeamWide={true} policy={policy30Days} {...actions} />)
 }
 
 export default load
