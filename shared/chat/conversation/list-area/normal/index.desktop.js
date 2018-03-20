@@ -3,6 +3,7 @@
 // import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
 import Message from '../../messages'
+import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
 // import {ErrorBoundary} from '../../../../common-adapters'
 // import clipboard from '../../../../desktop/clipboard'
@@ -161,34 +162,52 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
-  _onScroll = debounce(() => {
-    if (this._scrollableRef) {
-      const offsetFromBottom =
-        this._scrollableRef.scrollHeight - (this._scrollableRef.scrollTop + this._scrollableRef.clientHeight)
-      console.log('aaa offsetFromBottom: ', offsetFromBottom)
-      this.setState({isLockedToBottom: offsetFromBottom < 10})
-
-      const offsetFromTop = this._scrollableRef.scrollTop
-      if (offsetFromTop < 10) {
-        console.log('aaa offsetFromTop: ', offsetFromTop)
-        this.props.loadMoreMessages()
-      }
-    }
-  }, 100)
-
-  _waypointOnEnter = props => {
-    console.log('aaa', props)
+  _waypointTopOnEnter = data => {
+    console.log('aaa top load more messages')
+    // this.props.loadMoreMessages()
   }
+  _waypointBottomOnEnter = data => {
+    console.log('aaa bottom locked')
+    this.setState({isLockedToBottom: true})
+  }
+  _waypointBottomOnLeave = data => {
+    console.log('aaa bottom unlocked')
+    this.setState({isLockedToBottom: false})
+  }
+  _waypointMessageOnEnter = data => {
+    console.log('aaa message enter', data)
+  }
+  _waypointMessageOnLeave = data => {
+    console.log('aaa message leave', data)
+  }
+
+  _makeWaypointMessage = (key, children) => (
+    <Waypoint
+      key={`waypoint: ${key}`}
+      onEnter={this._waypointMessageOnEnter}
+      onLeave={this._waypointMessageOnLeave}
+    >
+      <div>{children}</div>
+    </Waypoint>
+  )
 
   render() {
     const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
 
     const rows = []
-    rows.push(<Waypoint onEnter={this._waypointOnEnter} />)
+    rows.push(
+      <Waypoint key="waypointTop" topOffset={0} onEnter={this._waypointTopOnEnter}>
+        <div style={{backgroundColor: 'red', height: 10, width: '100%'}} />
+      </Waypoint>
+    )
+
+    let waypointKey = 0
+    let waypointChildren = []
     for (var index = 0; index < rowCount; ++index) {
       const ordinal = this.props.messageOrdinals.get(index)
       const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
-      rows.push(
+
+      waypointChildren.push(
         <Message
           key={ordinal}
           ordinal={ordinal}
@@ -197,14 +216,33 @@ class Thread extends React.Component<Props, State> {
           conversationIDKey={this.props.conversationIDKey}
         />
       )
+
+      if (waypointChildren.length === 10) {
+        rows.push(this._makeWaypointMessage(waypointKey++, waypointChildren))
+        waypointChildren = []
+      }
     }
-    rows.push(<Waypoint onEnter={this._waypointOnEnter} />)
+
+    // leftovers
+    if (waypointChildren.length > 0) {
+      rows.push(this._makeWaypointMessage(waypointKey++, waypointChildren))
+    }
+
+    rows.push(
+      <Waypoint
+        key="waypointBottom"
+        bottomOffset={0}
+        onEnter={this._waypointBottomOnEnter}
+        onLeave={this._waypointBottomOnLeave}
+      >
+        <div style={{backgroundColor: 'yellow', height: 10, width: '100%'}} />
+      </Waypoint>
+    )
 
     return (
       <div
         style={containerStyle}
         onClick={this._handleListClick}
-        onScroll={this._onScroll}
         onCopyCapture={this._onCopyCapture}
         ref={this._setScrollableRef}
       >
