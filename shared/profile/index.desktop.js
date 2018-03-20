@@ -345,14 +345,14 @@ class ProfileRender extends PureComponent<Props, State> {
               <Box style={styleProofs}>
                 {!loading && (
                   <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
-                    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
+                    {(this.props.userInfo.showcasedTeams.length > 0 || this.props.isYou) && (                    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
                       <Text type="BodySmallSemibold">Teams</Text>
                       <Icon
                         style={{marginRight: globalMargins.tiny}}
                         type="iconfont-edit"
                         onClick={this.props.onClickShowcaseOffer}
                       />
-                    </Box>
+                    </Box>)}
                     {this.props.userInfo.showcasedTeams.length > 0 ? (
                       this.props.userInfo.showcasedTeams.map(team => (
                         <Box
@@ -371,7 +371,7 @@ class ProfileRender extends PureComponent<Props, State> {
                           </Box>
                         </Box>
                       ))
-                    ) : (
+                    ) : this.props.isYou && (
                       <Box onClick={this.props.onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
                         <Box style={styleShowcasedTeamAvatar}>
                           <Icon type="icon-team-placeholder-avatar-24" size={24} />
