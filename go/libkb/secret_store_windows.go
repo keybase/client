@@ -100,7 +100,7 @@ func (k WinCredentialStore) migrateSecretStoreFile(g *GlobalContext) error {
 }
 
 func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
-	if g.Env.ForceSecretStoreFile() {
+	if g.Env.ForceSecretStoreFile() || !g.Env.GetFeatureFlags().Admin() {
 		// Allow use of file secret store for development/testing
 		return NewSecretStoreFile(g.Env.GetDataDir())
 	}

@@ -11,7 +11,6 @@ import FoldersConfirmMap from '../../folders/confirm/dumb'
 import LoginMap from '../../login/dumb'
 import ProfileMap from '../../profile/dumb'
 import SearchMap from '../../search/dumb'
-import Tracker from '../../tracker/dumb.native'
 import Settings from '../../settings/dumb.native'
 
 const map: any = {
@@ -27,7 +26,6 @@ const map: any = {
   ...ProfileMap,
   ...SearchMap,
   ...Settings,
-  ...Tracker,
   ...LoginMap,
 }
 
