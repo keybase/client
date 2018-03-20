@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -102,21 +103,28 @@ func (b *BackgroundConvLoader) Queue(ctx context.Context, convID chat1.Conversat
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	b.Lock()
 	defer b.Unlock()
-	if b.activeLoadCtx != nil {
-		b.Debug(b.activeLoadCtx, "canceling active load")
-		b.activeLoadCancelFn()
-		canceled = true
-	}
 	if b.suspendCount == 0 {
 		b.resumeCh = make(chan struct{})
 		b.suspendCh <- b.resumeCh
 	}
 	b.suspendCount++
+	if b.activeLoadCtx != nil {
+		b.Debug(b.activeLoadCtx, "canceling active load")
+		b.activeLoadCancelFn()
+		canceled = true
+	}
 	return canceled
 }
 
 func (b *BackgroundConvLoader) Resume(ctx context.Context) {
-
+	b.Lock()
+	defer b.Unlock()
+	if b.suspendCount > 0 {
+		b.suspendCount--
+		if b.suspendCount == 0 && b.resumeCh != nil {
+			close(b.resumeCh)
+		}
+	}
 }
 
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
@@ -142,10 +150,26 @@ func (b *BackgroundConvLoader) loop() {
 	bgctx := context.Background()
 	uid := b.uid
 	b.Debug(bgctx, "starting conv loader loop for %s", uid)
+	waitForResume := func(ch chan struct{}) {
+		b.Debug(bgctx, "suspending loop")
+		<-ch
+		b.Debug(bgctx, "resuming loop")
+	}
 	for {
 		// get a convID from queue, or stop
 		select {
 		case task := <-b.queueCh:
+			if task.convID.IsNil() {
+				// means we closed this channel
+				continue
+			}
+			// Make sure we aren't suspended
+			select {
+			case ch := <-b.suspendCh:
+				b.Debug(bgctx, "pulled queue task, but suspended, so waiting")
+				waitForResume(ch)
+			default:
+			}
 			// always wait a short amount of time to avoid
 			// flood of conversation loads
 			duration := bgLoaderInitDelay
@@ -157,6 +181,8 @@ func (b *BackgroundConvLoader) loop() {
 			}
 			time.Sleep(duration)
 			b.load(bgctx, task, uid)
+		case ch := <-b.suspendCh:
+			waitForResume(ch)
 		case ch := <-b.stopCh:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
 			close(ch)
@@ -170,6 +196,19 @@ func (b *BackgroundConvLoader) newQueue() {
 		close(b.queueCh)
 	}
 	b.queueCh = make(chan clTask, 200)
+}
+
+func (b *BackgroundConvLoader) retriableError(err error) bool {
+	if err == context.Canceled {
+		return true
+	}
+	switch lerr := err.(type) {
+	case UnboxingError:
+		return !lerr.IsPermanent()
+	case storage.AbortedError:
+		return true
+	}
+	return false
 }
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) {
@@ -195,7 +234,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	_, _, err := b.G().ConvSource.Pull(ctx, task.convID, uid, query, pagination)
 	if err != nil {
 		b.Debug(ctx, "ConvSource.Pull error: %s (%T)", err, err)
-		if _, ok := err.(*TransientUnboxingError); ok && task.attempt+1 < bgLoaderMaxAttempts {
+		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {
 			b.Debug(ctx, "transient error, retrying")
 			task.attempt++
 			task.lastAttemptAt = time.Now()

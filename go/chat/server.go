@@ -171,10 +171,11 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 }
 
 func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	h.G().ConvLoader.CancelActiveLoad(ctx)
-	h.G().ConvLoader.Stop(ctx)
+	if canceled := h.G().ConvLoader.Suspend(ctx); canceled {
+		h.Debug(ctx, "suspendConvLoader: canceled background task")
+	}
 	return func() {
-		h.G().ConvLoader.Start(ctx, h.getUID())
+		h.G().ConvLoader.Resume(ctx)
 	}
 }
 
