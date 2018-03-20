@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	bgLoaderMaxAttempts = 4
+	bgLoaderMaxAttempts = 10
 	bgLoaderInitDelay   = 100 * time.Millisecond
 	bgLoaderErrDelay    = 300 * time.Millisecond
 )
@@ -199,12 +199,10 @@ func (b *BackgroundConvLoader) newQueue() {
 }
 
 func (b *BackgroundConvLoader) retriableError(err error) bool {
-	if err == context.Canceled {
+	if IsOfflineError(err) != OfflineErrorKindOnline {
 		return true
 	}
-	switch lerr := err.(type) {
-	case UnboxingError:
-		return !lerr.IsPermanent()
+	switch err.(type) {
 	case storage.AbortedError:
 		return true
 	}

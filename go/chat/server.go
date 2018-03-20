@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -97,50 +96,15 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 	return h.uiSource.GetStreamUICli()
 }
 
-type offlineErrorKind int
-
-const (
-	offlineErrorKindOnline offlineErrorKind = iota
-	offlineErrorKindOfflineBasic
-	offlineErrorKindOfflineReconnect
-)
-
-func (h *Server) isOfflineError(err error) offlineErrorKind {
-	// Check type
-	switch terr := err.(type) {
-	case net.Error:
-		return offlineErrorKindOfflineReconnect
-	case libkb.APINetError:
-		return offlineErrorKindOfflineBasic
-	case OfflineError:
-		return offlineErrorKindOfflineBasic
-	case TransientUnboxingError:
-		return h.isOfflineError(terr.Inner())
-	}
-	// Check error itself
-	switch err {
-	case context.DeadlineExceeded:
-		fallthrough
-	case context.Canceled:
-		fallthrough
-	case ErrChatServerTimeout:
-		return offlineErrorKindOfflineReconnect
-	case ErrDuplicateConnection:
-		return offlineErrorKindOfflineBasic
-	}
-
-	return offlineErrorKindOnline
-}
-
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
-	errKind := h.isOfflineError(err)
-	if errKind != offlineErrorKindOnline {
+	errKind := IsOfflineError(err)
+	if errKind != OfflineErrorKindOnline {
 		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
 		res.SetOffline()
 		switch errKind {
-		case offlineErrorKindOfflineReconnect:
+		case OfflineErrorKindOfflineReconnect:
 			// Reconnect Gregor if we think we are offline (and told to reconnect)
 			h.Debug(ctx, "handleOfflineError: reconnecting to gregor")
 			if _, err := h.serverConn.Reconnect(ctx); err != nil {
