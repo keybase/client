@@ -116,15 +116,17 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	return canceled
 }
 
-func (b *BackgroundConvLoader) Resume(ctx context.Context) {
+func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 	b.Lock()
 	defer b.Unlock()
 	if b.suspendCount > 0 {
 		b.suspendCount--
 		if b.suspendCount == 0 && b.resumeCh != nil {
 			close(b.resumeCh)
+			return true
 		}
 	}
+	return false
 }
 
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {

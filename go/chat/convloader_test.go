@@ -87,9 +87,21 @@ func TestConvLoaderSuspend(t *testing.T) {
 		require.Fail(t, "no remote call")
 	}
 	require.True(t, tc.Context().ConvLoader.Suspend(context.TODO()))
+	select {
+	case <-listener.bgConvLoads:
+		require.Fail(t, "no load yet")
+	default:
+	}
+	require.True(t, tc.Context().ConvLoader.Suspend(context.TODO()))
 
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
-	tc.Context().ConvLoader.Resume(context.TODO())
+	require.False(t, tc.Context().ConvLoader.Resume(context.TODO()))
+	select {
+	case <-listener.bgConvLoads:
+		require.Fail(t, "no load yet")
+	default:
+	}
+	require.True(t, tc.Context().ConvLoader.Resume(context.TODO()))
 	select {
 	case convID := <-listener.bgConvLoads:
 		require.Equal(t, res.ConvID, convID)
