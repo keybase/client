@@ -14,7 +14,6 @@ const Offline = () => (
     style={{
       ...globalStyles.flexBoxCenter,
       backgroundColor: globalColors.grey,
-      maxHeight: 48,
       paddingBottom: globalMargins.tiny,
       paddingLeft: globalMargins.medium,
       paddingRight: globalMargins.medium,
