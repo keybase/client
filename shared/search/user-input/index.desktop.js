@@ -75,11 +75,13 @@ class UserInput extends Component<Props, State> {
   }
 
   _onInputKeyDown = ev => {
+    // $ForceType
+    const target: HTMLInputElement = ev.target
     if (
       this.props.userItems.length &&
       ev.key === 'Backspace' &&
-      ev.target.selectionStart === 0 &&
-      ev.target.selectionEnd === 0
+      target.selectionStart === 0 &&
+      target.selectionEnd === 0
     ) {
       this.props.onRemoveUser(last(this.props.userItems).id)
     } else if (ev.key === 'ArrowUp') {

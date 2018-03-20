@@ -1,14 +1,14 @@
 // @flow
 import React, {PureComponent} from 'react'
-import Header from './header.render.desktop'
-import Action, {calcFooterHeight} from './action.render.desktop'
+import Header from './header.desktop'
+import Action, {calcFooterHeight} from './action.desktop'
 import {Avatar, Box, Meta, Text, UserBio, UserProofs} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {ModalPositionRelative} from '../common-adapters/relative-popup-hoc.desktop'
 import TeamInfo from '../profile/showcased-team-info'
 import NonUser from './non-user'
 import {autoResize} from '../desktop/remote/util'
-import TrackerError from './error'
+import TrackerError from './error.desktop'
 
 import type {RenderProps} from '.'
 

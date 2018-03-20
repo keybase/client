@@ -13,7 +13,7 @@ import {
   ListItem,
   Button,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 const Divider = ({theme}) => (
@@ -195,7 +195,6 @@ class FilesRender extends Component<Props> {
 
   render() {
     const isPrivate = this.props.theme === 'private'
-    const menuColor = styleMenuColorThemed(this.props.theme, this.props.visiblePopupMenu)
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
@@ -209,20 +208,6 @@ class FilesRender extends Component<Props> {
       >
         <Box style={{...globalStyles.flexBoxRow, ...styleHeaderThemed[this.props.theme], height: 48}}>
           <BackButton onClick={this.props.onBack} style={{marginLeft: 16}} />
-          {this.props.recentFilesEnabled && (
-            <Icon
-              style={{
-                ...styleMenu,
-                color: menuColor,
-                hoverColor: menuColor,
-                marginRight: 16,
-                position: 'relative',
-                top: 18,
-              }}
-              type="iconfont-hamburger"
-              onClick={this.props.onTogglePopupMenu}
-            />
-          )}
         </Box>
         <Box
           style={{
@@ -325,12 +310,6 @@ const styleTLFTextThemed = {
   },
 }
 
-const styleMenu = {
-  ...desktopStyles.clickable,
-  marginLeft: 'auto',
-  fontSize: 24,
-}
-
 const styleRecentFilesNotEnabled = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
@@ -347,12 +326,6 @@ const styleWarningBanner = {
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
   textAlign: 'center',
-}
-
-function styleMenuColorThemed(theme, showingMenu): string {
-  return theme === 'public'
-    ? showingMenu ? globalColors.black_40 : globalColors.white
-    : showingMenu ? globalColors.blue3 : globalColors.white
 }
 
 export default FilesRender

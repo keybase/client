@@ -46,7 +46,7 @@ function isValidMention(meta: ?MarkdownMeta, mention: string): boolean {
     return false
   }
   const {mentionsChannel, mentionsAt} = meta
-  if (mentionsChannel === 'None' && mentionsAt.length === 0) {
+  if (mentionsChannel === 'None' && mentionsAt.isEmpty()) {
     return false
   }
 

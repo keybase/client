@@ -24,6 +24,7 @@ export type ModalLessPopupMenuProps = {
   items: Array<MenuItem | 'Divider' | null>,
   header?: ?MenuItem,
   onHidden?: ?() => void,
+  closeOnClick?: boolean,
   style?: Object,
 }
 

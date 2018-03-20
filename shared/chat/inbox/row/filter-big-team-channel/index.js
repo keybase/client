@@ -5,6 +5,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles} from '../../.
 import {TeamAvatar} from '../avatars'
 
 type Props = {
+  isSelected: boolean,
   teamname: string,
   channelname: string,
   onSelectConversation: () => void,

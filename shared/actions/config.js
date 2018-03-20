@@ -24,6 +24,7 @@ import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
+import {type RPCError} from '../util/errors'
 
 const maxAvatarsPerLoad = 50
 // TODO convert to sagas
@@ -225,7 +226,7 @@ function _loadAvatarHelper(action: AvatarHelperAction) {
   })
 }
 
-function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
+function _loadAvatarHelperError(error: RPCError, action: AvatarHelperAction) {
   if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
     throw error
   }

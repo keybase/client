@@ -12,6 +12,7 @@ export type Props = {
   onScrollDown: () => void,
   onShowTracker: (username: string) => void,
   onOpenInfoPanelMobile: () => void,
+  threadLoadedOffline: boolean,
 }
 
 export default class Conversation extends React.Component<Props> {}

@@ -57,11 +57,9 @@ const metaMapReducer = (metaMap, action) => {
       )
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
-        (action.payload.force
-          ? action.payload.conversationIDKeys
-          : Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap)
-        ).forEach(conversationIDKey =>
-          map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
+        Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap).forEach(
+          conversationIDKey =>
+            map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
         )
       )
     case Chat2Gen.metaReceivedError: {

@@ -730,7 +730,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       reason:
-        action.type.reason === 'push'
+        reason === 'push'
           ? RPCChatTypes.localGetThreadNonblockReason.push
           : RPCChatTypes.localGetThreadNonblockReason.general,
     },
