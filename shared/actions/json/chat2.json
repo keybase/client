@@ -152,6 +152,7 @@
     "messagesWereDeleted": {
       "conversationIDKey": "Types.ConversationIDKey",
       "messageIDs?": "Array<RPCChatTypes.MessageID>",
+      "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
       "ordinals?": "Array<Types.Ordinal>"
     },
     // Delete a message

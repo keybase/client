@@ -237,7 +237,7 @@ func (l *LevelDb) isCorrupt(err error) bool {
 
 func (l *LevelDb) Nuke() (fn string, err error) {
 	l.Lock()
-	// We need to do defered Unlock here in Nuke rather than delegating to
+	// We need to do deferred Unlock here in Nuke rather than delegating to
 	// l.Close() because we'll be re-opening the database later, and it's
 	// necesary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()

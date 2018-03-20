@@ -325,7 +325,6 @@ func TestImpTeamWithRooterConflict(t *testing.T) {
 }
 
 func TestImpTeamWithMultipleRooters(t *testing.T) {
-	t.Skip("doesn't pass after return -> break fix")
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -345,37 +344,41 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	require.NotEqual(t, team1, team2)
 
-	// Kick rekeyd so rooter proof notifications arrive faster.
 	alice.kickTeamRekeyd()
-
 	bob.proveRooter()
 	charlie.proveRooter()
 
 	toSeqno := keybase1.Seqno(2)
-	var winningTeam keybase1.TeamID
+	var found bool
 	for i := 0; i < 10; i++ {
 		select {
 		case arg := <-alice.notifications.changeCh:
 			t.Logf("membership change received: %+v", arg)
 			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				t.Logf("change matched with %q", arg.TeamID)
-				winningTeam = arg.TeamID
+				found = true
 				break
 			}
 		case <-time.After(1 * time.Second):
 		}
 	}
 
+	require.True(t, found) // Expect "winning team" to be found.
+
 	displayName := strings.Join([]string{alice.username, bob.username, charlie.username}, ",")
 	teamFinal, err := alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, teamFinal, winningTeam)
+	require.True(t, teamFinal == team1 || teamFinal == team2)
 
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
-	require.Error(t, err)
+	tid, err := alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
+	t.Logf("looking up team %s gives %v %v", displayNameRooter1, tid, err)
+	require.NoError(t, err)
+	require.Equal(t, teamFinal, tid)
 
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
-	require.Error(t, err)
+	tid, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamFinal, tid)
+	t.Logf("looking up team %s gives %v %v", displayNameRooter2, tid, err)
 }
 
 func TestClearSocialInvitesOnAdd(t *testing.T) {
@@ -529,23 +532,22 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_NONE, role)
 }
 
-func TestTeamInviteRemoveIfHigherRole(t *testing.T) {
-	// NOTE: This code path is essentially dead because server  will
-	// not send SBS requests to admin for invitees that already are
-	// team members, and internally set invite status to MOOTED. See
-	// serverside _close_raced_sbs_invites.
-
-	// We are going to make standalone user and call HandleSBSRequest
-	// manually to test this.
+func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
+	t.Logf("teamInviteRemoveIfHigherRole(waitForRekeyd=%t)", waitForRekeyd)
 
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	own := makeUserStandalone(t, "own", standaloneUserArgs{
-		disableGregor:            true,
-		suppressTeamChatAnnounce: true,
-	})
-	tt.users = append(tt.users, own)
+	var own *userPlusDevice
+	if waitForRekeyd {
+		own = tt.addUser("own")
+	} else {
+		own = makeUserStandalone(t, "own", standaloneUserArgs{
+			disableGregor:            true,
+			suppressTeamChatAnnounce: true,
+		})
+		tt.users = append(tt.users, own)
+	}
 	roo := tt.addUser("roo")
 	tt.logUserNames()
 
@@ -555,38 +557,56 @@ func TestTeamInviteRemoveIfHigherRole(t *testing.T) {
 
 	t.Logf("Created team %s", teamName.String())
 
+	if waitForRekeyd {
+		own.kickTeamRekeyd()
+	}
 	roo.proveRooter()
 
-	teamObj := own.loadTeamByID(teamID, true /* admin */)
-	var invite keybase1.TeamInvite
-	invites := teamObj.GetActiveAndObsoleteInvites()
-	require.Len(t, invites, 1)
-	for _, invite = range invites {
-		// Get (only) invite from the map to local variable
-	}
+	if waitForRekeyd {
+		// 3 links at this point: root, change_membership (add "roo"),
+		// invite (add "roo@rooter"). Waiting for 4th link: invite
+		// (cancel "roo@rooter").
+		own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(4))
+	} else {
+		teamObj := own.loadTeamByID(teamID, true /* admin */)
+		var invite keybase1.TeamInvite
+		invites := teamObj.GetActiveAndObsoleteInvites()
+		require.Len(t, invites, 1)
+		for _, invite = range invites {
+			// Get the (only) invite from the map to local variable
+		}
 
-	rooUv := roo.userVersion()
+		rooUv := roo.userVersion()
 
-	err := teams.HandleSBSRequest(context.Background(), own.tc.G, keybase1.TeamSBSMsg{
-		TeamID: teamID,
-		Score:  0,
-		Invitees: []keybase1.TeamInvitee{
-			keybase1.TeamInvitee{
-				InviteID:    invite.Id,
-				Uid:         rooUv.Uid,
-				EldestSeqno: rooUv.EldestSeqno,
+		err := teams.HandleSBSRequest(context.Background(), own.tc.G, keybase1.TeamSBSMsg{
+			TeamID: teamID,
+			Score:  0,
+			Invitees: []keybase1.TeamInvitee{
+				keybase1.TeamInvitee{
+					InviteID:    invite.Id,
+					Uid:         rooUv.Uid,
+					EldestSeqno: rooUv.EldestSeqno,
+				},
 			},
-		},
-	})
-	require.NoError(t, err)
+		})
+		require.NoError(t, err)
+	}
 
 	// SBS handler should have canceled the invite after discovering roo is
 	// already a member with higher role.
-	teamObj = own.loadTeamByID(teamID, true /* admin */)
+	teamObj := own.loadTeamByID(teamID, true /* admin */)
 	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
 	role, err := teamObj.MemberRole(context.Background(), roo.userVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_ADMIN, role)
+}
+
+func TestTeamInviteRemoveIfHigherRole(t *testing.T) {
+	// This test is parametrized. waitForRekeyd=true will wait for
+	// real rekeyd notification, waitForRekeyd=false will call SBS
+	// handler manually.
+	teamInviteRemoveIfHigherRole(t, true /* waitForRekeyd */)
+	teamInviteRemoveIfHigherRole(t, false /* waitForRekeyd */)
 }
 
 func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {

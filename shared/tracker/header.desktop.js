@@ -3,17 +3,25 @@ import React, {PureComponent} from 'react'
 import {Icon, Text} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
+import type {SimpleProofState} from '../constants/types/tracker'
 
-import type {HeaderProps} from './header.render'
+type Props = {
+  reason: string,
+  onClose: () => void,
+  trackerState: SimpleProofState,
+  currentlyFollowing: boolean,
+  loggedIn: boolean,
+  headerStyle?: ?Object,
+}
 
 type State = {
   showCloseWarning: boolean,
 }
 
-export default class HeaderRender extends PureComponent<HeaderProps, State> {
+export default class HeaderRender extends PureComponent<Props, State> {
   state: State
 
-  constructor(props: HeaderProps) {
+  constructor(props: Props) {
     super(props)
     this.state = {showCloseWarning: false}
   }

@@ -22,14 +22,15 @@ func TestErasableKVStore(t *testing.T) {
 	subDir := ""
 	s := NewFileErasableKVStore(tc.G, subDir)
 	key := "test-key"
-	value := "value"
+	expected := "value"
+	var val string
 
-	err = s.Put(context.Background(), key, value)
+	err = s.Put(context.Background(), key, expected)
 	require.NoError(t, err)
 
-	expected, err := s.Get(context.Background(), key)
+	err = s.Get(context.Background(), key, val)
 	require.Error(t, err)
-	require.NotEqual(t, expected, value)
+	require.NotEqual(t, expected, val)
 
 	keys, err := s.AllKeys(context.Background())
 	require.NoError(t, err)
@@ -48,9 +49,10 @@ func TestErasableKVStore(t *testing.T) {
 	err = ioutil.WriteFile(noiseFilePath, noise, libkb.PermFile)
 	require.NoError(t, err)
 
-	corrupt, err := s.Get(context.Background(), key)
+	var corrupt string
+	err = s.Get(context.Background(), key, corrupt)
 	require.Error(t, err)
-	require.NotEqual(t, corrupt, value)
+	require.NotEqual(t, expected, corrupt)
 
 	err = s.Erase(context.Background(), key)
 	require.NoError(t, err)

@@ -47,17 +47,8 @@
           "name": "seed"
         },
         {
-          "type": "EkGeneration",
-          "name": "generation"
-        },
-        {
-          "type": "HashMeta",
-          "name": "hashMeta",
-          "jsonkey": "hash_meta"
-        },
-        {
-          "type": "Time",
-          "name": "ctime"
+          "type": "DeviceEkMetadata",
+          "name": "metadata"
         }
       ]
     },
@@ -87,6 +78,25 @@
     },
     {
       "type": "record",
+      "name": "UserEkBoxed",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "deviceEkGeneration",
+          "jsonkey": "device_ek_generation"
+        },
+        {
+          "type": "UserEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserEk",
       "fields": [
         {
@@ -94,17 +104,8 @@
           "name": "seed"
         },
         {
-          "type": "EkGeneration",
-          "name": "generation"
-        },
-        {
-          "type": "HashMeta",
-          "name": "hashMeta",
-          "jsonkey": "hash_meta"
-        },
-        {
-          "type": "Time",
-          "name": "ctime"
+          "type": "UserEkMetadata",
+          "name": "metadata"
         }
       ]
     }

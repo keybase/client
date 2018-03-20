@@ -24547,7 +24547,7 @@ exports[`Storyshots Common Name with icon 1`] = `
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
   overflow: hidden;
-  display: -webkit-box;
+  display: unset;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -24555,6 +24555,8 @@ exports[`Storyshots Common Name with icon 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .glamor-6,
@@ -24590,7 +24592,7 @@ exports[`Storyshots Common Name with icon 1`] = `
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
   overflow: hidden;
-  display: -webkit-box;
+  display: unset;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -24598,6 +24600,8 @@ exports[`Storyshots Common Name with icon 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .glamor-11,
@@ -24771,6 +24775,8 @@ exports[`Storyshots Common Name with icon 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -24841,6 +24847,8 @@ exports[`Storyshots Common Name with icon 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -24899,6 +24907,8 @@ exports[`Storyshots Common Name with icon 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -24975,6 +24985,8 @@ exports[`Storyshots Common Name with icon 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -25055,6 +25067,8 @@ exports[`Storyshots Common Name with icon 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -25138,6 +25152,8 @@ exports[`Storyshots Common Name with icon 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 4,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -25620,6 +25636,8 @@ exports[`Storyshots Common Name with icon subcomponents 1`] = `
                 "flexDirection": "column",
                 "justifyContent": "center",
                 "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -30434,7 +30452,7 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
   overflow: hidden;
-  display: -webkit-box;
+  display: unset;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -30442,6 +30460,8 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+  width: 100%;
+  white-space: nowrap;
 }
 
 <div
@@ -30551,6 +30571,8 @@ exports[`Storyshots People/Follow Suggestions One 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -30679,7 +30701,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
   overflow: hidden;
-  display: -webkit-box;
+  display: unset;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -30687,6 +30709,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .glamor-9,
@@ -30824,6 +30848,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -30925,6 +30951,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31011,6 +31039,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31097,6 +31127,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31183,6 +31215,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31269,6 +31303,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31355,6 +31391,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31441,6 +31479,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31527,6 +31567,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31613,6 +31655,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31699,6 +31743,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31785,6 +31831,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31871,6 +31919,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -31957,6 +32007,8 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32085,7 +32137,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
   overflow: hidden;
-  display: -webkit-box;
+  display: unset;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -32093,6 +32145,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .glamor-9,
@@ -32230,6 +32284,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32331,6 +32387,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32417,6 +32475,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32503,6 +32563,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32589,6 +32651,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32675,6 +32739,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >
@@ -32761,6 +32827,8 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
                   "marginTop": 4,
                   "paddingLeft": 2,
                   "paddingRight": 2,
+                  "textAlign": "center",
+                  "width": "100%",
                 }
               }
             >

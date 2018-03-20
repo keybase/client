@@ -63,6 +63,7 @@ const _makeRouteDefNode: I.RecordFactory<_RouteDefNode> = I.Record({
 })
 
 class MakeRouteDefNodeClass extends _makeRouteDefNode {
+  children: any
   constructor({defaultSelected, component, containerComponent, tags, initialState, children}) {
     // $FlowIssue
     super({
@@ -92,7 +93,6 @@ class MakeRouteDefNodeClass extends _makeRouteDefNode {
       return this.children(name)
     }
 
-    // $FlowIssue
     const childDef = this.children.get(name)
     if (childDef && typeof childDef === 'function') {
       return childDef(name)

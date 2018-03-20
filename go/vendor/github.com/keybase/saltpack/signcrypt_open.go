@@ -206,7 +206,7 @@ func (sos *signcryptOpenStream) processBlock(payloadCiphertext []byte, isFinal b
 		return nil, ErrBadCiphertext(seqno)
 	}
 
-	var detachedSig [ed25519.SignatureSize]byte = sliceToByte64(attachedSig[:ed25519.SignatureSize])
+	detachedSig := sliceToByte64(attachedSig[:ed25519.SignatureSize])
 	chunkPlaintext := attachedSig[ed25519.SignatureSize:]
 
 	// Handle anonymous sender mode by skipping signature verification. By
@@ -249,11 +249,12 @@ func NewSigncryptOpenStream(r io.Reader, keyring SigncryptKeyring, resolver Symm
 	return sos.signingPublicKey, newChunkReader(sos), nil
 }
 
+// SymmetricKeyResolver is an interface for resolving identifiers to keys.
 type SymmetricKeyResolver interface {
 	ResolveKeys(identifiers [][]byte) ([]*SymmetricKey, error)
 }
 
-// Open simply opens a ciphertext given the set of keys in the specified keyring.
+// SigncryptOpen simply opens a ciphertext given the set of keys in the specified keyring.
 // It returns a plaintext on sucess, and an error on failure. It returns the header's
 // MessageKeyInfo in either case.
 func SigncryptOpen(ciphertext []byte, keyring SigncryptKeyring, resolver SymmetricKeyResolver) (senderPub SigningPublicKey, plaintext []byte, err error) {
@@ -269,6 +270,8 @@ func SigncryptOpen(ciphertext []byte, keyring SigncryptKeyring, resolver Symmetr
 	return senderPub, ret, err
 }
 
+// SigncryptKeyring is a combination of the Keyring and SigKeyring
+// interfaces.
 type SigncryptKeyring interface {
 	Keyring
 	SigKeyring

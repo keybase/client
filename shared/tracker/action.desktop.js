@@ -3,10 +3,25 @@ import React, {PureComponent} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import {normal} from '../constants/tracker'
+import type {SimpleProofState} from '../constants/types/tracker'
 
-import type {ActionProps} from './action.render'
+type Props = {
+  loggedIn: boolean,
+  waiting: boolean,
+  state: SimpleProofState,
+  currentlyFollowing: boolean,
+  username: string,
+  myUsername: ?string,
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  onChat: () => void,
+  onClose: () => void,
+  onIgnore: () => void,
+  onFollow: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+}
 
-export default class ActionRender extends PureComponent<ActionProps> {
+export default class ActionRender extends PureComponent<Props> {
   render() {
     const {loggedIn} = this.props
 

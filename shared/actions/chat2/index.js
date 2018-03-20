@@ -495,6 +495,16 @@ const setupChatHandlers = () => {
             : null
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
           return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
+        case RPCChatTypes.notifyChatChatActivityType.expunge:
+          const expungeInfo: ?RPCChatTypes.ExpungeInfo = activity.expunge
+          return expungeInfo
+            ? [
+                Chat2Gen.createMessagesWereDeleted({
+                  conversationIDKey: Types.conversationIDToKey(expungeInfo.convID),
+                  upToMessageID: expungeInfo.expunge.upto,
+                }),
+              ]
+            : null
         default:
           break
       }
@@ -624,6 +634,11 @@ const loadMoreMessages = (
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
     paginationKey = meta.paginationKey
+    // no more to load
+    if (!paginationKey) {
+      logger.info('Load thread bail: scrolling back and no pagination key')
+      return
+    }
     numberOfMessagesToLoad = numMessagesOnScrollback
   } else {
     numberOfMessagesToLoad = numMessagesOnInitialLoad
@@ -716,7 +731,7 @@ const loadMoreMessages = (
         messageTypes: loadThreadMessageTypes,
       },
       reason:
-        action.type.reason === 'push'
+        reason === 'push'
           ? RPCChatTypes.localGetThreadNonblockReason.push
           : RPCChatTypes.localGetThreadNonblockReason.general,
     },
