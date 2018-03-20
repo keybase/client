@@ -19,6 +19,7 @@ export type State = {
   tab: ?string,
   dockHidden: boolean,
   openAtLogin: boolean,
+  isUserActive: ?boolean,
 }
 
 export type Config = {
@@ -54,6 +55,7 @@ export default class AppState {
       isFullScreen: null,
       isMaximized: null,
       openAtLogin: true,
+      isUserActive: true,
       tab: null,
       width: windowStyle.width,
       windowHidden: false,
@@ -335,6 +337,9 @@ export default class AppState {
         // always make sure we have, this
         stateLoaded.openAtLogin = true
       }
+
+      // assume active on startup
+      stateLoaded.isUserActive = true
 
       this.state = stateLoaded
     } catch (e) {
