@@ -512,13 +512,34 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('typingMap', action.payload.conversationToTypers)
     }
     case Chat2Gen.messagesWereDeleted: {
-      const {conversationIDKey, messageIDs = [], ordinals = []} = action.payload
+      const {conversationIDKey, messageIDs = [], ordinals = [], upToMessageID = null} = action.payload
+
+      let upToOrdinals = []
+      if (upToMessageID) {
+        const ordinalToMessage = state.messageMap.get(conversationIDKey, I.Map())
+        ordinalToMessage.reduce((arr, m, ordinal) => {
+          if (m.id < upToMessageID) {
+            arr.push(ordinal)
+          }
+          return arr
+        }, upToOrdinals)
+
+        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
+        ordinals.reduce((arr, ordinal) => {
+          if (Types.ordinalToNumber(ordinal) < upToMessageID) {
+            arr.push(ordinal)
+          }
+          return arr
+        }, upToOrdinals)
+      }
+
       const allOrdinals = I.Set(
         [
           ...ordinals,
           ...messageIDs.map(messageID =>
             messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, conversationIDKey, messageID)
           ),
+          ...upToOrdinals,
         ].filter(Boolean)
       )
 
