@@ -189,16 +189,15 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
 	srv := rpc.NewServer(xp, nil)
-	if err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
-	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
+	require.NoError(tt.t, srv.Register(keybase1.NotifyTeamProtocol(u.notifications)))
+	require.NoError(tt.t, srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)))
+	require.NoError(tt.t, srv.Register(keybase1.NotifyKeyfamilyProtocol(u.notifications)))
+
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
 	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
-		Team:   true,
-		Badges: true,
+		Team:      true,
+		Badges:    true,
+		Keyfamily: true,
 	}); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -695,13 +694,48 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 }
 
 func (u *userPlusDevice) reset() {
+	t := u.tc.T
+	t.Logf("Resetting %s (%s)", u.username, u.uid)
+
+	// Drain key notification channel first, during reset we are only
+	// interested in notifications that come as the effect of us
+	// resetting, not anything from beforehand.
+	t.Logf("Draining %d key_changes", len(u.notifications.keyChangeCh))
+draining:
+	for {
+		select {
+		case <-u.notifications.keyChangeCh:
+		default:
+			break draining
+		}
+	}
+
 	uvBefore := u.userVersion()
 	err := u.device.userClient.ResetUser(context.TODO(), 0)
 	require.NoError(u.tc.T, err)
 	uvAfter := u.userVersion()
 	require.NotEqual(u.tc.T, uvBefore.EldestSeqno, uvAfter.EldestSeqno,
 		"eldest seqno should change as result of reset")
-	u.tc.T.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
+	t.Logf("User reset; eldest seqno %d -> %d", uvBefore.EldestSeqno, uvAfter.EldestSeqno)
+
+	// We want to wait for user.key_change notification. See
+	// `(r *userHandler) keyChange()`. There is a possible race where
+	// we can reset here, then move along to re-provision and log in
+	// again, but then key_change comes at the perfect time and logs
+	// us out.
+	var keyChanged bool
+	for {
+		select {
+		case uid := <-u.notifications.keyChangeCh:
+			t.Logf("Got key change notification for %s (waiting for %s)", uid, u.uid)
+			keyChanged = true
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
+			t.Fatal("No user.key_change notification after reset")
+		}
+		if keyChanged {
+			break
+		}
+	}
 }
 
 func (u *userPlusDevice) delete() {
@@ -814,6 +848,8 @@ type teamNotifyHandler struct {
 	changeCh  chan keybase1.TeamChangedByIDArg
 	abandonCh chan keybase1.TeamID
 	badgeCh   chan keybase1.BadgeState
+
+	keyChangeCh chan keybase1.UID
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
@@ -821,6 +857,8 @@ func newTeamNotifyHandler() *teamNotifyHandler {
 		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
 		abandonCh: make(chan keybase1.TeamID, 10),
 		badgeCh:   make(chan keybase1.BadgeState, 10),
+
+		keyChangeCh: make(chan keybase1.UID, 10),
 	}
 }
 
@@ -848,6 +886,14 @@ func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.T
 
 func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.BadgeState) error {
 	n.badgeCh <- badgeState
+	return nil
+}
+
+func (n *teamNotifyHandler) KeyfamilyChanged(ctx context.Context, uid keybase1.UID) error {
+	select {
+	case n.keyChangeCh <- uid:
+	default: // channel is full, discard keychange.
+	}
 	return nil
 }
 
