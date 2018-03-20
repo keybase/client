@@ -18,7 +18,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -125,7 +125,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -182,7 +182,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Hud 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -364,7 +364,7 @@ exports[`Storyshots Chat/Channel Heads up Display Mention Row 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#ebf5fc",
+            "backgroundColor": "#EBF2FC",
             "borderRadius": 0,
             "cursor": "pointer",
             "display": "flex",
@@ -782,8 +782,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (mute
           <div
             style={
               Object {
-                "backgroundColor": "#33a0ff",
-                "border": "solid 1px #33a0ff",
+                "backgroundColor": "#4C8EFF",
+                "border": "solid 1px #4C8EFF",
                 "borderRadius": 2,
                 "height": 13,
                 "marginRight": 8,
@@ -926,7 +926,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 1;
   selected: ;
@@ -936,7 +936,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 
 .glamor-10:hover,
 [data-glamor-10]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 .glamor-12,
@@ -956,12 +956,12 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
 
 .glamor-12:hover,
 [data-glamor-12]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 .glamor-24,
 [data-glamor-24] {
-  color: #3dcc8e;
+  color: #3DCCA6;
 }
 
 .glamor-25,
@@ -1660,7 +1660,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 1;
   selected: ;
@@ -1670,7 +1670,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
 
 .glamor-10:hover,
 [data-glamor-10]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 .glamor-12,
@@ -1690,7 +1690,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
 
 .glamor-12:hover,
 [data-glamor-12]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 <div
@@ -2370,7 +2370,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
 
 .glamor-10:hover,
 [data-glamor-10]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 .glamor-12,
@@ -2381,7 +2381,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 1;
   selected: ;
@@ -2391,7 +2391,7 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
 
 .glamor-12:hover,
 [data-glamor-12]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 <div
@@ -2534,8 +2534,8 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
         <div
           style={
             Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
+              "backgroundColor": "#4C8EFF",
+              "border": "solid 1px #4C8EFF",
               "borderRadius": 2,
               "height": 13,
               "marginRight": 8,
@@ -3101,7 +3101,7 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -3208,7 +3208,7 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -3265,7 +3265,7 @@ exports[`Storyshots Chat/Heads up Display Mention Hud 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -3433,7 +3433,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -3567,7 +3567,7 @@ exports[`Storyshots Chat/Heads up Display Mention Row 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#ebf5fc",
+            "backgroundColor": "#EBF2FC",
             "borderRadius": 0,
             "cursor": "pointer",
             "display": "flex",
@@ -3756,7 +3756,7 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
 [data-glamor-4] {
   font-size: 13px;
   line-height: 17px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -3816,7 +3816,7 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
 [data-glamor-13] {
   font-size: 13px;
   line-height: 17px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -4734,7 +4734,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -4911,7 +4911,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#F8FAFD",
+              "backgroundColor": "#F7F9FC",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
@@ -4961,7 +4961,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#F8FAFD",
+                "backgroundColor": "#F7F9FC",
                 "display": "flex",
                 "flexDirection": "column",
                 "flexGrow": 1,
@@ -5114,7 +5114,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#F8FAFD",
+              "backgroundColor": "#F7F9FC",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
@@ -5190,7 +5190,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#F8FAFD",
+                "backgroundColor": "#F7F9FC",
                 "display": "flex",
                 "flexDirection": "column",
                 "flexGrow": 1,
@@ -5354,7 +5354,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#F8FAFD",
+              "backgroundColor": "#F7F9FC",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
@@ -5430,7 +5430,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#F8FAFD",
+                "backgroundColor": "#F7F9FC",
                 "display": "flex",
                 "flexDirection": "column",
                 "flexGrow": 1,
@@ -5614,7 +5614,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -6123,7 +6123,9 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
+                "borderBottomLeftRadius": 3,
+                "borderTopLeftRadius": 3,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -6248,7 +6250,9 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
+                "borderBottomLeftRadius": 3,
+                "borderTopLeftRadius": 3,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -6324,7 +6328,9 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             style={
               Object {
                 "alignItems": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
+                "borderBottomLeftRadius": 3,
+                "borderTopLeftRadius": 3,
                 "display": "flex",
                 "flexDirection": "row",
                 "marginLeft": 24,
@@ -6387,7 +6393,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -6417,7 +6423,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
 [data-glamor-6] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -6429,7 +6435,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
 [data-glamor-7] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -6887,7 +6893,7 @@ exports[`Storyshots Chat/Teams CreateChannel 1`] = `
                     Object {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#33a0ff",
+                      "backgroundColor": "#4C8EFF",
                       "borderRadius": 50,
                       "cursor": "pointer",
                       "display": "inline-block",
@@ -6968,7 +6974,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -6993,7 +6999,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
 [data-glamor-4] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -7399,7 +7405,7 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                 Object {
                   "alignItems": "center",
                   "alignSelf": "center",
-                  "backgroundColor": "#33a0ff",
+                  "backgroundColor": "#4C8EFF",
                   "borderRadius": 50,
                   "display": "inline-block",
                   "flexDirection": "column",
@@ -7479,7 +7485,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -7504,7 +7510,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
 [data-glamor-4] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -7888,7 +7894,7 @@ exports[`Storyshots Chat/Teams EditChannel 1`] = `
                 Object {
                   "alignItems": "center",
                   "alignSelf": "center",
-                  "backgroundColor": "#33a0ff",
+                  "backgroundColor": "#4C8EFF",
                   "borderRadius": 50,
                   "display": "inline-block",
                   "flexDirection": "column",
@@ -7973,7 +7979,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -8009,7 +8015,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
 [data-glamor-7] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -8276,8 +8282,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -8416,8 +8422,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -8979,8 +8985,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -9119,8 +9125,8 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -9290,7 +9296,7 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
                       Object {
                         "alignItems": "center",
                         "alignSelf": "center",
-                        "backgroundColor": "#33a0ff",
+                        "backgroundColor": "#4C8EFF",
                         "borderRadius": 50,
                         "cursor": "pointer",
                         "display": "inline-block",
@@ -9378,7 +9384,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #004D92;
+  color: #2645A3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -9414,7 +9420,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
 [data-glamor-7] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -9452,7 +9458,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
 [data-glamor-10] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -9462,19 +9468,19 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
 
 .glamor-54,
 [data-glamor-54] {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .glamor-54:hover,
 [data-glamor-54]:hover {
-  color: #66b8ff;
+  color: #73A6FF;
 }
 
 .glamor-55,
 [data-glamor-55] {
   font-size: 14px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -9730,8 +9736,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -9916,8 +9922,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -10663,8 +10669,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -10849,8 +10855,8 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                             <div
                               style={
                                 Object {
-                                  "backgroundColor": "#33a0ff",
-                                  "border": "solid 1px #33a0ff",
+                                  "backgroundColor": "#4C8EFF",
+                                  "border": "solid 1px #4C8EFF",
                                   "borderRadius": 2,
                                   "height": 13,
                                   "marginRight": 8,
@@ -11113,7 +11119,7 @@ exports[`Storyshots Chat/Teams ManageChannels 1`] = `
                       Object {
                         "alignItems": "center",
                         "alignSelf": "center",
-                        "backgroundColor": "#33a0ff",
+                        "backgroundColor": "#4C8EFF",
                         "borderRadius": 50,
                         "display": "inline-block",
                         "flexDirection": "column",
@@ -13919,7 +13925,7 @@ exports[`Storyshots Common Button 1`] = `
 [data-glamor-8] {
   font-size: 14px;
   line-height: 18px;
-  color: #3dcc8e;
+  color: #3DCCA6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -13958,7 +13964,7 @@ exports[`Storyshots Common Button 1`] = `
 [data-glamor-14] {
   font-size: 13px;
   line-height: 17px;
-  color: #3dcc8e;
+  color: #3DCCA6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -14023,7 +14029,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": undefined,
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 50,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -14080,7 +14086,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": undefined,
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 50,
                 "display": "inline-block",
                 "flexDirection": "column",
@@ -14398,7 +14404,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": undefined,
-                "backgroundColor": "#3dcc8e",
+                "backgroundColor": "#3DCCA6",
                 "borderRadius": 50,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -14455,7 +14461,7 @@ exports[`Storyshots Common Button 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": undefined,
-                "backgroundColor": "#3dcc8e",
+                "backgroundColor": "#3DCCA6",
                 "borderRadius": 50,
                 "display": "inline-block",
                 "flexDirection": "column",
@@ -14524,7 +14530,7 @@ exports[`Storyshots Common Button 1`] = `
                 "alignItems": "center",
                 "alignSelf": undefined,
                 "backgroundColor": "#ffffff",
-                "borderColor": "#3dcc8e",
+                "borderColor": "#3DCCA6",
                 "borderRadius": 50,
                 "borderStyle": "solid",
                 "borderWidth": 2,
@@ -14584,7 +14590,7 @@ exports[`Storyshots Common Button 1`] = `
                 "alignItems": "center",
                 "alignSelf": undefined,
                 "backgroundColor": "#ffffff",
-                "borderColor": "#3dcc8e",
+                "borderColor": "#3DCCA6",
                 "borderRadius": 50,
                 "borderStyle": "solid",
                 "borderWidth": 2,
@@ -14648,7 +14654,7 @@ exports[`Storyshots Common Button 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 28,
               "cursor": "pointer",
               "display": "inline-block",
@@ -14816,7 +14822,7 @@ exports[`Storyshots Common Button 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#3dcc8e",
+              "backgroundColor": "#3DCCA6",
               "borderRadius": 28,
               "cursor": "pointer",
               "display": "inline-block",
@@ -14873,7 +14879,7 @@ exports[`Storyshots Common Button 1`] = `
               "alignItems": "center",
               "alignSelf": undefined,
               "backgroundColor": "#ffffff",
-              "borderColor": "#3dcc8e",
+              "borderColor": "#3DCCA6",
               "borderRadius": 28,
               "borderStyle": "solid",
               "borderWidth": 2,
@@ -15025,7 +15031,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15147,7 +15153,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15218,7 +15224,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15354,7 +15360,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15427,7 +15433,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15492,7 +15498,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15557,7 +15563,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 28,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15679,7 +15685,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 28,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15750,7 +15756,7 @@ exports[`Storyshots Common ButtonBar 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": undefined,
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -15923,8 +15929,8 @@ exports[`Storyshots Common Checkbox 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
+              "backgroundColor": "#4C8EFF",
+              "border": "solid 1px #4C8EFF",
               "borderRadius": 2,
               "height": 13,
               "marginRight": 8,
@@ -16052,8 +16058,8 @@ exports[`Storyshots Common Checkbox 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": "#33a0ff",
-              "border": "solid 1px #33a0ff",
+              "backgroundColor": "#4C8EFF",
+              "border": "solid 1px #4C8EFF",
               "borderRadius": 2,
               "height": 13,
               "marginRight": 8,
@@ -16133,8 +16139,8 @@ exports[`Storyshots Common Dropdown 1`] = `
 
 .glamor-1:hover,
 [data-glamor-1]:hover {
-  border: solid 1px #66b8ff;
-  color: #66b8ff;
+  border: solid 1px #73A6FF;
+  color: #73A6FF;
 }
 
 .glamor-0,
@@ -24531,7 +24537,7 @@ exports[`Storyshots Common Name with icon 1`] = `
 [data-glamor-2] {
   font-size: 24px;
   line-height: 28px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -24701,7 +24707,7 @@ exports[`Storyshots Common Name with icon 1`] = `
 [data-glamor-28] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -25551,7 +25557,7 @@ exports[`Storyshots Common Name with icon subcomponents 1`] = `
 [data-glamor-3] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -25681,7 +25687,7 @@ exports[`Storyshots Common RadioButton 1`] = `
 
 .glamor-0:hover,
 [data-glamor-0]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 .glamor-1,
@@ -25703,7 +25709,7 @@ exports[`Storyshots Common RadioButton 1`] = `
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 1;
   selected: ;
@@ -25713,7 +25719,7 @@ exports[`Storyshots Common RadioButton 1`] = `
 
 .glamor-2:hover,
 [data-glamor-2]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 .glamor-4,
@@ -25740,7 +25746,7 @@ exports[`Storyshots Common RadioButton 1`] = `
   margin-right: 8px;
   position: relative;
   width: 14px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   border: solid 1px rgba(0, 0, 0, 0.10);
   opacity: 0.4;
   disabled: ;
@@ -25751,7 +25757,7 @@ exports[`Storyshots Common RadioButton 1`] = `
 
 .glamor-6:hover,
 [data-glamor-6]:hover {
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
 }
 
 <div
@@ -25960,7 +25966,7 @@ exports[`Storyshots Common Text 1`] = `
 [data-glamor-4] {
   font-size: 16px;
   line-height: 20px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -25985,7 +25991,7 @@ exports[`Storyshots Common Text 1`] = `
 [data-glamor-8] {
   font-size: 14px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -26022,7 +26028,7 @@ exports[`Storyshots Common Text 1`] = `
 [data-glamor-14] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -26097,7 +26103,7 @@ exports[`Storyshots Common Text 1`] = `
 [data-glamor-26] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -26766,7 +26772,7 @@ exports[`Storyshots Common Text 1`] = `
       <div
         style={
           Object {
-            "backgroundColor": "#002C52",
+            "backgroundColor": "#182D6E",
             "padding": 90,
             "position": "relative",
           }
@@ -26790,7 +26796,7 @@ exports[`Storyshots Common Text 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#002C52",
+                "backgroundColor": "#182D6E",
                 "flex": 1,
               }
             }
@@ -26798,7 +26804,7 @@ exports[`Storyshots Common Text 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "flex": 1,
               }
             }
@@ -26814,7 +26820,7 @@ exports[`Storyshots Common Text 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#3dcc8e",
+                "backgroundColor": "#3DCCA6",
                 "flex": 1,
               }
             }
@@ -26822,7 +26828,7 @@ exports[`Storyshots Common Text 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#004D92",
+                "backgroundColor": "#2645A3",
                 "flex": 1,
               }
             }
@@ -27229,14 +27235,14 @@ exports[`Storyshots Common Text 1`] = `
 exports[`Storyshots Devices Only active 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .glamor-1,
 [data-glamor-1] {
   font-size: 14px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -27377,14 +27383,14 @@ exports[`Storyshots Devices Only active 1`] = `
 exports[`Storyshots Devices Showing revoked 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .glamor-1,
 [data-glamor-1] {
   font-size: 14px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -27584,7 +27590,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
 [data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -27910,7 +27916,7 @@ exports[`Storyshots Edit team description Description changed 1`] = `
                     Object {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#33a0ff",
+                      "backgroundColor": "#4C8EFF",
                       "borderRadius": 50,
                       "cursor": "pointer",
                       "display": "inline-block",
@@ -28021,7 +28027,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 [data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -28347,7 +28353,7 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
                     Object {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#33a0ff",
+                      "backgroundColor": "#4C8EFF",
                       "borderRadius": 50,
                       "display": "inline-block",
                       "flexDirection": "column",
@@ -28512,7 +28518,7 @@ exports[`Storyshots Files Root 1`] = `
           <div
             style={
               Object {
-                "backgroundColor": "#F8FAFD",
+                "backgroundColor": "#F7F9FC",
                 "borderTopColor": "rgba(0, 0, 0, 0.05)",
                 "borderTopWidth": 1,
                 "display": "flex",
@@ -28697,7 +28703,7 @@ exports[`Storyshots Git DeleteRepo 1`] = `
 [data-glamor-4] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -29090,7 +29096,7 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
 [data-glamor-6] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -29333,8 +29339,8 @@ exports[`Storyshots Git DeleteTeamRepo 1`] = `
               <div
                 style={
                   Object {
-                    "backgroundColor": "#33a0ff",
-                    "border": "solid 1px #33a0ff",
+                    "backgroundColor": "#4C8EFF",
+                    "border": "solid 1px #4C8EFF",
                     "borderRadius": 2,
                     "height": 13,
                     "marginRight": 8,
@@ -29535,7 +29541,7 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
 [data-glamor-2] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -29776,7 +29782,7 @@ exports[`Storyshots Git NewPersonalRepo 1`] = `
                   Object {
                     "alignItems": "center",
                     "alignSelf": "center",
-                    "backgroundColor": "#33a0ff",
+                    "backgroundColor": "#4C8EFF",
                     "borderRadius": 50,
                     "display": "inline-block",
                     "flexDirection": "column",
@@ -29874,8 +29880,8 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
 
 .glamor-4:hover,
 [data-glamor-4]:hover {
-  border: solid 1px #66b8ff;
-  color: #66b8ff;
+  border: solid 1px #73A6FF;
+  color: #73A6FF;
 }
 
 .glamor-2,
@@ -29898,7 +29904,7 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
 [data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -30162,8 +30168,8 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
               <div
                 style={
                   Object {
-                    "backgroundColor": "#33a0ff",
-                    "border": "solid 1px #33a0ff",
+                    "backgroundColor": "#4C8EFF",
+                    "border": "solid 1px #4C8EFF",
                     "borderRadius": 2,
                     "height": 13,
                     "marginRight": 8,
@@ -30287,7 +30293,7 @@ exports[`Storyshots Git NewTeamRepo 1`] = `
                   Object {
                     "alignItems": "center",
                     "alignSelf": "center",
-                    "backgroundColor": "#33a0ff",
+                    "backgroundColor": "#4C8EFF",
                     "borderRadius": 50,
                     "display": "inline-block",
                     "flexDirection": "column",
@@ -30731,7 +30737,7 @@ exports[`Storyshots People/Follow Suggestions Overflow 1`] = `
 [data-glamor-15] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -32167,7 +32173,7 @@ exports[`Storyshots People/Follow Suggestions Several 1`] = `
 [data-glamor-15] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -32883,7 +32889,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
   padding-left: 3px;
   padding-right: 3px;
   text-transform: uppercase;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   min-width: 16px;
   text-align: center;
   -webkit-align-self: center;
@@ -32960,7 +32966,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
 [data-glamor-4] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -33026,7 +33032,7 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -33315,7 +33321,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
   padding-left: 3px;
   padding-right: 3px;
   text-transform: uppercase;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   min-width: 16px;
   text-align: center;
   -webkit-align-self: center;
@@ -33392,7 +33398,7 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
 [data-glamor-4] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -33833,7 +33839,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -33895,7 +33901,7 @@ exports[`Storyshots People/Follow notification Someone followed you 1`] = `
       <div
         style={
           Object {
-            "backgroundColor": "#ebf5fc",
+            "backgroundColor": "#EBF2FC",
             "borderBottomColor": "#ffffff",
             "borderBottomWidth": 1,
             "borderStyle": "solid",
@@ -34291,7 +34297,7 @@ exports[`Storyshots People/Todos Chat 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -34317,7 +34323,7 @@ exports[`Storyshots People/Todos Chat 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -34391,7 +34397,7 @@ exports[`Storyshots People/Todos Chat 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -34515,7 +34521,7 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -34589,7 +34595,7 @@ exports[`Storyshots People/Todos Fill out bio 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -34692,7 +34698,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -34718,7 +34724,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -34792,7 +34798,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -34902,7 +34908,7 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -34928,7 +34934,7 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -35002,7 +35008,7 @@ exports[`Storyshots People/Todos Install on phone 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -35112,7 +35118,7 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -35138,7 +35144,7 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -35212,7 +35218,7 @@ exports[`Storyshots People/Todos Make a folder 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -35322,7 +35328,7 @@ exports[`Storyshots People/Todos Make a git 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -35348,7 +35354,7 @@ exports[`Storyshots People/Todos Make a git 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -35422,7 +35428,7 @@ exports[`Storyshots People/Todos Make a git 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -35546,7 +35552,7 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -35620,7 +35626,7 @@ exports[`Storyshots People/Todos Make a paper key 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -35723,7 +35729,7 @@ exports[`Storyshots People/Todos Make a team 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -35749,7 +35755,7 @@ exports[`Storyshots People/Todos Make a team 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -35823,7 +35829,7 @@ exports[`Storyshots People/Todos Make a team 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -35933,7 +35939,7 @@ exports[`Storyshots People/Todos Prove something 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -35959,7 +35965,7 @@ exports[`Storyshots People/Todos Prove something 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -36033,7 +36039,7 @@ exports[`Storyshots People/Todos Prove something 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -36143,7 +36149,7 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
 [data-glamor-2] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -36169,7 +36175,7 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
     <div
       style={
         Object {
-          "backgroundColor": "#ebf5fc",
+          "backgroundColor": "#EBF2FC",
           "borderBottomColor": "#ffffff",
           "borderBottomWidth": 1,
           "borderStyle": "solid",
@@ -36243,7 +36249,7 @@ exports[`Storyshots People/Todos Set publicity 1`] = `
               Object {
                 "alignItems": "center",
                 "alignSelf": "center",
-                "backgroundColor": "#33a0ff",
+                "backgroundColor": "#4C8EFF",
                 "borderRadius": 28,
                 "cursor": "pointer",
                 "display": "inline-block",
@@ -36370,7 +36376,7 @@ exports[`Storyshots Search Filter 1`] = `
           style={
             Object {
               "alignItems": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 16,
               "cursor": "pointer",
               "display": "flex",
@@ -38904,7 +38910,7 @@ exports[`Storyshots Search Result 1`] = `
 [data-glamor-14] {
   font-size: 13px;
   line-height: 17px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -38990,7 +38996,7 @@ exports[`Storyshots Search Result 1`] = `
 [data-glamor-53] {
   font-size: 11px;
   line-height: 15px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -39199,7 +39205,7 @@ exports[`Storyshots Search Result 1`] = `
         style={
           Object {
             "alignItems": "stretch",
-            "backgroundColor": "#ebf5fc",
+            "backgroundColor": "#EBF2FC",
             "borderRadius": 0,
             "cursor": "pointer",
             "display": "flex",
@@ -41942,7 +41948,7 @@ exports[`Storyshots Search User Input 1`] = `
 [data-glamor-8] {
   font-size: 13px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -41952,7 +41958,7 @@ exports[`Storyshots Search User Input 1`] = `
 
 .glamor-10,
 [data-glamor-10] {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .glamor-10:hover,
@@ -44234,7 +44240,7 @@ exports[`Storyshots Search User Input editable 1`] = `
 [data-glamor-10] {
   font-size: 13px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -44244,7 +44250,7 @@ exports[`Storyshots Search User Input editable 1`] = `
 
 .glamor-18,
 [data-glamor-18] {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .glamor-18:hover,
@@ -45086,7 +45092,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
 
 .glamor-6,
 [data-glamor-6] {
-  color: #3dcc8e;
+  color: #3DCCA6;
 }
 
 .glamor-7,
@@ -45629,7 +45635,7 @@ exports[`Storyshots Team Roles ConfirmAdmin 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -45753,7 +45759,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
 
 .glamor-6,
 [data-glamor-6] {
-  color: #3dcc8e;
+  color: #3DCCA6;
 }
 
 .glamor-7,
@@ -46264,7 +46270,7 @@ exports[`Storyshots Team Roles ConfirmOwner 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -46388,7 +46394,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
 
 .glamor-6,
 [data-glamor-6] {
-  color: #3dcc8e;
+  color: #3DCCA6;
 }
 
 .glamor-7,
@@ -46975,7 +46981,7 @@ exports[`Storyshots Team Roles ConfirmReader 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -47099,7 +47105,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
 
 .glamor-6,
 [data-glamor-6] {
-  color: #3dcc8e;
+  color: #3DCCA6;
 }
 
 .glamor-7,
@@ -47642,7 +47648,7 @@ exports[`Storyshots Team Roles ConfirmWriter 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -48058,7 +48064,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#33a0ff",
+            "backgroundColor": "#4C8EFF",
             "borderRadius": 0,
             "cursor": "pointer",
             "display": "flex",
@@ -48315,7 +48321,7 @@ exports[`Storyshots Team Roles Picker 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
@@ -48476,14 +48482,14 @@ exports[`Storyshots Teams BetaNote 1`] = `
 exports[`Storyshots Teams Header 1`] = `
 .glamor-0,
 [data-glamor-0] {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .glamor-1,
 [data-glamor-1] {
   font-size: 14px;
   line-height: 18px;
-  color: #33a0ff;
+  color: #4C8EFF;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -48695,7 +48701,7 @@ exports[`Storyshots Teams TeamList 1`] = `
   padding-left: 3px;
   padding-right: 3px;
   text-transform: uppercase;
-  background-color: #3dcc8e;
+  background-color: #3DCCA6;
   margin-left: 4px;
   margin-top: 2px;
   -webkit-align-self: center;
