@@ -695,12 +695,20 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 
 func (u *userPlusDevice) reset() {
 	t := u.tc.T
+	t.Logf("Resetting %s (%s)", u.username, u.uid)
 
-	// Remake key channels first, during reset we are only interested
-	// in notifications that come as the effect of us resetting, not
-	// anything from beforehand.
-	close(u.notifications.keyChangeCh)
-	u.notifications.keyChangeCh = make(chan keybase1.UID, 10)
+	// Drain key notification channel first, during reset we are only
+	// interested in notifications that come as the effect of us
+	// resetting, not anything from beforehand.
+	t.Logf("Draining %d key_changes", len(u.notifications.keyChangeCh))
+draining:
+	for {
+		select {
+		case <-u.notifications.keyChangeCh:
+		default:
+			break draining
+		}
+	}
 
 	uvBefore := u.userVersion()
 	err := u.device.userClient.ResetUser(context.TODO(), 0)
@@ -882,7 +890,10 @@ func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.
 }
 
 func (n *teamNotifyHandler) KeyfamilyChanged(ctx context.Context, uid keybase1.UID) error {
-	n.keyChangeCh <- uid
+	select {
+	case n.keyChangeCh <- uid:
+	default: // channel is full, discard keychange.
+	}
 	return nil
 }
 
