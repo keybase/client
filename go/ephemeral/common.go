@@ -3,12 +3,14 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"sort"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
+const KeyLifetimeSecs = keybase1.Time(time.Hour * 24 * 7) // one week
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(libkb.NaclDHKeysize)
@@ -43,4 +45,46 @@ func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1
 		return nil
 	})
 	return ret, err
+}
+
+// Map generations to their creation time
+type keyExpiryMap map[keybase1.EkGeneration]keybase1.Time
+
+// Keys expire after `KeyLifetimeSecs` unless there has been a gap in their
+// generation. If there has been a gap, a key can be re-used for up to
+// `KeyLifetimeSecs` until it is considered stale. To determine expiration, we
+// look at all of the current keys and account for any gaps since we don't want
+// to expire a key if it is still used to encrypt a different key. This only
+// applies to deviceEKs or userEKs since they can have a dependency above them.
+// A teamEK expires after `KeyLifetimeSecs` without exception, so it doesn't
+// call this.
+func getExpiredGenerations(keyMap keyExpiryMap, nowCTime keybase1.Time) (expired []keybase1.EkGeneration) {
+
+	// Sort the generations we have so we can walk through them in order.
+	var keys []keybase1.EkGeneration
+	for k := range keyMap {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	var nextCTime keybase1.Time
+	var expiryOffset keybase1.Time
+	for i, generation := range keys {
+		currentCTime := keyMap[generation]
+		if i < len(keys)-1 {
+			nextCTime = keyMap[keys[i+1]]
+			expiryOffset = nextCTime - currentCTime
+			if expiryOffset > KeyLifetimeSecs { // Offset can be max KeyLifetimeSecs
+				expiryOffset = KeyLifetimeSecs
+			}
+		} else {
+			expiryOffset = 0
+		}
+		// Keys can live for as long as KeyLifetimeSecs + expiryOffset
+		if (nowCTime - currentCTime) >= (KeyLifetimeSecs + expiryOffset) {
+			expired = append(expired, generation)
+		}
+	}
+
+	return expired
 }

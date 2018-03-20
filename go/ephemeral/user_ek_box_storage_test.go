@@ -83,4 +83,9 @@ func TestUserEKBoxStorage(t *testing.T) {
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)
 	require.EqualValues(t, 0, maxGeneration)
+
+	expired, err := s.DeleteExpired(context.Background())
+	expected := []keybase1.EkGeneration(nil)
+	require.NoError(t, err)
+	require.Equal(t, expected, expired)
 }
