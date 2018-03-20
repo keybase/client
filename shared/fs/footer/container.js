@@ -1,9 +1,9 @@
 // @flow
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
 import Footer, {type FooterProps} from './footer'
 import * as FsGen from '../../actions/fs-gen'
+import {formatDurationFromNowTo} from '../../util/timestamp'
 
 const mapStateToProps = (state: TypedState) => ({
   transfers: state.fs.transfers,
@@ -21,7 +21,7 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
       .map(([key, transferState]) => ({
         filename: Types.getLocalPathName(transferState.localPath),
         completePortion: transferState.completePortion,
-        progressText: Constants.formatDurationFromNowTo(transferState.endEstimate),
+        progressText: formatDurationFromNowTo(transferState.endEstimate),
         isDone: transferState.isDone,
         open: transferState.isDone ? () => opener(transferState.localPath) : undefined,
         dismiss: () => dismisser(key),
