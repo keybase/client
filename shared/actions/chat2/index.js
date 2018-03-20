@@ -633,6 +633,11 @@ const loadMoreMessages = (
 
   if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
     paginationKey = meta.paginationKey
+    // no more to load
+    if (!paginationKey) {
+      logger.info('Load thread bail: scrolling back and no pagination key')
+      return
+    }
     numberOfMessagesToLoad = numMessagesOnScrollback
   } else {
     numberOfMessagesToLoad = numMessagesOnInitialLoad
