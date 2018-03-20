@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname, onSelect, type}: OwnP
       navigateAppend([
         {
           selected: 'retentionDropdown',
-          props: {items, position: 'top left', targetRect: target && target.getBoundingClientRect()},
+          props: {items, position: 'top center', targetRect: target && target.getBoundingClientRect()},
         },
       ])
     ),

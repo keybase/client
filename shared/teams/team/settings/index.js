@@ -236,6 +236,10 @@ export class Settings extends React.Component<Props, State> {
   }
 
   _onSelectRetentionPolicy = (p: Types._RetentionPolicy, changed: boolean) => {
+    // TODO (DESKTOP-6062)
+    // this component should know whether it needs to show the warning dialog after hitting the save button.
+    // it can still call onSaveSettings to save all the rest, and let the dialog deal with calling the
+    // RPC to change the setting. For now, nothing does the set call.
     this.setState({newRetentionPolicy: p, retentionPolicyChanged: changed}, this.setPublicitySettingsChanged)
   }
 

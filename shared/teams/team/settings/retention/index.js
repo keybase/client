@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, isMobile} from '../../../../styles'
-import {ClickableBox, Text} from '../../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../../styles'
+import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
 
@@ -27,8 +27,6 @@ class RetentionPicker extends React.Component<Props, State> {
     items: [],
     showMenu: false,
   }
-
-  _labelBox: ?ClickableBox
 
   _onSelect = (val: number | 'retain' | 'inherit') => {
     let selected: _RetentionPolicy
@@ -87,23 +85,73 @@ class RetentionPicker extends React.Component<Props, State> {
     }
   }
 
-  _setRef = (box: ?ClickableBox) => {
-    this._labelBox = box
-  }
-
   _onShowDropdown = (evt: SyntheticEvent<Element>) => {
     const target = isMobile ? null : evt.currentTarget
     this.props.onShowDropdown(this.state.items, target)
   }
 
   render() {
-    return (
-      <ClickableBox ref={this._setRef} onClick={this._onShowDropdown} style={{...globalStyles.flexBoxRow}}>
-        {this.props.policy && <Text type="BodySemibold">{this._label()}</Text>}
-      </ClickableBox>
+    return this.props.policy ? (
+      <React.Fragment>
+        <Box style={headingStyle}>
+          <Text type="BodySmallSemibold">Message deletion</Text>
+          <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
+        </Box>
+        <ClickableBox
+          onClick={this._onShowDropdown}
+          style={dropdownStyle}
+          underlayColor={globalColors.white_40}
+        >
+          <Box style={labelStyle}>
+            <Text type="BodySemibold">{this._label()}</Text>
+          </Box>
+          <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 7}} />
+        </ClickableBox>
+        {this.props.isTeamWide && (
+          <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
+            Individual channels can override this.
+          </Text>
+        )}
+      </React.Fragment>
+    ) : (
+      <ProgressIndicator />
     )
   }
 }
+
+const headingStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginTop: globalMargins.small,
+    marginBottom: globalMargins.tiny,
+  },
+})
+
+const dropdownStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    borderColor: globalColors.lightGrey2,
+    borderRadius: 100,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    color: globalColors.lightGrey2,
+    minWidth: 220,
+    paddingRight: globalMargins.small,
+  },
+  isElectron: {
+    width: 220,
+  },
+})
+
+const labelStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxCenter,
+    minHeight: isMobile ? 40 : 32,
+    width: '100%',
+  },
+})
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
