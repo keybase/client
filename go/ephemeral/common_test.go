@@ -52,9 +52,14 @@ func TestDeleteExpiredKeys(t *testing.T) {
 	expected = []keybase1.EkGeneration(nil)
 	require.Equal(t, expected, expired)
 
-	// Test with a single key that is expired
+	// Test with a single key that is stale but not expired
 	keyMap = keyExpiryMap{
 		0: now - KeyLifetimeSecs,
+	}
+
+	// Test with a single key that is expired
+	keyMap = keyExpiryMap{
+		0: now - KeyLifetimeSecs*2,
 	}
 	expired = getExpiredGenerations(keyMap, now)
 	expected = []keybase1.EkGeneration{0}

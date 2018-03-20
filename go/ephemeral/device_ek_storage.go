@@ -167,6 +167,7 @@ func (s *DeviceEKStorage) getCache(ctx context.Context) (deviceEKs DeviceEKMap, 
 				return deviceEKs, err
 			}
 			if generation < 0 {
+				s.G().Log.CDebugf(ctx, "getCache: invalid generation: %s -> %s", key, generation)
 				continue
 			}
 			deviceEK, err := s.get(ctx, generation)
@@ -213,14 +214,20 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 	return maxGeneration, nil
 }
 
-func (s *DeviceEKStorage) DeleteExpired(ctx context.Context) (expired []keybase1.EkGeneration, err error) {
+func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot *libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
 	defer s.G().CTrace(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
+	if merkleRoot == nil {
+		merkleRoot, err = s.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+		if err != nil {
+			return nil, err
+		}
+	}
 	cache, err := s.getCache(ctx)
 	if err != nil {
-		return expired, err
+		return nil, err
 	}
 
 	keyMap := make(keyExpiryMap)
@@ -228,11 +235,7 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context) (expired []keybase1
 		keyMap[generation] = deviceEK.Metadata.Ctime
 	}
 
-	latestMerkleRoot, err := s.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
-	if err != nil {
-		return expired, err
-	}
-	expired = getExpiredGenerations(keyMap, keybase1.Time(latestMerkleRoot.Ctime()))
+	expired = getExpiredGenerations(keyMap, keybase1.Time(merkleRoot.Ctime()))
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
@@ -256,6 +259,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	for _, key := range keys {
 		eldestSeqno, err := s.keyToEldestSeqno(key)
 		if err != nil || eldestSeqno < 0 {
+			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {

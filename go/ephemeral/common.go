@@ -51,13 +51,13 @@ func getCurrentUserUV(ctx context.Context, g *libkb.GlobalContext) (ret keybase1
 type keyExpiryMap map[keybase1.EkGeneration]keybase1.Time
 
 // Keys expire after `KeyLifetimeSecs` unless there has been a gap in their
-// generation. If there has been a gap, a key can be re-used for up to
-// `KeyLifetimeSecs` until it is considered stale. To determine expiration, we
-// look at all of the current keys and account for any gaps since we don't want
-// to expire a key if it is still used to encrypt a different key. This only
-// applies to deviceEKs or userEKs since they can have a dependency above them.
-// A teamEK expires after `KeyLifetimeSecs` without exception, so it doesn't
-// call this.
+// generation. If there has been a gap of more than a day (the normal
+// generation time), a key can be re-used for up to `KeyLifetimeSecs` until it
+// is considered expired. to determine expiration, we look at all of the
+// current keys and account for any gaps since we don't want to expire a key if
+// it is still used to encrypt a different key. This only applies to deviceEKs
+// or userEKs since they can have a dependency above them.  A teamEK expires
+// after `KeyLifetimeSecs` without exception, so it doesn't call this.
 func getExpiredGenerations(keyMap keyExpiryMap, nowCTime keybase1.Time) (expired []keybase1.EkGeneration) {
 
 	// Sort the generations we have so we can walk through them in order.
@@ -73,12 +73,12 @@ func getExpiredGenerations(keyMap keyExpiryMap, nowCTime keybase1.Time) (expired
 		currentCTime := keyMap[generation]
 		if i < len(keys)-1 {
 			nextCTime = keyMap[keys[i+1]]
-			expiryOffset = nextCTime - currentCTime
-			if expiryOffset > KeyLifetimeSecs { // Offset can be max KeyLifetimeSecs
-				expiryOffset = KeyLifetimeSecs
-			}
 		} else {
-			expiryOffset = 0
+			nextCTime = nowCTime
+		}
+		expiryOffset = nextCTime - currentCTime
+		if expiryOffset > KeyLifetimeSecs { // Offset can be max KeyLifetimeSecs
+			expiryOffset = KeyLifetimeSecs
 		}
 		// Keys can live for as long as KeyLifetimeSecs + expiryOffset
 		if (nowCTime - currentCTime) >= (KeyLifetimeSecs + expiryOffset) {

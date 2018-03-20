@@ -213,16 +213,18 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKBoxed keybase1.UserE
 func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.delete(ctx, generation)
+	return s.deleteMany(ctx, []keybase1.EkGeneration{generation})
 }
 
-func (s *UserEKBoxStorage) delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
+func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase1.EkGeneration) (err error) {
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#delete", func() error { return err })()
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return err
 	}
-	delete(cache, generation)
+	for _, generation := range generations {
+		delete(cache, generation)
+	}
 	key, err := s.dbKey(ctx)
 	if err != nil {
 		return err
@@ -274,14 +276,21 @@ func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration key
 	return maxGeneration, nil
 }
 
-func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context) (expired []keybase1.EkGeneration, err error) {
+func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot *libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
 	defer s.G().CTrace(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 
+	if merkleRoot == nil {
+		merkleRoot, err = s.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	cache, err := s.getCache(ctx)
 	if err != nil {
-		return expired, err
+		return nil, err
 	}
 
 	keyMap := make(keyExpiryMap)
@@ -289,15 +298,7 @@ func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context) (expired []keybase
 		keyMap[generation] = userEKBoxed.Metadata.Ctime
 	}
 
-	latestMerkleRoot, err := s.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
-	if err != nil {
-		return expired, err
-	}
-	expired = getExpiredGenerations(keyMap, keybase1.Time(latestMerkleRoot.Ctime()))
-	epick := libkb.FirstErrorPicker{}
-	for _, generation := range expired {
-		epick.Push(s.delete(ctx, generation))
-	}
-
-	return expired, epick.Error()
+	expired = getExpiredGenerations(keyMap, keybase1.Time(merkleRoot.Ctime()))
+	err = s.deleteMany(ctx, expired)
+	return expired, err
 }

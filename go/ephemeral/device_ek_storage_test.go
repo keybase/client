@@ -116,7 +116,9 @@ func TestDeviceEKStorage(t *testing.T) {
 	err = erasableStorage.Put(context.Background(), badEldestSeqnoKey, keybase1.DeviceEk{})
 	require.NoError(t, err)
 
-	expired, err := s.DeleteExpired(context.Background())
+	merkleRoot, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	expired, err := s.DeleteExpired(context.Background(), merkleRoot)
 	expected := []keybase1.EkGeneration{0, 1}
 	require.NoError(t, err)
 	require.Equal(t, expected, expired)
