@@ -43,9 +43,8 @@ type BackgroundConvLoader struct {
 	resumeCh      chan struct{}
 	identNotifier types.IdentifyNotifier
 
-	clock          clockwork.Clock
-	foregroundWait time.Duration
-	initialWait    time.Duration
+	clock      clockwork.Clock
+	resumeWait time.Duration
 
 	activeLoadCtx      context.Context
 	activeLoadCancelFn context.CancelFunc
@@ -54,19 +53,20 @@ type BackgroundConvLoader struct {
 	// for testing, make this and can check conv load successes
 	loads                 chan chat1.ConversationID
 	testingNameInfoSource types.NameInfoSource
+	appStateCh            chan struct{}
 }
 
 var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 
 func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stopCh:         make(chan chan struct{}),
-		suspendCh:      make(chan chan struct{}, 10),
-		identNotifier:  NewCachingIdentifyNotifier(g),
-		clock:          clockwork.NewRealClock(),
-		foregroundWait: time.Second,
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
+		stopCh:        make(chan chan struct{}),
+		suspendCh:     make(chan chan struct{}, 10),
+		identNotifier: NewCachingIdentifyNotifier(g),
+		clock:         clockwork.NewRealClock(),
+		resumeWait:    time.Second,
 	}
 	b.identNotifier.ResetOnGUIConnect()
 	b.newQueue()
@@ -84,10 +84,9 @@ func (b *BackgroundConvLoader) monitorAppState() {
 		switch state {
 		case keybase1.AppState_FOREGROUND:
 			b.Debug(ctx, "monitorAppState: foregrounded")
-			// Only resume if we had suspended earlier
+			// Only resume if we had suspended earlier (frontend can spam us with these)
 			if suspended {
-				b.Debug(ctx, "monitorAppState: resuming load thread after: %v", b.foregroundWait)
-				b.clock.Sleep(b.foregroundWait)
+				b.Debug(ctx, "monitorAppState: resuming load thread")
 				b.Resume(ctx)
 				suspended = false
 			}
@@ -95,6 +94,9 @@ func (b *BackgroundConvLoader) monitorAppState() {
 			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
 			b.Suspend(ctx)
 			suspended = true
+		}
+		if b.appStateCh != nil {
+			b.appStateCh <- struct{}{}
 		}
 	}
 }
@@ -110,7 +112,7 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.uid = uid
 	// On mobile fresh start, apply the foreground wait
 	if b.G().GetAppType() == libkb.MobileAppType {
-		b.clock.Sleep(b.foregroundWait)
+		b.clock.Sleep(b.resumeWait)
 	}
 	go b.loop()
 }
@@ -185,6 +187,7 @@ func (b *BackgroundConvLoader) loop() {
 	waitForResume := func(ch chan struct{}) {
 		b.Debug(bgctx, "suspending loop")
 		<-ch
+		b.clock.Sleep(b.resumeWait)
 		b.Debug(bgctx, "resuming loop")
 	}
 	for {
@@ -202,6 +205,7 @@ func (b *BackgroundConvLoader) loop() {
 				waitForResume(ch)
 			default:
 			}
+			b.Debug(bgctx, "pulled queued task: %s", task.convID)
 			// always wait a short amount of time to avoid
 			// flood of conversation loads
 			duration := bgLoaderInitDelay
@@ -214,6 +218,7 @@ func (b *BackgroundConvLoader) loop() {
 			b.clock.Sleep(duration)
 			b.load(bgctx, task, uid)
 		case ch := <-b.suspendCh:
+			b.Debug(bgctx, "received suspend at top level")
 			waitForResume(ch)
 		case ch := <-b.stopCh:
 			b.Debug(bgctx, "shutting down conv loader loop for %s", uid)
@@ -244,8 +249,9 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) {
 	b.Debug(ictx, "loading conversation %s", task.convID)
 	b.Lock()
-	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(Context(ictx, b.G(),
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, b.identNotifier))
+	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(
+		Context(CtxSetBackgroundOperation(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+			b.identNotifier))
 	ctx := b.activeLoadCtx
 	b.Unlock()
 	if b.testingNameInfoSource != nil {

@@ -534,7 +534,8 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		}
 
 		// Queue all these convs up to be loaded by the background loader (cap it at first 50)
-		if index < 50 {
+		// Also make sure we aren't here because of a background loader operation
+		if index < 50 && !CtxIsBackgroundOperation(ctx) {
 			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}

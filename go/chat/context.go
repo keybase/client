@@ -20,12 +20,14 @@ type identifyNotifierKey int
 type chatTrace int
 type identifyModeKey int
 type upakfinderKey int
+type bgOperationKey int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
 var chatTraceKey chatTrace
 var identModeKey identifyModeKey
 var upKey upakfinderKey
+var bgOpKey bgOperationKey
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -79,6 +81,14 @@ func CtxUPAKFinder(ctx context.Context, g *globals.Context) types.UPAKFinder {
 	return NewCachingUPAKFinder(g)
 }
 
+func CtxIsBackgroundOperation(ctx context.Context) bool {
+	val := ctx.Value(bgOpKey)
+	if _, ok := val.(bool); ok {
+		return true
+	}
+	return false
+}
+
 func CtxModifyIdentifyNotifier(ctx context.Context, notifier types.IdentifyNotifier) context.Context {
 	return context.WithValue(ctx, inKey, notifier)
 }
@@ -110,6 +120,10 @@ func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
 
 	return ctx
+}
+
+func CtxSetBackgroundOperation(ctx context.Context) context.Context {
+	return context.WithValue(ctx, bgOpKey, true)
 }
 
 func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyBehavior,
