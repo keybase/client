@@ -428,15 +428,16 @@
 			"revisionTime": "2017-01-13T17:06:45Z"
 		},
 		{
-			"checksumSHA1": "Duc20TmnXwW5yPF92LMOMKWuB0c=",
+			"checksumSHA1": "UT+c8olRWpXtZIw96rRFXYfBUzY=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "a64888f73967e479064b4a80cc65ae4c3829ab07",
-			"revisionTime": "2017-05-01T17:44:31Z"
+			"revision": "282df2166aa71f1283de12d39a10addbb30bafb4",
+			"revisionTime": "2018-03-19T16:38:18Z"
 		},
 		{
+			"checksumSHA1": "LpuohLoTQEeJxurlZ5ruBJFWh8E=",
 			"path": "github.com/keybase/saltpack/encoding/basex",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "282df2166aa71f1283de12d39a10addbb30bafb4",
+			"revisionTime": "2018-03-19T16:38:18Z"
 		},
 		{
 			"path": "github.com/mattn/go-isatty",
