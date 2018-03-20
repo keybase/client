@@ -381,6 +381,16 @@ func (k *SimpleFS) updateWriteProgress(
 	}
 }
 
+func isFiltered(filter keybase1.ListFilter, name string) bool {
+	switch filter {
+	case keybase1.ListFilter_NO_FILTER:
+		return false
+	case keybase1.ListFilter_FILTER_ALL_HIDDEN:
+		return strings.HasPrefix(name, ".")
+	}
+	return false
+}
+
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
 // Cannot be a single file to get flags/status,
@@ -389,7 +399,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST,
 		keybase1.NewOpDescriptionWithList(
 			keybase1.ListArgs{
-				OpID: arg.OpID, Path: arg.Path,
+				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
 			}),
 		func(ctx context.Context) (err error) {
 			var res []keybase1.Dirent
@@ -423,17 +433,22 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 				// With listing, we don't know the totals ahead of time,
 				// so just start with a 0 total.
 				k.setProgressTotals(arg.OpID, 0, 0)
-				fi, err := fs.Stat(finalElem)
+				finalElemFI, err := fs.Stat(finalElem)
 				if err != nil {
 					return err
 				}
 				var fis []os.FileInfo
-				if fi.IsDir() {
+				if finalElemFI.IsDir() {
 					fis, err = fs.ReadDir(finalElem)
 				} else {
-					fis = append(fis, fi)
+					fis = append(fis, finalElemFI)
 				}
 				for _, fi := range fis {
+					if finalElemFI.IsDir() &&
+						isFiltered(arg.Filter, fi.Name()) {
+						continue
+					}
+
 					var d keybase1.Dirent
 					err := setStat(&d, fi)
 					if err != nil {
@@ -454,7 +469,7 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE,
 		keybase1.NewOpDescriptionWithListRecursive(
 			keybase1.ListArgs{
-				OpID: arg.OpID, Path: arg.Path,
+				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
 			}),
 		func(ctx context.Context) (err error) {
 			// A stack of paths to process - ordering does not matter.
@@ -503,6 +518,13 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 					return err
 				}
 				for _, fi := range fis {
+					// We can only get here if we're listing a
+					// directory, not a single file, so we should
+					// always filter.
+					if isFiltered(arg.Filter, fi.Name()) {
+						continue
+					}
+
 					var de keybase1.Dirent
 					err := setStat(&de, fi)
 					if err != nil {

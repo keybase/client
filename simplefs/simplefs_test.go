@@ -167,12 +167,14 @@ func TestList(t *testing.T) {
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `.testfile`), []byte(`foo`))
 	opid, err = sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
 	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: path1,
+		OpID:   opid,
+		Path:   path1,
+		Filter: keybase1.ListFilter_FILTER_ALL_HIDDEN,
 	})
 	require.NoError(t, err)
 
@@ -219,6 +221,40 @@ func TestList(t *testing.T) {
 	// Assume we've exhausted the list now, so expect error
 	_, err = sfs.SimpleFSReadList(ctx, opid)
 	require.Error(t, err)
+
+	// Check for hidden files too.
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID: opid,
+		Path: path1,
+	})
+	require.NoError(t, err)
+
+	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	assert.Len(
+		t, listResult.Entries, 3, "Expected 3 directory entries in listing")
+
+	// A single, requested hidden file shows up even if the filter is on.
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID:   opid,
+		Path:   pathAppend(path1, `.testfile`),
+		Filter: keybase1.ListFilter_FILTER_ALL_HIDDEN,
+	})
+	require.NoError(t, err)
+
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err = sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	assert.Len(
+		t, listResult.Entries, 1, "Expected 1 directory entries in listing")
 }
 
 func TestCopyToLocal(t *testing.T) {
