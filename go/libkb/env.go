@@ -161,6 +161,10 @@ type TestParameters struct {
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
+
+	// whether LogoutIfRevoked check should be skipped to avoid races
+	// during resets.
+	SkipLogoutIfRevokedCheck bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
