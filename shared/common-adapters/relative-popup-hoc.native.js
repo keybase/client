@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {connect, type Dispatch} from '../util/container'
-import type {RelativePopupHocType, RelativePopupProps, ModalPositionRelativeProps} from './relative-popup-hoc'
+import type {RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
 
 const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
   const C: React.ComponentType<RelativePopupProps<*>> = connect(
@@ -22,13 +22,5 @@ const RelativePopupHoc: RelativePopupHocType<*> = PopupComponent => {
 
   return C
 }
-
-function ModalPositionRelative<PP>(
-  WrappedComponent: React.ComponentType<PP>
-): React.ComponentType<ModalPositionRelativeProps<PP>> {
-  throw new Error(`Can't use relative popup on mobile!`)
-}
-
-export {ModalPositionRelative}
 
 export default RelativePopupHoc

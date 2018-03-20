@@ -113,14 +113,17 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   let retentionPolicy: Types.RetentionPolicy = Constants.makeRetentionPolicy()
   try {
     retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
+    if (retentionPolicy.type === 'inherit') {
+      throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
+    }
   } catch (err) {
     logger.error(err.message)
     throw err
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-    yield Saga.put(
-      replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[teamname, retentionPolicy]]))
-    )
+    yield Saga.sequentially([
+      Saga.put(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[teamname, retentionPolicy]]))),
+      Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+    ])
   }
 }
 

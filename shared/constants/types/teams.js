@@ -30,7 +30,7 @@ export type _TeamSettings = RPCTypes.TeamSettings
 export type TeamSettings = I.RecordOf<_TeamSettings>
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
-// `days` will be 0 unless `type` is expire
+// `days` should be left as 0 unless `type` is expire
 export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}
 export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
 

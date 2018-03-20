@@ -183,8 +183,7 @@ const serviceRetentionPolicyToRetentionPolicy = (
         })
         break
       case RPCChatTypes.commonRetentionPolicyType.inherit:
-        // this is an invalid response for a team policy
-        throw new Error(`RPC returned retention polict of type 'inherit' for team policy`)
+        retentionPolicy = makeRetentionPolicy({type: 'inherit'})
     }
   }
   return retentionPolicy

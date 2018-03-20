@@ -50,14 +50,15 @@ class RetentionPicker extends React.Component<Props, State> {
     items.push({title: 'Keep forever', onClick: () => this._onSelect('retain')})
     if (!this.props.isTeamWide && this.props.teamPolicy) {
       // Add inherit option
-      const teamTitle = policyToLabel(this.props.teamPolicy)
-      const inheritTitle = `Use team default (${teamTitle})`
-      items.unshift({title: inheritTitle, onClick: () => this._onSelect('inherit')})
+      items.unshift({
+        title: policyToInheritLabel(this.props.teamPolicy),
+        onClick: () => this._onSelect('inherit'),
+      })
     }
     this.setState({items})
   }
 
-  _setSelected = (policy?: RetentionPolicy) => {
+  _setInitialSelected = (policy?: RetentionPolicy) => {
     if (policy) {
       this.setState({selected: policy})
     } else if (this.props.policy) {
@@ -71,17 +72,13 @@ class RetentionPicker extends React.Component<Props, State> {
 
   componentDidMount() {
     this._makeItems()
-    this._setSelected()
+    this._setInitialSelected()
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (
-      nextProps.policy !== this.props.policy ||
-      nextProps.teamPolicy !== this.props.teamPolicy ||
-      nextProps.isTeamWide !== this.props.isTeamWide
-    ) {
+    if (nextProps.policy !== this.props.policy || nextProps.teamPolicy !== this.props.teamPolicy) {
       this._makeItems()
-      this._setSelected(nextProps.policy)
+      this._setInitialSelected(nextProps.policy)
     }
   }
 
@@ -114,7 +111,7 @@ class RetentionPicker extends React.Component<Props, State> {
         )}
       </Box>
     ) : (
-      <ProgressIndicator />
+      <ProgressIndicator style={progressIndicatorStyle} />
     )
   }
 }
@@ -152,6 +149,14 @@ const labelStyle = platformStyles({
   },
 })
 
+const progressIndicatorStyle = platformStyles({
+  common: {
+    width: 30,
+    height: 30,
+    marginTop: globalMargins.small,
+  },
+})
+
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
   switch (p.type) {
@@ -163,10 +168,13 @@ const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
       if (!parent) {
         throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
       }
-      const label = policyToLabel(parent)
-      return `Use team default (${label})`
+      return policyToInheritLabel(parent)
   }
   return ''
+}
+const policyToInheritLabel = (p: _RetentionPolicy) => {
+  const label = policyToLabel(p)
+  return `Use team default (${label})`
 }
 const daysToLabel = (days: number) => {
   let label = `${days} day`
