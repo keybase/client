@@ -230,7 +230,7 @@ func GetActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext) (met
 		// Check whether the key is expired. This isn't considered an error,
 		// since the server doesn't do this check for us. We log these cases
 		// and skip them.
-		ageSecs := currentMerkleRoot.Ctime() - signedMerkleRoot.Ctime
+		ageSecs := keybase1.Time(currentMerkleRoot.Ctime() - signedMerkleRoot.Ctime)
 		if ageSecs > KeyLifetimeSecs {
 			g.Log.CDebugf(ctx, "skipping stale deviceEK %s for device KID %s", verifiedMetadata.Kid, matchingDevice.KID)
 			continue

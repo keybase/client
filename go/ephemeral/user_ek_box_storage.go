@@ -211,14 +211,20 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKBoxed keybase1.UserE
 }
 
 func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Delete", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
+	return s.deleteMany(ctx, []keybase1.EkGeneration{generation})
+}
+
+func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase1.EkGeneration) (err error) {
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#delete", func() error { return err })()
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return err
 	}
-	delete(cache, generation)
+	for _, generation := range generations {
+		delete(cache, generation)
+	}
 	key, err := s.dbKey(ctx)
 	if err != nil {
 		return err
@@ -268,4 +274,24 @@ func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration key
 		}
 	}
 	return maxGeneration, nil
+}
+
+func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
+	defer s.G().CTrace(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
+	s.Lock()
+	defer s.Unlock()
+
+	cache, err := s.getCache(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	keyMap := make(keyExpiryMap)
+	for generation, userEKBoxed := range cache {
+		keyMap[generation] = userEKBoxed.Metadata.Ctime
+	}
+
+	expired = getExpiredGenerations(keyMap, keybase1.Time(merkleRoot.Ctime()))
+	err = s.deleteMany(ctx, expired)
+	return expired, err
 }

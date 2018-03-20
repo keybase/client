@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -83,4 +84,11 @@ func TestUserEKBoxStorage(t *testing.T) {
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)
 	require.EqualValues(t, 0, maxGeneration)
+
+	merkleRoot, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	expired, err := s.DeleteExpired(context.Background(), *merkleRoot)
+	expected := []keybase1.EkGeneration(nil)
+	require.NoError(t, err)
+	require.Equal(t, expected, expired)
 }
