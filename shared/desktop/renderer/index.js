@@ -2,8 +2,6 @@
 /*
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
-import fs from 'fs'
-import path from 'path'
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as AppGen from '../../actions/app-gen'
