@@ -531,6 +531,13 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scstellarerror: 3100,
+  scstellarbadinput: 3101,
+  scstellarwrongrevision: 3102,
+  scstellarmissingbundle: 3103,
+  scstellarbadpuk: 3104,
+  scstellarmissingaccount: 3105,
+  scstellarbadprev: 3106,
 }
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
@@ -1932,6 +1939,10 @@ export const userResetUserRpcPromise = (request: UserResetUserRpcParam): Promise
 export const userSearchRpcChannelMap = (configKeys: Array<string>, request: UserSearchRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.search', request)
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
+
+export const walletWalletInitRpcChannelMap = (configKeys: Array<string>, request: WalletWalletInitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.wallet.walletInit', request)
+
+export const walletWalletInitRpcPromise = (request: WalletWalletInitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.wallet.walletInit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 
@@ -3594,6 +3605,13 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 3100 // SCStellarError_3100
+  | 3101 // SCStellarBadInput_3101
+  | 3102 // SCStellarWrongRevision_3102
+  | 3103 // SCStellarMissingBundle_3103
+  | 3104 // SCStellarBadPuk_3104
+  | 3105 // SCStellarMissingAccount_3105
+  | 3106 // SCStellarBadPrev_3106
 
 export type StellarAccountID = String
 
@@ -4072,6 +4090,8 @@ export type UserVersionPercentForm = String
 export type UserVersionVector = $ReadOnly<{id: Long, sigHints: Int, sigChain: Long, cachedAt: Time}>
 
 export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int, lifetime: Int}>
+
+export type WalletWalletInitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 

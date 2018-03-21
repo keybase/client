@@ -91,4 +91,6 @@
   TransactionDetails transaction(keybase1.UID uid, TransactionID id);
 
   PaymentResult submitPayment(keybase1.UID uid, PaymentPost payment);
+
+  void walletInit();
 }

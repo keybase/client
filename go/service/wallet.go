@@ -1,8 +1,15 @@
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+// RPC handlers for wallet operations
+
 package service
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	stellarservice "github.com/keybase/client/go/stellar/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -12,11 +19,32 @@ type walletHandler struct {
 	*BaseHandler
 }
 
+var _ keybase1.WalletInterface = (*walletHandler)(nil)
+
 func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext) *walletHandler {
 	return &walletHandler{
-		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
+		BaseHandler:  NewBaseHandler(g, xp),
 	}
+}
+
+func (h *walletHandler) assertLoggedIn(ctx context.Context) error {
+	loggedIn := h.G().ActiveDevice.Valid()
+	if !loggedIn {
+		return libkb.LoginRequiredError{}
+	}
+	return nil
+}
+
+func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
+	ctx = libkb.WithLogTag(ctx, "WA")
+	defer h.G().CTraceTimed(ctx, "WalletInit", func() error { return err })()
+	err = h.assertLoggedIn(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = stellarservice.CreateWallet(ctx, h.G())
+	return err
 }
 
 type balancesResult struct {

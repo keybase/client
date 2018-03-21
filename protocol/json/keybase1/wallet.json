@@ -1,0 +1,12 @@
+{
+  "protocol": "wallet",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "walletInit": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}
