@@ -21,8 +21,6 @@ module.hot &&
   module.hot.accept(() => {
     console.log('accepted update in shared/index.native')
     if (global.store) {
-      // We use global.devStore because module scope variables seem to be cleared
-      // out after a hot reload. Wacky.
       console.log('updating route defs due to hot reload')
       const appRouteTree = require('./routes')
       const loginRouteTree = require('./routes-login')
