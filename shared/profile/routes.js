@@ -70,7 +70,7 @@ const profileRoute = makeRouteDefNode({
     showcaseTeamOffer: {
       children: {},
       component: ShowcaseTeamOffer,
-      tags: makeLeafTags({layerOnTop: true}),
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     showcasedTeamInfo: {
       children: {},

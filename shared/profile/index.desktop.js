@@ -345,44 +345,46 @@ class ProfileRender extends PureComponent<Props, State> {
               <Box style={styleProofs}>
                 {!loading && (
                   <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
-                    {(this.props.userInfo.showcasedTeams.length > 0 || this.props.isYou) && (                    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
-                      <Text type="BodySmallSemibold">Teams</Text>
-                      <Icon
-                        style={{marginRight: globalMargins.tiny}}
-                        type="iconfont-edit"
-                        onClick={this.props.onClickShowcaseOffer}
-                      />
-                    </Box>)}
-                    {this.props.userInfo.showcasedTeams.length > 0 ? (
-                      this.props.userInfo.showcasedTeams.map(team => (
-                        <Box
-                          key={team.fqName}
-                          onClick={event => this.props.onClickShowcased(event.target, team)}
-                          style={styleShowcasedTeamContainer}
-                        >
-                          <Box style={styleShowcasedTeamAvatar}>
-                            <Avatar teamname={team.fqName} size={24} />
-                          </Box>
-                          <Box style={styleShowcasedTeamName}>
-                            <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-                              {team.fqName}
-                            </Text>
-                            {team.open && <Meta style={styleMeta} title="OPEN" />}
-                          </Box>
-                        </Box>
-                      ))
-                    ) : this.props.isYou && (
-                      <Box onClick={this.props.onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
-                        <Box style={styleShowcasedTeamAvatar}>
-                          <Icon type="icon-team-placeholder-avatar-24" size={24} />
-                        </Box>
-                        <Box style={styleShowcasedTeamName}>
-                          <Text style={{color: globalColors.black_40}} type="BodyPrimaryLink">
-                            Publish the teams you're in
-                          </Text>
-                        </Box>
+                    {(this.props.userInfo.showcasedTeams.length > 0 || this.props.isYou) && (
+                      <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
+                        <Text type="BodySmallSemibold">Teams</Text>
+                        <Icon
+                          style={{marginRight: globalMargins.tiny}}
+                          type="iconfont-edit"
+                          onClick={this.props.onClickShowcaseOffer}
+                        />
                       </Box>
                     )}
+                    {this.props.userInfo.showcasedTeams.length > 0
+                      ? this.props.userInfo.showcasedTeams.map(team => (
+                          <Box
+                            key={team.fqName}
+                            onClick={event => this.props.onClickShowcased(event.target, team)}
+                            style={styleShowcasedTeamContainer}
+                          >
+                            <Box style={styleShowcasedTeamAvatar}>
+                              <Avatar teamname={team.fqName} size={24} />
+                            </Box>
+                            <Box style={styleShowcasedTeamName}>
+                              <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+                                {team.fqName}
+                              </Text>
+                              {team.open && <Meta style={styleMeta} title="OPEN" />}
+                            </Box>
+                          </Box>
+                        ))
+                      : this.props.isYou && (
+                          <Box onClick={this.props.onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
+                            <Box style={styleShowcasedTeamAvatar}>
+                              <Icon type="icon-team-placeholder-avatar-24" size={24} />
+                            </Box>
+                            <Box style={styleShowcasedTeamName}>
+                              <Text style={{color: globalColors.black_40}} type="BodyPrimaryLink">
+                                Publish the teams you're in
+                              </Text>
+                            </Box>
+                          </Box>
+                        )}
                   </Box>
                 )}
                 {(loading || this.props.proofs.length > 0) && (

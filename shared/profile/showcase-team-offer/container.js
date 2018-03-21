@@ -3,15 +3,13 @@ import * as I from 'immutable'
 import Render from './index'
 import {
   compose,
-  withHandlers,
-  withPropsOnChange,
-  withStateHandlers,
   connect,
+  lifecycle,
   type TypedState,
 } from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import {maxProfileBioChars} from '../../constants/profile'
-import {navigateUp} from '../../actions/route-tree'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
@@ -20,25 +18,12 @@ const mapStateToProps = (state: TypedState) => {
     _teamNameToIsOpen: state.entities.getIn(['teams', 'teamNameToIsOpen'], I.Map()),
     _teammembercounts: state.entities.getIn(['teams', 'teammembercounts'], I.Map()),
     _teamnames: state.entities.getIn(['teams', 'teamnames'], I.Set()),
-    teams: [
-      {fqName: 'teama', open: true, member: true, canPromote: true},
-      {fqName: 'teamb', open: true, member: true, canPromote: true},
-      {fqName: 'teamc', open: true, member: true, canPromote: true},
-      {fqName: 'teamd', open: true, member: true, canPromote: true},
-      {fqName: 'teame', open: true, member: true, canPromote: true},
-      {fqName: 'teamf', open: true, member: true, canPromote: true},
-      {fqName: 'teamg', open: true, member: true, canPromote: true},
-      {fqName: 'teamh', open: true, member: true, canPromote: true},
-      {fqName: 'teami', open: true, member: true, canPromote: true},
-      {fqName: 'teamj', open: true, member: true, canPromote: true},
-      {fqName: 'teamk', open: true, member: true, canPromote: true},
-      {fqName: 'teaml', open: true, member: true, canPromote: true},
-      {fqName: 'teamm', open: true, member: true, canPromote: true},
-    ],
+    _teamNameToPublicitySettings: state.entities.getIn(['teams', 'teamNameToPublicitySettings'], I.Map()),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -57,10 +42,24 @@ const mergeProps = (stateProps, dispatchProps) => {
   })
 
   return {
+    ...stateProps,
+    ...dispatchProps,
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
+    teamNameToPublicitySettings: stateProps._teamNameToPublicitySettings.toObject(),
     teamnames,
+    title: 'Showcase teams',
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), isMobile ? HeaderHoc : a => a)(Render)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentWillMount: function() {
+      this.props.teamnames.map(name => {
+        !this.props._teamNameToPublicitySettings.get(name) && this.props.loadTeam(name)
+      })
+    },
+  }),
+  isMobile ? HeaderHoc : a => a
+)(Render)

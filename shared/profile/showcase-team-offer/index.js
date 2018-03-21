@@ -1,11 +1,22 @@
 // @flow
 import * as React from 'react'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-import {Avatar, Box, Button, Divider, Icon, Meta, PopupDialog, ScrollView, Text} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  ClickableBox,
+  Divider,
+  Icon,
+  Meta,
+  PopupDialog,
+  ScrollView,
+  Text,
+} from '../../common-adapters'
 
 import type {Props} from './index'
 
-const TeamRow = ({name, membercount, isOpen, onPromote}: RowProps) => (
+const TeamRow = ({name, isOpen, membercount, memberShowcased, onPromote}: RowProps) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box
       key={name}
@@ -34,7 +45,10 @@ const TeamRow = ({name, membercount, isOpen, onPromote}: RowProps) => (
           <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
         </Box>
       </Box>
-      <Button label="Foo" small={true} type="PrimaryGreen" />
+      {memberShowcased ?
+        <Button label="Published" small={true} type="PrimaryGreenActive" /> :
+        <Button label="Publish" small={true} type="PrimaryGreen" />
+      }
     </Box>
     {!isMobile && <Divider style={{marginLeft: 48}} />}
   </Box>
@@ -57,13 +71,18 @@ const ShowcaseTeamOffer = (props: Props) => (
       />
       <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
     </Box>
-    <Text style={{color: globalColors.black_40}} type="Body">
+
+    <Text style={{color: globalColors.black_40, paddingTop: globalMargins.tiny, textAlign: 'center'}} type="Body">
       Promoting a team will encourage others to ask to join.
     </Text>
-    <Text style={{color: globalColors.black_40}} type="Body">
+    <Text
+      style={{color: globalColors.black_40, paddingTop: globalMargins.tiny, textAlign: 'center'}}
+      type="Body"
+    >
       The team's description and number of members will be public.
     </Text>
-    <ScrollView style={{marginTop: globalMargins.medium, width: '100%'}}>
+
+    <ScrollView style={{flexShrink: 1, marginTop: globalMargins.medium, width: '100%'}}>
       {props.teamnames &&
         props.teamnames.map(name => (
           <TeamRow
@@ -71,11 +90,14 @@ const ShowcaseTeamOffer = (props: Props) => (
             name={name}
             isOpen={props.teamNameToIsOpen[name]}
             membercount={props.teammembercounts[name]}
+            memberShowcased={props.teamNameToPublicitySettings[name] && props.teamNameToPublicitySettings[name].member}
             onPromote={() => props.onPromote(name)}
           />
         ))}
     </ScrollView>
-    <Button style={{margin: globalMargins.medium}} type="Secondary" onClick={props.onBack} label="Close" />
+    <ClickableBox onClick={props.onBack} style={{flexGrow: 1}}>
+      <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
+    </ClickableBox>
   </Box>
 )
 
@@ -84,7 +106,8 @@ const styleContainer = {
   alignItems: 'center',
   flex: 1,
   marginTop: 35,
-  minWidth: 600,
+  marginBottom: isMobile ? 35 : 55,
+  minWidth: isMobile ? undefined : 600,
 }
 
 const styleMeta = {
@@ -126,4 +149,4 @@ const PopupWrapped = (props: RolePickerProps) => (
     <ShowcaseTeamOffer {...props} />
   </PopupDialog>
 )
-export default PopupWrapped
+export default (isMobile ? ShowcaseTeamOffer : PopupWrapped)
