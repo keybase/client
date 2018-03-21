@@ -99,7 +99,7 @@ func (u *UsersCryptoPackage) InitServerHandshake(_ context.Context, _ emom1.Arg)
 	return nil
 }
 
-func (u *UsersCryptoPackage) InitUserAuth(_ context.Context, _ emom1.RequestPlaintext) error {
+func (u *UsersCryptoPackage) InitUserAuth(_ context.Context, _ emom1.Arg, _ emom1.RequestPlaintext) error {
 	return nil
 }
 
@@ -152,7 +152,7 @@ func (c *CloudCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp 
 	return nil
 }
 
-func (c *CloudCryptoPackage) InitUserAuth(_ context.Context, _ emom1.RequestPlaintext) error {
+func (c *CloudCryptoPackage) InitUserAuth(ctx context.Context, arg emom1.Arg, rp emom1.RequestPlaintext) error {
 	return nil
 }
 

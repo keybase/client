@@ -139,7 +139,7 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 		return res, err
 	}
 
-	err = s.cryptoer.InitUserAuth(ctx, requestPlaintext)
+	err = s.cryptoer.InitUserAuth(ctx, arg, requestPlaintext)
 	if err != nil {
 		return res, err
 	}
