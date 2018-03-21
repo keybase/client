@@ -37,10 +37,10 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('FilesBanner'),
   lifecycle({
     componentDidMount: function() {
       this.props.getFuseStatus()
     },
-  }),
-  setDisplayName('FilesBanner')
+  })
 )(Files)
