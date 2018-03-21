@@ -21,6 +21,7 @@ func newServerSequenceError(s string, args ...interface{}) ServerSequenceError {
 }
 
 var MACError = errors.New("Error checking MAC on ciphertexts")
+var SequencerTimeoutError = errors.New("Timed out waiting for sequencing")
 
 type WrongReplyError struct {
 	wanted   emom1.Seqno

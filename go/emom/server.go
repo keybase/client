@@ -5,6 +5,7 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	sync "sync"
+	time "time"
 )
 
 type Server struct {
@@ -38,9 +39,7 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 	// who owns the network can drop packet 10 and nothing after it will go through.
 	// But a malicious network can also DoS the connection, so this isn't
 	// an interesting attack.
-	//
-	// TODO: Some timeout as to how long we'll wait
-	err = s.clientSequencer.Wait(arg.A.N)
+	err = s.clientSequencer.Wait(ctx, arg.A.N, time.Minute)
 	if err != nil {
 		return res, err
 	}

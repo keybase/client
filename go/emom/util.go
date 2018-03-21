@@ -1,8 +1,10 @@
 package emom
 
 import (
-	"errors"
+	context "golang.org/x/net/context"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
+	errors "errors"
+	time "time"
 )
 
 type waiter struct {
@@ -37,11 +39,15 @@ func (s *Sequencer) loop() {
 			waiter.doneCh <- nil
 		}
 	}
-
 }
 
-func (s *Sequencer) Wait(seqno emom1.Seqno) error {
+func (s *Sequencer) Wait(ctx context.Context, seqno emom1.Seqno, waitTime time.Duration) error {
 	doneCh := make(chan error)
 	s.waitCh <- waiter{seqno, doneCh}
-	return <-doneCh
+	select {
+	case err := <-doneCh:
+		return err
+	case <-time.After(waitTime):
+		return SequencerTimeoutError
+	}
 }
