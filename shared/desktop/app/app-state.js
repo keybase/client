@@ -379,6 +379,8 @@ export default class AppState {
 
   _closedHandler() {
     this._clearWindow()
+    this.state.isUserActive = false
+    this.saveState()
   }
 
   _debounceChangeHandler() {
