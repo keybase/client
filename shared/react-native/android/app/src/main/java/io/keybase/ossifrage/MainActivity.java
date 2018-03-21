@@ -78,7 +78,9 @@ public class MainActivity extends ReactActivity {
                     ReactContext currentContext = instanceManager.getCurrentReactContext();
                     if (currentContext != null) {
                         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-                        emitter.emit("androidIntentNotification", "");
+                        if (emitter != null) {
+                            emitter.emit("androidIntentNotification", "");
+                        }
                     }
                 }
             }
