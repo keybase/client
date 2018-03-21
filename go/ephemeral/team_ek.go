@@ -353,6 +353,9 @@ type teamMemberEKsResponse struct {
 	Results []memberEKresponse `json:"results"`
 }
 
+// Returns nil if all team members have never published a teamEK. Verifies that
+// the map of users the server returns are indeed valid team members of the
+// team and all signatures verify correctly for the users.
 func teamMemberEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (metadata map[keybase1.UID]*keybase1.UserEkMetadata, err error) {
 	defer g.CTrace(ctx, "teamMemberEKMetadataMaybeStale", func() error { return err })()
 
@@ -375,8 +378,23 @@ func teamMemberEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext,
 		return nil, err
 	}
 
+	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	if err != nil {
+		return nil, err
+	}
 	metadata = make(map[keybase1.UID]*keybase1.UserEkMetadata)
 	for _, res := range parsedResponse.Results {
+		uv, err := team.UserVersionByUID(ctx, res.UID)
+		if err != nil {
+			return nil, err
+		}
+		isMember := team.IsMember(ctx, uv)
+		if !isMember {
+			g.Log.CWarningf(ctx, "Server lied about team membership!")
+			return nil, err
+		}
 		memberMetadata, wrongKID, err := verifySigWithLatestPUK(ctx, g, res.UID, res.Sig)
 		// Check the wrongKID condition before checking the error, since an error
 		// is still returned in this case. TODO: Turn this warning into an error
