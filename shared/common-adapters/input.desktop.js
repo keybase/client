@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
@@ -14,7 +13,7 @@ type State = {
 
 class Input extends React.PureComponent<Props, State> {
   state: State
-  _input: *
+  _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
 
   constructor(props: Props) {
@@ -59,7 +58,7 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   selections = () => {
-    const node = this._input && this._inputNode()
+    const node = this._input
     if (node) {
       const {selectionStart, selectionEnd} = node
       return {selectionStart, selectionEnd}
@@ -83,7 +82,7 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
-    const node = this._inputNode()
+    const node = this._input
     if (!node || !node.style) {
       return
     }
@@ -119,43 +118,30 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  _inputNode = (): HTMLTextAreaElement | HTMLInputElement | null => {
-    const node = findDOMNode(this._input)
-
-    if (node instanceof HTMLTextAreaElement) {
-      return node
-    }
-    if (node instanceof HTMLInputElement) {
-      return node
-    }
-
-    return null
-  }
-
   focus = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     n && n.focus()
   }
 
   select = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     n && n.select()
   }
 
   blur = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     n && n.blur()
   }
 
   moveCursorToEnd = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     if (n && this.props.value) {
       n.selectionStart = n.selectionEnd = this.props.value.length
     }
   }
 
   insertTextAtCursor = (text: string) => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     const selections = this.selections()
     if (n && selections) {
       const {selectionStart, selectionEnd} = selections
@@ -170,7 +156,7 @@ class Input extends React.PureComponent<Props, State> {
     newSelectionStart: number,
     newSelectionEnd: number
   ) => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     if (n) {
       const v = n.value
       const nextValue = v.slice(0, startIdx) + text + v.slice(endIdx)
