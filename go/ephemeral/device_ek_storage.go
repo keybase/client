@@ -202,6 +202,7 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 	s.Lock()
 	defer s.Unlock()
 
+	maxGeneration = -1
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return maxGeneration, err
@@ -229,7 +230,7 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 		keyMap[generation] = deviceEK.Metadata.Ctime
 	}
 
-	expired = getExpiredGenerations(keyMap, keybase1.Time(merkleRoot.Ctime()))
+	expired = getExpiredGenerations(keyMap, keybase1.TimeFromSeconds(merkleRoot.Ctime()))
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
