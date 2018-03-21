@@ -256,6 +256,7 @@ export const createMessagesWereDeleted = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
     messageIDs?: Array<RPCChatTypes.MessageID>,
+    upToMessageID?: RPCChatTypes.MessageID,
     ordinals?: Array<Types.Ordinal>,
   }>
 ) => ({error: false, payload, type: messagesWereDeleted})

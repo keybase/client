@@ -19,13 +19,16 @@ func newUserEphemeralSeed() (seed UserEKSeed, err error) {
 	return UserEKSeed(randomSeed), nil
 }
 
-func (s *UserEKSeed) DeriveDHKey() (key *libkb.NaclDHKeyPair, err error) {
-	derived, err := libkb.DeriveFromSecret(*s, libkb.DeriveReasonUserEKEncryption)
+func newUserEKSeedFromBytes(b []byte) (s UserEKSeed, err error) {
+	seed, err := newEKSeedFromBytes(b)
 	if err != nil {
-		return nil, err
+		return s, err
 	}
-	keypair, err := libkb.MakeNaclDHKeyPairFromSecret(derived)
-	return &keypair, err
+	return UserEKSeed(seed), nil
+}
+
+func (s *UserEKSeed) DeriveDHKey() (key *libkb.NaclDHKeyPair, err error) {
+	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonUserEKEncryption)
 }
 
 type UserEKBoxMetadata struct {
@@ -52,29 +55,64 @@ func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxe
 	return err
 }
 
-func PublishNewUserEK(ctx context.Context, g *libkb.GlobalContext) (data keybase1.UserEkMetadata, err error) {
+func PublishNewUserEK(ctx context.Context, g *libkb.GlobalContext) (metadata keybase1.UserEkMetadata, err error) {
 	defer g.CTrace(ctx, "PublishNewUserEK", func() error { return err })()
 
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
-
-	// TODO: Read the actual generation from the userEK store.
-	var generation keybase1.EkGeneration = 1
 
 	seed, err := newUserEphemeralSeed()
 	if err != nil {
-		return data, err
+		return metadata, err
 	}
 
-	// TODO: Store the key.
+	storage := g.GetUserEKBoxStorage()
+	generation, err := storage.MaxGeneration(ctx)
+	if err != nil {
+		// Let's try to get the max from the server
+		g.Log.CDebugf(ctx, "Error getting maxGeneration from storage")
+		activeMetadata, err := GetLatestUserEKMetadataMaybeStale(ctx, g)
+		if err != nil {
+			return metadata, err
+		}
+		generation = activeMetadata.Generation
+	}
+	generation++
+
+	metadata, myUserEKBoxed, err := signAndPublishUserEK(ctx, g, generation, seed, currentMerkleRoot)
+	if err != nil {
+		g.Log.CDebugf(ctx, "Error posting deviceEK, retrying with server maxGeneration")
+		// Let's retry posting with the server given max
+		activeMetadata, err := GetLatestUserEKMetadataMaybeStale(ctx, g)
+		if err != nil {
+			return metadata, err
+		}
+		generation = activeMetadata.Generation
+		generation++
+		metadata, myUserEKBoxed, err = signAndPublishUserEK(ctx, g, generation, seed, currentMerkleRoot)
+		if err != nil {
+			return metadata, err
+		}
+	}
+
+	if myUserEKBoxed == nil {
+		g.Log.CDebugf(ctx, "No box made for own deviceEK")
+	} else {
+		err = storage.Put(ctx, generation, *myUserEKBoxed)
+	}
+	return metadata, err
+}
+
+func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, seed UserEKSeed, currentMerkleRoot *libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
 
 	dhKeypair, err := seed.DeriveDHKey()
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
-	metadata := keybase1.UserEkMetadata{
+
+	metadata = keybase1.UserEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   currentMerkleRoot.HashMeta(),
@@ -85,38 +123,40 @@ func PublishNewUserEK(ctx context.Context, g *libkb.GlobalContext) (data keybase
 	}
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
 
 	// Sign the metadata blob with the latest PUK.
 	pukKeyring, err := g.GetPerUserKeyring()
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
 	signingKey, err := pukKeyring.GetLatestSigningKey(ctx)
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
 	signedPacket, _, err := signingKey.SignToString(metadataJSON)
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
 
 	// Box the seed up for each active deviceEK.
-	ownDeviceEKs, err := GetOwnActiveDeviceEKMetadata(ctx, g)
+	deviceEKs, err := GetActiveDeviceEKMetadata(ctx, g)
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
+
+	myDeviceID := g.Env.GetDeviceID()
 	boxes := []UserEKBoxMetadata{}
-	for deviceID, deviceEK := range ownDeviceEKs {
+	for deviceID, deviceEK := range deviceEKs {
 		recipientDeviceEKKey, err := libkb.ImportKeypairFromKID(deviceEK.Kid)
 		if err != nil {
-			return data, err
+			return metadata, myUserEKBoxed, err
 		}
 		// Encrypting with a nil sender means we'll generate a random sender private key.
 		box, err := recipientDeviceEKKey.EncryptToString(seed[:], nil)
 		if err != nil {
-			return data, err
+			return metadata, myUserEKBoxed, err
 		}
 		boxMetadata := UserEKBoxMetadata{
 			RecipientDeviceID:   deviceID,
@@ -124,17 +164,22 @@ func PublishNewUserEK(ctx context.Context, g *libkb.GlobalContext) (data keybase
 			Box:                 box,
 		}
 		boxes = append(boxes, boxMetadata)
+
+		if deviceID == myDeviceID {
+			myUserEKBoxed = &keybase1.UserEkBoxed{
+				Box:                box,
+				DeviceEkGeneration: deviceEK.Generation,
+				Metadata:           metadata,
+			}
+		}
 	}
 
 	err = postNewUserEK(ctx, g, signedPacket, boxes)
 	if err != nil {
-		return data, err
+		return metadata, myUserEKBoxed, err
 	}
 
-	// TODO: After posting has succeeded, populate the local userEK cache with
-	// our own box, to avoid needing to refetch it later.
-
-	return metadata, nil
+	return metadata, myUserEKBoxed, nil
 }
 
 type UserEKResponse struct {
@@ -144,13 +189,16 @@ type UserEKResponse struct {
 	} `json:"result"`
 }
 
+// TODO let's go back and see which of these methods we can make private to the
+// package since some of this stuff is probably just internal
+
 // Verify that the blob is validly signed, and that the signing key is the
 // given user's latest PUK, then parse its contents. If the blob is signed by
 // the wrong KID, that's still an error, but we'll also return this special
 // `wrongKID` flag. As a transitional measure while we wait for all clients in
 // the wild to have EK support, callers will treat that case as "there is no
 // key" and convert the error to a warning.
-func VerifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, sig string) (metadata *keybase1.UserEkMetadata, wrongKID bool, err error) {
+func VerifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig string) (metadata *keybase1.UserEkMetadata, wrongKID bool, err error) {
 	// Verify the sig.
 	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 	if err != nil {
@@ -200,8 +248,8 @@ func VerifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 // one, this function will also return nil and log a warning. This is a
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
-func GetOwnLatestUserEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext) (metadata *keybase1.UserEkMetadata, err error) {
-	defer g.CTrace(ctx, "GetOwnLatestUserEKMetadataMaybeStale", func() error { return err })()
+func GetLatestUserEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext) (metadata *keybase1.UserEkMetadata, err error) {
+	defer g.CTrace(ctx, "GetLatestUserEKMetadataMaybeStale", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
@@ -227,8 +275,7 @@ func GetOwnLatestUserEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalCo
 		return nil, nil
 	}
 
-	selfUID := g.Env.GetUID()
-	metadata, wrongKID, err := VerifySigWithLatestPUK(ctx, g, selfUID, parsedResponse.Result.Sig)
+	metadata, wrongKID, err := VerifySigWithLatestPUK(ctx, g, parsedResponse.Result.Sig)
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
@@ -243,7 +290,7 @@ func GetOwnLatestUserEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalCo
 	return metadata, nil
 }
 
-// As with GetOwnLatestUserEKMetadataMaybeStale, but returns nil if the latest
+// As with GetLatestUserEKMetadataMaybeStale, but returns nil if the latest
 // metadata is stale. This checks several things:
 // 1) The metadata blob is validly signed.
 // 2) The signing key is the user's latest PUK.
@@ -251,10 +298,10 @@ func GetOwnLatestUserEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalCo
 //    with is within one week of the current root. The server deliberately
 //    avoids doing this filtering for us, and finding expired keys in the
 //    results here is expected. We silently drop them.
-func GetOwnActiveUserEKMetadata(ctx context.Context, g *libkb.GlobalContext) (metadata *keybase1.UserEkMetadata, err error) {
-	defer g.CTrace(ctx, "GetOwnActiveUserEKMetadata", func() error { return err })()
+func GetActiveUserEKMetadata(ctx context.Context, g *libkb.GlobalContext) (metadata *keybase1.UserEkMetadata, err error) {
+	defer g.CTrace(ctx, "GetActiveUserEKMetadata", func() error { return err })()
 
-	metadata, err = GetOwnLatestUserEKMetadataMaybeStale(ctx, g)
+	metadata, err = GetLatestUserEKMetadataMaybeStale(ctx, g)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +315,7 @@ func GetOwnActiveUserEKMetadata(ctx context.Context, g *libkb.GlobalContext) (me
 	// and return nil.
 	currentMerkleRoot, err := g.GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	ageSecs := currentMerkleRoot.Ctime() - metadata.Ctime.UnixSeconds()
-	if ageSecs > KeyLifetimeSecs {
+	if keybase1.Time(ageSecs) > KeyLifetimeSecs {
 		g.Log.CDebugf(ctx, "found stale userEK %s", metadata.Kid)
 		return nil, nil
 	}

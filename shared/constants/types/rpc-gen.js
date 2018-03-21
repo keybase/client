@@ -79,6 +79,10 @@ export const SimpleFSSimpleFSCopyRpcChannelMap = (configKeys: Array<string>, req
 
 export const SimpleFSSimpleFSCopyRpcPromise = (request: SimpleFSSimpleFSCopyRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSCopy', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const SimpleFSSimpleFSDumpDebuggingInfoRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request)
+
+export const SimpleFSSimpleFSDumpDebuggingInfoRpcPromise = (request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
 
 export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => (error ? reject(error) : resolve(result))))
@@ -185,6 +189,14 @@ export const appStateAppState = {
 export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, request: AppStateUpdateAppStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
 
 export const appStateUpdateAppStateRpcPromise = (request: AppStateUpdateAppStateRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.appState.updateAppState', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
+export const avatarsLoadTeamAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadTeamAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadTeamAvatars', request)
+
+export const avatarsLoadTeamAvatarsRpcPromise = (request: AvatarsLoadTeamAvatarsRpcParam): Promise<AvatarsLoadTeamAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadTeamAvatars', request, (error: RPCError, result: AvatarsLoadTeamAvatarsResult) => (error ? reject(error) : resolve(result))))
+
+export const avatarsLoadUserAvatarsRpcChannelMap = (configKeys: Array<string>, request: AvatarsLoadUserAvatarsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.avatars.loadUserAvatars', request)
+
+export const avatarsLoadUserAvatarsRpcPromise = (request: AvatarsLoadUserAvatarsRpcParam): Promise<AvatarsLoadUserAvatarsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.avatars.loadUserAvatars', request, (error: RPCError, result: AvatarsLoadUserAvatarsResult) => (error ? reject(error) : resolve(result))))
 
 export const backendCommonBlockType = {
   data: 0,
@@ -1518,6 +1530,11 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSListFilter = {
+  noFilter: 0,
+  filterAllHidden: 1,
+}
+
 export const simpleFSOpenFlags = {
   read: 0,
   replace: 1,
@@ -1961,6 +1978,14 @@ export type AsyncOps =
   | 5 // MOVE_5
   | 6 // REMOVE_6
 
+export type AvatarFormat = String
+
+export type AvatarUrl = String
+
+export type AvatarsLoadTeamAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type AvatarsLoadUserAvatarsRpcParam = $ReadOnly<{names?: ?Array<String>, formats?: ?Array<AvatarFormat>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type BTCRegisterBTCRpcParam = $ReadOnly<{address: String, force: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type BadgeConversationInfo = $ReadOnly<{convID: ChatConversationID, badgeCounts: {[key: string]: Int}, unreadMessages: Int}>
@@ -2172,7 +2197,7 @@ export type DeviceDeviceHistoryListRpcParam = ?$ReadOnly<{incomingCallMap?: Inco
 
 export type DeviceDeviceListRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type DeviceEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time}>
+export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
@@ -2648,9 +2673,15 @@ export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult,
 
 export type LinkID = String
 
-export type ListArgs = $ReadOnly<{opID: OpID, path: Path}>
+export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
+
+export type ListFilter =
+  | 0 // NO_FILTER_0
+  | 1 // FILTER_ALL_HIDDEN_1
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
+
+export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: AvatarUrl}}}>
 
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
@@ -3375,11 +3406,13 @@ export type SimpleFSSimpleFSCopyRecursiveRpcParam = $ReadOnly<{opID: OpID, src: 
 
 export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, dest: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSMakeOpidRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3942,7 +3975,9 @@ export type User = $ReadOnly<{uid: UID, username: String}>
 
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
-export type UserEk = $ReadOnly<{seed: Bytes32, generation: EkGeneration, hashMeta: HashMeta, ctime: Time}>
+export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
+
+export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
@@ -4036,6 +4071,8 @@ type ApiserverGetResult = APIRes
 type ApiserverGetWithSessionResult = APIRes
 type ApiserverPostJSONResult = APIRes
 type ApiserverPostResult = APIRes
+type AvatarsLoadTeamAvatarsResult = LoadAvatarsRes
+type AvatarsLoadUserAvatarsResult = LoadAvatarsRes
 type BadgerGetBadgeStateResult = BadgeState
 type BlockArchiveReferenceResult = ?Array<BlockReference>
 type BlockArchiveReferenceWithCountResult = DowngradeReferenceRes

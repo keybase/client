@@ -25,7 +25,7 @@ import {globalStyles, globalColors, globalMargins, desktopStyles} from '../style
 import {stateColors} from '../util/tracker'
 
 import type {Proof} from '../constants/types/tracker'
-import type {Props} from './index'
+import type {Props} from '.'
 
 export const AVATAR_SIZE = 112
 const HEADER_TOP_SPACE = 48

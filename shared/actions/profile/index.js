@@ -57,7 +57,7 @@ function _onClickAvatar(action: ProfileGen.OnClickFollowersPayload) {
     return
   }
 
-  if (!action.openWebsite) {
+  if (!action.payload.openWebsite) {
     return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
     return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}`)
@@ -71,7 +71,7 @@ function _openProfileOrWebsite(
     return
   }
 
-  if (!action.openWebsite) {
+  if (!action.payload.openWebsite) {
     return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
     return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)

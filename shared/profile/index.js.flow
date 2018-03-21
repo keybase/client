@@ -16,6 +16,7 @@ export type Props = {
   currentlyFollowing: boolean,
   currentFriendshipsTab: FriendshipsTab,
   refresh: () => void,
+  serverActive: boolean,
   onAvatarLoaded?: () => void,
   onBack: ?() => void,
   onChat: () => void,

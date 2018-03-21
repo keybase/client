@@ -143,6 +143,7 @@ const load = () => {
 
 const commonBigFiltered = {
   teamname: 'stripe',
+  isSelected: false,
   onSelectConversation: action('onSelectConversation'),
 }
 

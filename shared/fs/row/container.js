@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
+      dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
     }
   },
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),

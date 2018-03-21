@@ -26,6 +26,7 @@ export function NotifyPopup(
         if (rateLimitPayloads[key]) {
           const {title, opts, onClick} = rateLimitPayloads[key]
           delete rateLimitPayloads[key]
+          // $FlowIssue doens't know about notification
           const notification: any = new Notification(title, {...opts, silent: true})
           notification.onclick = onClick
         }
@@ -33,6 +34,7 @@ export function NotifyPopup(
     }
   }
 
+  // $FlowIssue doens't know about notification
   const notification: any = new Notification(title, {...opts, silent: true})
   notification.onclick = onClick
 }

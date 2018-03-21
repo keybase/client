@@ -1,0 +1,14 @@
+@namespace("keybase.1")
+protocol avatars {
+    import idl "common.avdl";
+
+    @typedef("string") record AvatarUrl {}
+    @typedef("string") record AvatarFormat {}
+
+    record LoadAvatarsRes {
+        map<string, map<AvatarFormat, AvatarUrl>> picmap;
+    }
+
+    LoadAvatarsRes loadUserAvatars(array<string> names, array<AvatarFormat> formats);
+    LoadAvatarsRes loadTeamAvatars(array<string> names, array<AvatarFormat> formats);
+}
