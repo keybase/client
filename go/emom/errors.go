@@ -45,3 +45,31 @@ func NewHandshakeError(s string, args ...interface{}) HandshakeError {
 func (h HandshakeError) Error() string {
 	return fmt.Sprintf("Handshake error: %s", h.msg)
 }
+
+type ClientSequenceError struct {
+	msg string
+}
+
+func newClientSequenceError(s string, args ...interface{}) ClientSequenceError {
+	return ClientSequenceError{
+		msg: fmt.Sprintf(s, args...),
+	}
+}
+
+func (c ClientSequenceError) Error() string {
+	return fmt.Sprintf("Client sequence error: %s", c.msg)
+}
+
+type ServerError struct {
+	msg string
+}
+
+func newServerError(s string, args ...interface{}) ServerError {
+	return ServerError{
+		msg: fmt.Sprintf(s, args...),
+	}
+}
+
+func (s ServerError) Error() string {
+	return fmt.Sprintf("Server error: %s", s.msg)
+}

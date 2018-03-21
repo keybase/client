@@ -4,6 +4,7 @@ import (
 	emom1 "github.com/keybase/client/go/protocol/emom1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	strings "strings"
 	sync "sync"
 	time "time"
 )
@@ -29,9 +30,86 @@ func (s *Server) Register(p rpc.Protocol) error {
 	return nil
 }
 
+func procSplit(s string) (prot string, proc string, err error) {
+	parts := strings.Split(s, ".")
+	if len(parts) < 2 {
+		return "", "", newServerError("cannot split RPC: %s", s)
+	}
+	end := len(parts) - 1
+	return strings.Join(parts[0:end], "."), parts[end], nil
+}
+
+func (s *Server) dispatch(ctx context.Context, arg emom1.RequestPlaintext) (res emom1.ResponsePlaintext, err error) {
+	protName, procName, err := procSplit(arg.N)
+	if err != nil {
+		return res, err
+	}
+
+	prot, found := s.protocols[protName]
+	if !found {
+		return res, newServerError("protocol not found: %s", protName)
+	}
+
+	proc, found := prot.Methods[procName]
+	if !found {
+		return res, newServerError("method %s not found in protocol %s", procName, protName)
+	}
+
+	procArg := proc.MakeArg()
+	err = decodeFromBytes(procArg, arg.A)
+	if err != nil {
+		return res, err
+	}
+
+	procRes, procErr := proc.Handler(ctx, procArg)
+	var wrappedError interface{}
+	if procErr != nil {
+		if s.wrapError != nil {
+			wrappedError = s.wrapError(procErr)
+		} else {
+			wrappedError = procErr.Error()
+		}
+	}
+
+	if arg.S != nil {
+		res.S = *arg.S
+	}
+
+	res.R, err = encodeToBytes(procRes)
+	if err != nil {
+		return emom1.ResponsePlaintext{}, err
+	}
+	res.E, err = encodeToBytes(wrappedError)
+	if err != nil {
+		return emom1.ResponsePlaintext{}, err
+	}
+
+	return res, nil
+}
+
+func (s *Server) checkSeqno(inner *emom1.Seqno, outer emom1.Seqno) error {
+	if inner == nil {
+		return newClientSequenceError("no inner client sequence number found")
+	}
+	if *inner != outer {
+		return newClientSequenceError("wrong client sequence: %d != %d", *inner, outer)
+	}
+	return nil
+}
+
+func (s *Server) nextSeqno() emom1.Seqno {
+	s.seqnoMu.Lock()
+	defer s.seqnoMu.Unlock()
+	ret := s.seqno
+	s.seqno++
+	return ret
+}
+
 func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error) {
 	var encodedRequestPlaintext []byte
 	var requestPlaintext emom1.RequestPlaintext
+	var responsePlaintext emom1.ResponsePlaintext
+	var encodedResponsePlaintext []byte
 
 	// It would be ideal if we could ensure that we're seeing requests
 	// as the same order as they come across the wire. But this is hard
@@ -57,6 +135,33 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 	}
 
 	err = decodeFromBytes(&requestPlaintext, encodedRequestPlaintext)
+	if err != nil {
+		return res, err
+	}
+
+	err = s.cryptoer.InitUserAuth(ctx, requestPlaintext)
+	if err != nil {
+		return res, err
+	}
+
+	err = s.checkSeqno(requestPlaintext.S, arg.A.N)
+	if err != nil {
+		return res, err
+	}
+
+	responsePlaintext, err = s.dispatch(ctx, requestPlaintext)
+	if err != nil {
+		return res, err
+	}
+
+	encodedResponsePlaintext, err = encodeToBytes(responsePlaintext)
+	if err != nil {
+		return res, err
+	}
+
+	res.A.N = s.nextSeqno()
+
+	res.A, err = encrypt(ctx, encodedResponsePlaintext, emom1.MsgType_REPLY, res.A.N, s.cryptoer.SessionKey())
 	if err != nil {
 		return res, err
 	}

@@ -99,6 +99,10 @@ func (u *UsersCryptoPackage) InitServerHandshake(_ context.Context, _ emom1.Arg)
 	return nil
 }
 
+func (u *UsersCryptoPackage) InitUserAuth(_ context.Context, _ emom1.RequestPlaintext) error {
+	return nil
+}
+
 var _ Cryptoer = (*UsersCryptoPackage)(nil)
 
 type CloudCryptoPackage struct {
@@ -145,6 +149,10 @@ func (c *CloudCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.
 }
 
 func (c *CloudCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
+	return nil
+}
+
+func (c *CloudCryptoPackage) InitUserAuth(_ context.Context, _ emom1.RequestPlaintext) error {
 	return nil
 }
 
