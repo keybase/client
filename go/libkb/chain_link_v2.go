@@ -156,7 +156,7 @@ type OuterLinkV2WithMetadata struct {
 	raw   []byte
 	sigID keybase1.SigID
 	sig   string
-	KID   keybase1.KID
+	kid   keybase1.KID
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -232,7 +232,7 @@ func (o OuterLinkV2WithMetadata) Raw() []byte {
 }
 
 func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, err error) {
-	key, err := ImportKeypairFromKID(o.KID)
+	key, err := ImportKeypairFromKID(o.kid)
 	if err != nil {
 		return kid, err
 	}
@@ -240,7 +240,7 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 	if err != nil {
 		return kid, err
 	}
-	return o.KID, nil
+	return o.kid, nil
 }
 
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
@@ -257,7 +257,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		OuterLinkV2: ol,
 		sigID:       sigID,
 		raw:         payload,
-		KID:         kid,
+		kid:         kid,
 		sig:         armored,
 	}
 	return &ret, nil

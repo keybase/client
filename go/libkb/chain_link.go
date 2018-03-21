@@ -678,7 +678,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 			ol2.SeqType = keybase1.SeqType_PUBLIC
 		}
 		tmp.outerLinkV2 = ol2
-		sigKID = ol2.KID
+		sigKID = ol2.kid
 	}
 
 	payloadKID = tmp.kid
