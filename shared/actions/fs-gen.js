@@ -13,6 +13,8 @@ export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const filePreviewLoad = 'fs:filePreviewLoad'
+export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const fileTransferProgress = 'fs:fileTransferProgress'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
@@ -49,6 +51,13 @@ export const createDownloadStarted = (
     localPath: Types.LocalPath,
   }>
 ) => ({error: false, payload, type: downloadStarted})
+export const createFilePreviewLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: filePreviewLoad})
+export const createFilePreviewLoaded = (
+  payload: $ReadOnly<{
+    path: Types.Path,
+    meta: Types.PathItem,
+  }>
+) => ({error: false, payload, type: filePreviewLoaded})
 export const createFileTransferProgress = (
   payload: $ReadOnly<{
     key: string,
@@ -95,6 +104,8 @@ export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfe
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
+export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
+export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
 export type FileTransferProgressPayload = More.ReturnType<typeof createFileTransferProgress>
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
 export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
@@ -117,6 +128,8 @@ export type Actions =
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>
   | More.ReturnType<typeof createDownloadStarted>
+  | More.ReturnType<typeof createFilePreviewLoad>
+  | More.ReturnType<typeof createFilePreviewLoaded>
   | More.ReturnType<typeof createFileTransferProgress>
   | More.ReturnType<typeof createFolderListLoad>
   | More.ReturnType<typeof createFolderListLoaded>
