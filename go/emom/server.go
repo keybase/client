@@ -7,26 +7,17 @@ import (
 	sync "sync"
 )
 
-type waitArg struct {
-	seqno  emom1.Seqno
-	doneCh chan<- error
-}
-
 type Server struct {
 	protocols map[string]rpc.Protocol
 	cryptoer  Cryptoer
 	xp        rpc.Transporter
 	wrapError rpc.WrapErrorFunc
 
-	waitCh      chan waitArg
-	clientSeqno emom1.Seqno
+	clientSequencer Sequencer
 
 	// protected by seqnoMu
 	seqnoMu sync.Mutex
 	seqno   emom1.Seqno
-}
-
-func (s *Server) sequencerLoop() {
 }
 
 func (s *Server) Register(p rpc.Protocol) error {
@@ -37,15 +28,19 @@ func (s *Server) Register(p rpc.Protocol) error {
 	return nil
 }
 
-func (s *Server) waitForTurn(ctx context.Context, arg emom1.Arg) (err error) {
-	doneCh := make(chan error)
-	s.waitCh <- waitArg{arg.A.N, doneCh}
-	return <-doneCh
-}
-
 func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error) {
 
-	err = s.waitForTurn(ctx, arg)
+	// It would be ideal if we could ensure that we're seeing requests
+	// as the same order as they come across the wire. But this is hard
+	// to enforce without a lot of disruption in the RPC library.  So we're
+	// going to do something else instead: ensure that we're handling the
+	// RPCs in the order that the client sent them. This means an attacker
+	// who owns the network can drop packet 10 and nothing after it will go through.
+	// But a malicious network can also DoS the connection, so this isn't
+	// an interesting attack.
+	//
+	// TODO: Some timeout as to how long we'll wait
+	err = s.clientSequencer.Wait(arg.A.N)
 	if err != nil {
 		return res, err
 	}
