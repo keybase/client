@@ -264,7 +264,7 @@
   <Fragment>
     <CustomAction Id="CleanSecretStoreFiles"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\cmd.exe /C del *.s??"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [WindowsFolder]\System32\cmd.exe /C del *.?s2;del *.ss"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
