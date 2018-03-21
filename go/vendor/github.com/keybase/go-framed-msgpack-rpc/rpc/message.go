@@ -10,7 +10,7 @@ import (
 type rpcMessage interface {
 	Type() MethodType
 	Name() string
-	SeqNo() seqNumber
+	SeqNo() SeqNumber
 	MinLength() int
 	Err() error
 	DecodeMessage(int, decoder, *protocolHandler, *callContainer) error
@@ -41,7 +41,7 @@ func (r *basicRPCData) loadContext(l int, d decoder) error {
 
 type rpcCallMessage struct {
 	basicRPCData
-	seqno seqNumber
+	seqno SeqNumber
 	name  string
 	arg   interface{}
 	err   error
@@ -72,7 +72,7 @@ func (r rpcCallMessage) Type() MethodType {
 	return MethodCall
 }
 
-func (r rpcCallMessage) SeqNo() seqNumber {
+func (r rpcCallMessage) SeqNo() SeqNumber {
 	return r.seqno
 }
 
@@ -99,7 +99,7 @@ func (r rpcResponseMessage) MinLength() int {
 }
 
 func (r *rpcResponseMessage) DecodeMessage(l int, d decoder, _ *protocolHandler, cc *callContainer) error {
-	var seqNo seqNumber
+	var seqNo SeqNumber
 	if r.err = d.Decode(&seqNo); r.err != nil {
 		return r.err
 	}
@@ -151,7 +151,7 @@ func (r rpcResponseMessage) Type() MethodType {
 	return MethodResponse
 }
 
-func (r rpcResponseMessage) SeqNo() seqNumber {
+func (r rpcResponseMessage) SeqNo() SeqNumber {
 	if r.c == nil {
 		return -1
 	}
@@ -216,7 +216,7 @@ func (r rpcNotifyMessage) Type() MethodType {
 	return MethodNotify
 }
 
-func (r rpcNotifyMessage) SeqNo() seqNumber {
+func (r rpcNotifyMessage) SeqNo() SeqNumber {
 	return -1
 }
 
@@ -233,7 +233,7 @@ func (r rpcNotifyMessage) Err() error {
 }
 
 type rpcCancelMessage struct {
-	seqno seqNumber
+	seqno SeqNumber
 	name  string
 	err   error
 }
@@ -254,7 +254,7 @@ func (r rpcCancelMessage) Type() MethodType {
 	return MethodCancel
 }
 
-func (r rpcCancelMessage) SeqNo() seqNumber {
+func (r rpcCancelMessage) SeqNo() SeqNumber {
 	return r.seqno
 }
 
