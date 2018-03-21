@@ -10,6 +10,25 @@ import (
 	"github.com/keybase/client/go/stellar/bundle"
 )
 
+type shouldCreateRes struct {
+	Status       libkb.AppStatus `json:"status"`
+	ShouldCreate bool            `json:"shouldcreate"`
+}
+
+func (r *shouldCreateRes) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+// ShouldCreate asks the server whether to create this user's initial wallet.
+func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (should bool, err error) {
+	defer g.CTraceTimed(ctx, "Stellar.ShouldCreate", func() error { return err })()
+	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/shouldcreate")
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	var apiRes shouldCreateRes
+	err = g.API.GetDecode(arg, &apiRes)
+	return apiRes.ShouldCreate, err
+}
+
 // Post a bundle to the server
 func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle keybase1.StellarBundle) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Post", func() error { return err })()
