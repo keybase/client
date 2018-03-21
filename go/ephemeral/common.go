@@ -14,6 +14,12 @@ const KeyLifetimeSecs = keybase1.Time(60 * 60 * 24 * 7) // one week
 // Everyday we want to generate a new key if possible
 const KeyGenLifetimeSecs = keybase1.Time(60 * 60 * 24) // one day
 
+// We should wrap any entry points to the library with this before we're ready
+// to fully release it.
+func ShouldRun(g *libkb.GlobalContext) bool {
+	return g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+}
+
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(libkb.NaclDHKeysize)
 	if err != nil {

@@ -551,15 +551,23 @@ func (d *Service) hourlyChecks() {
 		if err := d.G().LogoutIfRevoked(); err != nil {
 			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 		}
-		ekLib := d.G().GetEKLib()
-		ekLib.KeygenIfNeeded(context.Background())
+		// TODO remove this when we want to release in the wild.
+		if ephemeral.ShouldRun(d.G()) {
+			ekLib := d.G().GetEKLib()
+			ekLib.KeygenIfNeeded(context.Background())
+		}
 		for {
 			<-ticker.C
 			d.G().Log.Debug("+ hourly check loop")
 			d.G().Log.Debug("| checking tracks on an hour timer")
 			libkb.CheckTracking(d.G())
-			d.G().Log.Debug("| checking if ephemeral keys need to be created or deleted")
-			ekLib.KeygenIfNeeded(context.Background())
+
+			// TODO remove this when we want to release in the wild.
+			if ephemeral.ShouldRun(d.G()) {
+				ekLib := d.G().GetEKLib()
+				d.G().Log.Debug("| checking if ephemeral keys need to be created or deleted")
+				ekLib.KeygenIfNeeded(context.Background())
+			}
 			d.G().Log.Debug("| checking if current device revoked")
 			if err := d.G().LogoutIfRevoked(); err != nil {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
