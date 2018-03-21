@@ -672,7 +672,7 @@ func (k *SimpleFS) doCopyFromSource(
 	defer src.Close()
 
 	dst, err := dstFS.OpenFile(
-		finalDstElem, os.O_RDWR|os.O_CREATE|os.O_TRUNC, srcFI.Mode())
+		finalDstElem, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
