@@ -52,6 +52,22 @@ func TestOuterLinkV2WithMetadataPointerEmbedderDecode(t *testing.T) {
 	require.Equal(t, errCodecDecodeSelf, err)
 }
 
+type outerLinkV2WithMetadataContainer struct {
+	o OuterLinkV2WithMetadata
+}
+
+func TestOuterLinkV2WithMetadataContainerEncode(t *testing.T) {
+	var o outerLinkV2WithMetadataContainer
+	_, err := MsgpackEncode(o)
+	require.Equal(t, errCodecEncodeSelf, err)
+}
+
+func TestOuterLinkV2WithMetadataContainerDecode(t *testing.T) {
+	var o outerLinkV2WithMetadataContainer
+	err := MsgpackDecode(&o, []byte{0x1, 0x2})
+	require.Equal(t, errCodecDecodeSelf, err)
+}
+
 type withMetadataContainer struct {
 	o OuterLinkV2WithMetadata
 }
