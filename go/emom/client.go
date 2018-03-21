@@ -1,37 +1,21 @@
 package emom
 
 import (
-	binary "encoding/binary"
 	errors "errors"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
-	clockwork "github.com/keybase/clockwork"
 	codec "github.com/keybase/go-codec/codec"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
-	saltpack "github.com/keybase/saltpack"
 	context "golang.org/x/net/context"
 	sync "sync"
 )
 
-type ServerPublicKey struct {
-	gen emom1.KeyGen
-	key saltpack.BoxPublicKey
-}
-
-type User struct {
-	uid            emom1.UID
-	userSigningKey saltpack.SigningSecretKey
-}
-
 type Client struct {
-	user            User
-	serverPublicKey ServerPublicKey
-	cli             *rpc.Client
-	aeClient        emom1.AeClient
-	xp              rpc.Transporter
-	sentChan        chan rpc.SeqNumber
-	sessionKey      saltpack.BoxPrecomputedSharedKey
-	errorUnwrapper  rpc.ErrorUnwrapper
-	clock           clockwork.Clock
+	cli            *rpc.Client
+	aeClient       emom1.AeClient
+	xp             rpc.Transporter
+	sentChan       chan rpc.SeqNumber
+	errorUnwrapper rpc.ErrorUnwrapper
+	cryptoer       Cryptoer
 
 	// protected by seqnoMu
 	seqnoMu sync.Mutex
@@ -43,16 +27,14 @@ type Client struct {
 	fatalSeqError error
 }
 
-func NewClient(xp rpc.Transporter, eu rpc.ErrorUnwrapper, user User, server ServerPublicKey) *Client {
+func NewClient(xp rpc.Transporter, eu rpc.ErrorUnwrapper, cryptoer Cryptoer) *Client {
 	ch := make(chan rpc.SeqNumber)
 	ret := &Client{
-		user:            user,
-		serverPublicKey: server,
-		seqno:           emom1.Seqno(0),
-		xp:              xp,
-		sentChan:        ch,
-		clock:           clockwork.NewRealClock(),
-		errorUnwrapper:  eu,
+		seqno:          emom1.Seqno(0),
+		xp:             xp,
+		sentChan:       ch,
+		errorUnwrapper: eu,
+		cryptoer:       cryptoer,
 	}
 	sendNotifier := func(s rpc.SeqNumber) {
 		ch <- s
@@ -64,10 +46,6 @@ func NewClient(xp rpc.Transporter, eu rpc.ErrorUnwrapper, user User, server Serv
 	ret.cli = cli
 	ret.aeClient = emom1.AeClient{Cli: cli}
 	return ret
-}
-
-func (c *Client) SetClock(clock clockwork.Clock) {
-	c.clock = clock
 }
 
 func (c *Client) replySequencer(server rpc.SeqNumber, client rpc.SeqNumber) {
@@ -114,25 +92,6 @@ func encodeToBytes(i interface{}) ([]byte, error) {
 
 func decodeFromBytes(p interface{}, b []byte) error {
 	return codec.NewDecoderBytes(b, codecHandle()).Decode(p)
-}
-
-func makeNonce(msgType emom1.MsgType, n emom1.Seqno) saltpack.Nonce {
-	var out saltpack.Nonce
-	copy(out[0:16], "encrypted_fmprpc")
-	binary.BigEndian.PutUint32(out[12:16], uint32(msgType))
-	binary.BigEndian.PutUint64(out[16:], uint64(n))
-	return out
-}
-
-func encrypt(ctx context.Context, msg []byte, msgType emom1.MsgType, n emom1.Seqno, key saltpack.BoxPrecomputedSharedKey) (emom1.AuthEnc, error) {
-	return emom1.AuthEnc{
-		N: n,
-		E: key.Box(makeNonce(msgType, n), msg),
-	}, nil
-}
-
-func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc, key saltpack.BoxPrecomputedSharedKey) ([]byte, error) {
-	return key.Unbox(makeNonce(msgType, ae.N), ae.E)
 }
 
 func (c *Client) unwrapError(encodedError []byte) error {
@@ -185,11 +144,9 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		A: encodedArg,
 	}
 
-	if c.sessionKey == nil {
-		wrappedArg.H, rp.F, err = c.doHandshake(ctx)
-		if err != nil {
-			return err
-		}
+	err = c.cryptoer.InitClient(ctx, &wrappedArg, &rp)
+	if err != nil {
+		return err
 	}
 
 	encodedRequestPlaintext, err = encodeToBytes(rp)
@@ -197,7 +154,7 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
-	wrappedArg.A, err = encrypt(ctx, encodedRequestPlaintext, emom1.MsgType_CALL, seqno, c.sessionKey)
+	wrappedArg.A, err = encrypt(ctx, encodedRequestPlaintext, emom1.MsgType_CALL, seqno, c.cryptoer.SessionKey())
 	if err != nil {
 		return err
 	}
@@ -222,7 +179,7 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
-	encodedResponsePlaintext, err = c.decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.sessionKey)
+	encodedResponsePlaintext, err = c.decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.cryptoer.SessionKey())
 	if err != nil {
 		return err
 	}
@@ -246,45 +203,6 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 	return nil
-}
-
-func (c *Client) doHandshake(ctx context.Context) (*emom1.Handshake, *emom1.SignedAuthToken, error) {
-
-	ephemeralKey, err := c.serverPublicKey.key.CreateEphemeralKey()
-	if err != nil {
-		return nil, nil, err
-	}
-	ephemeralKID := emom1.KID(ephemeralKey.GetPublicKey().ToKID())
-
-	c.sessionKey = ephemeralKey.Precompute(c.serverPublicKey.key)
-
-	handshake := emom1.Handshake{
-		V: 1,
-		S: c.serverPublicKey.gen,
-		K: ephemeralKID,
-	}
-
-	authToken := emom1.AuthToken{
-		C: emom1.ToTime(c.clock.Now()),
-		K: ephemeralKID,
-		U: c.user.uid,
-	}
-
-	msg, err := encodeToBytes(authToken)
-	if err != nil {
-		return nil, nil, err
-	}
-	sig, err := c.user.userSigningKey.Sign(msg)
-	if err != nil {
-		return nil, nil, err
-	}
-	signedAuthToken := emom1.SignedAuthToken{
-		T: authToken,
-		D: emom1.KID(c.user.userSigningKey.GetPublicKey().ToKID()),
-		S: sig,
-	}
-
-	return &handshake, &signedAuthToken, nil
 }
 
 func (c *Client) Notify(ctx context.Context, method string, arg interface{}) error {
