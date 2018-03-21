@@ -2,9 +2,11 @@ package libkb
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 // See comment at top of sig_chain.go for a description of V1, V2 and
@@ -151,6 +153,10 @@ type OuterLinkV2 struct {
 	IgnoreIfUnsupported bool `codec:"ignore_if_unsupported"`
 }
 
+func (o OuterLinkV2) Encode() ([]byte, error) {
+	return MsgpackEncode(o)
+}
+
 type OuterLinkV2WithMetadata struct {
 	OuterLinkV2
 	raw   []byte
@@ -159,8 +165,17 @@ type OuterLinkV2WithMetadata struct {
 	kid   keybase1.KID
 }
 
-func (o OuterLinkV2) Encode() ([]byte, error) {
-	return MsgpackEncode(o)
+var _ codec.Selfer = (*OuterLinkV2WithMetadata)(nil)
+
+var errCodecEncodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecEncodeSelf")
+var errCodecDecodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecDecodeSelf")
+
+func (o *OuterLinkV2WithMetadata) CodecEncodeSelf(e *codec.Encoder) {
+	panic(errCodecEncodeSelf)
+}
+
+func (o *OuterLinkV2WithMetadata) CodecDecodeSelf(d *codec.Decoder) {
+	panic(errCodecDecodeSelf)
 }
 
 type SigIgnoreIfUnsupported bool
