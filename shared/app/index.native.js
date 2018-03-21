@@ -22,7 +22,7 @@ module.hot &&
     console.log('accepted update in shared/index.native')
     if (global.store) {
       console.log('updating route defs due to hot reload')
-      const appRouteTree = require('./routes').default
+      const appRouteTree = require('./routes-app').default
       const loginRouteTree = require('./routes-login').default
       global.store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
     }

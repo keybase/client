@@ -166,9 +166,14 @@ function setupHMR(store) {
 
   module.hot &&
     module.hot.accept(
-      ['../../app/main.desktop', '../../app/routes', '../../app/routes-login', '../../store/configure-store'],
+      [
+        '../../app/main.desktop',
+        '../../app/routes-app',
+        '../../app/routes-login',
+        '../../store/configure-store',
+      ],
       () => {
-        const appRouteTree = require('../../app/routes').default
+        const appRouteTree = require('../../app/routes-app').default
         const loginRouteTree = require('../../app/routes-login').default
         store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
         try {
