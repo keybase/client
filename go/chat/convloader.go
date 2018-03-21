@@ -110,10 +110,6 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.newQueue()
 	b.started = true
 	b.uid = uid
-	// On mobile fresh start, apply the foreground wait
-	if b.G().GetAppType() == libkb.MobileAppType {
-		b.clock.Sleep(b.resumeWait)
-	}
 	go b.loop()
 }
 
@@ -209,6 +205,11 @@ func (b *BackgroundConvLoader) loop() {
 		<-ch
 		b.clock.Sleep(b.resumeWait)
 		b.Debug(bgctx, "waitForResume: resuming loop")
+	}
+	// On mobile fresh start, apply the foreground wait
+	if b.G().GetAppType() == libkb.MobileAppType {
+		b.Debug(bgctx, "loop: delaying startup since on mobile")
+		b.clock.Sleep(b.resumeWait)
 	}
 	for {
 		// get a convID from queue, or stop
