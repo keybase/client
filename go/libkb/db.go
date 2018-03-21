@@ -167,9 +167,9 @@ const (
 	DBSig               = 0x0f
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
-	// NOTE: This file needs to stay consistent with config/id.iced on the
-	// website, and that one has IDs on the lower end of the range that aren't
-	// represented here.
+
+	DBDiskLRUEntries           = 0xda
+	DBDiskLRUIndex             = 0xdb
 	DBImplicitTeamConflictInfo = 0xdc
 	DBUidToFullName            = 0xdd
 	DBUidToUsername            = 0xde
