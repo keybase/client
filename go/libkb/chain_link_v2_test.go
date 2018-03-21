@@ -6,6 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test that various ways in which OuterLinkV2WithMetadata may be
+// encoded/decoded all fail.
+
 func TestOuterLinkV2WithMetadataEncode(t *testing.T) {
 	var o OuterLinkV2WithMetadata
 	_, err := MsgpackEncode(o)

@@ -165,6 +165,10 @@ type OuterLinkV2WithMetadata struct {
 	kid   keybase1.KID
 }
 
+// An OuterLinkV2WithMetadata should never be encoded/decoded
+// directly. This is to avoid problems like
+// https://github.com/keybase/saltpack/pull/43 .
+
 var _ codec.Selfer = (*OuterLinkV2WithMetadata)(nil)
 
 var errCodecEncodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecEncodeSelf")
