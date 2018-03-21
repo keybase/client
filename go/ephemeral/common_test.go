@@ -35,3 +35,52 @@ func TestTimeConversions(t *testing.T) {
 	now := time.Now().Unix()
 	require.Equal(t, now, keybase1.TimeFromSeconds(now).UnixSeconds())
 }
+
+func TestDeleteExpiredKeys(t *testing.T) {
+	now := keybase1.TimeFromSeconds(time.Now().Unix())
+
+	// Test empty
+	expired := getExpiredGenerations(make(keyExpiryMap), now)
+	expected := []keybase1.EkGeneration(nil)
+	require.Equal(t, expected, expired)
+
+	// Test with a single key that is not expired
+	keyMap := keyExpiryMap{
+		0: now,
+	}
+	expired = getExpiredGenerations(keyMap, now)
+	expected = []keybase1.EkGeneration(nil)
+	require.Equal(t, expected, expired)
+
+	// Test with a single key that is stale but not expired
+	keyMap = keyExpiryMap{
+		0: now - keybase1.TimeFromSeconds(KeyLifetimeSecs),
+	}
+
+	// Test with a single key that is expired
+	keyMap = keyExpiryMap{
+		0: now - keybase1.TimeFromSeconds(KeyLifetimeSecs*2),
+	}
+	expired = getExpiredGenerations(keyMap, now)
+	expected = []keybase1.EkGeneration{0}
+	require.Equal(t, expected, expired)
+
+	// Test with a 6 day gap, but no expiry
+	keyMap = keyExpiryMap{
+		0: now - keybase1.TimeFromSeconds(60*60*24*6),
+		1: now,
+	}
+	expired = getExpiredGenerations(keyMap, now)
+	expected = []keybase1.EkGeneration(nil)
+	require.Equal(t, expected, expired)
+
+	// Test multiple gaps, only the last key is valid though.
+	keyMap = make(keyExpiryMap)
+	numKeys := 5
+	for i := 0; i < numKeys; i++ {
+		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = now - keybase1.TimeFromSeconds(int64(KeyLifetimeSecs*i))
+	}
+	expired = getExpiredGenerations(keyMap, now)
+	expected = []keybase1.EkGeneration{0, 1, 2}
+	require.Equal(t, expected, expired)
+}

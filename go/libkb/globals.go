@@ -74,6 +74,7 @@ type GlobalContext struct {
 	teamLoader       TeamLoader       // Play back teams for id/name properties
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
+	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	CardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
@@ -156,6 +157,7 @@ func (g *GlobalContext) GetEnv() *Env                                  { return 
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
+func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
 
 type LogGetter func() logger.Logger
 
@@ -206,6 +208,8 @@ func init() {
 func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
+
+func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
@@ -317,6 +321,15 @@ func (g *GlobalContext) Logout() error {
 		}
 	}
 	g.secretStoreMu.Unlock()
+
+	g.cacheMu.Lock()
+	if g.LocalDb != nil {
+		_, err := g.LocalDb.Nuke()
+		if err != nil {
+			g.Log.Debug("Failed to nuke DB: %s", err)
+		}
+	}
+	g.cacheMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {

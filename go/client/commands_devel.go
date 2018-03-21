@@ -31,6 +31,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamGenerateSeitan(cl, g),
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
+		newCmdWallet(cl, g),
 	}
 }
 

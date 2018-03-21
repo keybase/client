@@ -616,17 +616,21 @@ type TeamLoader interface {
 type DeviceEKStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error)
 	Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error)
-	ClearCache() // for testing
 	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
-	// TODO DeleteExpired(ctx context.Context) error
+	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	ClearCache()
 }
 
 type UserEKBoxStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error)
 	Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error)
 	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
-	ClearCache() // for testing
-	// TODO DeleteExpired(ctx context.Context) error
+	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	ClearCache()
+}
+
+type EKLib interface {
+	KeygenIfNeeded(ctx context.Context) error
 }
 
 type ImplicitTeamConflictInfoCacher interface {
