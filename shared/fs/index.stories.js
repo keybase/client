@@ -70,7 +70,7 @@ const load = () => {
           name: previewPathName,
           lastModifiedTimestamp: 1518029754000,
           size: 15000,
-          lastWriter: 'foobar',
+          lastWriter: {uid: '', username: 'foobar'},
           progress: 'pending',
         }}
       />

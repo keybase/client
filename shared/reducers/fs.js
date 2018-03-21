@@ -54,9 +54,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     }
     case FsGen.fileTransferProgress: {
-      const {key, completePortion} = action.payload
+      const {key, completePortion, endEstimate} = action.payload
       return state.updateIn(['transfers', key], (original: Types.TransferState) =>
-        original.set('completePortion', completePortion)
+        original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
     case FsGen.downloadFinished: {

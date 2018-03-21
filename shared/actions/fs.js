@@ -50,7 +50,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
-    filter: RPCTypes.simpleFSListFilter.noFilter,
+    filter: RPCTypes.simpleFSListFilter.filterAllHidden,
   })
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
@@ -61,7 +61,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const direntToMetadata = (d: RPCTypes.Dirent) => ({
     name: d.name,
     lastModifiedTimestamp: d.time,
-    lastWriter: 'jareddunn' + (d.name.length < 10 ? '' : 'andfriendsandfriends'), // TODO fix this when we have it from RPC
+    lastWriter: d.lastWriterUnverified,
     size: d.size,
   })
 
@@ -118,14 +118,18 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
   })
 
-  // Fake out progress until we have the real thing.
-  // TODO: have the real thing.
-  const total = 6
-  for (let progress = 0; progress < total - 1; ++progress) {
+  let progress
+  do {
     yield Saga.delay(500)
-    yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
-    yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: progress / total}))
-  }
+    progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    yield Saga.put(
+      FsGen.createFileTransferProgress({
+        key,
+        endEstimate: progress.endEstimate,
+        completePortion: progress.bytesWritten / progress.bytesTotal,
+      })
+    )
+  } while (progress.bytesWritten < progress.bytesTotal)
 
   let error
   try {

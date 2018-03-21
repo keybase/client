@@ -14,7 +14,7 @@ export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
-  lastWriter: string,
+  lastWriter: RPCTypes.User,
   progress: ProgressType,
 }
 
@@ -65,6 +65,7 @@ export type _TransferState = {
   path: Path,
   localPath: LocalPath,
   completePortion: number,
+  endEstimate?: number,
   error?: string,
   isDone: boolean,
   startedAt: number,
