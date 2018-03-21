@@ -179,6 +179,8 @@ func (m *TlfMock) newTLFID() chat1.TLFID {
 }
 
 func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, error) {
+	m.Lock()
+	defer m.Unlock()
 	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
 		for _, n := range strings.Split(string(cname), ",") {
@@ -194,8 +196,6 @@ func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, err
 }
 
 func (m *TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
-	m.Lock()
-	defer m.Unlock()
 	var tlfID keybase1.TLFID
 	res = types.NewNameInfo()
 	name := CanonicalTlfNameForTest(tlfName)
@@ -233,8 +233,6 @@ func (m *TlfMock) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat
 }
 
 func (m *TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
-	m.Lock()
-	defer m.Unlock()
 	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
@@ -248,8 +246,6 @@ func (m *TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.G
 }
 
 func (m *TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
-	m.Lock()
-	defer m.Unlock()
 	var res keybase1.CanonicalTLFNameAndIDWithBreaks
 	res.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	var err error
