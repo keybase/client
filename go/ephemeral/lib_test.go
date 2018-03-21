@@ -42,7 +42,7 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 	seed, err := newDeviceEphemeralSeed()
 	require.NoError(t, err)
 	s := tc.G.GetDeviceEKStorage()
-	ctimeExpired := keybase1.Time(time.Now().Unix()) - KeyLifetimeSecs*3
+	ctimeExpired := keybase1.TimeFromSeconds(time.Now().Unix() - KeyLifetimeSecs*3)
 	err = s.Put(context.Background(), 0, keybase1.DeviceEk{
 		Seed: keybase1.Bytes32(seed),
 		Metadata: keybase1.DeviceEkMetadata{

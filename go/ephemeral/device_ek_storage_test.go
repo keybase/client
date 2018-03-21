@@ -16,7 +16,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	now := keybase1.Time(time.Now().Unix())
+	now := keybase1.TimeFromSeconds(time.Now().Unix())
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
@@ -28,7 +28,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: 0,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta0"),
 				Kid:        "",
-				Ctime:      now - KeyLifetimeSecs*3,
+				Ctime:      now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
 			},
 		},
 		{
@@ -37,7 +37,7 @@ func TestDeviceEKStorage(t *testing.T) {
 				Generation: 1,
 				HashMeta:   keybase1.HashMeta("fakeHashMeta1"),
 				Kid:        "",
-				Ctime:      now - KeyLifetimeSecs*3,
+				Ctime:      now - keybase1.TimeFromSeconds(KeyLifetimeSecs*3),
 			},
 		},
 		{

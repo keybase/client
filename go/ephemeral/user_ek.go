@@ -315,7 +315,7 @@ func getActiveUserEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkle
 	// since the server doesn't do this check for us. We log these cases
 	// and return nil.
 	ageSecs := merkleRoot.Ctime() - metadata.Ctime.UnixSeconds()
-	if keybase1.Time(ageSecs) > KeyLifetimeSecs {
+	if ageSecs > KeyLifetimeSecs {
 		g.Log.CDebugf(ctx, "found stale userEK %s", metadata.Kid)
 		return nil, nil
 	}

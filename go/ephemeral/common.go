@@ -10,9 +10,9 @@ import (
 )
 
 // Keys last at most one week
-const KeyLifetimeSecs = keybase1.Time(60 * 60 * 24 * 7) // one week
+const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 // Everyday we want to generate a new key if possible
-const KeyGenLifetimeSecs = keybase1.Time(60 * 60 * 24) // one day
+const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
 
 // We should wrap any entry points to the library with this before we're ready
 // to fully release it.
@@ -89,7 +89,7 @@ func getExpiredGenerations(keyMap keyExpiryMap, nowCTime keybase1.Time) (expired
 			expiryOffset = KeyLifetimeSecs
 		}
 		// Keys can live for as long as KeyLifetimeSecs + expiryOffset
-		if (nowCTime - currentCTime) >= (KeyLifetimeSecs + expiryOffset) {
+		if (nowCTime - currentCTime) >= (keybase1.TimeFromSeconds(KeyLifetimeSecs) + expiryOffset) {
 			expired = append(expired, generation)
 		}
 	}

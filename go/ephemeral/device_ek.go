@@ -224,7 +224,7 @@ func getActiveDeviceEKMetadata(ctx context.Context, g *libkb.GlobalContext, merk
 		// Check whether the key is stale. This isn't considered an error,
 		// since the server doesn't do this check for us. We log these cases
 		// and skip them.
-		ageSecs := keybase1.Time(merkleRoot.Ctime() - signedMerkleRoot.Ctime)
+		ageSecs := keybase1.TimeFromSeconds(merkleRoot.Ctime() - signedMerkleRoot.Ctime)
 		if ageSecs > KeyLifetimeSecs {
 			g.Log.CDebugf(ctx, "skipping stale deviceEK %s for device KID %s", verifiedMetadata.Kid, matchingDevice.KID)
 			continue

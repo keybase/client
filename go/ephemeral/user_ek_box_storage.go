@@ -293,7 +293,7 @@ func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.M
 		keyMap[generation] = userEKBoxed.Metadata.Ctime
 	}
 
-	expired = getExpiredGenerations(keyMap, keybase1.Time(merkleRoot.Ctime()))
+	expired = getExpiredGenerations(keyMap, keybase1.TimeFromSeconds(merkleRoot.Ctime()))
 	err = s.deleteMany(ctx, expired)
 	return expired, err
 }
