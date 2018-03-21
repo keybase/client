@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestJackDummy(t *testing.T) {
+	panic("deliberate failure to test CI")
+}
+
 func TestNewDeviceEK(t *testing.T) {
 	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
