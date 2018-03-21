@@ -160,7 +160,7 @@ func GetHandleFromFolderNameAndType(
 	t tlf.Type) (*TlfHandle, error) {
 	for {
 		tlfHandle, err := ParseTlfHandle(ctx, kbpki, idGetter, tlfName, t)
-		switch e := err.(type) {
+		switch e := errors.Cause(err).(type) {
 		case TlfNameNotCanonical:
 			tlfName = e.NameToTry
 		case nil:

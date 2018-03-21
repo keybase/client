@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -185,20 +186,19 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 
 	h, err := libfs.ParseTlfHandlePreferredQuick(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
-	switch err := err.(type) {
+	switch e := errors.Cause(err).(type) {
 	case nil:
 		// no error
 
 	case libkbfs.TlfNameNotCanonical:
-
 		// Only permit Aliases to targets that contain no errors.
-		if !fl.isValidAliasTarget(ctx, err.NameToTry) {
-			fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", err.NameToTry)
+		if !fl.isValidAliasTarget(ctx, e.NameToTry) {
+			fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", e.NameToTry)
 			return nil, fuse.ENOENT
 		}
 		// Non-canonical name.
 		n := &Alias{
-			realPath: err.NameToTry,
+			realPath: e.NameToTry,
 		}
 		return n, nil
 
@@ -281,7 +281,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	h, err := libkbfs.ParseTlfHandlePreferred(
 		ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), req.Name, fl.tlfType)
 
-	switch err := err.(type) {
+	switch err := errors.Cause(err).(type) {
 	case nil:
 		func() {
 			fl.mu.Lock()
@@ -310,7 +310,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 }
 
 func isTlfNameNotCanonical(err error) bool {
-	_, ok := err.(libkbfs.TlfNameNotCanonical)
+	_, ok := errors.Cause(err).(libkbfs.TlfNameNotCanonical)
 	return ok
 }
 

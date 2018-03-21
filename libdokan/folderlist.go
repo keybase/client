@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -130,13 +131,13 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		h, err := libfs.ParseTlfHandlePreferredQuick(
 			ctx, fl.fs.config.KBPKI(), name, fl.tlfType)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
-		switch err := err.(type) {
+		switch e := errors.Cause(err).(type) {
 		case nil:
 			// no error
 
 		case libkbfs.TlfNameNotCanonical:
 			// Only permit Aliases to targets that contain no errors.
-			aliasTarget = err.NameToTry
+			aliasTarget = e.NameToTry
 			fl.fs.log.CDebugf(ctx, "FL Lookup set alias: %q -> %q", name, aliasTarget)
 			if !fl.isValidAliasTarget(ctx, aliasTarget) {
 				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", aliasTarget)

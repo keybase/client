@@ -13,9 +13,9 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"golang.org/x/net/context"
 )
 
@@ -49,7 +49,8 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 
 	nonCanonicalName := "W1,w2#r1"
 	_, err = ParseTlfHandle(ctx, nil, nil, nonCanonicalName, tlf.Private)
-	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
+	assert.Equal(
+		t, TlfNameNotCanonical{nonCanonicalName, name}, errors.Cause(err))
 }
 
 func TestParseTlfHandleNoUserFailure(t *testing.T) {
@@ -184,7 +185,8 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	// Names with assertions should be identified before the error
 	// is returned.
 	assert.Equal(t, 3, kbpki.getIdentifyCalls())
-	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
+	assert.Equal(
+		t, TlfNameNotCanonical{nonCanonicalName, name}, errors.Cause(err))
 }
 
 func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
@@ -646,7 +648,7 @@ func TestParseTlfHandleUIDAssertion(t *testing.T) {
 	_, err := ParseTlfHandle(
 		ctx, kbpki, constIDGetter{tlf.FakeID(1, tlf.Private)}, a, tlf.Private)
 	assert.Equal(t, 1, kbpki.getIdentifyCalls())
-	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
+	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, errors.Cause(err))
 }
 
 func TestParseTlfHandleAndAssertion(t *testing.T) {
@@ -670,7 +672,7 @@ func TestParseTlfHandleAndAssertion(t *testing.T) {
 	// We expect 1 extra identify for compound assertions until
 	// KBFS-2022 is completed.
 	assert.Equal(t, 1+1, kbpki.getIdentifyCalls())
-	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
+	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, errors.Cause(err))
 }
 
 func TestParseTlfHandleConflictSuffix(t *testing.T) {
@@ -1077,7 +1079,8 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	nonCanonicalName := "u1,u2#u3 (files before u2 account reset 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
 	_, err = ParseTlfHandle(
 		ctx, kbpki, constIDGetter{id}, nonCanonicalName, tlf.Private)
-	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
+	assert.Equal(
+		t, TlfNameNotCanonical{nonCanonicalName, name}, errors.Cause(err))
 }
 
 func TestParseTlfHandleImplicitTeams(t *testing.T) {

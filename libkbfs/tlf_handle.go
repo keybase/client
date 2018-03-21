@@ -7,7 +7,6 @@ package libkbfs
 // This file has the type for TlfHandles and offline functionality.
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -18,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -463,7 +463,7 @@ func splitAndNormalizeTLFName(name string, t tlf.Type) (
 	}
 	// Check for changes - not just ordering differences here.
 	if changes {
-		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
+		return nil, nil, "", errors.WithStack(TlfNameNotCanonical{name, normalizedName})
 	}
 
 	return writerNames, readerNames, strings.ToLower(extensionSuffix), nil

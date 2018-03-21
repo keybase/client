@@ -7,7 +7,6 @@ package libkbfs
 // This file has the online resolving functionality for TlfHandles.
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -20,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -183,10 +183,6 @@ func makeTlfHandleHelper(
 		unresolvedReaders = getSortedUnresolved(usedUnresolvedReaders)
 	}
 
-	canonicalName := tlf.MakeCanonicalName(
-		getNames(usedWNames), unresolvedWriters,
-		getNames(usedRNames), unresolvedReaders, extensions)
-
 	extensionList := tlf.HandleExtensionList(extensions)
 	sort.Sort(extensionList)
 	conflictInfo, finalizedInfo := extensionList.Splat()
@@ -198,6 +194,17 @@ func makeTlfHandleHelper(
 		for id := range usedWNames {
 			isImplicit = id.IsTeam()
 		}
+	}
+
+	var canonicalName tlf.CanonicalName
+	if isImplicit || t == tlf.SingleTeam {
+		canonicalName = tlf.MakeCanonicalNameForTeam(
+			getNames(usedWNames), unresolvedWriters,
+			getNames(usedRNames), unresolvedReaders, extensions)
+	} else {
+		canonicalName = tlf.MakeCanonicalName(
+			getNames(usedWNames), unresolvedWriters,
+			getNames(usedRNames), unresolvedReaders, extensions)
 	}
 
 	switch t {
@@ -769,12 +776,33 @@ func parseTlfHandleLoose(
 		}
 	}
 
+	canonicalName := string(h.GetCanonicalName())
 	if extensionSuffix != "" {
 		extensionList := tlf.HandleExtensionList(extensions)
 		sort.Sort(extensionList)
-		var canonExtensionString = extensionList.Suffix()
+		var canonExtensionString string
+		// If this resolve is being done in a "quick" way that doesn't
+		// check for implicit teams, we might not know if this handle
+		// is backed by a team or not.  But (mostly for tests) we need
+		// to make sure the suffix reflects the right format,
+		// otherwise we'll get too many levels of non-canonical
+		// redirects.  So if the user explicitly specified a "#1" in
+		// their suffix, let's keep it there and assume the user knows
+		// what they're doing.
+		if h.IsBackedByTeam() || strings.Contains(extensionSuffix, "#1") {
+			canonExtensionString = extensionList.SuffixForTeamHandle()
+		} else {
+			canonExtensionString = extensionList.Suffix()
+		}
+		_, _, currExtensionSuffix, _ :=
+			splitAndNormalizeTLFName(canonicalName, t)
+		canonicalName = strings.Replace(
+			canonicalName, tlf.HandleExtensionSep+currExtensionSuffix,
+			canonExtensionString, 1)
+		h.name = tlf.CanonicalName(canonicalName)
 		if canonExtensionString != tlf.HandleExtensionSep+extensionSuffix {
-			return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+			return nil, errors.WithStack(
+				TlfNameNotCanonical{name, canonicalName})
 		}
 	}
 
@@ -794,7 +822,7 @@ func parseTlfHandleLoose(
 	// In this case return both the handle and the error,
 	// ParseTlfHandlePreferred uses this to make the redirection
 	// better.
-	return h, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+	return h, errors.WithStack(TlfNameNotCanonical{name, canonicalName})
 }
 
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
@@ -820,7 +848,7 @@ func ParseTlfHandle(
 		return nil, err
 	}
 	if name != string(h.GetCanonicalName()) {
-		return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+		return nil, errors.WithStack(TlfNameNotCanonical{name, string(h.GetCanonicalName())})
 	}
 	return h, nil
 }
@@ -854,12 +882,12 @@ func ParseTlfHandlePreferred(
 	}
 	pref := h.GetPreferredFormat(session.Name)
 	if string(pref) != name {
-		return nil, TlfNameNotCanonical{name, string(pref)}
+		return nil, errors.WithStack(TlfNameNotCanonical{name, string(pref)})
 	}
 	return h, nil
 }
 
 func isTlfNameNotCanonical(err error) bool {
-	_, ok := err.(TlfNameNotCanonical)
+	_, ok := errors.Cause(err).(TlfNameNotCanonical)
 	return ok
 }

@@ -5,14 +5,13 @@
 package fsrpc
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
-
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -255,7 +254,7 @@ outer:
 	for {
 		var parseErr error
 		tlfHandle, parseErr = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, name, t)
-		switch parseErr := parseErr.(type) {
+		switch parseErr := errors.Cause(parseErr).(type) {
 		case nil:
 			// No error.
 			break outer

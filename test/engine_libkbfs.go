@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -205,7 +206,7 @@ func parseTlfHandle(
 outer:
 	for i := 0; i < 2; i++ {
 		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, mdOps, tlfName, t)
-		switch err := err.(type) {
+		switch err := errors.Cause(err).(type) {
 		case nil:
 			break outer
 		case libkbfs.TlfNameNotCanonical:

@@ -69,12 +69,11 @@ func getSortedNames(
 	return names
 }
 
-// MakeCanonicalName makes a CanonicalName from components.
-func MakeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
+func makeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
 	resolvedReaders []libkb.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
-	extensions []HandleExtension) CanonicalName {
+	extensions []HandleExtension, isBackedByTeam bool) CanonicalName {
 	writerNames := getSortedNames(resolvedWriters, unresolvedWriters)
 	canonicalName := strings.Join(writerNames, ",")
 	if len(resolvedReaders)+len(unresolvedReaders) > 0 {
@@ -85,8 +84,34 @@ func MakeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
 	extensionList := make(HandleExtensionList, len(extensions))
 	copy(extensionList, extensions)
 	sort.Sort(extensionList)
-	canonicalName += extensionList.Suffix()
+	if isBackedByTeam {
+		canonicalName += extensionList.SuffixForTeamHandle()
+	} else {
+		canonicalName += extensionList.Suffix()
+	}
 	return CanonicalName(canonicalName)
+}
+
+// MakeCanonicalName makes a CanonicalName from components.
+func MakeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
+	unresolvedWriters []keybase1.SocialAssertion,
+	resolvedReaders []libkb.NormalizedUsername,
+	unresolvedReaders []keybase1.SocialAssertion,
+	extensions []HandleExtension) CanonicalName {
+	return makeCanonicalName(
+		resolvedWriters, unresolvedWriters, resolvedReaders, unresolvedReaders,
+		extensions, false)
+}
+
+// MakeCanonicalNameForTeam makes a CanonicalName from components for a team.
+func MakeCanonicalNameForTeam(resolvedWriters []libkb.NormalizedUsername,
+	unresolvedWriters []keybase1.SocialAssertion,
+	resolvedReaders []libkb.NormalizedUsername,
+	unresolvedReaders []keybase1.SocialAssertion,
+	extensions []HandleExtension) CanonicalName {
+	return makeCanonicalName(
+		resolvedWriters, unresolvedWriters, resolvedReaders, unresolvedReaders,
+		extensions, true)
 }
 
 // PreferredName is a preferred TLF name.
