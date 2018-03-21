@@ -43,9 +43,9 @@ protocol ae {        // AE   = "Authenticated Encryption"
   }
 
   record AuthToken {
-    UID  u; // UID the auth token is for
-    Time e; // expiration time, in milliseconds from the epoch (for purge of server replay cache)
+    Time c; // creation time, in milliseconds from the epoch (for purge of server replay cache)
     KID  k; // user ephemeral KID
+    UID  u; // UID the auth token is for
   }
 
   record SignedAuthToken {

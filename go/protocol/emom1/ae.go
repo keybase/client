@@ -160,14 +160,14 @@ func (o ResponsePlaintext) DeepCopy() ResponsePlaintext {
 
 type AuthToken struct {
 	U UID  `codec:"u" json:"u"`
-	E Time `codec:"e" json:"e"`
+	C Time `codec:"c" json:"c"`
 	K KID  `codec:"k" json:"k"`
 }
 
 func (o AuthToken) DeepCopy() AuthToken {
 	return AuthToken{
 		U: o.U.DeepCopy(),
-		E: o.E.DeepCopy(),
+		C: o.C.DeepCopy(),
 		K: o.K.DeepCopy(),
 	}
 }

@@ -3,10 +3,10 @@ package emom
 import (
 	binary "encoding/binary"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
+	clockwork "github.com/keybase/clockwork"
 	codec "github.com/keybase/go-codec/codec"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	saltpack "github.com/keybase/saltpack"
-	secretbox "golang.org/x/crypto/nacl/secretbox"
 	context "golang.org/x/net/context"
 	sync "sync"
 )
@@ -37,7 +37,9 @@ type Client struct {
 	xp       rpc.Transporter
 	sentChan chan rpc.SeqNumber
 
-	sessionKey *key32
+	sessionKey saltpack.BoxPrecomputedSharedKey
+
+	clock clockwork.Clock
 }
 
 func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
@@ -48,6 +50,7 @@ func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
 		seqno:           emom1.Seqno(0),
 		xp:              xp,
 		sentChan:        ch,
+		clock:           clockwork.NewRealClock(),
 	}
 	sendNotifier := func(s rpc.SeqNumber) {
 		ch <- s
@@ -59,6 +62,10 @@ func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
 	ret.cli = cli
 	ret.aeClient = emom1.AeClient{Cli: cli}
 	return ret
+}
+
+func (c *Client) SetClock(clock clockwork.Clock) {
+	c.clock = clock
 }
 
 func (c *Client) replySequencer(server rpc.SeqNumber, client rpc.SeqNumber) {
@@ -91,9 +98,6 @@ func (c *Client) assertServerSequence(clientRpcSeqNo rpc.SeqNumber, nonce emom1.
 	return nil
 }
 
-type nonce24 [24]byte
-type key32 [32]byte
-
 func codecHandle() *codec.MsgpackHandle {
 	var mh codec.MsgpackHandle
 	mh.WriteExt = true
@@ -110,30 +114,23 @@ func decodeFromBytes(p interface{}, b []byte) error {
 	return codec.NewDecoderBytes(b, codecHandle()).Decode(p)
 }
 
-func makeNonce(msgType emom1.MsgType, n emom1.Seqno) nonce24 {
-	var out nonce24
+func makeNonce(msgType emom1.MsgType, n emom1.Seqno) saltpack.Nonce {
+	var out saltpack.Nonce
 	copy(out[0:16], "encrypted_fmprpc")
 	binary.BigEndian.PutUint32(out[12:16], uint32(msgType))
 	binary.BigEndian.PutUint64(out[16:], uint64(n))
 	return out
 }
 
-func encrypt(ctx context.Context, b []byte, msgType emom1.MsgType, n emom1.Seqno, key *key32) (emom1.AuthEnc, error) {
-	nonce := makeNonce(msgType, n)
-	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(&nonce), (*[32]byte)(key))
+func encrypt(ctx context.Context, msg []byte, msgType emom1.MsgType, n emom1.Seqno, key saltpack.BoxPrecomputedSharedKey) (emom1.AuthEnc, error) {
 	return emom1.AuthEnc{
 		N: n,
-		E: ciphertext,
+		E: key.Box(makeNonce(msgType, n), msg),
 	}, nil
 }
 
-func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc, key *key32) ([]byte, error) {
-	nonce := makeNonce(msgType, ae.N)
-	res, ok := secretbox.Open([]byte{}, ae.E, (*[24]byte)(&nonce), (*[32]byte)(key))
-	if !ok {
-		return nil, MACError
-	}
-	return res, nil
+func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc, key saltpack.BoxPrecomputedSharedKey) ([]byte, error) {
+	return key.Unbox(makeNonce(msgType, ae.N), ae.E)
 }
 
 func (c *Client) Call(ctx context.Context, method string, arg interface{}, res interface{}) (err error) {
@@ -220,7 +217,42 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 }
 
 func (c *Client) doHandshake(ctx context.Context) (*emom1.Handshake, *emom1.SignedAuthToken, error) {
-	return nil, nil, nil
+
+	ephemeralKey, err := c.serverPublicKey.key.CreateEphemeralKey()
+	if err != nil {
+		return nil, nil, err
+	}
+	ephemeralKID := emom1.KID(ephemeralKey.GetPublicKey().ToKID())
+
+	c.sessionKey = ephemeralKey.Precompute(c.serverPublicKey.key)
+
+	handshake := emom1.Handshake{
+		V: 1,
+		S: c.serverPublicKey.gen,
+		K: ephemeralKID,
+	}
+
+	authToken := emom1.AuthToken{
+		C: emom1.ToTime(c.clock.Now()),
+		K: ephemeralKID,
+		U: c.user.uid,
+	}
+
+	msg, err := encodeToBytes(authToken)
+	if err != nil {
+		return nil, nil, err
+	}
+	sig, err := c.user.userSigningKey.Sign(msg)
+	if err != nil {
+		return nil, nil, err
+	}
+	signedAuthToken := emom1.SignedAuthToken{
+		T: authToken,
+		D: emom1.KID(c.user.userSigningKey.GetPublicKey().ToKID()),
+		S: sig,
+	}
+
+	return &handshake, &signedAuthToken, nil
 }
 
 func (c *Client) Notify(ctx context.Context, method string, arg interface{}) error {
