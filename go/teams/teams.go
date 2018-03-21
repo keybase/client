@@ -83,22 +83,29 @@ func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplicati
 	return t.Data.TlfCryptKeys[appType]
 }
 
-func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
-	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
-	gen := t.chain().GetLatestGeneration()
-	item, ok := t.Data.PerTeamKeySeeds[gen]
-	if !ok {
-		return ret, fmt.Errorf("missing team secret for generation: %v", gen)
-	}
-
+func (t *Team) getKeyManager() (km *TeamKeyManager, err error) {
 	if t.keyManager == nil {
+		gen := t.chain().GetLatestGeneration()
+		item, ok := t.Data.PerTeamKeySeeds[gen]
+		if !ok {
+			return nil, fmt.Errorf("missing team secret for generation: %v", gen)
+		}
+
 		t.keyManager, err = NewTeamKeyManagerWithSecret(t.G(), item.Seed, gen)
 		if err != nil {
-			return ret, err
+			return nil, err
 		}
 	}
+	return t.keyManager, nil
+}
 
-	return t.keyManager.SharedSecret(), nil
+func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
+	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
+	km, err := t.getKeyManager()
+	if err != nil {
+		return ret, err
+	}
+	return km.SharedSecret(), nil
 }
 
 func (t *Team) KBFSKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
@@ -119,6 +126,24 @@ func (t *Team) SeitanInviteTokenKeyLatest(ctx context.Context) (keybase1.TeamApp
 
 func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation keybase1.PerTeamKeyGeneration) (keybase1.TeamApplicationKey, error) {
 	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
+}
+
+// TODO is this right or should I access them in a different way?
+func (t *Team) SigningKey() (key libkb.NaclSigningKeyPair, err error) {
+	km, err := t.getKeyManager()
+	if err != nil {
+		return key, err
+	}
+	return km.SigningKey()
+}
+
+// TODO is this right or should I access them in a different way?
+func (t *Team) EncryptionKey() (key libkb.NaclDHKeyPair, err error) {
+	km, err := t.getKeyManager()
+	if err != nil {
+		return key, err
+	}
+	return km.EncryptionKey()
 }
 
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {

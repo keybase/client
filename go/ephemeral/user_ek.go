@@ -69,7 +69,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	if err != nil {
 		// Let's try to get the max from the server
 		g.Log.CDebugf(ctx, "Error getting maxGeneration from storage")
-		activeMetadata, err := getLatestUserEKMetadataMaybeStale(ctx, g)
+		activeMetadata, err := userEKMetadataMaybeStale(ctx, g)
 		if err != nil {
 			return metadata, err
 		}
@@ -79,13 +79,17 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 			generation = activeMetadata.Generation
 		}
 	}
+	// This is our first generation
+	if generation < 0 {
+		generation = 0
+	}
 	generation++
 
 	metadata, myUserEKBoxed, err := signAndPublishUserEK(ctx, g, generation, seed, merkleRoot)
 	if err != nil {
-		g.Log.CDebugf(ctx, "Error posting deviceEK, retrying with server maxGeneration")
+		g.Log.CDebugf(ctx, "Error posting userEK, retrying with server maxGeneration")
 		// Let's retry posting with the server given max
-		activeMetadata, err := getLatestUserEKMetadataMaybeStale(ctx, g)
+		activeMetadata, err := userEKMetadataMaybeStale(ctx, g)
 		if err != nil {
 			return metadata, err
 		}
@@ -157,38 +161,9 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 		return metadata, myUserEKBoxed, err
 	}
 
-	// Box the seed up for each active deviceEK.
-	deviceEKs, err := getAllActiveDeviceEKMetadata(ctx, g, merkleRoot)
+	boxes, myUserEKBoxed, err := boxUserEKForDevices(ctx, g, merkleRoot, seed, metadata)
 	if err != nil {
 		return metadata, myUserEKBoxed, err
-	}
-
-	myDeviceID := g.Env.GetDeviceID()
-	boxes := []UserEKBoxMetadata{}
-	for deviceID, deviceEK := range deviceEKs {
-		recipientDeviceEKKey, err := libkb.ImportKeypairFromKID(deviceEK.Kid)
-		if err != nil {
-			return metadata, myUserEKBoxed, err
-		}
-		// Encrypting with a nil sender means we'll generate a random sender private key.
-		box, err := recipientDeviceEKKey.EncryptToString(seed[:], nil)
-		if err != nil {
-			return metadata, myUserEKBoxed, err
-		}
-		boxMetadata := UserEKBoxMetadata{
-			RecipientDeviceID:   deviceID,
-			RecipientGeneration: deviceEK.Generation,
-			Box:                 box,
-		}
-		boxes = append(boxes, boxMetadata)
-
-		if deviceID == myDeviceID {
-			myUserEKBoxed = &keybase1.UserEkBoxed{
-				Box:                box,
-				DeviceEkGeneration: deviceEK.Generation,
-				Metadata:           metadata,
-			}
-		}
 	}
 
 	err = postNewUserEK(ctx, g, signedPacket, boxes)
@@ -197,6 +172,42 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 	}
 
 	return metadata, myUserEKBoxed, nil
+}
+
+func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []UserEKBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
+	// Box the seed up for each active deviceEK.
+	devicesMetadata, err := allActiveDeviceEKMetadata(ctx, g, merkleRoot)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	myDeviceID := g.Env.GetDeviceID()
+	for deviceID, deviceMetadata := range devicesMetadata {
+		recipientKey, err := libkb.ImportKeypairFromKID(deviceMetadata.Kid)
+		if err != nil {
+			return nil, nil, err
+		}
+		// Encrypting with a nil sender means we'll generate a random sender private key.
+		box, err := recipientKey.EncryptToString(seed[:], nil)
+		if err != nil {
+			return nil, nil, err
+		}
+		boxMetadata := UserEKBoxMetadata{
+			RecipientDeviceID:   deviceID,
+			RecipientGeneration: deviceMetadata.Generation,
+			Box:                 box,
+		}
+		boxes = append(boxes, boxMetadata)
+
+		if deviceID == myDeviceID {
+			myUserEKBoxed = &keybase1.UserEkBoxed{
+				Box:                box,
+				DeviceEkGeneration: deviceMetadata.Generation,
+				Metadata:           userMetadata,
+			}
+		}
+	}
+	return boxes, myUserEKBoxed, nil
 }
 
 type userEKResponse struct {
@@ -209,7 +220,7 @@ type userEKResponse struct {
 // `wrongKID` flag. As a transitional measure while we wait for all clients in
 // the wild to have EK support, callers will treat that case as "there is no
 // key" and convert the error to a warning.
-func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig string) (statement *keybase1.UserEkMetadataStatement, wrongKID bool, err error) {
+func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, sig string) (statement *keybase1.UserEkMetadataStatementStatement, wrongKID bool, err error) {
 	// Verify the sig.
 	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 	if err != nil {
@@ -220,14 +231,14 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig str
 	// UPAK from cache, but if the KID doesn't match, we try a forced reload to
 	// see if the cache might've been stale. Only if the KID still doesn't
 	// match after the reload do we complain.
-	upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g, g.Env.GetUID()))
+	upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g, uid))
 	if err != nil {
 		return nil, false, err
 	}
 	latestPUK := upak.Current.GetLatestPerUserKey()
 	if latestPUK == nil || !latestPUK.SigKID.Equal(signerKey.GetKID()) {
 		// The latest PUK might be stale. Force a reload, then check this over again.
-		upak, _, err = g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDForceArg(g, g.Env.GetUID()))
+		upak, _, err = g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDForceArg(g, uid))
 		if err != nil {
 			return nil, false, err
 		}
@@ -259,8 +270,8 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig str
 // one, this function will also return nil and log a warning. This is a
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
-func getLatestUserEKStatementMaybeStale(ctx context.Context, g *libkb.GlobalContext) (statement *keybase1.UserEkMetadataStatement, err error) {
-	defer g.CTrace(ctx, "getLatestUserEKStatementMaybeStale", func() error { return err })()
+func userEKStatementMaybeStale(ctx context.Context, g *libkb.GlobalContext) (statement *keybase1.UserEkMetadataStatement, err error) {
+	defer g.CTrace(ctx, "userEKMetadataStatementMaybeStale", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
@@ -286,7 +297,7 @@ func getLatestUserEKStatementMaybeStale(ctx context.Context, g *libkb.GlobalCont
 		return nil, nil
 	}
 
-	statement, wrongKID, err := verifySigWithLatestPUK(ctx, g, *parsedResponse.Sig)
+	statement, wrongKID, err := verifySigWithLatestPUK(ctx, g, g.Env.GetUID(), *parsedResponse.Sig)
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
@@ -332,7 +343,7 @@ func getAllActiveUserEKs(ctx context.Context, g *libkb.GlobalContext, merkleRoot
 	return allActive, nil
 }
 
-// As with getLatestUserEKMetadataMaybeStale, but returns nil if the latest
+// As with UserEKMetadataMaybeStale, but returns nil if the latest
 // metadata is stale. This checks several things:
 // 1) The metadata blob is validly signed.
 // 2) The signing key is the user's latest PUK.
@@ -340,11 +351,11 @@ func getAllActiveUserEKs(ctx context.Context, g *libkb.GlobalContext, merkleRoot
 //    with is within one week of the current root. The server deliberately
 //    avoids doing this filtering for us, and finding stale keys in the
 //    results here is expected. We silently drop them.
-func getActiveUserEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata *keybase1.UserEkMetadata, err error) {
-	defer g.CTrace(ctx, "GetActiveUserEKMetadata", func() error { return err })()
+func activeUserEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata *keybase1.UserEkMetadata, err error) {
+	defer g.CTrace(ctx, "ActiveUserEKMetadata", func() error { return err })()
 
-	statement, err := getLatestUserEKStatementMaybeStale(ctx, g)
-	if err != nil || statement == nil {
+	statement, err = userEKMetadataMaybeStale(ctx, g)
+	if err != nil || statment == nil {
 		return nil, err
 	}
 

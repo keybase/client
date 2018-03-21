@@ -25,7 +25,7 @@ func TestNewDeviceEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, deviceEK.Metadata, publishedMetadata)
 
-	fetchedDevices, err := getAllActiveDeviceEKMetadata(context.Background(), tc.G, merkleRoot)
+	fetchedDevices, err := activeDeviceEKMetadata(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(fetchedDevices))
