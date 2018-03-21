@@ -14,20 +14,22 @@ type Client struct {
 	errorUnwrapper ErrorUnwrapper
 	tagsFunc       LogTagsFromContext
 	sendNotifier   SendNotifier
+	replySequencer ReplySequencer
 }
 
 // NewClient constructs a new client from the given RPC Transporter and the
 // ErrorUnwrapper.
 func NewClient(xp Transporter, u ErrorUnwrapper,
 	tagsFunc LogTagsFromContext) *Client {
-	return &Client{xp, u, tagsFunc, nil}
+	return &Client{xp, u, tagsFunc, nil, nil}
 }
 
 // NewClientWithSendNotifier constructs a new client from the given RPC Transporter, the
 // ErrorUnwrapper, and the SendNotifier
-func NewClientWithSendNotifier(xp Transporter, u ErrorUnwrapper,
-	tagsFunc LogTagsFromContext, sendNotifier SendNotifier) *Client {
-	return &Client{xp, u, tagsFunc, sendNotifier}
+func NewClientWithSendNotifierAndReplySequencer(xp Transporter, u ErrorUnwrapper,
+	tagsFunc LogTagsFromContext, sendNotifier SendNotifier,
+	replySequencer ReplySequencer) *Client {
+	return &Client{xp, u, tagsFunc, sendNotifier, replySequencer}
 }
 
 // SendNotifier notifies the Caller when an RPC is released into the stream of
@@ -37,6 +39,12 @@ func NewClientWithSendNotifier(xp Transporter, u ErrorUnwrapper,
 // that the RPC got on the way out, or SeqNumber(0) for Notify calls (which don't
 // get sequence numbers).
 type SendNotifier func(SeqNumber)
+
+// ReplySequencer tells the clients what order the replies came back from the server in.
+// Replies from the server will be number 0,1,2,3...., in the order in which they
+// were received. This function is called to map this sequece numbering to the
+// sequence number the client picket.
+type ReplySequencer func(server SeqNumber, client SeqNumber)
 
 // Call makes an msgpack RPC call over the transports that's bound to this
 // client. The name of the method, and the argument are given. On reply,
@@ -66,7 +74,7 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 	if err != nil {
 		return err
 	}
-	return d.Call(ctx, method, arg, res, c.errorUnwrapper, c.sendNotifier)
+	return d.Call(ctx, method, arg, res, c.errorUnwrapper, c.sendNotifier, c.replySequencer)
 }
 
 // Notify notifies the server, with the given method and argument. It does not

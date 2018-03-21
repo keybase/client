@@ -28,6 +28,9 @@ type receiveHandler struct {
 	taskCancelCh chan SeqNumber
 	taskEndCh    chan SeqNumber
 
+	// Keep track of the order in which the server returns replies
+	serverSeqid SeqNumber
+
 	log LogInterface
 }
 
@@ -126,6 +129,11 @@ func (r *receiveHandler) handleReceiveDispatch(req request) error {
 
 func (r *receiveHandler) receiveResponse(rpc *rpcResponseMessage) (err error) {
 	callResponseCh := rpc.ResponseCh()
+
+	// Serializes responses so that rpc Call's can enfore that their
+	// replies arrived in the same order in which they were sent.
+	rpc.serverSeqid = r.serverSeqid
+	r.serverSeqid++
 
 	if callResponseCh == nil {
 		r.log.UnexpectedReply(rpc.SeqNo())
