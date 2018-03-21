@@ -7,15 +7,26 @@ import (
 	sync "sync"
 )
 
+type waitArg struct {
+	seqno  emom1.Seqno
+	doneCh chan<- error
+}
+
 type Server struct {
 	protocols map[string]rpc.Protocol
 	cryptoer  Cryptoer
 	xp        rpc.Transporter
 	wrapError rpc.WrapErrorFunc
 
+	waitCh      chan waitArg
+	clientSeqno emom1.Seqno
+
 	// protected by seqnoMu
 	seqnoMu sync.Mutex
 	seqno   emom1.Seqno
+}
+
+func (s *Server) sequencerLoop() {
 }
 
 func (s *Server) Register(p rpc.Protocol) error {
@@ -26,12 +37,24 @@ func (s *Server) Register(p rpc.Protocol) error {
 	return nil
 }
 
+func (s *Server) waitForTurn(ctx context.Context, arg emom1.Arg) (err error) {
+	doneCh := make(chan error)
+	s.waitCh <- waitArg{arg.A.N, doneCh}
+	return <-doneCh
+}
+
 func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error) {
+
+	err = s.waitForTurn(ctx, arg)
+	if err != nil {
+		return res, err
+	}
 
 	err = s.cryptoer.InitServerHandshake(ctx, arg)
 	if err != nil {
 		return res, err
 	}
+
 	return res, nil
 }
 

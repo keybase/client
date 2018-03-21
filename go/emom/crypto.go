@@ -6,6 +6,7 @@ import (
 	clockwork "github.com/keybase/clockwork"
 	saltpack "github.com/keybase/saltpack"
 	context "golang.org/x/net/context"
+	sync "sync"
 )
 
 func makeNonce(msgType emom1.MsgType, n emom1.Seqno) saltpack.Nonce {
@@ -101,6 +102,7 @@ func (u *UsersCryptoPackage) InitServerHandshake(_ context.Context, _ emom1.Arg)
 var _ Cryptoer = (*UsersCryptoPackage)(nil)
 
 type KeybasesCryptoPackage struct {
+	sync.Mutex
 	serverKeys           map[emom1.KeyGen]saltpack.BoxSecretKey
 	userAuth             func(context.Context, emom1.UID, emom1.KID) error
 	checkReplayAndImport func(context.Context, emom1.KID) (saltpack.BoxPublicKey, error)
@@ -110,10 +112,14 @@ type KeybasesCryptoPackage struct {
 }
 
 func (k *KeybasesCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
+	k.Lock()
+	defer k.Unlock()
 	return k.sessionKey
 }
 
 func (k *KeybasesCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.Arg) error {
+	k.Lock()
+	defer k.Unlock()
 	if k.sessionKey == nil {
 		return nil
 	}
