@@ -140,15 +140,6 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  insertTextAtCursor = (text: string) => {
-    const n = this._input
-    const selections = this.selections()
-    if (n && selections) {
-      const {selectionStart, selectionEnd} = selections
-      this.replaceText(text, selectionStart, selectionEnd, selectionStart, selectionStart + text.length)
-    }
-  }
-
   replaceText = (
     text: string,
     startIdx: number,
