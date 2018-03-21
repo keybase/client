@@ -295,10 +295,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "+B5hhcv7AdP8pWPD5sOaN6gKKmc=",
+			"checksumSHA1": "yGWd4ifz4OoBSm0kiueZKWOJPNU=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "3f1185427f1c2f2c00a38165cebb680b55c78e64",
-			"revisionTime": "2018-03-21T13:28:21Z"
+			"revision": "ba7a2c50e63572e7513cd15b6e85a4729e3d4e37",
+			"revisionTime": "2018-03-21T16:59:20Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",

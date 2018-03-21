@@ -55,7 +55,7 @@ func (h *protocolHandler) registerProtocol(p Protocol) error {
 	defer h.mtx.Unlock()
 
 	if _, found := h.protocols[p.Name]; found {
-		return newAlreadyRegisteredError(p.Name)
+		return NewAlreadyRegisteredError(p.Name)
 	}
 	h.protocols[p.Name] = p
 	return nil

@@ -37,50 +37,50 @@ type User struct {
 	userSigningKey saltpack.SigningSecretKey
 }
 
-type ClientCryptoPackage struct {
+type UsersCryptoPackage struct {
 	user            User
 	serverPublicKey ServerPublicKey
 	sessionKey      saltpack.BoxPrecomputedSharedKey
 	clock           clockwork.Clock
 }
 
-func (c *ClientCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
+func (u *UsersCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
 
-	if c.sessionKey == nil {
+	if u.sessionKey == nil {
 		return nil
 	}
 
-	ephemeralKey, err := c.serverPublicKey.key.CreateEphemeralKey()
+	ephemeralKey, err := u.serverPublicKey.key.CreateEphemeralKey()
 	if err != nil {
 		return err
 	}
 	ephemeralKID := emom1.KID(ephemeralKey.GetPublicKey().ToKID())
 
-	c.sessionKey = ephemeralKey.Precompute(c.serverPublicKey.key)
+	u.sessionKey = ephemeralKey.Precompute(u.serverPublicKey.key)
 
 	handshake := emom1.Handshake{
 		V: 1,
-		S: c.serverPublicKey.gen,
+		S: u.serverPublicKey.gen,
 		K: ephemeralKID,
 	}
 
 	authToken := emom1.AuthToken{
-		C: emom1.ToTime(c.clock.Now()),
+		C: emom1.ToTime(u.clock.Now()),
 		K: ephemeralKID,
-		U: c.user.uid,
+		U: u.user.uid,
 	}
 
 	msg, err := encodeToBytes(authToken)
 	if err != nil {
 		return err
 	}
-	sig, err := c.user.userSigningKey.Sign(msg)
+	sig, err := u.user.userSigningKey.Sign(msg)
 	if err != nil {
 		return err
 	}
 	signedAuthToken := emom1.SignedAuthToken{
 		T: authToken,
-		D: emom1.KID(c.user.userSigningKey.GetPublicKey().ToKID()),
+		D: emom1.KID(u.user.userSigningKey.GetPublicKey().ToKID()),
 		S: sig,
 	}
 
@@ -90,8 +90,56 @@ func (c *ClientCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp
 	return nil
 }
 
-func (c *ClientCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
-	return c.sessionKey
+func (u *UsersCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
+	return u.sessionKey
 }
 
-var _ Cryptoer = (*ClientCryptoPackage)(nil)
+func (u *UsersCryptoPackage) InitServerHandshake(_ context.Context, _ emom1.Arg) error {
+	return nil
+}
+
+var _ Cryptoer = (*UsersCryptoPackage)(nil)
+
+type KeybasesCryptoPackage struct {
+	serverKeys           map[emom1.KeyGen]saltpack.BoxSecretKey
+	userAuth             func(context.Context, emom1.UID, emom1.KID) error
+	checkReplayAndImport func(context.Context, emom1.KID) (saltpack.BoxPublicKey, error)
+	user                 emom1.UID
+	sessionKey           saltpack.BoxPrecomputedSharedKey
+	clock                clockwork.Clock
+}
+
+func (k *KeybasesCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
+	return k.sessionKey
+}
+
+func (k *KeybasesCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.Arg) error {
+	if k.sessionKey == nil {
+		return nil
+	}
+	if arg.H == nil {
+		return NewHandshakeError("expected a handshake, but none given")
+	}
+	if arg.H.V != 1 {
+		return NewHandshakeError("Can only support V1, got %d", arg.H.V)
+	}
+	userEphemeralKey, err := k.checkReplayAndImport(ctx, arg.H.K)
+	if err != nil {
+		return err
+	}
+
+	key, found := k.serverKeys[arg.H.S]
+	if !found {
+		return NewHandshakeError("key generation %d not found", arg.H.S)
+	}
+
+	k.sessionKey = key.Precompute(userEphemeralKey)
+
+	return nil
+}
+
+func (k *KeybasesCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
+	return nil
+}
+
+var _ Cryptoer = (*KeybasesCryptoPackage)(nil)

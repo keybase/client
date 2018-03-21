@@ -8,5 +8,6 @@ import (
 
 type Cryptoer interface {
 	InitClient(context.Context, *emom1.Arg, *emom1.RequestPlaintext) error
+	InitServerHandshake(context.Context, emom1.Arg) error
 	SessionKey() saltpack.BoxPrecomputedSharedKey
 }

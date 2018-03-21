@@ -72,7 +72,7 @@ type AlreadyRegisteredError struct {
 	p string
 }
 
-func newAlreadyRegisteredError(p string) AlreadyRegisteredError {
+func NewAlreadyRegisteredError(p string) AlreadyRegisteredError {
 	return AlreadyRegisteredError{p: p}
 }
 

@@ -30,3 +30,17 @@ type WrongReplyError struct {
 func (w WrongReplyError) Error() string {
 	return fmt.Sprintf("Server sent wrong reply: wanted %d but got %d", w.wanted, w.received)
 }
+
+type HandshakeError struct {
+	msg string
+}
+
+func NewHandshakeError(s string, args ...interface{}) HandshakeError {
+	return HandshakeError{
+		msg: fmt.Sprintf(s, args...),
+	}
+}
+
+func (h HandshakeError) Error() string {
+	return fmt.Sprintf("Handshake error: %s", h.msg)
+}
