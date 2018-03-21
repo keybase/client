@@ -1,6 +1,7 @@
 package emom
 
 import (
+	"errors"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
 )
 
@@ -24,6 +25,18 @@ func NewSequencer() *Sequencer {
 }
 
 func (s *Sequencer) loop() {
+	for waiter := range s.waitCh {
+		if _, found := s.slots[waiter.seqno]; found {
+			waiter.doneCh <- errors.New("seqno already waiting in queue")
+			continue
+		}
+		s.slots[waiter.seqno] = waiter
+		if waiter, found := s.slots[s.seqno]; found {
+			delete(s.slots, s.seqno)
+			s.seqno++
+			waiter.doneCh <- nil
+		}
+	}
 
 }
 
