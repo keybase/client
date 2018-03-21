@@ -33,7 +33,7 @@ class FilePreview extends React.PureComponent<FilePreviewProps> {
     let desc = 'loading'
     if (meta) {
       desc = 'Modified on ' + formatTimeForMessages(meta.lastModifiedTimestamp)
-      if (meta.lastWriter) desc += ' by ' + meta.lastWriter
+      if (meta.lastWriter.username) desc += ' by ' + meta.lastWriter.username
     }
     // Perhaps use PathItemIcon here later...
     return (
