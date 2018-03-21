@@ -783,7 +783,7 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
-	const workTimeSec = 10 // team_rekeyd delay before retrying job if it wasn't finished.
+	const workTimeSec = 3 // team_rekeyd delay before retrying job if it wasn't finished.
 	args := libkb.HTTPArgs{
 		"work_time_sec": libkb.I{Val: workTimeSec},
 	}
