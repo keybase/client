@@ -1,10 +1,10 @@
 package emom
 
 import (
-	context "golang.org/x/net/context"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	saltpack "github.com/keybase/saltpack"
+	context "golang.org/x/net/context"
 	sync "sync"
 )
 
@@ -14,35 +14,35 @@ type ServerPublicKey struct {
 }
 
 type User struct {
-	uid             emom1.UID
-	userSigningKey  saltpack.SigningSecretKey
+	uid            emom1.UID
+	userSigningKey saltpack.SigningSecretKey
 }
 
 type Client struct {
 	sync.Mutex
-	user  			User
+	user            User
 	serverPublicKey ServerPublicKey
-	cli  *rpc.Client
+	cli             *rpc.Client
 	aeClient        emom1.AeClient
 	seqno           emom1.Seqno
-	xp				rpc.Transporter
-    sentChan chan rpc.SeqNumber
+	xp              rpc.Transporter
+	sentChan        chan rpc.SeqNumber
 }
 
 func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
 	ch := make(chan rpc.SeqNumber)
-	f := func (s rpc.SeqNumber) {
-    	ch <- s
-    }
-    cli := rpc.NewClientWithSendNotifier(xp, nil, nil, f)
+	f := func(s rpc.SeqNumber) {
+		ch <- s
+	}
+	cli := rpc.NewClientWithSendNotifier(xp, nil, nil, f)
 	return &Client{
-		user : user,
-		serverPublicKey : server,
-		cli : cli,
-		aeClient : emom1.AeClient{Cli : cli},
-		seqno : emom1.Seqno(0),
-		xp : xp,
-		sentChan : ch,
+		user:            user,
+		serverPublicKey: server,
+		cli:             cli,
+		aeClient:        emom1.AeClient{Cli: cli},
+		seqno:           emom1.Seqno(0),
+		xp:              xp,
+		sentChan:        ch,
 	}
 }
 
@@ -52,7 +52,7 @@ func (c *Client) encodeToBytes(arg interface{}) []byte {
 
 func (c *Client) encrypt(ctx context.Context, msgType emom1.MsgType, n emom1.Seqno, arg interface{}) emom1.AuthEnc {
 	return emom1.AuthEnc{
-		N : n,
+		N: n,
 	}
 }
 
@@ -73,9 +73,9 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 	c.seqno++
 
 	rp := emom1.RequestPlaintext{
-		S : &seqno,
-		N : method,
-		A : c.encodeToBytes(arg),
+		S: &seqno,
+		N: method,
+		A: c.encodeToBytes(arg),
 	}
 
 	if c.seqno == emom1.Seqno(0) {
@@ -88,23 +88,22 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 	warg.A = c.encrypt(ctx, emom1.MsgType_CALL, seqno, rp)
 
 	go func() {
-        wres, err = c.aeClient.C(ctx, warg)
-        doneCh <- struct{}{}
-    }()
-    <-c.sentChan
-   	c.Unlock()
+		wres, err = c.aeClient.C(ctx, warg)
+		doneCh <- struct{}{}
+	}()
+	<-c.sentChan
+	c.Unlock()
 
-    <-doneCh
+	<-doneCh
 
-    bres, err := c.decrypt(ctx, emom1.MsgType_REPLY, seqno, wres.A)
-    if err != nil {
-    	return err
-    }
+	bres, err := c.decrypt(ctx, emom1.MsgType_REPLY, seqno, wres.A)
+	if err != nil {
+		return err
+	}
 
-    err = c.decodeFromBytes(res, bres)
+	err = c.decodeFromBytes(res, bres)
 
-
-    return err
+	return err
 }
 
 func (c *Client) doHandshake(ctx context.Context) (*emom1.Handshake, *emom1.SignedAuthToken, error) {
