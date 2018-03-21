@@ -8,14 +8,43 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type MsgType int
+
+const (
+	MsgType_CALL   MsgType = 0
+	MsgType_REPLY  MsgType = 1
+	MsgType_NOTIFY MsgType = 2
+)
+
+func (o MsgType) DeepCopy() MsgType { return o }
+
+var MsgTypeMap = map[string]MsgType{
+	"CALL":   0,
+	"REPLY":  1,
+	"NOTIFY": 2,
+}
+
+var MsgTypeRevMap = map[MsgType]string{
+	0: "CALL",
+	1: "REPLY",
+	2: "NOTIFY",
+}
+
+func (e MsgType) String() string {
+	if v, ok := MsgTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type AuthEnc struct {
-	N int64  `codec:"n" json:"n"`
+	N Seqno  `codec:"n" json:"n"`
 	E []byte `codec:"e" json:"e"`
 }
 
 func (o AuthEnc) DeepCopy() AuthEnc {
 	return AuthEnc{
-		N: o.N,
+		N: o.N.DeepCopy(),
 		E: (func(x []byte) []byte {
 			if x == nil {
 				return nil
@@ -53,6 +82,12 @@ func (o Time) DeepCopy() Time {
 	return o
 }
 
+type KeyGen int64
+
+func (o KeyGen) DeepCopy() KeyGen {
+	return o
+}
+
 type Seqno int64
 
 func (o Seqno) DeepCopy() Seqno {
@@ -60,15 +95,15 @@ func (o Seqno) DeepCopy() Seqno {
 }
 
 type Handshake struct {
-	V int `codec:"v" json:"v"`
-	S int `codec:"s" json:"s"`
-	K KID `codec:"k" json:"k"`
+	V int    `codec:"v" json:"v"`
+	S KeyGen `codec:"s" json:"s"`
+	K KID    `codec:"k" json:"k"`
 }
 
 func (o Handshake) DeepCopy() Handshake {
 	return Handshake{
 		V: o.V,
-		S: o.S,
+		S: o.S.DeepCopy(),
 		K: o.K.DeepCopy(),
 	}
 }

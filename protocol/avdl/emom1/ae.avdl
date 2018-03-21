@@ -1,18 +1,24 @@
 @namespace("emom.1") // EMOM = "Encrypted Msgpack Over Msgpack"
 protocol ae {        // AE   = "Authenticated Encryption"
 
+  enum MsgType {
+    CALL_0,
+    REPLY_1,
+    NOTIFY_2
+  }
+
   // We use abbreviations here extensively to save bandwidth
 
   record AuthEnc {
-    long  n; // nonce bottom 64 bits (various monotonically over all types)
+    Seqno n; // nonce bottom 64 bits (various monotonically over all types)
     bytes e; // encrypted data
   }
 
   @typedef("bytes") record KID    {}
   @typedef("bytes") record UID    {}
   @typedef("long")  record Time   {}
-  @typedef("long")  record Seqno  {}
   @typedef("long")  record KeyGen {}
+  @typedef("long")  record Seqno  {}
 
   record Handshake {
     int    v; // version of the entire scheme
