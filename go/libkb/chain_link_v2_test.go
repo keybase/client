@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOuterLinkV2Encode(t *testing.T) {
+func TestOuterLinkV2WithMetadataEncode(t *testing.T) {
 	var o OuterLinkV2WithMetadata
 	_, err := MsgpackEncode(o)
 	require.Equal(t, errCodecEncodeSelf, err)
@@ -14,8 +14,40 @@ func TestOuterLinkV2Encode(t *testing.T) {
 	require.Equal(t, errCodecEncodeSelf, err)
 }
 
-func TestOuterLinkV2Decode(t *testing.T) {
+func TestOuterLinkV2WithMetadataDecode(t *testing.T) {
 	var o OuterLinkV2WithMetadata
+	err := MsgpackDecode(&o, []byte{0x1, 0x2})
+	require.Equal(t, errCodecDecodeSelf, err)
+}
+
+type outerLinkV2WithMetadataEmbedder struct {
+	OuterLinkV2WithMetadata
+}
+
+func TestOuterLinkV2WithMetadataEmbedderEncode(t *testing.T) {
+	var o outerLinkV2WithMetadataEmbedder
+	_, err := MsgpackEncode(o)
+	require.Equal(t, errCodecEncodeSelf, err)
+}
+
+func TestOuterLinkV2WithMetadataEmbedderDecode(t *testing.T) {
+	var o outerLinkV2WithMetadataEmbedder
+	err := MsgpackDecode(&o, []byte{0x1, 0x2})
+	require.Equal(t, errCodecDecodeSelf, err)
+}
+
+type outerLinkV2WithMetadataPointerEmbedder struct {
+	*OuterLinkV2WithMetadata
+}
+
+func TestOuterLinkV2WithMetadataPointerEmbedderEncode(t *testing.T) {
+	var o outerLinkV2WithMetadataPointerEmbedder
+	_, err := MsgpackEncode(o)
+	require.Equal(t, errCodecEncodeSelf, err)
+}
+
+func TestOuterLinkV2WithMetadataPointerEmbedderDecode(t *testing.T) {
+	var o outerLinkV2WithMetadataPointerEmbedder
 	err := MsgpackDecode(&o, []byte{0x1, 0x2})
 	require.Equal(t, errCodecDecodeSelf, err)
 }
