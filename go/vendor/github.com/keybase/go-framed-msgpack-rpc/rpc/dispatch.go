@@ -7,7 +7,7 @@ import (
 )
 
 type dispatcher interface {
-	Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper, sendNotifier SendNotifier, replySequencer ReplySequencer) error
+	Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper, sendNotifier SendNotifier) error
 	Notify(ctx context.Context, name string, arg interface{}, sendNotifier SendNotifier) error
 	Close()
 }
@@ -45,7 +45,7 @@ func currySendNotifier(sendNotifier SendNotifier, seqid SeqNumber) func() {
 	}
 }
 
-func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper, sendNotifier SendNotifier, replySequencer ReplySequencer) error {
+func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res interface{}, u ErrorUnwrapper, sendNotifier SendNotifier) error {
 	profiler := d.log.StartProfiler("call %s", name)
 	defer profiler.Stop()
 
@@ -78,9 +78,6 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	// Wait for result from call
 	select {
 	case res := <-c.resultCh:
-		if replySequencer != nil {
-			replySequencer(res.ServerSeqNo(), c.seqid)
-		}
 		d.log.ClientReply(c.seqid, c.method, res.ResponseErr(), res.Res())
 		return res.ResponseErr()
 	case <-c.ctx.Done():

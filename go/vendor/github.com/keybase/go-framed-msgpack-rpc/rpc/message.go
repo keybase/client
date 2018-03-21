@@ -92,7 +92,6 @@ type rpcResponseMessage struct {
 	c           *call
 	err         error
 	responseErr error
-	serverSeqid SeqNumber
 }
 
 func (r rpcResponseMessage) MinLength() int {
@@ -157,10 +156,6 @@ func (r rpcResponseMessage) SeqNo() SeqNumber {
 		return -1
 	}
 	return r.c.seqid
-}
-
-func (r rpcResponseMessage) ServerSeqNo() SeqNumber {
-	return r.serverSeqid
 }
 
 func (r rpcResponseMessage) Name() string {

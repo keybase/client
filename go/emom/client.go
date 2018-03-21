@@ -7,6 +7,7 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	sync "sync"
+	time "time"
 )
 
 type Client struct {
@@ -21,10 +22,7 @@ type Client struct {
 	seqnoMu sync.Mutex
 	seqno   emom1.Seqno
 
-	// protected by seqMapMu
-	seqMapMu      sync.Mutex
-	seqMap        map[rpc.SeqNumber]rpc.SeqNumber
-	fatalSeqError error
+	serverSequencer Sequencer
 }
 
 func NewClient(xp rpc.Transporter, eu rpc.ErrorUnwrapper, cryptoer Cryptoer) *Client {
@@ -39,43 +37,10 @@ func NewClient(xp rpc.Transporter, eu rpc.ErrorUnwrapper, cryptoer Cryptoer) *Cl
 	sendNotifier := func(s rpc.SeqNumber) {
 		ch <- s
 	}
-	replySequencer := func(server rpc.SeqNumber, client rpc.SeqNumber) {
-		ret.replySequencer(server, client)
-	}
-	cli := rpc.NewClientWithSendNotifierAndReplySequencer(xp, nil, nil, sendNotifier, replySequencer)
+	cli := rpc.NewClientWithSendNotifier(xp, nil, nil, sendNotifier)
 	ret.cli = cli
 	ret.aeClient = emom1.AeClient{Cli: cli}
 	return ret
-}
-
-func (c *Client) replySequencer(server rpc.SeqNumber, client rpc.SeqNumber) {
-	c.seqMapMu.Lock()
-	defer c.seqMapMu.Unlock()
-	if _, found := c.seqMap[client]; found {
-		c.fatalSeqError = newServerSequenceError("ae.1 RPC seqid %d was replied to multiple times", client)
-	} else {
-		c.seqMap[client] = server
-	}
-}
-
-func (c *Client) assertServerSequence(clientRpcSeqNo rpc.SeqNumber, nonce emom1.Seqno) error {
-	c.seqMapMu.Lock()
-	defer c.seqMapMu.Unlock()
-
-	if c.fatalSeqError != nil {
-		return c.fatalSeqError
-	}
-
-	serverSeqno, found := c.seqMap[clientRpcSeqNo]
-	if !found {
-		return newServerSequenceError("didn't find a reply for RPC seqid %d", clientRpcSeqNo)
-	}
-	delete(c.seqMap, clientRpcSeqNo)
-
-	if emom1.Seqno(serverSeqno) != nonce {
-		return newServerSequenceError("out of order server reply; wanted %d but got %d", serverSeqno, nonce)
-	}
-	return nil
 }
 
 func codecHandle() *codec.MsgpackHandle {
@@ -163,18 +128,21 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		wrappedRes, err = c.aeClient.C(ctx, wrappedArg)
 		doneCh <- struct{}{}
 	}()
-	aeClientSeqno := <-c.sentChan
+	<-c.sentChan
 	c.seqnoMu.Unlock()
 
 	// Wait for the RPC Reply to be received from the server
 	<-doneCh
 
-	// The reply came in a sequence of replies from the server.
-	// Make sure that place in the sequence matches the nonce that
-	// is being advertised in the server's encryption. If not,
-	// we have to assume the channel was malicious and was reordering
-	// replies.
-	err = c.assertServerSequence(aeClientSeqno, wrappedRes.A.N)
+	// It would be ideal if we could ensure that we're seeing requests
+	// as the same order as they come across the wire. But this is hard
+	// to enforce without a lot of disruption in the RPC library.  So we're
+	// going to do something else instead: ensure that we're handling the
+	// RPCs in the order that the server sent them. This means an attacker
+	// who owns the network can drop packet 10 and nothing after it will go through.
+	// But a malicious network can also DoS the connection, so this isn't
+	// an interesting attack.
+	err = c.serverSequencer.Wait(ctx, wrappedRes.A.N, time.Minute)
 	if err != nil {
 		return err
 	}
