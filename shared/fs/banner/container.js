@@ -6,18 +6,16 @@ import {connect, compose, lifecycle, type TypedState} from '../../util/container
 import {isLinux} from '../../constants/platform'
 
 type OwnProps = {
-  canDismiss: boolean,
   path?: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
-  const hasFuse = isLinux || kbfsEnabled
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
     kbfsEnabled,
     showBanner: state.fs.showBanner,
     inProgress: state.fs.fuseInstalling || state.fs.kbfsInstalling || state.fs.kbfsOpening,
-    showSecurityPrefs: !hasFuse && state.fs.kextPermissionError,
+    showSecurityPrefs: !kbfsEnabled && state.fs.kextPermissionError,
   }
 }
 
@@ -31,10 +29,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
-  ...ownProps,
+  path,
 })
 
 export default compose(

@@ -8,10 +8,9 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 type Props = {
   kbfsEnabled: boolean,
   inProgress: boolean,
-  canDismiss: boolean,
   showBanner: boolean,
   path?: Types.Path,
-  onDismiss: () => void,
+  onDismiss?: () => void,
   onInstall: () => void,
   onUninstall: () => void,
 }
