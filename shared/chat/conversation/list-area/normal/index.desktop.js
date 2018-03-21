@@ -4,6 +4,8 @@
  * get loading scroll position to work
  * measure waypoint children and replace w/ a div when off screen of the same size
  *
+ * use waypoint meawsurement to find actual offset of good waypoint, like middle or one that went offcreen?
+ *
  */
 
 import * as React from 'react'
@@ -44,36 +46,38 @@ class Thread extends React.Component<Props, State> {
     // selectedMessageKey: null,
   }
 
-  _oldScrollHeight = 0
+  // _oldScrollHeight = 0
   componentWillUpdate(prevProps: Props, prevState: State) {
-    if (this._scrollableRef) {
-      this._oldScrollHeight = this._scrollableRef.scrollHeight
-      console.log(
-        'willtop:',
-        this._scrollableRef.scrollTop,
-        'scrollH: ',
-        this._scrollableRef.scrollHeight,
-        'clientH',
-        this._scrollableRef.clientHeight
-      )
-    } else {
-      this._oldScrollHeight = 0
-    }
+    // if (this._scrollableRef) {
+    // this._oldScrollHeight = this._scrollableRef.scrollHeight
+    // console.log(
+    // 'willtop:',
+    // this._scrollableRef.scrollTop,
+    // 'scrollH: ',
+    // this._scrollableRef.scrollHeight,
+    // 'clientH',
+    // this._scrollableRef.clientHeight
+    // )
+    // } else {
+    // this._oldScrollHeight = 0
+    // }
   }
+  _adjustScroll = false
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this._scrollableRef) {
-      console.log(
-        'didtop:',
-        this._scrollableRef.scrollTop,
-        'scrollH: ',
-        this._scrollableRef.scrollHeight,
-        'clientH',
-        this._scrollableRef.clientHeight
-      )
-      console.log('top: oldh: ', this._oldScrollHeight)
-      this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight - this._oldScrollHeight
-    }
-    this._oldScrollHeight = 0
+    this._adjustScroll = true
+    // if (this._scrollableRef) {
+    // console.log(
+    // 'didtop:',
+    // this._scrollableRef.scrollTop,
+    // 'scrollH: ',
+    // this._scrollableRef.scrollHeight,
+    // 'clientH',
+    // this._scrollableRef.clientHeight
+    // )
+    // // console.log('top: oldh: ', this._oldScrollHeight)
+    // // this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight - this._oldScrollHeight
+    // }
+    // this._oldScrollHeight = 0
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
     // if (this._keepIdxVisible !== -1) {
     // this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
@@ -201,7 +205,7 @@ class Thread extends React.Component<Props, State> {
 
   _waypointTopOnEnter = data => {
     console.log('aaa top load more messages')
-    this.props.loadMoreMessages()
+    // this.props.loadMoreMessages()
   }
   _waypointBottomOnEnter = data => {
     console.log('aaa bottom locked')
@@ -237,6 +241,20 @@ class Thread extends React.Component<Props, State> {
   )
 
   _topKey: any = null
+  _lastSyncPos = null
+  _onSyncPositionChange = ({waypointTop}) => {
+    console.log('aaa on sync chnaged', waypointTop)
+
+    if (this._adjustScroll) {
+      console.log('aaa adjusting scroll pos cur: ', waypointTop, ' last: ', this._lastSyncPos)
+      this._adjustScroll = false
+      if (this._scrollableRef) {
+        this._scrollableRef.scrollTop = waypointTop - this._lastSyncPos
+      }
+      this._lastSyncPos = 0
+    }
+    this._lastSyncPos = waypointTop
+  }
 
   render() {
     this._topKey = null
@@ -250,6 +268,7 @@ class Thread extends React.Component<Props, State> {
     )
 
     let waypointChildren = []
+    let syncWaypoint = null
     let messageKey
     for (var index = 0; index < rowCount; ++index) {
       const ordinal = this.props.messageOrdinals.get(index)
@@ -268,8 +287,20 @@ class Thread extends React.Component<Props, State> {
 
       if (ordinal % 10 === 0) {
         rows.push(this._makeWaypointMessage(messageKey, waypointChildren))
+        // TODO maybeget rid of this
         if (!this._topKey) {
           this._topKey = messageKey
+
+          console.log('aaa message create TOP KEY', messageKey)
+        }
+
+        if (!syncWaypoint) {
+          syncWaypoint = (
+            <Waypoint key="waypointSync" topOffset={0} onPositionChange={this._onSyncPositionChange}>
+              <div style={{width: '100%', height: 10, backgroundColor: 'purple'}} />
+            </Waypoint>
+          )
+          rows.push(syncWaypoint)
         }
         waypointChildren = []
       }
