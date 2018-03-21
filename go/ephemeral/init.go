@@ -12,6 +12,7 @@ func NewEphemeralStorageAndInstall(g *libkb.GlobalContext) {
 	ekLib := NewEKLib(g)
 	g.SetEKLib(ekLib)
 	g.AddLoginHook(ekLib)
+	g.AddLogoutHook(ekLib)
 }
 
 func ServiceInit(g *libkb.GlobalContext) {

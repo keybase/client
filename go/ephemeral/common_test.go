@@ -67,7 +67,7 @@ func TestDeleteExpiredKeys(t *testing.T) {
 
 	// Test with a 6 day gap, but no expiry
 	keyMap = keyExpiryMap{
-		0: now - keybase1.Time(time.Hour*24*6),
+		0: now - keybase1.Time(60*60*24*6),
 		1: now,
 	}
 	expired = getExpiredGenerations(keyMap, now)

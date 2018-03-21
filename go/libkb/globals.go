@@ -329,10 +329,6 @@ func (g *GlobalContext) Logout() error {
 			g.Log.Debug("Failed to nuke DB: %s", err)
 		}
 	}
-
-	if g.deviceEKStorage != nil {
-		g.deviceEKStorage.ClearCache()
-	}
 	g.cacheMu.Unlock()
 
 	// reload config to clear anything in memory

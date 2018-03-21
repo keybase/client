@@ -66,7 +66,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 
 	storage := g.GetUserEKBoxStorage()
 	generation, err := storage.MaxGeneration(ctx)
-	if err != nil && generation >= 0 {
+	if err != nil {
 		// Let's try to get the max from the server
 		g.Log.CDebugf(ctx, "Error getting maxGeneration from storage")
 		activeMetadata, err := getLatestUserEKMetadataMaybeStale(ctx, g)

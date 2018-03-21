@@ -2,6 +2,7 @@ package ephemeral
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -23,6 +24,12 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	defer e.G().CTrace(ctx, "KeygenIfNeeded", func() error { return err })()
 	e.Lock()
 	defer e.Unlock()
+
+	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
+		return err
+	} else if !loggedIn {
+		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
+	}
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
@@ -58,9 +65,9 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
 	defer e.G().CTrace(ctx, "CleanupStaleUserAndDeviceEKs", func() error { return err })()
 
-	deviceEKStorage := e.G().GetDeviceEKStorage()
-
 	epick := libkb.FirstErrorPicker{}
+
+	deviceEKStorage := e.G().GetDeviceEKStorage()
 	_, err = deviceEKStorage.DeleteExpired(ctx, merkleRoot)
 	epick.Push(err)
 
@@ -85,7 +92,7 @@ func (e *EKLib) newDeviceEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRo
 		return needed, err
 	}
 
-	return keybase1.Time(merkleRoot.Ctime())-ek.Metadata.Ctime > KeyGenLifetimeSecs, nil
+	return keybase1.Time(merkleRoot.Ctime())-ek.Metadata.Ctime >= KeyGenLifetimeSecs, nil
 }
 
 func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
@@ -103,9 +110,17 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 		return needed, err
 	}
 
-	return keybase1.Time(merkleRoot.Ctime())-ek.Metadata.Ctime > KeyGenLifetimeSecs, nil
+	return keybase1.Time(merkleRoot.Ctime())-ek.Metadata.Ctime >= KeyGenLifetimeSecs, nil
 }
 
 func (e *EKLib) OnLogin() error {
 	return e.KeygenIfNeeded(context.Background())
+}
+
+func (e *EKLib) OnLogout() error {
+	deviceEKStorage := e.G().GetDeviceEKStorage()
+	if deviceEKStorage != nil {
+		deviceEKStorage.ClearCache()
+	}
+	return nil
 }
