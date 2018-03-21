@@ -2,14 +2,14 @@
 import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../util/container'
 import {isLinux} from '../../constants/platform'
 
 type OwnProps = {
   path?: Types.Path,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state: TypedState) => {
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
     kbfsEnabled,
@@ -41,5 +41,6 @@ export default compose(
     componentDidMount: function() {
       this.props.getFuseStatus()
     },
-  })
+  }),
+  setDisplayName('FilesBanner')
 )(Files)
