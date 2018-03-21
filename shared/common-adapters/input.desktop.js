@@ -159,11 +159,17 @@ class Input extends React.PureComponent<Props, State> {
     const selections = this.selections()
     if (n && selections) {
       const {selectionStart, selectionEnd} = selections
-      this.replaceText(text, selectionStart, selectionEnd)
+      this.replaceText(text, selectionStart, selectionEnd, selectionStart, selectionStart + text.length)
     }
   }
 
-  replaceText = (text: string, startIdx: number, endIdx: number) => {
+  replaceText = (
+    text: string,
+    startIdx: number,
+    endIdx: number,
+    newSelectionStart: number,
+    newSelectionEnd: number
+  ) => {
     const n = this._input && this._inputNode()
     if (n) {
       const v = n.value
@@ -173,6 +179,8 @@ class Input extends React.PureComponent<Props, State> {
       this._autoResize()
 
       this.props.onChangeText && this.props.onChangeText(nextValue || '')
+      n.selectionStart = newSelectionStart
+      n.selectionEnd = newSelectionEnd
     }
   }
 
