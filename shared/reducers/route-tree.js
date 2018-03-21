@@ -85,9 +85,9 @@ function routeDefReducer(routeDef: ?RouteDefNode, action) {
       }
       switch (title) {
         case loginRouteTreeTitle:
-          return action.payload.loginDef
+          return action.payload.loginRouteTree
         case appRouteTreeTitle:
-          return action.payload.appDef
+          return action.payload.appRouteTree
         default:
           throw new Error(`Current routeDef has unknown title ${title}`)
       }
@@ -110,7 +110,7 @@ function routeStateReducer(routeDef, routeState, action) {
     }
 
     case Constants.refreshRouteDef: {
-      return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+      return routeNavigate(action.payload.appRouteTree, routeState, getPath(routeState))
     }
 
     case Constants.switchRouteDef: {

@@ -2,7 +2,6 @@
 /*
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
-import {hot} from 'react-hot-loader'
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as AppGen from '../../actions/app-gen'
@@ -18,7 +17,7 @@ import electron, {ipcRenderer} from 'electron'
 import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
-import {loginRouteTree} from '../../app/routes'
+import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
@@ -142,20 +141,15 @@ const FontLoader = () => (
   </div>
 )
 
-const AppBeforeHot = ({store, MainComponent}) => (
-  <Root store={store}>
-    <div style={{display: 'flex', flex: 1}}>
-      <RemoteProxies />
-      <FontLoader />
-      <MainComponent />
-    </div>
-  </Root>
-)
-const App = hot(module)(AppBeforeHot)
-
 function render(store, MainComponent) {
   ReactDOM.render(
-    <App store={store} MainComponent={MainComponent} />,
+    <Root store={store}>
+      <div style={{display: 'flex', flex: 1}}>
+        <RemoteProxies />
+        <FontLoader />
+        <MainComponent />
+      </div>
+    </Root>,
     // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
@@ -171,14 +165,18 @@ function setupHMR(store) {
   }
 
   module.hot &&
-    module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
-      const routes = require('../../app/routes')
-      store.dispatch(refreshRouteDef(routes.loginRouteTree, routes.appRouteTree))
-      try {
-        const NewMain = require('../../app/main.desktop').default
-        render(store, NewMain)
-      } catch (_) {}
-    })
+    module.hot.accept(
+      ['../../app/main.desktop', '../../app/routes', '../../app/routes-login', '../../store/configure-store'],
+      () => {
+        const appRouteTree = require('../../app/routes').default
+        const loginRouteTree = require('../../app/routes-login').default
+        store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+        try {
+          const NewMain = require('../../app/main.desktop').default
+          render(store, NewMain)
+        } catch (_) {}
+      }
+    )
 
   module.hot &&
     module.hot.accept('../../local-debug-live', () => {
@@ -193,7 +191,7 @@ function load() {
   const store = setupStore()
   setupRoutes(store)
   setupApp(store)
-  // setupHMR(store)
+  setupHMR(store)
   render(store, Main)
 }
 

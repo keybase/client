@@ -1,4 +1,5 @@
 // @flow
+import {hot} from 'react-hot-loader'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import {connect, type TypedState} from '../util/container'
@@ -62,4 +63,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Main)
+export default hot(module)(connect(mapStateToProps, mapDispatchToProps)(Main))
