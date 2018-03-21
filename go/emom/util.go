@@ -1,9 +1,9 @@
 package emom
 
 import (
-	context "golang.org/x/net/context"
-	emom1 "github.com/keybase/client/go/protocol/emom1"
 	errors "errors"
+	emom1 "github.com/keybase/client/go/protocol/emom1"
+	context "golang.org/x/net/context"
 	time "time"
 )
 
