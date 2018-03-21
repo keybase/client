@@ -62,7 +62,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stopCh:        make(chan chan struct{}, 5),
+		stopCh:        make(chan chan struct{}),
 		suspendCh:     make(chan chan struct{}, 10),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
@@ -104,6 +104,7 @@ func (b *BackgroundConvLoader) monitorAppState() {
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.Lock()
 	defer b.Unlock()
+	b.Debug(ctx, "Start")
 	if b.started {
 		b.stopCh <- make(chan struct{})
 	}
@@ -116,6 +117,7 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
+	b.Debug(ctx, "Stop")
 	ch := make(chan struct{})
 	if b.started {
 		b.stopCh <- ch
@@ -196,39 +198,94 @@ func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource)
 	b.testingNameInfoSource = ni
 }
 
+// recvWithShutdown receives from a blank channel, and aborts if a shutdown event happens
+func (b *BackgroundConvLoader) recvWithShutdown(ctx context.Context, ch chan struct{}, reason string) bool {
+	select {
+	case <-ch:
+	case ch := <-b.stopCh:
+		b.Debug(ctx, "loop: shutting down: uid: %s reason: %s", b.uid, reason)
+		close(ch)
+		return false
+	}
+	return true
+}
+
+// recvTimeWithShutdown receives from time channel, and aborts if a shutdown event happens
+func (b *BackgroundConvLoader) recvTimeWithShutdown(ctx context.Context, ch <-chan time.Time, reason string) bool {
+	select {
+	case <-ch:
+	case ch := <-b.stopCh:
+		b.Debug(ctx, "loop: shutting down: uid: %s reason: %s", b.uid, reason)
+		close(ch)
+		return false
+	}
+	return true
+}
+
+// recvTaskWithShutdown receives a task, but also will abort on shutdown
+func (b *BackgroundConvLoader) recvTaskWithShutdown(ctx context.Context, ch chan *clTask) (*clTask, bool) {
+	select {
+	case task := <-ch:
+		return task, true
+	case ch := <-b.stopCh:
+		b.Debug(ctx, "loop: shutting down: uid: %s reason: load task", b.uid)
+		close(ch)
+		return nil, false
+	}
+}
+
 func (b *BackgroundConvLoader) loop() {
 	bgctx := context.Background()
 	uid := b.uid
 	b.Debug(bgctx, "loop: starting conv loader loop for %s", uid)
-	waitForResume := func(ch chan struct{}) {
+
+	// waitForResume is called on suspend. It will wait for a resume event, and then pause
+	// for b.resumeWait amount of time. Returns false if the outer loop should shutdown.
+	waitForResume := func(ch chan struct{}) bool {
 		b.Debug(bgctx, "waitForResume: suspending loop")
-		<-ch
-		b.clock.Sleep(b.resumeWait)
+		if !b.recvWithShutdown(bgctx, ch, "waitForResume: resume") {
+			return false
+		}
+		if !b.recvTimeWithShutdown(bgctx, b.clock.After(b.resumeWait), "waitForResume: resumeWait") {
+			return false
+		}
 		b.Debug(bgctx, "waitForResume: resuming loop")
+		return true
 	}
 	// On mobile fresh start, apply the foreground wait
 	if b.G().GetAppType() == libkb.MobileAppType {
 		b.Debug(bgctx, "loop: delaying startup since on mobile")
-		b.clock.Sleep(b.resumeWait)
+		if !b.recvTimeWithShutdown(bgctx, b.clock.After(b.resumeWait), "initial mobile wait") {
+			return
+		}
 	}
+
+	// Main loop
 	for {
-		// get a convID from queue, or stop
 		select {
 		case task := <-b.queueCh:
 			if task.convID.IsNil() {
 				// means we closed this channel
 				continue
 			}
-			// Make sure we aren't suspended
+			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
+			// neither have any data on them.
 			select {
 			case ch := <-b.suspendCh:
 				b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
-				waitForResume(ch)
+				if !waitForResume(ch) {
+					return
+				}
+			case ch := <-b.stopCh:
+				b.Debug(bgctx, "loop: shutting down (in queue wait) for %s", uid)
+				close(ch)
+				return
 			default:
 			}
 			b.Debug(bgctx, "loop: pulled queued task: %s", task.convID)
-			// always wait a short amount of time to avoid
-			// flood of conversation loads
+
+			// Wait for a small amount of time before loading, this way we aren't in a tight loop
+			// charging through conversations
 			duration := bgLoaderInitDelay
 			if task.attempt > 0 {
 				duration = bgLoaderErrDelay - time.Since(task.lastAttemptAt)
@@ -236,11 +293,29 @@ func (b *BackgroundConvLoader) loop() {
 					duration = bgLoaderInitDelay
 				}
 			}
-			b.clock.Sleep(duration)
-			b.load(bgctx, task, uid)
+			if !b.recvTimeWithShutdown(bgctx, b.clock.After(duration), "load pause") {
+				return
+			}
+
+			// Run the load of the conversation with a callback so we can abort the loop on shutdown. If
+			// the load failed, it will return a new task to enqueue (if we haven't been shutdown).
+			cb := make(chan *clTask)
+			go func() {
+				gtask := b.load(bgctx, task, uid)
+				cb <- gtask
+			}()
+			nextTask, resume := b.recvTaskWithShutdown(bgctx, cb)
+			if !resume {
+				return
+			}
+			if nextTask != nil {
+				b.enqueue(bgctx, *nextTask)
+			}
 		case ch := <-b.suspendCh:
 			b.Debug(bgctx, "loop: received suspend")
-			waitForResume(ch)
+			if !waitForResume(ch) {
+				return
+			}
 		case ch := <-b.stopCh:
 			b.Debug(bgctx, "loop: shutting down for %s", uid)
 			close(ch)
@@ -267,7 +342,7 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 	return false
 }
 
-func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) {
+func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	b.Debug(ictx, "load: loading conversation %s", task.convID)
 	b.Lock()
 	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(
@@ -295,11 +370,10 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 			b.Debug(ctx, "transient error, retrying")
 			task.attempt++
 			task.lastAttemptAt = time.Now()
-			b.enqueue(ctx, task)
-			return
+			return &task
 		}
 		b.Debug(ctx, "load: failed to load conv %s", task.convID)
-		return
+		return nil
 	}
 	b.Debug(ctx, "load: loaded conversation %s", task.convID)
 
@@ -308,4 +382,5 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 		b.Debug(ctx, "load: putting convID %s on loads chan", task.convID)
 		b.loads <- task.convID
 	}
+	return nil
 }
