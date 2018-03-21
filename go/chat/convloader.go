@@ -62,7 +62,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
-		stopCh:        make(chan chan struct{}),
+		stopCh:        make(chan chan struct{}, 5),
 		suspendCh:     make(chan chan struct{}, 10),
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
