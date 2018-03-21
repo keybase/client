@@ -17,7 +17,7 @@ type Props = {
 
 const Banner = isMobile
   ? () => <Box />
-  : ({kbfsEnabled, showBanner, onInstall, onUninstall}: Props) => {
+  : ({kbfsEnabled, showBanner, onInstall, onUninstall, onDismiss}: Props) => {
       if (kbfsEnabled && !showBanner) {
         return <Box />
       }
@@ -27,13 +27,16 @@ const Banner = isMobile
         backgroundColor: kbfsEnabled ? globalColors.green : globalColors.blue,
         height: 176,
         alignItems: 'center',
+        position: 'relative',
       }
       let bannerContent
       if (kbfsEnabled) {
         bannerContent = (
-          <Text type="Header" style={textStyle}>
-            Keybase is enabled in your {fileUIName}.
-          </Text>
+          <Box style={globalStyles.flexBoxColumn}>
+            <Text type="Header" style={textStyle}>
+              Keybase is enabled in your {fileUIName}.
+            </Text>
+          </Box>
         )
       } else {
         bannerContent = (
@@ -57,6 +60,11 @@ const Banner = isMobile
             <Icon type={iconType} />
           </Box>
           <Box style={bannerTextContentStyle}>{bannerContent}</Box>
+          {!!onDismiss && (
+            <Box style={dismissContainerStyle}>
+              <Icon type="iconfont-close" style={dismissIconStyle} onClick={onDismiss} />
+            </Box>
+          )}
         </Box>
       )
     }
@@ -77,6 +85,19 @@ const bannerTextContentStyle = {
 const textStyle = {
   color: globalColors.white,
   paddingBottom: globalMargins.small,
+}
+
+const dismissContainerStyle = {
+  position: 'absolute',
+  top: 0,
+  right: 0,
+  paddingTop: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
+}
+
+const dismissIconStyle = {
+  color: globalColors.white_40,
+  fontSize: 16,
 }
 
 export default Banner

@@ -83,7 +83,6 @@ const stylesCommonRow = {
 
 const styleHeaderContainer = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
 }
 
 const styleFolderHeader = {
