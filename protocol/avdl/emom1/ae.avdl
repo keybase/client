@@ -40,6 +40,7 @@ protocol ae {        // AE   = "Authenticated Encryption"
   record ResponsePlaintext {
     Seqno s; // the seqno that the caller specified; must match to detect tampering
     bytes r; // reply, msgpacked
+    bytes e; // error, msgpacked
   }
 
   record AuthToken {

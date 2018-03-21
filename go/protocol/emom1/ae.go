@@ -144,6 +144,7 @@ func (o RequestPlaintext) DeepCopy() RequestPlaintext {
 type ResponsePlaintext struct {
 	S Seqno  `codec:"s" json:"s"`
 	R []byte `codec:"r" json:"r"`
+	E []byte `codec:"e" json:"e"`
 }
 
 func (o ResponsePlaintext) DeepCopy() ResponsePlaintext {
@@ -155,20 +156,26 @@ func (o ResponsePlaintext) DeepCopy() ResponsePlaintext {
 			}
 			return append([]byte{}, x...)
 		})(o.R),
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
 	}
 }
 
 type AuthToken struct {
-	U UID  `codec:"u" json:"u"`
 	C Time `codec:"c" json:"c"`
 	K KID  `codec:"k" json:"k"`
+	U UID  `codec:"u" json:"u"`
 }
 
 func (o AuthToken) DeepCopy() AuthToken {
 	return AuthToken{
-		U: o.U.DeepCopy(),
 		C: o.C.DeepCopy(),
 		K: o.K.DeepCopy(),
+		U: o.U.DeepCopy(),
 	}
 }
 

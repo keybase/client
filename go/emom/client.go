@@ -2,6 +2,7 @@ package emom
 
 import (
 	binary "encoding/binary"
+	errors "errors"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
 	clockwork "github.com/keybase/clockwork"
 	codec "github.com/keybase/go-codec/codec"
@@ -26,23 +27,23 @@ type Client struct {
 	serverPublicKey ServerPublicKey
 	cli             *rpc.Client
 	aeClient        emom1.AeClient
+	xp              rpc.Transporter
+	sentChan        chan rpc.SeqNumber
+	sessionKey      saltpack.BoxPrecomputedSharedKey
+	errorUnwrapper  rpc.ErrorUnwrapper
+	clock           clockwork.Clock
 
+	// protected by seqnoMu
 	seqnoMu sync.Mutex
 	seqno   emom1.Seqno
 
+	// protected by seqMapMu
 	seqMapMu      sync.Mutex
 	seqMap        map[rpc.SeqNumber]rpc.SeqNumber
 	fatalSeqError error
-
-	xp       rpc.Transporter
-	sentChan chan rpc.SeqNumber
-
-	sessionKey saltpack.BoxPrecomputedSharedKey
-
-	clock clockwork.Clock
 }
 
-func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
+func NewClient(xp rpc.Transporter, eu rpc.ErrorUnwrapper, user User, server ServerPublicKey) *Client {
 	ch := make(chan rpc.SeqNumber)
 	ret := &Client{
 		user:            user,
@@ -51,6 +52,7 @@ func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
 		xp:              xp,
 		sentChan:        ch,
 		clock:           clockwork.NewRealClock(),
+		errorUnwrapper:  eu,
 	}
 	sendNotifier := func(s rpc.SeqNumber) {
 		ch <- s
@@ -133,6 +135,32 @@ func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.Au
 	return key.Unbox(makeNonce(msgType, ae.N), ae.E)
 }
 
+func (c *Client) unwrapError(encodedError []byte) error {
+	if encodedError == nil {
+		return nil
+	}
+
+	if c.errorUnwrapper == nil {
+		var s string
+		if tmp := decodeFromBytes(&s, encodedError); tmp != nil {
+			return errors.New("undecodable RPC error")
+		}
+		return errors.New(s)
+	}
+
+	arg := c.errorUnwrapper.MakeArg()
+
+	if tmp := decodeFromBytes(&arg, encodedError); tmp != nil {
+		return errors.New("undecodable error in encrypted RPC (working with error unwrapper)")
+	}
+
+	unwrapErr, ret := c.errorUnwrapper.UnwrapError(arg)
+	if unwrapErr != nil {
+		return unwrapErr
+	}
+	return ret
+}
+
 func (c *Client) Call(ctx context.Context, method string, arg interface{}, res interface{}) (err error) {
 	var wrappedArg emom1.Arg
 	var encodedArg []byte
@@ -213,6 +241,10 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
+	err = c.unwrapError(responsePlaintext.E)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
