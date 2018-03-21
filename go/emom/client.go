@@ -147,12 +147,12 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
-	encodedResponsePlaintext, err = c.decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.cryptoer.SessionKey())
+	encodedResponsePlaintext, err = decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.cryptoer.SessionKey())
 	if err != nil {
 		return err
 	}
 
-	err = decodeFromBytes(responsePlaintext, encodedResponsePlaintext)
+	err = decodeFromBytes(&responsePlaintext, encodedResponsePlaintext)
 	if err != nil {
 		return err
 	}

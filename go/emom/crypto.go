@@ -24,7 +24,7 @@ func encrypt(ctx context.Context, msg []byte, msgType emom1.MsgType, n emom1.Seq
 	}, nil
 }
 
-func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc, key saltpack.BoxPrecomputedSharedKey) ([]byte, error) {
+func decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc, key saltpack.BoxPrecomputedSharedKey) ([]byte, error) {
 	return key.Unbox(makeNonce(msgType, ae.N), ae.E)
 }
 
@@ -101,7 +101,7 @@ func (u *UsersCryptoPackage) InitServerHandshake(_ context.Context, _ emom1.Arg)
 
 var _ Cryptoer = (*UsersCryptoPackage)(nil)
 
-type KeybasesCryptoPackage struct {
+type CloudCryptoPackage struct {
 	sync.Mutex
 	serverKeys           map[emom1.KeyGen]saltpack.BoxSecretKey
 	userAuth             func(context.Context, emom1.UID, emom1.KID) error
@@ -111,16 +111,16 @@ type KeybasesCryptoPackage struct {
 	clock                clockwork.Clock
 }
 
-func (k *KeybasesCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
-	k.Lock()
-	defer k.Unlock()
-	return k.sessionKey
+func (c *CloudCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
+	c.Lock()
+	defer c.Unlock()
+	return c.sessionKey
 }
 
-func (k *KeybasesCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.Arg) error {
-	k.Lock()
-	defer k.Unlock()
-	if k.sessionKey == nil {
+func (c *CloudCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.Arg) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.sessionKey == nil {
 		return nil
 	}
 	if arg.H == nil {
@@ -129,23 +129,23 @@ func (k *KeybasesCryptoPackage) InitServerHandshake(ctx context.Context, arg emo
 	if arg.H.V != 1 {
 		return NewHandshakeError("Can only support V1, got %d", arg.H.V)
 	}
-	userEphemeralKey, err := k.checkReplayAndImport(ctx, arg.H.K)
+	userEphemeralKey, err := c.checkReplayAndImport(ctx, arg.H.K)
 	if err != nil {
 		return err
 	}
 
-	key, found := k.serverKeys[arg.H.S]
+	key, found := c.serverKeys[arg.H.S]
 	if !found {
 		return NewHandshakeError("key generation %d not found", arg.H.S)
 	}
 
-	k.sessionKey = key.Precompute(userEphemeralKey)
+	c.sessionKey = key.Precompute(userEphemeralKey)
 
 	return nil
 }
 
-func (k *KeybasesCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
+func (c *CloudCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
 	return nil
 }
 
-var _ Cryptoer = (*KeybasesCryptoPackage)(nil)
+var _ Cryptoer = (*CloudCryptoPackage)(nil)

@@ -30,6 +30,8 @@ func (s *Server) Register(p rpc.Protocol) error {
 }
 
 func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error) {
+	var encodedRequestPlaintext []byte
+	var requestPlaintext emom1.RequestPlaintext
 
 	// It would be ideal if we could ensure that we're seeing requests
 	// as the same order as they come across the wire. But this is hard
@@ -45,6 +47,16 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 	}
 
 	err = s.cryptoer.InitServerHandshake(ctx, arg)
+	if err != nil {
+		return res, err
+	}
+
+	encodedRequestPlaintext, err = decrypt(ctx, emom1.MsgType_CALL, arg.A, s.cryptoer.SessionKey())
+	if err != nil {
+		return res, err
+	}
+
+	err = decodeFromBytes(&requestPlaintext, encodedRequestPlaintext)
 	if err != nil {
 		return res, err
 	}
