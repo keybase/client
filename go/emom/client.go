@@ -2,12 +2,12 @@ package emom
 
 import (
 	binary "encoding/binary"
-	codec "github.com/keybase/go-codec/codec"
 	emom1 "github.com/keybase/client/go/protocol/emom1"
+	codec "github.com/keybase/go-codec/codec"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	saltpack "github.com/keybase/saltpack"
-	context "golang.org/x/net/context"
 	secretbox "golang.org/x/crypto/nacl/secretbox"
+	context "golang.org/x/net/context"
 	sync "sync"
 )
 
@@ -27,17 +27,17 @@ type Client struct {
 	cli             *rpc.Client
 	aeClient        emom1.AeClient
 
-	seqnoMu   sync.Mutex
-	seqno           emom1.Seqno
+	seqnoMu sync.Mutex
+	seqno   emom1.Seqno
 
-	seqMapMu sync.Mutex
-	seqMap map[rpc.SeqNumber]rpc.SeqNumber
+	seqMapMu      sync.Mutex
+	seqMap        map[rpc.SeqNumber]rpc.SeqNumber
 	fatalSeqError error
 
-	xp              rpc.Transporter
-	sentChan        chan rpc.SeqNumber
+	xp       rpc.Transporter
+	sentChan chan rpc.SeqNumber
 
-	sessionKey		*key32
+	sessionKey *key32
 }
 
 func NewClient(xp rpc.Transporter, user User, server ServerPublicKey) *Client {
@@ -118,33 +118,31 @@ func makeNonce(msgType emom1.MsgType, n emom1.Seqno) nonce24 {
 	return out
 }
 
-func (c *Client) encrypt(ctx context.Context, msgType emom1.MsgType, n emom1.Seqno, arg interface{}) (emom1.AuthEnc, error) {
+func encrypt(ctx context.Context, b []byte, msgType emom1.MsgType, n emom1.Seqno, key *key32) (emom1.AuthEnc, error) {
 	nonce := makeNonce(msgType, n)
-	b, err := encodeToBytes(arg)
-	if err != nil {
-		return emom1.AuthEnc{}, err
-	}
-
-	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(&nonce), (*[32]byte)(c.sessionKey))
-
+	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(&nonce), (*[32]byte)(key))
 	return emom1.AuthEnc{
 		N: n,
 		E: ciphertext,
 	}, nil
 }
 
-func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc) ([]byte, error) {
-	return nil, nil
-}
-
-func (c *Client) decodeFromBytes(res interface{}, b []byte) error {
-	return nil
+func (c *Client) decrypt(ctx context.Context, msgType emom1.MsgType, ae emom1.AuthEnc, key *key32) ([]byte, error) {
+	nonce := makeNonce(msgType, ae.N)
+	res, ok := secretbox.Open([]byte{}, ae.E, (*[24]byte)(&nonce), (*[32]byte)(key))
+	if !ok {
+		return nil, MACError
+	}
+	return res, nil
 }
 
 func (c *Client) Call(ctx context.Context, method string, arg interface{}, res interface{}) (err error) {
 	var wrappedArg emom1.Arg
 	var encodedArg []byte
+	var encodedRequestPlaintext []byte
 	var wrappedRes emom1.Res
+	var responsePlaintext emom1.ResponsePlaintext
+	var encodedResponsePlaintext []byte
 
 	c.seqnoMu.Lock()
 	doneCh := make(chan struct{})
@@ -162,14 +160,19 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		A: encodedArg,
 	}
 
-	if c.seqno == emom1.Seqno(0) {
+	if c.sessionKey == nil {
 		wrappedArg.H, rp.F, err = c.doHandshake(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
-	wrappedArg.A, err = c.encrypt(ctx, emom1.MsgType_CALL, seqno, rp)
+	encodedRequestPlaintext, err = encodeToBytes(rp)
+	if err != nil {
+		return err
+	}
+
+	wrappedArg.A, err = encrypt(ctx, encodedRequestPlaintext, emom1.MsgType_CALL, seqno, c.sessionKey)
 	if err != nil {
 		return err
 	}
@@ -194,14 +197,26 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
-	bres, err := c.decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A)
+	encodedResponsePlaintext, err = c.decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.sessionKey)
 	if err != nil {
 		return err
 	}
 
-	err = c.decodeFromBytes(res, bres)
+	err = decodeFromBytes(responsePlaintext, encodedResponsePlaintext)
+	if err != nil {
+		return err
+	}
 
-	return err
+	if responsePlaintext.S != seqno {
+		return WrongReplyError{seqno, responsePlaintext.S}
+	}
+
+	err = decodeFromBytes(res, responsePlaintext.R)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Client) doHandshake(ctx context.Context) (*emom1.Handshake, *emom1.SignedAuthToken, error) {

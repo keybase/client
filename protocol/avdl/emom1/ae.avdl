@@ -60,7 +60,7 @@ protocol ae {        // AE   = "Authenticated Encryption"
   }
 
   record Res {
-    AuthEnc a; // AuthEnc of a ResponePlaintext
+    AuthEnc a; // AuthEnc of a ResponsePlaintext
   }
 
   // (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.
