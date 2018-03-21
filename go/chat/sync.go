@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -350,12 +349,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		}
 
 		// Queue background conversation loads
-		// MM: 12/03/2017 Let's not do this on mobile, it is too much load
-		if s.G().GetAppType() != libkb.MobileAppType {
-			for _, convID := range utils.PluckConvIDs(incr.Convs) {
-				if err := s.G().ConvLoader.Queue(ctx, convID); err != nil {
-					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
-				}
+		for _, conv := range incr.Convs {
+			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
+				s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 			}
 		}
 	}
