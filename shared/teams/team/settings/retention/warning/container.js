@@ -13,7 +13,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => ({
   // TODO maybe take some more identifiers {teamname, conversationIDKey} and handle it here
   // when you're not decreasing the policy this warning doesn't show so the parent component
   // needs to know how to make the calls anyway
-  onConfirm: routeProps.get('onConfirm'),
+  onConfirm: () => {
+    const cb: () => void = routeProps.get('onConfirm')
+    cb && cb()
+    dispatch(navigateUp())
+  },
 })
 
 export default compose(

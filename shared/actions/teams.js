@@ -127,7 +127,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   }
 }
 
-const _setTeamRetentionPolicy = (action: TeamsGen.SetTeamRetentionPolicyPayload, state: TypedState) => {
+const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicyPayload, state: TypedState) {
   const teamname = action.payload.teamname
   const policy = Constants.makeRetentionPolicy(action.payload.policy)
 
@@ -1030,7 +1030,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     _checkRequestedAccessSuccess
   )
   yield Saga.safeTakeEveryPure(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
-  yield Saga.safeTakeEvery(TeamsGen.setTeamRetentionPolicy, _setTeamRetentionPolicy)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamRetentionPolicy, _setTeamRetentionPolicy)
 }
 
 export default teamsSaga
