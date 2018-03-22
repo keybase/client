@@ -210,17 +210,18 @@ func pollForConditionWithTimeout(t *testing.T, timeout time.Duration, descriptio
 	}
 }
 
-func trySBSConsolidation(t *testing.T, impteamExpr string) {
-	t.Logf("trySBSConsolidation(%q)", impteamExpr)
+func trySBSConsolidation(t *testing.T, impteamExpr string, public bool) {
+	t.Logf("trySBSConsolidation(expr=%q, public=%t)", impteamExpr, public)
 
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
 	ann := tt.addUser("ann")
 	bob := tt.addUser("bob")
+	tt.logUserNames()
 
 	impteamName := fmt.Sprintf(impteamExpr, ann.username, bob.username, bob.username)
-	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, public)
 	require.NoError(t, err)
 
 	t.Logf("Created team %s -> %s", impteamName, teamID)
@@ -234,24 +235,51 @@ func trySBSConsolidation(t *testing.T, impteamExpr string) {
 		team, err := teams.Load(ctx, ann.tc.G, keybase1.LoadTeamArg{
 			ID:          teamID,
 			ForceRepoll: true,
+			Public:      public,
 		})
 		require.NoError(t, err)
 		displayName, err := team.ImplicitTeamDisplayName(context.Background())
-		t.Logf("Got team back: %s", displayName.String())
+		t.Logf("Got team back: %q (waiting for %q)", displayName.String(), expectedTeamName)
 		return displayName.String() == expectedTeamName
 	})
 
-	teamID2, err := ann.lookupImplicitTeam(false /* create */, expectedTeamName, false)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, expectedTeamName, public)
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID2)
+
+	_, err = teams.ResolveIDToName(context.Background(), ann.tc.G, teamID2)
+	require.NoError(t, err)
+
+	if public {
+		pam := tt.addUser("pam")
+		t.Logf("Signed up %s (%s) for public team check", pam.username, pam.uid)
+		teamID3, err := pam.lookupImplicitTeam(false /* create */, impteamName, true /* public */)
+		require.NoError(t, err)
+		require.Equal(t, teamID2, teamID3)
+
+		_, err = teams.Load(context.Background(), pam.tc.G, keybase1.LoadTeamArg{
+			ID:          teamID3,
+			ForceRepoll: true,
+			Public:      true,
+		})
+		require.NoError(t, err)
+
+		_, err = teams.ResolveIDToName(context.Background(), pam.tc.G, teamID3)
+		require.NoError(t, err)
+	}
+}
+
+func trySBSConsolidationPubAndPriv(t *testing.T, impteamExpr string) {
+	trySBSConsolidation(t, impteamExpr, true /* public */)
+	trySBSConsolidation(t, impteamExpr, false /* public */)
 }
 
 func TestImplicitSBSConsolidation(t *testing.T) {
-	trySBSConsolidation(t, "%v,%v,%v@rooter")
+	trySBSConsolidationPubAndPriv(t, "%v,%v,%v@rooter")
 }
 
 func TestImplicitSBSPromotion(t *testing.T) {
-	trySBSConsolidation(t, "%v,%v@rooter#%v")
+	trySBSConsolidationPubAndPriv(t, "%v,%v@rooter#%v")
 }
 
 func TestImplicitSBSConsolidation2(t *testing.T) {
@@ -259,7 +287,7 @@ func TestImplicitSBSConsolidation2(t *testing.T) {
 	// assertion is a reader. Result should still be "ann,bob", not
 	// "ann#bob".
 
-	trySBSConsolidation(t, "%v,%v#%v@rooter")
+	trySBSConsolidationPubAndPriv(t, "%v,%v#%v@rooter")
 }
 
 func TestImplicitSBSPukless(t *testing.T) {
