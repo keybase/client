@@ -131,7 +131,7 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
   }
 }
 
-const apiErrors = [
+const networkErrors = [
   RPCTypes.constantsStatusCode.scgenericapierror,
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
@@ -143,7 +143,7 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey}))
   )
   yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed, null, err => {
-    if (apiErrors.includes(err.code)) {
+    if (networkErrors.includes(err.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
       throw err
