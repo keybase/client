@@ -84,12 +84,11 @@ export default class AppState {
     })
 
     ipcMain.on('setAppState', (event, data) => {
-      var oldOpenAtLogin = this.state.openAtLogin
       this.state = {
         ...this.state,
         ...data,
       }
-      this.saveState(oldOpenAtLogin)
+      this.saveState()
     })
 
     this._loadStateSync()
@@ -102,7 +101,7 @@ export default class AppState {
   // > Note that it is unsafe to use fs.writeFile multiple times on the same file without waiting for the callback.
   //
   // It's hard to reproduce, but I have seen cases where this app-state.json file gets messed up.
-  saveState(oldOpenAtLogin) {
+  saveState() {
     try {
       let configPath = this.config.path
       let stateToSave = this.state
@@ -112,11 +111,16 @@ export default class AppState {
     }
 
     const isLinux = process.platform === 'linux'
-    if (isLinux !== true) {
-      oldOpenAtLogin = app.getLoginItemSettings().openAtLogin
+    if (isLinux) {
+      this.getLinuxLoginState(openAtLogin => {
+        if (openAtLogin !== this.state.openAtLogin) {
+          console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
+          this.setOSLoginState()
+        }
+      })
     }
 
-    if (oldOpenAtLogin !== this.state.openAtLogin) {
+    if (app.getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
       console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
       this.setOSLoginState()
     }
@@ -231,16 +235,34 @@ export default class AppState {
     app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
-  setLinuxLoginState() {
+  getLinuxLoginString(isSet) {
     const isGnome = process.env.SESSIONTYPE === 'gnome-session'
     const setString = isGnome ? 'X-GNOME-Autostart-enabled=true/' : '#Hidden=true/'
     const unSetString = isGnome ? 'X-GNOME-Autostart-enabled=false/' : 'Hidden=true/'
-    var searchString = this.state.openAtLogin ? unSetString : setString
-    var replaceString = this.state.openAtLogin ? setString : unSetString
+    return isSet ? setString : unSetString
+  }
+
+  setLinuxLoginState() {
+    var searchString = this.getLinuxLoginString(!this.state.openAtLogin)
+    var replaceString = this.getLinuxLoginString(this.state.openAtLogin)
 
     exec('sed -i s/' + searchString + replaceString + ' ~/.config/autostart/keybase_autostart.desktop', {
       windowsHide: true,
     })
+  }
+
+  getLinuxLoginState(callback) {
+    const setString = this.getLinuxLoginString(true)
+
+    exec(
+      'grep ' + setString + ' ~/.config/autostart/keybase_autostart.desktop',
+      {
+        windowsHide: true,
+      },
+      result => {
+        callback(result === setString)
+      }
+    )
   }
 
   manageWindow(win: any) {
