@@ -103,18 +103,21 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		c.identifyCalled = true
 		return nil
 
-	case "keybase.1.user.loadUserPlusKeys":
-		arg := args.([]interface{})[0].(keybase1.LoadUserPlusKeysArg)
+	case "keybase.1.user.loadUserPlusKeysV2":
+		arg := args.([]interface{})[0].(keybase1.LoadUserPlusKeysV2Arg)
 
 		userInfo, ok := c.users[arg.Uid]
 		if !ok {
 			return fmt.Errorf("Could not find user info for UID %s", arg.Uid)
 		}
 
-		*res.(*keybase1.UserPlusKeys) = keybase1.UserPlusKeys{
-			Uid:      arg.Uid,
-			Username: string(userInfo.Name),
-		}
+		*res.(*keybase1.UserPlusKeysV2AllIncarnations) =
+			keybase1.UserPlusKeysV2AllIncarnations{
+				Current: keybase1.UserPlusKeysV2{
+					Uid:      arg.Uid,
+					Username: string(userInfo.Name),
+				},
+			}
 
 		c.loadUserPlusKeysCalled = true
 		return nil

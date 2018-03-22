@@ -152,7 +152,7 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// keep accepting writes from the revoked device for a short
 	// period of time until it learns about the revoke.
 	const revokeSlack = 1 * time.Minute
-	revokedTime := keybase1.FromTime(t.Unix)
+	revokedTime := keybase1.FromTime(t)
 	// Trust the server times -- if the key was valid at the given
 	// time, we are good to go.  TODO: use Merkle data to check
 	// the server timestamps, to prove the server isn't lying.

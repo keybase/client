@@ -40,8 +40,8 @@ type UserInfo struct {
 	EldestSeqno     keybase1.Seqno
 
 	// Revoked keys, and the time at which they were revoked.
-	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime
-	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime
+	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]keybase1.Time
+	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]keybase1.Time
 }
 
 // TeamInfo contains all the info about a keybase team that kbfs cares
@@ -579,33 +579,6 @@ const (
 	// WriteMode indicates that an error happened while trying to write.
 	WriteMode
 )
-
-// UserInfoFromProtocol returns UserInfo from UserPlusKeys
-func UserInfoFromProtocol(upk keybase1.UserPlusKeys) (UserInfo, error) {
-	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(upk.DeviceKeys)
-	if err != nil {
-		return UserInfo{}, err
-	}
-
-	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err := filterRevokedKeys(upk.RevokedDeviceKeys)
-	if err != nil {
-		return UserInfo{}, err
-	}
-
-	for k, v := range revokedKidNames {
-		kidNames[k] = v
-	}
-
-	return UserInfo{
-		Name:                   libkb.NewNormalizedUsername(upk.Username),
-		UID:                    upk.Uid,
-		VerifyingKeys:          verifyingKeys,
-		CryptPublicKeys:        cryptPublicKeys,
-		KIDNames:               kidNames,
-		RevokedVerifyingKeys:   revokedVerifyingKeys,
-		RevokedCryptPublicKeys: revokedCryptPublicKeys,
-	}, nil
-}
 
 // SessionInfoFromProtocol returns SessionInfo from Session
 func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {

@@ -114,35 +114,31 @@ type addCryptPublicKeyFunc func(kbfscrypto.CryptPublicKey)
 // processKey adds the given public key to the appropriate verifying
 // or crypt list (as return values), and also updates the given name
 // map and parent map in place.
-func processKey(publicKey keybase1.PublicKey,
+func processKey(publicKey keybase1.PublicKeyV2NaCl,
 	addVerifyingKey addVerifyingKeyFunc,
 	addCryptPublicKey addCryptPublicKeyFunc,
 	kidNames map[keybase1.KID]string,
 	parents map[keybase1.KID]keybase1.KID) error {
-	if len(publicKey.PGPFingerprint) > 0 {
+	if publicKey.Base.Revocation != nil {
 		return nil
 	}
+
 	// Import the KID to validate it.
-	key, err := libkb.ImportKeypairFromKID(publicKey.KID)
+	key, err := libkb.ImportKeypairFromKID(publicKey.Base.Kid)
 	if err != nil {
 		return err
 	}
-	if publicKey.IsSibkey {
+	if publicKey.Base.IsSibkey {
 		addVerifyingKey(kbfscrypto.MakeVerifyingKey(key.GetKID()))
 	} else {
 		addCryptPublicKey(kbfscrypto.MakeCryptPublicKey(key.GetKID()))
 	}
 	if publicKey.DeviceDescription != "" {
-		kidNames[publicKey.KID] = publicKey.DeviceDescription
+		kidNames[publicKey.Base.Kid] = publicKey.DeviceDescription
 	}
 
-	if publicKey.ParentID != "" {
-		parentKID, err := keybase1.KIDFromStringChecked(
-			publicKey.ParentID)
-		if err != nil {
-			return err
-		}
-		parents[publicKey.KID] = parentKID
+	if publicKey.Parent != nil {
+		parents[publicKey.Base.Kid] = *publicKey.Parent
 	}
 	return nil
 }
@@ -161,7 +157,7 @@ func updateKIDNamesFromParents(kidNames map[keybase1.KID]string,
 	}
 }
 
-func filterKeys(keys []keybase1.PublicKey) (
+func filterKeys(keys map[keybase1.KID]keybase1.PublicKeyV2NaCl) (
 	verifyingKeys []kbfscrypto.VerifyingKey,
 	cryptPublicKeys []kbfscrypto.CryptPublicKey,
 	kidNames map[keybase1.KID]string, err error) {
@@ -186,23 +182,35 @@ func filterKeys(keys []keybase1.PublicKey) (
 	return verifyingKeys, cryptPublicKeys, kidNames, nil
 }
 
-func filterRevokedKeys(keys []keybase1.RevokedKey) (
-	map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime,
-	map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime,
+func filterRevokedKeys(
+	keys map[keybase1.KID]keybase1.PublicKeyV2NaCl,
+	reset *keybase1.ResetSummary) (
+	map[kbfscrypto.VerifyingKey]keybase1.Time,
+	map[kbfscrypto.CryptPublicKey]keybase1.Time,
 	map[keybase1.KID]string, error) {
-	verifyingKeys := make(map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime)
-	cryptPublicKeys := make(map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime)
+	verifyingKeys := make(map[kbfscrypto.VerifyingKey]keybase1.Time)
+	cryptPublicKeys := make(map[kbfscrypto.CryptPublicKey]keybase1.Time)
 	var kidNames = map[keybase1.KID]string{}
 	var parents = map[keybase1.KID]keybase1.KID{}
 
-	for _, revokedKey := range keys {
+	for _, key := range keys {
+		var revokedTime keybase1.Time
+		if key.Base.Revocation != nil {
+			revokedTime = key.Base.Revocation.Time
+		} else if reset != nil {
+			revokedTime = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
+		} else {
+			// Not revoked.
+			continue
+		}
+
 		addVerifyingKey := func(key kbfscrypto.VerifyingKey) {
-			verifyingKeys[key] = revokedKey.Time
+			verifyingKeys[key] = revokedTime
 		}
 		addCryptPublicKey := func(key kbfscrypto.CryptPublicKey) {
-			cryptPublicKeys[key] = revokedKey.Time
+			cryptPublicKeys[key] = revokedTime
 		}
-		err := processKey(revokedKey.Key, addVerifyingKey, addCryptPublicKey,
+		err := processKey(key, addVerifyingKey, addCryptPublicKey,
 			kidNames, parents)
 		if err != nil {
 			return nil, nil, nil, err
@@ -554,8 +562,8 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		}
 	}
 
-	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, PollForKID: pollForKID}
-	res, err := k.userClient.LoadUserPlusKeys(ctx, arg)
+	arg := keybase1.LoadUserPlusKeysV2Arg{Uid: uid, PollForKID: pollForKID}
+	res, err := k.userClient.LoadUserPlusKeysV2(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err
 	}
@@ -712,15 +720,16 @@ func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
 	return root, err
 }
 
-func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (
-	UserInfo, error) {
-	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(upk.DeviceKeys)
+func (k *KeybaseServiceBase) processUserPlusKeys(
+	upk keybase1.UserPlusKeysV2AllIncarnations) (UserInfo, error) {
+	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(
+		upk.Current.DeviceKeys)
 	if err != nil {
 		return UserInfo{}, err
 	}
 
 	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err :=
-		filterRevokedKeys(upk.RevokedDeviceKeys)
+		filterRevokedKeys(upk.Current.DeviceKeys, upk.Current.Reset)
 	if err != nil {
 		return UserInfo{}, err
 	}
@@ -731,18 +740,41 @@ func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 		}
 	}
 
+	for _, incarnation := range upk.PastIncarnations {
+		revokedVerifyingKeysPast, revokedCryptPublicKeysPast,
+			revokedKidNames, err :=
+			filterRevokedKeys(incarnation.DeviceKeys, incarnation.Reset)
+		if err != nil {
+			return UserInfo{}, err
+		}
+
+		if len(revokedKidNames) > 0 {
+			for k, v := range revokedKidNames {
+				kidNames[k] = v
+			}
+		}
+
+		for k, v := range revokedVerifyingKeysPast {
+			revokedVerifyingKeys[k] = v
+		}
+		for k, v := range revokedCryptPublicKeysPast {
+			revokedCryptPublicKeys[k] = v
+		}
+	}
+
 	u := UserInfo{
-		Name:                   libkb.NewNormalizedUsername(upk.Username),
-		UID:                    upk.Uid,
+		Name: libkb.NewNormalizedUsername(
+			upk.Current.Username),
+		UID:                    upk.Current.Uid,
 		VerifyingKeys:          verifyingKeys,
 		CryptPublicKeys:        cryptPublicKeys,
 		KIDNames:               kidNames,
-		EldestSeqno:            upk.EldestSeqno,
+		EldestSeqno:            upk.Current.EldestSeqno,
 		RevokedVerifyingKeys:   revokedVerifyingKeys,
 		RevokedCryptPublicKeys: revokedCryptPublicKeys,
 	}
 
-	k.setCachedUserInfo(upk.Uid, u)
+	k.setCachedUserInfo(upk.Current.Uid, u)
 	return u, nil
 }
 

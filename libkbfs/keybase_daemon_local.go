@@ -665,17 +665,14 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 
 	if user.RevokedVerifyingKeys == nil {
 		user.RevokedVerifyingKeys =
-			make(map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime)
+			make(map[kbfscrypto.VerifyingKey]keybase1.Time)
 	}
 	if user.RevokedCryptPublicKeys == nil {
 		user.RevokedCryptPublicKeys =
-			make(map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime)
+			make(map[kbfscrypto.CryptPublicKey]keybase1.Time)
 	}
 
-	kbtime := keybase1.KeybaseTime{
-		Unix:  keybase1.ToTime(clock.Now()),
-		Chain: 100,
-	}
+	kbtime := keybase1.ToTime(clock.Now())
 	user.RevokedVerifyingKeys[user.VerifyingKeys[index]] = kbtime
 	user.RevokedCryptPublicKeys[user.CryptPublicKeys[index]] = kbtime
 
