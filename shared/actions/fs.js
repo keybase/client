@@ -19,6 +19,27 @@ import {
 } from './fs-platform-specific'
 import {isWindows} from '../constants/platform'
 
+function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
+  const rootPath = action.payload.path
+
+  const dirent = yield Saga.call(RPCTypes.SimpleFSSimpleFSStatRpcPromise, {
+    path: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(rootPath),
+    },
+  })
+
+  const meta = Constants.makeFile({
+    name: Types.getPathName(rootPath),
+    lastModifiedTimestamp: dirent.time,
+    size: dirent.size,
+    progress: 'loaded',
+    // FIXME currently lastWriter is not provided by simplefs.
+    // the GUI supports it when added here.
+  })
+  yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
+}
+
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
   const rootPath = action.payload.path
@@ -29,6 +50,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
+    filter: RPCTypes.simpleFSListFilter.filterAllHidden,
   })
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
@@ -39,7 +61,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const direntToMetadata = (d: RPCTypes.Dirent) => ({
     name: d.name,
     lastModifiedTimestamp: d.time,
-    lastWriter: 'jareddunn' + (d.name.length < 10 ? '' : 'andfriendsandfriends'), // TODO fix this when we have it from RPC
+    lastWriter: d.lastWriterUnverified,
     size: d.size,
   })
 
@@ -96,14 +118,18 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
   })
 
-  // Fake out progress until we have the real thing.
-  // TODO: have the real thing.
-  const total = 6
-  for (let progress = 0; progress < total - 1; ++progress) {
+  let progress
+  do {
     yield Saga.delay(500)
-    yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
-    yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: progress / total}))
-  }
+    progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    yield Saga.put(
+      FsGen.createFileTransferProgress({
+        key,
+        endEstimate: progress.endEstimate,
+        completePortion: progress.bytesWritten / progress.bytesTotal,
+      })
+    )
+  } while (progress.bytesWritten < progress.bytesTotal)
 
   let error
   try {
@@ -117,6 +143,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
+  yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)

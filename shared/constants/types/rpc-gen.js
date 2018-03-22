@@ -1530,6 +1530,11 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSListFilter = {
+  noFilter: 0,
+  filterAllHidden: 1,
+}
+
 export const simpleFSOpenFlags = {
   read: 0,
   replace: 1,
@@ -2196,6 +2201,8 @@ export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
+export type DeviceEkMetadataStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
+
 export type DeviceID = String
 
 export type DeviceType =
@@ -2668,7 +2675,11 @@ export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult,
 
 export type LinkID = String
 
-export type ListArgs = $ReadOnly<{opID: OpID, path: Path}>
+export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
+
+export type ListFilter =
+  | 0 // NO_FILTER_0
+  | 1 // FILTER_ALL_HIDDEN_1
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 
@@ -3401,9 +3412,9 @@ export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCall
 
 export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSMakeOpidRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3971,6 +3982,8 @@ export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
+export type UserEkMetadataStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetatdata?: ?Array<UserEkMetadata>}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

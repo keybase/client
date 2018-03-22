@@ -9,6 +9,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
   switch (action.type) {
     case FsGen.resetStore:
       return initialState
+    case FsGen.filePreviewLoad:
+      return state
+    case FsGen.filePreviewLoaded:
+      return state.update('pathItems', metas => metas.set(action.payload.path, action.payload.meta))
     case FsGen.folderListLoaded: {
       const toMerge = action.payload.pathItems.filter((item, path) => {
         if (item.type !== 'folder') {
@@ -50,9 +54,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     }
     case FsGen.fileTransferProgress: {
-      const {key, completePortion} = action.payload
+      const {key, completePortion, endEstimate} = action.payload
       return state.updateIn(['transfers', key], (original: Types.TransferState) =>
-        original.set('completePortion', completePortion)
+        original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
     case FsGen.downloadFinished: {

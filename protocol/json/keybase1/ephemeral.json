@@ -16,6 +16,25 @@
     },
     {
       "type": "record",
+      "name": "DeviceEkMetadataStatement",
+      "fields": [
+        {
+          "type": "DeviceEkMetadata",
+          "name": "currentDeviceEkMetadata",
+          "jsonkey": "current_device_ek_metadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceEkMetadata"
+          },
+          "name": "existingDeviceEkMetadata",
+          "jsonkey": "existing_device_ek_metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DeviceEkMetadata",
       "fields": [
         {
@@ -49,6 +68,25 @@
         {
           "type": "DeviceEkMetadata",
           "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserEkMetadataStatement",
+      "fields": [
+        {
+          "type": "UserEkMetadata",
+          "name": "currentUserEkMetadata",
+          "jsonkey": "current_user_ek_metadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserEkMetadata"
+          },
+          "name": "existingUserEkMetatdata",
+          "jsonkey": "existing_user_ek_metadata"
         }
       ]
     },

@@ -30,6 +30,15 @@ func (set FeatureFlags) Admin() bool {
 	return false
 }
 
+func (set FeatureFlags) UseEphemeral() bool {
+	for _, f := range set {
+		if f == Feature("use-ephemeral") {
+			return true
+		}
+	}
+	return false
+}
+
 func (set FeatureFlags) Empty() bool {
 	return len(set) == 0
 }

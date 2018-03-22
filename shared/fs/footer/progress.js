@@ -23,11 +23,11 @@ const Progress = ({completePortion, text}: ProgressProps) => (
 const stylesOuter = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'flex-start',
+  alignItems: 'center',
 }
 
 const stylesTubeBox = {
   marginRight: globalMargins.xtiny,
-  paddingTop: 2,
 }
 
 const stylesTube = {
@@ -48,7 +48,7 @@ const stylesText = platformStyles({
   common: {
     color: globalColors.white,
     fontSize: 10,
-    lineHeight: 1.2,
+    lineHeight: 14,
   },
 })
 

@@ -198,8 +198,7 @@
   NSError *error = nil;
   [self unmount:directory error:&error];
   if (error) {
-    completion(error, nil);
-    return;
+    KBLog(@"Ignoring unmount error: %@", error);
   }
 
   // First create the directory.
@@ -240,8 +239,7 @@
   NSError *error = nil;
   [self unmount:directory error:&error];
   if (error) {
-    completion(error, nil);
-    return;
+    KBLog(@"Ignoring unmount error: %@", error);
   }
 
   if (self.redirector) {

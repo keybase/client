@@ -19,7 +19,7 @@ export const ExitCodeAuthCanceledError = 6
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: '',
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   children: I.List(),
@@ -29,7 +29,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: '',
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'file',
@@ -38,7 +38,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
-  lastWriter: '',
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'unknown',
@@ -59,6 +59,7 @@ export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record
   path: Types.stringToPath(''),
   localPath: '',
   completePortion: 0,
+  endEstimate: undefined,
   error: undefined,
   isDone: false,
   startedAt: 0,
@@ -181,6 +182,21 @@ const itemStylesTeamTlf = memoize((teamName: string) => ({
   textColor: privateTextColor,
   textType: folderTextType,
 }))
+
+export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
+  const kib = 1024
+  const mib = kib * kib
+  const gib = mib * kib
+  const tib = gib * kib
+
+  if (!meta) return ''
+  const size = meta.size
+  if (size >= tib) return `${Math.round(size / tib)} TB`
+  if (size >= gib) return `${Math.round(size / gib)} GB`
+  if (size >= mib) return `${Math.round(size / mib)} MB`
+  if (size >= kib) return `${Math.round(size / kib)} KB`
+  return `${size} B`
+}
 
 export const getItemStyles = (
   pathElems: Array<string>,

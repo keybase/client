@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -12,10 +13,14 @@ func TestUserEKBoxStorage(t *testing.T) {
 	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	deviceEKMetadata, err := PublishNewDeviceEK(context.Background(), tc.G)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	merkleRoot := *merkleRootPtr
+
+	deviceEKMetadata, err := publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
-	userEKMetadata, err := PublishNewUserEK(context.Background(), tc.G)
+	userEKMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
 	s := tc.G.GetUserEKBoxStorage()
@@ -26,12 +31,12 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.Equal(t, keybase1.UserEk{}, nonexistent)
 
 	// Test get valid & unbox
+	s.ClearCache()
 	userEK, err := s.Get(context.Background(), userEKMetadata.Generation)
 	require.NoError(t, err)
 
 	seed := UserEKSeed(userEK.Seed)
-	keypair, err := seed.DeriveDHKey()
-	require.NoError(t, err)
+	keypair := seed.DeriveDHKey()
 	require.Equal(t, userEKMetadata.Kid, keypair.GetKID())
 
 	// Test MaxGeneration
@@ -51,8 +56,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.True(t, ok)
 
 	seed = UserEKSeed(userEK.Seed)
-	keypair, err = seed.DeriveDHKey()
-	require.NoError(t, err)
+	keypair = seed.DeriveDHKey()
 	require.Equal(t, userEKMetadata.Kid, keypair.GetKID())
 
 	// Let's delete our deviceEK and verify we can't unbox the userEK
@@ -82,5 +86,10 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.EqualValues(t, 0, maxGeneration)
+	require.EqualValues(t, -1, maxGeneration)
+
+	expired, err := s.DeleteExpired(context.Background(), merkleRoot)
+	expected := []keybase1.EkGeneration(nil)
+	require.NoError(t, err)
+	require.Equal(t, expected, expired)
 }

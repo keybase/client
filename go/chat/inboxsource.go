@@ -524,11 +524,21 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	if err != nil {
 		return types.Inbox{}, ib.RateLimit, err
 	}
-	// Need to run expunge on anything we fetch from the server
-	for _, conv := range ib.Inbox.Full().Conversations {
+
+	// Run any tasks on the fetched conversations
+	for index, conv := range ib.Inbox.Full().Conversations {
+		// Need to run expunge on anything we fetch from the server
 		expunge := conv.GetExpunge()
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+		}
+
+		// Queue all these convs up to be loaded by the background loader (cap it at first 50)
+		// Also make sure we aren't here because of a background loader operation
+		if index < 50 {
+			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
+				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
+			}
 		}
 	}
 

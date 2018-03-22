@@ -5,8 +5,8 @@ package saltpack
 
 import (
 	"bytes"
+	cryptorand "crypto/rand"
 	"crypto/sha512"
-	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -139,38 +139,6 @@ func (es *encryptStream) encryptBlock(isFinal bool) error {
 	return nil
 }
 
-// Do some sanity checking on the receivers. Check that receivers
-// aren't sent to twice; check that there's at least one receiver.
-func (es *encryptStream) checkReceivers(v []BoxPublicKey) error {
-
-	if len(v) == 0 {
-		return ErrBadReceivers
-	}
-
-	tot := uint64(0)
-
-	// Make sure that each receiver only shows up in the set once.
-	receiversAsSet := make(map[string]struct{})
-
-	for _, receiver := range v {
-		// Make sure this key hasn't been used before
-		kid := receiver.ToKID()
-		kidString := hex.EncodeToString(kid)
-		if _, found := receiversAsSet[kidString]; found {
-			return ErrRepeatedKey(kid)
-		}
-		receiversAsSet[kidString] = struct{}{}
-		tot++
-	}
-
-	// Don't allow more than 2^31 receivers.
-	if tot >= 0x7fffffff {
-		return ErrBadReceivers
-	}
-
-	return nil
-}
-
 func checkKnownVersion(version Version) error {
 	for _, knownVersion := range KnownVersions() {
 		if version == knownVersion {
@@ -180,25 +148,68 @@ func checkKnownVersion(version Version) error {
 	return ErrBadVersion{version}
 }
 
-func shuffleEncryptReceivers(receivers []BoxPublicKey) []BoxPublicKey {
-	order := randomPerm(len(receivers))
-	shuffled := make([]BoxPublicKey, len(receivers))
-	for i := 0; i < len(receivers); i++ {
-		shuffled[i] = receivers[order[i]]
+// checkEncryptReceivers does some sanity checking on the
+// receivers. Check that receivers aren't sent to twice; check that
+// there's at least one receiver and not too many receivers.
+func checkEncryptReceivers(receivers []BoxPublicKey) error {
+	receiverCount := int64(len(receivers))
+	if receiverCount <= 0 || receiverCount > maxReceiverCount {
+		return ErrBadReceivers
 	}
-	return shuffled
+
+	// Make sure that each receiver only shows up in the set once.
+	receiverSet := make(map[string]bool)
+
+	// Make sure each key hasn't been used before.
+	for _, receiver := range receivers {
+		kid := receiver.ToKID()
+		kidString := string(kid)
+		if receiverSet[kidString] {
+			return ErrRepeatedKey(kid)
+		}
+		receiverSet[kidString] = true
+	}
+
+	return nil
 }
 
-func (es *encryptStream) init(version Version, sender BoxSecretKey, receivers []BoxPublicKey) error {
+func shuffleEncryptReceivers(receivers []BoxPublicKey) ([]BoxPublicKey, error) {
+	shuffled := make([]BoxPublicKey, len(receivers))
+	copy(shuffled, receivers)
+	err := csprngShuffle(cryptorand.Reader, len(shuffled), func(i, j int) {
+		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+	})
+	if err != nil {
+		return nil, err
+	}
+	return shuffled, nil
+}
+
+// encryptRNG is an interface encapsulating all the randomness (aside
+// from ephemeral key generation) that happens during
+// encryption. Tests can override it to make encryption deterministic.
+type encryptRNG interface {
+	createSymmetricKey() (*SymmetricKey, error)
+	shuffleReceivers(receivers []BoxPublicKey) ([]BoxPublicKey, error)
+}
+
+func (es *encryptStream) init(
+	version Version, sender BoxSecretKey, receivers []BoxPublicKey,
+	ephemeralKeyCreator EphemeralKeyCreator, rng encryptRNG) error {
 	if err := checkKnownVersion(version); err != nil {
 		return err
 	}
 
-	if err := es.checkReceivers(receivers); err != nil {
+	if err := checkEncryptReceivers(receivers); err != nil {
 		return err
 	}
 
-	ephemeralKey, err := receivers[0].CreateEphemeralKey()
+	receivers, err := rng.shuffleReceivers(receivers)
+	if err != nil {
+		return err
+	}
+
+	ephemeralKey, err := ephemeralKeyCreator.CreateEphemeralKey()
 	if err != nil {
 		return err
 	}
@@ -216,9 +227,11 @@ func (es *encryptStream) init(version Version, sender BoxSecretKey, receivers []
 		Ephemeral:  ephemeralKey.GetPublicKey().ToKID(),
 		Receivers:  make([]receiverKeys, 0, len(receivers)),
 	}
-	if err := randomFill(es.payloadKey[:]); err != nil {
+	payloadKey, err := rng.createSymmetricKey()
+	if err != nil {
 		return err
 	}
+	es.payloadKey = *payloadKey
 
 	nonce := nonceForSenderKeySecretBox()
 	eh.SenderSecretbox = secretbox.Seal([]byte{}, sender.GetPublicKey().ToKID(), (*[24]byte)(&nonce), (*[32]byte)(&es.payloadKey))
@@ -319,28 +332,57 @@ func (es *encryptStream) Close() error {
 	}
 }
 
-// NewEncryptStream creates a stream that consumes plaintext data.
-// It will write out encrypted data to the io.Writer passed in as ciphertext.
-// The encryption is from the specified sender, and is encrypted for the
-// given receivers.
-//
-// Returns an io.WriteClose that accepts plaintext data to be encrypted; and
-// also returns an error if initialization failed.
-func NewEncryptStream(version Version, ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey) (io.WriteCloser, error) {
+func newEncryptStream(version Version, ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey, ephemeralKeyCreator EphemeralKeyCreator, rng encryptRNG) (io.WriteCloser, error) {
 	es := &encryptStream{
 		version: version,
 		output:  ciphertext,
 		encoder: newEncoder(ciphertext),
 	}
-	err := es.init(version, sender, shuffleEncryptReceivers(receivers))
-	return es, err
+	err := es.init(version, sender, receivers, ephemeralKeyCreator, rng)
+	if err != nil {
+		return nil, err
+	}
+	return es, nil
 }
 
-// Seal a plaintext from the given sender, for the specified receiver groups.
-// Returns a ciphertext, or an error if something bad happened.
-func Seal(version Version, plaintext []byte, sender BoxSecretKey, receivers []BoxPublicKey) (out []byte, err error) {
+type defaultEncryptRNG struct{}
+
+func (defaultEncryptRNG) createSymmetricKey() (*SymmetricKey, error) {
+	return newRandomSymmetricKey()
+}
+
+func (defaultEncryptRNG) shuffleReceivers(receivers []BoxPublicKey) ([]BoxPublicKey, error) {
+	return shuffleEncryptReceivers(receivers)
+}
+
+// receiversToEphemeralKeyCreator retrieves the EphemeralKeyCreator
+// from the first receiver; this is to preserve API behavior.
+func receiversToEphemeralKeyCreator(receivers []BoxPublicKey) (EphemeralKeyCreator, error) {
+	if len(receivers) == 0 {
+		return nil, ErrBadReceivers
+	}
+	return receivers[0], nil
+}
+
+// NewEncryptStream creates a stream that consumes plaintext data.
+// It will write out encrypted data to the io.Writer passed in as ciphertext.
+// The encryption is from the specified sender, and is encrypted for the
+// given receivers.
+//
+// If initialization succeeds, returns an io.WriteCloser that accepts
+// plaintext data to be encrypted and a nil error. Otherwise, returns
+// nil and the initialization error.
+func NewEncryptStream(version Version, ciphertext io.Writer, sender BoxSecretKey, receivers []BoxPublicKey) (io.WriteCloser, error) {
+	ephemeralKeyCreator, err := receiversToEphemeralKeyCreator(receivers)
+	if err != nil {
+		return nil, err
+	}
+	return newEncryptStream(version, ciphertext, sender, receivers, ephemeralKeyCreator, defaultEncryptRNG{})
+}
+
+func seal(version Version, plaintext []byte, sender BoxSecretKey, receivers []BoxPublicKey, ephemeralKeyCreator EphemeralKeyCreator, rng encryptRNG) (out []byte, err error) {
 	var buf bytes.Buffer
-	es, err := NewEncryptStream(version, &buf, sender, receivers)
+	es, err := newEncryptStream(version, &buf, sender, receivers, ephemeralKeyCreator, rng)
 	if err != nil {
 		return nil, err
 	}
@@ -351,4 +393,14 @@ func Seal(version Version, plaintext []byte, sender BoxSecretKey, receivers []Bo
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// Seal a plaintext from the given sender, for the specified receiver groups.
+// Returns a ciphertext, or an error if something bad happened.
+func Seal(version Version, plaintext []byte, sender BoxSecretKey, receivers []BoxPublicKey) (out []byte, err error) {
+	ephemeralKeyCreator, err := receiversToEphemeralKeyCreator(receivers)
+	if err != nil {
+		return nil, err
+	}
+	return seal(version, plaintext, sender, receivers, ephemeralKeyCreator, defaultEncryptRNG{})
 }
