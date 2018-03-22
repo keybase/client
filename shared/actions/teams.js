@@ -1002,7 +1002,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     _checkRequestedAccess,
     _checkRequestedAccessSuccess
   )
-  yield Saga.safeTakeEveryPure(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
+  yield Saga.safeTakeEvery(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
 }
 
 export default teamsSaga
