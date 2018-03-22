@@ -85,6 +85,10 @@
       "teamname": "string",
       "username": "string"
     },
+    "setMemberPublicity": {
+      "teamname": "string",
+      "promoted": "boolean"
+    },
     "setPublicity": {
       "teamname": "string",
       "settings": "Types.PublicitySettings"

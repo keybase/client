@@ -75,7 +75,7 @@ const profileRoute = makeRouteDefNode({
     showcasedTeamInfo: {
       children: {},
       component: isMobile ? ShowcasedTeamInfo : RelativePopupHoc(ShowcasedTeamInfo),
-      tags: makeLeafTags({layerOnTop: false}),
+      tags: makeLeafTags({layerOnTop: true}),
     },
   },
 })

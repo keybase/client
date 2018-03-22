@@ -639,6 +639,21 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
   }
 }
 
+const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload, state: TypedState) {
+  const {teamname, showcase} = action.payload
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  try {
+    yield Saga.call(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+      isShowcased: showcase,
+      name: teamname,
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) 
+  }
+}
+
 const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: TypedState) {
   const {teamname, settings} = action.payload
   const waitingKey = {key: Constants.settingsWaitingKey(teamname)}
@@ -956,6 +971,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.editTeamDescription, _editDescription)
   yield Saga.safeTakeEvery(TeamsGen.editMembership, _editMembership)
   yield Saga.safeTakeEvery(TeamsGen.removeMemberOrPendingInvite, _removeMemberOrPendingInvite)
+  yield Saga.safeTakeEvery(TeamsGen.setMemberPublicity, _setMemberPublicity)
   yield Saga.safeTakeEveryPure(TeamsGen.updateTopic, _updateTopic, last)
   yield Saga.safeTakeEveryPure(TeamsGen.updateChannelName, _updateChannelname, last)
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)

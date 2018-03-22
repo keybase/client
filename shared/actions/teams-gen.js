@@ -32,6 +32,7 @@ export const leaveTeam = 'teams:leaveTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setChannelCreationError = 'teams:setChannelCreationError'
+export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
@@ -147,6 +148,12 @@ export const createSaveChannelMembership = (
   }>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: setChannelCreationError})
+export const createSetMemberPublicity = (
+  payload: $ReadOnly<{
+    teamname: string,
+    promoted: boolean,
+  }>
+) => ({error: false, payload, type: setMemberPublicity})
 export const createSetPublicity = (
   payload: $ReadOnly<{
     teamname: string,
@@ -199,6 +206,7 @@ export type LeaveTeamPayload = More.ReturnType<typeof createLeaveTeam>
 export type RemoveMemberOrPendingInvitePayload = More.ReturnType<typeof createRemoveMemberOrPendingInvite>
 export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChannelMembership>
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
+export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
 export type SetPublicityPayload = More.ReturnType<typeof createSetPublicity>
 export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCreationError>
 export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
@@ -233,6 +241,7 @@ export type Actions =
   | More.ReturnType<typeof createRemoveMemberOrPendingInvite>
   | More.ReturnType<typeof createSaveChannelMembership>
   | More.ReturnType<typeof createSetChannelCreationError>
+  | More.ReturnType<typeof createSetMemberPublicity>
   | More.ReturnType<typeof createSetPublicity>
   | More.ReturnType<typeof createSetTeamCreationError>
   | More.ReturnType<typeof createSetTeamCreationPending>

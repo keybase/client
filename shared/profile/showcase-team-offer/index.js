@@ -13,10 +13,11 @@ import {
   ScrollView,
   Text,
 } from '../../common-adapters'
+import {teamWaitingKey} from '../../constants/teams'
 
 import type {Props} from './index'
 
-const TeamRow = ({name, isOpen, membercount, memberShowcased, onPromote}: RowProps) => (
+const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, waiting}: RowProps) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box
       key={name}
@@ -45,9 +46,10 @@ const TeamRow = ({name, isOpen, membercount, memberShowcased, onPromote}: RowPro
           <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
         </Box>
       </Box>
-      {memberShowcased ?
-        <Button label="Published" small={true} type="PrimaryGreenActive" /> :
-        <Button label="Publish" small={true} type="PrimaryGreen" />
+      {showcased ?
+        <Button label="Published" onClick={() => onPromote(false)} small={true} style={{minWidth: 72}} type="PrimaryGreenActive" waiting={waiting} /> : (canShowcase ?
+          <Button label="Publish" onClick={() => onPromote(true)} small={true} style={{width: 72}} type="PrimaryGreen" waiting={waiting} /> :
+          <Text style={{color: globalColors.black_40, width: '20%'}} type="BodySmall">Admins aren’t allowing members to publish.</Text>)
       }
     </Box>
     {!isMobile && <Divider style={{marginLeft: 48}} />}
@@ -72,12 +74,12 @@ const ShowcaseTeamOffer = (props: Props) => (
       <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
     </Box>
 
-    <Text style={{color: globalColors.black_40, paddingTop: globalMargins.tiny, textAlign: 'center'}} type="Body">
+    <Text style={{color: globalColors.black_40, paddingTop:  globalMargins.tiny, textAlign: 'center'}} type="BodySmall">
       Promoting a team will encourage others to ask to join.
     </Text>
     <Text
-      style={{color: globalColors.black_40, paddingTop: globalMargins.tiny, textAlign: 'center'}}
-      type="Body"
+      style={{color: globalColors.black_40, paddingTop: isMobile ? globalMargins.tiny : 0, textAlign: 'center'}}
+      type="BodySmall"
     >
       The team's description and number of members will be public.
     </Text>
@@ -86,12 +88,14 @@ const ShowcaseTeamOffer = (props: Props) => (
       {props.teamnames &&
         props.teamnames.map(name => (
           <TeamRow
+            canShowcase={props.teamNameToCanPerform[name] && props.teamNameToCanPerform[name].setMemberShowcase}
             key={name}
             name={name}
             isOpen={props.teamNameToIsOpen[name]}
             membercount={props.teammembercounts[name]}
-            memberShowcased={props.teamNameToPublicitySettings[name] && props.teamNameToPublicitySettings[name].member}
-            onPromote={() => props.onPromote(name)}
+            onPromote={promoted => props.onPromote(name, promoted)}
+            showcased={props.teamNameToPublicitySettings[name] && props.teamNameToPublicitySettings[name].member}
+            waiting={!!props.waiting[teamWaitingKey(name)]}
           />
         ))}
     </ScrollView>
