@@ -96,6 +96,23 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
 }
 
+function* monitorFileTransferProgress(key: string, opID: RPCTypes.OpID) {
+  while(true) {
+    yield Saga.delay(500)
+    const progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    if (progress.bytesTotal === 0) {
+      continue
+    }
+    yield Saga.put(
+      FsGen.createFileTransferProgress({
+        key,
+        endEstimate: progress.endEstimate,
+        completePortion: progress.bytesWritten / progress.bytesTotal,
+      })
+    )
+  }
+}
+
 function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
   const {path, intent} = action.payload
   const opID = Constants.makeUUID()
@@ -132,43 +149,34 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
   })
 
-  let progress
-  do {
-    yield Saga.delay(500)
-    progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
-    yield Saga.put(
-      FsGen.createFileTransferProgress({
-        key,
-        endEstimate: progress.endEstimate,
-        completePortion: progress.bytesWritten / progress.bytesTotal,
-      })
-    )
-  } while (progress.bytesWritten < progress.bytesTotal)
-
-  let error
   try {
-    yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
-  } catch (err) {
-    error = err
-  }
-  yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: 1}))
+    yield Saga.race({
+      monitor: Saga.call(monitorFileTransferProgress, key, opID),
+      wait: Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
+    })
 
-  switch (intent) {
-    case 'none':
-      break
-    case 'camera-roll':
-      yield Saga.call(saveAttachmentDialog, localPath)
-      break
-    case 'share':
-      yield Saga.call(showShareActionSheet, {url: localPath})
-      break
-    default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(intent: empty) // this breaks when a new intent is added but not handled here
-      break
+    yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: 1}))
+
+    switch (intent) {
+      case 'none':
+        break
+      case 'camera-roll':
+        yield Saga.call(saveAttachmentDialog, localPath)
+        break
+      case 'share':
+        yield Saga.call(showShareActionSheet, {url: localPath})
+        break
+      default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        break
+    }
+  } catch (error) {
+    yield Saga.put(FsGen.createDownloadFinished({key, error}))
+    return
   }
 
-  yield Saga.put(FsGen.createDownloadFinished({key, error}))
+  yield Saga.put(FsGen.createDownloadFinished({key}))
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {

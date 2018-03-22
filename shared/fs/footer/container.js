@@ -23,6 +23,7 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
     )
       .sort(([_a, a], [_b, b]) => b.startedAt - a.startedAt) // newer first
       .map(([key, transferState]) => ({
+        error: transferState.error,
         filename: Types.getLocalPathName(transferState.localPath),
         completePortion: transferState.completePortion,
         progressText: formatDurationFromNowTo(transferState.endEstimate),
