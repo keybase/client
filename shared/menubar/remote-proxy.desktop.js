@@ -4,7 +4,7 @@ import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
+import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import {remote, BrowserWindow} from 'electron'
 
 const windowOpts = {}
@@ -79,6 +79,5 @@ export default compose(
   RemoteMenubarWindow,
   SyncAvatarProps,
   SyncProps,
-  // $FlowIssue gets confused
   renderNothing
-)(null)
+)(NullComponent)

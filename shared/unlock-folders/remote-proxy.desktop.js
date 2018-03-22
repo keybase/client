@@ -2,7 +2,7 @@
 import * as React from 'react'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose, renderNothing} from '../util/container'
+import {NullComponent, connect, type TypedState, compose, renderNothing} from '../util/container'
 
 const windowOpts = {height: 300, width: 500}
 
@@ -33,14 +33,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 // Actions are handled by remote-container
-const Empty = () => null
-
 const UnlockFolder = compose(
   connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
   SyncBrowserWindow,
   SyncProps,
   renderNothing
-)(Empty)
+)(NullComponent)
 
 type Props = {
   show: boolean,
