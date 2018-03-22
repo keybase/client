@@ -1,7 +1,16 @@
 // @flow
 import * as React from 'react'
 import {daysToLabel} from '../'
-import {Box, Icon, PopupDialog, ScrollView, Text} from '../../../../../common-adapters'
+import {
+  Box,
+  Button,
+  ButtonBar,
+  Checkbox,
+  Icon,
+  PopupDialog,
+  ScrollView,
+  Text,
+} from '../../../../../common-adapters'
 import {globalMargins, globalStyles, isMobile, platformStyles} from '../../../../../styles'
 
 type Props = {
@@ -23,18 +32,41 @@ const Wrapper = ({children, onBack}) =>
   )
 
 const RetentionWarning = (props: Props) => {
+  const policyString = daysToLabel(props.days)
   return (
     <Wrapper onBack={props.onBack}>
       <Box style={containerStyle}>
         <Icon type={iconType} style={iconStyle} />
         <Text type="Header" style={headerStyle}>
-          Destroy chat messages after {daysToLabel(props.days)}?
+          Destroy chat messages after {policyString}?
         </Text>
         <Text type="Body" style={bodyStyle}>
-          You are about to set the message deletion in this team's chats to{' '}
-          <Text type="BodySemibold">{daysToLabel(props.days)}.</Text> This will affect all the team's
-          channels, except the ones you've set manually.
+          You are about to set the message deletion policy in this team's chats to{' '}
+          <Text type="BodySemibold">{policyString}.</Text> This will affect all the team's channels, except
+          the ones you've set manually.
         </Text>
+        <Checkbox
+          checked={props.enabled}
+          onCheck={props.setEnabled}
+          label="I understand."
+          labelComponent={
+            <Box style={confirmLabelStyle}>
+              <Text type="Body">
+                I understand that messages older than {policyString} will be deleted for everyone.
+              </Text>
+              <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
+            </Box>
+          }
+        />
+        <ButtonBar>
+          <Button type="Secondary" onClick={props.onBack} label="Cancel" />
+          <Button
+            type="Danger"
+            onClick={props.onConfirm}
+            label={`Yes, set to ${policyString}`}
+            disabled={!props.enabled}
+          />
+        </ButtonBar>
       </Box>
     </Wrapper>
   )
@@ -44,7 +76,10 @@ const containerStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
-    padding: globalMargins.medium,
+    paddingTop: globalMargins.xlarge,
+    paddingLeft: globalMargins.xlarge,
+    paddingRight: globalMargins.xlarge,
+    paddingBottom: globalMargins.large,
     maxWidth: 560,
   },
 })
@@ -64,9 +99,14 @@ const headerStyle = platformStyles({
 const bodyStyle = platformStyles({
   common: {
     marginBottom: globalMargins.small,
-    marginLeft: globalMargins.xlarge,
-    marginRight: globalMargins.xlarge,
     textAlign: 'center',
+  },
+})
+
+const confirmLabelStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    marginBottom: globalMargins.xlarge,
   },
 })
 
