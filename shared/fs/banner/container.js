@@ -26,12 +26,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm({onSuccess: uninstall})),
+    _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
+  openInFileUI: stateProps.kbfsEnabled ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
 })
 

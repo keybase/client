@@ -13,11 +13,12 @@ type Props = {
   onDismiss?: () => void,
   onInstall: () => void,
   onUninstall: () => void,
+  openInFileUI?: () => void,
 }
 
 const Banner = isMobile
   ? () => <Box />
-  : ({kbfsEnabled, showBanner, onInstall, onUninstall, onDismiss}: Props) => {
+  : ({kbfsEnabled, showBanner, onInstall, onUninstall, onDismiss, openInFileUI}: Props) => {
       if (kbfsEnabled && !showBanner) {
         return <Box />
       }
@@ -34,8 +35,13 @@ const Banner = isMobile
         bannerContent = (
           <Box style={globalStyles.flexBoxColumn}>
             <Text type="Header" style={textStyle}>
-              Keybase is enabled in your {fileUIName}.
+              {onDismiss && 'Yay!'} Keybase is {onDismiss && 'now'} enabled in your {fileUIName}.
             </Text>
+            {openInFileUI && (
+              <Box style={{justifyContent: 'flex-start'}}>
+                <Button type="Primary" label="Open folder" onClick={openInFileUI} />
+              </Box>
+            )}
           </Box>
         )
       } else {
