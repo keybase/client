@@ -33,13 +33,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 // Actions are handled by remote-container
+const Empty = () => null
+
 const UnlockFolder = compose(
   connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
   SyncBrowserWindow,
   SyncProps,
-  // $FlowIssue gets confused
   renderNothing
-)(null)
+)(Empty)
 
 type Props = {
   show: boolean,
