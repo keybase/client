@@ -128,7 +128,6 @@ func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation 
 	return t.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
-// TODO is this right or should I access them in a different way?
 func (t *Team) SigningKey() (key libkb.NaclSigningKeyPair, err error) {
 	km, err := t.getKeyManager()
 	if err != nil {
@@ -137,7 +136,6 @@ func (t *Team) SigningKey() (key libkb.NaclSigningKeyPair, err error) {
 	return km.SigningKey()
 }
 
-// TODO is this right or should I access them in a different way?
 func (t *Team) EncryptionKey() (key libkb.NaclDHKeyPair, err error) {
 	km, err := t.getKeyManager()
 	if err != nil {

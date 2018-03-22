@@ -71,11 +71,10 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	}
 	var generation keybase1.EkGeneration
 	if statement == nil {
-		generation = 0
+		generation = 1 // start at generation 1
 	} else {
-		generation = statement.CurrentUserEkMetadata.Generation
+		generation = statement.CurrentUserEkMetadata.Generation + 1
 	}
-	generation++
 
 	metadata, myUserEKBoxed, err := signAndPublishUserEK(ctx, g, generation, seed, merkleRoot, statement)
 	if err != nil {

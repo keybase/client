@@ -73,11 +73,10 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	}
 	var generation keybase1.EkGeneration
 	if statement == nil {
-		generation = 0
+		generation = 1 // start at generation 1
 	} else {
-		generation = statement.CurrentTeamEkMetadata.Generation
+		generation = statement.CurrentTeamEkMetadata.Generation + 1
 	}
-	generation++
 
 	// metadata, myTeamEKBoxed, err := signAndPublishTeamEK(ctx, g, teamID, generation, seed, merkleRoot, statment) TODO
 	metadata, _, err = signAndPublishTeamEK(ctx, g, teamID, generation, seed, merkleRoot, statement)
@@ -235,7 +234,7 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
-		g.Log.CWarningf(ctx, "It looks like you revoked a user without generating new ephemeral keys. Are you running an old version?")
+		g.Log.CWarningf(ctx, "It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
 		return nil, nil
 	}
 	if err != nil {
@@ -269,7 +268,6 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	if err != nil {
 		return nil, false, err
 	}
-	// TODO Should we be our own team `application` instead?
 	teamSigningKey, err := team.SigningKey()
 	if err != nil {
 		return nil, false, err
@@ -351,7 +349,8 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 	}
 
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
-		ID: teamID,
+		ID:          teamID,
+		ForceRepoll: true,
 	})
 	if err != nil {
 		return nil, err
@@ -365,15 +364,14 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 		}
 		isMember := team.IsMember(ctx, uv)
 		if !isMember {
-			g.Log.CWarningf(ctx, "Server lied about team membership! %v is not a member of team %v", uv, teamID)
-			return nil, err
+			return nil, fmt.Errorf("Server lied about team membership! %v is not a member of team %v", uv, teamID)
 		}
 		memberStatement, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, sig)
 		// Check the wrongKID condition before checking the error, since an error
 		// is still returned in this case. TODO: Turn this warning into an error
 		// after EK support is sufficiently widespread.
 		if wrongKID {
-			g.Log.CWarningf(ctx, "It looks like you revoked a team member without generating new ephemeral keys. Are you running an old version?")
+			g.Log.CWarningf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
 			return nil, nil
 		}
 		if err != nil {
