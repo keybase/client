@@ -7,6 +7,5 @@ declare var module: {
   hot?: {
     accept: any,
     dispose: any,
-    decline: any,
   },
 }
