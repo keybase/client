@@ -69,6 +69,15 @@ const NameWithIconVertical = (props: Props) => {
         ])}
       >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
+        {!!props.username && (
+          <ConnectedUsernames
+            type={adapterProps.titleType}
+            containerStyle={styles.vUsernameContainerStyle}
+            inline={true}
+            usernames={[props.username]}
+            colorFollowing={props.colorFollowing}
+          />
+        )}
 
         <TextOrComponent
           style={styles.fullWidthText}
