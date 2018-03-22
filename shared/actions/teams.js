@@ -650,7 +650,7 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
   } finally {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) 
+    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
   }
 }
 

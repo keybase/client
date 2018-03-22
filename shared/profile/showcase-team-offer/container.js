@@ -1,12 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {
-  compose,
-  connect,
-  lifecycle,
-  type TypedState,
-} from '../../util/container'
+import {compose, connect, lifecycle, type TypedState} from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import {maxProfileBioChars} from '../../constants/profile'
