@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {compose, connect, lifecycle, type TypedState} from '../../util/container'
+import {branch, compose, connect, lifecycle, type TypedState} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -59,5 +59,5 @@ export default compose(
       })
     },
   }),
-  isMobile ? HeaderHoc : a => a
+  branch(() => isMobile, HeaderHoc)
 )(Render)

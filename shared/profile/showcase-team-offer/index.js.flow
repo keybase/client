@@ -1,5 +1,6 @@
 // @flow
 import {Component} from 'react'
+import * as React from 'react'
 import * as Types from '../../constants/types/teams'
 
 export type RowProps = {
@@ -13,7 +14,10 @@ export type RowProps = {
 }
 
 export type Props = {
+  customComponent?: ?React.Node,
+  headerStyle?: ?Object,
   onBack: () => void,
+  onCancel?: () => void,
   onPromote: (name: Types.Teamname, promote: boolean) => void,
   teammembercounts: {[string]: number},
   teamnames: Array<Types.Teamname>,

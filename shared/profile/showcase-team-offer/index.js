@@ -151,7 +151,7 @@ const styleMeta = {
   marginTop: 2,
 }
 
-const PopupWrapped = (props: RolePickerProps) => (
+const PopupWrapped = (props: Props) => (
   <PopupDialog styleCover={{zIndex: 20}} onClose={props.onBack}>
     <ShowcaseTeamOffer {...props} />
   </PopupDialog>
