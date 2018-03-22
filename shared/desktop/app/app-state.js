@@ -1,11 +1,13 @@
 // @flow
 // This is modified from https://github.com/mawie81/electron-window-state
 import {app, screen, ipcMain} from 'electron'
+import {getenv} from 'getenv'
 import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
 import isEqual from 'lodash/isEqual'
 import {windowStyle} from '../../styles'
+import {exec} from 'child_process'
 
 export type State = {
   x: ?number,
@@ -133,12 +135,15 @@ export default class AppState {
 
     const isDarwin = process.platform === 'darwin'
     const isWindows = process.platform === 'win32'
+    const isLinux = process.platform === 'linux'
     // Electron has a bug where app.setLoginItemSettings() to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
       this.setDarwinLoginState()
     } else if (isWindows) {
       this.setWinLoginState()
+    } else if (isLinux) {
+      this.setLinuxLoginState()
     }
   }
 
@@ -218,6 +223,18 @@ export default class AppState {
 
   setWinLoginState() {
     app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+  }
+
+  setLinuxLoginState() {
+    const isGnome = getenv.string('SESSIONTYPE', '') === 'gnome-session'
+    const setString = isGnome ? 'X-GNOME-Autostart-enabled=true/' : '#Hidden=true/'
+    const unSetString = isGnome ? 'X-GNOME-Autostart-enabled=false/' : 'Hidden=true/'
+    const searchString = this.state.openAtLogin ? unSetString : setString
+    const replaceString = this.state.openAtLogin ? setString : unSetString
+
+    exec('sed -i s/' + searchString + replaceString + ' ~/.config/autostart/keybase_autostart.desktop', {
+      windowsHide: true,
+    })
   }
 
   manageWindow(win: any) {
