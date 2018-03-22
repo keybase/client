@@ -2,9 +2,7 @@
 import * as I from 'immutable'
 import Render from './index'
 import {compose, connect, lifecycle, type TypedState} from '../../util/container'
-import {createEditProfile} from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import {maxProfileBioChars} from '../../constants/profile'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
@@ -56,11 +54,9 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillMount: function() {
-      console.warn('calling load')
       this.props.teamnames.map(name => {
         !this.props._teamNameToPublicitySettings.get(name) && this.props.loadTeam(name)
       })
-      console.warn('done calling load')
     },
   }),
   isMobile ? HeaderHoc : a => a

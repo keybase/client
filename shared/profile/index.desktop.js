@@ -345,7 +345,8 @@ class ProfileRender extends PureComponent<Props, State> {
               <Box style={styleProofs}>
                 {!loading && (
                   <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
-                    {(this.props.userInfo.showcasedTeams.length > 0 || this.props.isYou) && (
+                    {(this.props.userInfo.showcasedTeams.length > 0 ||
+                      (this.props.isYou && this.props.youAreInTeams)) && (
                       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
                         <Text type="BodySmallSemibold">Teams</Text>
                         <Icon
@@ -373,7 +374,8 @@ class ProfileRender extends PureComponent<Props, State> {
                             </Box>
                           </Box>
                         ))
-                      : this.props.isYou && (
+                      : this.props.isYou &&
+                        this.props.youAreInTeams && (
                           <Box onClick={this.props.onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
                             <Box style={styleShowcasedTeamAvatar}>
                               <Icon type="icon-team-placeholder-avatar-24" size={24} />

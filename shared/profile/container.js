@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import * as I from 'immutable'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
@@ -51,6 +52,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
   }
+  const youAreInTeams = state.entities.getIn(['teams', 'teamnames'], I.Set()) > 0
 
   return {
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
@@ -58,6 +60,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
     profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
     username,
+    youAreInTeams,
   }
 }
 
@@ -159,6 +162,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onUnfollow: () => dispatchProps.onUnfollow(username),
     refresh,
     username,
+    youAreInTeams: stateProps.youAreInTeams,
   }
 
   // TODO remove this, don't do this nested thing, just make a switching component

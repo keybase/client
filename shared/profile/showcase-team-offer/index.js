@@ -151,32 +151,6 @@ const styleMeta = {
   marginTop: 2,
 }
 
-const styleShowcasedTeamContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
-  justifyContent: 'flex-start',
-  minHeight: 32,
-}
-
-const styleShowcasedTeamAvatar = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  alignSelf: 'center',
-  height: globalMargins.medium,
-  minHeight: globalMargins.medium,
-  minWidth: globalMargins.medium,
-  width: globalMargins.medium,
-  marginLeft: globalMargins.tiny,
-}
-
-const styleShowcasedTeamName = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-  alignSelf: 'center',
-  marginLeft: globalMargins.tiny,
-}
-
 const PopupWrapped = (props: RolePickerProps) => (
   <PopupDialog styleCover={{zIndex: 20}} onClose={props.onBack}>
     <ShowcaseTeamOffer {...props} />
