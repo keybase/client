@@ -235,55 +235,55 @@ class Profile extends Component<Props, State> {
             alignItems: 'flex-start',
           }}
         >
-                    {(this.props.userInfo.showcasedTeams.length > 0 ||
-                      (this.props.isYou && this.props.youAreInTeams)) && (
-                  <Box style={{...globalStyles.flexBoxColumn}}>
-                    <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
-                      <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
-                        <Text type="BodySmallSemibold">Teams</Text>
-                        <Icon
-                          style={{alignSelf: 'flex-end', marginRight: globalMargins.tiny}}
-                          type="iconfont-edit"
-                          onClick={this.props.onClickShowcaseOffer}
-                        />
+          {(this.props.userInfo.showcasedTeams.length > 0 ||
+            (this.props.isYou && this.props.youAreInTeams)) && (
+            <Box style={{...globalStyles.flexBoxColumn}}>
+              <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
+                <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
+                  <Text type="BodySmallSemibold">Teams</Text>
+                  <Icon
+                    style={{alignSelf: 'flex-end', marginRight: globalMargins.tiny}}
+                    type="iconfont-edit"
+                    onClick={this.props.onClickShowcaseOffer}
+                  />
+                </Box>
+              </Box>)}
+              {this.props.userInfo.showcasedTeams.length > 0
+                ? this.props.userInfo.showcasedTeams.map(team => (
+                    <ClickableBox
+                      key={team.fqName}
+                      onClick={event => this.props.onClickShowcased(null, team)}
+                      style={styleShowcasedTeamContainer}
+                    >
+                      <Box style={styleShowcasedTeamAvatar}>
+                        <Avatar teamname={team.fqName} size={40} />
                       </Box>
-                    </Box>)}
-                    {this.props.userInfo.showcasedTeams.length > 0
-                      ? this.props.userInfo.showcasedTeams.map(team => (
-                          <ClickableBox
-                            key={team.fqName}
-                            onClick={event => this.props.onClickShowcased(null, team)}
-                            style={styleShowcasedTeamContainer}
-                          >
-                            <Box style={styleShowcasedTeamAvatar}>
-                              <Avatar teamname={team.fqName} size={40} />
-                            </Box>
-                            <Box style={styleShowcasedTeamName}>
-                              <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-                                {team.fqName}
-                              </Text>
-                              {team.open && <Meta style={styleMeta} title="OPEN" />}
-                            </Box>
-                          </ClickableBox>
-                        ))
-                      : this.props.isYou &&
-                        this.props.youAreInTeams && (
-                          <ClickableBox
-                            onClick={this.props.onClickShowcaseOffer}
-                            style={styleShowcasedTeamContainer}
-                          >
-                            <Box style={styleShowcasedTeamAvatar}>
-                              <Icon type="icon-team-placeholder-avatar-32" size={32} />
-                            </Box>
-                            <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny}}>
-                              <Text style={{color: globalColors.black_40}} type="BodySmallInlineLink">
-                                Publish the teams you're in
-                              </Text>
-                            </Box>
-                          </ClickableBox>
-                        )}
-                  </Box>
-                      )}
+                      <Box style={styleShowcasedTeamName}>
+                        <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+                          {team.fqName}
+                        </Text>
+                        {team.open && <Meta style={styleMeta} title="OPEN" />}
+                      </Box>
+                    </ClickableBox>
+                  ))
+                : this.props.isYou &&
+                  this.props.youAreInTeams && (
+                    <ClickableBox
+                      onClick={this.props.onClickShowcaseOffer}
+                      style={styleShowcasedTeamContainer}
+                    >
+                      <Box style={styleShowcasedTeamAvatar}>
+                        <Icon type="icon-team-placeholder-avatar-32" size={32} />
+                      </Box>
+                      <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny}}>
+                        <Text style={{color: globalColors.black_40}} type="BodySmallInlineLink">
+                          Publish the teams you're in
+                        </Text>
+                      </Box>
+                    </ClickableBox>
+                  )}
+            </Box>
+          )}
         </Box>
         <Box style={styleProofsAndFolders}>
           <LoadingWrapper
