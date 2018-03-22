@@ -72,7 +72,7 @@ const NameWithIconVertical = (props: Props) => {
         {!!props.username && (
           <ConnectedUsernames
             type={adapterProps.titleType}
-            containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
+            containerStyle={styles.vUsernameContainerStyle}
             inline={true}
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}
