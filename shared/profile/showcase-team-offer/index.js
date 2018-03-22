@@ -15,7 +15,7 @@ import {
 } from '../../common-adapters'
 import {teamWaitingKey} from '../../constants/teams'
 
-import type {Props} from './index'
+import type {RowProps, Props} from './index'
 
 const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, waiting}: RowProps) => (
   <Box style={globalStyles.flexBoxColumn}>
@@ -65,7 +65,7 @@ const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, 
           waiting={waiting}
         />
       ) : (
-        <Text style={{color: globalColors.black_40, width: '20%'}} type="BodySmall">
+        <Text style={{color: globalColors.black_40, width: isMobile ? '35%' : '20%'}} type="BodySmall">
           Admins aren’t allowing members to publish.
         </Text>
       )}
@@ -139,7 +139,7 @@ const styleContainer = {
   alignItems: 'center',
   flex: 1,
   marginTop: 35,
-  marginBottom: isMobile ? 35 : 55,
+  marginBottom: isMobile ? globalMargins.xtiny : 55,
   minWidth: isMobile ? undefined : 600,
 }
 

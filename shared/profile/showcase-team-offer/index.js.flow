@@ -1,19 +1,26 @@
 // @flow
 import {Component} from 'react'
+import * as Types from '../../constants/types/teams'
 
-export type Props = {
-  bio: string,
-  bioLengthLeft: number,
-  fullname: string,
-  title: string,
-  location: string,
-  onBack: () => void,
-  onBioChange: (bio: string) => void,
-  onCancel: () => void,
-  onEditProfile?: () => void,
-  onFullnameChange: (fullname: string) => void,
-  onLocationChange: (location: string) => void,
-  onSubmit: () => void,
+export type RowProps = {
+  canShowcase: boolean,
+  name: Types.Teamname,
+  isOpen: boolean,
+  membercount: number,
+  onPromote: (promote: boolean) => void,
+  showcased: boolean,
+  waiting: boolean,
 }
 
-export default class Render extends Component<Props> {}
+export type Props = {
+  onBack: () => void,
+  onPromote: (name: Types.Teamname, promote: boolean) => void,
+  teammembercounts: {[string]: number},
+  teamnames: Array<Types.Teamname>,
+  teamNameToCanPerform: {[string]: Types.TeamOperations},
+  teamNameToIsOpen: {[string]: boolean},
+  teamNameToPublicitySettings: {[string]: Types._PublicitySettings},
+  waiting: {[string]: number},
+}
+
+export default class ShowcaseTeamOffer extends Component<Props> {}

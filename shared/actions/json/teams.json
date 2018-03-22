@@ -87,7 +87,7 @@
     },
     "setMemberPublicity": {
       "teamname": "string",
-      "promoted": "boolean"
+      "showcase": "boolean"
     },
     "setPublicity": {
       "teamname": "string",

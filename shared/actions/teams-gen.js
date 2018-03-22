@@ -151,7 +151,7 @@ export const createSetChannelCreationError = (payload: $ReadOnly<{error: string}
 export const createSetMemberPublicity = (
   payload: $ReadOnly<{
     teamname: string,
-    promoted: boolean,
+    showcase: boolean,
   }>
 ) => ({error: false, payload, type: setMemberPublicity})
 export const createSetPublicity = (
