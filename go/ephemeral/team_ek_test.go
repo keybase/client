@@ -57,16 +57,16 @@ func TestNewTeamEK(t *testing.T) {
 	require.EqualValues(t, 1, currentMetadata.Generation)
 	require.Equal(t, statement.ExistingTeamEkMetadata, []keybase1.TeamEkMetadata{})
 
-	// s := NewTeamEKBoxStorage(tc.G)
-	// // Put our storage in a bad state by deleting the maxGeneration
-	// err = s.Delete(context.Background(), teamID, keybase1.EkGeneration(1))
-	// require.NoError(t, err)
+	s := NewTeamEKBoxStorage(tc.G)
+	// Put our storage in a bad state by deleting the maxGeneration
+	err = s.Delete(context.Background(), teamID, keybase1.EkGeneration(1))
+	require.NoError(t, err)
 
-	// // If we publish in a bad local state, we can successfully get the
-	// // maxGeneration from the server and continue
-	// publishedMetadata2, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
-	// require.NoError(t, err)
-	// require.EqualValues(t, 2, publishedMetadata2.Generation)
+	// If we publish in a bad local state, we can successfully get the
+	// maxGeneration from the server and continue
+	publishedMetadata2, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
+	require.NoError(t, err)
+	require.EqualValues(t, 2, publishedMetadata2.Generation)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata

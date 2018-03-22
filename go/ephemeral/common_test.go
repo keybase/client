@@ -84,3 +84,15 @@ func TestDeleteExpiredKeys(t *testing.T) {
 	expected = []keybase1.EkGeneration{0, 1, 2}
 	require.Equal(t, expected, expired)
 }
+
+func verifyUserEK(t *testing.T, metadata keybase1.UserEkMetadata, ek keybase1.UserEk) {
+	seed := UserEKSeed(ek.Seed)
+	keypair := seed.DeriveDHKey()
+	require.Equal(t, metadata.Kid, keypair.GetKID())
+}
+
+func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.TeamEk) {
+	seed := TeamEKSeed(ek.Seed)
+	keypair := seed.DeriveDHKey()
+	require.Equal(t, metadata.Kid, keypair.GetKID())
+}

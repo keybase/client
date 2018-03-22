@@ -614,19 +614,27 @@ type TeamLoader interface {
 }
 
 type DeviceEKStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error)
-	Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error)
-	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) (metadatas []keybase1.DeviceEkMetadata, err error)
-	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
+	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
+	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
+	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
+	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 }
 
 type UserEKBoxStorage interface {
-	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error)
-	Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error)
-	MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error)
+	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
+	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.UserEk, error)
+	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	ClearCache()
+}
+
+type TeamEKBoxStorage interface {
+	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
+	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
+	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
 }
 

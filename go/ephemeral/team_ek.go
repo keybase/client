@@ -78,15 +78,14 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		generation = statement.CurrentTeamEkMetadata.Generation + 1
 	}
 
-	// metadata, myTeamEKBoxed, err := signAndPublishTeamEK(ctx, g, teamID, generation, seed, merkleRoot, statment) TODO
-	metadata, _, err = signAndPublishTeamEK(ctx, g, teamID, generation, seed, merkleRoot, statement)
+	metadata, myTeamEKBoxed, err := signAndPublishTeamEK(ctx, g, teamID, generation, seed, merkleRoot, statement)
 
-	// TODO store result
-	//if myTeamEKBoxed == nil {
-	//	g.Log.CDebugf(ctx, "No box made for own userEK")
-	//} else {
-	//	err = storage.Put(ctx, teamID, generation, *myTeamEKBoxed)
-	//}
+	if myTeamEKBoxed == nil {
+		g.Log.CWarningf(ctx, "No box made for own teamEK")
+	} else {
+		storage := g.GetTeamEKBoxStorage()
+		err = storage.Put(ctx, teamID, generation, *myTeamEKBoxed)
+	}
 	return metadata, err
 }
 
