@@ -16,25 +16,6 @@
     },
     {
       "type": "record",
-      "name": "DeviceEkMetadataStatement",
-      "fields": [
-        {
-          "type": "DeviceEkMetadata",
-          "name": "currentDeviceEkMetadata",
-          "jsonkey": "current_device_ek_metadata"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "DeviceEkMetadata"
-          },
-          "name": "existingDeviceEkMetadata",
-          "jsonkey": "existing_device_ek_metadata"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "DeviceEkMetadata",
       "fields": [
         {
@@ -59,6 +40,25 @@
     },
     {
       "type": "record",
+      "name": "DeviceEkStatement",
+      "fields": [
+        {
+          "type": "DeviceEkMetadata",
+          "name": "currentDeviceEkMetadata",
+          "jsonkey": "current_device_ek_metadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceEkMetadata"
+          },
+          "name": "existingDeviceEkMetadata",
+          "jsonkey": "existing_device_ek_metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DeviceEk",
       "fields": [
         {
@@ -73,7 +73,7 @@
     },
     {
       "type": "record",
-      "name": "UserEkMetadataStatement",
+      "name": "UserEkStatement",
       "fields": [
         {
           "type": "UserEkMetadata",
@@ -85,7 +85,7 @@
             "type": "array",
             "items": "UserEkMetadata"
           },
-          "name": "existingUserEkMetatdata",
+          "name": "existingUserEkMetadata",
           "jsonkey": "existing_user_ek_metadata"
         }
       ]
@@ -168,6 +168,25 @@
         {
           "type": "Time",
           "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkStatement",
+      "fields": [
+        {
+          "type": "TeamEkMetadata",
+          "name": "currentTeamEkMetadata",
+          "jsonkey": "current_team_ek_metadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamEkMetadata"
+          },
+          "name": "existingTeamEkMetadata",
+          "jsonkey": "existing_team_ek_metadata"
         }
       ]
     },

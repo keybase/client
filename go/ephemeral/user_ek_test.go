@@ -20,10 +20,10 @@ func TestNewUserEK(t *testing.T) {
 	_, err = publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
-	// Before we've published any userEK's, ActiveUserEKMetadata should return nil.
-	nilMetadata, err := activeUserEKMetadata(context.Background(), tc.G, merkleRoot)
+	// Before we've published any userEK's, activeUserEKMetadata should return nil.
+	nilStatement, err := fetchUserEKStatement(context.Background(), tc.G)
 	require.NoError(t, err)
-	require.Nil(t, nilMetadata)
+	require.Nil(t, nilStatement)
 
 	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
@@ -33,11 +33,14 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
-	activeMetadata, err := activeUserEKMetadata(context.Background(), tc.G, merkleRoot)
+	statementPtr, err := fetchUserEKStatement(context.Background(), tc.G)
 	require.NoError(t, err)
-	require.NotNil(t, activeMetadata)
-	require.Equal(t, *activeMetadata, publishedMetadata)
-	require.EqualValues(t, 1, activeMetadata.Generation)
+	require.NotNil(t, statementPtr)
+	statement := *statementPtr
+	currentMetadata := statement.CurrentUserEkMetadata
+	require.Equal(t, currentMetadata, publishedMetadata)
+	require.EqualValues(t, 1, currentMetadata.Generation)
+	require.Equal(t, statement.ExistingUserEkMetadata, []keybase1.UserEkMetadata{})
 
 	rawStorage := NewUserEKBoxStorage(tc.G)
 	// Put our storage in a bad state by deleting the maxGeneration

@@ -40,7 +40,7 @@ func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (e
 
 func serverMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (maxGeneration keybase1.EkGeneration, err error) {
 	defer g.CTrace(ctx, "serverMaxDeviceEK", func() error { return err })()
-	deviceEKs, err := allDeviceEKMetadata(ctx, g, merkleRoot)
+	deviceEKs, err := allDeviceEKMetadataMaybeStale(ctx, g, merkleRoot)
 	if err != nil {
 		return maxGeneration, err
 	}
@@ -103,6 +103,8 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 }
 
 func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
+	defer g.CTrace(ctx, "signAndPublishDeviceEK", func() error { return err })()
+
 	storage := g.GetDeviceEKStorage()
 	existingMetadata, err := storage.GetAllActive(ctx, merkleRoot)
 	if err != nil {
@@ -118,7 +120,7 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		// extra round trip.
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
-	statement := keybase1.DeviceEkMetadataStatement{
+	statement := keybase1.DeviceEkStatement{
 		CurrentDeviceEkMetadata: metadata,
 		// TODO: Make the server more forgiving if this list is wrong?
 		ExistingDeviceEkMetadata: existingMetadata,
@@ -147,7 +149,7 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 	return metadata, nil
 }
 
-type deviceEKsResponse struct {
+type deviceEKStatementResponse struct {
 	Sigs []string `json:"sigs"`
 }
 
@@ -165,7 +167,7 @@ func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, 
 		return nil, err
 	}
 
-	parsedResponse := deviceEKsResponse{}
+	parsedResponse := deviceEKStatementResponse{}
 	err = res.Body.UnmarshalAgain(&parsedResponse)
 	if err != nil {
 		return nil, err
@@ -206,7 +208,7 @@ func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, 
 		}
 
 		// Decode the signed JSON.
-		var verifiedStatement keybase1.DeviceEkMetadataStatement
+		var verifiedStatement keybase1.DeviceEkStatement
 		err = json.Unmarshal(payload, &verifiedStatement)
 		if err != nil {
 			return nil, err

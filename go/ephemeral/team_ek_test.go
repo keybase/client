@@ -35,9 +35,9 @@ func TestNewTeamEK(t *testing.T) {
 	teamID := createTeam(tc)
 
 	// Before we've published any teamEK's, ActiveTeamEKMetadata should return nil.
-	nilMetadata, err := activeTeamEKMetadata(context.Background(), tc.G, teamID, merkleRoot)
+	nilStatement, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
 	require.NoError(t, err)
-	require.Nil(t, nilMetadata)
+	require.Nil(t, nilStatement)
 
 	_, err = publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
@@ -48,11 +48,14 @@ func TestNewTeamEK(t *testing.T) {
 	publishedMetadata, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
 	require.NoError(t, err)
 
-	activeMetadata, err := activeTeamEKMetadata(context.Background(), tc.G, teamID, merkleRoot)
+	statementPtr, err := fetchTeamEKStatement(context.Background(), tc.G, teamID)
 	require.NoError(t, err)
-	require.NotNil(t, activeMetadata)
-	require.Equal(t, *activeMetadata, publishedMetadata)
-	require.EqualValues(t, 1, activeMetadata.Generation)
+	require.NotNil(t, statementPtr)
+	statement := *statementPtr
+	currentMetadata := statement.CurrentTeamEkMetadata
+	require.Equal(t, currentMetadata, publishedMetadata)
+	require.EqualValues(t, 1, currentMetadata.Generation)
+	require.Equal(t, statement.ExistingTeamEkMetadata, []keybase1.TeamEkMetadata{})
 
 	// s := NewTeamEKBoxStorage(tc.G)
 	// // Put our storage in a bad state by deleting the maxGeneration

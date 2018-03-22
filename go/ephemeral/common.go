@@ -24,11 +24,6 @@ func ShouldRun(g *libkb.GlobalContext) bool {
 	return g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 }
 
-type ekResponse struct {
-	MerklePayload string `json:"merkle_payload"`
-	Sig           string `json:"sig"`
-}
-
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(libkb.NaclDHKeysize)
 	if err != nil {
