@@ -31,6 +31,12 @@ import {pathSelector, navigateTo, navigateAppend, switchRouteDef} from './route-
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
 
+// Login dips into the routing dep tree, so we need to tell
+// webpack that we can still handle updates that propagate to here.
+export function setupLoginHMR(cb: () => void) {
+  module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
+}
+
 const deviceType: DevicesTypes.DeviceType = isMobile ? 'mobile' : 'desktop'
 const InputCancelError = {
   code: RPCTypes.constantsStatusCode.scinputcanceled,

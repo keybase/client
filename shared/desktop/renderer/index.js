@@ -9,6 +9,7 @@ import * as DevGen from '../../actions/dev-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
+import {setupLoginHMR} from '../../actions/login'
 import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container'
@@ -164,23 +165,20 @@ function setupHMR(store) {
     return
   }
 
+  const refreshRoutes = () => {
+    const appRouteTree = require('../../app/routes-app').default
+    const loginRouteTree = require('../../app/routes-login').default
+    store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+    try {
+      const NewMain = require('../../app/main.desktop').default
+      render(store, NewMain)
+    } catch (_) {}
+  }
+
   module.hot &&
     module.hot.accept(
-      [
-        '../../app/main.desktop',
-        '../../app/routes-app',
-        '../../app/routes-login',
-        '../../store/configure-store',
-      ],
-      () => {
-        const appRouteTree = require('../../app/routes-app').default
-        const loginRouteTree = require('../../app/routes-login').default
-        store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
-        try {
-          const NewMain = require('../../app/main.desktop').default
-          render(store, NewMain)
-        } catch (_) {}
-      }
+      ['../../app/main.desktop', '../../app/routes-app', '../../app/routes-login'],
+      refreshRoutes
     )
 
   module.hot &&
@@ -190,6 +188,8 @@ function setupHMR(store) {
     })
 
   module.hot && module.hot.accept('../../common-adapters/index.js', () => {})
+
+  setupLoginHMR(refreshRoutes)
 }
 
 function load() {
