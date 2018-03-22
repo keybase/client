@@ -73,11 +73,15 @@ public class MainActivity extends ReactActivity {
         if (intent != null) {
             Bundle bundle = intent.getExtras();
             if (bundle != null && bundle.containsKey("notification")) {
-                ReactContext currentContext = getReactInstanceManager().getCurrentReactContext();
-                if (currentContext != null) {
-                    currentContext
-                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                            .emit("androidIntentNotification", "");
+                ReactInstanceManager instanceManager = getReactInstanceManager();
+                if (instanceManager != null) {
+                    ReactContext currentContext = instanceManager.getCurrentReactContext();
+                    if (currentContext != null) {
+                        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+                        if (emitter != null) {
+                            emitter.emit("androidIntentNotification", "");
+                        }
+                    }
                 }
             }
         }
