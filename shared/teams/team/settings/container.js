@@ -37,7 +37,8 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
-  _showRetentionWarning: () => dispatch(navigateAppend(['retentionWarning'])),
+  _showRetentionWarning: (days: number) =>
+    dispatch(navigateAppend([{selected: 'retentionWarning', props: {days}}])),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([
@@ -59,8 +60,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
     ...ownProps,
-    savePublicity: (settings, showRetentionWarning: boolean) => {
-      showRetentionWarning && dispatchProps._showRetentionWarning()
+    savePublicity: (settings, showRetentionWarning: boolean, days: number) => {
+      showRetentionWarning && dispatchProps._showRetentionWarning(days)
       dispatchProps._savePublicity(ownProps.teamname, settings)
     },
     setOpenTeamRole: dispatchProps.setOpenTeamRole,

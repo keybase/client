@@ -220,4 +220,5 @@ const policyEquals = (p1?: _RetentionPolicy, p2?: _RetentionPolicy): boolean => 
   return p1 === p2
 }
 
+export {daysToLabel}
 export default RetentionPicker

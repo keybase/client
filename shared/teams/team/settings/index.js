@@ -14,7 +14,7 @@ type Props = {
   publicityTeam: boolean,
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
-  savePublicity: (Types.PublicitySettings, boolean) => void,
+  savePublicity: (Types.PublicitySettings, boolean, number) => void,
   setOpenTeamRole: (
     newOpenTeamRole: Types.TeamRoleType,
     setNewOpenTeamRole: (Types.TeamRoleType) => void
@@ -219,7 +219,8 @@ export class Settings extends React.Component<Props, State> {
         publicityMember: this.state.newPublicityMember,
         publicityTeam: this.state.newPublicityTeam,
       },
-      this.state.retentionPolicyDecreased
+      this.state.retentionPolicyDecreased,
+      this.state.newRetentionPolicy.days
     )
   }
 
