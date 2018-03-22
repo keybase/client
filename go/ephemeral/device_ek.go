@@ -100,7 +100,7 @@ func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot 
 
 func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
 	storage := g.GetDeviceEKStorage()
-	existingKeys, err := storage.GetAllActive(ctx, merkleRoot)
+	existingMetadata, err := storage.GetAllActive(ctx, merkleRoot)
 	if err != nil {
 		return metadata, err
 	}
@@ -114,10 +114,10 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		// extra round trip.
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
-	statement := keybase1.DeviceEkStatement{
-		CurrentDeviceEk: metadata,
+	statement := keybase1.DeviceEkMetadataStatement{
+		CurrentDeviceEkMetadata: metadata,
 		// TODO: Make the server more forgiving if this list is wrong?
-		ExistingDeviceEks: existingKeys,
+		ExistingDeviceEkMetadata: existingMetadata,
 	}
 
 	statementJSON, err := json.Marshal(statement)
@@ -202,13 +202,13 @@ func getAllDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContex
 		}
 
 		// Decode the signed JSON.
-		var verifiedStatement keybase1.DeviceEkStatement
+		var verifiedStatement keybase1.DeviceEkMetadataStatement
 		err = json.Unmarshal(payload, &verifiedStatement)
 		if err != nil {
 			return nil, err
 		}
 
-		metadata[matchingDevice.DeviceID] = verifiedStatement.CurrentDeviceEk
+		metadata[matchingDevice.DeviceID] = verifiedStatement.CurrentDeviceEkMetadata
 	}
 
 	return metadata, nil

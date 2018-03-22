@@ -13,15 +13,15 @@ func (o EkGeneration) DeepCopy() EkGeneration {
 	return o
 }
 
-type DeviceEkStatement struct {
-	CurrentDeviceEk   DeviceEkMetadata   `codec:"currentDeviceEk" json:"current_device_ek"`
-	ExistingDeviceEks []DeviceEkMetadata `codec:"existingDeviceEks" json:"existing_device_eks"`
+type DeviceEkMetadataStatement struct {
+	CurrentDeviceEkMetadata  DeviceEkMetadata   `codec:"currentDeviceEkMetadata" json:"current_device_ek_metadata"`
+	ExistingDeviceEkMetadata []DeviceEkMetadata `codec:"existingDeviceEkMetadata" json:"existing_device_ek_metadata"`
 }
 
-func (o DeviceEkStatement) DeepCopy() DeviceEkStatement {
-	return DeviceEkStatement{
-		CurrentDeviceEk: o.CurrentDeviceEk.DeepCopy(),
-		ExistingDeviceEks: (func(x []DeviceEkMetadata) []DeviceEkMetadata {
+func (o DeviceEkMetadataStatement) DeepCopy() DeviceEkMetadataStatement {
+	return DeviceEkMetadataStatement{
+		CurrentDeviceEkMetadata: o.CurrentDeviceEkMetadata.DeepCopy(),
+		ExistingDeviceEkMetadata: (func(x []DeviceEkMetadata) []DeviceEkMetadata {
 			if x == nil {
 				return nil
 			}
@@ -31,7 +31,7 @@ func (o DeviceEkStatement) DeepCopy() DeviceEkStatement {
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.ExistingDeviceEks),
+		})(o.ExistingDeviceEkMetadata),
 	}
 }
 
@@ -63,15 +63,15 @@ func (o DeviceEk) DeepCopy() DeviceEk {
 	}
 }
 
-type UserEkStatement struct {
-	CurrentUserEk   UserEkMetadata   `codec:"currentUserEk" json:"current_user_ek"`
-	ExistingUserEks []UserEkMetadata `codec:"existingUserEks" json:"existing_user_eks"`
+type UserEkMetadataStatement struct {
+	CurrentUserEkMetadata   UserEkMetadata   `codec:"currentUserEkMetadata" json:"current_user_ek_metadata"`
+	ExistingUserEkMetatdata []UserEkMetadata `codec:"existingUserEkMetatdata" json:"existing_user_ek_metadata"`
 }
 
-func (o UserEkStatement) DeepCopy() UserEkStatement {
-	return UserEkStatement{
-		CurrentUserEk: o.CurrentUserEk.DeepCopy(),
-		ExistingUserEks: (func(x []UserEkMetadata) []UserEkMetadata {
+func (o UserEkMetadataStatement) DeepCopy() UserEkMetadataStatement {
+	return UserEkMetadataStatement{
+		CurrentUserEkMetadata: o.CurrentUserEkMetadata.DeepCopy(),
+		ExistingUserEkMetatdata: (func(x []UserEkMetadata) []UserEkMetadata {
 			if x == nil {
 				return nil
 			}
@@ -81,7 +81,7 @@ func (o UserEkStatement) DeepCopy() UserEkStatement {
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.ExistingUserEks),
+		})(o.ExistingUserEkMetatdata),
 	}
 }
 
