@@ -107,7 +107,7 @@ export const backgroundURL = (...to: Array<string>) => {
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: Array<Object> | Object) => {
-  if (isArray) {
+  if (isArray(styles)) {
     return styles.reduce((map, item) => {
       return {...map, ...item}
     }, {})
