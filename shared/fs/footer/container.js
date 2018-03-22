@@ -18,17 +18,17 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
   ({
     downloads: Array.from(
       stateProps.transfers.filter(
-        transferState => transferState.type === 'download' && transferState.intent === 'none'
+        transfer => transfer.meta.type === 'download' && transfer.meta.intent === 'none'
       )
     )
-      .sort(([_a, a], [_b, b]) => b.startedAt - a.startedAt) // newer first
-      .map(([key, transferState]) => ({
-        error: transferState.error,
-        filename: Types.getLocalPathName(transferState.localPath),
-        completePortion: transferState.completePortion,
-        progressText: formatDurationFromNowTo(transferState.endEstimate),
-        isDone: transferState.isDone,
-        open: transferState.isDone ? () => opener(transferState.localPath) : undefined,
+      .sort(([_a, a], [_b, b]) => b.state.startedAt - a.state.startedAt) // newer first
+      .map(([key, transfer]) => ({
+        error: transfer.state.error,
+        filename: Types.getLocalPathName(transfer.meta.localPath),
+        completePortion: transfer.state.completePortion,
+        progressText: formatDurationFromNowTo(transfer.state.endEstimate),
+        isDone: transfer.state.isDone,
+        open: transfer.state.isDone ? () => opener(transfer.meta.localPath) : undefined,
         dismiss: () => dismisser(key),
         key,
       })),

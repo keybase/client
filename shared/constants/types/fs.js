@@ -60,12 +60,17 @@ export type LocalPath = string
 export type TransferType = 'upload' | 'download'
 export type TransferIntent = 'none' | 'camera-roll' | 'share'
 
-export type _TransferState = {
+export type _TransferMeta = {
   type: TransferType,
   entryType: PathType,
   intent: TransferIntent,
   path: Path,
   localPath: LocalPath,
+  opID: RPCTypes.OpID,
+}
+export type TransferMeta = I.RecordOf<_TransferMeta>
+
+export type _TransferState = {
   completePortion: number,
   endEstimate?: number,
   error?: string,
@@ -73,6 +78,12 @@ export type _TransferState = {
   startedAt: number,
 }
 export type TransferState = I.RecordOf<_TransferState>
+
+export type _Transfer = {
+  meta: TransferMeta,
+  state: TransferState,
+}
+export type Transfer = I.RecordOf<_Transfer>
 
 export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
@@ -85,7 +96,7 @@ export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
-  transfers: I.Map<string, TransferState>,
+  transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   kbfsOpening: boolean,
   kbfsInstalling: boolean,

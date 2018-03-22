@@ -30,13 +30,14 @@
       "key": "string",
       "path": "Types.Path",
       "localPath": "Types.LocalPath",
-      "intent": "Types.TransferIntent"
+      "intent": "Types.TransferIntent",
+      "opID": "RPCTypes.OpID"
     },
     "downloadFinished": {
       "key": "string",
       "error?": "string"
     },
-    "fileTransferProgress": {
+    "transferProgress": {
       "key": "string",
       "completePortion": "number",
       "endEstimate?": "number"

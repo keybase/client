@@ -96,15 +96,15 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
 }
 
-function* monitorFileTransferProgress(key: string, opID: RPCTypes.OpID) {
-  while(true) {
+function* monitorTransferProgress(key: string, opID: RPCTypes.OpID) {
+  while (true) {
     yield Saga.delay(500)
     const progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
     if (progress.bytesTotal === 0) {
       continue
     }
     yield Saga.put(
-      FsGen.createFileTransferProgress({
+      FsGen.createTransferProgress({
         key,
         endEstimate: progress.endEstimate,
         completePortion: progress.bytesWritten / progress.bytesTotal,
@@ -116,14 +116,21 @@ function* monitorFileTransferProgress(key: string, opID: RPCTypes.OpID) {
 function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
   const {path, intent} = action.payload
   const opID = Constants.makeUUID()
+
+  // Figure out the local path we are downloading into.
   let localPath = action.payload.localPath
   if (!localPath) {
     switch (intent) {
       case 'none':
+        // This adds " (1)" suffix to the base name, if the destination path
+        // already exists.
         localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
         break
       case 'camera-roll':
       case 'share':
+        // For saving to cameral roll or sharing to other apps, we are
+        // downloading to the app's local storage. So don't bother trying to
+        // avoid overriding existing files. Just download over them.
         localPath = Constants.downloadFilePathFromPathNoSearch(path)
         break
       default:
@@ -133,9 +140,10 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         break
     }
   }
+
   const key = Constants.makeDownloadKey(path, localPath)
 
-  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath, intent}))
+  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath, intent, opID}))
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
@@ -151,12 +159,16 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
 
   try {
     yield Saga.race({
-      monitor: Saga.call(monitorFileTransferProgress, key, opID),
+      monitor: Saga.call(monitorTransferProgress, key, opID),
       wait: Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
     })
 
-    yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: 1}))
+    // No error, so the download has finished successfully. Set the
+    // completePortion to 1.
+    yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
 
+    // If this is for anyting other than a simple download, kick that off now
+    // that the file is available locally.
     switch (intent) {
       case 'none':
         break

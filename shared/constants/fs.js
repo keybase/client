@@ -53,17 +53,26 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
-export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
   type: 'download',
   entryType: 'unknown',
   intent: 'none',
   path: Types.stringToPath(''),
   localPath: '',
+  opID: null,
+})
+
+export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
   isDone: false,
   startedAt: 0,
+})
+
+export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
+  meta: makeTransferMeta(),
+  state: makeTransferState(),
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({

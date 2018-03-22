@@ -31,11 +31,13 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer}) => {
     stateProps._pathItem.type,
     stateProps._username
   )
-  const [key, {completePortion, endEstimate, isDone, intent}] =
+  const some =
     stateProps._transfers
-      .filter(ts => ts.type === 'download' && ts.intent !== 'none')
+      .filter(ts => ts.meta.type === 'download' && ts.meta.intent !== 'none')
       .entries()
       .next().value || Constants.makeTransferState()
+  const [key, {meta: {intent}, state: {completePortion, endEstimate, isDone}}] =
+    some || Constants.makeTransfer()
   const onHidden = () => {
     _onHidden()
     _dismissTransfer(key)
