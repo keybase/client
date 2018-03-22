@@ -5,6 +5,7 @@ import {branch, compose, connect, lifecycle, type TypedState} from '../../util/c
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
+import {sortTeamnames} from '../../util/teams'
 
 const mapStateToProps = (state: TypedState) => {
   return {
@@ -25,17 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
-  teamnames.sort((a, b) => {
-    const aName = a.toUpperCase()
-    const bName = b.toUpperCase()
-    if (aName < bName) {
-      return -1
-    } else if (aName > bName) {
-      return 1
-    } else {
-      return 0
-    }
-  })
+  teamnames.sort((a, b) => sortTeamnames(a, b))
 
   return {
     ...stateProps,

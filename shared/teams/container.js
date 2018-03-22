@@ -7,6 +7,7 @@ import Teams from './main'
 import openURL from '../util/open-url'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, connect} from '../util/container'
+import {sortTeamnames} from '../util/teams'
 import {type Teamname} from '../constants/types/teams'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -47,17 +48,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
-  teamnames.sort((a, b) => {
-    const aName = a.toUpperCase()
-    const bName = b.toUpperCase()
-    if (aName < bName) {
-      return -1
-    } else if (aName > bName) {
-      return 1
-    } else {
-      return 0
-    }
-  })
+  teamnames.sort((a, b) => sortTeamnames(a, b))
 
   return {
     loaded: stateProps.loaded,
