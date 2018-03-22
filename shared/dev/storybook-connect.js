@@ -36,4 +36,4 @@ const _infect = () => {
   redux.connect = connect
 }
 
-_infect()
+__STORYBOOK__ && _infect()
