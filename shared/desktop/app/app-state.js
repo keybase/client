@@ -132,12 +132,13 @@ export default class AppState {
     // Comment this out if you want to test auto login stuff
 
     const isDarwin = process.platform === 'darwin'
+    const isWindows = process.platform === 'win32'
     // Electron has a bug where app.setLoginItemSettings() to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
       this.setDarwinLoginState()
-    } else {
-      app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
+    } else if (isWindows) {
+      this.setWinLoginState()
     }
   }
 
@@ -213,6 +214,10 @@ export default class AppState {
         }
       }
     )
+  }
+
+  setWinLoginState() {
+    app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
   manageWindow(win: any) {
