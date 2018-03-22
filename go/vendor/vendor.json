@@ -475,6 +475,36 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",
+			"path": "github.com/stellar/go/crc16",
+			"revision": "71ef94e4866aaefa7a02f199158946b96854ac21",
+			"revisionTime": "2018-03-21T14:18:35Z"
+		},
+		{
+			"checksumSHA1": "7breOdx3oym3WOByXt4Lphr4chc=",
+			"path": "github.com/stellar/go/hash",
+			"revision": "71ef94e4866aaefa7a02f199158946b96854ac21",
+			"revisionTime": "2018-03-21T14:18:35Z"
+		},
+		{
+			"checksumSHA1": "/L0UEqLhpegM8wjxR+BMJ+AVW8Y=",
+			"path": "github.com/stellar/go/keypair",
+			"revision": "71ef94e4866aaefa7a02f199158946b96854ac21",
+			"revisionTime": "2018-03-21T14:18:35Z"
+		},
+		{
+			"checksumSHA1": "T/ktj9MMn1BW0wi8DOkMXmm/VhQ=",
+			"path": "github.com/stellar/go/strkey",
+			"revision": "71ef94e4866aaefa7a02f199158946b96854ac21",
+			"revisionTime": "2018-03-21T14:18:35Z"
+		},
+		{
+			"checksumSHA1": "J4zm4oZz4q7B/1cfn5w1C7ljX4U=",
+			"path": "github.com/stellar/go/support/errors",
+			"revision": "71ef94e4866aaefa7a02f199158946b96854ac21",
+			"revisionTime": "2018-03-21T14:18:35Z"
+		},
+		{
 			"checksumSHA1": "mGbTYZ8dHVTiPTTJu3ktp+84pPI=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "890a5c3458b43e6104ff5da8dfa139d013d77544",
