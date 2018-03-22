@@ -23,12 +23,14 @@
     },
     "download": {
       "path": "Types.Path",
-      "localPath?": "string"
+      "localPath?": "string",
+      "intent": "Types.TransferIntent"
     },
     "downloadStarted": {
       "key": "string",
       "path": "Types.Path",
-      "localPath": "Types.LocalPath"
+      "localPath": "Types.LocalPath",
+      "intent": "Types.TransferIntent"
     },
     "downloadFinished": {
       "key": "string",
