@@ -21,3 +21,7 @@ func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 	}
 	return KeybaseTransactionID(s), nil
 }
+
+func (k KeybaseTransactionID) String() string {
+	return string(k)
+}

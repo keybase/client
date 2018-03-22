@@ -30,6 +30,7 @@
     AccountID fromStellar;
     string fromKeybase;
     keybase1.UID fromUID;
+    keybase1.DeviceID fromDeviceID;
     AccountID toStellar;
     string toKeybase;
     keybase1.UID toUID;

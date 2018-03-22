@@ -107,6 +107,10 @@
           "name": "fromUID"
         },
         {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
           "type": "AccountID",
           "name": "toStellar"
         },

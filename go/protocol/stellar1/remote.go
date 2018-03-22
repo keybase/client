@@ -88,22 +88,24 @@ func (o EncryptedNote) DeepCopy() EncryptedNote {
 }
 
 type Members struct {
-	FromStellar AccountID    `codec:"fromStellar" json:"fromStellar"`
-	FromKeybase string       `codec:"fromKeybase" json:"fromKeybase"`
-	FromUID     keybase1.UID `codec:"fromUID" json:"fromUID"`
-	ToStellar   AccountID    `codec:"toStellar" json:"toStellar"`
-	ToKeybase   string       `codec:"toKeybase" json:"toKeybase"`
-	ToUID       keybase1.UID `codec:"toUID" json:"toUID"`
+	FromStellar  AccountID         `codec:"fromStellar" json:"fromStellar"`
+	FromKeybase  string            `codec:"fromKeybase" json:"fromKeybase"`
+	FromUID      keybase1.UID      `codec:"fromUID" json:"fromUID"`
+	FromDeviceID keybase1.DeviceID `codec:"fromDeviceID" json:"fromDeviceID"`
+	ToStellar    AccountID         `codec:"toStellar" json:"toStellar"`
+	ToKeybase    string            `codec:"toKeybase" json:"toKeybase"`
+	ToUID        keybase1.UID      `codec:"toUID" json:"toUID"`
 }
 
 func (o Members) DeepCopy() Members {
 	return Members{
-		FromStellar: o.FromStellar.DeepCopy(),
-		FromKeybase: o.FromKeybase,
-		FromUID:     o.FromUID.DeepCopy(),
-		ToStellar:   o.ToStellar.DeepCopy(),
-		ToKeybase:   o.ToKeybase,
-		ToUID:       o.ToUID.DeepCopy(),
+		FromStellar:  o.FromStellar.DeepCopy(),
+		FromKeybase:  o.FromKeybase,
+		FromUID:      o.FromUID.DeepCopy(),
+		FromDeviceID: o.FromDeviceID.DeepCopy(),
+		ToStellar:    o.ToStellar.DeepCopy(),
+		ToKeybase:    o.ToKeybase,
+		ToUID:        o.ToUID.DeepCopy(),
 	}
 }
 
