@@ -19,6 +19,7 @@ import {
 } from './fs-platform-specific'
 import {isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
+import {type TypedState} from '../util/container'
 
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
@@ -191,10 +192,21 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
   yield Saga.put(FsGen.createDownloadFinished({key}))
 }
 
+function cancelTransfer({payload: {key}}: FsGen.CancelTransferPayload, state: TypedState) {
+  const transfer = state.fs.transfers.get(key)
+  if (!transfer) {
+    console.log(`unknown transfer: ${key}`)
+    return
+  }
+  const {meta: {opID}} = transfer
+  return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
+  yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
-  yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)

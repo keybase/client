@@ -86,6 +86,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.merge(action.payload)
     case FsGen.installKBFS:
       return state.merge({kbfsInstalling: true})
+    case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:

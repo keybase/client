@@ -9,6 +9,7 @@ import * as Types from '../constants/types/fs'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer
+export const cancelTransfer = 'fs:cancelTransfer'
 export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
@@ -31,6 +32,7 @@ export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
 // Action Creators
+export const createCancelTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: cancelTransfer})
 export const createDismissTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: dismissTransfer})
 export const createDownload = (
   payload: $ReadOnly<{
@@ -104,6 +106,7 @@ export const createUninstallKBFS = () => ({error: false, payload: undefined, typ
 export const createUninstallKBFSConfirm = (payload: $ReadOnly<{onSuccess: () => void}>) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
+export type CancelTransferPayload = More.ReturnType<typeof createCancelTransfer>
 export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfer>
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
@@ -128,6 +131,7 @@ export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createCancelTransfer>
   | More.ReturnType<typeof createDismissTransfer>
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>

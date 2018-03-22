@@ -23,9 +23,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onHidden: () => dispatch(navigateUp()),
   _dismissTransfer: (key: string) => dispatch(FsGen.createDismissTransfer({key})),
+  _cancelTransfer: (key: string) => dispatch(FsGen.createCancelTransfer({key})),
 })
 
-const mergeProps = (stateProps, {_onHidden, _dismissTransfer}) => {
+const mergeProps = (stateProps, {_onHidden, _dismissTransfer, _cancelTransfer}) => {
   const itemStyles = Constants.getItemStyles(
     Types.getPathElements(stateProps.path),
     stateProps._pathItem.type,
@@ -36,18 +37,20 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer}) => {
       .filter(ts => ts.meta.type === 'download' && ts.meta.intent !== 'none')
       .entries()
       .next().value || Constants.makeTransferState()
-  const [key, {meta: {intent}, state: {completePortion, endEstimate, isDone}}] =
+  const [key, {meta: {intent}, state: {completePortion, endEstimate, isDone, error}}] =
     some || Constants.makeTransfer()
   const onHidden = () => {
+    isDone || _cancelTransfer(key)
     _onHidden()
     _dismissTransfer(key)
   }
-  isDone && onHidden()
+  isDone && !error && onHidden()
   return {
     name: stateProps._pathItem.name,
     intent,
     itemStyles,
     completePortion,
+    error,
     progressText: formatDurationFromNowTo(endEstimate),
     onHidden,
   }

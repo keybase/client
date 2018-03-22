@@ -13,6 +13,7 @@ export type DownloadProps = {
   isDone: boolean,
   open?: () => void,
   dismiss: () => void,
+  cancel: () => void,
 }
 
 const Download = (props: DownloadProps) => (
@@ -32,7 +33,7 @@ const Download = (props: DownloadProps) => (
         )}
       </Box>
     </ClickableBox>
-    <ClickableBox style={stylesIconBox} onClick={props.dismiss}>
+    <ClickableBox style={stylesIconBox} onClick={props.isDone ? props.dismiss : props.cancel}>
       <Icon type="iconfont-remove" style={stylesIconRight} />
     </ClickableBox>
   </Box>

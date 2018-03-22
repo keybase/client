@@ -42,6 +42,9 @@
       "completePortion": "number",
       "endEstimate?": "number"
     },
+    "cancelTransfer": {
+      "key": "string"
+    },
     "dismissTransfer": {
       "key": "string"
     },

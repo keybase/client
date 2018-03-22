@@ -12,9 +12,10 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenInFileUI({path: p})),
   dismisser: (key: string) => dispatch(FsGen.createDismissTransfer({key})),
+  canceler: (key: string) => dispatch(FsGen.createCancelTransfer({key})),
 })
 
-const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
+const mergeProps = (stateProps, {opener, dismisser, canceler}, ownProps) =>
   ({
     downloads: Array.from(
       stateProps.transfers.filter(
@@ -30,6 +31,7 @@ const mergeProps = (stateProps, {opener, dismisser}, ownProps) =>
         isDone: transfer.state.isDone,
         open: transfer.state.isDone ? () => opener(transfer.meta.localPath) : undefined,
         dismiss: () => dismisser(key),
+        cancel: () => canceler(key),
         key,
       })),
     // TODO: add uploadsk
