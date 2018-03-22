@@ -263,7 +263,6 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	// from cache, but if the KID doesn't match, we try a forced reload to see
 	// if the cache might've been stale. Only if the KID still doesn't match
 	// after the reload do we complain.
-	// TODO any other args to add here?
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 		ID: teamID,
 	})
@@ -278,8 +277,8 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
 		// The latest PTK might be stale. Force a reload, then check this over again.
 		team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
-			ID:              teamID,
-			ForceFullReload: true,
+			ID:          teamID,
+			ForceRepoll: true,
 		})
 		if err != nil {
 			return nil, false, err
