@@ -58,9 +58,9 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   selections = () => {
-    const node = this._input
-    if (node) {
-      const {selectionStart, selectionEnd} = node
+    const n = this._input
+    if (n) {
+      const {selectionStart, selectionEnd} = n
       return {selectionStart, selectionEnd}
     }
   }
@@ -82,15 +82,15 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
-    const node = this._input
-    if (!node || !node.style) {
+    const n = this._input
+    if (!n || !n.style) {
       return
     }
 
     // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
     // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
     if (this.props.smartAutoresize) {
-      const rect = node.getBoundingClientRect()
+      const rect = n.getBoundingClientRect()
       // width changed so throw out our data
       if (rect.width !== this._smartAutoresize.width) {
         this._smartAutoresize.width = rect.width
@@ -98,9 +98,9 @@ class Input extends React.PureComponent<Props, State> {
       }
 
       // See if we've gone up in size, if so keep track of the input at that point
-      if (node.scrollHeight > rect.height) {
+      if (n.scrollHeight > rect.height) {
         this._smartAutoresize.pivotLength = this.state.value.length
-        node.style.height = `${node.scrollHeight}px`
+        n.style.height = `${n.scrollHeight}px`
       } else {
         // see if we went back down in height
         if (
@@ -108,13 +108,13 @@ class Input extends React.PureComponent<Props, State> {
           this.state.value.length <= this._smartAutoresize.pivotLength
         ) {
           this._smartAutoresize.pivotLength = -1
-          node.style.height = '1px'
-          node.style.height = `${node.scrollHeight}px`
+          n.style.height = '1px'
+          n.style.height = `${n.scrollHeight}px`
         }
       }
     } else {
-      node.style.height = '1px'
-      node.style.height = `${node.scrollHeight}px`
+      n.style.height = '1px'
+      n.style.height = `${n.scrollHeight}px`
     }
   }
 
