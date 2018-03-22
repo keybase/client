@@ -28,7 +28,7 @@ func mdDumpGetDeviceStringForCryptPublicKey(k kbfscrypto.CryptPublicKey, ui libk
 
 	if revokedTime, ok := ui.RevokedCryptPublicKeys[k]; ok {
 		return fmt.Sprintf("%s (revoked %s) (kid:%s)",
-			deviceName, revokedTime.Unix.Time(), k), true
+			deviceName, revokedTime.Time(), k), true
 	}
 
 	return fmt.Sprintf("%s (kid:%s)", deviceName, k), true
@@ -43,7 +43,7 @@ func mdDumpGetDeviceStringForVerifyingKey(k kbfscrypto.VerifyingKey, ui libkbfs.
 
 	if revokedTime, ok := ui.RevokedVerifyingKeys[k]; ok {
 		return fmt.Sprintf("%s (revoked %s) (kid:%s)",
-			deviceName, revokedTime.Unix.Time(), k), true
+			deviceName, revokedTime.Time(), k), true
 	}
 
 	return fmt.Sprintf("%s (kid:%s)", deviceName, k), true
