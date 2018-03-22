@@ -2,71 +2,51 @@
 // A mirror of the remote pinentry windows.
 // RemotePinentrys renders all of them (usually only one)
 // RemotePinentry is a single remote window
+import * as I from 'immutable'
 import * as React from 'react'
+import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose, renderNothing} from '../util/container'
+import {connect, mapProps, type TypedState, compose, renderNothing} from '../util/container'
 
-const windowOpts = {height: 210, width: 440}
+const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
+  cancelLabel: data.cancelLabel,
+  prompt: data.prompt,
+  retryLabel: data.retryLabel,
+  sessionID: data.sessionID,
+  showTyping: data.showTyping,
+  submitLabel: data.submitLabel,
+  submitted: data.submitted,
+  type: data.type,
+  windowComponent: 'pinentry',
+  windowOpts: {height: 210, width: 440},
+  windowParam: String(data.sessionID),
+  windowPositionBottomRight: false,
+  windowTitle: 'Pinentry',
+}))
 
-const pinentryMapStateToProps = (state: TypedState, {id}: {id: number}) => {
-  const p = state.pinentry.sessionIDToPinentry.get(id)
-  if (!p) {
-    // $FlowIssue
-    return {
-      cancelLabel: '',
-      prompt: '',
-      retryLabel: '',
-      sessionID: 0,
-      showTyping: '',
-      submitLabel: '',
-      submitted: '',
-      type: '',
-      windowComponent: '',
-      windowOpts: {},
-      windowParam: '',
-      windowPositionBottomRight: false,
-      windowTitle: '',
-    }
-  }
-
-  return {
-    cancelLabel: p.cancelLabel,
-    prompt: p.prompt,
-    retryLabel: p.retryLabel,
-    sessionID: id,
-    showTyping: p.showTyping,
-    submitLabel: p.submitLabel,
-    submitted: p.submitted,
-    type: p.type,
-    windowComponent: 'pinentry',
-    windowOpts,
-    windowParam: String(id),
-    windowPositionBottomRight: false,
-    windowTitle: 'Pinentry',
-  }
-}
-
+const Empty = () => null
 // Actions are handled by remote-container
-const RemotePinentry = compose(
-  connect(pinentryMapStateToProps, () => ({})),
-  SyncBrowserWindow,
-  SyncProps,
-  // $FlowIssue gets confused
-  renderNothing
-)(null)
+const RemotePinentry = compose(dataToProps, SyncBrowserWindow, SyncProps, renderNothing)(Empty)
 
 type Props = {
-  pinentryIDs: Array<number>,
+  sessionIDToPinentry: I.Map<number, Types.PinentryState>,
 }
+
 class RemotePinentrys extends React.PureComponent<Props> {
   render() {
-    return this.props.pinentryIDs.map(id => <RemotePinentry id={id} key={String(id)} />)
+    return this.props.sessionIDToPinentry.keySeq().reduce((arr, id) => {
+      const data = this.props.sessionIDToPinentry.get(id)
+      if (data) {
+        arr.push(<RemotePinentry key={String(id)} data={data} />)
+      }
+      return arr
+    }, [])
   }
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  pinentryIDs: state.pinentry.sessionIDToPinentry.keySeq().toArray(),
+  sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
 export default connect(mapStateToProps, () => ({}))(RemotePinentrys)
