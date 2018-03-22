@@ -235,16 +235,20 @@ export default class AppState {
     app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
-  getLinuxLoginString(isSet) {
+  setLinuxLoginState() {
     const isGnome = process.env.SESSIONTYPE === 'gnome-session'
+
     const setString = isGnome ? 'X-GNOME-Autostart-enabled=true/' : '#Hidden=true/'
     const unSetString = isGnome ? 'X-GNOME-Autostart-enabled=false/' : 'Hidden=true/'
-    return isSet ? setString : unSetString
-  }
+    var searchString = this.state.openAtLogin ? unSetString : setString
+    var replaceString = this.state.openAtLogin ? setString : unSetString
 
-  setLinuxLoginState() {
-    var searchString = this.getLinuxLoginString(!this.state.openAtLogin)
-    var replaceString = this.getLinuxLoginString(this.state.openAtLogin)
+    // Always check if Hidden=true was uncommented on gnome
+    if (isGnome && this.state.openAtLogin) {
+      exec('sed -i -e s/^Hidden=true/#Hidden=true/ ~/.config/autostart/keybase_autostart.desktop', {
+        windowsHide: true,
+      })
+    }
 
     exec('sed -i s/' + searchString + replaceString + ' ~/.config/autostart/keybase_autostart.desktop', {
       windowsHide: true,
@@ -252,15 +256,15 @@ export default class AppState {
   }
 
   getLinuxLoginState(callback) {
-    const setString = this.getLinuxLoginString(true)
-
     exec(
-      'grep ' + setString + ' ~/.config/autostart/keybase_autostart.desktop',
+      'grep -E "(X-GNOME-Autostart-enabled=false/|^Hidden=true)"  ~/.config/autostart/keybase_autostart.desktop',
       {
         windowsHide: true,
       },
       result => {
-        callback(result === setString)
+        callback(
+          result.search('X-GNOME-Autostart-enabled=false') === -1 && result.search('Hidden=true') === -1
+        )
       }
     )
   }
