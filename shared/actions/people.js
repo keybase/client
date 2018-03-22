@@ -7,6 +7,7 @@ import * as Types from '../constants/types/people'
 import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import logger from '../logger'
 import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
@@ -130,12 +131,24 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
   }
 }
 
+const networkErrors = [
+  RPCTypes.constantsStatusCode.scgenericapierror,
+  RPCTypes.constantsStatusCode.scapinetworkerror,
+  RPCTypes.constantsStatusCode.sctimeout,
+]
+
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData, () =>
     // TODO replace this with engine handling once that lands
     Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey}))
   )
-  yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed)
+  yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed, null, err => {
+    if (networkErrors.includes(err.code)) {
+      logger.warn('Network error calling homeMarkViewed')
+    } else {
+      throw err
+    }
+  })
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
   yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
