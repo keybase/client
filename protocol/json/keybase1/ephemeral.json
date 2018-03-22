@@ -16,25 +16,6 @@
     },
     {
       "type": "record",
-      "name": "DeviceEkMetadataStatement",
-      "fields": [
-        {
-          "type": "DeviceEkMetadata",
-          "name": "currentDeviceEkMetadata",
-          "jsonkey": "current_device_ek_metadata"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "DeviceEkMetadata"
-          },
-          "name": "existingDeviceEkMetadata",
-          "jsonkey": "existing_device_ek_metadata"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "DeviceEkMetadata",
       "fields": [
         {
@@ -59,6 +40,25 @@
     },
     {
       "type": "record",
+      "name": "DeviceEkStatement",
+      "fields": [
+        {
+          "type": "DeviceEkMetadata",
+          "name": "currentDeviceEkMetadata",
+          "jsonkey": "current_device_ek_metadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceEkMetadata"
+          },
+          "name": "existingDeviceEkMetadata",
+          "jsonkey": "existing_device_ek_metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DeviceEk",
       "fields": [
         {
@@ -73,7 +73,7 @@
     },
     {
       "type": "record",
-      "name": "UserEkMetadataStatement",
+      "name": "UserEkStatement",
       "fields": [
         {
           "type": "UserEkMetadata",
@@ -85,7 +85,7 @@
             "type": "array",
             "items": "UserEkMetadata"
           },
-          "name": "existingUserEkMetatdata",
+          "name": "existingUserEkMetadata",
           "jsonkey": "existing_user_ek_metadata"
         }
       ]
@@ -143,6 +143,82 @@
         },
         {
           "type": "UserEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkMetadata",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid",
+          "jsonkey": "team_ephemeral_dh_public"
+        },
+        {
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkStatement",
+      "fields": [
+        {
+          "type": "TeamEkMetadata",
+          "name": "currentTeamEkMetadata",
+          "jsonkey": "current_team_ek_metadata"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamEkMetadata"
+          },
+          "name": "existingTeamEkMetadata",
+          "jsonkey": "existing_team_ek_metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkBoxed",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "userEkGeneration",
+          "jsonkey": "user_ek_generation"
+        },
+        {
+          "type": "TeamEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEk",
+      "fields": [
+        {
+          "type": "Bytes32",
+          "name": "seed"
+        },
+        {
+          "type": "TeamEkMetadata",
           "name": "metadata"
         }
       ]
