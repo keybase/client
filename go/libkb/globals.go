@@ -941,6 +941,11 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 		return nil
 	}
 
+	if g.Env.GetSkipLogoutIfRevokedCheck() {
+		g.Log.Debug("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
+		return nil
+	}
+
 	me, err := LoadMe(NewLoadUserForceArg(g))
 	if err != nil {
 		return err

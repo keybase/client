@@ -150,6 +150,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
 	}
+
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
 	u.device.start(0)
@@ -695,6 +696,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 }
 
 func (u *userPlusDevice) reset() {
+	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
 	uvBefore := u.userVersion()
 	err := u.device.userClient.ResetUser(context.TODO(), 0)
 	require.NoError(u.tc.T, err)
