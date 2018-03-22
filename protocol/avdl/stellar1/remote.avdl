@@ -4,7 +4,8 @@
 
   @typedef("string") record AccountID {}
   @typedef("string") record TransactionID {}
-  @typedef("bytes")  record KeybaseTransactionID {}
+  @typedef("string") record KeybaseTransactionID {}
+  @typedef("long")   record Time {} // ms since epoch
 
   record Asset {
     string type;
@@ -25,18 +26,30 @@
     keybase1.KID KID;  // public key data was encrypted for
   }
 
+  record Members {
+    AccountID fromStellar;
+    string fromKeybase;
+    keybase1.UID fromUID;
+    AccountID toStellar;
+    string toKeybase;
+    keybase1.UID toUID;
+  }
+
   record TransactionSummary {
     TransactionID stellarID;
     KeybaseTransactionID keybaseID;
+    string status;
 
     EncryptedNote note;
 
     Asset asset;
     string amount;
-    AccountID stellarFrom;
-    AccountID stellarTo;
-    keybase1.UID keybaseFrom;
-    keybase1.UID keybaseTo;
+    string displayAmount;
+    string displayCurrency;
+
+    Members members;
+
+    Time ctime;
   }
 
   record Operation {
@@ -47,10 +60,6 @@
 
     Asset asset;
     string amount;
-    AccountID stellarFrom;
-    AccountID stellarTo;
-    keybase1.UID keybaseFrom;
-    keybase1.UID keybaseTo;
   }
 
   record TransactionDetails {
@@ -63,22 +72,19 @@
     string sourceAccountSequence;
     int feePaid;
 
+    Members members;
     EncryptedNote note;
-
     array<string> signatures;
-
     array<Operation> operations;
+
+    Time ctime;
   }
 
   record PaymentPost {
-    AccountID from;
-    AccountID to;
-    uint64 sequenceNumber;
-    string keybaseFrom;
-    string keybaseTo;
+    uint64 stellarAccountSeqno;
 
-    string transactionType;
-    string xlmAmount;
+    Members members;
+
     string displayAmount;
     string displayCurrency;
 

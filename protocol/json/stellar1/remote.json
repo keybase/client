@@ -24,7 +24,13 @@
       "type": "record",
       "name": "KeybaseTransactionID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
     },
     {
       "type": "record",
@@ -86,6 +92,36 @@
     },
     {
       "type": "record",
+      "name": "Members",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "fromStellar"
+        },
+        {
+          "type": "string",
+          "name": "fromKeybase"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "fromUID"
+        },
+        {
+          "type": "AccountID",
+          "name": "toStellar"
+        },
+        {
+          "type": "string",
+          "name": "toKeybase"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "toUID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TransactionSummary",
       "fields": [
         {
@@ -95,6 +131,10 @@
         {
           "type": "KeybaseTransactionID",
           "name": "keybaseID"
+        },
+        {
+          "type": "string",
+          "name": "status"
         },
         {
           "type": "EncryptedNote",
@@ -109,20 +149,20 @@
           "name": "amount"
         },
         {
-          "type": "AccountID",
-          "name": "stellarFrom"
+          "type": "string",
+          "name": "displayAmount"
         },
         {
-          "type": "AccountID",
-          "name": "stellarTo"
+          "type": "string",
+          "name": "displayCurrency"
         },
         {
-          "type": "keybase1.UID",
-          "name": "keybaseFrom"
+          "type": "Members",
+          "name": "members"
         },
         {
-          "type": "keybase1.UID",
-          "name": "keybaseTo"
+          "type": "Time",
+          "name": "ctime"
         }
       ]
     },
@@ -153,22 +193,6 @@
         {
           "type": "string",
           "name": "amount"
-        },
-        {
-          "type": "AccountID",
-          "name": "stellarFrom"
-        },
-        {
-          "type": "AccountID",
-          "name": "stellarTo"
-        },
-        {
-          "type": "keybase1.UID",
-          "name": "keybaseFrom"
-        },
-        {
-          "type": "keybase1.UID",
-          "name": "keybaseTo"
         }
       ]
     },
@@ -209,6 +233,10 @@
           "name": "feePaid"
         },
         {
+          "type": "Members",
+          "name": "members"
+        },
+        {
           "type": "EncryptedNote",
           "name": "note"
         },
@@ -225,6 +253,10 @@
             "items": "Operation"
           },
           "name": "operations"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
         }
       ]
     },
@@ -233,32 +265,12 @@
       "name": "PaymentPost",
       "fields": [
         {
-          "type": "AccountID",
-          "name": "from"
-        },
-        {
-          "type": "AccountID",
-          "name": "to"
-        },
-        {
           "type": "uint64",
-          "name": "sequenceNumber"
+          "name": "stellarAccountSeqno"
         },
         {
-          "type": "string",
-          "name": "keybaseFrom"
-        },
-        {
-          "type": "string",
-          "name": "keybaseTo"
-        },
-        {
-          "type": "string",
-          "name": "transactionType"
-        },
-        {
-          "type": "string",
-          "name": "xlmAmount"
+          "type": "Members",
+          "name": "members"
         },
         {
           "type": "string",
