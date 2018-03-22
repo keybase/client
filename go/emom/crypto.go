@@ -67,6 +67,7 @@ func (u *UsersCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp 
 
 	authToken := emom1.AuthToken{
 		C: emom1.ToTime(u.clock.Now()),
+		D: emom1.KID(u.user.userSigningKey.GetPublicKey().ToKID()),
 		K: ephemeralKID,
 		U: u.user.uid,
 	}
@@ -80,8 +81,7 @@ func (u *UsersCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp 
 		return err
 	}
 	signedAuthToken := emom1.SignedAuthToken{
-		T: authToken,
-		D: emom1.KID(u.user.userSigningKey.GetPublicKey().ToKID()),
+		T: authToken.Export(),
 		S: sig,
 	}
 
@@ -109,6 +109,7 @@ type CloudCryptoPackage struct {
 	sync.Mutex
 	serverKeys           map[emom1.KeyGen]saltpack.BoxSecretKey
 	userAuth             func(context.Context, emom1.UID, emom1.KID) error
+	importSigningKey     func(context.Context, emom1.KID) (saltpack.SigningPublicKey, error)
 	checkReplayAndImport func(context.Context, emom1.KID) (saltpack.BoxPublicKey, error)
 	user                 emom1.UID
 	sessionKey           saltpack.BoxPrecomputedSharedKey
@@ -153,6 +154,46 @@ func (c *CloudCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp 
 }
 
 func (c *CloudCryptoPackage) InitUserAuth(ctx context.Context, arg emom1.Arg, rp emom1.RequestPlaintext) error {
+
+	// The user is authed and there's no more auth information coming down. Perfact!
+	if c.user != nil && rp.F == nil {
+		return nil
+	}
+
+	if c.user != nil && rp.F != nil {
+		return newUserAuthError("attempt to reauth an already-authed session")
+	}
+
+	if arg.H == nil {
+		return newUserAuthError("User auth must happen along with the handshake")
+	}
+
+	at := emom1.AuthToken{
+		C: rp.F.T.C,
+		K: arg.H.K,
+		U: rp.F.T.U,
+	}
+
+	encodedAuthToken, err := encodeToBytes(at)
+	if err != nil {
+		return err
+	}
+
+	userKey, err := c.importSigningKey(ctx, rp.F.T.D)
+	if err != nil {
+		return err
+	}
+
+	err = userKey.Verify(encodedAuthToken, rp.F.S)
+	if err != nil {
+		return err
+	}
+
+	err = c.userAuth(ctx, rp.F.T.U, rp.F.T.D)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

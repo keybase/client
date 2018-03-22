@@ -45,14 +45,20 @@ protocol ae {        // AE   = "Authenticated Encryption"
 
   record AuthToken {
     Time c; // creation time, in milliseconds from the epoch (for purge of server replay cache)
+    KID  d; // The KID of the signing (device) key
     KID  k; // user ephemeral KID
     UID  u; // UID the auth token is for
   }
 
+  record AuthTokenExported {
+    Time c; // creation time, in milliseconds from the epoch (for purge of server replay cache)
+    KID  d; // The KID of the signing (device) key
+    UID  u; // UID the auth token is for
+  }
+
   record SignedAuthToken {
-    AuthToken t; // the auth token parts
-    KID       d; // The KID of the signing (device) key
-    bytes     s; // the EdDSA signature of the msgpack of the AuthToken
+    AuthTokenExported t; // the auth token parts
+    bytes             s; // the EdDSA signature of the msgpack of the AuthToken
   }
 
   record Arg {

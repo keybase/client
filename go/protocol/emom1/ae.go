@@ -167,6 +167,7 @@ func (o ResponsePlaintext) DeepCopy() ResponsePlaintext {
 
 type AuthToken struct {
 	C Time `codec:"c" json:"c"`
+	D KID  `codec:"d" json:"d"`
 	K KID  `codec:"k" json:"k"`
 	U UID  `codec:"u" json:"u"`
 }
@@ -174,21 +175,34 @@ type AuthToken struct {
 func (o AuthToken) DeepCopy() AuthToken {
 	return AuthToken{
 		C: o.C.DeepCopy(),
+		D: o.D.DeepCopy(),
 		K: o.K.DeepCopy(),
 		U: o.U.DeepCopy(),
 	}
 }
 
+type AuthTokenExported struct {
+	C Time `codec:"c" json:"c"`
+	D KID  `codec:"d" json:"d"`
+	U UID  `codec:"u" json:"u"`
+}
+
+func (o AuthTokenExported) DeepCopy() AuthTokenExported {
+	return AuthTokenExported{
+		C: o.C.DeepCopy(),
+		D: o.D.DeepCopy(),
+		U: o.U.DeepCopy(),
+	}
+}
+
 type SignedAuthToken struct {
-	T AuthToken `codec:"t" json:"t"`
-	D KID       `codec:"d" json:"d"`
-	S []byte    `codec:"s" json:"s"`
+	T AuthTokenExported `codec:"t" json:"t"`
+	S []byte            `codec:"s" json:"s"`
 }
 
 func (o SignedAuthToken) DeepCopy() SignedAuthToken {
 	return SignedAuthToken{
 		T: o.T.DeepCopy(),
-		D: o.D.DeepCopy(),
 		S: (func(x []byte) []byte {
 			if x == nil {
 				return nil

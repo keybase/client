@@ -12,3 +12,11 @@ func ToTime(t time.Time) Time {
 	}
 	return Time(t.UnixNano() / 1000000)
 }
+
+func (a AuthToken) Export() AuthTokenExported {
+	return AuthTokenExported{
+		C: a.C,
+		D: a.D,
+		U: a.U,
+	}
+}

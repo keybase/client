@@ -73,3 +73,17 @@ func newServerError(s string, args ...interface{}) ServerError {
 func (s ServerError) Error() string {
 	return fmt.Sprintf("Server error: %s", s.msg)
 }
+
+type UserAuthError struct {
+	msg string
+}
+
+func newUserAuthError(s string, args ...interface{}) UserAuthError {
+	return UserAuthError{
+		msg: fmt.Sprintf(s, args...),
+	}
+}
+
+func (u UserAuthError) Error() string {
+	return fmt.Sprintf("User auth error: %s", u.msg)
+}
