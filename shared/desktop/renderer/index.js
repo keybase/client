@@ -17,7 +17,8 @@ import electron, {ipcRenderer} from 'electron'
 import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
-import loginRouteTree from '../../app/routes-login'
+import {loginRouteTree} from '../../app/routes'
+import {AppContainer} from 'react-hot-loader'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
@@ -143,13 +144,15 @@ const FontLoader = () => (
 
 function render(store, MainComponent) {
   ReactDOM.render(
-    <Root store={store}>
-      <div style={{display: 'flex', flex: 1}}>
-        <RemoteProxies />
-        <FontLoader />
-        <MainComponent />
-      </div>
-    </Root>,
+    <AppContainer>
+      <Root store={store}>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteProxies />
+          <FontLoader />
+          <MainComponent />
+        </div>
+      </Root>
+    </AppContainer>,
     // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
@@ -165,23 +168,14 @@ function setupHMR(store) {
   }
 
   module.hot &&
-    module.hot.accept(
-      [
-        '../../app/main.desktop',
-        '../../app/routes-app',
-        '../../app/routes-login',
-        '../../store/configure-store',
-      ],
-      () => {
-        const appRouteTree = require('../../app/routes-app').default
-        const loginRouteTree = require('../../app/routes-login').default
-        store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
-        try {
-          const NewMain = require('../../app/main.desktop').default
-          render(store, NewMain)
-        } catch (_) {}
-      }
-    )
+    module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
+      const routes = require('../../app/routes')
+      store.dispatch(refreshRouteDef(routes.loginRouteTree, routes.appRouteTree))
+      try {
+        const NewMain = require('../../app/main.desktop').default
+        render(store, NewMain)
+      } catch (_) {}
+    })
 
   module.hot &&
     module.hot.accept('../../local-debug-live', () => {
