@@ -14,7 +14,7 @@ type Props = {
   publicityTeam: boolean,
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
-  savePublicity: any => void,
+  savePublicity: (Types.PublicitySettings, boolean) => void,
   setOpenTeamRole: (
     newOpenTeamRole: Types.TeamRoleType,
     setNewOpenTeamRole: (Types.TeamRoleType) => void
@@ -38,6 +38,7 @@ type NewSettings = {
 type State = NewSettings & {
   publicitySettingsChanged: boolean,
   retentionPolicyChanged: boolean,
+  retentionPolicyDecreased: boolean,
 }
 
 type SettingProps = Props &
@@ -173,6 +174,7 @@ export class Settings extends React.Component<Props, State> {
       newRetentionPolicy: {type: 'retain', days: 0}, // placeholder
       publicitySettingsChanged: false,
       retentionPolicyChanged: false,
+      retentionPolicyDecreased: false,
     }
   }
 
@@ -187,17 +189,6 @@ export class Settings extends React.Component<Props, State> {
       newOpenTeam: nextProps.openTeam,
       newOpenTeamRole: nextProps.openTeamRole,
       publicitySettingsChanged: false,
-    })
-  }
-
-  onSavePublicity = () => {
-    this.props.savePublicity({
-      ignoreAccessRequests: this.state.newIgnoreAccessRequests,
-      openTeam: this.state.newOpenTeam,
-      openTeamRole: this.state.newOpenTeamRole,
-      publicityAnyMember: this.state.newPublicityAnyMember,
-      publicityMember: this.state.newPublicityMember,
-      publicityTeam: this.state.newPublicityTeam,
     })
   }
 
@@ -219,14 +210,17 @@ export class Settings extends React.Component<Props, State> {
   }
 
   onSaveSettings = () => {
-    this.props.savePublicity({
-      ignoreAccessRequests: this.state.newIgnoreAccessRequests,
-      openTeam: this.state.newOpenTeam,
-      openTeamRole: this.state.newOpenTeamRole,
-      publicityAnyMember: this.state.newPublicityAnyMember,
-      publicityMember: this.state.newPublicityMember,
-      publicityTeam: this.state.newPublicityTeam,
-    })
+    this.props.savePublicity(
+      {
+        ignoreAccessRequests: this.state.newIgnoreAccessRequests,
+        openTeam: this.state.newOpenTeam,
+        openTeamRole: this.state.newOpenTeamRole,
+        publicityAnyMember: this.state.newPublicityAnyMember,
+        publicityMember: this.state.newPublicityMember,
+        publicityTeam: this.state.newPublicityTeam,
+      },
+      this.state.retentionPolicyDecreased
+    )
   }
 
   onSetOpenTeamRole = () => {
@@ -235,12 +229,19 @@ export class Settings extends React.Component<Props, State> {
     )
   }
 
-  _onSelectRetentionPolicy = (p: Types._RetentionPolicy, changed: boolean) => {
+  _onSelectRetentionPolicy = (
+    newRetentionPolicy: Types._RetentionPolicy,
+    retentionPolicyChanged: boolean,
+    retentionPolicyDecreased: boolean
+  ) => {
     // TODO (DESKTOP-6062)
     // this component should know whether it needs to show the warning dialog after hitting the save button.
     // it can still call onSaveSettings to save all the rest, and let the dialog deal with calling the
     // RPC to change the setting. For now, nothing does the set-policy call.
-    this.setState({newRetentionPolicy: p, retentionPolicyChanged: changed}, this.setPublicitySettingsChanged)
+    this.setState(
+      {newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased},
+      this.setPublicitySettingsChanged
+    )
   }
 
   render() {

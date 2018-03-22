@@ -14,16 +14,17 @@ export type OwnProps = {
   teamname: string,
   isTeamWide: boolean, // the state where this is false is TODO in DESKTOP-6062
   type: 'simple' | 'auto',
-  onSelect: ?(policy: _RetentionPolicy, changed: boolean) => void,
+  onSelect: ?(policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   // let policy: ?RetentionPolicy // TODO (DESKTOP-6062)
   const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
+  const teamPolicyJS = !!teamPolicy && teamPolicy.toJS()
 
   return {
-    policy: ownProps.isTeamWide ? teamPolicy : makeRetentionPolicy({}),
-    teamPolicy: ownProps.isTeamWide ? undefined : teamPolicy,
+    policy: ownProps.isTeamWide ? teamPolicyJS : makeRetentionPolicy({}),
+    teamPolicy: ownProps.isTeamWide ? undefined : teamPolicyJS,
   }
 }
 
@@ -38,9 +39,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname, onSelect, type}: OwnP
         },
       ])
     ),
-  onSelect: (policy: _RetentionPolicy, changed: boolean) => {
+  onSelect: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => {
     if (type === 'simple' && onSelect) {
-      onSelect(policy, changed)
+      onSelect(policy, changed, decreased)
     } else {
       // show popup etc (TODO DESKTOP-6062)
     }

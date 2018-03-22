@@ -20,6 +20,7 @@ import Team from './team/container'
 import TeamMenu from './team/menu-container'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import RetentionDropdown from './team/settings/retention/dropdown'
+import RetentionWarning from './team/settings/retention/warning/container'
 import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
@@ -87,6 +88,12 @@ const retentionDropdown = {
   tags: makeLeafTags({layerOnTop: true}),
 }
 
+const retentionWarning = {
+  component: RetentionWarning,
+  children: {},
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const teamRoute = makeRouteDefNode({
   children: {
     ...makeManageChannels,
@@ -96,6 +103,7 @@ const teamRoute = makeRouteDefNode({
     reallyLeaveTeam,
     reallyRemoveMember,
     retentionDropdown,
+    retentionWarning,
     showNewTeamDialog,
     team: () => teamRoute,
     member: {

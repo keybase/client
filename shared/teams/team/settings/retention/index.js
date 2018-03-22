@@ -3,12 +3,12 @@ import * as React from 'react'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../../styles'
 import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
-import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
+import {type _RetentionPolicy} from '../../../../constants/types/teams'
 
 export type Props = {
-  policy: RetentionPolicy,
-  teamPolicy?: RetentionPolicy,
-  onSelect: (policy: _RetentionPolicy, changed: boolean) => void,
+  policy: _RetentionPolicy,
+  teamPolicy?: _RetentionPolicy,
+  onSelect: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
   isTeamWide: boolean,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
 }
@@ -38,8 +38,12 @@ class RetentionPicker extends React.Component<Props, State> {
       selected = {type: 'retain', days: 0}
     }
     this.setState({selected})
+
     const changed = !(selected.type === this.props.policy.type && selected.days === this.props.policy.days)
-    this.props.onSelect(selected, changed)
+    const decreased =
+      policyToComparable(selected, this.props.teamPolicy) <
+      policyToComparable(this.props.policy, this.props.teamPolicy)
+    this.props.onSelect(selected, changed, decreased)
   }
 
   _makeItems = () => {
@@ -58,7 +62,7 @@ class RetentionPicker extends React.Component<Props, State> {
     this.setState({items})
   }
 
-  _setInitialSelected = (policy?: RetentionPolicy) => {
+  _setInitialSelected = (policy?: _RetentionPolicy) => {
     if (policy) {
       this.setState({selected: policy})
     } else if (this.props.policy) {
@@ -76,7 +80,10 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.policy !== this.props.policy || nextProps.teamPolicy !== this.props.teamPolicy) {
+    if (
+      !policyEquals(nextProps.policy, this.props.policy) ||
+      !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
+    ) {
       this._makeItems()
       this._setInitialSelected(nextProps.policy)
     }
@@ -182,6 +189,35 @@ const daysToLabel = (days: number) => {
     label += 's'
   }
   return label
+}
+// Use only for comparing policy durations
+const policyToComparable = (p: _RetentionPolicy, parent: ?_RetentionPolicy): number => {
+  let res: number = -1
+  switch (p.type) {
+    case 'retain':
+      res = Infinity
+      break
+    case 'inherit':
+      if (!parent) {
+        throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+      }
+      res = policyToComparable(parent)
+      break
+    case 'expire':
+      res = p.days
+      break
+  }
+  if (res === -1) {
+    // no good
+    throw new Error('Impossible case encountered: res = -1 in retention policyToComparable')
+  }
+  return res
+}
+const policyEquals = (p1?: _RetentionPolicy, p2?: _RetentionPolicy): boolean => {
+  if (p1 && p2) {
+    return p1.type === p2.type && p1.days === p2.days
+  }
+  return p1 === p2
 }
 
 export default RetentionPicker
