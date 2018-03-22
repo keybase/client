@@ -261,10 +261,13 @@ export default class AppState {
       {
         windowsHide: true,
       },
-      result => {
-        callback(
-          result.search('X-GNOME-Autostart-enabled=false') === -1 && result.search('Hidden=true') === -1
-        )
+      (error, stdout) => {
+        var result = false
+        if (!error) {
+          result =
+            stdout.search('X-GNOME-Autostart-enabled=false') === -1 && stdout.search('Hidden=true') === -1
+        }
+        callback(result)
       }
     )
   }
