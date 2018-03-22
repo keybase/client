@@ -28606,7 +28606,7 @@ exports[`Storyshots Files Preview 1`] = `
             Object {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#33a0ff",
+              "backgroundColor": "#4C8EFF",
               "borderRadius": 50,
               "cursor": "pointer",
               "display": "inline-block",
