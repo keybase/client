@@ -1,11 +1,8 @@
 // @flow
-/* global Notification */ // tell lint this exists
 import debounce from 'lodash/debounce'
 
 const rateLimit: {[key: string]: () => void} = {}
 const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}
-// $ForceType
-const TypedNotification: any = Notification
 
 export function NotifyPopup(
   title: string,
@@ -28,13 +25,13 @@ export function NotifyPopup(
         if (rateLimitPayloads[key]) {
           const {title, opts, onClick} = rateLimitPayloads[key]
           delete rateLimitPayloads[key]
-          const notification: any = new TypedNotification(title, {...opts, silent: true})
+          const notification: any = new window.Notification(title, {...opts, silent: true})
           notification.onclick = onClick
         }
       }, rateLimitSeconds * 1000)
     }
   }
 
-  const notification: any = new TypedNotification(title, {...opts, silent: true})
+  const notification: any = new window.Notification(title, {...opts, silent: true})
   notification.onclick = onClick
 }
