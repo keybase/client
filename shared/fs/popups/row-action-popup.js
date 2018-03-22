@@ -28,7 +28,7 @@ type Props = {
 
 const Popup = (props: Props) => {
   const header = {
-    title: 'yo',
+    title: 'unused',
     view: (
       <Box style={stylesHeader}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />

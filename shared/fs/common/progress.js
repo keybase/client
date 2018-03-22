@@ -14,7 +14,7 @@ const Progress = ({completePortion, text, width}: ProgressProps) => (
   <Box style={stylesOuter}>
     <Box style={stylesTubeBox}>
       <Box style={stylesTube(width)} />
-      <Box style={{...stylesTubeStuffing(width), width: completePortion * width}} />
+      <Box style={{...stylesTubeStuffing, width: completePortion * width}} />
     </Box>
     <Text type="BodySmallSemibold" style={stylesText}>
       {text}
@@ -40,11 +40,11 @@ const stylesTube = memoize(width => ({
   width,
 }))
 
-const stylesTubeStuffing = width => ({
-  ...stylesTube(width),
+const stylesTubeStuffing = {
+  ...stylesTube(undefined),
   backgroundColor: globalColors.white,
   marginTop: -4,
-})
+}
 
 const stylesText = platformStyles({
   common: {

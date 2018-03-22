@@ -19,7 +19,7 @@ type Props = {
 const getTitle = (intent: Types.TransferIntent): string => {
   switch (intent) {
     case 'camera-roll':
-      return 'Saving to cameral roll...'
+      return 'Saving to camera roll...'
     case 'share':
       return 'Preparing to share...'
     case 'none':
@@ -33,7 +33,7 @@ const getTitle = (intent: Types.TransferIntent): string => {
 
 const TransferPopup = (props: Props) => {
   const header = {
-    title: 'yo',
+    title: 'unused',
     view: (
       <Box style={stylesHeader}>
         <Text type="BodySemibold">{getTitle(props.intent)}</Text>

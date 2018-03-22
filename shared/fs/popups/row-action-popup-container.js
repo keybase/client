@@ -5,7 +5,7 @@ import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import Popup from './row-action-popup'
-import {fileUIName, isMobile, isAndroid} from '../../constants/platform'
+import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
   const _username = state.config.username || undefined
   // We need to do this counting here since it's possible between this
-  // mapStateProps and last mapStateProps call, pathItem.children reamined the
+  // mapStateProps and last mapStateProps call, pathItem.children remained the
   // same, but some of the children changed from folder to file or vice versa.
   // If we did it in mergeProps, we wouldn't be able capture that change.
   const [childrenFolders, childrenFiles] =
@@ -85,7 +85,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
       }),
 
-  ...(!isMobile || isAndroid
+  ...(isIOS
     ? {
         download: (path: Types.Path) => dispatch(FSGen.createDownload({path, intent: 'none'})),
       }
@@ -114,7 +114,7 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => share(path),
     })
   }
-  if (!isMobile || isAndroid) {
+  if (!isIOS) {
     // TODO make android download work
     menuItems.push({
       title: 'Download a copy',
