@@ -134,9 +134,9 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 		existing = []keybase1.UserEkMetadata{}
 	}
 
-	statement := keybase1.UserEkStatement{
-		CurrentUserEk:   metadata,
-		ExistingUserEks: existing,
+	statement := keybase1.UserEkMetadataStatement{
+		CurrentUserEkMetadata:   metadata,
+		ExistingUserEkMetatdata: existing,
 	}
 	statementJSON, err := json.Marshal(statement)
 	if err != nil {
@@ -209,7 +209,7 @@ type userEKResponse struct {
 // `wrongKID` flag. As a transitional measure while we wait for all clients in
 // the wild to have EK support, callers will treat that case as "there is no
 // key" and convert the error to a warning.
-func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig string) (statement *keybase1.UserEkStatement, wrongKID bool, err error) {
+func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig string) (statement *keybase1.UserEkMetadataStatement, wrongKID bool, err error) {
 	// Verify the sig.
 	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 	if err != nil {
@@ -246,7 +246,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig str
 
 	// If we didn't short circuit above, then the signing key is correct. Parse
 	// the JSON and return the result.
-	parsedStatement := keybase1.UserEkStatement{}
+	parsedStatement := keybase1.UserEkMetadataStatement{}
 	err = json.Unmarshal(payload, &parsedStatement)
 	if err != nil {
 		return nil, false, err
@@ -259,7 +259,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, sig str
 // one, this function will also return nil and log a warning. This is a
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
-func getLatestUserEKStatementMaybeStale(ctx context.Context, g *libkb.GlobalContext) (statement *keybase1.UserEkStatement, err error) {
+func getLatestUserEKStatementMaybeStale(ctx context.Context, g *libkb.GlobalContext) (statement *keybase1.UserEkMetadataStatement, err error) {
 	defer g.CTrace(ctx, "getLatestUserEKStatementMaybeStale", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -309,7 +309,7 @@ func getLatestUserEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalConte
 		return nil, err
 	}
 
-	return &statement.CurrentUserEk, nil
+	return &statement.CurrentUserEkMetadata, nil
 }
 
 func getAllActiveUserEKs(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata []keybase1.UserEkMetadata, err error) {
@@ -320,8 +320,8 @@ func getAllActiveUserEKs(ctx context.Context, g *libkb.GlobalContext, merkleRoot
 		return nil, err
 	}
 
-	allExisting := append([]keybase1.UserEkMetadata{}, statement.ExistingUserEks...)
-	allExisting = append(allExisting, statement.CurrentUserEk)
+	allExisting := append([]keybase1.UserEkMetadata{}, statement.ExistingUserEkMetatdata...)
+	allExisting = append(allExisting, statement.CurrentUserEkMetadata)
 	allActive := []keybase1.UserEkMetadata{}
 	for _, existing := range allExisting {
 		if !ctimeIsStale(existing.Ctime, merkleRoot) {
@@ -348,9 +348,9 @@ func getActiveUserEKMetadata(ctx context.Context, g *libkb.GlobalContext, merkle
 		return nil, err
 	}
 
-	if ctimeIsStale(statement.CurrentUserEk.Ctime, merkleRoot) {
+	if ctimeIsStale(statement.CurrentUserEkMetadata.Ctime, merkleRoot) {
 		return nil, nil
 	}
 
-	return &statement.CurrentUserEk, nil
+	return &statement.CurrentUserEkMetadata, nil
 }

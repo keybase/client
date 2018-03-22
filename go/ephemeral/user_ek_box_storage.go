@@ -131,7 +131,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
 		DeviceEkGeneration: result.Result.DeviceEKGeneration,
-		Metadata:           userEKStatement.CurrentUserEk,
+		Metadata:           userEKStatement.CurrentUserEkMetadata,
 	}
 
 	userEK, err = s.unbox(ctx, userEKBoxed)
@@ -142,8 +142,8 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	seed := UserEKSeed(userEK.Seed)
 	keypair := seed.DeriveDHKey()
 
-	if !keypair.GetKID().Equal(userEKStatement.CurrentUserEk.Kid) {
-		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKStatement.CurrentUserEk.Kid)
+	if !keypair.GetKID().Equal(userEKStatement.CurrentUserEkMetadata.Kid) {
+		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKStatement.CurrentUserEkMetadata.Kid)
 	}
 
 	// Store the boxed version, return the unboxed

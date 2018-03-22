@@ -13,11 +13,11 @@ protocol ephemeral {
   // Thus we use distinct field names like "device_ephemeral_dh_public" and
   // "user_ephemeral_dh_public". If anyone ever tries to refactor all these
   // structs, please be careful with this detail.
-  record DeviceEkStatement {
-    @jsonkey("current_device_ek")
-    DeviceEkMetadata currentDeviceEk;
-    @jsonkey("existing_device_eks")
-    array<DeviceEkMetadata> existingDeviceEks;
+  record DeviceEkMetadataStatement {
+    @jsonkey("current_device_ek_metadata")
+    DeviceEkMetadata currentDeviceEkMetadata;
+    @jsonkey("existing_device_ek_metadata")
+    array<DeviceEkMetadata> existingDeviceEkMetadata;
   }
 
   record DeviceEkMetadata {
@@ -34,11 +34,11 @@ protocol ephemeral {
     DeviceEkMetadata metadata;
   }
 
-  record UserEkStatement {
-    @jsonkey("current_user_ek")
-    UserEkMetadata currentUserEk;
-    @jsonkey("existing_user_eks")
-    array<UserEkMetadata> existingUserEks;
+  record UserEkMetadataStatement {
+    @jsonkey("current_user_ek_metadata")
+    UserEkMetadata currentUserEkMetadata;
+    @jsonkey("existing_user_ek_metadata")
+    array<UserEkMetadata> existingUserEkMetatdata;
   }
 
   record UserEkMetadata {
