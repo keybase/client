@@ -160,7 +160,6 @@ const isSubteam = (maybeTeamname: string) => {
   }
   return true
 }
-
 const secondsToDays = (seconds: number) => seconds / (3600 * 24)
 const serviceRetentionPolicyToRetentionPolicy = (
   policy: ?RPCChatTypes.RetentionPolicy
@@ -187,6 +186,28 @@ const serviceRetentionPolicyToRetentionPolicy = (
     }
   }
   return retentionPolicy
+}
+
+const daysToSeconds = (days: number) => days * 3600 * 24
+const retentionPolicyToServiceRetentionPolicy = (
+  policy: Types.RetentionPolicy
+): RPCChatTypes.RetentionPolicy => {
+  let res: ?RPCChatTypes.RetentionPolicy
+  switch (policy.type) {
+    case 'retain':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.retain, retain: {}}
+      break
+    case 'expire':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.expire, expire: {age: daysToSeconds(policy.days)}}
+      break
+    case 'inherit':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.inherit, inherit: {}}
+      break
+  }
+  if (!res) {
+    throw new Error(`Unable to convert retention policy of unknown type: ${policy.type}`)
+  }
+  return res
 }
 
 // How many public admins should we display on a showcased team card at once?
@@ -219,4 +240,5 @@ export {
   isOwner,
   isSubteam,
   serviceRetentionPolicyToRetentionPolicy,
+  retentionPolicyToServiceRetentionPolicy,
 }

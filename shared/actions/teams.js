@@ -127,6 +127,33 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   }
 }
 
+const _setTeamRetentionPolicy = (action: TeamsGen.SetTeamRetentionPolicyPayload, state: TypedState) => {
+  const teamname = action.payload.teamname
+  const policy = Constants.makeRetentionPolicy(action.payload.policy)
+
+  // get teamID
+  const teamID = Constants.getTeamID(state, teamname)
+  if (!teamID) {
+    const errMsg = `Unable to find teamID for teamname ${teamname}`
+    logger.error(errMsg)
+    throw new Error(errMsg)
+  }
+
+  let servicePolicy: RPCChatTypes.RetentionPolicy
+  try {
+    servicePolicy = Constants.retentionPolicyToServiceRetentionPolicy(policy)
+  } catch (err) {
+    logger.error(err.message)
+    throw err
+  }
+  return Saga.sequentially([
+    Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+    Saga.call(RPCChatTypes.localSetTeamRetentionLocalRpcPromise, {teamID, policy: servicePolicy}),
+    Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+    Saga.put(TeamsGen.createGetTeamRetentionPolicy({teamname})),
+  ])
+}
+
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   const {invitees, role, teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
@@ -1003,6 +1030,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     _checkRequestedAccessSuccess
   )
   yield Saga.safeTakeEveryPure(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
+  yield Saga.safeTakeEvery(TeamsGen.setTeamRetentionPolicy, _setTeamRetentionPolicy)
 }
 
 export default teamsSaga

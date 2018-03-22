@@ -127,6 +127,10 @@
     },
     "getTeamRetentionPolicy": {
       "teamname": "string"
+    },
+    "setTeamRetentionPolicy": {
+      "teamname": "string",
+      "policy": "Types._RetentionPolicy"
     }
   }
 }
