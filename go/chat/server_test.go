@@ -278,7 +278,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h := NewServer(g, nil, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
-	var tlf kbtest.TlfMock
+	var tlf *kbtest.TlfMock
 	var ri chat1.RemoteInterface
 	if useRemoteMock {
 		mockRemote := kbtest.NewChatRemoteMock(c.world)

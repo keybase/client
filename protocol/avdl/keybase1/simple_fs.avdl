@@ -90,9 +90,15 @@ protocol SimpleFS {
     REMOVE_6
   }
 
+  enum ListFilter {
+    NO_FILTER_0,
+    FILTER_ALL_HIDDEN_1
+  }
+
   record ListArgs {
     OpID opID;
     Path path;
+    ListFilter filter;
   }
 
   record RemoveArgs {
@@ -152,12 +158,12 @@ protocol SimpleFS {
    Retrieve results with readList()
    Can be a single file to get flags/status
    */
-  void simpleFSList(OpID opID, Path path);
+  void simpleFSList(OpID opID, Path path, ListFilter filter);
 
   /**
    Begin recursive list of items in directory at path
    */
-  void simpleFSListRecursive(OpID opID, Path path);
+  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter);
 
   /**
    Get list of Paths in progress. Can indicate status of pending

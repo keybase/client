@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"net"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -255,4 +256,40 @@ type ImpteamUpgradeBadteamError struct {
 
 func (e ImpteamUpgradeBadteamError) Error() string {
 	return fmt.Sprintf("bad iteam found in upgraded conv: %s", e.Msg)
+}
+
+//=============================================================================
+
+type OfflineErrorKind int
+
+const (
+	OfflineErrorKindOnline OfflineErrorKind = iota
+	OfflineErrorKindOfflineBasic
+	OfflineErrorKindOfflineReconnect
+)
+
+func IsOfflineError(err error) OfflineErrorKind {
+	// Check type
+	switch terr := err.(type) {
+	case net.Error:
+		return OfflineErrorKindOfflineReconnect
+	case libkb.APINetError:
+		return OfflineErrorKindOfflineBasic
+	case OfflineError:
+		return OfflineErrorKindOfflineBasic
+	case TransientUnboxingError:
+		return IsOfflineError(terr.Inner())
+	}
+	// Check error itself
+	switch err {
+	case context.DeadlineExceeded:
+		fallthrough
+	case context.Canceled:
+		fallthrough
+	case ErrChatServerTimeout:
+		return OfflineErrorKindOfflineReconnect
+	case ErrDuplicateConnection:
+		return OfflineErrorKindOfflineBasic
+	}
+	return OfflineErrorKindOnline
 }

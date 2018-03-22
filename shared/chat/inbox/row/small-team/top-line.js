@@ -15,8 +15,6 @@ type Props = {
   hasBadge: boolean,
 }
 
-const height = isMobile ? 19 : 17
-
 class SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -29,44 +27,46 @@ class SimpleTopLine extends React.Component<Props> {
   }
 
   render() {
-    const {participants, showBold, subColor, timestamp, usernameColor, hasBadge, backgroundColor} = this.props
-    const boldOverride = showBold ? globalStyles.fontBold : null
+    const boldOverride = this.props.showBold ? globalStyles.fontBold : null
     return (
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: height, minHeight: height}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flexGrow: 1,
+          height: isMobile ? 20 : 17,
+          maxHeight: isMobile ? 20 : 17,
+        }}
+      >
         <Box
           style={{
             ...globalStyles.flexBoxRow,
-            flex: 1,
-            maxHeight: height,
-            minHeight: height,
+            flexGrow: 1,
+            height: '100%',
             position: 'relative',
           }}
         >
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
-              bottom: 0,
-              justifyContent: 'flex-start',
-              left: 0,
-              position: 'absolute',
-              right: 0,
-              top: 0,
+              ...globalStyles.fillAbsolute,
+              justifyContent: 'center',
             }}
           >
             <PlaintextUsernames
               type="BodySemibold"
               containerStyle={{
                 ...boldOverride,
-                color: usernameColor,
+                color: this.props.usernameColor,
                 paddingRight: 7,
                 ...(isMobile
                   ? {
-                      backgroundColor,
+                      backgroundColor: this.props.backgroundColor,
                     }
                   : {}),
               }}
-              users={participants.map(p => ({username: p}))}
-              title={participants.join(', ')}
+              users={this.props.participants.map(p => ({username: p}))}
+              title={this.props.participants.join(', ')}
             />
           </Box>
         </Box>
@@ -74,12 +74,16 @@ class SimpleTopLine extends React.Component<Props> {
           key="0"
           type="BodySmall"
           style={platformStyles({
-            common: {...boldOverride, color: subColor, lineHeight: height, backgroundColor},
+            common: {
+              ...boldOverride,
+              backgroundColor: this.props.backgroundColor,
+              color: this.props.subColor,
+            },
           })}
         >
-          {timestamp}
+          {this.props.timestamp}
         </Text>
-        {hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
+        {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
       </Box>
     )
   }

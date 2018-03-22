@@ -725,6 +725,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
+	<-tc.Context().ConvLoader.Stop(context.TODO())
 	hcs := tc.Context().ConvSource.(*HybridConversationSource)
 	if hcs == nil {
 		t.Skip()

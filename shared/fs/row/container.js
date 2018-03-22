@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
+      dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
     }
   },
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
@@ -66,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   name: stateProps.pathItem.name,
   type: stateProps.pathItem.type,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
-  lastWriter: stateProps.pathItem.lastWriter,
+  lastWriter: stateProps.pathItem.lastWriter.username,
   onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),
   openInFileUI: stateProps.kbfsEnabled
     ? () => dispatchProps._openInFileUI(stateProps.path)

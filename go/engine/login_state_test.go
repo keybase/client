@@ -395,43 +395,6 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 	}
 }
 
-// Test that the login flow with passphrase and with saving the secret
-// works.
-func TestLoginWithPassphraseWithStore(t *testing.T) {
-
-	tc := SetupEngineTest(t, "login with passphrase (with store)")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "lwpws")
-	Logout(tc)
-
-	if userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
-	}
-
-	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, true, nil); err != nil {
-		t.Error(err)
-	}
-
-	if !userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
-	}
-
-	// TODO: Mock out the SecretStore and make sure that it's
-	// actually consulted.
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
-		t.Error(err)
-	}
-
-	if userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
-	}
-}
-
 // TODO: Test LoginWithPassphrase with pubkey login failing.
 
 // Signup followed by logout clears the stored secret

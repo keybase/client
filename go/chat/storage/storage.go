@@ -648,6 +648,11 @@ func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.Get
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery,
 	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+
+	var err Error
+	if err = isAbortedRequest(ctx); err != nil {
+		return chat1.ThreadView{}, err
+	}
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
@@ -656,7 +661,6 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	}
 
 	// Init storage engine first
-	var err Error
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
@@ -766,7 +770,9 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "FetchMessages")()
-
+	if err = isAbortedRequest(ctx); err != nil {
+		return res, err
+	}
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {

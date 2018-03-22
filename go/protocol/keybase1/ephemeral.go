@@ -13,6 +13,28 @@ func (o EkGeneration) DeepCopy() EkGeneration {
 	return o
 }
 
+type DeviceEkStatement struct {
+	CurrentDeviceEk   DeviceEkMetadata   `codec:"currentDeviceEk" json:"current_device_ek"`
+	ExistingDeviceEks []DeviceEkMetadata `codec:"existingDeviceEks" json:"existing_device_eks"`
+}
+
+func (o DeviceEkStatement) DeepCopy() DeviceEkStatement {
+	return DeviceEkStatement{
+		CurrentDeviceEk: o.CurrentDeviceEk.DeepCopy(),
+		ExistingDeviceEks: (func(x []DeviceEkMetadata) []DeviceEkMetadata {
+			if x == nil {
+				return nil
+			}
+			var ret []DeviceEkMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ExistingDeviceEks),
+	}
+}
+
 type DeviceEkMetadata struct {
 	Kid        KID          `codec:"kid" json:"device_ephemeral_dh_public"`
 	HashMeta   HashMeta     `codec:"hashMeta" json:"hash_meta"`
@@ -38,6 +60,28 @@ func (o DeviceEk) DeepCopy() DeviceEk {
 	return DeviceEk{
 		Seed:     o.Seed.DeepCopy(),
 		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type UserEkStatement struct {
+	CurrentUserEk   UserEkMetadata   `codec:"currentUserEk" json:"current_user_ek"`
+	ExistingUserEks []UserEkMetadata `codec:"existingUserEks" json:"existing_user_eks"`
+}
+
+func (o UserEkStatement) DeepCopy() UserEkStatement {
+	return UserEkStatement{
+		CurrentUserEk: o.CurrentUserEk.DeepCopy(),
+		ExistingUserEks: (func(x []UserEkMetadata) []UserEkMetadata {
+			if x == nil {
+				return nil
+			}
+			var ret []UserEkMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ExistingUserEks),
 	}
 }
 

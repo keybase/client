@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -12,31 +13,40 @@ func TestNewUserEK(t *testing.T) {
 	tc := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	_, err := PublishNewDeviceEK(context.Background(), tc.G)
+	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	merkleRoot := *merkleRootPtr
+
+	_, err = publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
 	// Before we've published any userEK's, GetActiveUserEKMetadata should return nil.
-	hopefullyNilUserEK, err := GetActiveUserEKMetadata(context.Background(), tc.G)
+	hopefullyNilUserEK, err := getActiveUserEKMetadata(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 	require.Nil(t, hopefullyNilUserEK)
 
-	publishedMetadata, err := PublishNewUserEK(context.Background(), tc.G)
+	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
-	activeUserEK, err := GetActiveUserEKMetadata(context.Background(), tc.G)
+	s := tc.G.GetUserEKBoxStorage()
+	userEK, err := s.Get(context.Background(), publishedMetadata.Generation)
+	require.NoError(t, err)
+	require.Equal(t, userEK.Metadata, publishedMetadata)
+
+	activeUserEK, err := getActiveUserEKMetadata(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 	require.NotNil(t, activeUserEK)
 	require.Equal(t, *activeUserEK, publishedMetadata)
 	require.EqualValues(t, 1, activeUserEK.Generation)
 
-	s := NewUserEKBoxStorage(tc.G)
+	rawStorage := NewUserEKBoxStorage(tc.G)
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = s.Delete(context.Background(), keybase1.EkGeneration(1))
+	err = rawStorage.Delete(context.Background(), keybase1.EkGeneration(1))
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the
 	// maxGeneration from the server and continue
-	publishedMetadata2, err := PublishNewUserEK(context.Background(), tc.G)
+	publishedMetadata2, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 	require.EqualValues(t, 2, publishedMetadata2.Generation)
 }

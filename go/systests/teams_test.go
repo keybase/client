@@ -150,6 +150,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
 	}
+
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
 	u.device.start(0)
@@ -695,6 +696,7 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 }
 
 func (u *userPlusDevice) reset() {
+	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
 	uvBefore := u.userVersion()
 	err := u.device.userClient.ResetUser(context.TODO(), 0)
 	require.NoError(u.tc.T, err)
@@ -783,16 +785,20 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
+	const workTimeSec = 3 // team_rekeyd delay before retrying job if it wasn't finished.
+	args := libkb.HTTPArgs{
+		"work_time_sec": libkb.I{Val: workTimeSec},
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "test/accelerate_team_rekeyd",
-		Args:        libkb.HTTPArgs{},
+		Args:        args,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
+	t.Logf("Calling accelerate_team_rekeyd, setting work_time_sec to %d", workTimeSec)
+
 	_, err := g.API.Post(apiArg)
-	if err != nil {
-		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
-	}
+	require.NoError(t, err)
 }
 
 func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
