@@ -27,9 +27,9 @@ func (o KeybaseTransactionID) DeepCopy() KeybaseTransactionID {
 	return o
 }
 
-type Time int64
+type TimeMs int64
 
-func (o Time) DeepCopy() Time {
+func (o TimeMs) DeepCopy() TimeMs {
 	return o
 }
 
@@ -120,8 +120,8 @@ type TransactionSummary struct {
 	DisplayAmount   string               `codec:"displayAmount" json:"displayAmount"`
 	DisplayCurrency string               `codec:"displayCurrency" json:"displayCurrency"`
 	Members         Members              `codec:"members" json:"members"`
-	Ctime           Time                 `codec:"ctime" json:"ctime"`
-	Rtime           Time                 `codec:"rtime" json:"rtime"`
+	Ctime           TimeMs               `codec:"ctime" json:"ctime"`
+	Rtime           TimeMs               `codec:"rtime" json:"rtime"`
 }
 
 func (o TransactionSummary) DeepCopy() TransactionSummary {
@@ -174,7 +174,7 @@ type TransactionDetails struct {
 	Note                  EncryptedNote        `codec:"note" json:"note"`
 	Signatures            []string             `codec:"signatures" json:"signatures"`
 	Operations            []Operation          `codec:"operations" json:"operations"`
-	Ctime                 Time                 `codec:"ctime" json:"ctime"`
+	Ctime                 TimeMs               `codec:"ctime" json:"ctime"`
 }
 
 func (o TransactionDetails) DeepCopy() TransactionDetails {

@@ -28,7 +28,7 @@
     },
     {
       "type": "record",
-      "name": "Time",
+      "name": "TimeMs",
       "fields": [],
       "typedef": "long"
     },
@@ -169,11 +169,11 @@
           "name": "members"
         },
         {
-          "type": "Time",
+          "type": "TimeMs",
           "name": "ctime"
         },
         {
-          "type": "Time",
+          "type": "TimeMs",
           "name": "rtime"
         }
       ]
@@ -267,7 +267,7 @@
           "name": "operations"
         },
         {
-          "type": "Time",
+          "type": "TimeMs",
           "name": "ctime"
         }
       ]

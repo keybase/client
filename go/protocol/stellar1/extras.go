@@ -27,6 +27,6 @@ func (k KeybaseTransactionID) String() string {
 	return string(k)
 }
 
-func ToTime(t time.Time) Time {
-	return Time(t.UnixNano() / 1000000)
+func ToTimeMs(t time.Time) TimeMs {
+	return TimeMs(t.UnixNano() / 1000000)
 }

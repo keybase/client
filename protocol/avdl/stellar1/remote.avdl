@@ -5,7 +5,7 @@
   @typedef("string") record AccountID {}
   @typedef("string") record TransactionID {}
   @typedef("string") record KeybaseTransactionID {}
-  @typedef("long")   record Time {} // ms since epoch
+  @typedef("long")   record TimeMs {} // ms since epoch
 
   record Asset {
     string type;
@@ -51,8 +51,8 @@
 
     Members members;
 
-    Time ctime;
-    Time rtime;
+    TimeMs ctime;
+    TimeMs rtime;
   }
 
   record Operation {
@@ -80,7 +80,7 @@
     array<string> signatures;
     array<Operation> operations;
 
-    Time ctime;
+    TimeMs ctime;
   }
 
   record PaymentPost {
