@@ -41,7 +41,7 @@ You can set environment variables for debugging:
 
 | Env     | Description |
 |---------|-------------|
-| KEYBASE_RUN_MODE | Run mode: production, staging, devel |
+| KEYBASE_RUN_MODE | Run mode: prod, staging, devel |
 | KEYBASE_LOCAL_DEBUG | For debugging |
 | KEYBASE_FEATURES | Feature flags |
 | KEYBASE_RPC_DELAY | Number of ms to delay all RPC calls (requires debug mode) |
