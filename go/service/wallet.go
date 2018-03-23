@@ -7,10 +7,6 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
-
-	// TODO remove these imports. They are just for testing vendoring.
-	_ "github.com/stellar/go/keypair"
-	_ "github.com/stellar/go/strkey"
 )
 
 type walletHandler struct {
