@@ -150,7 +150,6 @@ const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicy
     Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)})),
     Saga.call(RPCChatTypes.localSetTeamRetentionLocalRpcPromise, {teamID, policy: servicePolicy}),
     Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
-    Saga.put(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   ])
 }
 
@@ -814,6 +813,18 @@ function _setupTeamHandlers() {
         logger.info('Reloading team list due to teamExit')
       }
       actions.forEach(dispatch)
+    })
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatSetTeamRetention', args => {
+      logger.info('Got setTeamRetention from service')
+      const {convs, teamID} = args
+      if (convs.length === 0) {
+        logger.warn(`Teamhandler: Got setTeamRetention for team with no conversations: ${teamID}`)
+        return
+      }
+      const conv = convs[0]
+      const teamname = conv.name
+      const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(conv.teamRetention)
+      dispatch(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[teamname, newPolicy]])))
     })
   })
 }
