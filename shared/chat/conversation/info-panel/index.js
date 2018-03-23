@@ -9,6 +9,7 @@ import Notifications from './notifications/container'
 import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
+import RetentionPicker from '../../../teams/team/settings/retention/container'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -63,6 +64,9 @@ type InfoPanelProps = {
   onJoinChannel: () => void,
 } & HeaderHocProps
 
+// FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
+// use this.props in _renderRow instead
+
 type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
@@ -88,6 +92,13 @@ const getDividerStyle = (row: DividerRow) => ({
   marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
   marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
 })
+
+type RetentionRow = {
+  type: 'retention',
+  key: 'retention',
+  teamname: string,
+  isTeamWide: boolean,
+}
 
 type SpacerRow = {
   type: 'spacer',
@@ -158,6 +169,7 @@ type TeamHeaderRow =
   | SpacerRow
   | NotificationsRow
   | ParticipantCountRow
+  | RetentionRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
@@ -215,6 +227,9 @@ const typeSizeEstimator = (row: Row): number => {
 
     case 'leave channel':
       return 17
+
+    case 'retention':
+      return 0 // TODO
 
     default:
       // eslint-disable-next-line no-unused-expressions
@@ -313,6 +328,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
+      case 'retention':
+        return (
+          <RetentionPicker
+            key="retention"
+            conversationIDKey={this.props.selectedConversationIDKey}
+            teamname={row.teamname}
+            type="auto"
+            isTeamWide={row.isTeamWide}
+          />
+        )
+
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(row.type: empty)
@@ -367,6 +393,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           {
             type: 'notifications',
             key: 'notifications',
+          },
+          {
+            type: 'divider',
+            key: nextKey(),
+          },
+          {
+            type: 'retention',
+            key: 'retention',
+            conversationIDKey: props.selectedConversationIDKey,
+            teamname: props.teamname || '',
+            isTeamWide: props.smallTeam,
           },
           {
             type: 'divider',
@@ -458,6 +495,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             {
               type: 'notifications',
               key: 'notifications',
+            },
+            {
+              type: 'divider',
+              key: nextKey(),
+            },
+            {
+              type: 'retention',
+              key: 'retention',
+              conversationIDKey: props.selectedConversationIDKey,
+              teamname: props.teamname || '',
+              isTeamWide: props.smallTeam,
             },
             {
               type: 'divider',

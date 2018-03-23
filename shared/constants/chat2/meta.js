@@ -208,9 +208,14 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
-  const retentionPolicy = isTeam
+
+  let retentionPolicy = isTeam
     ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
     : makeRetentionPolicy()
+  if (isTeam && !i.convRetention) {
+    // default in this case is 'inherit', not 'retain'
+    retentionPolicy = makeRetentionPolicy({type: 'inherit'})
+  }
 
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
@@ -313,4 +318,15 @@ export const findConversationFromParticipants = (state: TypedState, participants
       // Ignore the order of participants
       meta.teamType === 'adhoc' && meta.participants.toSet().equals(toFind)
   )
+}
+
+export const getConversationRetentionPolicy = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  const conv = state.chat2.metaMap.get(conversationIDKey)
+  if (!conv) {
+    return
+  }
+  return conv.retentionPolicy
 }

@@ -1,6 +1,7 @@
 // @flow
 import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
-import {getTeamRetentionPolicy, makeRetentionPolicy} from '../../../../constants/teams'
+import {getTeamRetentionPolicy} from '../../../../constants/teams'
+import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {type _RetentionPolicy} from '../../../../constants/types/teams'
 import {createGetTeamRetentionPolicy} from '../../../../actions/teams-gen'
 import {navigateAppend} from '../../../../actions/route-tree'
@@ -14,16 +15,22 @@ export type OwnProps = {
   teamname: string,
   isTeamWide: boolean, // the state where this is false is TODO in DESKTOP-6062
   type: 'simple' | 'auto',
-  onSelect: ?(policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
+  onSelect?: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  // let policy: ?RetentionPolicy // TODO (DESKTOP-6062)
   const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
   const teamPolicyJS = !!teamPolicy && teamPolicy.toJS()
+  let policy = teamPolicyJS
+  if (!ownProps.isTeamWide && ownProps.conversationIDKey) {
+    const p = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
+    if (p) {
+      policy = p.toJS()
+    }
+  }
 
   return {
-    policy: ownProps.isTeamWide ? teamPolicyJS : makeRetentionPolicy({}),
+    policy,
     teamPolicy: ownProps.isTeamWide ? undefined : teamPolicyJS,
   }
 }
