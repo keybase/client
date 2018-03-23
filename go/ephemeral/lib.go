@@ -122,5 +122,13 @@ func (e *EKLib) OnLogout() error {
 	if deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
 	}
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	if userEKBoxStorage != nil {
+		userEKBoxStorage.ClearCache()
+	}
+	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
+	if teamEKBoxStorage != nil {
+		teamEKBoxStorage.ClearCache()
+	}
 	return nil
 }

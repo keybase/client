@@ -82,7 +82,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	}
 
 	if myUserEKBoxed == nil {
-		g.Log.CDebugf(ctx, "No box made for own deviceEK")
+		g.Log.CWarningf(ctx, "No box made for own deviceEK")
 	} else {
 		storage := g.GetUserEKBoxStorage()
 		err = storage.Put(ctx, generation, *myUserEKBoxed)

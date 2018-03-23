@@ -184,6 +184,8 @@ const (
 	DBSigChainTailSemiprivate  = 0xe8
 	DBSigChainTailEncrypted    = 0xe9
 	DBChatActive               = 0xea
+	DBUserEKBox                = 0xeb
+	DBTeamEKBox                = 0xec
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2
@@ -199,7 +201,6 @@ const (
 	DBChatBodyHashIndex        = 0xfc
 	DBPvl                      = 0xfd
 	DBChatConvFailures         = 0xfe
-	DBUserEKBox                = 0xff
 )
 
 const (
