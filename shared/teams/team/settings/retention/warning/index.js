@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {daysToLabel} from '../'
+import {daysToLabel} from '../../../../../util/timestamp'
 import {
   Box,
   Button,
