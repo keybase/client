@@ -11,6 +11,7 @@ import {globalColors} from '../../styles'
 import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
+import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -207,6 +208,9 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
+  const retentionPolicy = isTeam
+    ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+    : makeRetentionPolicy()
 
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
@@ -220,6 +224,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
     participants: I.OrderedSet(i.participants || []),
     resetParticipants,
+    retentionPolicy,
     snippet: i.snippet,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
@@ -249,6 +254,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
+  retentionPolicy: makeRetentionPolicy(),
   snippet: '',
   supersededBy: null,
   supersedes: null,
