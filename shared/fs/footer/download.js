@@ -20,7 +20,7 @@ const Download = (props: DownloadProps) => (
   <Box style={stylesDownload(!!props.error)}>
     <Box style={stylesIconBox}>
       <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-download'} style={stylesIconLeft} />
-    </Box>{' '}
+    </Box>
     <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
       <Box style={stylesNameAndProgress}>
         <Text type="BodySmallSemibold" style={stylesText}>
