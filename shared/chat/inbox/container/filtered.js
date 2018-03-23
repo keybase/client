@@ -49,42 +49,63 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
   )
 }
 
+let _metaMap
+// Note: This is NOT a real selector. Instead this fires and stashes into _metaMap a cached copy.
+// If the other things change (inboxFilter, username, etc) then they'll just grab the cached value.
+// This serves 2 purposes. 1. Note thrashing as people are chatting (since we don't show snippets / use the ordering of timestamps)
+// and 2. We don't want the results to move around
+const fakeGetMetaMap = createSelector([(state: TypedState) => state.chat2.metaMap], metaMap => {
+  _metaMap = metaMap
+  return null
+})
+
 // Ignore headers, score based on matches of participants, ignore total non matches
 const getFilteredRowsAndMetadata = createSelector(
   [
-    (state: TypedState) => state.chat2.metaMap,
+    fakeGetMetaMap,
     (state: TypedState) => state.chat2.inboxFilter,
     (state: TypedState) => state.config.username || '',
   ],
-  (metaMap, filter, username) => {
+  (_, filter, username) => {
+    const metas = _metaMap.valueSeq().toArray()
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
-    const smallRows = metaMap
-      .filter(meta => meta.teamType !== 'big')
+    const smallRows = metas
       .map(meta => {
-        return {
-          conversationIDKey: meta.conversationIDKey,
-          score: score(lcFilter, lcYou, meta.teamname ? [meta.teamname] : meta.participants.toArray()),
-          timestamp: meta.timestamp,
+        if (meta.teamType !== 'big') {
+          const s = score(lcFilter, lcYou, meta.teamname ? [meta.teamname] : meta.participants.toArray())
+          return s > 0
+            ? {
+                conversationIDKey: meta.conversationIDKey,
+                score: s,
+                timestamp: meta.timestamp,
+              }
+            : null
+        } else {
+          return null
         }
       })
-      .filter(r => r.score > 0)
+      .filter(Boolean)
       .sort((a, b) => (a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score))
       .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
-      .valueSeq()
-      .toArray()
 
-    const bigRows = metaMap
-      .filter(meta => meta.teamType === 'big')
+    const bigRows = metas
       .map(meta => {
-        return {
-          channelname: meta.channelname,
-          conversationIDKey: meta.conversationIDKey,
-          score: score(lcFilter, '', [meta.teamname, meta.channelname].filter(Boolean)),
-          teamname: meta.teamname,
+        if (meta.teamType === 'big') {
+          const s = score(lcFilter, '', [meta.teamname, meta.channelname].filter(Boolean))
+          return s > 0
+            ? {
+                channelname: meta.channelname,
+                conversationIDKey: meta.conversationIDKey,
+                score: s,
+                teamname: meta.teamname,
+              }
+            : null
+        } else {
+          return null
         }
       })
-      .filter(r => r.score > 0)
+      .filter(Boolean)
       .sort((a, b) => b.score - a.score)
       .map(({conversationIDKey, channelname, teamname}) => ({
         channelname,
@@ -92,8 +113,6 @@ const getFilteredRowsAndMetadata = createSelector(
         teamname,
         type: 'big',
       }))
-      .valueSeq()
-      .toArray()
 
     return {
       rows: [...smallRows, ...bigRows],
