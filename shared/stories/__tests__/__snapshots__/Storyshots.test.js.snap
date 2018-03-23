@@ -11409,7 +11409,7 @@ exports[`Storyshots Chat/Teams/Retention Channel dropdown 1`] = `
       <div>
         <style>
           
-    .menu-hover:hover { background-color: #ebf5fc; }
+    .menu-hover:hover { background-color: #EBF2FC; }
     .menu-hover-danger:hover { background-color: #ff4d61; }
 
     .menu-hover .title { color: rgba(0, 0, 0, 0.75); }
@@ -12064,7 +12064,7 @@ exports[`Storyshots Chat/Teams/Retention Team-wide dropdown 1`] = `
       <div>
         <style>
           
-    .menu-hover:hover { background-color: #ebf5fc; }
+    .menu-hover:hover { background-color: #EBF2FC; }
     .menu-hover-danger:hover { background-color: #ff4d61; }
 
     .menu-hover .title { color: rgba(0, 0, 0, 0.75); }
