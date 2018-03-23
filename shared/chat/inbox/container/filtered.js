@@ -8,22 +8,44 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
     return lcYou.indexOf(lcFilter) !== -1 ? 1 : 0
   }
 
-  const namesMinusYou = names.filter(n => n !== lcYou)
-  return (
-    namesMinusYou.reduce((total, p) => {
-      if (p === lcFilter) {
-        return total + 100 // exact match
+  let namesMinusYou = names.filter(n => n !== lcYou)
+  // special case, comma search
+  const filters = lcFilter.split(',').filter(Boolean)
+  let filter
+  if (filters.length > 1) {
+    const mustExist = filters.slice(0, -1)
+    const partial = filters.slice(-1)
+    // any names between commas must be exact matches
+    if (!mustExist.every(m => namesMinusYou.find(toFind => toFind === m))) {
+      return 0
+    }
+    filter = partial[0]
+  } else {
+    filter = filters[0]
+  }
+
+  const {foundExact, foundPrefix, foundSub} = namesMinusYou.reduce(
+    (data, p) => {
+      if (p === filter) {
+        data.foundExact = true
+        return data
       } else {
-        const idx = p.indexOf(lcFilter)
+        const idx = p.indexOf(filter)
         if (idx === 0) {
-          return total + 75 // prefix match
+          data.foundPrefix += 1
+          return data
         } else if (idx !== -1) {
-          return total + 10 // sub match
+          data.foundSub += 1
+          return data
         } else {
-          return total
+          return data
         }
       }
-    }, 0) / namesMinusYou.length
+    },
+    {foundExact: 0, foundPrefix: 0, foundSub: 0}
+  )
+  return (
+    (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0) - namesMinusYou.join('').length
   )
 }
 
@@ -42,11 +64,7 @@ const getFilteredRowsAndMetadata = createSelector(
       .map(meta => {
         return {
           conversationIDKey: meta.conversationIDKey,
-          score: score(
-            lcFilter,
-            lcYou,
-            [...(meta.teamname || '').split(','), ...meta.participants.toArray()].filter(Boolean)
-          ),
+          score: score(lcFilter, lcYou, meta.teamname ? [meta.teamname] : meta.participants.toArray()),
           timestamp: meta.timestamp,
         }
       })
