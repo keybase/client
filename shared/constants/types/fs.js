@@ -58,10 +58,12 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type TransferType = 'upload' | 'download'
+export type TransferIntent = 'none' | 'camera-roll' | 'share'
 
 export type _TransferState = {
   type: TransferType,
   entryType: PathType,
+  intent: TransferIntent,
   path: Path,
   localPath: LocalPath,
   completePortion: number,

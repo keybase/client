@@ -38,13 +38,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.sortSetting:
       return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
     case FsGen.downloadStarted: {
-      const {key, path, localPath} = action.payload
+      const {key, path, localPath, intent} = action.payload
       const item = state.pathItems.get(path)
       return state.setIn(
         ['transfers', key],
         Constants.makeTransferState({
           type: 'download',
           entryType: item ? item.type : 'unknown',
+          intent,
           path,
           localPath,
           completePortion: 0,

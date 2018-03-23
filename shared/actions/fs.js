@@ -18,6 +18,7 @@ import {
   uninstallKBFSSuccess,
 } from './fs-platform-specific'
 import {isWindows} from '../constants/platform'
+import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
@@ -96,15 +97,28 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 }
 
 function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
-  const {path} = action.payload
+  const {path, intent} = action.payload
   const opID = Constants.makeUUID()
   let localPath = action.payload.localPath
   if (!localPath) {
-    localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+    switch (intent) {
+      case 'none':
+        localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+        break
+      case 'camera-roll':
+      case 'share':
+        localPath = Constants.downloadFilePathFromPathNoSearch(path)
+        break
+      default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+        break
+    }
   }
   const key = Constants.makeDownloadKey(path, localPath)
 
-  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath}))
+  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath, intent}))
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
@@ -138,6 +152,22 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     error = err
   }
   yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: 1}))
+
+  switch (intent) {
+    case 'none':
+      break
+    case 'camera-roll':
+      yield Saga.call(saveAttachmentDialog, localPath)
+      break
+    case 'share':
+      yield Saga.call(showShareActionSheet, {url: localPath})
+      break
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(intent: empty) // this breaks when a new intent is added but not handled here
+      break
+  }
+
   yield Saga.put(FsGen.createDownloadFinished({key, error}))
 }
 
