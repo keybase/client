@@ -104,6 +104,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   editChannelDescription: false,
   setTeamShowcase: false,
   setMemberShowcase: false,
+  setRetentionPolicy: false,
   changeOpenTeam: false,
   leaveTeam: false,
   joinTeam: false,
