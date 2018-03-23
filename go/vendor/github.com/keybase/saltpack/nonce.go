@@ -1,7 +1,6 @@
 package saltpack
 
 import (
-	"crypto/rand"
 	"encoding/binary"
 )
 
@@ -89,7 +88,7 @@ type sigNonce [16]byte
 // newSigNonce creates a sigNonce with random bytes.
 func newSigNonce() (sigNonce, error) {
 	var n sigNonce
-	if _, err := rand.Read(n[:]); err != nil {
+	if err := csprngRead(n[:]); err != nil {
 		return sigNonce{}, err
 	}
 	return n, nil

@@ -14,7 +14,7 @@ export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   size: number,
-  lastWriter: string,
+  lastWriter: RPCTypes.User,
   progress: ProgressType,
 }
 
@@ -58,13 +58,16 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type TransferType = 'upload' | 'download'
+export type TransferIntent = 'none' | 'camera-roll' | 'share'
 
 export type _TransferState = {
   type: TransferType,
   entryType: PathType,
+  intent: TransferIntent,
   path: Path,
   localPath: LocalPath,
   completePortion: number,
+  endEstimate?: number,
   error?: string,
   isDone: boolean,
   startedAt: number,
@@ -88,6 +91,7 @@ export type _State = {
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
   kextPermissionError: boolean,
+  showBanner: boolean,
 }
 export type State = I.RecordOf<_State>
 

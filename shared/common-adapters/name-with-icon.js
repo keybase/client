@@ -7,7 +7,14 @@ import Icon from './icon'
 import {type IconType} from './icon.constants'
 import Text, {type TextType} from './text'
 import {ConnectedUsernames} from './usernames'
-import {collapseStyles, globalStyles, isMobile, styleSheetCreate} from '../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  isMobile,
+  styleSheetCreate,
+  platformStyles,
+  type StylesCrossPlatform,
+} from '../styles'
 
 type Size = 'small' | 'default' | 'large'
 
@@ -21,13 +28,14 @@ type Props = {
   metaTwo?: string | React.Node,
   onClick?: any => void,
   size?: Size,
-  containerStyle?: any,
-  metaStyle?: any,
+  containerStyle?: StylesCrossPlatform,
+  metaStyle?: StylesCrossPlatform,
   isYou?: boolean,
   teamname?: string,
   username?: string,
 }
 
+// If lineclamping isn't working, try adding a static width in containerStyle
 const NameWithIconVertical = (props: Props) => {
   const isAvatar = !!(props.username || props.teamname)
   const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
@@ -35,7 +43,7 @@ const NameWithIconVertical = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.vContainerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
         <ConnectedAvatar size={adapterProps.iconSize} username={props.username} teamname={props.teamname} />
@@ -55,13 +63,13 @@ const NameWithIconVertical = (props: Props) => {
       <Box
         style={collapseStyles([
           styles.metaStyle,
+          styles.fullWidthTextContainer,
           {marginTop: adapterProps.metaMargin},
-          props.metaStyle || {},
+          props.metaStyle,
         ])}
       >
         {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
         {!!props.username && (
-          // TODO get lineclamping working here
           <ConnectedUsernames
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
@@ -70,8 +78,12 @@ const NameWithIconVertical = (props: Props) => {
             colorFollowing={props.colorFollowing}
           />
         )}
-        <TextOrComponent textType={adapterProps.metaOneType} val={props.metaOne} />
-        <TextOrComponent textType="BodySmall" val={props.metaTwo} />
+        <TextOrComponent
+          style={styles.fullWidthText}
+          textType={adapterProps.metaOneType}
+          val={props.metaOne}
+        />
+        <TextOrComponent style={styles.fullWidthText} textType="BodySmall" val={props.metaTwo} />
       </Box>
     </BoxComponent>
   )
@@ -84,7 +96,7 @@ const NameWithIconHorizontal = (props: Props) => {
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.hContainerStyle, props.containerStyle || {}])}
+      style={collapseStyles([styles.hContainerStyle, props.containerStyle])}
     >
       {isAvatar && (
         <Avatar
@@ -95,7 +107,7 @@ const NameWithIconHorizontal = (props: Props) => {
         />
       )}
       {!isAvatar && !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} />}
-      <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle || {}])}>
+      <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
@@ -123,10 +135,18 @@ const NameWithIcon = (props: Props) => {
 }
 
 // Render text if it's text, or identity if otherwise
-const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: TextType}) => {
+const TextOrComponent = ({
+  val,
+  textType,
+  style,
+}: {
+  val: string | React.Node,
+  textType: TextType,
+  style?: StylesCrossPlatform,
+}) => {
   if (typeof val === 'string') {
     return (
-      <Text lineClamp={1} type={textType}>
+      <Text style={style} lineClamp={1} type={textType}>
         {val}
       </Text>
     )
@@ -136,6 +156,8 @@ const TextOrComponent = ({val, textType}: {val: string | React.Node, textType: T
 }
 
 const styles = styleSheetCreate({
+  fullWidthText: platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
+  fullWidthTextContainer: platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
   hAvatarStyle: {marginRight: 16},
   hContainerStyle: {
     ...globalStyles.flexBoxRow,
@@ -156,9 +178,11 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
   },
-  vUsernameContainerStyle: {
-    textAlign: 'center',
-  },
+  vUsernameContainerStyle: platformStyles({
+    isElectron: {
+      textAlign: 'center',
+    },
+  }),
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)

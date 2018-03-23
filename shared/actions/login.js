@@ -25,10 +25,17 @@ import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../constants/tabs
 import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
-import {appRouteTree, loginRouteTree} from '../app/routes'
+import appRouteTree from '../app/routes-app'
+import loginRouteTree from '../app/routes-login'
 import {pathSelector, navigateTo, navigateAppend, switchRouteDef} from './route-tree'
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
+
+// Login dips into the routing dep tree, so we need to tell
+// webpack that we can still handle updates that propagate to here.
+export function setupLoginHMR(cb: () => void) {
+  module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
+}
 
 const deviceType: DevicesTypes.DeviceType = isMobile ? 'mobile' : 'desktop'
 const InputCancelError = {
@@ -496,11 +503,17 @@ function* loginFlowSaga(usernameOrEmail, passphrase): Generator<any, void, any> 
 
   const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga, passphraseSaga)
 
-  const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, RPCTypes.loginLoginRpcChannelMap, 'loginRpc', {
-    clientType: RPCTypes.commonClientType.guiMain,
-    deviceType,
-    usernameOrEmail,
-  })
+  const loginRpcCall = new EngineRpc.EngineRpcCall(
+    loginSagas,
+    RPCTypes.loginLoginRpcChannelMap,
+    'loginRpc',
+    {
+      clientType: RPCTypes.commonClientType.guiMain,
+      deviceType,
+      usernameOrEmail,
+    },
+    true // finished error should cancel
+  )
 
   try {
     const result = yield Saga.call(loginRpcCall.run)

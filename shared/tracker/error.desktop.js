@@ -1,10 +1,14 @@
 // @flow
 import * as React from 'react'
-import Header from './header.render'
-
+import Header from './header.desktop'
 import {Box, Button, Text, ButtonBar} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
-import type {Props} from './error'
+
+type Props = {
+  onClose: () => void,
+  errorMessage: string,
+  onRetry: ?() => void,
+}
 
 function TrackerError({errorMessage, onRetry, onClose}: Props) {
   return (

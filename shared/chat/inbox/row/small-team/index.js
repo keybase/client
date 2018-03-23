@@ -59,6 +59,7 @@ class SmallTeam extends React.PureComponent<Props> {
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
+
             <BottomLine
               backgroundColor={props.backgroundColor}
               participantNeedToRekey={props.participantNeedToRekey}
@@ -80,6 +81,7 @@ const conversationRowStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   flexGrow: 1,
+  height: '100%',
   justifyContent: 'center',
   paddingLeft: 8,
   paddingRight: 8,
@@ -96,8 +98,7 @@ const rowContainerStyle = {
   ...desktopStyles.clickable,
   backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
   flexShrink: 0,
-  maxHeight: rowHeight,
-  minHeight: rowHeight,
+  height: rowHeight,
 }
 
 const rowContainerStyleSelected = {

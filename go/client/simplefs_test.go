@@ -152,6 +152,12 @@ func (s SimpleFSMock) SimpleFSWait(ctx context.Context, arg keybase1.OpID) error
 	return nil
 }
 
+// SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
+// into its logs.
+func (s SimpleFSMock) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

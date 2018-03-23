@@ -107,7 +107,9 @@ func TestSyncerConnected(t *testing.T) {
 	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u1.Username))
 	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username))
 	convs = append(convs, newConv(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username+","+u1.Username))
-
+	for index, conv := range convs {
+		t.Logf("index: %d conv: %s", index, conv.GetConvID())
+	}
 	t.Logf("test current")
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		return chat1.NewSyncInboxResWithCurrent(), nil
@@ -148,6 +150,16 @@ func TestSyncerConnected(t *testing.T) {
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
 	require.Equal(t, len(convs), len(iconvs))
+	// background loader will pick up all the convs from the read above
+	for i := 0; i < len(convs); i++ {
+		select {
+		case convID := <-list.bgConvLoads:
+			require.Equal(t, convs[i].GetConvID(), convID)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no background conv loaded")
+		}
+	}
+
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		mconv.Metadata.Status = chat1.ConversationStatus_MUTED
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{

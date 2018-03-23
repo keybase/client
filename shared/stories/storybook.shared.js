@@ -51,7 +51,7 @@ class StorybookErrorBoundary extends React.Component<
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
-              backgroundColor: globalColors.darkBlue4,
+              backgroundColor: globalColors.darkBlue3,
               borderRadius: 4,
               padding: 10,
               whiteSpace: 'pre-line',
@@ -68,5 +68,4 @@ class StorybookErrorBoundary extends React.Component<
     return this.props.children
   }
 }
-
 export {createPropProvider, StorybookErrorBoundary}

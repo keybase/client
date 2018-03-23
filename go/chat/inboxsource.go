@@ -493,7 +493,7 @@ func NewHybridInboxSource(g *globals.Context,
 	return s
 }
 
-func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
+func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) (types.Inbox, *chat1.RateLimit, error) {
 
 	// Insta fail if we are offline
@@ -523,6 +523,23 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	})
 	if err != nil {
 		return types.Inbox{}, ib.RateLimit, err
+	}
+
+	// Run any tasks on the fetched conversations
+	for index, conv := range ib.Inbox.Full().Conversations {
+		// Need to run expunge on anything we fetch from the server
+		expunge := conv.GetExpunge()
+		if expunge != nil {
+			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+		}
+
+		// Queue all these convs up to be loaded by the background loader (cap it at first 50)
+		// Also make sure we aren't here because of a background loader operation
+		if index < 50 {
+			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
+				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
+			}
+		}
 	}
 
 	return types.Inbox{
@@ -610,7 +627,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		}
 
 		// Go to the remote on miss
-		res, rl, err = s.fetchRemoteInbox(ctx, query, p)
+		res, rl, err = s.fetchRemoteInbox(ctx, uid, query, p)
 		if err != nil {
 			return res, rl, err
 		}

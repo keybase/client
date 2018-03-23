@@ -58,4 +58,4 @@ Ph/Hao4ZzCQDM76Jr/aCUJIbxyc2zco=
 ```
 The changes here are small: we've reduced our characters to base62 plus some period markers, and only at the ends of words. PGP messages often get mangled by different apps, websites, and smart text processors.
 
-Of course, **saltpack** can output binary, too. Either way, it's what's inside the format that matters. You can read the [spec](https://saltpack.org/encryption-format) for the details.
+Of course, **saltpack** can output binary, too. Either way, it's what's inside the format that matters. You can read the [spec](https://saltpack.org/encryption-format-v2) for the details.

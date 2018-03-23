@@ -178,15 +178,21 @@ func (c *CmdSimpleFSList) Run() error {
 			return err2
 		}
 		defer cli.SimpleFSClose(ctx, opid)
+		filter := keybase1.ListFilter_FILTER_ALL_HIDDEN
+		if c.options.all {
+			filter = keybase1.ListFilter_NO_FILTER
+		}
 		if c.recurse {
 			err = cli.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
-				OpID: opid,
-				Path: path,
+				OpID:   opid,
+				Path:   path,
+				Filter: filter,
 			})
 		} else {
 			err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-				OpID: opid,
-				Path: path,
+				OpID:   opid,
+				Path:   path,
+				Filter: filter,
 			})
 		}
 		if err != nil {

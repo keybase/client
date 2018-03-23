@@ -12,7 +12,7 @@ import URL from 'url-parse'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
-import {loginRouteTree} from '../../app/routes'
+import loginRouteTree from '../../app/routes-login'
 import {navigateTo, navigateUp, switchRouteDef} from '../../actions/route-tree'
 import {loginTab, peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
@@ -57,7 +57,7 @@ function _onClickAvatar(action: ProfileGen.OnClickFollowersPayload) {
     return
   }
 
-  if (!action.openWebsite) {
+  if (!action.payload.openWebsite) {
     return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
     return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}`)
@@ -71,7 +71,7 @@ function _openProfileOrWebsite(
     return
   }
 
-  if (!action.openWebsite) {
+  if (!action.payload.openWebsite) {
     return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
   } else {
     return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
