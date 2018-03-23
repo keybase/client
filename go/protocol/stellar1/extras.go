@@ -3,6 +3,7 @@ package stellar1
 import (
 	"encoding/hex"
 	"fmt"
+	"time"
 )
 
 const (
@@ -24,4 +25,8 @@ func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 
 func (k KeybaseTransactionID) String() string {
 	return string(k)
+}
+
+func ToTime(t time.Time) Time {
+	return Time(t.UnixNano() / 1000000)
 }
