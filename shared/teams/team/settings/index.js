@@ -260,7 +260,7 @@ export class Settings extends React.Component<Props, State> {
         {(this.props.yourOperations.changeOpenTeam ||
           this.props.yourOperations.setTeamShowcase ||
           this.props.yourOperations.setPublicityAny) && (
-          <Box style={globalStyles.flexBoxColumn}>
+          <React.Fragment>
             <Box style={stylesSettingsTabRow}>
               <Text type="Header">Team</Text>
             </Box>
@@ -273,13 +273,15 @@ export class Settings extends React.Component<Props, State> {
               onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-            <RetentionPicker
-              type="simple"
-              onSelect={this._onSelectRetentionPolicy}
-              teamname={this.props.teamname}
-              isTeamWide={true}
-            />
-          </Box>
+          </React.Fragment>
+        )}
+        {this.props.yourOperations.setRetentionPolicy && (
+          <RetentionPicker
+            type="simple"
+            onSelect={this._onSelectRetentionPolicy}
+            teamname={this.props.teamname}
+            isTeamWide={true}
+          />
         )}
         <Box
           style={{
