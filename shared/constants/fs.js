@@ -248,10 +248,5 @@ export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
 
 export const isImage = (name: string): boolean => {
   const lower = name.toLowerCase()
-  for (let ext of ['.png', '.jpg', '.jpeg', '.mp4']) {
-    if (lower.endsWith(ext)) {
-      return true
-    }
-  }
-  return false
+  return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
 }

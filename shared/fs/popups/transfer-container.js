@@ -32,8 +32,10 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer}) => {
     stateProps._username
   )
   const [key, {completePortion, endEstimate, isDone, intent}] =
-    Array.from(stateProps._transfers.filter(ts => ts.type === 'download' && ts.intent !== 'none')).pop() ||
-    Constants.makeTransferState()
+    stateProps._transfers
+      .filter(ts => ts.type === 'download' && ts.intent !== 'none')
+      .entries()
+      .next().value || Constants.makeTransferState()
   const onHidden = () => {
     _onHidden()
     _dismissTransfer(key)

@@ -41,7 +41,7 @@ const stylesTube = memoize(width => ({
 }))
 
 const stylesTubeStuffing = {
-  ...stylesTube(undefined),
+  ...stylesTube(),
   backgroundColor: globalColors.white,
   marginTop: -4,
 }
