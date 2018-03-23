@@ -98,6 +98,8 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
 }
 
 function* monitorTransferProgress(key: string, opID: RPCTypes.OpID) {
+  // This loop doesn't finish on its own, but it's in a Saga.race with
+  // `SimpleFSWait`, so it's "canceled" when the other finishes.
   while (true) {
     yield Saga.delay(500)
     const progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
@@ -129,7 +131,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         break
       case 'camera-roll':
       case 'share':
-        // For saving to cameral roll or sharing to other apps, we are
+        // For saving to camera roll or sharing to other apps, we are
         // downloading to the app's local storage. So don't bother trying to
         // avoid overriding existing files. Just download over them.
         localPath = Constants.downloadFilePathFromPathNoSearch(path)
