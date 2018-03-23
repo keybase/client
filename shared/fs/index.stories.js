@@ -34,6 +34,8 @@ const provider = createPropProvider({
     ],
     dropdownItems: [],
     isTeamPath: false,
+    path: Types.stringToPath('/keybase'),
+    onBack: action('onBack'),
     onOpenBreadcrumb: action('onOpenBreadcrumb'),
     onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
   }),
@@ -44,6 +46,17 @@ const provider = createPropProvider({
     },
     onOpenSortSettingPopup: () => {},
     folderIsPending: true,
+  }),
+  FilesBanner: () => ({
+    path: Types.stringToPath('/keybase'),
+    kbfsEnabled: true,
+    showBanner: false,
+    inProgress: false,
+    showSecurityPrefs: false,
+    getFuseStatus: action('getFuseStatus'),
+    onDismiss: action('onDismiss'),
+    onInstall: action('onInstall'),
+    onUninstall: action('onUninstall'),
   }),
 })
 

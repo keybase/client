@@ -1,9 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Button, Checkbox} from '../../common-adapters'
-import {fileUIName, isMobile} from '../../constants/platform'
+import {Box, Text, Icon, Checkbox} from '../../common-adapters'
+import {fileUIName, isMobile, isLinux} from '../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {type Props} from '.'
+import FileBanner from '../../fs/banner'
+
+type Props = {
+  kbfsEnabled: boolean,
+  inProgress: boolean,
+  onInstall: () => void,
+  onUninstall: () => void,
+}
 
 const checkBoxComponent = (kbfsEnabled: boolean) => (
   <Box style={globalStyles.flexBoxColumn}>
@@ -14,73 +21,33 @@ const checkBoxComponent = (kbfsEnabled: boolean) => (
 
 const Files = isMobile
   ? () => <Box />
-  : ({kbfsEnabled, inProgress, onInstall, onUninstall}: Props) => {
-      const iconType = kbfsEnabled ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'
-      const bannerStyle = {
-        ...globalStyles.flexBoxRow,
-        backgroundColor: kbfsEnabled ? globalColors.green : globalColors.blue,
-        height: 176,
-        alignItems: 'center',
-      }
-      let bannerContent
-      if (kbfsEnabled) {
-        bannerContent = (
-          <Text type="Header" style={textStyle}>
-            Keybase is enabled in your {fileUIName}.
-          </Text>
-        )
-      } else {
-        bannerContent = (
-          <Box style={globalStyles.flexBoxColumn}>
-            <Text type="Header" style={textStyle}>
-              Enable Keybase in {fileUIName}?
-            </Text>
-            <Text type="BodySemibold" style={textStyle}>
-              Get access to your files and folders just like you normally do with your local files. It's
-              encrypted and secure.
-            </Text>
-            <Box style={{justifyContent: 'flex-start'}}>
-              <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} />
+  : ({kbfsEnabled, inProgress, onInstall, onUninstall}: Props) => (
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <FileBanner
+          inProgress={inProgress}
+          kbfsEnabled={kbfsEnabled}
+          onInstall={onInstall}
+          onUninstall={onUninstall}
+          showBanner={true}
+        />
+        <Box style={mainContentStyle}>
+          {!isLinux && (
+            <Box>
+              <Box style={contentHeaderStyle}>
+                <Text type="BodySmallSemibold">{fileUIName} integration</Text>
+                <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
+              </Box>
+              <Checkbox
+                onCheck={kbfsEnabled ? onUninstall : onInstall}
+                labelComponent={checkBoxComponent(kbfsEnabled)}
+                checked={kbfsEnabled}
+                disabled={inProgress}
+              />
             </Box>
-          </Box>
-        )
-      }
-      return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <Box style={bannerStyle}>
-            <Box style={bannerIconStyle}>
-              <Icon type={iconType} />
-            </Box>
-            <Box style={bannerTextContentStyle}>{bannerContent}</Box>
-          </Box>
-          <Box style={mainContentStyle}>
-            <Box style={contentHeaderStyle}>
-              <Text type="BodySmallSemibold">{fileUIName} integration</Text>
-              <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
-            </Box>
-            <Checkbox
-              onCheck={kbfsEnabled ? onUninstall : onInstall}
-              labelComponent={checkBoxComponent(kbfsEnabled)}
-              checked={kbfsEnabled}
-              disabled={inProgress}
-            />
-          </Box>
+          )}
         </Box>
-      )
-    }
-
-const sidePadding = globalMargins.large + globalMargins.tiny
-const bannerIconStyle = {
-  paddingLeft: sidePadding,
-  paddingRight: sidePadding,
-  paddingTop: globalMargins.large,
-  paddingBottom: globalMargins.medium,
-}
-
-const bannerTextContentStyle = {
-  alignItems: 'center',
-  paddingRight: globalMargins.xlarge + globalMargins.medium,
-}
+      </Box>
+    )
 
 const mainContentStyle = {
   ...globalStyles.flexBoxColumn,
@@ -98,11 +65,6 @@ const contentHeaderIconStyle = {
   fontSize: 16,
   color: globalColors.black_20,
   paddingLeft: globalMargins.tiny,
-}
-
-const textStyle = {
-  color: globalColors.white,
-  paddingBottom: globalMargins.small,
 }
 
 export default Files

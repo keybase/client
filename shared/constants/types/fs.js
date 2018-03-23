@@ -91,6 +91,7 @@ export type _State = {
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
   kextPermissionError: boolean,
+  showBanner: boolean,
 }
 export type State = I.RecordOf<_State>
 

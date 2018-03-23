@@ -62,9 +62,6 @@
       "kextPermissionError": "boolean"
     },
     "installKBFS": {},
-    "installKBFSResult": {
-      "result": "RPCTypes.InstallResult"
-    },
     "uninstallKBFSConfirm": {
       "onSuccess": "() => void"
     },
