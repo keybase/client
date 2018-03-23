@@ -17,10 +17,10 @@ type Props = {
 }
 
 const Banner = isMobile
-  ? () => <Box />
+  ? () => null
   : ({kbfsEnabled, showBanner, onInstall, onUninstall, onDismiss, openInFileUI}: Props) => {
       if (kbfsEnabled && !showBanner) {
-        return <Box />
+        return null
       }
       const iconType = kbfsEnabled ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'
       const bannerStyle = {
@@ -35,7 +35,7 @@ const Banner = isMobile
         bannerContent = (
           <Box style={globalStyles.flexBoxColumn}>
             <Text type="Header" style={textStyle}>
-              {onDismiss && 'Yay!'} Keybase is {onDismiss && 'now'} enabled in your {fileUIName}.
+              {onDismiss && 'Yay! '}Keybase is {onDismiss && 'now '}enabled in your {fileUIName}.
             </Text>
             {openInFileUI && (
               <Box style={{justifyContent: 'flex-start'}}>
