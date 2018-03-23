@@ -113,6 +113,7 @@ type TransactionSummary struct {
 	StellarID       TransactionID        `codec:"stellarID" json:"stellarID"`
 	KeybaseID       KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
 	Status          string               `codec:"status" json:"status"`
+	ErrMsg          string               `codec:"errMsg" json:"errMsg"`
 	Note            EncryptedNote        `codec:"note" json:"note"`
 	Asset           Asset                `codec:"asset" json:"asset"`
 	Amount          string               `codec:"amount" json:"amount"`
@@ -120,6 +121,7 @@ type TransactionSummary struct {
 	DisplayCurrency string               `codec:"displayCurrency" json:"displayCurrency"`
 	Members         Members              `codec:"members" json:"members"`
 	Ctime           Time                 `codec:"ctime" json:"ctime"`
+	Rtime           Time                 `codec:"rtime" json:"rtime"`
 }
 
 func (o TransactionSummary) DeepCopy() TransactionSummary {
@@ -127,6 +129,7 @@ func (o TransactionSummary) DeepCopy() TransactionSummary {
 		StellarID:       o.StellarID.DeepCopy(),
 		KeybaseID:       o.KeybaseID.DeepCopy(),
 		Status:          o.Status,
+		ErrMsg:          o.ErrMsg,
 		Note:            o.Note.DeepCopy(),
 		Asset:           o.Asset.DeepCopy(),
 		Amount:          o.Amount,
@@ -134,6 +137,7 @@ func (o TransactionSummary) DeepCopy() TransactionSummary {
 		DisplayCurrency: o.DisplayCurrency,
 		Members:         o.Members.DeepCopy(),
 		Ctime:           o.Ctime.DeepCopy(),
+		Rtime:           o.Rtime.DeepCopy(),
 	}
 }
 

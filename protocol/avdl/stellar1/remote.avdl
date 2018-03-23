@@ -40,6 +40,7 @@
     TransactionID stellarID;
     KeybaseTransactionID keybaseID;
     string status;
+    string errMsg;
 
     EncryptedNote note;
 
@@ -51,6 +52,7 @@
     Members members;
 
     Time ctime;
+    Time rtime;
   }
 
   record Operation {

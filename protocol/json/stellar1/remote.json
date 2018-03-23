@@ -141,6 +141,10 @@
           "name": "status"
         },
         {
+          "type": "string",
+          "name": "errMsg"
+        },
+        {
           "type": "EncryptedNote",
           "name": "note"
         },
@@ -167,6 +171,10 @@
         {
           "type": "Time",
           "name": "ctime"
+        },
+        {
+          "type": "Time",
+          "name": "rtime"
         }
       ]
     },
