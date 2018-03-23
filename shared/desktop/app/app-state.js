@@ -260,7 +260,8 @@ export default class AppState {
     fs.readFile('~/.config/autostart/keybase_autostart.desktop', (err, data) => {
       var result = false
       if (!err) {
-        result = data.search('X-GNOME-Autostart-enabled=false') === -1 && data.search('\n#Hidden=true') !== -1
+        result =
+          data.search('\nX-GNOME-Autostart-enabled=false') === -1 && data.search('\nHidden=true') === -1
       }
       callback(result)
     })
