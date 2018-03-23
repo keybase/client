@@ -4,6 +4,7 @@ import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} fro
 import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
+import {daysToLabel} from '../../../../util/timestamp'
 
 export type Props = {
   policy: RetentionPolicy,
@@ -175,13 +176,6 @@ const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
 const policyToInheritLabel = (p: _RetentionPolicy) => {
   const label = policyToLabel(p)
   return `Use team default (${label})`
-}
-const daysToLabel = (days: number) => {
-  let label = `${days} day`
-  if (days !== 1) {
-    label += 's'
-  }
-  return label
 }
 
 export default RetentionPicker
