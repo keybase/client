@@ -1,4 +1,4 @@
-package post
+package remote
 
 import (
 	"context"

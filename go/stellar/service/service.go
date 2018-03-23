@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/stellar/bundle"
-	"github.com/keybase/client/go/stellar/post"
+	"github.com/keybase/client/go/stellar/remote"
 )
 
 // Service handlers
@@ -22,7 +22,7 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	if err != nil {
 		return created, err
 	}
-	err = post.PostWithChainlink(ctx, g, clearBundle)
+	err = remote.PostWithChainlink(ctx, g, clearBundle)
 	switch e := err.(type) {
 	case nil:
 		// ok
