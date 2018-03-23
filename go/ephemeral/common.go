@@ -9,6 +9,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// NOTE: If you change this value you should change it in web/ephemeral.iced
+// and go/ekreaperd/reaper.go as well.
 // Keys last at most one week
 const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 // Everyday we want to generate a new key if possible

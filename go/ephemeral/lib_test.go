@@ -15,16 +15,16 @@ func TestKeygenIfNeeded(t *testing.T) {
 	defer tc.Cleanup()
 
 	ekLib := NewEKLib(tc.G)
+	userEKBoxStorage := NewUserEKBoxStorage(tc.G)
+	deviceEKStorage := NewDeviceEKStorage(tc.G)
 	keygen := func() {
 		err := ekLib.KeygenIfNeeded(context.Background())
 		require.NoError(t, err)
 
-		deviceEKStorage := NewDeviceEKStorage(tc.G)
 		deviceEKs, err := deviceEKStorage.GetAll(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, 1, len(deviceEKs))
 
-		userEKBoxStorage := NewUserEKBoxStorage(tc.G)
 		userEKs, err := userEKBoxStorage.GetAll(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, 1, len(userEKs))
@@ -32,6 +32,25 @@ func TestKeygenIfNeeded(t *testing.T) {
 
 	// If we retry keygen, we don't regenerate keys
 	keygen()
+	keygen()
+
+	// Let's purge our local userEK store and make sure we don't regenerate
+	// (respecting the server max)
+	userEKs, err := userEKBoxStorage.GetAll(context.Background())
+	require.NoError(t, err)
+	for generation := range userEKs {
+		userEKBoxStorage.Delete(context.Background(), generation)
+	}
+	tc.G.GetUserEKBoxStorage().ClearCache()
+	keygen()
+
+	// Now let's kill our deviceEK as well, so we should regenerate a new
+	// userEK since we can't access the old one
+	deviceEKs, err := deviceEKStorage.GetAll(context.Background())
+	require.NoError(t, err)
+	for generation := range deviceEKs {
+		deviceEKStorage.Delete(context.Background(), generation)
+	}
 	keygen()
 }
 
