@@ -9,58 +9,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type AccountID string
-
-func (o AccountID) DeepCopy() AccountID {
-	return o
-}
-
-type TransactionID string
-
-func (o TransactionID) DeepCopy() TransactionID {
-	return o
-}
-
-type KeybaseTransactionID string
-
-func (o KeybaseTransactionID) DeepCopy() KeybaseTransactionID {
-	return o
-}
-
-type TimeMs int64
-
-func (o TimeMs) DeepCopy() TimeMs {
-	return o
-}
-
-type Asset struct {
-	Type   string `codec:"type" json:"type"`
-	Code   string `codec:"code" json:"code"`
-	Issuer string `codec:"issuer" json:"issuer"`
-}
-
-func (o Asset) DeepCopy() Asset {
-	return Asset{
-		Type:   o.Type,
-		Code:   o.Code,
-		Issuer: o.Issuer,
-	}
-}
-
-type Balance struct {
-	Asset  Asset  `codec:"asset" json:"asset"`
-	Amount string `codec:"amount" json:"amount"`
-	Limit  string `codec:"limit" json:"limit"`
-}
-
-func (o Balance) DeepCopy() Balance {
-	return Balance{
-		Asset:  o.Asset.DeepCopy(),
-		Amount: o.Amount,
-		Limit:  o.Limit,
-	}
-}
-
 type EncryptedNote struct {
 	V   int          `codec:"v" json:"v"`
 	E   []byte       `codec:"e" json:"e"`
