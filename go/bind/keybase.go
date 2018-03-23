@@ -159,11 +159,12 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	go func() {
 		kbfsCtx := env.NewContextFromGlobalContext(kbCtx)
 		kbfsParams := libkbfs.DefaultInitParams(kbfsCtx)
-		// Setting this flag will enable KBFS debug logging to always be
-		// true in a mobile setting. Kill this setting if too spammy.
-		// (Setting to false now 2017-08-21 PC)
-		kbfsParams.Debug = false
-		kbfsParams.Mode = libkbfs.InitMinimalString
+		// Setting this flag will enable KBFS debug logging to always
+		// be true in a mobile setting. Change these back to the
+		// commented-out values if we need to make a mobile release
+		// before KBFS-on-mobile is ready.
+		kbfsParams.Debug = true                         // false
+		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
 			kbCtx.Log)
