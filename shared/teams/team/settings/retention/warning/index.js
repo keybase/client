@@ -6,6 +6,7 @@ import {
   Button,
   ButtonBar,
   Checkbox,
+  HeaderHoc,
   Icon,
   PopupDialog,
   ScrollView,
@@ -63,7 +64,7 @@ const RetentionWarning = (props: Props) => {
           <Button
             type="Danger"
             onClick={props.onConfirm}
-            label={`Yes, set to ${policyString}`}
+            label={isMobile ? 'Confirm' : `Yes, set to ${policyString}`}
             disabled={!props.enabled}
           />
         </ButtonBar>
@@ -76,11 +77,18 @@ const containerStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
+    paddingBottom: globalMargins.large,
+    maxWidth: 560,
+  },
+  isMobile: {
+    paddingTop: globalMargins.small,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+  },
+  isElectron: {
     paddingTop: globalMargins.xlarge,
     paddingLeft: globalMargins.xlarge,
     paddingRight: globalMargins.xlarge,
-    paddingBottom: globalMargins.large,
-    maxWidth: 560,
   },
 })
 
@@ -106,8 +114,13 @@ const bodyStyle = platformStyles({
 const confirmLabelStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
+  },
+  isMobile: {
+    marginBottom: globalMargins.small,
+  },
+  isElectron: {
     marginBottom: globalMargins.xlarge,
   },
 })
 
-export default RetentionWarning
+export default (isMobile ? HeaderHoc(RetentionWarning) : RetentionWarning)

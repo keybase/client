@@ -181,15 +181,17 @@ export class Settings extends React.Component<Props, State> {
   componentWillReceiveProps(nextProps: Props) {
     // We just got new settings for this team, reset any user selections
     // to reflect the actual settings.
-    this.setState({
-      newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
-      newPublicityAnyMember: nextProps.publicityAnyMember,
-      newPublicityMember: nextProps.publicityMember,
-      newPublicityTeam: nextProps.publicityTeam,
-      newOpenTeam: nextProps.openTeam,
-      newOpenTeamRole: nextProps.openTeamRole,
-      publicitySettingsChanged: false,
-    })
+    this.setState(
+      {
+        newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
+        newPublicityAnyMember: nextProps.publicityAnyMember,
+        newPublicityMember: nextProps.publicityMember,
+        newPublicityTeam: nextProps.publicityTeam,
+        newOpenTeam: nextProps.openTeam,
+        newOpenTeamRole: nextProps.openTeamRole,
+      },
+      this.setPublicitySettingsChanged
+    )
   }
 
   setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
@@ -235,10 +237,6 @@ export class Settings extends React.Component<Props, State> {
     retentionPolicyChanged: boolean,
     retentionPolicyDecreased: boolean
   ) => {
-    // TODO (DESKTOP-6062)
-    // this component should know whether it needs to show the warning dialog after hitting the save button.
-    // it can still call onSaveSettings to save all the rest, and let the dialog deal with calling the
-    // RPC to change the setting. For now, nothing does the set-policy call.
     this.setState(
       {newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased},
       this.setPublicitySettingsChanged

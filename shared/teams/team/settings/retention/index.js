@@ -63,11 +63,10 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   _setInitialSelected = (policy?: _RetentionPolicy) => {
-    if (policy) {
-      this.setState({selected: policy})
-    } else if (this.props.policy) {
-      this.setState({selected: this.props.policy})
-    }
+    const p = policy || this.props.policy
+    this.setState({selected: p})
+    // tell parent that nothing has changed
+    this.props.onSelect(p, false, false)
   }
 
   _label = () => {
