@@ -2201,7 +2201,7 @@ export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
-export type DeviceEkMetadataStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
+export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
 
 export type DeviceID = String
 
@@ -3696,6 +3696,14 @@ export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
 
+export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
+
+export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
+
+export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
+export type TeamEkStatement = $ReadOnly<{currentTeamEkMetadata: TeamEkMetadata, existingTeamEkMetadata?: ?Array<TeamEkMetadata>}>
+
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type TeamEncryptedKBFSKeysetHash = String
@@ -3983,7 +3991,7 @@ export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGenerati
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
-export type UserEkMetadataStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetatdata?: ?Array<UserEkMetadata>}>
+export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
