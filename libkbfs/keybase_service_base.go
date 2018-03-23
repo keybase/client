@@ -1082,6 +1082,20 @@ func (k *KeybaseServiceBase) TeamDeleted(ctx context.Context,
 	return nil
 }
 
+// TeamExit implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) TeamExit(context.Context, keybase1.TeamID) error {
+	return nil
+}
+
+// TeamAbandoned implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) TeamAbandoned(
+	ctx context.Context, tid keybase1.TeamID) error {
+	k.log.CDebugf(ctx, "Implicit team %s abandoned", tid)
+	k.setCachedTeamInfo(tid, TeamInfo{})
+	k.config.KBFSOps().TeamAbandoned(ctx, tid)
+	return nil
+}
+
 // StartMigration implements keybase1.ImplicitTeamMigrationInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) StartMigration(ctx context.Context,

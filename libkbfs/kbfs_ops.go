@@ -953,13 +953,8 @@ func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
 	return ops.GetNodeMetadata(ctx, node)
 }
 
-// TeamNameChanged implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) TeamNameChanged(
-	ctx context.Context, tid keybase1.TeamID) {
-	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
-	defer timeTrackerDone()
-
-	fs.log.CDebugf(ctx, "Got TeamNameChanged for %s", tid)
+func (fs *KBFSOpsStandard) findTeamByID(
+	ctx context.Context, tid keybase1.TeamID) *folderBranchOps {
 	fs.opsLock.Lock()
 	// Copy the ops list so we don't have to hold opsLock when calling
 	// `getRootNode()` (which can lead to deadlocks).
@@ -988,8 +983,34 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 		}
 
 		fs.log.CDebugf(ctx, "Team name changed for team %s", tid)
+		return fbo
+	}
+	return nil
+}
+
+// TeamNameChanged implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) TeamNameChanged(
+	ctx context.Context, tid keybase1.TeamID) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	fs.log.CDebugf(ctx, "Got TeamNameChanged for %s", tid)
+	fbo := fs.findTeamByID(ctx, tid)
+	if fbo != nil {
 		go fbo.TeamNameChanged(ctx, tid)
-		break
+	}
+}
+
+// TeamAbandoned implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) TeamAbandoned(
+	ctx context.Context, tid keybase1.TeamID) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	fs.log.CDebugf(ctx, "Got TeamAbandoned for %s", tid)
+	fbo := fs.findTeamByID(ctx, tid)
+	if fbo != nil {
+		go fbo.TeamAbandoned(ctx, tid)
 	}
 }
 

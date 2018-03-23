@@ -1344,6 +1344,16 @@ func (mr *MockKBFSOpsMockRecorder) TeamNameChanged(ctx, tid interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeamNameChanged", reflect.TypeOf((*MockKBFSOps)(nil).TeamNameChanged), ctx, tid)
 }
 
+// TeamAbandoned mocks base method
+func (m *MockKBFSOps) TeamAbandoned(ctx context.Context, tid keybase1.TeamID) {
+	m.ctrl.Call(m, "TeamAbandoned", ctx, tid)
+}
+
+// TeamAbandoned indicates an expected call of TeamAbandoned
+func (mr *MockKBFSOpsMockRecorder) TeamAbandoned(ctx, tid interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeamAbandoned", reflect.TypeOf((*MockKBFSOps)(nil).TeamAbandoned), ctx, tid)
+}
+
 // KickoffAllOutstandingRekeys mocks base method
 func (m *MockKBFSOps) KickoffAllOutstandingRekeys() error {
 	ret := m.ctrl.Call(m, "KickoffAllOutstandingRekeys")

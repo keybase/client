@@ -6416,6 +6416,15 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	fbo.observers.tlfHandleChange(ctx, newHandle)
 }
 
+// TeamAbandoned implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) TeamAbandoned(
+	ctx context.Context, tid keybase1.TeamID) {
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+	fbo.log.CDebugf(ctx, "Abandoning team %s", tid)
+	fbo.locallyFinalizeTLF(ctx)
+}
+
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
