@@ -34,12 +34,11 @@ func NewTeamEKBoxStorage(g *libkb.GlobalContext) *TeamEKBoxStorage {
 }
 
 func (s *TeamEKBoxStorage) dbKey(ctx context.Context, teamID keybase1.TeamID) (dbKey libkb.DbKey, err error) {
-	key := teamKey(teamID, s.G())
 	uv, err := getCurrentUserUV(ctx, s.G())
 	if err != nil {
 		return dbKey, err
 	}
-	key += fmt.Sprintf("-%s", uv.EldestSeqno)
+	key := fmt.Sprintf("%s-%s", teamKey(teamID, s.G()), uv.EldestSeqno)
 	return libkb.DbKey{
 		Typ: libkb.DBTeamEKBox,
 		Key: key,
@@ -173,6 +172,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKBoxed keybase1.TeamE
 
 	userEKBoxStorage := s.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
+	// TODO return specific error
 	if err != nil {
 		return teamEK, err
 	}
@@ -283,13 +283,13 @@ func (s *TeamEKBoxStorage) GetAll(ctx context.Context, teamID keybase1.TeamID) (
 	if err != nil {
 		return nil, err
 	} else if !found {
-		return teamEKs, nil
+		return nil, nil
 	}
 
 	for generation, teamEKBoxed := range teamEKBoxes {
 		teamEK, err := s.unbox(ctx, teamEKBoxed)
 		if err != nil {
-			return teamEKs, err
+			return nil, err
 		}
 		teamEKs[generation] = teamEK
 	}
