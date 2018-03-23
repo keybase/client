@@ -236,7 +236,8 @@ export default class AppState {
   }
 
   setLinuxLoginState() {
-    const fName = path.join(process.env.HOME, '.config/autostart/keybase_autostart.desktop')
+    const homeDir = process.env.HOME
+    const fName = path.join(homeDir, '.config/autostart/keybase_autostart.desktop')
     const isGnome = process.env.SESSIONTYPE === 'gnome-session'
 
     const setString = isGnome ? 'X-GNOME-Autostart-enabled=true' : '#Hidden=true'
@@ -266,7 +267,7 @@ export default class AppState {
     })
   }
 
-  getLinuxLoginState(callback : (result: boolean) => void) {
+  getLinuxLoginState(callback: (result: boolean) => void) {
     fs.readFile(
       path.join(process.env.HOME, '.config/autostart/keybase_autostart.desktop'),
       'utf8',
