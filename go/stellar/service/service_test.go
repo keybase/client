@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
