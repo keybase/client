@@ -1940,10 +1940,6 @@ export const userSearchRpcChannelMap = (configKeys: Array<string>, request: User
 
 export const userSearchRpcPromise = (request: UserSearchRpcParam): Promise<UserSearchResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.user.search', request, (error: RPCError, result: UserSearchResult) => (error ? reject(error) : resolve(result))))
 
-export const walletWalletInitRpcChannelMap = (configKeys: Array<string>, request: WalletWalletInitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.wallet.walletInit', request)
-
-export const walletWalletInitRpcPromise = (request: WalletWalletInitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.wallet.walletInit', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
-
 export type APIRes = $ReadOnly<{status: String, body: String, httpStatus: Int, appStatus: String}>
 
 export type AccountEmailChangeRpcParam = $ReadOnly<{newEmail: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4090,8 +4086,6 @@ export type UserVersionPercentForm = String
 export type UserVersionVector = $ReadOnly<{id: Long, sigHints: Int, sigChain: Long, cachedAt: Time}>
 
 export type VerifySessionRes = $ReadOnly<{uid: UID, sid: String, generated: Int, lifetime: Int}>
-
-export type WalletWalletInitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type WebProof = $ReadOnly<{hostname: String, protocols?: ?Array<String>}>
 
