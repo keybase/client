@@ -27,7 +27,7 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
   const {foundExact, foundPrefix, foundSub} = namesMinusYou.reduce(
     (data, p) => {
       if (p === filter) {
-        data.foundExact = true
+        data.foundExact += 1
         return data
       } else {
         const idx = p.indexOf(filter)
