@@ -41,7 +41,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('FilesBanner'),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props.getFuseStatus()
     },
   })
