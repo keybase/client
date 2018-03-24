@@ -60,14 +60,14 @@ func (o AuthEnc) DeepCopy() AuthEnc {
 }
 
 type ServerRatchet struct {
-	I Seqno `codec:"i" json:"i"`
 	K KID   `codec:"k" json:"k"`
+	R Seqno `codec:"r" json:"r"`
 }
 
 func (o ServerRatchet) DeepCopy() ServerRatchet {
 	return ServerRatchet{
-		I: o.I.DeepCopy(),
 		K: o.K.DeepCopy(),
+		R: o.R.DeepCopy(),
 	}
 }
 

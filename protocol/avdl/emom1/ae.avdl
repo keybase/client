@@ -17,8 +17,8 @@ protocol ae {        // AE   = "Authenticated Encryption"
   }
 
   record ServerRatchet {
-    Seqno i; // the ID of the server key in the potential sequence
     KID   k; // server is updating to a one-time ephemeral key
+    Seqno r; // the ID of the server key in the potential sequence; just 1 for now
   }
 
   @typedef("bytes") record KID    {}

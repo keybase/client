@@ -12,6 +12,6 @@ type Cryptoer interface {
 	InitUserAuth(context.Context, emom1.Arg, emom1.RequestPlaintext) error
 	ServerRatchet(context.Context, *emom1.Res) error
 	ClientRatchet(context.Context, emom1.AuthEnc) error
-	SessionKey() saltpack.BoxPrecomputedSharedKey
 	SessionKeyAt(emom1.Seqno) saltpack.BoxPrecomputedSharedKey
+	LatestSessionKey() (saltpack.BoxPrecomputedSharedKey, emom1.Seqno)
 }

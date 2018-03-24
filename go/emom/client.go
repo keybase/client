@@ -119,7 +119,7 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
-	wrappedArg.A, err = encrypt(ctx, encodedRequestPlaintext, emom1.MsgType_CALL, seqno, c.cryptoer.SessionKey())
+	wrappedArg.A, err = encrypt(ctx, encodedRequestPlaintext, emom1.MsgType_CALL, seqno, c.cryptoer)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		}
 	}
 
-	encodedResponsePlaintext, err = decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.cryptoer.SessionKey())
+	encodedResponsePlaintext, err = decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.cryptoer)
 	if err != nil {
 		return err
 	}

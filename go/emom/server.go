@@ -129,7 +129,7 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 		return res, err
 	}
 
-	encodedRequestPlaintext, err = decrypt(ctx, emom1.MsgType_CALL, arg.A, s.cryptoer.SessionKey())
+	encodedRequestPlaintext, err = decrypt(ctx, emom1.MsgType_CALL, arg.A, s.cryptoer)
 	if err != nil {
 		return res, err
 	}
@@ -166,7 +166,7 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 		return res, err
 	}
 
-	res.A, err = encrypt(ctx, encodedResponsePlaintext, emom1.MsgType_REPLY, res.A.N, s.cryptoer.SessionKey())
+	res.A, err = encrypt(ctx, encodedResponsePlaintext, emom1.MsgType_REPLY, res.A.N, s.cryptoer)
 	if err != nil {
 		return res, err
 	}
