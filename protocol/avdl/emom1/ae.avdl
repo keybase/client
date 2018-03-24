@@ -11,7 +11,12 @@ protocol ae {        // AE   = "Authenticated Encryption"
 
   record AuthEnc {
     Seqno n; // nonce bottom 64 bits (various monotonically over all types)
+    bool  r; // true if using the ratcheted session key
     bytes e; // encrypted data
+  }
+
+  record ServerRatchet {
+    KID k; // server is updating to a one-time ephemeral key
   }
 
   @typedef("bytes") record KID    {}
@@ -21,26 +26,27 @@ protocol ae {        // AE   = "Authenticated Encryption"
   @typedef("long")  record Seqno  {}
 
   record Handshake {
-    int    v; // version of the entire scheme
-    KeyGen s; // server KID generation number
     KID    k; // user ephemeral KID
+    KeyGen s; // server KID generation number
+    int    v; // version of the entire scheme
   }
 
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record RequestPlaintext {
-    union { null, SignedAuthToken } f; // "first"; only sent on first payload
-    union { null, Seqno }           s; // seqno; non-null for calls; null for notifies
-    string                          n; // method name
     bytes                           a; // arg, msgpacked
+    union { null, SignedAuthToken } f; // "first"; only sent on first payload
+    string                          n; // method name
+    union { null, Seqno }           s; // seqno; non-null for calls; null for notifies
   }
 
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record ResponsePlaintext {
-    Seqno s; // the seqno that the caller specified; must match to detect tampering
-    bytes r; // reply, msgpacked
-    bytes e; // error, msgpacked
+    bytes                         e; // error, msgpacked
+    bytes                         r; // reply, msgpacked
+    Seqno                         s; // the seqno that the caller specified; must match to detect tampering
+    union { null, ServerRatchet } t; // Specified when a server is migrating to the new key (on the next message)
   }
 
   record AuthToken {
