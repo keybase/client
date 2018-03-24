@@ -161,6 +161,11 @@ func (s *Server) C(ctx context.Context, arg emom1.Arg) (res emom1.Res, err error
 
 	res.A.N = s.nextSeqno()
 
+	err = s.cryptoer.ServerRatchet(ctx, &res)
+	if err != nil {
+		return res, err
+	}
+
 	res.A, err = encrypt(ctx, encodedResponsePlaintext, emom1.MsgType_REPLY, res.A.N, s.cryptoer.SessionKey())
 	if err != nil {
 		return res, err

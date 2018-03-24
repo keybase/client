@@ -87,3 +87,5 @@ func newUserAuthError(s string, args ...interface{}) UserAuthError {
 func (u UserAuthError) Error() string {
 	return fmt.Sprintf("User auth error: %s", u.msg)
 }
+
+var NoSessionKeyError = errors.New("no available session key")

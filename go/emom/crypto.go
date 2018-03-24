@@ -18,6 +18,9 @@ func makeNonce(msgType emom1.MsgType, n emom1.Seqno) saltpack.Nonce {
 }
 
 func encrypt(ctx context.Context, msg []byte, msgType emom1.MsgType, n emom1.Seqno, key saltpack.BoxPrecomputedSharedKey) (emom1.AuthEnc, error) {
+	if key == nil {
+		return emom1.AuthEnc{}, NoSessionKeyError
+	}
 	return emom1.AuthEnc{
 		N: n,
 		E: key.Box(makeNonce(msgType, n), msg),
@@ -103,6 +106,10 @@ func (u *UsersCryptoPackage) InitUserAuth(_ context.Context, _ emom1.Arg, _ emom
 	return nil
 }
 
+func (c *UsersCryptoPackage) ServerRatchet(ctx context.Context, res *emom1.Res) error {
+	return nil
+}
+
 var _ Cryptoer = (*UsersCryptoPackage)(nil)
 
 type CloudCryptoPackage struct {
@@ -113,6 +120,9 @@ type CloudCryptoPackage struct {
 	checkReplayAndImport func(context.Context, emom1.KID) (saltpack.BoxPublicKey, error)
 	user                 emom1.UID
 	clock                clockwork.Clock
+	ratchetSeqno         emom1.Seqno
+	serverKeyInUse       saltpack.BoxSecretKey
+	userKeyInUse         saltpack.BoxPublicKey
 
 	// SessionKeys. Seqno=0 is with long-lived server public key. Seqno>0 are with
 	// ratcheted server keys, which can later be thrown away.
@@ -122,12 +132,12 @@ type CloudCryptoPackage struct {
 func (c *CloudCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
 	c.Lock()
 	defer c.Unlock()
-	key, _ := c.sessionKeys[emom1.Seqno(0)]
-	return key
+	return c.sessionKey()
 }
 
-func (c *CloudCryptoPackage) masterSessionKey() saltpack.BoxPrecomputedSharedKey {
-	return c.sessionKeys[emom1.Seqno(0)]
+func (c *CloudCryptoPackage) sessionKey() saltpack.BoxPrecomputedSharedKey {
+	key, _ := c.sessionKeys[c.ratchetSeqno]
+	return key
 }
 
 func (c *CloudCryptoPackage) setMasterSessionKey(k saltpack.BoxPrecomputedSharedKey) {
@@ -137,7 +147,7 @@ func (c *CloudCryptoPackage) setMasterSessionKey(k saltpack.BoxPrecomputedShared
 func (c *CloudCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.Arg) error {
 	c.Lock()
 	defer c.Unlock()
-	if c.masterSessionKey() == nil {
+	if c.sessionKey() == nil {
 		return nil
 	}
 	if arg.H == nil {
@@ -156,7 +166,42 @@ func (c *CloudCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.
 		return NewHandshakeError("key generation %d not found", arg.H.S)
 	}
 
+	c.serverKeyInUse = key
+	c.userKeyInUse = userEphemeralKey
 	c.setMasterSessionKey(key.Precompute(userEphemeralKey))
+
+	return nil
+}
+
+func (c *CloudCryptoPackage) ServerRatchet(ctx context.Context, res *emom1.Res) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.ratchetSeqno > emom1.Seqno(0) {
+		return nil
+	}
+
+	nextEphemeralKey, err := c.serverKeyInUse.GetPublicKey().CreateEphemeralKey()
+	if err != nil {
+		return err
+	}
+	nextSessionKey := nextEphemeralKey.Precompute(c.userKeyInUse)
+	nextSeqno := c.ratchetSeqno + 1
+
+	ratchet := emom1.ServerRatchet{
+		I: nextSeqno,
+		K: emom1.KID(nextEphemeralKey.GetPublicKey().ToKID()),
+	}
+	var encodedRatchet []byte
+	var encryptedRatchet emom1.AuthEnc
+
+	encodedRatchet, err = encodeToBytes(ratchet)
+	if err != nil {
+		return err
+	}
+	encryptedRatchet, err = encrypt(ctx, encodedRatchet, emom1.MsgType_RATCHET, nextSeqno, c.sessionKey())
+	res.R = &encryptedRatchet
+	c.ratchetSeqno = nextSeqno
+	c.sessionKeys[nextSeqno] = nextSessionKey
 
 	return nil
 }

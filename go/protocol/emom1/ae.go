@@ -11,23 +11,26 @@ import (
 type MsgType int
 
 const (
-	MsgType_CALL   MsgType = 0
-	MsgType_REPLY  MsgType = 1
-	MsgType_NOTIFY MsgType = 2
+	MsgType_CALL    MsgType = 0
+	MsgType_REPLY   MsgType = 1
+	MsgType_NOTIFY  MsgType = 2
+	MsgType_RATCHET MsgType = 16
 )
 
 func (o MsgType) DeepCopy() MsgType { return o }
 
 var MsgTypeMap = map[string]MsgType{
-	"CALL":   0,
-	"REPLY":  1,
-	"NOTIFY": 2,
+	"CALL":    0,
+	"REPLY":   1,
+	"NOTIFY":  2,
+	"RATCHET": 16,
 }
 
 var MsgTypeRevMap = map[MsgType]string{
-	0: "CALL",
-	1: "REPLY",
-	2: "NOTIFY",
+	0:  "CALL",
+	1:  "REPLY",
+	2:  "NOTIFY",
+	16: "RATCHET",
 }
 
 func (e MsgType) String() string {
@@ -57,13 +60,13 @@ func (o AuthEnc) DeepCopy() AuthEnc {
 }
 
 type ServerRatchet struct {
-	I int `codec:"i" json:"i"`
-	K KID `codec:"k" json:"k"`
+	I Seqno `codec:"i" json:"i"`
+	K KID   `codec:"k" json:"k"`
 }
 
 func (o ServerRatchet) DeepCopy() ServerRatchet {
 	return ServerRatchet{
-		I: o.I,
+		I: o.I.DeepCopy(),
 		K: o.K.DeepCopy(),
 	}
 }

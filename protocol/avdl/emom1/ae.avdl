@@ -4,7 +4,8 @@ protocol ae {        // AE   = "Authenticated Encryption"
   enum MsgType {
     CALL_0,
     REPLY_1,
-    NOTIFY_2
+    NOTIFY_2,
+    RATCHET_16
   }
 
   // We use abbreviations here extensively to save bandwidth
@@ -16,8 +17,8 @@ protocol ae {        // AE   = "Authenticated Encryption"
   }
 
   record ServerRatchet {
-    int i; // the ID of the server key in the potential sequence
-    KID k; // server is updating to a one-time ephemeral key
+    Seqno i; // the ID of the server key in the potential sequence
+    KID   k; // server is updating to a one-time ephemeral key
   }
 
   @typedef("bytes") record KID    {}
