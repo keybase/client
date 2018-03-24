@@ -140,7 +140,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
-		stellar1.RemoteProtocol(newWalletHandler(xp, g)),
+		stellar1.LocalProtocol(newWalletHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {

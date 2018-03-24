@@ -391,11 +391,11 @@ func GetBadgerClient(g *libkb.GlobalContext) (cli keybase1.BadgerClient, err err
 	return cli, nil
 }
 
-func GetWalletClient(g *libkb.GlobalContext) (cli stellar1.RemoteClient, err error) {
+func GetWalletClient(g *libkb.GlobalContext) (cli stellar1.LocalClient, err error) {
 	rcli, _, err := GetRPCClientWithContext(g)
 	if err != nil {
 		return cli, err
 	}
-	cli = stellar1.RemoteClient{Cli: rcli}
+	cli = stellar1.LocalClient{Cli: rcli}
 	return cli, nil
 }
