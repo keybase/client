@@ -106,20 +106,29 @@ build_one_architecture() {
   rpmbuild --define "_topdir $dest" --target "$rpm_arch" -bb "$spec"
 }
 
-export rpm_arch=i386
-export debian_arch=i386
-# On Fedora, it would be more correct to require "libXScrnSaver",
-# which provides libXss.so. Unfortunately that doesn't work on
-# OpenSUSE. This is the most compatible set of dependencies we've
-# found.  "psmisc" provides "killall", which is used in run_keybase.
-# "initscripts" provides "service", which is used to start atd in the
-# post-install.
-dependencies="Requires: at, fuse, libXss.so.1, initscripts, psmisc"
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+  export rpm_arch=x86_64
+  export debian_arch=amd64
+  # Requiring "libXss.so" here installs the 32-bit version. See
+  # https://github.com/keybase/client/pull/5226.
+  dependencies="Requires: at, fuse, libXss.so.1()(64bit), initscripts, psmisc"
+  build_one_architecture
+else
+  echo SKIPPING 64-bit rpm package
+fi
 
-export rpm_arch=x86_64
-export debian_arch=amd64
-# Requiring "libXss.so" here installs the 32-bit version. See
-# https://github.com/keybase/client/pull/5226.
-dependencies="Requires: at, fuse, libXss.so.1()(64bit), initscripts, psmisc"
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+  export rpm_arch=i386
+  export debian_arch=i386
+  # On Fedora, it would be more correct to require "libXScrnSaver",
+  # which provides libXss.so. Unfortunately that doesn't work on
+  # OpenSUSE. This is the most compatible set of dependencies we've
+  # found.  "psmisc" provides "killall", which is used in run_keybase.
+  # "initscripts" provides "service", which is used to start atd in the
+  # post-install.
+  dependencies="Requires: at, fuse, libXss.so.1, initscripts, psmisc"
+  build_one_architecture
+else
+  echo SKIPPING 32-bit rpm package
+fi
+
