@@ -41,16 +41,26 @@ type User struct {
 	userSigningKey saltpack.SigningSecretKey
 }
 
+type BaseCryptoPackage struct {
+	sync.Mutex
+	// SessionKeys. Seqno=0 is with long-lived server public key. Seqno>0 are with
+	// ratcheted server keys, which can later be thrown away.
+	sessionKeys  map[emom1.Seqno]saltpack.BoxPrecomputedSharedKey
+	ratchetSeqno emom1.Seqno
+}
+
 type UsersCryptoPackage struct {
+	BaseCryptoPackage
 	user            User
 	serverPublicKey ServerPublicKey
-	sessionKey      saltpack.BoxPrecomputedSharedKey
 	clock           clockwork.Clock
 }
 
 func (u *UsersCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp *emom1.RequestPlaintext) error {
+	u.Lock()
+	defer u.Unlock()
 
-	if u.sessionKey == nil {
+	if u.sessionKey() == nil {
 		return nil
 	}
 
@@ -60,7 +70,7 @@ func (u *UsersCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp 
 	}
 	ephemeralKID := emom1.KID(ephemeralKey.GetPublicKey().ToKID())
 
-	u.sessionKey = ephemeralKey.Precompute(u.serverPublicKey.key)
+	u.setMasterSessionKey(ephemeralKey.Precompute(u.serverPublicKey.key))
 
 	handshake := emom1.Handshake{
 		V: 1,
@@ -94,8 +104,28 @@ func (u *UsersCryptoPackage) InitClient(ctx context.Context, arg *emom1.Arg, rp 
 	return nil
 }
 
-func (u *UsersCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
-	return u.sessionKey
+func (u *BaseCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
+	u.Lock()
+	defer u.Unlock()
+	return u.sessionKeys[u.ratchetSeqno]
+}
+
+func (u *BaseCryptoPackage) sessionKey() saltpack.BoxPrecomputedSharedKey {
+	return u.sessionKeys[u.ratchetSeqno]
+}
+
+func (u *BaseCryptoPackage) SessionKeyAt(q emom1.Seqno) saltpack.BoxPrecomputedSharedKey {
+	u.Lock()
+	defer u.Unlock()
+	return u.sessionKeys[q]
+}
+
+func (u *BaseCryptoPackage) sessionKeyAt(q emom1.Seqno) saltpack.BoxPrecomputedSharedKey {
+	return u.sessionKeys[q]
+}
+
+func (u *UsersCryptoPackage) ClientRatchet(ctx context.Context, encryptedRatchet emom1.AuthEnc) error {
+	return nil
 }
 
 func (u *UsersCryptoPackage) InitServerHandshake(_ context.Context, _ emom1.Arg) error {
@@ -113,34 +143,18 @@ func (c *UsersCryptoPackage) ServerRatchet(ctx context.Context, res *emom1.Res) 
 var _ Cryptoer = (*UsersCryptoPackage)(nil)
 
 type CloudCryptoPackage struct {
-	sync.Mutex
+	BaseCryptoPackage
 	serverKeys           map[emom1.KeyGen]saltpack.BoxSecretKey
 	userAuth             func(context.Context, emom1.UID, emom1.KID) error
 	importSigningKey     func(context.Context, emom1.KID) (saltpack.SigningPublicKey, error)
 	checkReplayAndImport func(context.Context, emom1.KID) (saltpack.BoxPublicKey, error)
 	user                 emom1.UID
 	clock                clockwork.Clock
-	ratchetSeqno         emom1.Seqno
 	serverKeyInUse       saltpack.BoxSecretKey
 	userKeyInUse         saltpack.BoxPublicKey
-
-	// SessionKeys. Seqno=0 is with long-lived server public key. Seqno>0 are with
-	// ratcheted server keys, which can later be thrown away.
-	sessionKeys map[emom1.Seqno]saltpack.BoxPrecomputedSharedKey
 }
 
-func (c *CloudCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
-	c.Lock()
-	defer c.Unlock()
-	return c.sessionKey()
-}
-
-func (c *CloudCryptoPackage) sessionKey() saltpack.BoxPrecomputedSharedKey {
-	key, _ := c.sessionKeys[c.ratchetSeqno]
-	return key
-}
-
-func (c *CloudCryptoPackage) setMasterSessionKey(k saltpack.BoxPrecomputedSharedKey) {
+func (c *BaseCryptoPackage) setMasterSessionKey(k saltpack.BoxPrecomputedSharedKey) {
 	c.sessionKeys[emom1.Seqno(0)] = k
 }
 
@@ -251,6 +265,10 @@ func (c *CloudCryptoPackage) InitUserAuth(ctx context.Context, arg emom1.Arg, rp
 		return err
 	}
 
+	return nil
+}
+
+func (c *CloudCryptoPackage) ClientRatchet(ctx context.Context, encryptedRatchet emom1.AuthEnc) error {
 	return nil
 }
 

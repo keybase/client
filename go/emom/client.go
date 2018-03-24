@@ -147,6 +147,13 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 		return err
 	}
 
+	if wrappedRes.R != nil {
+		err = c.cryptoer.ClientRatchet(ctx, *wrappedRes.R)
+		if err != nil {
+			return err
+		}
+	}
+
 	encodedResponsePlaintext, err = decrypt(ctx, emom1.MsgType_REPLY, wrappedRes.A, c.cryptoer.SessionKey())
 	if err != nil {
 		return err
