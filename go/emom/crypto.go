@@ -112,20 +112,32 @@ type CloudCryptoPackage struct {
 	importSigningKey     func(context.Context, emom1.KID) (saltpack.SigningPublicKey, error)
 	checkReplayAndImport func(context.Context, emom1.KID) (saltpack.BoxPublicKey, error)
 	user                 emom1.UID
-	sessionKey           saltpack.BoxPrecomputedSharedKey
 	clock                clockwork.Clock
+
+	// SessionKeys. Seqno=0 is with long-lived server public key. Seqno>0 are with
+	// ratcheted server keys, which can later be thrown away.
+	sessionKeys map[emom1.Seqno]saltpack.BoxPrecomputedSharedKey
 }
 
 func (c *CloudCryptoPackage) SessionKey() saltpack.BoxPrecomputedSharedKey {
 	c.Lock()
 	defer c.Unlock()
-	return c.sessionKey
+	key, _ := c.sessionKeys[emom1.Seqno(0)]
+	return key
+}
+
+func (c *CloudCryptoPackage) masterSessionKey() saltpack.BoxPrecomputedSharedKey {
+	return c.sessionKeys[emom1.Seqno(0)]
+}
+
+func (c *CloudCryptoPackage) setMasterSessionKey(k saltpack.BoxPrecomputedSharedKey) {
+	c.sessionKeys[emom1.Seqno(0)] = k
 }
 
 func (c *CloudCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.Arg) error {
 	c.Lock()
 	defer c.Unlock()
-	if c.sessionKey == nil {
+	if c.masterSessionKey() == nil {
 		return nil
 	}
 	if arg.H == nil {
@@ -144,7 +156,7 @@ func (c *CloudCryptoPackage) InitServerHandshake(ctx context.Context, arg emom1.
 		return NewHandshakeError("key generation %d not found", arg.H.S)
 	}
 
-	c.sessionKey = key.Precompute(userEphemeralKey)
+	c.setMasterSessionKey(key.Precompute(userEphemeralKey))
 
 	return nil
 }

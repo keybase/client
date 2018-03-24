@@ -38,19 +38,33 @@ func (e MsgType) String() string {
 }
 
 type AuthEnc struct {
-	N Seqno  `codec:"n" json:"n"`
 	E []byte `codec:"e" json:"e"`
+	N Seqno  `codec:"n" json:"n"`
+	R Seqno  `codec:"r" json:"r"`
 }
 
 func (o AuthEnc) DeepCopy() AuthEnc {
 	return AuthEnc{
-		N: o.N.DeepCopy(),
 		E: (func(x []byte) []byte {
 			if x == nil {
 				return nil
 			}
 			return append([]byte{}, x...)
 		})(o.E),
+		N: o.N.DeepCopy(),
+		R: o.R.DeepCopy(),
+	}
+}
+
+type ServerRatchet struct {
+	I int `codec:"i" json:"i"`
+	K KID `codec:"k" json:"k"`
+}
+
+func (o ServerRatchet) DeepCopy() ServerRatchet {
+	return ServerRatchet{
+		I: o.I,
+		K: o.K.DeepCopy(),
 	}
 }
 
@@ -95,28 +109,34 @@ func (o Seqno) DeepCopy() Seqno {
 }
 
 type Handshake struct {
-	V int    `codec:"v" json:"v"`
-	S KeyGen `codec:"s" json:"s"`
 	K KID    `codec:"k" json:"k"`
+	S KeyGen `codec:"s" json:"s"`
+	V int    `codec:"v" json:"v"`
 }
 
 func (o Handshake) DeepCopy() Handshake {
 	return Handshake{
-		V: o.V,
-		S: o.S.DeepCopy(),
 		K: o.K.DeepCopy(),
+		S: o.S.DeepCopy(),
+		V: o.V,
 	}
 }
 
 type RequestPlaintext struct {
-	F *SignedAuthToken `codec:"f,omitempty" json:"f,omitempty"`
-	S *Seqno           `codec:"s,omitempty" json:"s,omitempty"`
-	N string           `codec:"n" json:"n"`
 	A []byte           `codec:"a" json:"a"`
+	F *SignedAuthToken `codec:"f,omitempty" json:"f,omitempty"`
+	N string           `codec:"n" json:"n"`
+	S *Seqno           `codec:"s,omitempty" json:"s,omitempty"`
 }
 
 func (o RequestPlaintext) DeepCopy() RequestPlaintext {
 	return RequestPlaintext{
+		A: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.A),
 		F: (func(x *SignedAuthToken) *SignedAuthToken {
 			if x == nil {
 				return nil
@@ -124,6 +144,7 @@ func (o RequestPlaintext) DeepCopy() RequestPlaintext {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.F),
+		N: o.N,
 		S: (func(x *Seqno) *Seqno {
 			if x == nil {
 				return nil
@@ -131,37 +152,30 @@ func (o RequestPlaintext) DeepCopy() RequestPlaintext {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.S),
-		N: o.N,
-		A: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.A),
 	}
 }
 
 type ResponsePlaintext struct {
-	S Seqno  `codec:"s" json:"s"`
-	R []byte `codec:"r" json:"r"`
 	E []byte `codec:"e" json:"e"`
+	R []byte `codec:"r" json:"r"`
+	S Seqno  `codec:"s" json:"s"`
 }
 
 func (o ResponsePlaintext) DeepCopy() ResponsePlaintext {
 	return ResponsePlaintext{
-		S: o.S.DeepCopy(),
-		R: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.R),
 		E: (func(x []byte) []byte {
 			if x == nil {
 				return nil
 			}
 			return append([]byte{}, x...)
 		})(o.E),
+		R: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.R),
+		S: o.S.DeepCopy(),
 	}
 }
 
@@ -231,12 +245,20 @@ func (o Arg) DeepCopy() Arg {
 }
 
 type Res struct {
-	A AuthEnc `codec:"a" json:"a"`
+	A AuthEnc  `codec:"a" json:"a"`
+	R *AuthEnc `codec:"r,omitempty" json:"r,omitempty"`
 }
 
 func (o Res) DeepCopy() Res {
 	return Res{
 		A: o.A.DeepCopy(),
+		R: (func(x *AuthEnc) *AuthEnc {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.R),
 	}
 }
 

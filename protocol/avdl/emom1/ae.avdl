@@ -10,12 +10,13 @@ protocol ae {        // AE   = "Authenticated Encryption"
   // We use abbreviations here extensively to save bandwidth
 
   record AuthEnc {
-    Seqno n; // nonce bottom 64 bits (various monotonically over all types)
-    bool  r; // true if using the ratcheted session key
     bytes e; // encrypted data
+    Seqno n; // nonce bottom 64 bits (various monotonically over all types)
+    Seqno r; // non-zero if using a server-ratched key; refers to ServerRatchet.i
   }
 
   record ServerRatchet {
+    int i; // the ID of the server key in the potential sequence
     KID k; // server is updating to a one-time ephemeral key
   }
 
@@ -43,10 +44,9 @@ protocol ae {        // AE   = "Authenticated Encryption"
   // Encrypt this structure and insert it into the `e` field of the AuthEnc structure
   // above.
   record ResponsePlaintext {
-    bytes                         e; // error, msgpacked
-    bytes                         r; // reply, msgpacked
-    Seqno                         s; // the seqno that the caller specified; must match to detect tampering
-    union { null, ServerRatchet } t; // Specified when a server is migrating to the new key (on the next message)
+    bytes e; // error, msgpacked
+    bytes r; // reply, msgpacked
+    Seqno s; // the seqno that the caller specified; must match to detect tampering
   }
 
   record AuthToken {
@@ -73,7 +73,8 @@ protocol ae {        // AE   = "Authenticated Encryption"
   }
 
   record Res {
-    AuthEnc a; // AuthEnc of a ResponsePlaintext
+    AuthEnc                a; // AuthEnc of a ResponsePlaintext
+    union { null, AuthEnc} r; // optional server ratchet
   }
 
   // (call or notify) an RPC with method name name, with msgpack'ed args; reply with msgpckaged bytes.
