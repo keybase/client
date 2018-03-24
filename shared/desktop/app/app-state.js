@@ -236,7 +236,7 @@ export default class AppState {
   }
 
   setLinuxLoginState() {
-    const homeDir = process.env.HOME
+    const homeDir = String(process.env.HOME)
     const fName = path.join(homeDir, '.config/autostart/keybase_autostart.desktop')
     const isGnome = process.env.SESSIONTYPE === 'gnome-session'
 
