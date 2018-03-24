@@ -187,6 +187,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         break
     }
   } catch (error) {
+    console.log(`Download for intent[${intent}] error: ${error}`)
     yield Saga.put(FsGen.createDownloadFinished({key, error}))
     return
   }
