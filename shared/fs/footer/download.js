@@ -3,21 +3,24 @@ import * as React from 'react'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import Progress from '../common/progress'
+import memoize from 'lodash/memoize'
 
 export type DownloadProps = {
+  error?: string,
   filename: string,
   completePortion: number,
   progressText: string,
   isDone: boolean,
   open?: () => void,
   dismiss: () => void,
+  cancel: () => void,
 }
 
 const Download = (props: DownloadProps) => (
-  <Box style={stylesDownload}>
+  <Box style={stylesDownload(!!props.error)}>
     <Box style={stylesIconBox}>
       <Icon type={props.isDone ? 'iconfont-success' : 'iconfont-download'} style={stylesIconLeft} />
-    </Box>{' '}
+    </Box>
     <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>
       <Box style={stylesNameAndProgress}>
         <Text type="BodySmallSemibold" style={stylesText}>
@@ -30,22 +33,22 @@ const Download = (props: DownloadProps) => (
         )}
       </Box>
     </ClickableBox>
-    <ClickableBox style={stylesIconBox} onClick={props.dismiss}>
+    <ClickableBox style={stylesIconBox} onClick={props.isDone ? props.dismiss : props.cancel}>
       <Icon type="iconfont-remove" style={stylesIconRight} />
     </ClickableBox>
   </Box>
 )
 
-const stylesDownload = {
+const stylesDownload = memoize((errored: boolean) => ({
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.green,
+  backgroundColor: errored ? globalColors.red : globalColors.green,
   borderRadius: 4,
   height: 32,
   justifyContent: 'flex-start',
   marginLeft: globalMargins.xtiny,
   width: 140,
-}
+}))
 
 const stylesIconBox = {
   ...globalStyles.flexBoxColumn,

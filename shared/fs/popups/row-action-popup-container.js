@@ -59,17 +59,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             ])
           )
         },
-        shareNative: (path: Types.Path) => {
-          dispatch(FSGen.createDownload({path, intent: 'share'}))
-          dispatch(
-            navigateAppend([
-              {
-                props: {path, isShare: true},
-                selected: 'transferPopup',
-              },
-            ])
-          )
-        },
         share: (path: Types.Path) =>
           dispatch(
             navigateAppend([
@@ -85,7 +74,24 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
       }),
 
+  // We don't support share sheet on Android yet.
   ...(isIOS
+    ? {
+        shareNative: (path: Types.Path) => {
+          dispatch(FSGen.createDownload({path, intent: 'share'}))
+          dispatch(
+            navigateAppend([
+              {
+                props: {path, isShare: true},
+                selected: 'transferPopup',
+              },
+            ])
+          )
+        },
+      }
+    : {}),
+
+  ...(!isIOS
     ? {
         download: (path: Types.Path) => dispatch(FSGen.createDownload({path, intent: 'none'})),
       }
@@ -96,31 +102,30 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
   const {path, pathItem, fileUIEnabled} = stateProps
   const {showInFileUI, saveImage, share, download} = dispatchProps
   let menuItems = []
-  if (!isMobile && fileUIEnabled) {
+  !isMobile &&
+    fileUIEnabled &&
     menuItems.push({
       title: 'Show in ' + fileUIName,
       onClick: () => showInFileUI(path),
     })
-  }
-  if (isMobile) {
-    if (Constants.isImage(pathItem.name)) {
-      menuItems.push({
-        title: 'Save',
-        onClick: () => saveImage(path),
-      })
-    }
+  isMobile &&
+    Constants.isImage(pathItem.name) &&
+    menuItems.push({
+      title: 'Save',
+      onClick: () => saveImage(path),
+    })
+  // We don't support the share sheet on Android yet.
+  isIOS &&
     menuItems.push({
       title: 'Share...',
       onClick: () => share(path),
     })
-  }
-  if (!isIOS) {
-    // TODO make android download work
+  // TODO make android download work
+  !isIOS &&
     menuItems.push({
       title: 'Download a copy',
       onClick: () => download(path),
     })
-  }
   return menuItems
 }
 

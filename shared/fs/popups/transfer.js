@@ -6,6 +6,7 @@ import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import Progress from '../common/progress'
+import memoize from 'lodash/memoize'
 
 type Props = {
   name: string,
@@ -13,6 +14,7 @@ type Props = {
   itemStyles: Types.ItemStyles,
   completePortion: number,
   progressText: string,
+  error?: string,
   onHidden: () => void,
 }
 
@@ -41,7 +43,7 @@ const TransferPopup = (props: Props) => {
         <Text type="BodySmallSemibold" style={{color: props.itemStyles.textColor}} lineClamp={1}>
           {props.name}
         </Text>
-        <Box style={stylesProgressContainer}>
+        <Box style={stylesProgressContainer(!!props.error)}>
           <Progress completePortion={props.completePortion} text={props.progressText} width={96} />
         </Box>
       </Box>
@@ -66,14 +68,14 @@ const stylesContainer = {
   overflow: 'visible',
 }
 
-const stylesProgressContainer = {
+const stylesProgressContainer = memoize((errored: boolean) => ({
   ...globalStyles.flexBoxColumn,
   marginTop: globalMargins.small,
   width: '100%',
   height: 48,
-  backgroundColor: globalColors.green,
+  backgroundColor: errored ? globalColors.red : globalColors.green,
   alignItems: 'center',
   paddingTop: globalMargins.small,
-}
+}))
 
 export default TransferPopup
