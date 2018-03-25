@@ -538,7 +538,7 @@ func (s *PerUserKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContext
 
 // perUserKeyChecker checks the [secret]boxes returned from the server
 // against the public keys advertised in the user's sigchain. As we import
-// keys, we check them.  We check that the boxes were encryted with a
+// keys, we check them.  We check that the boxes were encrypted with a
 // valid device subkey (though it can be now revoked). And we check that the
 // public keys corresponds to what was signed in as a per_user_key.
 type perUserKeyChecker struct {

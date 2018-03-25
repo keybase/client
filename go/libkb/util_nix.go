@@ -21,7 +21,7 @@ func canExec(s string) error {
 	// Only consider non-directories that have at least one +x
 	//  bit set.
 	//
-	// TODO: Recheck this on windows!
+	// TODO: Recheck this on Windows!
 	//   See here for lookpath: http://golang.org/src/pkg/os/exec/lp_windows.go
 	//
 	// Similar to check from exec.LookPath below
@@ -64,7 +64,7 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 	return nil
 }
 
-// Unicode error detection is windows only for now
+// Unicode error detection is Windows only for now
 func isUnicodeMark(b []byte) bool {
 	return false
 }
