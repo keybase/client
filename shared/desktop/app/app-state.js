@@ -268,8 +268,9 @@ export default class AppState {
   }
 
   getLinuxLoginState(callback: (result: boolean) => void) {
+    const homeDir = String(process.env.HOME)
     fs.readFile(
-      path.join(process.env.HOME, '.config/autostart/keybase_autostart.desktop'),
+      path.join(homeDir, '.config/autostart/keybase_autostart.desktop'),
       'utf8',
       (err, data) => {
         var result = false
