@@ -63,11 +63,11 @@ function checkUsernameValid(platform: ?string, username: string): boolean {
 function cleanupUsername(platform: ?string, username: string): string {
   if (['http', 'https'].includes(platform)) {
     // Ensure that only the hostname is getting returned, with no
-    // protocal, port, or path information
+    // protocol, port, or path information
     return (
       username &&
       username
-        .replace(/^.*?:\/\//, '') // Remove protocal information (if present)
+        .replace(/^.*?:\/\//, '') // Remove protocol information (if present)
         .replace(/:.*/, '') // Remove port information (if present)
         .replace(/\/.*/, '')
     ) // Remove path information (if present)

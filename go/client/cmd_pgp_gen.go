@@ -177,7 +177,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			},
 		},
 		Description: `"keybase pgp gen" generates a new PGP key for this account.
-   In all cases, it signs the public key with an exising device key,
+   In all cases, it signs the public key with an existing device key,
    and pushes the signature to the server. Thus, the user will have a
    publicly-visible "PGP device" after running this operation.
 

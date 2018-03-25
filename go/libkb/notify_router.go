@@ -174,7 +174,7 @@ func (n *NotifyRouter) SetChannels(i ConnectionID, nc keybase1.NotificationChann
 }
 
 // HandleLogout is called whenever the current user logged out. It will broadcast
-// the message to all connections who care about such a mesasge.
+// the message to all connections who care about such a message.
 func (n *NotifyRouter) HandleLogout() {
 	if n == nil {
 		return
@@ -201,7 +201,7 @@ func (n *NotifyRouter) HandleLogout() {
 }
 
 // HandleLogin is called whenever a user logs in. It will broadcast
-// the message to all connections who care about such a mesasge.
+// the message to all connections who care about such a message.
 func (n *NotifyRouter) HandleLogin(u string) {
 	if n == nil {
 		return

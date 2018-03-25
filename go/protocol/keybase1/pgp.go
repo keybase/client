@@ -82,7 +82,7 @@ func (o PGPEncryptOptions) DeepCopy() PGPEncryptOptions {
 }
 
 // PGPSigVerification is returned by pgpDecrypt and pgpVerify with information
-// about a the signature verification. If isSigned is false, there was no
+// about the signature verification. If isSigned is false, there was no
 // signature, and the rest of the fields should be ignored.
 type PGPSigVerification struct {
 	IsSigned bool      `codec:"isSigned" json:"isSigned"`

@@ -105,7 +105,7 @@ export default compose(
       }
     },
   }),
-  // TODO remove these branches, lets not send all these props to all possible outcomes
+  // TODO remove these branches, let's not send all these props to all possible outcomes
   branch(props => props.selectedTab === 'members', membersListItemsConnector),
   // $FlowIssue passing extra props
   branch(props => props.selectedTab === 'subteams', subteamsListItemsConnector),

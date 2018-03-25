@@ -39,7 +39,7 @@
  * We default to only 4 levels because it makes it easier for beginners
  * to make the transition to a logging framework.
  *
- * More advanced users may choose to completely customize the levels (and level names) to suite their needs.
+ * More advanced users may choose to completely customize the levels (and level names) to suit their needs.
  * For more information on this see the "Custom Log Levels" page:
  * Documentation/CustomLogLevels.md
  *
@@ -331,7 +331,7 @@ NSString * __nullable DDExtractFileNameWithoutExtension(const char *filePath, BO
 /**
  * Logging Primitive.
  *
- * This method can be used if you manualy prepared DDLogMessage.
+ * This method can be used if you manually prepared DDLogMessage.
  *
  *  @param asynchronous YES if the logging is done async, NO if you want to force sync
  *  @param logMessage   the log message stored in a `DDLogMessage` model object
@@ -342,7 +342,7 @@ NSString * __nullable DDExtractFileNameWithoutExtension(const char *filePath, BO
 /**
  * Logging Primitive.
  *
- * This method can be used if you manualy prepared DDLogMessage.
+ * This method can be used if you manually prepared DDLogMessage.
  *
  *  @param asynchronous YES if the logging is done async, NO if you want to force sync
  *  @param logMessage   the log message stored in a `DDLogMessage` model object
@@ -612,10 +612,10 @@ NSString * __nullable DDExtractFileNameWithoutExtension(const char *filePath, BO
 
 /**
  * Some loggers may buffer IO for optimization purposes.
- * For example, a database logger may only save occasionaly as the disk IO is slow.
+ * For example, a database logger may only save occasionally as the disk IO is slow.
  * In such loggers, this method should be implemented to flush any pending IO.
  *
- * This allows invocations of DDLog's flushLog method to be propogated to loggers that need it.
+ * This allows invocations of DDLog's flushLog method to be propagated to loggers that need it.
  *
  * Note that DDLog's flushLog method is invoked automatically when the application quits,
  * and it may be also invoked manually by the developer prior to application crashes, or other such reasons.
@@ -666,7 +666,7 @@ NSString * __nullable DDExtractFileNameWithoutExtension(const char *filePath, BO
 
 /**
  * A single formatter instance can be added to multiple loggers.
- * These methods provides hooks to notify the formatter of when it's added/removed.
+ * These methods provide hooks to notify the formatter of when it's added/removed.
  *
  * This is primarily for thread-safety.
  * If a formatter is explicitly not thread-safe, it may wish to throw an exception if added to multiple loggers.
@@ -677,7 +677,7 @@ NSString * __nullable DDExtractFileNameWithoutExtension(const char *filePath, BO
 
 /**
  * A single formatter instance can be added to multiple loggers.
- * These methods provides hooks to notify the formatter of when it's added/removed.
+ * These methods provide hooks to notify the formatter of when it's added/removed.
  *
  * This is primarily for thread-safety.
  * If a formatter is explicitly not thread-safe, it may wish to throw an exception if added to multiple loggers.
@@ -855,7 +855,7 @@ typedef NS_OPTIONS(NSInteger, DDLogMessageOptions){
  * The `DDLogger` protocol specifies that an optional formatter can be added to a logger.
  * Most (but not all) loggers will want to support formatters.
  *
- * However, writting getters and setters in a thread safe manner,
+ * However, writing getters and setters in a thread safe manner,
  * while still maintaining maximum speed for the logging process, is a difficult task.
  *
  * To do it right, the implementation of the getter/setter has strict requiremenets:
