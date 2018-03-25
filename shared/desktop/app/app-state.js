@@ -269,19 +269,15 @@ export default class AppState {
 
   getLinuxLoginState(callback: (result: boolean) => void) {
     const homeDir = String(process.env.HOME)
-    fs.readFile(
-      path.join(homeDir, '.config/autostart/keybase_autostart.desktop'),
-      'utf8',
-      (err, data) => {
-        var result = false
-        if (!err) {
-          result =
-            data.search('\nX-GNOME-Autostart-enabled=false') === -1 && data.search('\nHidden=true') === -1
-        }
-        console.log('getLoginState: returning ', result, data)
-        callback(result)
+    fs.readFile(path.join(homeDir, '.config/autostart/keybase_autostart.desktop'), 'utf8', (err, data) => {
+      var result = false
+      if (!err) {
+        result =
+          data.search('\nX-GNOME-Autostart-enabled=false') === -1 && data.search('\nHidden=true') === -1
       }
-    )
+      console.log('getLoginState: returning ', result, data)
+      callback(result)
+    })
   }
 
   manageWindow(win: any) {
