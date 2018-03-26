@@ -323,15 +323,6 @@ func (g *GlobalContext) Logout() error {
 	}
 	g.secretStoreMu.Unlock()
 
-	g.cacheMu.Lock()
-	if g.LocalDb != nil {
-		_, err := g.LocalDb.Nuke()
-		if err != nil {
-			g.Log.Debug("Failed to nuke DB: %s", err)
-		}
-	}
-	g.cacheMu.Unlock()
-
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
 		g.Log.Debug("Logout ConfigReload error: %s", err)
