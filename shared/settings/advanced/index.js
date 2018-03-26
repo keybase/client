@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile, platformStyles, isLinux} from '../../styles'
 import {Box, Button, Text, Checkbox} from '../../common-adapters'
 
 type Props = {
@@ -20,21 +20,22 @@ const Advanced = (props: Props) => (
       padding: globalMargins.medium,
     }}
   >
-    {!isMobile && (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'left',
-          flex: 1,
-        }}
-      >
-        <Checkbox
-          label="Open Keybase on startup"
-          checked={props.openAtLogin}
-          onCheck={props.onSetOpenAtLogin}
-        />
-      </Box>
-    )}
+    {!isMobile &&
+      !isLinux(
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            alignItems: 'left',
+            flex: 1,
+          }}
+        >
+          <Checkbox
+            label="Open Keybase on startup"
+            checked={props.openAtLogin}
+            onCheck={props.onSetOpenAtLogin}
+          />
+        </Box>
+      )}
     <Developer {...props} />
   </Box>
 )

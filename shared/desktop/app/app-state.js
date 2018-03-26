@@ -6,7 +6,6 @@ import path from 'path'
 import {appBundlePath} from './paths'
 import isEqual from 'lodash/isEqual'
 import {windowStyle} from '../../styles'
-import {exec} from 'child_process'
 
 export type State = {
   x: ?number,
@@ -145,15 +144,12 @@ export default class AppState {
 
     const isDarwin = process.platform === 'darwin'
     const isWindows = process.platform === 'win32'
-    const isLinux = process.platform === 'linux'
     // Electron has a bug where app.setLoginItemSettings() to false fails!
     // https://github.com/electron/electron/issues/10880
     if (isDarwin) {
       this.setDarwinLoginState()
     } else if (isWindows) {
       this.setWinLoginState()
-    } else if (isLinux) {
-      this.setLinuxLoginState()
     }
   }
 
@@ -233,51 +229,6 @@ export default class AppState {
 
   setWinLoginState() {
     app.setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
-  }
-
-  setLinuxLoginState() {
-    const homeDir = String(process.env.HOME)
-    const fName = path.join(homeDir, '.config/autostart/keybase_autostart.desktop')
-    const isGnome = process.env.SESSIONTYPE === 'gnome-session'
-
-    const setString = isGnome ? 'X-GNOME-Autostart-enabled=true' : '#Hidden=true'
-    const unSetString = isGnome ? 'X-GNOME-Autostart-enabled=false' : '\nHidden=true'
-    var searchString = this.state.openAtLogin ? unSetString : setString
-    var replaceString = this.state.openAtLogin ? setString : unSetString
-
-    if (isGnome) {
-      // Always check if Hidden=true was uncommented on gnome
-      if (this.state.openAtLogin) {
-        exec('sed -i -e s/^Hidden=true/#Hidden=true/ ' + fName, {
-          windowsHide: true,
-        })
-      } else {
-        // Make sure the Gnome line was added at least once
-        const autoCmd =
-          'grep -qF X-GNOME-Autostart-enabled ' + fName + ' || echo ' + unSetString + ' >> ' + fName
-        console.log('adding gnome autostart: ', autoCmd)
-        exec(autoCmd, {
-          windowsHide: true,
-        })
-      }
-    }
-
-    exec('sed -i s/' + searchString + '/' + replaceString + '/ ' + fName, {
-      windowsHide: true,
-    })
-  }
-
-  getLinuxLoginState(callback: (result: boolean) => void) {
-    const homeDir = String(process.env.HOME)
-    fs.readFile(path.join(homeDir, '.config/autostart/keybase_autostart.desktop'), 'utf8', (err, data) => {
-      var result = false
-      if (!err) {
-        result =
-          data.search('\nX-GNOME-Autostart-enabled=false') === -1 && data.search('\nHidden=true') === -1
-      }
-      console.log('getLoginState: returning ', result, data)
-      callback(result)
-    })
   }
 
   manageWindow(win: any) {
