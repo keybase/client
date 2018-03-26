@@ -1,13 +1,32 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Button, MaybePopup, ButtonBar} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  ButtonBar,
+  Icon,
+  MaybePopup,
+  ProgressIndicator,
+  Text,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
-type Props = {
+export type Props = {
   onClose: () => void,
   onLeave: () => void,
   name: string,
 }
+
+const Spinner = (props: Props) => (
+  <MaybePopup onClose={props.onClose}>
+    <Box
+      style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.xlarge}}
+    >
+      <ProgressIndicator style={{width: globalMargins.medium}} />
+    </Box>
+  </MaybePopup>
+)
 
 const ReallyLeaveTeam = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
@@ -30,3 +49,4 @@ const ReallyLeaveTeam = (props: Props) => (
 )
 
 export default ReallyLeaveTeam
+export {Spinner}
