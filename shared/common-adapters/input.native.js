@@ -42,12 +42,6 @@ class Input extends Component<Props, State> {
     }
   }
 
-  componentWillUpdate(nextProps: Props) {
-    if (nextProps.type !== this.props.type) {
-      this._setPasswordVisible(nextProps.type === 'passwordVisible')
-    }
-  }
-
   _onContentSizeChange = event => {
     if (
       this.props.multiline &&
@@ -70,11 +64,6 @@ class Input extends Component<Props, State> {
         this.setState({height})
       }
     }
-  }
-
-  _setPasswordVisible(passwordVisible: boolean) {
-    // $FlowIssue
-    this._textInput && this._textInput.setNativeProps({passwordVisible})
   }
 
   getValue(): string {
