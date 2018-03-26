@@ -1628,8 +1628,12 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 }
 
 // Helpers to nav you to the right place
-const navigateToInbox = () =>
-  Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
+const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload) => {
+  if (action.type === Chat2Gen.leaveConversation && !action.payload.navigateToInbox) {
+    return
+  }
+  return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))
+}
 const navigateToThread = (_: any, state: TypedState) => {
   if (state.chat2.selectedConversation) {
     return Saga.put(
@@ -1874,7 +1878,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     markThreadAsRead
   )
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.navigateToInbox, navigateToInbox)
+  yield Saga.safeTakeEveryPure([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.joinConversation, joinConversation)
