@@ -8,15 +8,15 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
     return lcYou.indexOf(lcFilter) !== -1 ? 1 : 0
   }
 
-  let namesMinusYou = names.filter(n => n !== lcYou)
+  const namesMinusYou = names.filter(n => n !== lcYou)
   // special case, comma search
   const filters = lcFilter.split(',').filter(Boolean)
   let filter
   if (filters.length > 1) {
     const mustExist = filters.slice(0, -1)
     const partial = filters.slice(-1)
-    // any names between commas must be exact matches
-    if (!mustExist.every(m => namesMinusYou.find(toFind => toFind === m))) {
+    // In comma sep. inputs all but the last name must be exact matches
+    if (!mustExist.every(m => namesMinusYou.includes(m))) {
       return 0
     }
     filter = partial[0]
@@ -52,7 +52,7 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
 let _metaMap
 // Note: This is NOT a real selector. Instead this fires and stashes into _metaMap a cached copy.
 // If the other things change (inboxFilter, username, etc) then they'll just grab the cached value.
-// This serves 2 purposes. 1. Note thrashing as people are chatting (since we don't show snippets / use the ordering of timestamps)
+// This serves 2 purposes. 1. No thrashing as people are chatting (since we don't show snippets / use the ordering of timestamps)
 // and 2. We don't want the results to move around
 const fakeGetMetaMap = createSelector([(state: TypedState) => state.chat2.metaMap], metaMap => {
   _metaMap = metaMap
