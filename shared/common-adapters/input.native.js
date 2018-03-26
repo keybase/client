@@ -54,7 +54,8 @@ class Input extends Component<Props, State> {
       event &&
       event.nativeEvent &&
       event.nativeEvent.contentSize &&
-      event.nativeEvent.contentSize.height
+      event.nativeEvent.contentSize.height &&
+      event.nativeEvent.contentSize.width
     ) {
       let height = event.nativeEvent.contentSize.height
       const minHeight = this.props.rowsMin && this._rowsToHeight(this.props.rowsMin)
@@ -278,8 +279,9 @@ class Input extends Component<Props, State> {
       ...commonProps,
       multiline: true,
       blurOnSubmit: false,
-      onContentSizeChange: isIOS ? this._onContentSizeChange : null,
+      onContentSizeChange: this._onContentSizeChange,
       style: {...multilineStyle, ...this.props.inputStyle},
+      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {}),
     }
 
     return (
