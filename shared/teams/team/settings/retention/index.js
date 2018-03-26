@@ -1,15 +1,26 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../../../../styles'
 import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type _RetentionPolicy} from '../../../../constants/types/teams'
 import {daysToLabel} from '../../../../util/timestamp'
 
 export type Props = {
+  containerStyle?: StylesCrossPlatform,
+  dropdownStyle?: StylesCrossPlatform,
   policy: _RetentionPolicy,
   teamPolicy?: _RetentionPolicy,
-  onSelect: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
+  loading: boolean,
+  onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
   isTeamWide: boolean,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
 }
@@ -44,7 +55,7 @@ class RetentionPicker extends React.Component<Props, State> {
     const decreased =
       policyToComparable(selected, this.props.teamPolicy) <
       policyToComparable(this.props.policy, this.props.teamPolicy)
-    this.props.onSelect(selected, changed, decreased)
+    this.props.onSelectPolicy(selected, changed, decreased)
   }
 
   _makeItems = () => {
@@ -67,7 +78,7 @@ class RetentionPicker extends React.Component<Props, State> {
     const p = policy || this.props.policy
     this.setState({selected: p})
     // tell parent that nothing has changed
-    this.props.onSelect(p, false, false)
+    this.props.onSelectPolicy(p, false, false)
   }
 
   _label = () => {
@@ -95,15 +106,15 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   render() {
-    return this.props.policy ? (
-      <Box style={globalStyles.flexBoxColumn}>
+    return (
+      <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
           <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
         </Box>
         <ClickableBox
           onClick={this._onShowDropdown}
-          style={dropdownStyle}
+          style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >
           <Box style={labelStyle}>
@@ -117,8 +128,6 @@ class RetentionPicker extends React.Component<Props, State> {
           </Text>
         )}
       </Box>
-    ) : (
-      <ProgressIndicator style={progressIndicatorStyle} />
     )
   }
 }
@@ -213,5 +222,13 @@ const policyEquals = (p1?: _RetentionPolicy, p2?: _RetentionPolicy): boolean => 
   return p1 === p2
 }
 
+// Switcher to avoid having RetentionPicker try to process nonexistent data
+const RetentionSwitcher = (props: Props) => {
+  if (props.loading) {
+    return <ProgressIndicator style={progressIndicatorStyle} />
+  }
+  return <RetentionPicker {...props} />
+}
+
 export {daysToLabel}
-export default RetentionPicker
+export default RetentionSwitcher

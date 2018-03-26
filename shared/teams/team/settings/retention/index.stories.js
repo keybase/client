@@ -12,7 +12,7 @@ const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
 
 const actions = {
-  onSelect: action('onSelect'),
+  onSelectPolicy: action('onSelectPolicy'),
   onShowDropdown: action('onShowDropdown'),
 }
 
@@ -34,11 +34,25 @@ const load = () => {
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
     .add('Channel', () => (
-      <RetentionPicker isTeamWide={false} policy={policyRetain} teamPolicy={policy30Days} {...actions} />
+      <RetentionPicker
+        loading={false}
+        isTeamWide={false}
+        policy={policyRetain}
+        teamPolicy={policy30Days}
+        {...actions}
+      />
     ))
-    .add('Team-wide', () => <RetentionPicker isTeamWide={true} policy={policy30Days} {...actions} />)
+    .add('Team-wide', () => (
+      <RetentionPicker loading={false} isTeamWide={true} policy={policy30Days} {...actions} />
+    ))
     .add('Channel inheriting from team', () => (
-      <RetentionPicker isTeamWide={false} policy={policyInherit} teamPolicy={policy30Days} {...actions} />
+      <RetentionPicker
+        loading={false}
+        isTeamWide={false}
+        policy={policyInherit}
+        teamPolicy={policy30Days}
+        {...actions}
+      />
     ))
     .add('Team-wide dropdown', () => <RetentionDropdownView items={teamWideItems} onHidden={onHidden} />)
     .add('Channel dropdown', () => <RetentionDropdownView items={channelItems} onHidden={onHidden} />)

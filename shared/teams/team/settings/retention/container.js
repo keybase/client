@@ -20,17 +20,21 @@ export type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
+  const loading = !teamPolicy
   const teamPolicyJS = !!teamPolicy && teamPolicy.toJS()
   let policy = teamPolicyJS
   if (!ownProps.isTeamWide && ownProps.conversationIDKey) {
     const p = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
     if (p) {
       policy = p.toJS()
+    } else {
+      throw new Error('Conv retpolicy not present in metaMap!')
     }
   }
 
   return {
     policy,
+    loading,
     teamPolicy: ownProps.isTeamWide ? undefined : teamPolicyJS,
   }
 }
@@ -46,8 +50,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname, onSelect, type}: OwnP
         },
       ])
     ),
-  onSelect: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => {
-    if (type === 'simple' && onSelect) {
+  onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => {
+    if (onSelect) {
       onSelect(policy, changed, decreased)
     } else {
       // show popup etc (TODO DESKTOP-6062)

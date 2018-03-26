@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import {Box, Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participant, {AddPeople} from './participant'
@@ -98,6 +98,20 @@ type RetentionRow = {
   key: 'retention',
   teamname: string,
   isTeamWide: boolean,
+}
+
+const retentionStyles = {
+  containerStyle: platformStyles({
+    common: {
+      marginLeft: 16,
+      marginRight: 45,
+    },
+  }),
+  dropdownStyle: platformStyles({
+    common: {
+      width: '100%',
+    },
+  }),
 }
 
 type SpacerRow = {
@@ -332,6 +346,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         return (
           <RetentionPicker
             key="retention"
+            containerStyle={retentionStyles.containerStyle}
+            dropdownStyle={retentionStyles.dropdownStyle}
             conversationIDKey={this.props.selectedConversationIDKey}
             teamname={row.teamname}
             type="auto"
