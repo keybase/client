@@ -1,7 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import {Button, PlatformIcon, Input, StandardScreen, Text} from '../../common-adapters'
-import {NativeKeyboardAvoidingView} from '../../common-adapters/index.native'
+import {
+  Button,
+  PlatformIcon,
+  Input,
+  StandardScreen,
+  Text,
+  NativeKeyboardAvoidingView,
+} from '../../common-adapters/index.native'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
 

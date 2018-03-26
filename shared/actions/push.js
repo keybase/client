@@ -84,8 +84,8 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
     if (payload.type === 'chat.newmessageSilent_2') {
       logger.info('Push notification: silent notification received')
       try {
-        // $ForceType
         const membersType: RPCChatTypes.ConversationMembersType =
+          // $ForceType
           typeof payload.t === 'string' ? parseInt(payload.t) : payload.t
         const unboxRes = yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           convID: payload.c || '',
@@ -141,12 +141,12 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         handledPushThisSession = true
         const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
         yield Saga.put(
-          Chat2Gen.createSelectConversationDueToPush({
+          Chat2Gen.createSelectConversation({
             conversationIDKey,
-            phase: 'showImmediately',
+            reason: 'push',
           })
         )
-        yield Saga.put(Chat2Gen.createSetLoading({key: 'pushLoad', loading: true}))
+        yield Saga.put(Chat2Gen.createSetLoading({key: `pushLoad:${conversationIDKey}`, loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
       } else if (payload.type === 'follow') {
         const {username} = payload

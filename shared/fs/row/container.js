@@ -8,13 +8,13 @@ import {Row} from './row'
 import {isMobile, isLinux} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path)
+  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
   const _username = state.config.username || undefined
   return {
     _username,
     path,
     kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
-    type: pathItem ? pathItem.type : 'unknown',
+    pathItem,
   }
 }
 
@@ -23,11 +23,28 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      dispatch(FsGen.createDownload({path}))
-      console.log('Cannot view files yet. Requested file: ' + Types.pathToString(path))
+      dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
     }
   },
   _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+  _onAction: (path: Types.Path, type: Types.PathType, targetRect?: ?ClientRect) => {
+    // We may not have the folder loaded yet, but will need metadata to know
+    // folder entry types in the popup. So dispatch an action now to load it.
+    type === 'folder' && dispatch(FsGen.createFolderListLoad({path}))
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            path,
+            position: 'bottom right',
+            isShare: false,
+            targetRect,
+          },
+          selected: 'rowAction',
+        },
+      ])
+    )
+  },
   _openFinderPopup: isMobile
     ? () => undefined
     : (evt?: SyntheticEvent<>) =>
@@ -46,15 +63,26 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         ),
 })
 
-const mergeProps = ({_username, type, path, kbfsEnabled}, {_onOpen, _openInFileUI, _openFinderPopup}) => {
-  const elems = Types.getPathElements(path)
-  return {
-    name: elems[elems.length - 1],
-    type: type,
-    onOpen: () => _onOpen(type, path),
-    openInFileUI: kbfsEnabled ? () => _openInFileUI(path) : _openFinderPopup,
-    itemStyles: Constants.getItemStyles(elems, type, _username),
-  }
-}
+const mergeProps = (stateProps, dispatchProps) => ({
+  name: stateProps.pathItem.name,
+  type: stateProps.pathItem.type,
+  lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
+  lastWriter: stateProps.pathItem.lastWriter.username,
+  onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),
+  openInFileUI: stateProps.kbfsEnabled
+    ? () => dispatchProps._openInFileUI(stateProps.path)
+    : dispatchProps._openFinderPopup,
+  onAction: (event: SyntheticEvent<>) =>
+    dispatchProps._onAction(
+      stateProps.path,
+      stateProps.pathItem.type,
+      isMobile ? undefined : (event.target: window.HTMLElement).getBoundingClientRect()
+    ),
+  itemStyles: Constants.getItemStyles(
+    Types.getPathElements(stateProps.path),
+    stateProps.pathItem.type,
+    stateProps._username
+  ),
+})
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Row'))(Row)

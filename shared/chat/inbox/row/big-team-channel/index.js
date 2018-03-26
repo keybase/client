@@ -125,6 +125,8 @@ const channelBackgroundStyle = {
 const selectedChannelBackgroundStyle = {
   ...channelBackgroundStyle,
   backgroundColor: globalColors.blue,
+  borderTopLeftRadius: 3,
+  borderBottomLeftRadius: 3,
 }
 
 export {BigTeamChannel}

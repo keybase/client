@@ -278,7 +278,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h := NewServer(g, nil, nil, testUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
-	var tlf kbtest.TlfMock
+	var tlf *kbtest.TlfMock
 	var ri chat1.RemoteInterface
 	if useRemoteMock {
 		mockRemote := kbtest.NewChatRemoteMock(c.world)
@@ -824,7 +824,8 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.Snippet)
+					require.Equal(t, fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
+						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)

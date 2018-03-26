@@ -57,11 +57,9 @@ const metaMapReducer = (metaMap, action) => {
       )
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
-        (action.payload.force
-          ? action.payload.conversationIDKeys
-          : Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap)
-        ).forEach(conversationIDKey =>
-          map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
+        Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap).forEach(
+          conversationIDKey =>
+            map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
         )
       )
     case Chat2Gen.metaReceivedError: {
@@ -264,10 +262,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return loading.set(action.payload.key, count)
         }
       })
-    case Chat2Gen.selectConversationDueToPush:
-      if (action.payload.phase !== 'showImmediately') {
-        return state
-      }
     // fallthrough actually select it
     case Chat2Gen.selectConversation:
       return state.withMutations(s => {
@@ -516,13 +510,34 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('typingMap', action.payload.conversationToTypers)
     }
     case Chat2Gen.messagesWereDeleted: {
-      const {conversationIDKey, messageIDs = [], ordinals = []} = action.payload
+      const {conversationIDKey, messageIDs = [], ordinals = [], upToMessageID = null} = action.payload
+
+      let upToOrdinals = []
+      if (upToMessageID) {
+        const ordinalToMessage = state.messageMap.get(conversationIDKey, I.Map())
+        ordinalToMessage.reduce((arr, m, ordinal) => {
+          if (m.id < upToMessageID) {
+            arr.push(ordinal)
+          }
+          return arr
+        }, upToOrdinals)
+
+        const ordinals = state.messageOrdinals.get(conversationIDKey, I.SortedSet())
+        ordinals.reduce((arr, ordinal) => {
+          if (Types.ordinalToNumber(ordinal) < upToMessageID) {
+            arr.push(ordinal)
+          }
+          return arr
+        }, upToOrdinals)
+      }
+
       const allOrdinals = I.Set(
         [
           ...ordinals,
           ...messageIDs.map(messageID =>
             messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, conversationIDKey, messageID)
           ),
+          ...upToOrdinals,
         ].filter(Boolean)
       )
 
@@ -549,7 +564,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         )
 
         s.update('messageOrdinals', messageOrdinals =>
-          messageOrdinals.update(conversationIDKey, ordinals => ordinals.subtract(allOrdinals))
+          messageOrdinals.update(
+            conversationIDKey,
+            ordinals => (ordinals ? ordinals.subtract(allOrdinals) : ordinals)
+          )
         )
       })
     }

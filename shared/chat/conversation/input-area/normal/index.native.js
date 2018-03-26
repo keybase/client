@@ -1,6 +1,5 @@
 // @flow
 /* eslint-env browser */
-// import logger from '../../../../logger'
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../../common-adapters'
@@ -11,16 +10,9 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 
 import type {Props} from '.'
 
-let CustomTextInput
-
-// NEVER load this on ios, it kills it
-if (!isIOS) {
-  CustomTextInput = require('../../../../common-adapters/custom-input.native')
-}
-
 class ConversationInput extends Component<Props> {
   _openFilePicker = () => {
-    showImagePicker({mediaType: isIOS ? 'mixed' : 'photo'}, response => {
+    showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel) {
         return
       }
@@ -40,8 +32,7 @@ class ConversationInput extends Component<Props> {
   }
 
   render() {
-    // Auto-growing multiline doesn't work smoothly on Android yet.
-    const multilineOpts = isIOS ? {rowsMax: 3, rowsMin: 1} : {rowsMax: 2, rowsMin: 2}
+    const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     return (
       <Box>
@@ -76,44 +67,23 @@ class ConversationInput extends Component<Props> {
               </Text>
             </Box>
           )}
-          {isIOS ? (
-            <Input
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              autoFocus={false}
-              hideUnderline={true}
-              hintText="Write a message"
-              multiline={true}
-              onFocus={this.props.onFocus}
-              onChangeText={this.props.onChangeText}
-              ref={this.props.inputSetRef}
-              onSelectionChange={this.props.onSelectionChange}
-              small={true}
-              style={styles.input}
-              value={this.props.text}
-              {...multilineOpts}
-            />
-          ) : (
-            <CustomTextInput
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              autoFocus={false}
-              autoGrow={true}
-              style={styles.input}
-              onChangeText={this.props.onChangeText}
-              onFocus={this.props.onFocus}
-              onSelectionChange={this.props.onSelectionChange}
-              placeholder="Write a message"
-              underlineColorAndroid={globalColors.transparent}
-              multiline={true}
-              maxHeight={80}
-              numberOfLines={1}
-              minHeight={40}
-              defaultValue={this.props.text || undefined}
-              ref={this.props.inputSetRef}
-              blurOnSubmit={false}
-            />
-          )}
+          <Input
+            autoCorrect={true}
+            autoCapitalize="sentences"
+            autoFocus={false}
+            hideUnderline={true}
+            hintText="Write a message"
+            multiline={true}
+            onFocus={this.props.onFocus}
+            onChangeText={this.props.onChangeText}
+            ref={this.props.inputSetRef}
+            onSelectionChange={this.props.onSelectionChange}
+            small={true}
+            style={styles.input}
+            value={this.props.text}
+            {...multilineOpts}
+          />
+
           {this.props.typing.size > 0 && <Typing />}
           <Action
             text={this.props.text}
@@ -179,7 +149,7 @@ const actionButton = {
   alignSelf: isIOS ? 'flex-end' : 'center',
   paddingBottom: 2,
   paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingRight: 2,
 }
 
 const styles = styleSheetCreate({
@@ -208,20 +178,19 @@ const styles = styleSheetCreate({
   actionText: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
-    alignSelf: isIOS ? 'flex-end' : 'center',
     justifyContent: 'center',
-    paddingBottom: 12,
+    paddingBottom: 6,
     paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.small,
   },
   container: {
     ...globalStyles.flexBoxRow,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     backgroundColor: globalColors.fastBlank,
     borderTopColor: globalColors.black_05,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
+    padding: 6,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
@@ -230,9 +199,14 @@ const styles = styleSheetCreate({
     height: '100%',
   },
   input: {
-    flex: 1,
     marginLeft: globalMargins.tiny,
-    ...(isIOS ? {} : {marginBottom: -8, marginTop: -8}),
+    padding: 6,
+    ...(isIOS
+      ? {}
+      : {
+          marginBottom: -4, // android has a bug where the lineheight isn't respected
+          marginTop: -4, // android has a bug where the lineheight isn't respected
+        }),
   },
   mentionHud: {
     borderColor: globalColors.black_20,

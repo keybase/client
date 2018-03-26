@@ -317,7 +317,7 @@ func (t TrackDiffRemoteWorking) BreaksTracking() bool {
 	return false
 }
 func (t TrackDiffRemoteWorking) ToDisplayString() string {
-	return "working"
+	return "newly working"
 }
 func (t TrackDiffRemoteWorking) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())

@@ -65,6 +65,7 @@ class RemoteStore {
 }
 
 const sendToRemoteMiddleware = ({getState, dispatch}) => next => action => {
+  // $FlowIssue
   if (action.constructor === Function) {
     throw new Error('pure actions only allowed in remote store2')
   } else if (action.type === updateStore) {

@@ -73,6 +73,10 @@
         {
           "type": "DirentType",
           "name": "direntType"
+        },
+        {
+          "type": "User",
+          "name": "lastWriterUnverified"
         }
       ]
     },
@@ -145,6 +149,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ListFilter",
+      "symbols": [
+        "NO_FILTER_0",
+        "FILTER_ALL_HIDDEN_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "ListArgs",
       "fields": [
@@ -155,6 +167,10 @@
         {
           "type": "Path",
           "name": "path"
+        },
+        {
+          "type": "ListFilter",
+          "name": "filter"
         }
       ]
     },
@@ -306,6 +322,48 @@
           "body": "RemoveArgs"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "OpProgress",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "start"
+        },
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "AsyncOps",
+          "name": "opType"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesRead"
+        },
+        {
+          "type": "int64",
+          "name": "bytesWritten"
+        },
+        {
+          "type": "int64",
+          "name": "filesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "filesRead"
+        },
+        {
+          "type": "int64",
+          "name": "filesWritten"
+        }
+      ]
     }
   ],
   "messages": {
@@ -318,6 +376,10 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
         }
       ],
       "response": null,
@@ -332,6 +394,10 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
         }
       ],
       "response": null,
@@ -539,7 +605,7 @@
           "type": "OpID"
         }
       ],
-      "response": "Progress",
+      "response": "OpProgress",
       "doc": "Check progress of pending operation"
     },
     "simpleFSGetOps": {
@@ -559,6 +625,11 @@
       ],
       "response": null,
       "doc": "Blocking wait for the pending operation to finish"
+    },
+    "simpleFSDumpDebuggingInfo": {
+      "request": [],
+      "response": null,
+      "doc": "Instructs KBFS to dump debugging info into its logs."
     }
   },
   "namespace": "keybase.1"

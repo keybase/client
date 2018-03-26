@@ -378,7 +378,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 
 func (g *PushHandler) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(*conv)
+		pc := utils.PresentConversationLocal(*conv, g.G().Env.GetUsername().String())
 		res = &pc
 	}
 	return res
@@ -416,7 +416,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, gm.InboxVers)
 
-		var activity chat1.ChatActivity
+		var activity *chat1.ChatActivity
 		var err error
 		var conv *chat1.ConversationLocal
 		action := gm.Action
@@ -470,7 +470,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					g.Debug(ctx, "chat activity: error making page: %s", err.Error())
 				}
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
-				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+				activity = new(chat1.ChatActivity)
+				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 					Message: utils.PresentMessageUnboxed(ctx, decmsg, uid, g.G().TeamChannelSource),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
@@ -511,8 +512,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
-
-			activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
 				MsgID:  nm.MsgID,
 				ConvID: nm.ConvID,
 				Conv:   g.presentUIItem(conv),
@@ -531,7 +532,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
-			activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
 				ConvID: nm.ConvID,
 				Status: nm.Status,
 				Conv:   g.presentUIItem(conv),
@@ -555,7 +557,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				ConvID:   nm.ConvID,
 				Settings: nm.Settings,
 			}
-			activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
 		case types.ActionNewConversation:
 			var nm chat1.NewConversationPayload
 			err = dec.Decode(&nm)
@@ -585,7 +588,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			}
 			conv = &inbox.Convs[0]
 
-			activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
 				Conv: *g.presentUIItem(conv),
 			})
 		case types.ActionTeamType:
@@ -601,7 +605,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.TeamTypeChanged(ctx, uid, nm.InboxVers, nm.ConvID, nm.TeamType); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
-			activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
+			activity = new(chat1.ChatActivity)
+			*activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
 				ConvID:   nm.ConvID,
 				TeamType: nm.TeamType,
 				Conv:     g.presentUIItem(conv),
@@ -622,11 +627,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
-			activity = chat1.NewChatActivityWithExpunge(chat1.ExpungeInfo{
-				ConvID:  nm.ConvID,
-				Expunge: nm.Expunge,
-				Conv:    g.presentUIItem(conv),
-			})
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 			return
@@ -634,7 +634,9 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		if g.badger != nil && gm.UnreadUpdate != nil {
 			g.badger.PushChatUpdate(*gm.UnreadUpdate, gm.InboxVers)
 		}
-		g.notifyNewChatActivity(ctx, m.UID(), convID, conv, &activity)
+		if activity != nil {
+			g.notifyNewChatActivity(ctx, m.UID(), convID, conv, activity)
+		}
 	}(bctx)
 	return nil
 }

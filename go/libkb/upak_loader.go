@@ -27,6 +27,7 @@ type UPAKLoader interface {
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
+	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -670,6 +671,33 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 		err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
 	}
 	return NormalizedUsername(""), "", "", err
+}
+
+func (u *CachedUPAKLoader) loadUserWithKIDAndInfo(ctx context.Context, uid keybase1.UID, kid keybase1.KID, info *CachedUserLoadInfo) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
+	argBase := NewLoadUserByUIDArg(ctx, u.G(), uid)
+
+	// See comment in LoadKeyV2
+	attempts := []LoadUserArg{
+		argBase,
+		argBase.WithForcePoll(true),
+		argBase.WithForceReload(),
+	}
+	for _, arg := range attempts {
+		u.G().VDL.CLogf(ctx, VLog0, "| loadWithUserKIDAndInfo: loading with arg: %s", arg.String())
+		ret, _, err = u.loadWithInfo(arg, info, nil, false)
+		if err == nil && ret != nil && (kid.IsNil() || ret.HasKID(kid)) {
+			u.G().VDL.CLogf(ctx, VLog0, "| loadWithUserKIDAndInfo: UID/KID %s/%s found", uid, kid)
+			return ret, nil
+		}
+	}
+	if err == nil {
+		err = NotFoundError{fmt.Sprintf("UID/KID pair %s/%s not found", uid, kid)}
+	}
+	return nil, err
+}
+
+func (u *CachedUPAKLoader) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	return u.loadUserWithKIDAndInfo(ctx, uid, kid, nil)
 }
 
 func (u *CachedUPAKLoader) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error) {

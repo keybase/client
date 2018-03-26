@@ -58,14 +58,20 @@ const EditedMark = () => (
   </Text>
 )
 
-const Failure = ({failureDescription, onEdit, onRetry}) => {
+const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
   const error = `${failureDescription}. `
-  const resolveByEdit = failureDescription === 'message is too long'
+  const resolveByEdit = failureDescription === 'Failed to send: message is too long'
   return (
     <Text type="BodySmall">
       <Text type="BodySmall" style={styles.fail}>
         {error}
       </Text>
+      {!!onCancel && (
+        <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onCancel}>
+          Cancel
+        </Text>
+      )}
+      {!!onCancel && <Text type="BodySmall"> or </Text>}
       {!!onEdit &&
         resolveByEdit && (
           <Text type="BodySmall" style={styles.failStyleUnderline} onClick={onEdit}>
@@ -138,6 +144,7 @@ class MessageWrapper extends React.PureComponent<Props> {
                   failureDescription={props.failureDescription}
                   onRetry={props.onRetry}
                   onEdit={props.onEdit}
+                  onCancel={props.onCancel}
                 />
               )}
             </Box>
@@ -195,7 +202,7 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     width: 32,
   },
-  userAvatar: {width: 32, marginTop: -6},
+  userAvatar: {marginTop: isMobile ? -4 : -5, width: 32},
   username: {
     alignSelf: 'flex-start',
     backgroundColor: globalColors.fastBlank,

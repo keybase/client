@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
-import {downloadFilePath} from '../util/file'
+import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
 import memoize from 'lodash/memoize'
 
@@ -19,6 +19,7 @@ export const ExitCodeAuthCanceledError = 6
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   children: I.List(),
@@ -28,6 +29,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'file',
@@ -36,6 +38,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
   name: 'unknown',
   lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'unknown',
@@ -50,15 +53,26 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
-export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
   type: 'download',
   entryType: 'unknown',
+  intent: 'none',
   path: Types.stringToPath(''),
   localPath: '',
+  opID: null,
+})
+
+export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
   completePortion: 0,
+  endEstimate: undefined,
   error: undefined,
   isDone: false,
   startedAt: 0,
+})
+
+export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
+  meta: makeTransferMeta(),
+  state: makeTransferState(),
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -71,6 +85,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   kbfsInstalling: false,
   fuseInstalling: false,
   kextPermissionError: false,
+  showBanner: false,
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -179,6 +194,21 @@ const itemStylesTeamTlf = memoize((teamName: string) => ({
   textType: folderTextType,
 }))
 
+export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
+  const kib = 1024
+  const mib = kib * kib
+  const gib = mib * kib
+  const tib = gib * kib
+
+  if (!meta) return ''
+  const size = meta.size
+  if (size >= tib) return `${Math.round(size / tib)} TB`
+  if (size >= gib) return `${Math.round(size / gib)} GB`
+  if (size >= mib) return `${Math.round(size / mib)} MB`
+  if (size >= kib) return `${Math.round(size / kib)} KB`
+  return `${size} B`
+}
+
 export const getItemStyles = (
   pathElems: Array<string>,
   type: Types.PathType,
@@ -223,3 +253,10 @@ export const makeDownloadKey = (path: Types.Path, localPath: string) =>
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
+export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
+  downloadFilePathNoSearch(Types.getPathName(p))
+
+export const isImage = (name: string): boolean => {
+  const lower = name.toLowerCase()
+  return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
+}

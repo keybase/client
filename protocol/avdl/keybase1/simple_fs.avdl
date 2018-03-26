@@ -49,7 +49,11 @@ protocol SimpleFS {
     int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
     string name;
     DirentType direntType;
-  }
+    // The last writer of this directory entry.  NOTE: this is NOT
+    // cryptographically verified; users with write access to the TLF could
+    // in theory spoof the last writer if they modify their client.
+    User lastWriterUnverified;
+}
 
   @typedef("int")
   record ErrorNum {}
@@ -70,7 +74,7 @@ protocol SimpleFS {
     array<Dirent> entries;
     Progress progress;
   }
-  
+
   record FileContent {
     bytes data;         // Zero bytes when read is complete
     Progress progress;  // Amount of data copied so far during this and previous reads
@@ -86,9 +90,15 @@ protocol SimpleFS {
     REMOVE_6
   }
 
+  enum ListFilter {
+    NO_FILTER_0,
+    FILTER_ALL_HIDDEN_1
+  }
+
   record ListArgs {
     OpID opID;
     Path path;
+    ListFilter filter;
   }
 
   record RemoveArgs {
@@ -131,17 +141,29 @@ protocol SimpleFS {
     case REMOVE: RemoveArgs;
   }
 
+  record OpProgress {
+    Time start;
+    Time endEstimate;
+    AsyncOps opType;
+    int64 bytesTotal;
+    int64 bytesRead;
+    int64 bytesWritten;
+    int64 filesTotal;
+    int64 filesRead;
+    int64 filesWritten;
+  }
+
   /**
    Begin list of items in directory at path
    Retrieve results with readList()
    Can be a single file to get flags/status
    */
-  void simpleFSList(OpID opID, Path path);
+  void simpleFSList(OpID opID, Path path, ListFilter filter);
 
   /**
    Begin recursive list of items in directory at path
    */
-  void simpleFSListRecursive(OpID opID, Path path);
+  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter);
 
   /**
    Get list of Paths in progress. Can indicate status of pending
@@ -224,7 +246,7 @@ protocol SimpleFS {
   /**
    Check progress of pending operation
    */
-  Progress simpleFSCheck(OpID opID);
+  OpProgress simpleFSCheck(OpID opID);
 
   /**
    Get all the outstanding operations
@@ -235,4 +257,9 @@ protocol SimpleFS {
    Blocking wait for the pending operation to finish
    */
   void simpleFSWait(OpID opID);
+
+  /**
+   Instructs KBFS to dump debugging info into its logs.
+   */
+  void simpleFSDumpDebuggingInfo();
 }

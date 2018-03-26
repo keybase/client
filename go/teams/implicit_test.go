@@ -79,6 +79,11 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, teamDisplay, formatName)
 		require.Equal(t, team.IsPublic(), public)
+
+		expr := fmt.Sprintf("tid:%s", createdTeam.ID)
+		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(context.Background(), expr)
+		require.NoError(t, rres.GetError())
+		require.True(t, rres.GetTeamID().Exists())
 	}
 
 	displayName := strings.Join(usernames, ",")

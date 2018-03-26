@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 18
+const inboxVersion = 20
 
 type queryHash []byte
 
@@ -109,9 +109,11 @@ func (i *Inbox) dbKey() libkb.DbKey {
 }
 
 func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
-
 	var ibox inboxDiskData
-
+	// Check context for an aborted request
+	if err := isAbortedRequest(ctx); err != nil {
+		return ibox, err
+	}
 	// Check in memory cache first
 	if memibox := inboxMemCache.Get(i.uid); memibox != nil {
 		i.Debug(ctx, "hit in memory cache")
@@ -127,7 +129,6 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 		}
 		inboxMemCache.Put(i.uid, &ibox)
 	}
-
 	// Check on disk server version against known server version
 	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
 		i.Debug(ctx, "server version match error, clearing: %s", err.Error())
@@ -274,14 +275,19 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 			if convLocal.Error != nil {
 				continue
 			}
+			topicName := utils.GetTopicName(convLocal)
 			rcm := &types.RemoteConversationMetadata{
-				TopicName: utils.GetTopicName(convLocal),
+				TopicName: topicName,
 				Headline:  utils.GetHeadline(convLocal),
-				Snippet:   utils.GetConvSnippet(convLocal),
+				Snippet:   utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String()),
 			}
 			switch convLocal.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
-				// don't fill out things that don't get shown in inbox for team chats
+				// Only write out participant names for general channel for teams, only thing needed
+				// by frontend
+				if topicName == globals.DefaultTeamTopic {
+					rcm.WriterNames = convLocal.Names()
+				}
 			default:
 				rcm.WriterNames = convLocal.Names()
 				rcm.ResetParticipants = convLocal.Info.ResetNames

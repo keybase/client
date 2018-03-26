@@ -45,6 +45,30 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
   }
 }
 
+export const formatTimeForFS = (time: number): string =>
+  moment(time).calendar(null, {
+    sameDay: '[Today]',
+    lastDay: '[Yesterday]',
+    lastWeek: 'ddd',
+    sameElse: function(now) {
+      return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
+    },
+  })
+
+export const formatDurationFromNowTo = (timeInFuture?: number): string => {
+  if (!timeInFuture) {
+    return '? s'
+  }
+  const d = moment.duration(-moment().diff(timeInFuture))
+  if (d.hours()) {
+    return `${d.hours()} hr`
+  } else if (d.minutes()) {
+    return `${d.minutes()} min`
+  } else {
+    return `${d.seconds()} s`
+  }
+}
+
 export function formatTimeForPopup(time: number): string {
   const m = moment(time)
   return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM

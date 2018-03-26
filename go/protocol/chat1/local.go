@@ -4114,6 +4114,10 @@ type SetTeamRetentionLocalArg struct {
 	Policy RetentionPolicy `codec:"policy" json:"policy"`
 }
 
+type GetTeamRetentionLocalArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
 type UpgradeKBFSConversationToImpteamArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
@@ -4175,6 +4179,7 @@ type LocalInterface interface {
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
+	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
 	UpgradeKBFSConversationToImpteam(context.Context, ConversationID) error
 	GetSearchRegexp(context.Context, GetSearchRegexpArg) (GetSearchRegexpRes, error)
 }
@@ -4909,6 +4914,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamRetentionLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamRetentionLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamRetentionLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamRetentionLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamRetentionLocal(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"upgradeKBFSConversationToImpteam": {
 				MakeArg: func() interface{} {
 					ret := make([]UpgradeKBFSConversationToImpteamArg, 1)
@@ -5183,6 +5204,12 @@ func (c LocalClient) SetConvRetentionLocal(ctx context.Context, __arg SetConvRet
 
 func (c LocalClient) SetTeamRetentionLocal(ctx context.Context, __arg SetTeamRetentionLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setTeamRetentionLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *RetentionPolicy, err error) {
+	__arg := GetTeamRetentionLocalArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "chat.1.local.getTeamRetentionLocal", []interface{}{__arg}, &res)
 	return
 }
 

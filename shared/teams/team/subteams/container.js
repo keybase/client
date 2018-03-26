@@ -60,7 +60,7 @@ const listMergeProps = (stateProps, dispatchProps, ownProps) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   listItems: listMergeProps(stateProps, dispatchProps, ownProps).listItems,
-  teamname: ownProps.teamname,
+  ...ownProps,
 })
 
 export const subteamsListItemsConnector = connect(mapStateToProps, mapDispatchToProps, mergeProps)

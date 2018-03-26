@@ -200,6 +200,10 @@ export const localGetTLFConversationsLocalRpcChannelMap = (configKeys: Array<str
 
 export const localGetTLFConversationsLocalRpcPromise = (request: LocalGetTLFConversationsLocalRpcParam): Promise<LocalGetTLFConversationsLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error: RPCError, result: LocalGetTLFConversationsLocalResult) => (error ? reject(error) : resolve(result))))
 
+export const localGetTeamRetentionLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetTeamRetentionLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getTeamRetentionLocal', request)
+
+export const localGetTeamRetentionLocalRpcPromise = (request: LocalGetTeamRetentionLocalRpcParam): Promise<LocalGetTeamRetentionLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getTeamRetentionLocal', request, (error: RPCError, result: LocalGetTeamRetentionLocalResult) => (error ? reject(error) : resolve(result))))
+
 export const localGetThreadLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetThreadLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getThreadLocal', request)
 
 export const localGetThreadLocalRpcPromise = (request: LocalGetThreadLocalRpcParam): Promise<LocalGetThreadLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getThreadLocal', request, (error: RPCError, result: LocalGetThreadLocalResult) => (error ? reject(error) : resolve(result))))
@@ -749,7 +753,7 @@ export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
-export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, conv?: ?InboxUIItem}>
+export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
@@ -897,6 +901,8 @@ export type LocalGetMessagesLocalRpcParam = $ReadOnly<{conversationID: Conversat
 export type LocalGetSearchRegexpRpcParam = $ReadOnly<{conversationID: ConversationID, query: String, isRegex: Boolean, maxHits: Int, maxMessages: Int, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetTLFConversationsLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, membersType: ConversationMembersType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LocalGetTeamRetentionLocalRpcParam = $ReadOnly<{teamID: Keybase1.TeamID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalGetThreadLocalRpcParam = $ReadOnly<{conversationID: ConversationID, query?: ?GetThreadQuery, pagination?: ?Pagination, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1380,6 +1386,7 @@ type LocalGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 type LocalGetMessagesLocalResult = GetMessagesLocalRes
 type LocalGetSearchRegexpResult = GetSearchRegexpRes
 type LocalGetTLFConversationsLocalResult = GetTLFConversationsLocalRes
+type LocalGetTeamRetentionLocalResult = ?RetentionPolicy
 type LocalGetThreadLocalResult = GetThreadLocalRes
 type LocalGetThreadNonblockResult = NonblockFetchRes
 type LocalJoinConversationByIDLocalResult = JoinLeaveConversationLocalRes

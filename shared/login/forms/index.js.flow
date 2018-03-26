@@ -10,6 +10,7 @@ export type Props = {
   onSignup: () => void,
   justDeletedSelf: ?string,
   justRevokedSelf: ?string,
+  justLoginFromRevokedDevice: ?string,
   retrying: boolean,
 }
 

@@ -10,26 +10,40 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
+    "filePreviewLoad": {
+      "path": "Types.Path"
+    },
+    "filePreviewLoaded": {
+      "path": "Types.Path",
+      "meta": "Types.PathItem"
+    },
     "sortSetting": {
       "path": "Types.Path",
       "sortSetting": "Types.SortSetting"
     },
     "download": {
       "path": "Types.Path",
-      "localPath?": "string"
+      "localPath?": "string",
+      "intent": "Types.TransferIntent"
     },
     "downloadStarted": {
       "key": "string",
       "path": "Types.Path",
-      "localPath": "Types.LocalPath"
+      "localPath": "Types.LocalPath",
+      "intent": "Types.TransferIntent",
+      "opID": "RPCTypes.OpID"
     },
     "downloadFinished": {
       "key": "string",
       "error?": "string"
     },
-    "fileTransferProgress": {
+    "transferProgress": {
       "key": "string",
-      "completePortion": "number"
+      "completePortion": "number",
+      "endEstimate?": "number"
+    },
+    "cancelTransfer": {
+      "key": "string"
     },
     "dismissTransfer": {
       "key": "string"
@@ -52,9 +66,6 @@
       "kextPermissionError": "boolean"
     },
     "installKBFS": {},
-    "installKBFSResult": {
-      "result": "RPCTypes.InstallResult"
-    },
     "uninstallKBFSConfirm": {
       "onSuccess": "() => void"
     },

@@ -1,0 +1,94 @@
+@namespace("stellar.1") protocol remote {
+
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "common.avdl";
+
+  record EncryptedNote {
+    int v;             // version 
+    bytes e;           // encrypted data
+    bytes n;           // nonce
+    keybase1.KID KID;  // public key data was encrypted for
+  }
+
+  record Members {
+    AccountID fromStellar;
+    string fromKeybase;
+    keybase1.UID fromUID;
+    keybase1.DeviceID fromDeviceID;
+    AccountID toStellar;
+    string toKeybase;
+    keybase1.UID toUID;
+  }
+
+  record TransactionSummary {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+    TransactionStatus status;
+    string errMsg;
+
+    EncryptedNote note;
+
+    Asset asset;
+    string amount;
+    string displayAmount;
+    string displayCurrency;
+
+    Members members;
+
+    TimeMs ctime;
+    TimeMs rtime;
+  }
+
+  record Operation {
+    string ID;
+    string opType;
+    int createdAt;
+    string TransactionHash;
+
+    Asset asset;
+    string amount;
+  }
+
+  record TransactionDetails {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+    string Hash;
+    int ledger;
+    int ledgerCloseTime;
+    AccountID sourceAccount;
+    string sourceAccountSequence;
+    int feePaid;
+
+    Members members;
+    EncryptedNote note;
+    array<string> signatures;
+    array<Operation> operations;
+
+    TimeMs ctime;
+  }
+
+  record PaymentPost {
+    uint64 stellarAccountSeqno;
+
+    Members members;
+
+    string displayAmount;
+    string displayCurrency;
+
+    EncryptedNote note;
+
+    string signedTransaction;
+  }
+
+  record PaymentResult {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+    int Ledger;
+  }
+  
+  array<Balance> balances(keybase1.UID uid, AccountID accountID);
+  array<TransactionSummary> recentTransactions(keybase1.UID uid, AccountID accountID, int count);
+  TransactionDetails transaction(keybase1.UID uid, TransactionID id);
+
+  PaymentResult submitPayment(keybase1.UID uid, PaymentPost payment);
+}

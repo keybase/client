@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
@@ -14,7 +13,7 @@ type State = {
 
 class Input extends React.PureComponent<Props, State> {
   state: State
-  _input: *
+  _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
 
   constructor(props: Props) {
@@ -59,9 +58,9 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   selections = () => {
-    const node = this._input && this._inputNode()
-    if (node) {
-      const {selectionStart, selectionEnd} = node
+    const n = this._input
+    if (n) {
+      const {selectionStart, selectionEnd} = n
       return {selectionStart, selectionEnd}
     }
   }
@@ -83,15 +82,15 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
-    const node = this._inputNode()
-    if (!node || !node.style) {
+    const n = this._input
+    if (!n || !n.style) {
       return
     }
 
     // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
     // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
     if (this.props.smartAutoresize) {
-      const rect = node.getBoundingClientRect()
+      const rect = n.getBoundingClientRect()
       // width changed so throw out our data
       if (rect.width !== this._smartAutoresize.width) {
         this._smartAutoresize.width = rect.width
@@ -99,9 +98,9 @@ class Input extends React.PureComponent<Props, State> {
       }
 
       // See if we've gone up in size, if so keep track of the input at that point
-      if (node.scrollHeight > rect.height) {
+      if (n.scrollHeight > rect.height) {
         this._smartAutoresize.pivotLength = this.state.value.length
-        node.style.height = `${node.scrollHeight}px`
+        n.style.height = `${n.scrollHeight}px`
       } else {
         // see if we went back down in height
         if (
@@ -109,62 +108,46 @@ class Input extends React.PureComponent<Props, State> {
           this.state.value.length <= this._smartAutoresize.pivotLength
         ) {
           this._smartAutoresize.pivotLength = -1
-          node.style.height = '1px'
-          node.style.height = `${node.scrollHeight}px`
+          n.style.height = '1px'
+          n.style.height = `${n.scrollHeight}px`
         }
       }
     } else {
-      node.style.height = '1px'
-      node.style.height = `${node.scrollHeight}px`
+      n.style.height = '1px'
+      n.style.height = `${n.scrollHeight}px`
     }
-  }
-
-  _inputNode = (): HTMLTextAreaElement | HTMLInputElement | null => {
-    const node = findDOMNode(this._input)
-
-    if (node instanceof HTMLTextAreaElement) {
-      return node
-    }
-    if (node instanceof HTMLInputElement) {
-      return node
-    }
-
-    return null
   }
 
   focus = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     n && n.focus()
   }
 
   select = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     n && n.select()
   }
 
   blur = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     n && n.blur()
   }
 
   moveCursorToEnd = () => {
-    const n = this._input && this._inputNode()
+    const n = this._input
     if (n && this.props.value) {
       n.selectionStart = n.selectionEnd = this.props.value.length
     }
   }
 
-  insertTextAtCursor = (text: string) => {
-    const n = this._input && this._inputNode()
-    const selections = this.selections()
-    if (n && selections) {
-      const {selectionStart, selectionEnd} = selections
-      this.replaceText(text, selectionStart, selectionEnd)
-    }
-  }
-
-  replaceText = (text: string, startIdx: number, endIdx: number) => {
-    const n = this._input && this._inputNode()
+  replaceText = (
+    text: string,
+    startIdx: number,
+    endIdx: number,
+    newSelectionStart: number,
+    newSelectionEnd: number
+  ) => {
+    const n = this._input
     if (n) {
       const v = n.value
       const nextValue = v.slice(0, startIdx) + text + v.slice(endIdx)
@@ -173,6 +156,8 @@ class Input extends React.PureComponent<Props, State> {
       this._autoResize()
 
       this.props.onChangeText && this.props.onChangeText(nextValue || '')
+      n.selectionStart = newSelectionStart
+      n.selectionEnd = newSelectionEnd
     }
   }
 

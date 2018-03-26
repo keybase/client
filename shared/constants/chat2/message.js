@@ -373,8 +373,12 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
       return 'proofs failed for recipient user'
     case RPCChatTypes.localOutboxErrorType.toolong:
       return 'message is too long'
+    case RPCChatTypes.localOutboxErrorType.duplicate:
+      return 'message already sent'
+    case RPCChatTypes.localOutboxErrorType.expired:
+      return 'took too long to send'
     default:
-      return `unknown error type ${error.typ || ''} ${error.message || ''}`
+      return `${error.message || ''} (code: ${error.typ})`
   }
 }
 
@@ -398,6 +402,7 @@ const outboxUIMessagetoMessage = (
     errorReason,
     ordinal: Types.numberToOrdinal(o.ordinal),
     outboxID: Types.stringToOutboxID(o.outboxID),
+    submitState: 'pending',
     text: new HiddenString(o.body),
     timestamp: o.ctime,
   })

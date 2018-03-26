@@ -1,40 +1,40 @@
 package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
-import android.view.WindowManager;
 
 import com.facebook.react.ReactActivity;
+import com.facebook.react.modules.core.PermissionListener;
+import com.rt2zz.reactnativecontacts.ContactsManager;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
+import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import keybase.Keybase;
 
+import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
-import static keybase.Keybase.logSend;
-
-import io.keybase.ossifrage.util.DNSNSFetcher;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
+    private PermissionListener listener;
 
     private void createDummyFile() {
         final File dummyFile = new File(this.getFilesDir(), "dummy.txt");
@@ -69,7 +69,24 @@ public class MainActivity extends ReactActivity {
 
         super.onCreate(savedInstanceState);
 
-        // Hide splash screen background after 3s.
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null && bundle.containsKey("notification")) {
+                ReactInstanceManager instanceManager = getReactInstanceManager();
+                if (instanceManager != null) {
+                    ReactContext currentContext = instanceManager.getCurrentReactContext();
+                    if (currentContext != null) {
+                        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+                        if (emitter != null) {
+                            emitter.emit("androidIntentNotification", "");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Hide splash screen background after 300ms.
         // This prevents the image from being visible behind the app, such as during a
         // keyboard show animation.
         final Window mainWindow = this.getWindow();
@@ -79,7 +96,7 @@ public class MainActivity extends ReactActivity {
                     mainWindow.setBackgroundDrawableResource(R.color.white);
                 }
             },
-        3000);
+        300);
     }
 
     @Override
@@ -93,6 +110,18 @@ public class MainActivity extends ReactActivity {
             return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (listener != null) {
+            listener.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+        if (permissions.length > 0 && permissions[0].equals("android.permission.READ_CONTACTS")) {
+            // Call callback wrapper with results
+            ContactsPermissionsWrapper.callbackWrapper(requestCode, permissions, grantResults);
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     /**

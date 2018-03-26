@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   let canEditChannel = false
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
-    admin = yourOperations.renameChannel
+    admin = yourOperations.manageMembers
     canEditChannel = yourOperations.editChannelDescription
   }
 

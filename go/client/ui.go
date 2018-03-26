@@ -307,6 +307,17 @@ func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
 	return w.lcr.Diff
 }
 
+func (w LinkCheckResultWrapper) GetDiffOrRemoteDiff() *keybase1.TrackDiff {
+	isOK := func(d *keybase1.TrackDiff) bool {
+		return d == nil || d.Type == keybase1.TrackDiffType_NONE
+	}
+
+	if isOK(w.lcr.Diff) && w.lcr.RemoteDiff != nil {
+		return w.lcr.RemoteDiff
+	}
+	return w.lcr.Diff
+}
+
 func (w LinkCheckResultWrapper) GetTmpTrackExpireTime() time.Time {
 	return keybase1.FromTime(w.lcr.TmpTrackExpireTime)
 }
@@ -385,7 +396,7 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 	s := RemoteProofWrapper{p}
 	lcr := LinkCheckResultWrapper{l}
 
-	if diff := lcr.GetDiff(); diff != nil {
+	if diff := lcr.GetDiffOrRemoteDiff(); diff != nil {
 		lcrs = trackDiffToColoredString(ui.G(), *diff) + " "
 	}
 	run := s.GetRemoteUsername()
@@ -418,8 +429,8 @@ func trackDiffToColor(typ keybase1.TrackDiffType) string {
 	switch typ {
 	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_REVOKED, keybase1.TrackDiffType_NEW_ELDEST:
 		color = "red"
-	case keybase1.TrackDiffType_UPGRADED:
-		color = "orange"
+	case keybase1.TrackDiffType_UPGRADED, keybase1.TrackDiffType_REMOTE_WORKING:
+		color = "magenta"
 	case keybase1.TrackDiffType_NEW, keybase1.TrackDiffType_NONE_VIA_TEMPORARY:
 		color = "blue"
 	case keybase1.TrackDiffType_NONE:
@@ -446,7 +457,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 	s := RemoteProofWrapper{p}
 	lcr := LinkCheckResultWrapper{l}
 
-	if diff := lcr.GetDiff(); diff != nil {
+	if diff := lcr.GetDiffOrRemoteDiff(); diff != nil {
 		lcrs = trackDiffToColoredString(ui.G(), *diff) + " "
 	}
 

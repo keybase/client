@@ -24,6 +24,7 @@ import {isMobile, isSimulator} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
+import {type RPCError} from '../util/errors'
 
 const maxAvatarsPerLoad = 50
 // TODO convert to sagas
@@ -215,37 +216,33 @@ function _bootstrapSuccess(action: ConfigGen.BootstrapSuccessPayload, state: Typ
   return Saga.sequentially(actions)
 }
 
-type AvatarHelperAction = {payload: {names: Array<string>, endpoint: string, key: string}}
+type AvatarRPCCall = any => Promise<any>
+type AvatarHelperAction = {payload: {rpc_call: AvatarRPCCall, names: Array<string>}}
 function _loadAvatarHelper(action: AvatarHelperAction) {
-  const {names, endpoint, key} = action.payload
-  return Saga.sequentially([
-    Saga.call(RPCTypes.apiserverGetRpcPromise, {
-      args: [{key, value: names.join(',')}, {key: 'formats', value: 'square_360,square_200,square_40'}],
-      endpoint,
-    }),
-    Promise.resolve(names),
-  ])
+  const {rpc_call, names} = action.payload
+  return Saga.call(rpc_call, {
+    names,
+    formats: ['square_200', 'square_360', 'square_40'],
+  })
 }
 
-function _loadAvatarHelperError(error: Error, action: AvatarHelperAction) {
+function _loadAvatarHelperError(error: RPCError, action: AvatarHelperAction) {
   if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
     throw error
   }
   // ignore all other errors
 }
 
-function _loadAvatarHelperSuccess([response: {body: string}, names]) {
-  const nameToUrlMap = JSON.parse(response.body).pictures.reduce((map, picMap, idx) => {
-    const name = names[idx]
+function _loadAvatarHelperSuccess(resp: RPCTypes.LoadAvatarsRes) {
+  const nameToUrlMap = {}
+  Object.keys(resp.picmap).forEach(function(v) {
     const urlMap = {
-      ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-      ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-      ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+      ...(resp.picmap[v]['square_200'] ? {'200': resp.picmap[v]['square_200']} : null),
+      ...(resp.picmap[v]['square_360'] ? {'360': resp.picmap[v]['square_360']} : null),
+      ...(resp.picmap[v]['square_40'] ? {'40': resp.picmap[v]['square_40']} : null),
     }
-    map[name] = urlMap
-    return map
-  }, {})
-
+    nameToUrlMap[v] = urlMap
+  })
   return Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
 }
 
@@ -267,7 +264,7 @@ function* _loadAvatars(action: ConfigGen.LoadAvatarsPayload) {
 
     if (names.length) {
       yield Saga.put({
-        payload: {endpoint: 'image/username_pic_lookups', key: 'usernames', names},
+        payload: {rpc_call: RPCTypes.avatarsLoadUserAvatarsRpcPromise, names},
         type: '_loadAvatarHelper',
       })
     }
@@ -288,7 +285,7 @@ function* _loadTeamAvatars(action: ConfigGen.LoadTeamAvatarsPayload) {
 
     if (names.length) {
       yield Saga.put({
-        payload: {endpoint: 'image/team_avatar_lookups', key: 'team_names', names},
+        payload: {rpc_call: RPCTypes.avatarsLoadTeamAvatarsRpcPromise, names},
         type: '_loadAvatarHelper',
       })
     }
@@ -308,7 +305,8 @@ function* _getAppState(): Generator<any, void, any> {
   }
 }
 
-const _setStartedDueToPush = () => Saga.put(ConfigGen.createSetStartedDueToPush())
+const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
+  action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, _bootstrapSuccess)
@@ -325,7 +323,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     _loadAvatarHelperError
   )
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
-  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversationDueToPush, _setStartedDueToPush)
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
   yield Saga.fork(_getAppState)
 }
 

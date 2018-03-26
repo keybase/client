@@ -90,14 +90,7 @@ const load = () => {
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <BigTeamHeader
-          memberCount={30}
-          onManageChannels={action('onManageChannels')}
-          onSetShowMenu={action('onSetShowMenu')}
-          onViewTeam={action('onViewTeam')}
-          showMenu={false}
-          teamname="Keybase"
-        />
+        <BigTeamHeader memberCount={30} onClickGear={action('onClickGear')} teamname="Keybase" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#general" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#random" showBold={true} />
         <BigTeamChannel
@@ -108,14 +101,7 @@ const load = () => {
           hasUnread={true}
         />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#video-games" isMuted={true} />
-        <BigTeamHeader
-          memberCount={30}
-          onManageChannels={action('onManageChannels')}
-          onSetShowMenu={action('onSetShowMenu')}
-          onViewTeam={action('onViewTeam')}
-          showMenu={false}
-          teamname="techtonica"
-        />
+        <BigTeamHeader memberCount={30} onClickGear={action('onClickGear')} teamname="techtonica" />
         <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#general" isSelected={true} />
         <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#ignore-selected-below" />
         <BigTeamChannel
@@ -157,6 +143,7 @@ const load = () => {
 
 const commonBigFiltered = {
   teamname: 'stripe',
+  isSelected: false,
   onSelectConversation: action('onSelectConversation'),
 }
 

@@ -1351,6 +1351,13 @@ func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *Publi
 	return nil, nil
 }
 
+// HasKID returns true if u has the given KID in any of its incarnations.
+// Useful for deciding if we should repoll a stale UPAK in the UPAK loader.
+func (u UserPlusKeysV2AllIncarnations) HasKID(kid KID) bool {
+	incarnation, _ := u.FindKID(kid)
+	return (incarnation != nil)
+}
+
 func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if k.Base.Kid.Equal(needle) {
@@ -2268,6 +2275,13 @@ func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole) error {
 	return nil
 }
 
+func (req *TeamChangeReq) CompleteInviteID(inviteID TeamInviteID, uv UserVersionPercentForm) {
+	if req.CompletedInvites == nil {
+		req.CompletedInvites = make(map[TeamInviteID]UserVersionPercentForm)
+	}
+	req.CompletedInvites[inviteID] = uv
+}
+
 func (req *TeamChangeReq) GetAllAdds() (ret []UserVersion) {
 	ret = append(ret, req.Readers...)
 	ret = append(ret, req.Writers...)
@@ -2323,9 +2337,8 @@ func (r ResetLink) Summarize() ResetSummary {
 // CheckInvariants checks that the bundle satisfies
 // 1. No duplicate account IDs
 // 2. At most one primary account
-func (s StellarSecretBundle) CheckInvariants() error {
+func (s StellarBundle) CheckInvariants() error {
 	accountIDs := make(map[StellarAccountID]bool)
-	names := make(map[string]bool)
 	var foundPrimary bool
 	for _, entry := range s.Accounts {
 		_, found := accountIDs[entry.AccountID]
@@ -2333,17 +2346,38 @@ func (s StellarSecretBundle) CheckInvariants() error {
 			return fmt.Errorf("duplicate account ID: %v", entry.AccountID)
 		}
 		accountIDs[entry.AccountID] = true
-		_, found = names[entry.Name]
-		if found {
-			return fmt.Errorf("duplicate account name: %v", entry.Name)
-		}
-		names[entry.Name] = true
 		if entry.IsPrimary {
 			if foundPrimary {
-				return fmt.Errorf("multiple primary accounts")
+				return errors.New("multiple primary accounts")
 			}
 			foundPrimary = true
 		}
+		if entry.Mode == StellarAccountMode_NONE {
+			return errors.New("account missing mode")
+		}
+	}
+	if s.Revision < 1 {
+		return fmt.Errorf("revision %v < 1", s.Revision)
 	}
 	return nil
+}
+
+func (a StellarAccountID) String() string {
+	return string(a)
+}
+
+func (s StellarSecretKey) String() string {
+	return string(s)
+}
+
+func (f AvatarFormat) String() string {
+	return string(f)
+}
+
+func (u AvatarUrl) String() string {
+	return string(u)
+}
+
+func MakeAvatarURL(u string) AvatarUrl {
+	return AvatarUrl(u)
 }

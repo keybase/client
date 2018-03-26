@@ -138,8 +138,8 @@ func (s SimpleFSMock) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) err
 }
 
 // SimpleFSCheck - Check progress of pending operation
-func (s SimpleFSMock) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.Progress, error) {
-	return 0, nil
+func (s SimpleFSMock) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.OpProgress, error) {
+	return keybase1.OpProgress{}, nil
 }
 
 // SimpleFSGetOps - Get all the outstanding operations
@@ -149,6 +149,12 @@ func (s SimpleFSMock) SimpleFSGetOps(ctx context.Context) ([]keybase1.OpDescript
 
 // SimpleFSWait - Blocking wait for the pending operation to finish
 func (s SimpleFSMock) SimpleFSWait(ctx context.Context, arg keybase1.OpID) error {
+	return nil
+}
+
+// SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
+// into its logs.
+func (s SimpleFSMock) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 	return nil
 }
 

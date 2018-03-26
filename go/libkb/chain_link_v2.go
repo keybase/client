@@ -2,9 +2,11 @@ package libkb
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 // See comment at top of sig_chain.go for a description of V1, V2 and
@@ -29,6 +31,7 @@ const (
 	SigchainV2TypeSubkey                      SigchainV2Type = 12
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
+	SigchainV2TypeWallet                      SigchainV2Type = 15
 
 	// Team link types
 	// If you add a new one be sure to get all of these too:
@@ -151,16 +154,33 @@ type OuterLinkV2 struct {
 	IgnoreIfUnsupported bool `codec:"ignore_if_unsupported"`
 }
 
+func (o OuterLinkV2) Encode() ([]byte, error) {
+	return MsgpackEncode(o)
+}
+
 type OuterLinkV2WithMetadata struct {
 	OuterLinkV2
 	raw   []byte
 	sigID keybase1.SigID
 	sig   string
-	KID   keybase1.KID
+	kid   keybase1.KID
 }
 
-func (o OuterLinkV2) Encode() ([]byte, error) {
-	return MsgpackEncode(o)
+// An OuterLinkV2WithMetadata should never be encoded/decoded
+// directly. This is to avoid problems like
+// https://github.com/keybase/saltpack/pull/43 .
+
+var _ codec.Selfer = (*OuterLinkV2WithMetadata)(nil)
+
+var errCodecEncodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecEncodeSelf")
+var errCodecDecodeSelf = errors.New("Unexpected call to OuterLinkV2WithMetadata.CodecDecodeSelf")
+
+func (o *OuterLinkV2WithMetadata) CodecEncodeSelf(e *codec.Encoder) {
+	panic(errCodecEncodeSelf)
+}
+
+func (o *OuterLinkV2WithMetadata) CodecDecodeSelf(d *codec.Decoder) {
+	panic(errCodecDecodeSelf)
 }
 
 type SigIgnoreIfUnsupported bool
@@ -232,7 +252,7 @@ func (o OuterLinkV2WithMetadata) Raw() []byte {
 }
 
 func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, err error) {
-	key, err := ImportKeypairFromKID(o.KID)
+	key, err := ImportKeypairFromKID(o.kid)
 	if err != nil {
 		return kid, err
 	}
@@ -240,7 +260,7 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 	if err != nil {
 		return kid, err
 	}
-	return o.KID, nil
+	return o.kid, nil
 }
 
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
@@ -257,7 +277,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		OuterLinkV2: ol,
 		sigID:       sigID,
 		raw:         payload,
-		KID:         kid,
+		kid:         kid,
 		sig:         armored,
 	}
 	return &ret, nil
@@ -298,6 +318,8 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		ret = SigchainV2TypePGPUpdate
 	case "per_user_key":
 		ret = SigchainV2TypePerUserKey
+	case "wallet":
+		ret = SigchainV2TypeWallet
 	default:
 		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
 		if teamErr == nil {

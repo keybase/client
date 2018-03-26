@@ -54,7 +54,12 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	res = inbox
 	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
-		if conv.Conv.GetFinalizeInfo() != nil && conv.Conv.GetFinalizeInfo().ResetUser == username {
+		if conv.Conv.GetMembersType() == chat1.ConversationMembersType_KBFS &&
+			conv.Conv.GetFinalizeInfo() != nil &&
+			// If reset user is the current user, or is blank (only way such a thing could be in our
+			// inbox is if the current user is the one that reset)
+			(conv.Conv.GetFinalizeInfo().ResetUser == username ||
+				conv.Conv.GetFinalizeInfo().ResetUser == "") {
 			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
 			continue
 		}
@@ -488,7 +493,7 @@ func NewHybridInboxSource(g *globals.Context,
 	return s
 }
 
-func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
+func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) (types.Inbox, *chat1.RateLimit, error) {
 
 	// Insta fail if we are offline
@@ -518,6 +523,23 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	})
 	if err != nil {
 		return types.Inbox{}, ib.RateLimit, err
+	}
+
+	// Run any tasks on the fetched conversations
+	for index, conv := range ib.Inbox.Full().Conversations {
+		// Need to run expunge on anything we fetch from the server
+		expunge := conv.GetExpunge()
+		if expunge != nil {
+			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+		}
+
+		// Queue all these convs up to be loaded by the background loader (cap it at first 50)
+		// Also make sure we aren't here because of a background loader operation
+		if index < 50 {
+			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
+				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
+			}
+		}
 	}
 
 	return types.Inbox{
@@ -605,7 +627,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		}
 
 		// Go to the remote on miss
-		res, rl, err = s.fetchRemoteInbox(ctx, query, p)
+		res, rl, err = s.fetchRemoteInbox(ctx, uid, query, p)
 		if err != nil {
 			return res, rl, err
 		}
@@ -1258,48 +1280,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		ok := true
-		var errMsg string
-		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
-		iteam, err := LoadTeam(ctx, s.G().ExternalG(), conversationLocal.Info.Triple.Tlfid,
-			conversationLocal.Info.TlfName,
-			conversationRemote.GetMembersType(),
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
-		if err != nil {
-			ok = false
-			errMsg = fmt.Sprintf("unable to load iteam: %v", err.Error())
-		}
-		var iteamName string
-		if ok {
-			iteamName, err = iteam.ImplicitTeamDisplayNameString(ctx)
-			if err != nil {
-				ok = false
-				errMsg = fmt.Sprintf("failed to read : %v", err.Error())
-			}
-		}
-		if ok {
-			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
-			conversationLocal.Info.Participants, err = utils.ReorderParticipants(
-				ctx,
-				s.G(),
-				umapper,
-				iteamName,
-				conversationRemote.Metadata.ActiveList)
-			if err != nil {
-				ok = false
-				errMsg = fmt.Sprintf("error reordering participants: %v", err.Error())
-			}
-		}
-		if !ok {
-			s.Debug(ctx, "localizeConversation: failed to get implicit team members: %s", errMsg)
-		}
 	case chat1.ConversationMembersType_TEAM:
 		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-
 		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
 		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
 			10*time.Second, true)
@@ -1315,7 +1300,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			return conversationLocal.Info.Participants[i].Username <
 				conversationLocal.Info.Participants[j].Username
 		})
-
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+		fallthrough
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(

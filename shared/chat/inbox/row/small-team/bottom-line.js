@@ -9,7 +9,7 @@ import {
   collapseStyles,
   platformStyles,
 } from '../../../../styles'
-import {isMobile, isAndroid} from '../../../../constants/platform'
+import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   backgroundColor: ?string,
@@ -25,20 +25,9 @@ type Props = {
 
 class BottomLine extends PureComponent<Props> {
   render() {
-    const {
-      participantNeedToRekey,
-      youNeedToRekey,
-      showBold,
-      subColor,
-      snippet,
-      backgroundColor,
-      hasResetUsers,
-      youAreReset,
-      isSelected,
-    } = this.props
     let content
 
-    if (youNeedToRekey) {
+    if (this.props.youNeedToRekey) {
       content = (
         <Box
           style={{
@@ -64,7 +53,7 @@ class BottomLine extends PureComponent<Props> {
           </Text>
         </Box>
       )
-    } else if (youAreReset) {
+    } else if (this.props.youAreReset) {
       content = (
         <Text
           type="BodySmallSemibold"
@@ -80,23 +69,23 @@ class BottomLine extends PureComponent<Props> {
           Participants should let you back in.
         </Text>
       )
-    } else if (participantNeedToRekey) {
+    } else if (this.props.participantNeedToRekey) {
       content = (
-        <Text type="BodySmall" backgroundMode="Terminal" style={{color: subColor}}>
+        <Text type="BodySmall" backgroundMode="Terminal" style={{color: this.props.subColor}}>
           Waiting for participants to rekey
         </Text>
       )
-    } else if (snippet) {
-      const baseStyle = styles['bottomLine']
+    } else if (this.props.snippet) {
+      const baseStyle = styles.bottomLine
 
       let style
 
-      if (subColor !== globalColors.black_40 || showBold) {
+      if (this.props.subColor !== globalColors.black_40 || this.props.showBold) {
         style = collapseStyles([
           baseStyle,
           {
-            color: subColor,
-            ...(showBold ? globalStyles.fontBold : {}),
+            color: this.props.subColor,
+            ...(this.props.showBold ? globalStyles.fontBold : {}),
           },
         ])
       } else {
@@ -105,37 +94,38 @@ class BottomLine extends PureComponent<Props> {
 
       content = (
         <Markdown preview={true} style={style}>
-          {snippet}
+          {this.props.snippet}
         </Markdown>
       )
     } else {
       return null
     }
 
-    const height = isMobile ? (isAndroid ? 19 : 16) : 17
     return (
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          backgroundColor: isMobile ? backgroundColor : undefined,
-          width: '100%',
-          flexShrink: 0,
-          height,
+          backgroundColor: isMobile ? this.props.backgroundColor : undefined,
+          flexGrow: 1,
+          height: isMobile ? 20 : 17,
+          maxHeight: isMobile ? 20 : 17,
         }}
       >
-        {hasResetUsers && <Meta title="RESET" style={resetStyle} />}
-        <Box style={{flexGrow: 1, position: 'relative', height: '100%'}}>
+        {this.props.hasResetUsers && <Meta title="RESET" style={resetStyle} />}
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            flexGrow: 1,
+            height: '100%',
+            position: 'relative',
+          }}
+        >
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              alignItems: 'flex-start',
-              bottom: 0,
-              justifyContent: 'flex-start',
-              left: 0,
-              position: 'absolute',
-              right: 0,
-              top: 0,
+              ...globalStyles.fillAbsolute,
+              alignItems: 'center',
             }}
           >
             {content}
@@ -147,7 +137,7 @@ class BottomLine extends PureComponent<Props> {
 }
 
 const resetStyle = {
-  ...(isMobile ? {marginTop: 6} : {display: 'block'}),
+  ...(isMobile ? {marginTop: 2} : {display: 'block'}),
   alignSelf: 'center',
   backgroundColor: globalColors.red,
   marginRight: 6,
@@ -174,8 +164,6 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_40,
       fontSize: 13,
-      lineHeight: 17,
-      marginTop: 2,
       paddingRight: 30,
     },
   }),

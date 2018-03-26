@@ -185,13 +185,6 @@
         {
           "type": "Expunge",
           "name": "expunge"
-        },
-        {
-          "type": [
-            null,
-            "InboxUIItem"
-          ],
-          "name": "conv"
         }
       ]
     },

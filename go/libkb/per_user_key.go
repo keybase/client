@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -41,13 +40,17 @@ func (s *PerUserKeySeed) DeriveDHKey() (*NaclDHKeyPair, error) {
 	return &res, err
 }
 
-// derivePrevKey derives the symmetric key used to secretbox the previous generation seed.
-func (s *PerUserKeySeed) derivePrevKey() (res NaclSecretBoxKey, err error) {
+func (s *PerUserKeySeed) DeriveSymmetricKey(reason DeriveReason) (res NaclSecretBoxKey, err error) {
 	derived, err := DeriveFromSecret(*s, DeriveReasonPUKPrev)
 	if err != nil {
 		return res, err
 	}
 	return NaclSecretBoxKey(derived), err
+}
+
+// derivePrevKey derives the symmetric key used to secretbox the previous generation seed.
+func (s *PerUserKeySeed) derivePrevKey() (res NaclSecretBoxKey, err error) {
+	return s.DeriveSymmetricKey(DeriveReasonPUKPrev)
 }
 
 func (s *PerUserKeySeed) IsBlank() bool {
@@ -86,10 +89,9 @@ func newPerUserKeyPrev(contents PerUserKeySeed, symmetricKey NaclSecretBoxKey) (
 	const version = 1
 
 	var nonce [NaclDHNonceSize]byte
-	if nRead, err := rand.Read(nonce[:]); err != nil {
+	nonce, err := RandomNaclDHNonce()
+	if err != nil {
 		return "", err
-	} else if nRead != NaclDHNonceSize {
-		return "", fmt.Errorf("Short random read: %d", nRead)
 	}
 
 	// secretbox
@@ -101,7 +103,7 @@ func newPerUserKeyPrev(contents PerUserKeySeed, symmetricKey NaclSecretBoxKey) (
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var msgpacked []byte
 	enc := codec.NewEncoderBytes(&msgpacked, &mh)
-	err := enc.Encode(parts)
+	err = enc.Encode(parts)
 	if err != nil {
 		return "", err
 	}
@@ -339,6 +341,22 @@ func (s *PerUserKeyring) GetLatestSigningKey(ctx context.Context) (*NaclSigningK
 	return key.sigKey, nil
 }
 
+func (s *PerUserKeyring) GetSeedByGeneration(ctx context.Context, gen keybase1.PerUserKeyGeneration) (res PerUserKeySeed, err error) {
+	s.Lock()
+	defer s.Unlock()
+	if gen < 1 {
+		return res, fmt.Errorf("PerUserKeyring#GetSeedByGeneration bad generation: %v", gen)
+	}
+	if len(s.generations) < 1 {
+		return res, fmt.Errorf("no per-user-keys in keyring")
+	}
+	key, found := s.generations[gen]
+	if !found {
+		return res, fmt.Errorf("no per-user-key for generation: %v", gen)
+	}
+	return key.seed, nil
+}
+
 // Get the encryption key of a generation.
 func (s *PerUserKeyring) GetEncryptionKeyByGeneration(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	s.Lock()
@@ -349,11 +367,11 @@ func (s *PerUserKeyring) GetEncryptionKeyByGeneration(ctx context.Context, gen k
 
 func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	if gen < 1 {
-		return nil, fmt.Errorf("PerUserKeyring#GetEncryptionKey bad generation number %v", gen)
+		return nil, fmt.Errorf("PerUserKeyring#GetEncryptionKey bad generation: %v", gen)
 	}
 	key, found := s.generations[gen]
 	if !found {
-		return nil, fmt.Errorf("no encryption key for generation %v", gen)
+		return nil, fmt.Errorf("no encryption key for generation: %v", gen)
 	}
 	return key.encKey, nil
 }

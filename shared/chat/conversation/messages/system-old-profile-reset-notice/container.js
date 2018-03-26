@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey})),
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpFromReset'})),
   startConversation: (participants: Array<string>) =>
     dispatch(Chat2Gen.createStartConversation({forceImmediate: true, participants})),
 })
