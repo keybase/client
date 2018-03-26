@@ -1046,6 +1046,12 @@ func (s SigchainV2MismatchedHashError) Error() string {
 	return "Sigchain V2 hash mismatch error"
 }
 
+type SigchainV2StubbedDisallowed struct{}
+
+func (s SigchainV2StubbedDisallowed) Error() string {
+	return "Link was stubbed but required"
+}
+
 //=============================================================================
 
 type ReverseSigError struct {

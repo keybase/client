@@ -494,7 +494,6 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
-	DLGPerUserKey
 )
 
 const (
