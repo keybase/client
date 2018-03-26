@@ -239,10 +239,10 @@ class Profile extends Component<Props, State> {
             (this.props.isYou && this.props.youAreInTeams)) && (
             <Box style={{...globalStyles.flexBoxColumn}}>
               <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
-                <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between'}}>
+                <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', width: '100%'}}>
                   <Text type="BodySmallSemibold">Teams</Text>
                   <Icon
-                    style={{alignSelf: 'flex-end', marginRight: globalMargins.tiny}}
+                    style={{marginRight: globalMargins.tiny}}
                     type="iconfont-edit"
                     onClick={this.props.onClickShowcaseOffer}
                   />
