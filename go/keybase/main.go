@@ -46,12 +46,12 @@ func keybaseExit(exitCode int) {
 	os.Exit(exitCode)
 }
 
-// Preserve non-critical errors that happen very early during startup,
-// where logging is not set up yet, to be printed later when logging
-// is functioning.
-var startupErrors []error
-
 func main() {
+	// Preserve non-critical errors that happen very early during
+	// startup, where logging is not set up yet, to be printed later
+	// when logging is functioning.
+	var startupErrors []error
+
 	if err := libkb.SaferDLLLoading(); err != nil {
 		// Don't abort here. This should not happen on any known
 		// version of Windows, but new MS platforms may create
@@ -72,7 +72,7 @@ func main() {
 	g.SetServices(externals.GetServices())
 
 	go HandleSignals(g)
-	err := mainInner(g)
+	err := mainInner(g, startupErrors)
 
 	if g.Env.GetDebug() {
 		// hack to wait a little bit to receive all the log messages from the
@@ -111,9 +111,9 @@ func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
 	}
 }
 
-func logStartupIssues(log logger.Logger) {
-	for _, err := range startupErrors {
-		log.Debug(err.Error())
+func logStartupIssues(errors []error, log logger.Logger) {
+	for _, err := range errors {
+		log.Warning(err.Error())
 	}
 }
 
@@ -131,7 +131,7 @@ func checkSystemUser(log logger.Logger) {
 	}
 }
 
-func mainInner(g *libkb.GlobalContext) error {
+func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl, g))
 	cl.AddCommands(service.GetCommands(cl, g))
@@ -173,8 +173,8 @@ func mainInner(g *libkb.GlobalContext) error {
 	g.StartupMessage()
 
 	warnNonProd(g.Log, g.Env)
+	logStartupIssues(startupErrors, g.Log)
 	tryToDisableProcessTracing(g.Log, g.Env)
-	logStartupIssues(g.Log)
 
 	if err := configOtherLibraries(g); err != nil {
 		return err
