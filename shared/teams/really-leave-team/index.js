@@ -23,7 +23,7 @@ const Spinner = (props: Props) => (
     <Box
       style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.xlarge}}
     >
-      <ProgressIndicator style={{width: 24}} />
+      <ProgressIndicator style={{width: globalMargins.medium}} />
     </Box>
   </MaybePopup>
 )
