@@ -119,15 +119,25 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this._replaceWordAtCursor(`#${c} `)
     }
 
-    _replaceWordAtCursor = (w: string) => {
+    _replaceWordAtCursor = (newWord: string) => {
+      const selections = this.state._selection
       const word = this._getWordAtCursor(this.props.text)
-      const ss = this.state._selection.selectionStart
 
-      // can't use inputRef.replaceText because android custom input
-      // doesn't support it ootb
-      const existingText = this.props.text
-      const nextText = existingText.slice(0, ss - word.length) + w + existingText.slice(ss)
-      this.props.setText(nextText)
+      if (word && selections && selections.selectionStart === selections.selectionEnd) {
+        const startOfWordIdx = selections.selectionStart - word.length
+        if (startOfWordIdx >= 0) {
+          // Put the selection to the end of newWord.
+          const newSelectionIndex = startOfWordIdx + newWord.length
+          this._inputRef &&
+            this._inputRef.replaceText(
+              newWord,
+              startOfWordIdx,
+              selections.selectionStart,
+              newSelectionIndex,
+              newSelectionIndex
+            )
+        }
+      }
     }
 
     onSelectionChange = (event: any) =>
