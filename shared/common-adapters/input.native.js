@@ -93,10 +93,10 @@ class Input extends Component<Props, State> {
     newSelectionStart: number,
     newSelectionEnd: number
   ) => {
-    const existingText = this.state.value
-    const nextText = existingText.slice(0, startIdx) + text + existingText.slice(endIdx)
+    const v = this.state.value
+    const nextText = v.slice(0, startIdx) + text + v.slice(endIdx)
     this._onChangeText(nextText)
-    // TODO: Handle selection.
+    this.setState({selections: {selectionStart: newSelectionStart, selectionEnd: newSelectionEnd}})
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
