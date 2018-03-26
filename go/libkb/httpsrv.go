@@ -25,6 +25,10 @@ func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
 	return listener, address, nil
 }
 
+func NewRandomPortListenerSource() *RandomPortListenerSource {
+	return &RandomPortListenerSource{}
+}
+
 type PortRangeListenerSource struct {
 	sync.Mutex
 	pinnedPort int
@@ -36,6 +40,10 @@ func NewPortRangeListenerSource(low, high int) *PortRangeListenerSource {
 		low:  low,
 		high: high,
 	}
+}
+
+func NewFixedPortListenerSource(port int) *PortRangeListenerSource {
+	return NewPortRangeListenerSource(port, port)
 }
 
 func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address string, err error) {
@@ -51,7 +59,7 @@ func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address 
 		}
 		errMsg = fmt.Sprintf("failed to bind to pinned port: %d err: %s", p.pinnedPort, err)
 	} else {
-		for port := p.low; port < p.high; port++ {
+		for port := p.low; port <= p.high; port++ {
 			address = fmt.Sprintf("%s:%d", localhost, port)
 			listener, err = net.Listen("tcp", address)
 			if err == nil {
