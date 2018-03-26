@@ -107,7 +107,7 @@ func (tlf *fakeTLF) nextRevision() int {
 }
 
 type rekeyTester struct {
-	t          *testing.T
+	t          libkb.TestingTB
 	log        logger.Logger
 	devices    []*deviceWrapper
 	fakeClock  clockwork.FakeClock
@@ -116,7 +116,7 @@ type rekeyTester struct {
 	username   string
 }
 
-func newRekeyTester(t *testing.T) *rekeyTester {
+func newRekeyTester(t libkb.TestingTB) *rekeyTester {
 	return &rekeyTester{
 		t: t,
 	}
@@ -815,7 +815,7 @@ func (rkt *rekeyTester) fullyRekeyAndAssertCleared(dw *deviceWrapper) {
 	rkt.confirmNoRekeyUIActivity(dw, 14, false)
 }
 
-func TestRekey(t *testing.T) {
+func testRekeyOnce(t libkb.TestingTB) {
 	rkt := newRekeyTester(t)
 	primaryDevice := rkt.setup("rekey")
 	defer rkt.cleanup()
@@ -841,6 +841,7 @@ func TestRekey(t *testing.T) {
 	// because our device is already properly keyed. And then expect
 	// no rekey activity thereafter
 	rkt.expectAlreadyKeyedNoop(primaryDevice)
+
 
 	// 5.5 Now rekey fully and make sure that the gregor state is clean.
 	rkt.fullyRekeyAndAssertCleared(primaryDevice)
@@ -882,4 +883,8 @@ func TestRekey(t *testing.T) {
 
 	// 16. Confirm that gregor is clean
 	rkt.confirmGregorStateIsClean()
+}
+
+func TestRekey(t *testing.T) {
+	retryFlakeyTestOnlyUseIfPermitted(t, 5, testRekeyOnce)
 }
