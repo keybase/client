@@ -517,6 +517,7 @@ func TestSyncerTeamFilter(t *testing.T) {
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
 	u := world.GetUsers()[0]
+	u2 := world.GetUsers()[0]
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
@@ -524,13 +525,17 @@ func TestSyncerTeamFilter(t *testing.T) {
 	ibox := storage.NewInbox(tc.Context(), uid)
 
 	iconv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
-	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, "mike",
+	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username,
 		chat1.ConversationMembersType_TEAM)
+
 	_, _, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, err)
 	_, iconvs, err := ibox.ReadAll(ctx)
 	require.NoError(t, err)
 	require.Len(t, iconvs, 2)
+	require.NoError(t, ibox.TeamTypeChanged(ctx, 1, tconv.GetConvID(), chat1.TeamType_COMPLEX, nil))
+	tconv.Metadata.TeamType = chat1.TeamType_COMPLEX
+
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
 			Vers:  100,
