@@ -510,3 +510,42 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 		require.True(t, m.Valid().MessageBody.IsNil(), "remaining messages should have no body")
 	}
 }
+
+func TestSyncerTeamFilter(t *testing.T) {
+	ctx, world, ri2, _, sender, list := setupTest(t, 2)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	ibox := storage.NewInbox(tc.Context(), uid)
+
+	iconv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, "mike",
+		chat1.ConversationMembersType_TEAM)
+	_, _, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	require.NoError(t, err)
+	_, iconvs, err := ibox.ReadAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, iconvs, 2)
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{iconv, tconv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case res := <-list.inboxSynced:
+		typ, err := res.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		require.Equal(t, 1, len(res.Incremental().Items))
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no sync")
+	}
+
+}
