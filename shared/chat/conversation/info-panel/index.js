@@ -98,6 +98,7 @@ type RetentionRow = {
   key: 'retention',
   teamname: string,
   isTeamWide: boolean,
+  isSmallTeam: boolean,
 }
 
 const retentionStyles = {
@@ -352,6 +353,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname={row.teamname}
             type="auto"
             isTeamWide={row.isTeamWide}
+            isSmallTeam={row.isSmallTeam}
           />
         )
 
@@ -420,6 +422,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             conversationIDKey: props.selectedConversationIDKey,
             teamname: props.teamname || '',
             isTeamWide: props.smallTeam,
+            isSmallTeam: props.smallTeam,
           },
           {
             type: 'divider',
@@ -522,6 +525,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               conversationIDKey: props.selectedConversationIDKey,
               teamname: props.teamname || '',
               isTeamWide: props.smallTeam,
+              isSmallTeam: props.smallTeam,
             },
             {
               type: 'divider',

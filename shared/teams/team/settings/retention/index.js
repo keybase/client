@@ -20,8 +20,9 @@ export type Props = {
   policy: _RetentionPolicy,
   teamPolicy?: _RetentionPolicy,
   loading: boolean,
-  onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
   isTeamWide: boolean,
+  isSmallTeam?: boolean,
+  onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
 }
 
@@ -122,11 +123,12 @@ class RetentionPicker extends React.Component<Props, State> {
           </Box>
           <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 7}} />
         </ClickableBox>
-        {this.props.isTeamWide && (
-          <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
-            Individual channels can override this.
-          </Text>
-        )}
+        {this.props.isTeamWide &&
+          !this.props.isSmallTeam && (
+            <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
+              Individual channels can override this.
+            </Text>
+          )}
       </Box>
     )
   }

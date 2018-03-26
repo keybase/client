@@ -8,13 +8,13 @@ import {navigateAppend} from '../../../../actions/route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
 
-// type 'simple' = we pass up selected values and parent deals with showing warning popup
-// type 'auto' = we show the popup and handle everything (TODO DESKTOP-6062)
+// if you supply an onSelect callback, this won't trigger any popup on its own
+// if you don't, the selection will immediately be applied / warning shown on selection
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
   teamname: string,
-  isTeamWide: boolean, // the state where this is false is TODO in DESKTOP-6062
-  type: 'simple' | 'auto',
+  isTeamWide: boolean,
+  isSmallTeam?: boolean,
   onSelect?: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
