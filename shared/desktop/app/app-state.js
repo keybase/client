@@ -108,17 +108,6 @@ export default class AppState {
       console.log(`Error saving file: ${err}`)
     }
 
-    const isLinux = process.platform === 'linux'
-    if (isLinux) {
-      this.getLinuxLoginState(openAtLogin => {
-        if (openAtLogin !== this.state.openAtLogin) {
-          console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
-          this.setOSLoginState()
-        }
-      })
-      return
-    }
-
     if (app.getLoginItemSettings().openAtLogin !== this.state.openAtLogin) {
       console.log(`Login item settings changed! now ${this.state.openAtLogin ? 'true' : 'false'}`)
       this.setOSLoginState()
