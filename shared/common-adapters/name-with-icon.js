@@ -78,7 +78,6 @@ const NameWithIconVertical = (props: Props) => {
             colorFollowing={props.colorFollowing}
           />
         )}
-
         <TextOrComponent
           style={styles.fullWidthText}
           textType={adapterProps.metaOneType}
