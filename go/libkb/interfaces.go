@@ -642,6 +642,9 @@ type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
 	PurgeTeamEKGenCache(context context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	NewDeviceEphemeralSeed() (keybase1.Bytes32, error)
+	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
+	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (keybase1.DeviceEkStatement, string, error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {

@@ -12,6 +12,7 @@ import (
 
 func ephemeralKeyTestSetup(t *testing.T) libkb.TestContext {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
+	defer tc.Cleanup()
 
 	NewEphemeralStorageAndInstall(tc.G)
 

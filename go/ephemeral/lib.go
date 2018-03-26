@@ -317,6 +317,28 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 	return teamEK, nil
 }
 
+func (e *EKLib) NewDeviceEphemeralSeed() (seed keybase1.Bytes32, err error) {
+	deviceEKSeed, err := newDeviceEphemeralSeed()
+	if err != nil {
+		return seed, nil
+	}
+	return keybase1.Bytes32(deviceEKSeed), nil
+}
+
+func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
+	deviceEKSeed := DeviceEKSeed(seed)
+	return deviceEKSeed.DeriveDHKey()
+}
+
+func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return statement, signedStatement, err
+	}
+	dhKeypair := e.DeriveDeviceDHKey(seed)
+	return signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, *merkleRootPtr)
+}
+
 func (e *EKLib) OnLogin() error {
 	return e.KeygenIfNeeded(context.Background())
 }

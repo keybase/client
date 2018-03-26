@@ -277,6 +277,20 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 		return output, err
 	}
 
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	if len(string(input.DeviceEkKID)) != 0 && userEKBoxStorage != nil {
+		ekPair, err := libkb.ImportKeypairFromKID(input.DeviceEkKID)
+		if err != nil {
+			return output, err
+		}
+		output.UserEkBox, err = e.makeUserEKBox(ekPair)
+		if err != nil {
+			return output, err
+		}
+	} else {
+		e.G().Log.CWarningf(e.ctx.NetContext, "Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
+	}
+
 	return output, err
 }
 
@@ -414,11 +428,38 @@ func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keyb
 	return &pukBox, err
 }
 
+// Returns nil box if there are no userEKs.
+func (e *Kex2Provisioner) makeUserEKBox(ekPair libkb.GenericKey) (*keybase1.UserEkBoxed, error) {
+	receiverKey, ok := ekPair.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("Unexpected receiver key type")
+	}
+
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(e.ctx.NetContext)
+	if err != nil {
+		return nil, err
+	} else if maxGeneration < 0 {
+		e.G().Log.CWarningf(e.ctx.NetContext, "Provisioner does not have a userEK")
+		return nil, nil
+	}
+	userEK, err := userEKBoxStorage.Get(e.ctx.NetContext, maxGeneration)
+	if err != nil {
+		return nil, err
+	}
+	box, err := receiverKey.EncryptToString(userEK.Seed[:], nil)
+	if err != nil {
+		return nil, err
+	}
+	return &keybase1.UserEkBoxed{
+		Box:                box,
+		DeviceEkGeneration: 1, // This is hardcoded to 1 since we're provisioning a new device.
+		Metadata:           userEK.Metadata,
+	}, nil
+}
+
 func (e *Kex2Provisioner) loadMe() error {
 	var err error
 	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
