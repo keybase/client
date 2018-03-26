@@ -6,10 +6,11 @@ import ReallyLeaveTeam, {Spinner, type Props as RenderProps} from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
+import {type Teamname} from '../../constants/types/teams'
 
 type Props = RenderProps & {
   _canLeaveTeam: boolean,
-  _loadOperations: (teamname: string) => void,
+  _loadOperations: (teamname: Teamname) => void,
   _loaded: boolean,
 }
 
