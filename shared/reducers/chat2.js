@@ -6,6 +6,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import {isMobile} from '../constants/platform'
+import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -120,6 +121,14 @@ const metaMapReducer = (metaMap, action) => {
       return ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
         ? metaMap.clear()
         : metaMap
+    case Chat2Gen.updateConvRetentionPolicy:
+      const update = action.payload.update
+      if (!update.conv) {
+        logger.warn('Got conv retentionpolicy update with no inboxUIItem')
+        return metaMap
+      }
+      const newMeta = Constants.inboxUIItemToConversationMeta(update.conv)
+      return metaMap.set(newMeta.conversationIDKey, newMeta)
     default:
       return metaMap
   }
@@ -590,6 +599,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaDelete:
     case Chat2Gen.metaUpdatePagination:
     case Chat2Gen.setConversationOffline:
+    case Chat2Gen.updateConvRetentionPolicy:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

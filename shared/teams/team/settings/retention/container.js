@@ -1,6 +1,6 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
-import {createSetConversationRetentionPolicy} from '../../../../actions/chat2-gen'
+import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
 import {getTeamRetentionPolicy} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
@@ -16,6 +16,7 @@ export type OwnProps = {
   teamname: string,
   isTeamWide: boolean,
   isSmallTeam?: boolean,
+  type: 'simple' | 'auto',
   onSelect?: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
@@ -54,35 +55,67 @@ const mapDispatchToProps = (
         },
       ])
     ),
-  onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => {
-    if (onSelect) {
-      onSelect(policy, changed, decreased)
+  _onSelectPolicy: (
+    policy: _RetentionPolicy,
+    changed: boolean,
+    decreased: boolean,
+    parentPolicy?: _RetentionPolicy
+  ) => {
+    if (type === 'simple') {
+      onSelect && onSelect(policy, changed, decreased)
     } else {
       const setPolicy = () => {
         if (isTeamWide) {
           dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
         } else if (conversationIDKey) {
-          dispatch(createSetConversationRetentionPolicy({policy, conversationIDKey}))
+          dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
         } else {
           throw new Error('RetentionPicker: tried to set conv retention policy with no conversationIDKey')
         }
       }
       if (decreased) {
         dispatch(
-          navigateAppend([{selected: 'retentionWarning', props: {days: policy.days, onConfirm: setPolicy}}])
+          navigateAppend([
+            {
+              selected: 'retentionWarning',
+              props: {days: policyToDays(policy, parentPolicy), onConfirm: setPolicy},
+            },
+          ])
         )
       } else {
         setPolicy()
       }
     }
   },
-  onUpdateParent: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => {
-    onSelect && onSelect(policy, changed, decreased)
-  },
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const onSelectPolicy = (policy: _RetentionPolicy, changed: boolean, decreased: boolean) =>
+    dispatchProps._onSelectPolicy(policy, changed, decreased, stateProps.teamPolicy)
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    onSelectPolicy,
+    ...ownProps,
+  }
+}
+
+const policyToDays = (p: _RetentionPolicy, parent?: _RetentionPolicy) => {
+  switch (p.type) {
+    case 'retain':
+      return 0
+    case 'inherit':
+      if (!parent) {
+        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
+      }
+      return policyToDays(parent)
+    case 'expire':
+      return p.days
+  }
+}
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeamPolicy()

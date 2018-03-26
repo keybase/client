@@ -554,6 +554,9 @@ const setupChatHandlers = () => {
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
     Chat2Gen.createInboxRefresh({reason: 'leftAConversation'}),
   ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvRetention', update => [
+    Chat2Gen.createUpdateConvRetentionPolicy({update}),
+  ])
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
@@ -1772,7 +1775,7 @@ const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
   ])
 
 // TODO (DA) add some checks here
-const setConversationRetentionPolicy = (action: Chat2Gen.SetConversationRetentionPolicyPayload) =>
+const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) =>
   Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
     policy: retentionPolicyToServiceRetentionPolicy(action.payload.policy),
@@ -1892,7 +1895,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.setConversationRetentionPolicy, setConversationRetentionPolicy)
+  yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
 }
 
 export default chat2Saga

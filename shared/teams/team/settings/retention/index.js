@@ -22,8 +22,8 @@ export type Props = {
   loading: boolean,
   isTeamWide: boolean,
   isSmallTeam?: boolean,
+  type: 'simple' | 'auto',
   onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
-  onUpdateParent: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void, // updates parent state, but doesn't auto-trigger call etc.
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
 }
 
@@ -80,7 +80,7 @@ class RetentionPicker extends React.Component<Props, State> {
     const p = policy || this.props.policy
     this.setState({selected: p})
     // tell parent that nothing has changed
-    this.props.onUpdateParent(p, false, false)
+    this.props.type === 'simple' && this.props.onSelectPolicy(p, false, false)
   }
 
   _label = () => {

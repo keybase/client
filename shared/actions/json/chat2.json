@@ -356,10 +356,14 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "offline": "boolean",
     },
-    "setConversationRetentionPolicy": {
+    "setConvRetentionPolicy": {
       "_description": "Sets the retention policy for a conversation. Valid operation for big team channels only.",
       "conversationIDKey": "Types.ConversationIDKey",
       "policy": "_RetentionPolicy",
-    }
+    },
+    "updateConvRetentionPolicy": {
+      "_description": "Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap",
+      "update": "RPCChatTypes.NotifyChatChatSetConvRetentionRpcParam",
+    },
   }
 }

@@ -40,11 +40,12 @@ const load = () => {
         isTeamWide={false}
         policy={policyRetain}
         teamPolicy={policy30Days}
+        type="simple"
         {...actions}
       />
     ))
     .add('Team-wide', () => (
-      <RetentionPicker loading={false} isTeamWide={true} policy={policy30Days} {...actions} />
+      <RetentionPicker loading={false} isTeamWide={true} policy={policy30Days} type="simple" {...actions} />
     ))
     .add('Channel inheriting from team', () => (
       <RetentionPicker
@@ -52,6 +53,7 @@ const load = () => {
         isTeamWide={false}
         policy={policyInherit}
         teamPolicy={policy30Days}
+        type="simple"
         {...actions}
       />
     ))
