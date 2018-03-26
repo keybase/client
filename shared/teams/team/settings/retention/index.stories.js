@@ -14,6 +14,7 @@ const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
 const actions = {
   onSelectPolicy: action('onSelectPolicy'),
   onShowDropdown: action('onShowDropdown'),
+  onUpdateParent: action('onUpdateParent'),
 }
 
 const onClick = action('onClick')

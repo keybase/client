@@ -1,5 +1,6 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
+import {createSetConversationRetentionPolicy} from '../../../../actions/chat2-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
 import {getTeamRetentionPolicy} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
@@ -60,8 +61,10 @@ const mapDispatchToProps = (
       const setPolicy = () => {
         if (isTeamWide) {
           dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+        } else if (conversationIDKey) {
+          dispatch(createSetConversationRetentionPolicy({policy, conversationIDKey}))
         } else {
-          // TODO set conv retentionPolicy
+          throw new Error('RetentionPicker: tried to set conv retention policy with no conversationIDKey')
         }
       }
       if (decreased) {
@@ -72,6 +75,9 @@ const mapDispatchToProps = (
         setPolicy()
       }
     }
+  },
+  onUpdateParent: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => {
+    onSelect && onSelect(policy, changed, decreased)
   },
 })
 

@@ -8,6 +8,7 @@ import * as More from '../constants/types/more'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import HiddenString from '../util/hidden-string'
+import type {_RetentionPolicy} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
@@ -66,6 +67,7 @@ export const selectConversation = 'chat2:selectConversation'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setConversationOffline = 'chat2:setConversationOffline'
+export const setConversationRetentionPolicy = 'chat2:setConversationRetentionPolicy'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
@@ -77,6 +79,15 @@ export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
+/**
+ * Sets the retention policy for a conversation. Valid operation for big team channels only.
+ */
+export const createSetConversationRetentionPolicy = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    policy: _RetentionPolicy,
+  }>
+) => ({error: false, payload, type: setConversationRetentionPolicy})
 export const createAttachmentDownload = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -425,6 +436,7 @@ export type SelectConversationPayload = More.ReturnType<typeof createSelectConve
 export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SendTypingPayload = More.ReturnType<typeof createSendTyping>
 export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConversationOffline>
+export type SetConversationRetentionPolicyPayload = More.ReturnType<typeof createSetConversationRetentionPolicy>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
@@ -494,6 +506,7 @@ export type Actions =
   | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSendTyping>
   | More.ReturnType<typeof createSetConversationOffline>
+  | More.ReturnType<typeof createSetConversationRetentionPolicy>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>

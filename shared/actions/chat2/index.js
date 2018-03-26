@@ -15,6 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
+import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -1770,6 +1771,13 @@ const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
     }),
   ])
 
+// TODO (DA) add some checks here
+const setConversationRetentionPolicy = (action: Chat2Gen.SetConversationRetentionPolicyPayload) =>
+  Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
+    convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    policy: retentionPolicyToServiceRetentionPolicy(action.payload.policy),
+  })
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1883,6 +1891,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.setConversationRetentionPolicy, setConversationRetentionPolicy)
 }
 
 export default chat2Saga

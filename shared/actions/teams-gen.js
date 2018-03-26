@@ -44,6 +44,19 @@ export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 
 // Action Creators
+/**
+ * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
+ */
+export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamRetentionPolicy})
+/**
+ * Sets the retention policy for a team. The store will be updated automatically.
+ */
+export const createSetTeamRetentionPolicy = (
+  payload: $ReadOnly<{
+    teamname: string,
+    policy: Types._RetentionPolicy,
+  }>
+) => ({error: false, payload, type: setTeamRetentionPolicy})
 export const createAddPeopleToTeam = (
   payload: $ReadOnly<{
     teamname: string,
@@ -110,7 +123,6 @@ export const createEditTeamDescription = (
 export const createGetChannels = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getChannels})
 export const createGetDetails = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getDetails})
 export const createGetTeamOperations = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamOperations})
-export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamRetentionPolicy})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
 export const createIgnoreRequest = (
   payload: $ReadOnly<{
@@ -165,12 +177,6 @@ export const createSetTeamJoinSuccess = (
     teamname: ?string,
   }>
 ) => ({error: false, payload, type: setTeamJoinSuccess})
-export const createSetTeamRetentionPolicy = (
-  payload: $ReadOnly<{
-    teamname: string,
-    policy: Types._RetentionPolicy,
-  }>
-) => ({error: false, payload, type: setTeamRetentionPolicy})
 export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
 export const createUpdateChannelName = (
   payload: $ReadOnly<{
