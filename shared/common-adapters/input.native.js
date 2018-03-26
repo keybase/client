@@ -13,7 +13,6 @@ import type {Props} from './input'
 type State = {
   focused: boolean,
   height: ?number,
-  value: string,
   selections: {selectionStart: number, selectionEnd: number},
 }
 
@@ -27,14 +26,7 @@ class Input extends Component<Props, State> {
     this.state = {
       focused: false,
       height: null,
-      value: props.value || '',
       selections: {selectionStart: 0, selectionEnd: 0},
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.hasOwnProperty('value')) {
-      this.setState({value: nextProps.value || ''})
     }
   }
 
@@ -63,19 +55,11 @@ class Input extends Component<Props, State> {
   }
 
   getValue(): string {
-    return this.state.value || ''
-  }
-
-  setValue(value: string) {
-    this.setState({value: value || ''})
-  }
-
-  clearValue() {
-    this._onChangeText('')
+    return this.props.value || ''
   }
 
   _onChangeText = (text: string) => {
-    this.setState({value: text || ''}, () => this.props.onChangeText && this.props.onChangeText(text || ''))
+    this.props.onChangeText && this.props.onChangeText(text)
   }
 
   focus() {
@@ -93,7 +77,7 @@ class Input extends Component<Props, State> {
     newSelectionStart: number,
     newSelectionEnd: number
   ) => {
-    const v = this.state.value
+    const v = this.getValue()
     const nextText = v.slice(0, startIdx) + text + v.slice(endIdx)
     this._onChangeText(nextText)
     this.setState({selections: {selectionStart: newSelectionStart, selectionEnd: newSelectionEnd}})
@@ -219,8 +203,10 @@ class Input extends Component<Props, State> {
       multilineStyle.height = this.state.height
     }
 
+    const value = this.getValue()
+
     const floatingHintText =
-      !!this.state.value.length &&
+      !!value.length &&
       (this.props.hasOwnProperty('floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
@@ -243,7 +229,7 @@ class Input extends Component<Props, State> {
         this._input = r
       },
       returnKeyType: this.props.returnKeyType,
-      value: this.state.value,
+      value,
       secureTextEntry: this.props.type === 'password',
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
