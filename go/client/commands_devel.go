@@ -43,9 +43,16 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatKBFSUpgrade(cl, g),
 	}
 }
+
 func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdAccountReset(cl, g),
+	}
+}
+
+func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		newCmdWalletInit(cl, g),
 	}
 }
 

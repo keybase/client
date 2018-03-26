@@ -31,6 +31,7 @@ const (
 	SigchainV2TypeSubkey                      SigchainV2Type = 12
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
+	SigchainV2TypeWallet                      SigchainV2Type = 15
 
 	// Team link types
 	// If you add a new one be sure to get all of these too:
@@ -317,6 +318,8 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		ret = SigchainV2TypePGPUpdate
 	case "per_user_key":
 		ret = SigchainV2TypePerUserKey
+	case "wallet":
+		ret = SigchainV2TypeWallet
 	default:
 		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
 		if teamErr == nil {

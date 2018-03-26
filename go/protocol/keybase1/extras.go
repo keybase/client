@@ -2362,6 +2362,14 @@ func (s StellarBundle) CheckInvariants() error {
 	return nil
 }
 
+func (a StellarAccountID) String() string {
+	return string(a)
+}
+
+func (s StellarSecretKey) String() string {
+	return string(s)
+}
+
 func (f AvatarFormat) String() string {
 	return string(f)
 }

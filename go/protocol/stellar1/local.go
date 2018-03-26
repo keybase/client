@@ -12,8 +12,12 @@ type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type WalletInitArg struct {
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
+	WalletInit(context.Context) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -36,6 +40,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"walletInit": {
+				MakeArg: func() interface{} {
+					ret := make([]WalletInitArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.WalletInit(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -47,5 +62,10 @@ type LocalClient struct {
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) WalletInit(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletInit", []interface{}{WalletInitArg{}}, nil)
 	return
 }

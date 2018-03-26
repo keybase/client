@@ -25,6 +25,10 @@ func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.Global
 	return []cli.Command{}
 }
 
+func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{}
+}
+
 const develUsage = false
 
 var restrictedSignupFlags = []cli.Flag{}
