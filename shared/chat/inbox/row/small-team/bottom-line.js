@@ -60,7 +60,7 @@ class BottomLine extends PureComponent<Props> {
           backgroundMode="Terminal"
           style={platformStyles({
             common: {
-              color: isSelected ? globalColors.white : globalColors.red,
+              color: this.props.isSelected ? globalColors.white : globalColors.red,
               fontSize: isMobile ? 13 : 11,
               lineHeight: 14,
             },
