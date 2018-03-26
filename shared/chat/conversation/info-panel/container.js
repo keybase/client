@@ -74,7 +74,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
     ),
   _onBack: () => dispatch(navigateUp && navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-  onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+  onLeaveConversation: () => {
+    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
+    dispatch(Chat2Gen.createNavigateToInbox())
+  },
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onShowBlockConversationDialog: () => {
     dispatch(

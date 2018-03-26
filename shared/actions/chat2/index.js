@@ -1792,7 +1792,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   }
 
   // Refresh the inbox
-  yield Saga.safeTakeEveryPure([Chat2Gen.inboxRefresh, Chat2Gen.leaveConversation], inboxRefresh)
+  yield Saga.safeTakeEveryPure(Chat2Gen.inboxRefresh, inboxRefresh)
   // Load teams
   yield Saga.safeTakeEveryPure(Chat2Gen.metasReceived, requestTeamsUnboxing)
   // We've scrolled some new inbox rows into view, queue them up
