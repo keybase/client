@@ -279,7 +279,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 			rcm := &types.RemoteConversationMetadata{
 				TopicName: topicName,
 				Headline:  utils.GetHeadline(convLocal),
-				Snippet:   utils.GetConvSnippet(convLocal),
+				Snippet:   utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String()),
 			}
 			switch convLocal.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
