@@ -171,7 +171,7 @@ export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Ty
 export const createLeaveConversation = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    navigateToInbox?: boolean,
+    dontNavigateToInbox?: boolean,
   }>
 ) => ({error: false, payload, type: leaveConversation})
 export const createLoadOlderMessagesDueToScroll = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadOlderMessagesDueToScroll})

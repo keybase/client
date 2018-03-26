@@ -1629,7 +1629,7 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 
 // Helpers to nav you to the right place
 const navigateToInbox = (action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload) => {
-  if (action.type === Chat2Gen.leaveConversation && !action.payload.navigateToInbox) {
+  if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
   return Saga.put(Route.navigateTo([{props: {}, selected: chatTab}, {props: {}, selected: null}]))

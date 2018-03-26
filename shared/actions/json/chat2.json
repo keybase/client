@@ -198,7 +198,7 @@
     },
     "leaveConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "navigateToInbox?": "boolean",
+      "dontNavigateToInbox?": "boolean",
     },
     "muteConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
