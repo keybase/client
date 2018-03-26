@@ -48,7 +48,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
-  teamnames.sort((a, b) => sortTeamnames(a, b))
+  teamnames.sort(sortTeamnames)
 
   return {
     loaded: stateProps.loaded,

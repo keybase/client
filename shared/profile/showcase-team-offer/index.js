@@ -20,7 +20,6 @@ import type {RowProps, Props} from './index'
 const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, waiting}: RowProps) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box
-      key={name}
       style={{
         ...globalStyles.flexBoxRow,
         minHeight: isMobile ? 64 : 48,
@@ -46,22 +45,13 @@ const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, 
           <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
         </Box>
       </Box>
-      {showcased ? (
+      {showcased || canShowcase ? (
         <Button
-          label="Published"
-          onClick={() => onPromote(false)}
+          label={showcased ? 'Published' : 'Publish'}
+          onClick={() => onPromote(!showcased)}
           small={true}
           style={{minWidth: 72}}
-          type="PrimaryGreenActive"
-          waiting={waiting}
-        />
-      ) : canShowcase ? (
-        <Button
-          label="Publish"
-          onClick={() => onPromote(true)}
-          small={true}
-          style={{width: 72}}
-          type="PrimaryGreen"
+          type={showcased ? 'PrimaryGreenActive' : 'PrimaryGreen'}
           waiting={waiting}
         />
       ) : (
