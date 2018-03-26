@@ -12,11 +12,18 @@ type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type SendLocalArg struct {
+	Recipient string `codec:"recipient" json:"recipient"`
+	Amount    string `codec:"amount" json:"amount"`
+	Asset     Asset  `codec:"asset" json:"asset"`
+}
+
 type WalletInitArg struct {
 }
 
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
+	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	WalletInit(context.Context) error
 }
 
@@ -36,6 +43,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.BalancesLocal(ctx, (*typedArgs)[0].AccountID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"sendLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SendLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SendLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SendLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SendLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -62,6 +85,11 @@ type LocalClient struct {
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res PaymentResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendLocal", []interface{}{__arg}, &res)
 	return
 }
 

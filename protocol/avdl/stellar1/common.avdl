@@ -28,4 +28,9 @@ protocol common {
     ERROR_PERMANENT_4
   }
 
+  record PaymentResult {
+    TransactionID stellarID;
+    KeybaseTransactionID keybaseID;
+    int Ledger;
+  }
 }

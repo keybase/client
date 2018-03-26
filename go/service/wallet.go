@@ -71,3 +71,7 @@ func (h *walletHandler) BalancesLocal(ctx context.Context, accountID stellar1.Ac
 
 	return res.Balances, nil
 }
+
+func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
+	return stellar1.PaymentResult{}, nil
+}

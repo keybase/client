@@ -20,6 +20,23 @@
         "items": "Balance"
       }
     },
+    "sendLocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        }
+      ],
+      "response": "PaymentResult"
+    },
     "walletInit": {
       "request": [],
       "response": null
