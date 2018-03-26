@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
+import {Input} from '../../../../common-adapters'
 import logger from '../../../../logger'
 
 type MentionHocState = {
@@ -25,7 +26,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       mentionPopupOpen: false,
       channelMentionPopupOpen: false,
     }
-    _inputRef: ?any
+    _inputRef: ?Input
 
     _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
       this.setState({mentionPopupOpen})
@@ -43,7 +44,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this.setState({channelMentionFilter})
     }
 
-    inputSetRef = (input: any) => {
+    inputSetRef = (input: Input) => {
       this.props._inputSetRef(input)
       this._inputRef = input
     }

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
+import {Input} from '../../../../common-adapters'
 
 type MentionHocState = {
   pickSelectedCounter: number,
@@ -15,7 +16,7 @@ type MentionHocState = {
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
   class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {
     state: MentionHocState
-    _inputRef: ?any
+    _inputRef: ?Input
     constructor() {
       super()
       this.state = {
@@ -28,7 +29,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    inputSetRef = (input: any) => {
+    inputSetRef = (input: Input) => {
       this.props._inputSetRef(input)
       this._inputRef = input
     }
