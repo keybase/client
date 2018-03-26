@@ -218,15 +218,11 @@ type SubmitPaymentArg struct {
 	Payment PaymentPost  `codec:"payment" json:"payment"`
 }
 
-type WalletInitArg struct {
-}
-
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	RecentTransactions(context.Context, RecentTransactionsArg) ([]TransactionSummary, error)
 	Transaction(context.Context, TransactionArg) (TransactionDetails, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
-	WalletInit(context.Context) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -297,17 +293,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"walletInit": {
-				MakeArg: func() interface{} {
-					ret := make([]WalletInitArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.WalletInit(ctx)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -333,10 +318,5 @@ func (c RemoteClient) Transaction(ctx context.Context, __arg TransactionArg) (re
 
 func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res)
-	return
-}
-
-func (c RemoteClient) WalletInit(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.walletInit", []interface{}{WalletInitArg{}}, nil)
 	return
 }

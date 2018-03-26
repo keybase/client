@@ -2,4 +2,6 @@
   import idl "common.avdl";
 
   array<Balance> balancesLocal(AccountID accountID);
+
+  void walletInit();
 }

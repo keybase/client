@@ -327,10 +327,6 @@
         }
       ],
       "response": "PaymentResult"
-    },
-    "walletInit": {
-      "request": [],
-      "response": null
     }
   },
   "namespace": "stellar.1"
