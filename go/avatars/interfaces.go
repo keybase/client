@@ -28,7 +28,7 @@ func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
 		if g.GetAppType() == libkb.MobileAppType {
 			maxSize = 2000
 		}
-		s = NewFullCachingSource(g, time.Second, maxSize)
+		s = NewFullCachingSource(g, time.Hour, maxSize)
 	}
 	s.StartBackgroundTasks()
 	g.PushShutdownHook(func() error {
