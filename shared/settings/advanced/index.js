@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, globalColors, isMobile, platformStyles, isLinux} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
 import {Box, Button, Text, Checkbox} from '../../common-adapters'
+import {isLinux} from '../../constants/platform'
 
 type Props = {
   openAtLogin: boolean,
@@ -21,7 +22,7 @@ const Advanced = (props: Props) => (
     }}
   >
     {!isMobile &&
-      !isLinux(
+      !isLinux && (
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
