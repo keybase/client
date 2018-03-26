@@ -164,10 +164,12 @@ class Input extends Component<Props, State> {
       selectionStart: event.nativeEvent.selection.start,
       selectionEnd: event.nativeEvent.selection.end,
     }
-    this.setState({
-      selections: selection,
-    })
-    this.props.onSelectionChange && this.props.onSelectionChange(selection)
+    this.setState(
+      {
+        selections: selection,
+      },
+      () => this.props.onSelectionChange && this.props.onSelectionChange(selection)
+    )
   }
 
   // WARNING may not be up to date in time sensitive situations
