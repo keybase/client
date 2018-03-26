@@ -60,7 +60,7 @@ func (o Members) DeepCopy() Members {
 type TransactionSummary struct {
 	StellarID       TransactionID        `codec:"stellarID" json:"stellarID"`
 	KeybaseID       KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Status          string               `codec:"status" json:"status"`
+	Status          TransactionStatus    `codec:"status" json:"status"`
 	ErrMsg          string               `codec:"errMsg" json:"errMsg"`
 	Note            EncryptedNote        `codec:"note" json:"note"`
 	Asset           Asset                `codec:"asset" json:"asset"`
@@ -76,7 +76,7 @@ func (o TransactionSummary) DeepCopy() TransactionSummary {
 	return TransactionSummary{
 		StellarID:       o.StellarID.DeepCopy(),
 		KeybaseID:       o.KeybaseID.DeepCopy(),
-		Status:          o.Status,
+		Status:          o.Status.DeepCopy(),
 		ErrMsg:          o.ErrMsg,
 		Note:            o.Note.DeepCopy(),
 		Asset:           o.Asset.DeepCopy(),

@@ -61,6 +61,17 @@
           "name": "limit"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "TransactionStatus",
+      "symbols": [
+        "NONE_0",
+        "PENDING_1",
+        "SUCCESS_2",
+        "ERROR_TRANSIENT_3",
+        "ERROR_PERMANENT_4"
+      ]
     }
   ],
   "messages": {},
