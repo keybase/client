@@ -319,6 +319,7 @@ const (
 	LinkTypeUpdateSettings    LinkType = "update_settings"
 	LinkTypeWebServiceBinding LinkType = "web_service_binding"
 	LinkTypePerUserKey        LinkType = "per_user_key"
+	LinkTypeWallet            LinkType = "wallet"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"

@@ -161,6 +161,10 @@ type TestParameters struct {
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
+
+	// whether LogoutIfRevoked check should be skipped to avoid races
+	// during resets.
+	SkipLogoutIfRevokedCheck bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -685,6 +689,12 @@ func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
 }
 
+// If true, do not logout after user.key_change notification handler
+// decides that current device has been revoked.
+func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
+	return e.Test.SkipLogoutIfRevokedCheck
+}
+
 func (e *Env) GetProxy() string {
 	return e.GetString(
 		func() string { return e.cmd.GetProxy() },
@@ -1060,6 +1070,13 @@ func (e *Env) GetChatMemberType() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_CHAT_MEMBER_TYPE") },
 		func() string { return "impteam" },
+	)
+}
+
+func (e *Env) GetAvatarSource() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_AVATAR_SOURCE") },
+		func() string { return "full" },
 	)
 }
 

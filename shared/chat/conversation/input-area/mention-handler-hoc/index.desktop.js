@@ -199,7 +199,16 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       if (word && selections && selections.selectionStart === selections.selectionEnd) {
         const startOfWordIdx = selections.selectionStart - word.length
         if (startOfWordIdx >= 0) {
-          this._inputRef && this._inputRef.replaceText(newWord, startOfWordIdx, selections.selectionStart)
+          // Put the selection to the end of newWord.
+          const newSelectionIndex = startOfWordIdx + newWord.length
+          this._inputRef &&
+            this._inputRef.replaceText(
+              newWord,
+              startOfWordIdx,
+              selections.selectionStart,
+              newSelectionIndex,
+              newSelectionIndex
+            )
         }
       }
     }

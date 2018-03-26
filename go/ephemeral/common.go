@@ -4,13 +4,25 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const KeyLifetimeSecs = keybase1.Time(time.Hour * 24 * 7) // one week
+// Keys last at most one week
+const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
+// Everyday we want to generate a new key if possible
+const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
+
+func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() > KeyLifetimeSecs
+}
+
+// We should wrap any entry points to the library with this before we're ready
+// to fully release it.
+func ShouldRun(g *libkb.GlobalContext) bool {
+	return g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+}
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(libkb.NaclDHKeysize)
@@ -21,13 +33,16 @@ func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 
 }
 
-func deriveDHKey(k keybase1.Bytes32, reason libkb.DeriveReason) (key *libkb.NaclDHKeyPair, err error) {
+func deriveDHKey(k keybase1.Bytes32, reason libkb.DeriveReason) *libkb.NaclDHKeyPair {
 	derived, err := libkb.DeriveFromSecret(k, reason)
 	if err != nil {
-		return nil, err
+		panic("This should never fail: " + err.Error())
 	}
 	keypair, err := libkb.MakeNaclDHKeyPairFromSecret(derived)
-	return &keypair, err
+	if err != nil {
+		panic("This should never fail: " + err.Error())
+	}
+	return &keypair
 }
 
 func newEKSeedFromBytes(b []byte) (seed keybase1.Bytes32, err error) {
@@ -81,7 +96,7 @@ func getExpiredGenerations(keyMap keyExpiryMap, nowCTime keybase1.Time) (expired
 			expiryOffset = KeyLifetimeSecs
 		}
 		// Keys can live for as long as KeyLifetimeSecs + expiryOffset
-		if (nowCTime - currentCTime) >= (KeyLifetimeSecs + expiryOffset) {
+		if (nowCTime - currentCTime) >= (keybase1.TimeFromSeconds(KeyLifetimeSecs) + expiryOffset) {
 			expired = append(expired, generation)
 		}
 	}

@@ -3,7 +3,7 @@ import * as AppGen from '../actions/app-gen'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
-import {loginRouteTree} from './routes'
+import loginRouteTree from './routes-login'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
@@ -21,11 +21,10 @@ module.hot &&
   module.hot.accept(() => {
     console.log('accepted update in shared/index.native')
     if (global.store) {
-      // We use global.devStore because module scope variables seem to be cleared
-      // out after a hot reload. Wacky.
       console.log('updating route defs due to hot reload')
-      const routes = require('./routes')
-      global.store.dispatch(refreshRouteDef(routes.loginRouteTree, routes.appRouteTree))
+      const appRouteTree = require('./routes-app').default
+      const loginRouteTree = require('./routes-login').default
+      global.store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
     }
   })
 

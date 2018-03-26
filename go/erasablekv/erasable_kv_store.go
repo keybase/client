@@ -10,9 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 )
@@ -271,6 +269,9 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 	defer s.G().CTrace(ctx, "FileErasableKVStore#AllKeys", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
+	if err := os.MkdirAll(s.storageDir, libkb.PermDir); err != nil {
+		return keys, err
+	}
 	files, err := ioutil.ReadDir(s.storageDir)
 	if err != nil {
 		return keys, err
@@ -291,8 +292,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 
 func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (fkey [32]byte, err error) {
 	// Get secret device key
-	encKey, err := engine.GetMySecretKey(ctx, g, getLameSecretUI, libkb.DeviceEncryptionKeyType,
-		"encrypt erasable kv store")
+	encKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return fkey, err
 	}
@@ -310,11 +310,3 @@ func getLocalStorageSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (f
 	copy(fkey[:], skey[:])
 	return fkey, nil
 }
-
-type LameSecretUI struct{}
-
-func (d LameSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
-}
-
-var getLameSecretUI = func() libkb.SecretUI { return LameSecretUI{} }

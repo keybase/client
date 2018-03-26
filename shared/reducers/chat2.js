@@ -564,7 +564,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         )
 
         s.update('messageOrdinals', messageOrdinals =>
-          messageOrdinals.update(conversationIDKey, ordinals => ordinals.subtract(allOrdinals))
+          messageOrdinals.update(
+            conversationIDKey,
+            ordinals => (ordinals ? ordinals.subtract(allOrdinals) : ordinals)
+          )
         )
       })
     }

@@ -37,7 +37,7 @@ func TestTimeConversions(t *testing.T) {
 }
 
 func TestDeleteExpiredKeys(t *testing.T) {
-	now := keybase1.Time(time.Now().Unix())
+	now := keybase1.TimeFromSeconds(time.Now().Unix())
 
 	// Test empty
 	expired := getExpiredGenerations(make(keyExpiryMap), now)
@@ -54,12 +54,12 @@ func TestDeleteExpiredKeys(t *testing.T) {
 
 	// Test with a single key that is stale but not expired
 	keyMap = keyExpiryMap{
-		0: now - KeyLifetimeSecs,
+		0: now - keybase1.TimeFromSeconds(KeyLifetimeSecs),
 	}
 
 	// Test with a single key that is expired
 	keyMap = keyExpiryMap{
-		0: now - KeyLifetimeSecs*2,
+		0: now - keybase1.TimeFromSeconds(KeyLifetimeSecs*2),
 	}
 	expired = getExpiredGenerations(keyMap, now)
 	expected = []keybase1.EkGeneration{0}
@@ -67,7 +67,7 @@ func TestDeleteExpiredKeys(t *testing.T) {
 
 	// Test with a 6 day gap, but no expiry
 	keyMap = keyExpiryMap{
-		0: now - keybase1.Time(time.Hour*24*6),
+		0: now - keybase1.TimeFromSeconds(60*60*24*6),
 		1: now,
 	}
 	expired = getExpiredGenerations(keyMap, now)
@@ -78,9 +78,21 @@ func TestDeleteExpiredKeys(t *testing.T) {
 	keyMap = make(keyExpiryMap)
 	numKeys := 5
 	for i := 0; i < numKeys; i++ {
-		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = now - KeyLifetimeSecs*keybase1.Time(i)
+		keyMap[keybase1.EkGeneration((numKeys - i - 1))] = now - keybase1.TimeFromSeconds(int64(KeyLifetimeSecs*i))
 	}
 	expired = getExpiredGenerations(keyMap, now)
 	expected = []keybase1.EkGeneration{0, 1, 2}
 	require.Equal(t, expected, expired)
+}
+
+func verifyUserEK(t *testing.T, metadata keybase1.UserEkMetadata, ek keybase1.UserEk) {
+	seed := UserEKSeed(ek.Seed)
+	keypair := seed.DeriveDHKey()
+	require.Equal(t, metadata.Kid, keypair.GetKID())
+}
+
+func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.TeamEk) {
+	seed := TeamEKSeed(ek.Seed)
+	keypair := seed.DeriveDHKey()
+	require.Equal(t, metadata.Kid, keypair.GetKID())
 }

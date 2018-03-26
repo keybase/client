@@ -74,6 +74,8 @@ type GlobalContext struct {
 	teamLoader       TeamLoader       // Play back teams for id/name properties
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
+	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
+	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	CardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
@@ -156,6 +158,7 @@ func (g *GlobalContext) GetEnv() *Env                                  { return 
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
+func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
 
 type LogGetter func() logger.Logger
 
@@ -206,6 +209,8 @@ func init() {
 func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
 
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
+
+func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
@@ -317,19 +322,6 @@ func (g *GlobalContext) Logout() error {
 		}
 	}
 	g.secretStoreMu.Unlock()
-
-	g.cacheMu.Lock()
-	if g.LocalDb != nil {
-		_, err := g.LocalDb.Nuke()
-		if err != nil {
-			g.Log.Debug("Failed to nuke DB: %s", err)
-		}
-	}
-
-	if g.deviceEKStorage != nil {
-		g.deviceEKStorage.ClearCache()
-	}
-	g.cacheMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
@@ -513,6 +505,12 @@ func (g *GlobalContext) GetUserEKBoxStorage() UserEKBoxStorage {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.userEKBoxStorage
+}
+
+func (g *GlobalContext) GetTeamEKBoxStorage() TeamEKBoxStorage {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamEKBoxStorage
 }
 
 func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
@@ -941,6 +939,11 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 		return nil
 	}
 
+	if g.Env.GetSkipLogoutIfRevokedCheck() {
+		g.Log.Debug("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
+		return nil
+	}
+
 	me, err := LoadMe(NewLoadUserForceArg(g))
 	if err != nil {
 		return err
@@ -1029,6 +1032,12 @@ func (g *GlobalContext) SetUserEKBoxStorage(s UserEKBoxStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.userEKBoxStorage = s
+}
+
+func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamEKBoxStorage = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {

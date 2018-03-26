@@ -157,6 +157,13 @@ const (
 	StatusCode_SCTeamShowcasePermDenied    StatusCode = 2711
 	StatusCode_SCTeamProvisionalCanKey     StatusCode = 2721
 	StatusCode_SCTeamProvisionalCannotKey  StatusCode = 2722
+	StatusCode_SCStellarError              StatusCode = 3100
+	StatusCode_SCStellarBadInput           StatusCode = 3101
+	StatusCode_SCStellarWrongRevision      StatusCode = 3102
+	StatusCode_SCStellarMissingBundle      StatusCode = 3103
+	StatusCode_SCStellarBadPuk             StatusCode = 3104
+	StatusCode_SCStellarMissingAccount     StatusCode = 3105
+	StatusCode_SCStellarBadPrev            StatusCode = 3106
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -309,6 +316,13 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamShowcasePermDenied":    2711,
 	"SCTeamProvisionalCanKey":     2721,
 	"SCTeamProvisionalCannotKey":  2722,
+	"SCStellarError":              3100,
+	"SCStellarBadInput":           3101,
+	"SCStellarWrongRevision":      3102,
+	"SCStellarMissingBundle":      3103,
+	"SCStellarBadPuk":             3104,
+	"SCStellarMissingAccount":     3105,
+	"SCStellarBadPrev":            3106,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -459,6 +473,13 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2711: "SCTeamShowcasePermDenied",
 	2721: "SCTeamProvisionalCanKey",
 	2722: "SCTeamProvisionalCannotKey",
+	3100: "SCStellarError",
+	3101: "SCStellarBadInput",
+	3102: "SCStellarWrongRevision",
+	3103: "SCStellarMissingBundle",
+	3104: "SCStellarBadPuk",
+	3105: "SCStellarMissingAccount",
+	3106: "SCStellarBadPrev",
 }
 
 func (e StatusCode) String() string {

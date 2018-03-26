@@ -9,64 +9,103 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
   }
 
   const namesMinusYou = names.filter(n => n !== lcYou)
-  return (
-    namesMinusYou.reduce((total, p) => {
-      if (p === lcFilter) {
-        return total + 100 // exact match
+  // special case, comma search
+  const filters = lcFilter.split(',').filter(Boolean)
+  let filter
+  if (filters.length > 1) {
+    const mustExist = filters.slice(0, -1)
+    const partial = filters.slice(-1)
+    // In comma sep. inputs all but the last name must be exact matches
+    if (!mustExist.every(m => namesMinusYou.includes(m))) {
+      return 0
+    }
+    filter = partial[0]
+  } else {
+    filter = filters[0]
+  }
+
+  const {foundExact, foundPrefix, foundSub} = namesMinusYou.reduce(
+    (data, p) => {
+      if (p === filter) {
+        data.foundExact += 1
+        return data
       } else {
-        const idx = p.indexOf(lcFilter)
+        const idx = p.indexOf(filter)
         if (idx === 0) {
-          return total + 75 // prefix match
+          data.foundPrefix += 1
+          return data
         } else if (idx !== -1) {
-          return total + 10 // sub match
+          data.foundSub += 1
+          return data
         } else {
-          return total
+          return data
         }
       }
-    }, 0) / namesMinusYou.length
+    },
+    {foundExact: 0, foundPrefix: 0, foundSub: 0}
+  )
+  return (
+    (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0) - namesMinusYou.join('').length
   )
 }
+
+let _metaMap
+// Note: This is NOT a real selector. Instead this fires and stashes into _metaMap a cached copy.
+// If the other things change (inboxFilter, username, etc) then they'll just grab the cached value.
+// This serves 2 purposes. 1. No thrashing as people are chatting (since we don't show snippets / use the ordering of timestamps)
+// and 2. We don't want the results to move around
+const fakeGetMetaMap = createSelector([(state: TypedState) => state.chat2.metaMap], metaMap => {
+  _metaMap = metaMap
+  return null
+})
 
 // Ignore headers, score based on matches of participants, ignore total non matches
 const getFilteredRowsAndMetadata = createSelector(
   [
-    (state: TypedState) => state.chat2.metaMap,
+    fakeGetMetaMap,
     (state: TypedState) => state.chat2.inboxFilter,
     (state: TypedState) => state.config.username || '',
   ],
-  (metaMap, filter, username) => {
+  (_, filter, username) => {
+    const metas = _metaMap.valueSeq().toArray()
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
-    const smallRows = metaMap
-      .filter(meta => meta.teamType !== 'big')
+    const smallRows = metas
       .map(meta => {
-        return {
-          conversationIDKey: meta.conversationIDKey,
-          score: score(
-            lcFilter,
-            lcYou,
-            [...(meta.teamname || '').split(','), ...meta.participants.toArray()].filter(Boolean)
-          ),
-          timestamp: meta.timestamp,
+        if (meta.teamType !== 'big') {
+          const s = score(lcFilter, lcYou, meta.teamname ? [meta.teamname] : meta.participants.toArray())
+          return s > 0
+            ? {
+                conversationIDKey: meta.conversationIDKey,
+                score: s,
+                timestamp: meta.timestamp,
+              }
+            : null
+        } else {
+          return null
         }
       })
-      .filter(r => r.score > 0)
+      .filter(Boolean)
       .sort((a, b) => (a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score))
       .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
-      .valueSeq()
-      .toArray()
 
-    const bigRows = metaMap
-      .filter(meta => meta.teamType === 'big')
+    const bigRows = metas
       .map(meta => {
-        return {
-          channelname: meta.channelname,
-          conversationIDKey: meta.conversationIDKey,
-          score: score(lcFilter, '', [meta.teamname, meta.channelname].filter(Boolean)),
-          teamname: meta.teamname,
+        if (meta.teamType === 'big') {
+          const s = score(lcFilter, '', [meta.teamname, meta.channelname].filter(Boolean))
+          return s > 0
+            ? {
+                channelname: meta.channelname,
+                conversationIDKey: meta.conversationIDKey,
+                score: s,
+                teamname: meta.teamname,
+              }
+            : null
+        } else {
+          return null
         }
       })
-      .filter(r => r.score > 0)
+      .filter(Boolean)
       .sort((a, b) => b.score - a.score)
       .map(({conversationIDKey, channelname, teamname}) => ({
         channelname,
@@ -74,8 +113,6 @@ const getFilteredRowsAndMetadata = createSelector(
         teamname,
         type: 'big',
       }))
-      .valueSeq()
-      .toArray()
 
     return {
       rows: [...smallRows, ...bigRows],

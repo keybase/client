@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"regexp"
@@ -97,50 +96,15 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 	return h.uiSource.GetStreamUICli()
 }
 
-type offlineErrorKind int
-
-const (
-	offlineErrorKindOnline offlineErrorKind = iota
-	offlineErrorKindOfflineBasic
-	offlineErrorKindOfflineReconnect
-)
-
-func (h *Server) isOfflineError(err error) offlineErrorKind {
-	// Check type
-	switch terr := err.(type) {
-	case net.Error:
-		return offlineErrorKindOfflineReconnect
-	case libkb.APINetError:
-		return offlineErrorKindOfflineBasic
-	case OfflineError:
-		return offlineErrorKindOfflineBasic
-	case TransientUnboxingError:
-		return h.isOfflineError(terr.Inner())
-	}
-	// Check error itself
-	switch err {
-	case context.DeadlineExceeded:
-		fallthrough
-	case context.Canceled:
-		fallthrough
-	case ErrChatServerTimeout:
-		return offlineErrorKindOfflineReconnect
-	case ErrDuplicateConnection:
-		return offlineErrorKindOfflineBasic
-	}
-
-	return offlineErrorKindOnline
-}
-
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
-	errKind := h.isOfflineError(err)
-	if errKind != offlineErrorKindOnline {
+	errKind := IsOfflineError(err)
+	if errKind != OfflineErrorKindOnline {
 		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
 		res.SetOffline()
 		switch errKind {
-		case offlineErrorKindOfflineReconnect:
+		case OfflineErrorKindOfflineReconnect:
 			// Reconnect Gregor if we think we are offline (and told to reconnect)
 			h.Debug(ctx, "handleOfflineError: reconnecting to gregor")
 			if _, err := h.serverConn.Reconnect(ctx); err != nil {
@@ -170,6 +134,22 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
+// suspendConvLoader will suspend the global ConvLoader until the return function is called. This allows
+// a succinct call like defer suspendConvLoader(ctx)() in RPC handlers wishing to lock out the
+// conv loader.
+func (h *Server) suspendConvLoader(ctx context.Context) func() {
+	if canceled := h.G().ConvLoader.Suspend(ctx); canceled {
+		h.Debug(ctx, "suspendConvLoader: canceled background task")
+	}
+	return func() {
+		h.G().ConvLoader.Resume(ctx)
+	}
+}
+
+func (h *Server) getUID() gregor1.UID {
+	return gregor1.UID(h.G().Env.GetUID().ToBytes())
+}
+
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
@@ -180,6 +160,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: result obtained offline")
 		}
 	}()
+	defer h.suspendConvLoader(ctx)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
@@ -278,7 +259,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
-				pconv := utils.PresentConversationLocal(*convRes.ConvRes)
+				pconv := utils.PresentConversationLocal(*convRes.ConvRes, h.G().Env.GetUsername().String())
 				jbody, err := json.Marshal(pconv)
 				if err != nil {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
@@ -502,6 +483,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		}
 	}()
+	defer h.suspendConvLoader(ctx)()
 	defer func() {
 		if res.Offline {
 			h.Debug(ctx, "GetThreadNonblock: result obtained offline")
@@ -1164,6 +1146,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
+	defer h.suspendConvLoader(ctx)()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalNonblockRes{}, err
 	}
@@ -2403,7 +2386,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(convs)
+	res.Convs = utils.PresentConversationLocals(convs, h.G().Env.GetUsername().String())
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }

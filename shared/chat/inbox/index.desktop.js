@@ -30,11 +30,9 @@ class Inbox extends PureComponent<Props, State> {
     // If we click the expand button lets try and show the floater. Kinda tricky as we decide if we're showing it
     // based on a callback the list gives us so there's a race. Let's just give it half a sec
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
-      if (this.props.smallTeamsExpanded) {
-        setTimeout(() => {
-          this._updateShowFloating()
-        }, 500)
-      }
+      setTimeout(() => {
+        this._updateShowFloating()
+      }, 500)
     }
   }
 

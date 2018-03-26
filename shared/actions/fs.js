@@ -18,6 +18,29 @@ import {
   uninstallKBFSSuccess,
 } from './fs-platform-specific'
 import {isWindows} from '../constants/platform'
+import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
+import {type TypedState} from '../util/container'
+
+function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
+  const rootPath = action.payload.path
+
+  const dirent = yield Saga.call(RPCTypes.SimpleFSSimpleFSStatRpcPromise, {
+    path: {
+      PathType: RPCTypes.simpleFSPathType.kbfs,
+      kbfs: Constants.fsPathToRpcPathString(rootPath),
+    },
+  })
+
+  const meta = Constants.makeFile({
+    name: Types.getPathName(rootPath),
+    lastModifiedTimestamp: dirent.time,
+    size: dirent.size,
+    progress: 'loaded',
+    // FIXME currently lastWriter is not provided by simplefs.
+    // the GUI supports it when added here.
+  })
+  yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
+}
 
 function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<any, any> {
   const opID = Constants.makeUUID()
@@ -29,6 +52,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
       PathType: RPCTypes.simpleFSPathType.kbfs,
       kbfs: Constants.fsPathToRpcPathString(rootPath),
     },
+    filter: RPCTypes.simpleFSListFilter.filterAllHidden,
   })
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
@@ -39,7 +63,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const direntToMetadata = (d: RPCTypes.Dirent) => ({
     name: d.name,
     lastModifiedTimestamp: d.time,
-    lastWriter: 'jareddunn' + (d.name.length < 10 ? '' : 'andfriendsandfriends'), // TODO fix this when we have it from RPC
+    lastWriter: d.lastWriterUnverified,
     size: d.size,
   })
 
@@ -73,16 +97,56 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   yield Saga.put(FsGen.createFolderListLoaded({pathItems, path: rootPath}))
 }
 
+function* monitorTransferProgress(key: string, opID: RPCTypes.OpID) {
+  // This loop doesn't finish on its own, but it's in a Saga.race with
+  // `SimpleFSWait`, so it's "canceled" when the other finishes.
+  while (true) {
+    yield Saga.delay(500)
+    const progress = yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    if (progress.bytesTotal === 0) {
+      continue
+    }
+    yield Saga.put(
+      FsGen.createTransferProgress({
+        key,
+        endEstimate: progress.endEstimate,
+        completePortion: progress.bytesWritten / progress.bytesTotal,
+      })
+    )
+  }
+}
+
 function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
-  const {path} = action.payload
+  const {path, intent} = action.payload
   const opID = Constants.makeUUID()
+
+  // Figure out the local path we are downloading into.
   let localPath = action.payload.localPath
   if (!localPath) {
-    localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+    switch (intent) {
+      case 'none':
+        // This adds " (1)" suffix to the base name, if the destination path
+        // already exists.
+        localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+        break
+      case 'camera-roll':
+      case 'share':
+        // For saving to camera roll or sharing to other apps, we are
+        // downloading to the app's local storage. So don't bother trying to
+        // avoid overriding existing files. Just download over them.
+        localPath = Constants.downloadFilePathFromPathNoSearch(path)
+        break
+      default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
+        break
+    }
   }
+
   const key = Constants.makeDownloadKey(path, localPath)
 
-  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath}))
+  yield Saga.put(FsGen.createDownloadStarted({key, path, localPath, intent, opID}))
 
   yield Saga.call(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     opID,
@@ -96,28 +160,56 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     },
   })
 
-  // Fake out progress until we have the real thing.
-  // TODO: have the real thing.
-  const total = 6
-  for (let progress = 0; progress < total - 1; ++progress) {
-    yield Saga.delay(500)
-    yield Saga.call(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
-    yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: progress / total}))
+  try {
+    yield Saga.race({
+      monitor: Saga.call(monitorTransferProgress, key, opID),
+      wait: Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
+    })
+
+    // No error, so the download has finished successfully. Set the
+    // completePortion to 1.
+    yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
+
+    // If this is for anyting other than a simple download, kick that off now
+    // that the file is available locally.
+    switch (intent) {
+      case 'none':
+        break
+      case 'camera-roll':
+        yield Saga.call(saveAttachmentDialog, localPath)
+        break
+      case 'share':
+        yield Saga.call(showShareActionSheet, {url: localPath})
+        break
+      default:
+        // eslint-disable-next-line no-unused-expressions
+        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        break
+    }
+  } catch (error) {
+    console.log(`Download for intent[${intent}] error: ${error}`)
+    yield Saga.put(FsGen.createDownloadFinished({key, error}))
+    return
   }
 
-  let error
-  try {
-    yield Saga.call(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
-  } catch (err) {
-    error = err
+  yield Saga.put(FsGen.createDownloadFinished({key}))
+}
+
+function cancelTransfer({payload: {key}}: FsGen.CancelTransferPayload, state: TypedState) {
+  const transfer = state.fs.transfers.get(key)
+  if (!transfer) {
+    console.log(`unknown transfer: ${key}`)
+    return
   }
-  yield Saga.put(FsGen.createFileTransferProgress({key, completePortion: 1}))
-  yield Saga.put(FsGen.createDownloadFinished({key, error}))
+  const {meta: {opID}} = transfer
+  return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
+  yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
   yield Saga.safeTakeEvery(FsGen.download, download)
+  yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
+  yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)

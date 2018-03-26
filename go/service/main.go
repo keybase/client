@@ -31,6 +31,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
@@ -139,6 +140,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
+		stellar1.LocalProtocol(newWalletHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -549,11 +551,23 @@ func (d *Service) hourlyChecks() {
 		if err := d.G().LogoutIfRevoked(); err != nil {
 			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 		}
+		// TODO remove this when we want to release in the wild.
+		if ephemeral.ShouldRun(d.G()) {
+			ekLib := d.G().GetEKLib()
+			ekLib.KeygenIfNeeded(context.Background())
+		}
 		for {
 			<-ticker.C
 			d.G().Log.Debug("+ hourly check loop")
 			d.G().Log.Debug("| checking tracks on an hour timer")
 			libkb.CheckTracking(d.G())
+
+			// TODO remove this when we want to release in the wild.
+			if ephemeral.ShouldRun(d.G()) {
+				ekLib := d.G().GetEKLib()
+				d.G().Log.Debug("| checking if ephemeral keys need to be created or deleted")
+				ekLib.KeygenIfNeeded(context.Background())
+			}
 			d.G().Log.Debug("| checking if current device revoked")
 			if err := d.G().LogoutIfRevoked(); err != nil {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)

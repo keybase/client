@@ -743,3 +743,80 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	res["public_keys"] = publicKeysEntry
 	return res, nil
 }
+
+// WalletProof creates a proof of a stellar wallet.
+func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
+	signingKey GenericKey) (*jsonw.Wrapper, error) {
+	if me == nil {
+		return nil, fmt.Errorf("missing user object for proof")
+	}
+	walletPubKey, err := MakeNaclSigningKeyPairFromStellarAccountID(walletAddress)
+	if err != nil {
+		return nil, err
+	}
+	walletKID := walletPubKey.GetKID()
+
+	ret, err := ProofMetadata{
+		Me:         me,
+		LinkType:   LinkTypeWallet,
+		SigningKey: signingKey,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	walletSection := jsonw.NewDictionary()
+	walletSection.SetKey("name", jsonw.NewString(""))
+	walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
+	walletSection.SetKey("network", jsonw.NewString("stellar"))
+
+	walletKeySection := jsonw.NewDictionary()
+	walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
+	// The caller is responsible for overwriting reverse_sig after signing.
+	walletKeySection.SetKey("reverse_sig", jsonw.NewNil())
+
+	body := ret.AtKey("body")
+	body.SetKey("wallet", walletSection)
+	body.SetKey("wallet_key", walletKeySection)
+
+	return ret, nil
+}
+
+// Make a stellar proof with a reverse sig.
+// Modifies the User `me` with a sigchain bump and key delegation.
+// Returns a JSONPayload ready for use in "sigs" in sig/multi.
+func WalletProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
+	walletSigner keybase1.StellarSecretKey, signer GenericKey) (JSONPayload, error) {
+	// Make reverse sig
+	jwRev, err := WalletProof(me, walletAddress, signer)
+	if err != nil {
+		return nil, err
+	}
+	walletSignerKey, err := MakeNaclSigningKeyPairFromStellarSecretKey(walletSigner)
+	if err != nil {
+		return nil, err
+	}
+	reverseSig, _, _, err := SignJSON(jwRev, walletSignerKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sig
+	jw := jwRev
+	jw.SetValueAtPath("body.wallet_key.reverse_sig", jsonw.NewString(reverseSig))
+	sig, sigID, linkID, err := SignJSON(jw, signer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user locally
+	me.SigChainBump(linkID, sigID)
+	// TODO: do we need to locally do something like me.localDelegatePerUserKey?
+
+	res := make(JSONPayload)
+	res["sig"] = sig
+	res["signing_kid"] = signer.GetKID().String()
+	res["public_key"] = walletSignerKey.GetKID().String()
+	res["type"] = LinkTypeWallet
+	return res, nil
+}

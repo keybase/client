@@ -531,6 +531,13 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scstellarerror: 3100,
+  scstellarbadinput: 3101,
+  scstellarwrongrevision: 3102,
+  scstellarmissingbundle: 3103,
+  scstellarbadpuk: 3104,
+  scstellarmissingaccount: 3105,
+  scstellarbadprev: 3106,
 }
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
@@ -1530,6 +1537,11 @@ export const simpleFSDirentType = {
   exec: 3,
 }
 
+export const simpleFSListFilter = {
+  noFilter: 0,
+  filterAllHidden: 1,
+}
+
 export const simpleFSOpenFlags = {
   read: 0,
   replace: 1,
@@ -2196,6 +2208,8 @@ export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
+export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
+
 export type DeviceID = String
 
 export type DeviceType =
@@ -2668,7 +2682,11 @@ export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult,
 
 export type LinkID = String
 
-export type ListArgs = $ReadOnly<{opID: OpID, path: Path}>
+export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
+
+export type ListFilter =
+  | 0 // NO_FILTER_0
+  | 1 // FILTER_ALL_HIDDEN_1
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 
@@ -3401,9 +3419,9 @@ export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCall
 
 export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSListRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSMakeOpidRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3583,6 +3601,13 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 3100 // SCStellarError_3100
+  | 3101 // SCStellarBadInput_3101
+  | 3102 // SCStellarWrongRevision_3102
+  | 3103 // SCStellarMissingBundle_3103
+  | 3104 // SCStellarBadPuk_3104
+  | 3105 // SCStellarMissingAccount_3105
+  | 3106 // SCStellarBadPrev_3106
 
 export type StellarAccountID = String
 
@@ -3684,6 +3709,14 @@ export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: Te
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
+
+export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
+
+export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
+
+export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
+export type TeamEkStatement = $ReadOnly<{currentTeamEkMetadata: TeamEkMetadata, existingTeamEkMetadata?: ?Array<TeamEkMetadata>}>
 
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
@@ -3971,6 +4004,8 @@ export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
+export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

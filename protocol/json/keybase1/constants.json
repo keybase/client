@@ -152,7 +152,14 @@
         "SCTeamInvalidBan_2703",
         "SCTeamShowcasePermDenied_2711",
         "SCTeamProvisionalCanKey_2721",
-        "SCTeamProvisionalCannotKey_2722"
+        "SCTeamProvisionalCannotKey_2722",
+        "SCStellarError_3100",
+        "SCStellarBadInput_3101",
+        "SCStellarWrongRevision_3102",
+        "SCStellarMissingBundle_3103",
+        "SCStellarBadPuk_3104",
+        "SCStellarMissingAccount_3105",
+        "SCStellarBadPrev_3106"
       ]
     }
   ],
