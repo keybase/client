@@ -23,6 +23,7 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getTeamOperations = 'teams:getTeamOperations'
+export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeams = 'teams:getTeams'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
@@ -109,6 +110,7 @@ export const createEditTeamDescription = (
 export const createGetChannels = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getChannels})
 export const createGetDetails = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getDetails})
 export const createGetTeamOperations = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamOperations})
+export const createGetTeamPublicity = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamPublicity})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
 export const createIgnoreRequest = (
   payload: $ReadOnly<{
@@ -197,6 +199,7 @@ export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDe
 export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
 export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
 export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
+export type GetTeamPublicityPayload = More.ReturnType<typeof createGetTeamPublicity>
 export type GetTeamsPayload = More.ReturnType<typeof createGetTeams>
 export type IgnoreRequestPayload = More.ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByEmailPayload = More.ReturnType<typeof createInviteToTeamByEmail>
@@ -232,6 +235,7 @@ export type Actions =
   | More.ReturnType<typeof createGetChannels>
   | More.ReturnType<typeof createGetDetails>
   | More.ReturnType<typeof createGetTeamOperations>
+  | More.ReturnType<typeof createGetTeamPublicity>
   | More.ReturnType<typeof createGetTeams>
   | More.ReturnType<typeof createIgnoreRequest>
   | More.ReturnType<typeof createInviteToTeamByEmail>

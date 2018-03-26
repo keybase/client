@@ -19,7 +19,8 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
+  loadPublicitySettings: teamname => dispatch(TeamsGen.createGetTeamPublicity({teamname})),
+  loadTeamOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
@@ -46,7 +47,8 @@ export default compose(
   lifecycle({
     componentWillMount: function() {
       this.props.teamnames.map(name => {
-        !this.props._teamNameToPublicitySettings.get(name) && this.props.loadTeam(name)
+        !this.props._teamNameToPublicitySettings.get(name) && this.props.loadPublicitySettings(name)
+        !this.props._teamNameToCanPerform.get(name) && this.props.loadTeamOperations(name)
       })
     },
   }),

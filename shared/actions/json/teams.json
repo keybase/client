@@ -33,6 +33,9 @@
     "getTeamOperations": {
       "teamname": "string"
     },
+    "getTeamPublicity": {
+      "teamname": "string"
+    },
     "saveChannelMembership": {
       "teamname": "string",
       "channelState": "Types.ChannelMembershipState"
