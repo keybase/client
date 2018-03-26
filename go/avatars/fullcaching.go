@@ -61,58 +61,43 @@ type FullCachingSource struct {
 
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
-	fallbackSource Source
 	simpleSource   Source
 	httpSrv        *libkb.HTTPSrv
-	fallbackMode   bool
 
 	populateCacheCh chan populateArg
 
 	// testing
 	populateSuccessCh chan struct{}
 	tempDir           string
-	forceHTTPSrv      bool
 }
 
 var _ Source = (*FullCachingSource)(nil)
 
-func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, size int,
-	fallbackSource Source) *FullCachingSource {
+func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, size int) *FullCachingSource {
 	return &FullCachingSource{
 		Contextified:   libkb.NewContextified(g),
 		diskLRU:        lru.NewDiskLRU("avatars", 1, size),
 		staleThreshold: staleThreshold,
-		fallbackSource: fallbackSource,
 		simpleSource:   NewSimpleSource(g),
 		httpSrv:        libkb.NewHTTPSrv(g, libkb.NewPortRangeListenerSource(7000, 8000)),
 	}
 }
 
 func (c *FullCachingSource) StartBackgroundTasks() {
-	c.fallbackSource.StartBackgroundTasks()
 	go c.monitorAppState()
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker()
 	}
-	// On mobile, using an HTTP interface is simpler so use it instead.
-	if c.httpServerMode() {
-		c.startHTTPServer(context.Background())
-	}
 }
 
 func (c *FullCachingSource) StopBackgroundTasks() {
-	c.fallbackSource.StopBackgroundTasks()
 	close(c.populateCacheCh)
-	c.fallbackMode = false
 	c.diskLRU.Flush(context.Background(), c.G())
-	if c.httpServerMode() {
-		c.httpSrv.Stop()
-	}
 }
 
-func (c *FullCachingSource) httpServerMode() bool {
-	return c.forceHTTPSrv || c.G().GetAppType() == libkb.MobileAppType
+func (c *FullCachingSource) isMobile() bool {
+	return c.G().GetAppType() == libkb.MobileAppType
 }
 
 func (c *FullCachingSource) debug(ctx context.Context, msg string, args ...interface{}) {
@@ -127,34 +112,14 @@ func (c *FullCachingSource) isStale(item lru.DiskLRUEntry) bool {
 	return c.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
 }
 
-func (c *FullCachingSource) startHTTPServer(ctx context.Context) {
-	if err := c.httpSrv.Start(); err != nil {
-		c.debug(ctx, "failed to start local http server, defaulting to simple mode")
-		c.fallbackMode = true
-	} else {
-		c.fallbackMode = false
-		c.httpSrv.HandleFunc("/a", c.serveHTTPAvatar)
-	}
-}
-
 func (c *FullCachingSource) monitorAppState() {
 	c.debug(context.Background(), "monitorAppState: starting up")
 	for {
 		state := <-c.G().AppState.NextUpdate()
 		ctx := context.Background()
 		switch state {
-		case keybase1.AppState_FOREGROUND:
-			c.debug(ctx, "monitorAppState: foregrounded")
-			if c.httpServerMode() && !c.httpSrv.Active() {
-				c.debug(ctx, "monitorAppState: starting http server")
-				c.startHTTPServer(ctx)
-			}
 		case keybase1.AppState_BACKGROUND:
 			c.debug(ctx, "monitorAppState: backgrounded")
-			if c.httpServerMode() && c.httpSrv.Active() {
-				c.debug(ctx, "monitorAppState: backgrounded, stopping http server")
-				c.httpSrv.Stop()
-			}
 			c.diskLRU.Flush(ctx, c.G())
 		}
 	}
@@ -207,24 +172,34 @@ func (c *FullCachingSource) getCacheDir() string {
 	return c.G().GetCacheDir()
 }
 
+func (c *FullCachingSource) getFullFilename(fileName string) string {
+	return fileName + ".avatar"
+}
+
 func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
 	var file *os.File
 	if len(previousPath) > 0 {
 		// We already have the image, let's re-use the same file
 		c.debug(ctx, "commitAvatarToDisk: using previous path: %s", previousPath)
-		file, err = os.OpenFile(previousPath, os.O_RDWR, os.ModeAppend)
+		if file, err = os.OpenFile(previousPath, os.O_RDWR, os.ModeAppend); err != nil {
+			return path, err
+		}
+		path = file.Name()
 	} else {
-		file, err = ioutil.TempFile(c.getCacheDir(), "avatar")
-	}
-	if err != nil {
-		return path, err
+		if file, err = ioutil.TempFile(c.getCacheDir(), "avatar"); err != nil {
+			return path, err
+		}
+		// Rename with correct extension
+		path = c.getFullFilename(file.Name())
+		if err = os.Rename(file.Name(), path); err != nil {
+			return path, err
+		}
 	}
 	defer file.Close()
 	_, err = io.Copy(file, data)
 	if err != nil {
 		return path, err
 	}
-	path = file.Name()
 	return path, nil
 }
 
@@ -296,25 +271,7 @@ func (c *FullCachingSource) dispatchPopulateFromRes(ctx context.Context, res key
 	}
 }
 
-func (c *FullCachingSource) serveHTTPAvatar(w http.ResponseWriter, req *http.Request) {
-	path := req.URL.Query().Get("p")
-	// Check path prefix
-	file, err := os.Open(path)
-	if err != nil {
-		c.debug(context.Background(), "serveHTTPAvatar: failed to read: file: %s err: %s", path, err)
-		return
-	}
-	c.debug(context.Background(), "serveHTTPAvatar: successfully read file: %s", path)
-	w.Header().Add("Cache-Control", "no-cache")
-	io.Copy(w, file)
-	file.Close()
-}
-
 func (c *FullCachingSource) makeURL(path string) keybase1.AvatarUrl {
-	if c.httpServerMode() {
-		addr, _ := c.httpSrv.Addr()
-		return keybase1.MakeAvatarURL(fmt.Sprintf("http://%s/a?p=%s", addr, path))
-	}
 	return keybase1.MakeAvatarURL(fmt.Sprintf("file://%s", path))
 }
 
@@ -375,17 +332,10 @@ func (c *FullCachingSource) loadNames(ctx context.Context, names []string, forma
 
 func (c *FullCachingSource) LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("FullCachingSource.LoadUsers", func() error { return err })()
-	// If we failed to startup our HTTP server, we just don't do any caching
-	if c.fallbackMode {
-		return c.fallbackSource.LoadUsers(ctx, usernames, formats)
-	}
 	return c.loadNames(ctx, usernames, formats, c.simpleSource.LoadUsers)
 }
 
 func (c *FullCachingSource) LoadTeams(ctx context.Context, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
 	defer c.G().Trace("FullCachingSource.LoadTeams", func() error { return err })()
-	if c.fallbackMode {
-		return c.fallbackSource.LoadTeams(ctx, teams, formats)
-	}
 	return c.loadNames(ctx, teams, formats, c.simpleSource.LoadTeams)
 }

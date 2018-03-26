@@ -36,10 +36,9 @@ func TestAvatarsFullCaching(t *testing.T) {
 	a, _ := testSrv.Addr()
 	testSrvAddr := fmt.Sprintf("http://%s/p", a)
 	tc.G.API = newAvatarMockAPI(makeHandler(testSrvAddr, cb))
-	source := NewFullCachingSource(tc.G, time.Hour, 10, NewURLCachingSource(tc.G, time.Hour, 10))
+	source := NewFullCachingSource(tc.G, time.Hour, 10)
 	source.populateSuccessCh = make(chan struct{}, 5)
 	source.tempDir = os.TempDir()
-	source.forceHTTPSrv = true
 	source.StartBackgroundTasks()
 	defer source.StopBackgroundTasks()
 
@@ -59,10 +58,10 @@ func TestAvatarsFullCaching(t *testing.T) {
 	}
 
 	t.Log("cache hit")
-	getHTTP := func(addr string) string {
-		resp, err := http.Get(addr)
+	getFile := func(path string) string {
+		file, err := os.Open(strings.TrimPrefix(path, "file://"))
 		require.NoError(t, err)
-		dat, err := ioutil.ReadAll(resp.Body)
+		dat, err := ioutil.ReadAll(file)
 		require.NoError(t, err)
 		return string(dat)
 	}
@@ -80,8 +79,8 @@ func TestAvatarsFullCaching(t *testing.T) {
 	}
 	val := res.Picmap["mike"]["square"].String()
 	require.NotEqual(t, testSrvAddr, val)
-	require.True(t, strings.HasPrefix(val, "http://127.0.0.1"))
-	require.Equal(t, "hi", getHTTP(val))
+	require.True(t, strings.HasPrefix(val, "file://"))
+	require.Equal(t, "hi", getFile(val))
 
 	t.Log("stale")
 	testSrvAddr = fmt.Sprintf("http://%s/p2", a)
@@ -115,5 +114,5 @@ func TestAvatarsFullCaching(t *testing.T) {
 	}
 	val2 = res.Picmap["mike"]["square"].String()
 	require.Equal(t, val2, val)
-	require.Equal(t, "hi2", getHTTP(val2))
+	require.Equal(t, "hi2", getFile(val2))
 }
