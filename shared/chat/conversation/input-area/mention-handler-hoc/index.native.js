@@ -140,13 +140,10 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    onSelectionChange = (event: any) =>
+    onSelectionChange = (selection: {selectionStart: number, selectionEnd: number}) =>
       this.setState(
         {
-          _selection: {
-            selectionStart: event.nativeEvent.selection.start,
-            selectionEnd: event.nativeEvent.selection.end,
-          },
+          _selection: selection,
         },
         () => this.onChangeText(this.props.text)
       )
