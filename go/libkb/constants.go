@@ -15,7 +15,7 @@ import (
 const (
 	DevelServerURI      = "http://localhost:3000"
 	StagingServerURI    = "https://stage0.keybase.io"
-	ProductionServerURI = "https://api.keybase.io"
+	ProductionServerURI = "https://api-0.core.keybaseapi.com"
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
