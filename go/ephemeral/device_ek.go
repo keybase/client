@@ -25,6 +25,7 @@ func (s *DeviceEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 
 func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (err error) {
 	defer g.CTrace(ctx, "postNewDeviceEK", func() error { return err })()
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/device_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -40,6 +41,7 @@ func postNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, sig string) (e
 
 func serverMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (maxGeneration keybase1.EkGeneration, err error) {
 	defer g.CTrace(ctx, "serverMaxDeviceEK", func() error { return err })()
+
 	deviceEKs, err := allDeviceEKMetadataMaybeStale(ctx, g, merkleRoot)
 	if err != nil {
 		return maxGeneration, err

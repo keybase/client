@@ -1,0 +1,21 @@
+
+@namespace("stellar.1") protocol common {
+
+  @typedef("string") record AccountID {}
+  @typedef("string") record TransactionID {}
+  @typedef("string") record KeybaseTransactionID {}
+  @typedef("long")   record TimeMs {} // ms since epoch
+
+  record Asset {
+    string type;
+    string code;
+    string issuer;
+  }
+
+  record Balance {
+    Asset asset;
+    string amount;
+    string limit;
+  }
+
+}

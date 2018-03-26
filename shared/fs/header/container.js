@@ -85,6 +85,7 @@ const mergeProps = (
       _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, evt),
     breadcrumbItems,
     dropdownItems,
+    path,
     isTeamPath,
     openInFileUI: kbfsEnabled ? () => _openInFileUI(path) : _openFinderPopup,
   }

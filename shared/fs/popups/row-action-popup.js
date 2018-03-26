@@ -4,8 +4,8 @@ import * as Types from '../../constants/types/fs'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
-import PathItemIcon from './path-item-icon'
-import PathItemInfo from './path-item-info'
+import PathItemIcon from '../common/path-item-icon'
+import PathItemInfo from '../common/path-item-info'
 
 // TODO: use Constants.filesize after it's in.
 const filesize = s => `${(s / 1024).toString()} KB`
@@ -28,7 +28,7 @@ type Props = {
 
 const Popup = (props: Props) => {
   const header = {
-    title: 'yo',
+    title: 'unused',
     view: (
       <Box style={stylesHeader}>
         <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
@@ -55,7 +55,6 @@ const Popup = (props: Props) => {
   const items = props.menuItems.map(({onClick, title}) => ({
     onClick,
     title,
-    view: <Text type="Body">{title}</Text>,
   }))
   return (
     <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={props.onHidden} />

@@ -5,63 +5,13 @@
       "path": "github.com/keybase/client/go/protocol/keybase1",
       "type": "idl",
       "import_as": "keybase1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
-    {
-      "type": "record",
-      "name": "AccountID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "TransactionID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "KeybaseTransactionID",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
-      "type": "record",
-      "name": "Asset",
-      "fields": [
-        {
-          "type": "string",
-          "name": "type"
-        },
-        {
-          "type": "string",
-          "name": "code"
-        },
-        {
-          "type": "string",
-          "name": "issuer"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Balance",
-      "fields": [
-        {
-          "type": "Asset",
-          "name": "asset"
-        },
-        {
-          "type": "string",
-          "name": "amount"
-        },
-        {
-          "type": "string",
-          "name": "limit"
-        }
-      ]
-    },
     {
       "type": "record",
       "name": "EncryptedNote",
@@ -86,6 +36,40 @@
     },
     {
       "type": "record",
+      "name": "Members",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "fromStellar"
+        },
+        {
+          "type": "string",
+          "name": "fromKeybase"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "fromUID"
+        },
+        {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
+          "type": "AccountID",
+          "name": "toStellar"
+        },
+        {
+          "type": "string",
+          "name": "toKeybase"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "toUID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TransactionSummary",
       "fields": [
         {
@@ -95,6 +79,14 @@
         {
           "type": "KeybaseTransactionID",
           "name": "keybaseID"
+        },
+        {
+          "type": "string",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "errMsg"
         },
         {
           "type": "EncryptedNote",
@@ -109,20 +101,24 @@
           "name": "amount"
         },
         {
-          "type": "AccountID",
-          "name": "stellarFrom"
+          "type": "string",
+          "name": "displayAmount"
         },
         {
-          "type": "AccountID",
-          "name": "stellarTo"
+          "type": "string",
+          "name": "displayCurrency"
         },
         {
-          "type": "keybase1.UID",
-          "name": "keybaseFrom"
+          "type": "Members",
+          "name": "members"
         },
         {
-          "type": "keybase1.UID",
-          "name": "keybaseTo"
+          "type": "TimeMs",
+          "name": "ctime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "rtime"
         }
       ]
     },
@@ -153,22 +149,6 @@
         {
           "type": "string",
           "name": "amount"
-        },
-        {
-          "type": "AccountID",
-          "name": "stellarFrom"
-        },
-        {
-          "type": "AccountID",
-          "name": "stellarTo"
-        },
-        {
-          "type": "keybase1.UID",
-          "name": "keybaseFrom"
-        },
-        {
-          "type": "keybase1.UID",
-          "name": "keybaseTo"
         }
       ]
     },
@@ -209,6 +189,10 @@
           "name": "feePaid"
         },
         {
+          "type": "Members",
+          "name": "members"
+        },
+        {
           "type": "EncryptedNote",
           "name": "note"
         },
@@ -225,6 +209,10 @@
             "items": "Operation"
           },
           "name": "operations"
+        },
+        {
+          "type": "TimeMs",
+          "name": "ctime"
         }
       ]
     },
@@ -233,32 +221,12 @@
       "name": "PaymentPost",
       "fields": [
         {
-          "type": "AccountID",
-          "name": "from"
-        },
-        {
-          "type": "AccountID",
-          "name": "to"
-        },
-        {
           "type": "uint64",
-          "name": "sequenceNumber"
+          "name": "stellarAccountSeqno"
         },
         {
-          "type": "string",
-          "name": "keybaseFrom"
-        },
-        {
-          "type": "string",
-          "name": "keybaseTo"
-        },
-        {
-          "type": "string",
-          "name": "transactionType"
-        },
-        {
-          "type": "string",
-          "name": "xlmAmount"
+          "type": "Members",
+          "name": "members"
         },
         {
           "type": "string",

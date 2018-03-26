@@ -1280,48 +1280,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		ok := true
-		var errMsg string
-		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
-		iteam, err := LoadTeam(ctx, s.G().ExternalG(), conversationLocal.Info.Triple.Tlfid,
-			conversationLocal.Info.TlfName,
-			conversationRemote.GetMembersType(),
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
-		if err != nil {
-			ok = false
-			errMsg = fmt.Sprintf("unable to load iteam: %v", err.Error())
-		}
-		var iteamName string
-		if ok {
-			iteamName, err = iteam.ImplicitTeamDisplayNameString(ctx)
-			if err != nil {
-				ok = false
-				errMsg = fmt.Sprintf("failed to read : %v", err.Error())
-			}
-		}
-		if ok {
-			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
-			conversationLocal.Info.Participants, err = utils.ReorderParticipants(
-				ctx,
-				s.G(),
-				umapper,
-				iteamName,
-				conversationRemote.Metadata.ActiveList)
-			if err != nil {
-				ok = false
-				errMsg = fmt.Sprintf("error reordering participants: %v", err.Error())
-			}
-		}
-		if !ok {
-			s.Debug(ctx, "localizeConversation: failed to get implicit team members: %s", errMsg)
-		}
 	case chat1.ConversationMembersType_TEAM:
 		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-
 		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
 		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
 			10*time.Second, true)
@@ -1337,7 +1300,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			return conversationLocal.Info.Participants[i].Username <
 				conversationLocal.Info.Participants[j].Username
 		})
-
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+		fallthrough
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(

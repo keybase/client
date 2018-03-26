@@ -74,6 +74,7 @@ type GlobalContext struct {
 	teamLoader       TeamLoader       // Play back teams for id/name properties
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
+	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
 	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	CardCache        *UserCardCache   // cache of keybase1.UserCard objects
@@ -513,6 +514,12 @@ func (g *GlobalContext) GetUserEKBoxStorage() UserEKBoxStorage {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.userEKBoxStorage
+}
+
+func (g *GlobalContext) GetTeamEKBoxStorage() TeamEKBoxStorage {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamEKBoxStorage
 }
 
 func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
@@ -1034,6 +1041,12 @@ func (g *GlobalContext) SetUserEKBoxStorage(s UserEKBoxStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.userEKBoxStorage = s
+}
+
+func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamEKBoxStorage = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
