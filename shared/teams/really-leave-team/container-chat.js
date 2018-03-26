@@ -1,11 +1,17 @@
 // @flow
+import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import {connect, type TypedState} from '../../util/container'
-import {compose, branch, lifecycle, renderComponent} from 'recompose'
-import ReallyLeaveTeam, {Spinner} from '.'
+import ReallyLeaveTeam, {Spinner, type Props as RenderProps} from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
+
+type Props = RenderProps & {
+  _canLeaveTeam: boolean,
+  _loadOperations: (teamname: string) => void,
+  _loaded: boolean,
+}
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
@@ -13,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const _canLeaveTeam = (canPerform && canPerform.leaveTeam) || false
   return {
     _canLeaveTeam,
-    loaded: !!canPerform,
+    _loaded: !!canPerform,
     name,
   }
 }
@@ -28,13 +34,22 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  lifecycle({
-    componentDidMount: function() {
-      !this.props.loaded && this.props._loadOperations(this.props.name)
-    },
-  }),
-  branch(props => !props.loaded, renderComponent(Spinner)),
-  branch(props => !props._canLeaveTeam, renderComponent(LastOwnerDialog))
-)(ReallyLeaveTeam)
+class Switcher extends React.PureComponent<Props> {
+  componentWillMount() {
+    if (!this.props._loaded) {
+      this.props._loadOperations(this.props.name)
+    }
+  }
+
+  render() {
+    if (!this.props._loaded) {
+      return <Spinner {...this.props} />
+    }
+    if (!this.props._canLeaveTeam) {
+      return <LastOwnerDialog {...this.props} />
+    }
+    return <ReallyLeaveTeam {...this.props} />
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Switcher)

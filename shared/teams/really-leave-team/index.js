@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
-type Props = {
+export type Props = {
   onClose: () => void,
   onLeave: () => void,
   name: string,
