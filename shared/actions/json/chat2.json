@@ -91,13 +91,14 @@
     },
     // Got some new inbox rows
     "metasReceived": {
-      "metas": "Array<Types.ConversationMeta>"
+      "metas": "Array<Types.ConversationMeta>",
+      "neverCreate?": "boolean", // If true never create a brand new meta, only update
     },
     // Got some inbox errors
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
       "error": "?RPCChatTypes.InboxUIItemError",
-      "username": "?string"
+      "username": "?string",
     },
     // We got a status update saying it was blocked or ignored
     "metaDelete": {

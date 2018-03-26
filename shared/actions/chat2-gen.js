@@ -289,7 +289,12 @@ export const createMetaUpdatePagination = (
     paginationMoreToLoad: boolean,
   }>
 ) => ({error: false, payload, type: metaUpdatePagination})
-export const createMetasReceived = (payload: $ReadOnly<{metas: Array<Types.ConversationMeta>}>) => ({error: false, payload, type: metasReceived})
+export const createMetasReceived = (
+  payload: $ReadOnly<{
+    metas: Array<Types.ConversationMeta>,
+    neverCreate?: boolean,
+  }>
+) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,

@@ -165,7 +165,7 @@ const unboxRows = (
     const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
     const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
     if (meta) {
-      yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+      yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta], neverCreate: true}))
     } else {
       yield Saga.put(
         Chat2Gen.createMetaReceivedError({
