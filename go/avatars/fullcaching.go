@@ -62,7 +62,6 @@ type FullCachingSource struct {
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   Source
-	httpSrv        *libkb.HTTPSrv
 
 	populateCacheCh chan populateArg
 
@@ -79,7 +78,6 @@ func NewFullCachingSource(g *libkb.GlobalContext, staleThreshold time.Duration, 
 		diskLRU:        lru.NewDiskLRU("avatars", 1, size),
 		staleThreshold: staleThreshold,
 		simpleSource:   NewSimpleSource(g),
-		httpSrv:        libkb.NewHTTPSrv(g, libkb.NewPortRangeListenerSource(7000, 8000)),
 	}
 }
 
