@@ -38,6 +38,14 @@ type TeamChangedByNameArg struct {
 	Changes      TeamChangeSet `codec:"changes" json:"changes"`
 }
 
+type TeamNameUpdateArg struct {
+	TeamID       TeamID  `codec:"teamID" json:"teamID"`
+	TeamName     string  `codec:"teamName" json:"teamName"`
+	OldTeamName  *string `codec:"oldTeamName,omitempty" json:"oldTeamName,omitempty"`
+	LatestSeqno  Seqno   `codec:"latestSeqno" json:"latestSeqno"`
+	ImplicitTeam bool    `codec:"implicitTeam" json:"implicitTeam"`
+}
+
 type TeamDeletedArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
@@ -53,6 +61,7 @@ type TeamExitArg struct {
 type NotifyTeamInterface interface {
 	TeamChangedByID(context.Context, TeamChangedByIDArg) error
 	TeamChangedByName(context.Context, TeamChangedByNameArg) error
+	TeamNameUpdate(context.Context, TeamNameUpdateArg) error
 	TeamDeleted(context.Context, TeamID) error
 	TeamAbandoned(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
@@ -90,6 +99,22 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamChangedByName(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"teamNameUpdate": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamNameUpdateArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamNameUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamNameUpdateArg)(nil), args)
+						return
+					}
+					err = i.TeamNameUpdate(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -157,6 +182,11 @@ func (c NotifyTeamClient) TeamChangedByID(ctx context.Context, __arg TeamChanged
 
 func (c NotifyTeamClient) TeamChangedByName(ctx context.Context, __arg TeamChangedByNameArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByName", []interface{}{__arg})
+	return
+}
+
+func (c NotifyTeamClient) TeamNameUpdate(ctx context.Context, __arg TeamNameUpdateArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamNameUpdate", []interface{}{__arg})
 	return
 }
 

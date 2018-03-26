@@ -75,6 +75,35 @@
       "response": null,
       "oneway": true
     },
+    "teamNameUpdate": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "oldTeamName",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "latestSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "implicitTeam",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "teamDeleted": {
       "request": [
         {

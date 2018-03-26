@@ -315,10 +315,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Fetch from cache
 	tracer.Stage("cache load")
-	var ret *keybase1.TeamData
-	if !arg.forceFullReload {
-		// Load from cache
-		ret = l.storage.Get(ctx, arg.teamID, arg.public)
+	ret := l.storage.Get(ctx, arg.teamID, arg.public)
+	var cachedName *keybase1.TeamName
+	if ret != nil && !ret.Name.IsNil() {
+		cachedName = &ret.Name
+	}
+	if arg.forceFullReload {
+		// Don't use the cache
+		ret = nil
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -327,11 +331,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		l.G().Log.CWarningf(ctx, "TeamLoader discarding snapshot for wrong user: (%v, %v) != (%v, %v)",
 			arg.me.Uid, arg.me.EldestSeqno, ret.Chain.Reader.Uid, ret.Chain.Reader.EldestSeqno)
 		ret = nil
-	}
-
-	var cachedName *keybase1.TeamName
-	if ret != nil && !ret.Name.IsNil() {
-		cachedName = &ret.Name
 	}
 
 	// Determine whether to repoll merkle.
@@ -577,15 +576,16 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
-		chain := TeamSigChainState{inner: ret.Chain}
 		// Send a notification if we used to have the name cached and it has changed at all.
-		changeSet := keybase1.TeamChangeSet{Renamed: true}
-		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(),
-			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
-		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
-		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+		chain := TeamSigChainState{inner: ret.Chain}
+		oldName := cachedName.String()
+		go l.G().NotifyRouter.HandleTeamNameUpdate(context.Background(), keybase1.TeamNameUpdateArg{
+			TeamID:       chain.GetID(),
+			TeamName:     newName.String(),
+			OldTeamName:  &oldName,
+			LatestSeqno:  chain.GetLatestSeqno(),
+			ImplicitTeam: chain.IsImplicit(),
+		})
 	}
 
 	// Check request constraints

@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -62,6 +63,7 @@ type NotifyListener interface {
 	ReachabilityChanged(r keybase1.Reachability)
 	TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet)
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet)
+	TeamNameUpdate(keybase1.TeamNameUpdateArg)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamExit(teamID keybase1.TeamID)
 }
@@ -112,8 +114,9 @@ func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno
 }
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
 }
-func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
-func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)    {}
+func (n *NoopNotifyListener) TeamNameUpdate(keybase1.TeamNameUpdateArg) {}
+func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)        {}
+func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)           {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1192,6 +1195,38 @@ func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 		n.listener.TeamChangedByName(teamName, latestSeqno, implicitTeam, changes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
+}
+
+func (n *NotifyRouter) HandleTeamNameUpdate(ctx context.Context, arg keybase1.TeamNameUpdateArg) {
+
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	nameDebug := fmt.Sprintf("'%s'", arg.TeamName)
+	if arg.OldTeamName != nil {
+		nameDebug = fmt.Sprintf("%s -> %s", *arg.OldTeamName, arg.TeamName)
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending TeamNameUpdate notification (team:%v, seqno:%v, implicit:%v, name:%v)",
+		arg.TeamID, arg.LatestSeqno, arg.ImplicitTeam, nameDebug)
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamNameUpdate(context.Background(), arg)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.TeamNameUpdate(arg)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent TeamNameUpdate notification")
 }
 
 func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {

@@ -839,6 +839,10 @@ func (n *teamNotifyHandler) TeamChangedByName(ctx context.Context, arg keybase1.
 	return nil
 }
 
+func (n *teamNotifyHandler) TeamNameUpdate(ctx context.Context, arg keybase1.TeamNameUpdateArg) error {
+	return nil
+}
+
 func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.TeamID) error {
 	return nil
 }
