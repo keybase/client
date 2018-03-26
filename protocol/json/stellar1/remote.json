@@ -81,7 +81,7 @@
           "name": "keybaseID"
         },
         {
-          "type": "string",
+          "type": "TransactionStatus",
           "name": "status"
         },
         {

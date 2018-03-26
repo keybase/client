@@ -59,6 +59,41 @@ func (o Balance) DeepCopy() Balance {
 	}
 }
 
+type TransactionStatus int
+
+const (
+	TransactionStatus_NONE            TransactionStatus = 0
+	TransactionStatus_PENDING         TransactionStatus = 1
+	TransactionStatus_SUCCESS         TransactionStatus = 2
+	TransactionStatus_ERROR_TRANSIENT TransactionStatus = 3
+	TransactionStatus_ERROR_PERMANENT TransactionStatus = 4
+)
+
+func (o TransactionStatus) DeepCopy() TransactionStatus { return o }
+
+var TransactionStatusMap = map[string]TransactionStatus{
+	"NONE":            0,
+	"PENDING":         1,
+	"SUCCESS":         2,
+	"ERROR_TRANSIENT": 3,
+	"ERROR_PERMANENT": 4,
+}
+
+var TransactionStatusRevMap = map[TransactionStatus]string{
+	0: "NONE",
+	1: "PENDING",
+	2: "SUCCESS",
+	3: "ERROR_TRANSIENT",
+	4: "ERROR_PERMANENT",
+}
+
+func (e TransactionStatus) String() string {
+	if v, ok := TransactionStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type CommonInterface interface {
 }
 

@@ -23,7 +23,7 @@
   record TransactionSummary {
     TransactionID stellarID;
     KeybaseTransactionID keybaseID;
-    string status;
+    TransactionStatus status;
     string errMsg;
 
     EncryptedNote note;
