@@ -1077,6 +1077,16 @@ func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
 	return SigchainV2TypeFromV1TypeAndRevocations(c.unpacked.typ, SigHasRevokes(c.HasRevocations()))
 }
 
+func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
+	if c.unpacked == nil {
+		return SigchainV2TypeNone, errors.New("GetSigchainV2TypeFromV2Shell: chain link not unpacked")
+	}
+	if c.unpacked.outerLinkV2 == nil {
+		return SigchainV2TypeNone, errors.New("GetSigchainV2TypeFromV2Shell: chain link has no v2 shell")
+	}
+	return c.unpacked.outerLinkV2.LinkType, nil
+}
+
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
 	var serverKID, linkKID, verifyKID keybase1.KID
 

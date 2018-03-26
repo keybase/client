@@ -768,7 +768,7 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 	walletSection := jsonw.NewDictionary()
 	walletSection.SetKey("name", jsonw.NewString(""))
 	walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
-	walletSection.SetKey("network", jsonw.NewString("stellar"))
+	walletSection.SetKey("network", jsonw.NewString(string(WalletNetworkStellar)))
 
 	walletKeySection := jsonw.NewDictionary()
 	walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
