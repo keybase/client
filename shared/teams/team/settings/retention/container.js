@@ -1,9 +1,9 @@
 // @flow
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
 import {getTeamRetentionPolicy} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {type _RetentionPolicy} from '../../../../constants/types/teams'
-import {createGetTeamRetentionPolicy} from '../../../../actions/teams-gen'
 import {navigateAppend} from '../../../../actions/route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
@@ -39,8 +39,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname, onSelect, type}: OwnProps) => ({
-  _loadTeamPolicy: () => dispatch(createGetTeamRetentionPolicy({teamname})),
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {conversationIDKey, teamname, onSelect, type, isTeamWide}: OwnProps
+) => ({
+  _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   onShowDropdown: (items, target) =>
     dispatch(
       navigateAppend([
@@ -54,7 +57,20 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname, onSelect, type}: OwnP
     if (onSelect) {
       onSelect(policy, changed, decreased)
     } else {
-      // show popup etc (TODO DESKTOP-6062)
+      const setPolicy = () => {
+        if (isTeamWide) {
+          dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+        } else {
+          // TODO set conv retentionPolicy
+        }
+      }
+      if (decreased) {
+        dispatch(
+          navigateAppend([{selected: 'retentionWarning', props: {days: policy.days, onConfirm: setPolicy}}])
+        )
+      } else {
+        setPolicy()
+      }
     }
   },
 })

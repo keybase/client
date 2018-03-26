@@ -21,6 +21,7 @@ import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionDropdown from '../teams/team/settings/retention/dropdown'
+import RetentionWarning from '../teams/team/settings/retention/warning/container'
 
 const editChannel = {
   component: MaybePopupHoc(isMobile)(EditChannel),
@@ -42,6 +43,12 @@ const retentionDropdown = {
   tags: makeLeafTags({layerOnTop: true}),
 }
 
+const retentionWarning = {
+  component: RetentionWarning,
+  children: {},
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const infoPanelChildren = {
   addPeopleHow: {
     children: {},
@@ -61,6 +68,7 @@ const infoPanelChildren = {
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   retentionDropdown,
+  retentionWarning,
   showBlockConversationDialog: {
     component: BlockConversationWarning,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
