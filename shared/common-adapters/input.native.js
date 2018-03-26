@@ -32,10 +32,6 @@ class Input extends Component<Props, State> {
     }
   }
 
-  setNativeProps(props: Object) {
-    this._input && this._input.setNativeProps(props)
-  }
-
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.hasOwnProperty('value')) {
       this.setState({value: nextProps.value || ''})
