@@ -173,7 +173,8 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 	userEKBoxStorage := s.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
 	if err != nil {
-		return teamEK, newEKUnboxErr(TEAM_EK, teamEKGeneration, USER_EK, teamEKBoxed.UserEkGeneration)
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
 	userSeed := UserEKSeed(userEK.Seed)
@@ -181,7 +182,8 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 
 	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
 	if err != nil {
-		return teamEK, newEKUnboxErr(TEAM_EK, teamEKGeneration, USER_EK, teamEKBoxed.UserEkGeneration)
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
 	seed, err := newTeamEKSeedFromBytes(msg)

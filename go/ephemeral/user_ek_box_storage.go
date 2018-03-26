@@ -185,7 +185,8 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 	deviceEKStorage := s.G().GetDeviceEKStorage()
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
-		return userEK, newEKUnboxErr(USER_EK, userEKGeneration, DEVICE_EK, userEKBoxed.DeviceEkGeneration)
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
 	deviceSeed := DeviceEKSeed(deviceEK.Seed)
@@ -193,7 +194,8 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
-		return userEK, newEKUnboxErr(USER_EK, userEKGeneration, DEVICE_EK, userEKBoxed.DeviceEkGeneration)
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
 	seed, err := newUserEKSeedFromBytes(msg)

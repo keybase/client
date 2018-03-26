@@ -16,20 +16,22 @@ const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 // Everyday we want to generate a new key if possible
 const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
 
+type EKType string
+
 const (
-	DEVICE_EK = "deviceEK"
-	USER_EK   = "userEK"
-	TEAM_EK   = "teamEK"
+	DeviceEKStr EKType = "deviceEK"
+	UserEKStr   EKType = "userEK"
+	TeamEKStr   EKType = "teamEK"
 )
 
 type EKUnboxErr struct {
-	boxType           string
+	boxType           EKType
 	boxGeneration     keybase1.EkGeneration
-	missingType       string // device/user/teamEK
+	missingType       EKType
 	missingGeneration keybase1.EkGeneration
 }
 
-func newEKUnboxErr(boxType string, boxGeneration keybase1.EkGeneration, missingType string, missingGeneration keybase1.EkGeneration) *EKUnboxErr {
+func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) *EKUnboxErr {
 	return &EKUnboxErr{
 		missingType:       missingType,
 		boxType:           boxType,
@@ -46,7 +48,7 @@ func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool 
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyLifetimeSecs
 }
 
-func keygenExpired(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
 }
 
