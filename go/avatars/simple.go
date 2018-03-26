@@ -28,6 +28,11 @@ func NewSimpleSource(g *libkb.GlobalContext) *SimpleSource {
 	}
 }
 
+var _ Source = (*SimpleSource)(nil)
+
+func (s *SimpleSource) StartBackgroundTasks() {}
+func (s *SimpleSource) StopBackgroundTasks()  {}
+
 func (s *SimpleSource) formatArg(formats []keybase1.AvatarFormat) string {
 	var strs []string
 	for _, f := range formats {
@@ -63,7 +68,7 @@ func (s *SimpleSource) makeRes(res *keybase1.LoadAvatarsRes, apiRes apiAvatarRes
 		return fmt.Errorf("invalid API server response, wrong number of users: %d != %d",
 			len(apiRes.Pictures), len(names))
 	}
-	s.allocRes(res, names)
+	allocRes(res, names)
 	for index, rec := range apiRes.Pictures {
 		u := names[index]
 		for format, url := range rec {
@@ -75,13 +80,6 @@ func (s *SimpleSource) makeRes(res *keybase1.LoadAvatarsRes, apiRes apiAvatarRes
 
 func (s *SimpleSource) debug(ctx context.Context, msg string, args ...interface{}) {
 	s.G().Log.CDebugf(ctx, "Avatars.SimpleSource: %s", fmt.Sprintf(msg, args...))
-}
-
-func (s *SimpleSource) allocRes(res *keybase1.LoadAvatarsRes, usernames []string) {
-	res.Picmap = make(map[string]map[keybase1.AvatarFormat]keybase1.AvatarUrl)
-	for _, u := range usernames {
-		res.Picmap[u] = make(map[keybase1.AvatarFormat]keybase1.AvatarUrl)
-	}
 }
 
 func (s *SimpleSource) LoadUsers(ctx context.Context, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {

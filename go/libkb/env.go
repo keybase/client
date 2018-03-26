@@ -1073,6 +1073,13 @@ func (e *Env) GetChatMemberType() string {
 	)
 }
 
+func (e *Env) GetAvatarSource() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_AVATAR_SOURCE") },
+		func() string { return "full" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.GetConfig().GetDeviceID()
 }
