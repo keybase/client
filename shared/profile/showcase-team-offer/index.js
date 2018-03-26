@@ -45,7 +45,7 @@ const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, 
           <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
         </Box>
       </Box>
-      {showcased || canShowcase ? (
+      {showcased || canShowcase || waiting ? (
         <Button
           label={showcased ? 'Published' : 'Publish'}
           onClick={() => onPromote(!showcased)}
