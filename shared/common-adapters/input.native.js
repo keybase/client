@@ -92,6 +92,19 @@ class Input extends Component<Props, State> {
     this._input && this._input.blur()
   }
 
+  replaceText = (
+    text: string,
+    startIdx: number,
+    endIdx: number,
+    newSelectionStart: number,
+    newSelectionEnd: number
+  ) => {
+    const existingText = this.state.value
+    const nextText = existingText.slice(0, startIdx) + text + existingText.slice(endIdx)
+    this._onChangeText(nextText)
+    // TODO: Handle selection.
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e, false)
