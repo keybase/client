@@ -295,6 +295,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   const teamname = action.payload.teamname
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
+  yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield Saga.call(RPCTypes.teamsTeamGetRpcPromise, {
       forceRepoll: false,
@@ -365,37 +366,11 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       yield Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
 
-    // Get publicity settings for this team.
-    const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
-      RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
-      {
-        name: teamname,
-      }
-    )
-
     // Get the subteam map for this team.
     const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
       name: {parts: teamname.split('.')},
     })
     const subteams = teamTree.entries.map(team => team.name.parts.join('.')).filter(team => team !== teamname)
-    const state: TypedState = yield Saga.select()
-    const yourOperations = Constants.getCanPerform(state, teamname)
-
-    let tarsDisabled = false
-    // Find out whether team access requests are enabled. Throws if you aren't admin.
-    if (yourOperations.changeTarsDisabled) {
-      tarsDisabled = yield Saga.call(RPCTypes.teamsGetTarsDisabledRpcPromise, {
-        name: teamname,
-      })
-    }
-
-    const publicityMap = {
-      anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
-      description: publicity.teamShowcase.description,
-      ignoreAccessRequests: tarsDisabled,
-      member: publicity.isMemberShowcased,
-      team: publicity.teamShowcase.isShowcased,
-    }
 
     yield Saga.all([
       Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
@@ -409,7 +384,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
         )
       ),
       Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
-      Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap}))),
       Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),
     ])
   } finally {
@@ -431,6 +405,40 @@ const _getTeamOperations = function*(
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
+}
+
+const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): Saga.SagaGenerator<any, any> {
+  const teamname = action.payload.teamname
+  const state: TypedState = yield Saga.select()
+  const yourOperations = Constants.getCanPerform(state, teamname)
+
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  // Get publicity settings for this team.
+  const publicity: RPCTypes.TeamAndMemberShowcase = yield Saga.call(
+    RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
+    {
+      name: teamname,
+    }
+  )
+
+  let tarsDisabled = false
+  // Find out whether team access requests are enabled. Throws if you aren't admin.
+  if (yourOperations.changeTarsDisabled) {
+    tarsDisabled = yield Saga.call(RPCTypes.teamsGetTarsDisabledRpcPromise, {
+      name: teamname,
+    })
+  }
+
+  const publicityMap = {
+    anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
+    description: publicity.teamShowcase.description,
+    ignoreAccessRequests: tarsDisabled,
+    member: publicity.isMemberShowcased,
+    team: publicity.teamShowcase.isShowcased,
+  }
+
+  yield Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap})))
+  yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
@@ -636,6 +644,21 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
     yield Saga.put(navigateTo([chatTab]))
   } catch (error) {
     yield Saga.put(TeamsGen.createSetChannelCreationError({error: error.desc}))
+  }
+}
+
+const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload, state: TypedState) {
+  const {teamname, showcase} = action.payload
+  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  try {
+    yield Saga.call(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
+      isShowcased: showcase,
+      name: teamname,
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
   }
 }
 
@@ -942,6 +965,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
+  yield Saga.safeTakeEvery(TeamsGen.getTeamPublicity, _getTeamPublicity)
   yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
@@ -956,6 +980,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.editTeamDescription, _editDescription)
   yield Saga.safeTakeEvery(TeamsGen.editMembership, _editMembership)
   yield Saga.safeTakeEvery(TeamsGen.removeMemberOrPendingInvite, _removeMemberOrPendingInvite)
+  yield Saga.safeTakeEvery(TeamsGen.setMemberPublicity, _setMemberPublicity)
   yield Saga.safeTakeEveryPure(TeamsGen.updateTopic, _updateTopic, last)
   yield Saga.safeTakeEveryPure(TeamsGen.updateChannelName, _updateChannelname, last)
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
