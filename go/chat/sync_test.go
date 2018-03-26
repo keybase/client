@@ -536,6 +536,7 @@ func TestSyncerTeamFilter(t *testing.T) {
 	require.NoError(t, ibox.TeamTypeChanged(ctx, 1, tconv.GetConvID(), chat1.TeamType_COMPLEX, nil))
 	tconv.Metadata.TeamType = chat1.TeamType_COMPLEX
 
+	t.Logf("dont sync shallow team change")
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
 			Vers:  100,
@@ -549,8 +550,24 @@ func TestSyncerTeamFilter(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 		require.Equal(t, 1, len(res.Incremental().Items))
+		require.Equal(t, iconv.GetConvID().String(), res.Incremental().Items[0].ConvID)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no sync")
 	}
 
+	t.Logf("sync it if metadata changed")
+	tconv.MaxMsgSummaries = append(tconv.MaxMsgSummaries, chat1.MessageSummary{
+		MsgID:       10,
+		MessageType: chat1.MessageType_METADATA,
+	})
+	doSync(t, syncer, ri, uid)
+	select {
+	case res := <-list.inboxSynced:
+		typ, err := res.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		require.Equal(t, 2, len(res.Incremental().Items))
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no sync")
+	}
 }
