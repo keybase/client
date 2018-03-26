@@ -168,7 +168,12 @@ export const createDesktopNotification = (
 export const createExitSearch = (payload: $ReadOnly<{canceled: boolean}>) => ({error: false, payload, type: exitSearch})
 export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
-export const createLeaveConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: leaveConversation})
+export const createLeaveConversation = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    dontNavigateToInbox?: boolean,
+  }>
+) => ({error: false, payload, type: leaveConversation})
 export const createLoadOlderMessagesDueToScroll = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadOlderMessagesDueToScroll})
 export const createMarkConversationsStale = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: markConversationsStale})
 export const createMarkInitiallyLoadedThreadAsRead = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
