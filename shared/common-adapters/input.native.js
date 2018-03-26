@@ -256,12 +256,6 @@ class Input extends Component<Props, State> {
       ...commonProps,
       multiline: false,
       style: collapseStyles([singlelineStyle, this.props.inputStyle]),
-      type:
-        {
-          password: 'password',
-          text: 'text',
-          passwordVisible: 'text',
-        }[this.props.type || 'text'] || 'text',
     }
 
     const multilineProps = {
