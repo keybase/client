@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
 import {Box, Button, Text, Checkbox} from '../../common-adapters'
+import {isLinux} from '../../constants/platform'
 
 type Props = {
   openAtLogin: boolean,
@@ -20,21 +21,22 @@ const Advanced = (props: Props) => (
       padding: globalMargins.medium,
     }}
   >
-    {!isMobile && (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'left',
-          flex: 1,
-        }}
-      >
-        <Checkbox
-          label="Open Keybase on startup"
-          checked={props.openAtLogin}
-          onCheck={props.onSetOpenAtLogin}
-        />
-      </Box>
-    )}
+    {!isMobile &&
+      !isLinux && (
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            alignItems: 'left',
+            flex: 1,
+          }}
+        >
+          <Checkbox
+            label="Open Keybase on startup"
+            checked={props.openAtLogin}
+            onCheck={props.onSetOpenAtLogin}
+          />
+        </Box>
+      )}
     <Developer {...props} />
   </Box>
 )
