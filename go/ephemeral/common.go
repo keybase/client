@@ -16,8 +16,38 @@ const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 // Everyday we want to generate a new key if possible
 const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
 
+const (
+	DEVICE_EK = "deviceEK"
+	USER_EK   = "userEK"
+	TEAM_EK   = "teamEK"
+)
+
+type EKUnboxErr struct {
+	boxType           string
+	boxGeneration     keybase1.EkGeneration
+	missingType       string // device/user/teamEK
+	missingGeneration keybase1.EkGeneration
+}
+
+func newEKUnboxErr(boxType string, boxGeneration keybase1.EkGeneration, missingType string, missingGeneration keybase1.EkGeneration) *EKUnboxErr {
+	return &EKUnboxErr{
+		missingType:       missingType,
+		boxType:           boxType,
+		missingGeneration: missingGeneration,
+		boxGeneration:     boxGeneration,
+	}
+}
+
+func (e *EKUnboxErr) Error() string {
+	return fmt.Sprintf("Error unboxing [%s]@generation%v missing [%s]@generation%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
+}
+
 func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() > KeyLifetimeSecs
+	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyLifetimeSecs
+}
+
+func keygenExpired(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
 }
 
 // We should wrap any entry points to the library with this before we're ready
