@@ -364,8 +364,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 			} else {
 				// Send notifications for a successful partial sync
-				filtered := s.filterNotifyConvs(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)
-				convs := utils.PresentRemoteConversations(utils.RemoteConvs(filtered))
+				convs := utils.PresentRemoteConversations(
+					utils.RemoteConvs(s.filterNotifyConvs(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)))
 				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid,
 					chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
 						Items: convs,
