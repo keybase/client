@@ -19,7 +19,7 @@ type State = {
 
 class Input extends Component<Props, State> {
   state: State
-  _input: any
+  _input: NativeTextInput | null
 
   constructor(props: Props) {
     super(props)
@@ -253,7 +253,7 @@ class Input extends Component<Props, State> {
       onSubmitEditing: this.props.onEnterKeyDown,
       onEndEditing: this.props.onEndEditing,
       placeholder: this.props.hintText,
-      ref: r => {
+      ref: (r: NativeTextInput | null) => {
         this._input = r
       },
       returnKeyType: this.props.returnKeyType,
