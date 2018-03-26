@@ -176,6 +176,7 @@ func (c *FullCachingSource) getFullFilename(fileName string) string {
 
 func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.ReadCloser, previousPath string) (path string, err error) {
 	var file *os.File
+	shouldRename := false
 	if len(previousPath) > 0 {
 		// We already have the image, let's re-use the same file
 		c.debug(ctx, "commitAvatarToDisk: using previous path: %s", previousPath)
@@ -187,16 +188,19 @@ func (c *FullCachingSource) commitAvatarToDisk(ctx context.Context, data io.Read
 		if file, err = ioutil.TempFile(c.getCacheDir(), "avatar"); err != nil {
 			return path, err
 		}
-		// Rename with correct extension
+		shouldRename = true
+	}
+	_, err = io.Copy(file, data)
+	file.Close()
+	if err != nil {
+		return path, err
+	}
+	// Rename with correct extension
+	if shouldRename {
 		path = c.getFullFilename(file.Name())
 		if err = os.Rename(file.Name(), path); err != nil {
 			return path, err
 		}
-	}
-	defer file.Close()
-	_, err = io.Copy(file, data)
-	if err != nil {
-		return path, err
 	}
 	return path, nil
 }
