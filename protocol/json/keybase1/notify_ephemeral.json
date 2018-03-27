@@ -11,7 +11,7 @@
     "newTeamEk": {
       "request": [
         {
-          "name": "teamID",
+          "name": "id",
           "type": "TeamID"
         },
         {

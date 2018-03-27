@@ -3,5 +3,5 @@ protocol NotifyEphemeral {
   import idl "common.avdl";
 
   @notify("")
-  void newTeamEk(TeamID teamID, EkGeneration generation);
+  void newTeamEk(TeamID id, EkGeneration generation);
 }

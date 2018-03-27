@@ -1280,7 +1280,7 @@ func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.Team
 	}
 
 	arg := keybase1.NewTeamEkArg{
-		TeamID:     teamID,
+		Id:         teamID,
 		Generation: generation,
 	}
 

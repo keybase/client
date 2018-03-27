@@ -196,10 +196,14 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
 		tt.t.Fatal(err)
 	}
+	if err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications)); err != nil {
+		tt.t.Fatal(err)
+	}
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
 	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
-		Team:   true,
-		Badges: true,
+		Team:      true,
+		Badges:    true,
+		Ephemeral: true,
 	}); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -817,16 +821,18 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh  chan keybase1.TeamChangedByIDArg
-	abandonCh chan keybase1.TeamID
-	badgeCh   chan keybase1.BadgeState
+	changeCh    chan keybase1.TeamChangedByIDArg
+	abandonCh   chan keybase1.TeamID
+	badgeCh     chan keybase1.BadgeState
+	newTeamEKCh chan keybase1.NewTeamEkArg
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:  make(chan keybase1.TeamChangedByIDArg, 10),
-		abandonCh: make(chan keybase1.TeamID, 10),
-		badgeCh:   make(chan keybase1.BadgeState, 10),
+		changeCh:    make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:   make(chan keybase1.TeamID, 10),
+		badgeCh:     make(chan keybase1.BadgeState, 10),
+		newTeamEKCh: make(chan keybase1.NewTeamEkArg, 10),
 	}
 }
 
@@ -854,6 +860,11 @@ func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.T
 
 func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.BadgeState) error {
 	n.badgeCh <- badgeState
+	return nil
+}
+
+func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamEkArg) error {
+	n.newTeamEKCh <- arg
 	return nil
 }
 

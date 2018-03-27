@@ -2852,7 +2852,7 @@ export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState, 
 
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{teamID: TeamID, generation: EkGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4317,7 +4317,7 @@ export type IncomingCallMapType = {
   'keybase.1.logsend.prepareLogsend'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyApp.exit'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyBadges.badgeState'?: (params: $ReadOnly<{badgeState: BadgeState}>) => void,
-  'keybase.1.NotifyEphemeral.newTeamEk'?: (params: $ReadOnly<{teamID: TeamID, generation: EkGeneration}>) => void,
+  'keybase.1.NotifyEphemeral.newTeamEk'?: (params: $ReadOnly<{id: TeamID, generation: EkGeneration}>) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $ReadOnly<{uid: UID}>) => void,
   'keybase.1.NotifyFS.FSActivity'?: (params: $ReadOnly<{notification: FSNotification}>) => void,
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: $ReadOnly<{status: FSPathSyncStatus}>, response: CommonResponseHandler) => void,

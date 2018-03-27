@@ -9,7 +9,7 @@ import (
 )
 
 type NewTeamEkArg struct {
-	TeamID     TeamID       `codec:"teamID" json:"teamID"`
+	Id         TeamID       `codec:"id" json:"id"`
 	Generation EkGeneration `codec:"generation" json:"generation"`
 }
 
