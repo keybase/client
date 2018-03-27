@@ -9,6 +9,7 @@
  */
 
 import * as React from 'react'
+import * as ReactDom from 'react-dom'
 import Message from '../../messages'
 // import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
@@ -46,8 +47,43 @@ class Thread extends React.Component<Props, State> {
     // selectedMessageKey: null,
   }
 
+  _bottomWaypointScrollTop = null
+
+  _saveBottomWaypointScrollTop = () => {
+    if (this._bottomWaypoint) {
+      const node = ReactDom.findDOMNode(this._bottomWaypoint)
+      if (node) {
+        this._bottomWaypointScrollTop = node.offsetTop
+        console.log('aaa bottomwaypoint top was loadmore: ', this._bottomWaypointScrollTop)
+      }
+    }
+  }
+
+  _restoreBottomWaypointScrollTop = () => {
+    const restore = context => {
+      // TODO maybe contorl w/ isMounted
+      if (this._bottomWaypoint && this._scrollableRef) {
+        const node = ReactDom.findDOMNode(this._bottomWaypoint)
+        if (node) {
+          let now = node.offsetTop
+          console.log('aaa bottomwaypoint top is now: ', now, context)
+          const diff = now - this._bottomWaypointScrollTop
+          console.log('aaa bottomwaypoint dif: ', diff, context)
+          const newScrollTop = this._scrollableRef.scrollTop + diff
+          this._scrollableRef.scrollTop = newScrollTop
+          now = node.offsetTop
+          console.log('aaa bottomwaypoint top is now adjusted: ', now, context)
+        }
+      }
+    }
+    restore('first')
+    // setTimeout(restore, 1000)
+  }
+
   // _oldScrollHeight = 0
   componentWillUpdate(prevProps: Props, prevState: State) {
+    console.log('aaa bottomwaypoint will update', prevProps, this.props, prevState, this.state)
+    this._dump('WILL update')
     // if (this._scrollableRef) {
     // this._oldScrollHeight = this._scrollableRef.scrollHeight
     // console.log(
@@ -61,10 +97,16 @@ class Thread extends React.Component<Props, State> {
     // } else {
     // this._oldScrollHeight = 0
     // }
+    //
+    //
+    //
+    //
   }
-  _adjustScroll = false
+  // _adjustScroll = false
   componentDidUpdate(prevProps: Props, prevState: State) {
-    this._adjustScroll = true
+    console.log('aaa bottomwaypoint did update', prevProps, this.props, prevState, this.state)
+    this._dump('DID update')
+    // this._adjustScroll = true
     // if (this._scrollableRef) {
     // console.log(
     // 'didtop:',
@@ -93,6 +135,8 @@ class Thread extends React.Component<Props, State> {
     // }
     if (this._isLockedToBottom && this._scrollableRef) {
       this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
+    } else if (this._bottomWaypoint && this._scrollableRef) {
+      this._restoreBottomWaypointScrollTop()
     }
   }
 
@@ -203,9 +247,30 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
+  _loadMoreLast = 0
+  // _loadMoreLast = {}
   _waypointTopOnEnter = data => {
     console.log('aaa top load more messages')
-    // this.props.loadMoreMessages()
+    const loadMoreLast = Date.now()
+    // const loadMoreLast = {
+    // now: Date.now(),
+    // ordinal: this.props.messageOrdinals.first(),
+    // }
+
+    // already requested this same load too quickly?
+    // if (
+    // this._loadMoreLast.ordinal === loadMoreLast.ordinal &&
+    // loadMoreLast.now - this._loadMoreLast.now < 2000
+    // ) {
+    if (loadMoreLast - this._loadMoreLast < 1000) {
+      console.log('aaa bottom load too quick')
+      return
+    }
+
+    this._loadMoreLast = loadMoreLast
+    this._saveBottomWaypointScrollTop()
+    /// AAA the call
+    this.props.loadMoreMessages()
   }
   _waypointBottomOnEnter = data => {
     console.log('aaa bottom locked')
@@ -219,15 +284,15 @@ class Thread extends React.Component<Props, State> {
   }
   _waypointMessageOnEnter = (data, key) => {
     console.log('aaa message enter', key, data)
-    if (key === this._topKey) {
-      console.log('aaa message enter TOP KEY', key, data)
-    }
+    // if (key === this._topKey) {
+    // console.log('aaa message enter TOP KEY', key, data)
+    // }
   }
   _waypointMessageOnLeave = (data, key) => {
     console.log('aaa message leave', key, data)
-    if (key === this._topKey) {
-      console.log('aaa message leave TOP KEY', key, data)
-    }
+    // if (key === this._topKey) {
+    // console.log('aaa message leave TOP KEY', key, data)
+    // }
   }
 
   _makeWaypointMessage = (key, children) => (
@@ -240,24 +305,66 @@ class Thread extends React.Component<Props, State> {
     </Waypoint>
   )
 
-  _topKey: any = null
-  _lastSyncPos = null
-  _onSyncPositionChange = ({waypointTop}) => {
-    console.log('aaa on sync chnaged', waypointTop)
+  // _topKey: any = null
+  // _lastSyncPos = null
+  // _onSyncPositionChange = ({waypointTop}) => {
+  // console.log('aaa on sync chnaged', waypointTop)
 
-    if (this._adjustScroll) {
-      console.log('aaa adjusting scroll pos cur: ', waypointTop, ' last: ', this._lastSyncPos)
-      this._adjustScroll = false
-      if (this._scrollableRef) {
-        this._scrollableRef.scrollTop = waypointTop - this._lastSyncPos
+  // if (this._adjustScroll) {
+  // console.log('aaa adjusting scroll pos cur: ', waypointTop, ' last: ', this._lastSyncPos)
+  // this._adjustScroll = false
+  // if (this._scrollableRef) {
+  // this._scrollableRef.scrollTop = waypointTop - this._lastSyncPos
+  // }
+  // this._lastSyncPos = 0
+  // }
+  // this._lastSyncPos = waypointTop
+  // }
+
+  _bottomWaypoint = null
+  _setBottomWaypoint = r => {
+    console.log('aaa set bottom', r)
+    this._bottomWaypoint = r
+  }
+
+  _debugOnce = false
+  _dump = context => {
+    if (this._bottomWaypoint && this._scrollableRef) {
+      const nodes = this._scrollableRef.childNodes[1].childNodes
+      const sizes = []
+      for (var node of nodes) {
+        sizes.push(node.offsetTop)
       }
-      this._lastSyncPos = 0
+      console.log('aaa bottom', sizes)
+      node = ReactDom.findDOMNode(this._bottomWaypoint)
+      if (node) {
+        const now = node.offsetTop
+        console.log('aaa bottomwaypoint top DEBUG now: ', now, context)
+        console.log(
+          'aaa bottomwaypoint top DEBUG scrollable: ',
+          context,
+          'top:',
+          this._scrollableRef.scrollTop,
+          'scrollH: ',
+          this._scrollableRef.scrollHeight,
+          'clientH',
+          this._scrollableRef.clientHeight
+        )
+      }
     }
-    this._lastSyncPos = waypointTop
+  }
+  _debugDUMP = () => {
+    if (this._debugOnce) {
+      return
+    }
+    this._debugOnce = true
+    setInterval(this._dump, 1000)
   }
 
   render() {
-    this._topKey = null
+    this._debugDUMP()
+
+    // this._topKey = null
     const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
 
     const rows = []
@@ -268,7 +375,7 @@ class Thread extends React.Component<Props, State> {
     )
 
     let waypointChildren = []
-    let syncWaypoint = null
+    // let syncWaypoint = null
     let messageKey
     for (var index = 0; index < rowCount; ++index) {
       const ordinal = this.props.messageOrdinals.get(index)
@@ -288,20 +395,20 @@ class Thread extends React.Component<Props, State> {
       if (ordinal % 10 === 0) {
         rows.push(this._makeWaypointMessage(messageKey, waypointChildren))
         // TODO maybeget rid of this
-        if (!this._topKey) {
-          this._topKey = messageKey
+        // if (!this._topKey) {
+        // this._topKey = messageKey
 
-          console.log('aaa message create TOP KEY', messageKey)
-        }
+        // console.log('aaa message create TOP KEY', messageKey)
+        // }
 
-        if (!syncWaypoint) {
-          syncWaypoint = (
-            <Waypoint key="waypointSync" topOffset={0} onPositionChange={this._onSyncPositionChange}>
-              <div style={{width: '100%', height: 10, backgroundColor: 'purple'}} />
-            </Waypoint>
-          )
-          rows.push(syncWaypoint)
-        }
+        // if (!syncWaypoint) {
+        // syncWaypoint = (
+        // <Waypoint key="waypointSync" topOffset={0} onPositionChange={this._onSyncPositionChange}>
+        // <div style={{width: '100%', height: 10, backgroundColor: 'purple'}} />
+        // </Waypoint>
+        // )
+        // rows.push(syncWaypoint)
+        // }
         waypointChildren = []
       }
     }
@@ -313,6 +420,7 @@ class Thread extends React.Component<Props, State> {
 
     rows.push(
       <Waypoint
+        ref={this._setBottomWaypoint}
         key="waypointBottom"
         bottomOffset={0}
         onEnter={this._waypointBottomOnEnter}
