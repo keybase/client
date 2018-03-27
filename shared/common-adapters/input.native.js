@@ -138,9 +138,14 @@ class Input extends Component<Props, State> {
   }
 
   _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
+    let {start, end} = event.nativeEvent.selection
+    // Work around Android bug which sometimes puts end before start:
+    // https://github.com/facebook/react-native/issues/18579 .
+    const selectionStart = Math.min(start, end)
+    const selectionEnd = Math.max(start, end)
     const selection = {
-      selectionStart: event.nativeEvent.selection.start,
-      selectionEnd: event.nativeEvent.selection.end,
+      selectionStart,
+      selectionEnd,
     }
     this.setState(
       {
