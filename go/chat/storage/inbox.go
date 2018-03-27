@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 18
+const inboxVersion = 20
 
 type queryHash []byte
 
@@ -279,7 +279,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 			rcm := &types.RemoteConversationMetadata{
 				TopicName: topicName,
 				Headline:  utils.GetHeadline(convLocal),
-				Snippet:   utils.GetConvSnippet(convLocal),
+				Snippet:   utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String()),
 			}
 			switch convLocal.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
@@ -1256,11 +1256,24 @@ type InboxSyncRes struct {
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
 	Expunges           []InboxSyncResExpunge
+	TopicNameChanged   []chat1.ConversationID
 }
 
 type InboxSyncResExpunge struct {
 	ConvID  chat1.ConversationID
 	Expunge chat1.Expunge
+}
+
+func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Conversation) bool {
+	oldMsg, oldErr := oldConv.GetMaxMessage(chat1.MessageType_METADATA)
+	newMsg, newErr := newConv.GetMaxMessage(chat1.MessageType_METADATA)
+	if oldErr != nil && newErr != nil {
+		return false
+	}
+	if oldErr != newErr {
+		return true
+	}
+	return oldMsg.GetMessageID() != newMsg.GetMessageID()
 }
 
 func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
@@ -1302,6 +1315,10 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 					Expunge: newConv.Expunge,
 				})
 			}
+			if i.topicNameChanged(ctx, oldConv, newConv) {
+				res.TopicNameChanged = append(res.TopicNameChanged, newConv.Metadata.ConversationID)
+			}
+
 			ibox.Conversations[index].Conv = newConv
 			delete(convMap, conv.GetConvID().String())
 		}

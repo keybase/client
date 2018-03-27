@@ -40,8 +40,7 @@ class BigTeamHeader extends React.PureComponent<Props> {
 const iconStyle = {
   color: globalColors.black_20,
   fontSize: isMobile ? 20 : 16,
-  padding: isMobile ? 8 : 4,
-  paddingRight: isMobile ? 2 : 4,
+  padding: 4,
   ...(isMobile
     ? {
         backgroundColor: globalColors.fastBlank,
@@ -59,7 +58,7 @@ const teamRowContainerStyle = {
   maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
   minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
-  paddingRight: isMobile ? globalMargins.tiny : globalMargins.xtiny,
+  paddingRight: isMobile ? 0 : globalMargins.xtiny,
 }
 
 const HeaderBox = glamorous(Box)({

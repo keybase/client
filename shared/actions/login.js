@@ -152,6 +152,11 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     yield Saga.put(switchRouteDef(loginRouteTree))
     yield Saga.put.resolve(getExtendedStatus())
     yield Saga.call(getAccounts)
+    // We may have logged successfully in by now, check before trying to navigate
+    const state = yield Saga.select()
+    if (state.config.loggedIn) {
+      return
+    }
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen

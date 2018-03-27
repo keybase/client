@@ -132,7 +132,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	tc.ChatG.ConvLoader.(*BackgroundConvLoader).appStateCh = appStateCh
 	ri := tc.ChatG.ConvSource.(*HybridConversationSource).ri
 	slowRi := makeSlowestRemote()
-	failDuration := 2 * time.Second
+	failDuration := 20 * time.Second
 	uid := gregor1.UID(tc.G.Env.GetUID().ToBytes())
 
 	// Test that a foreground with no background doesnt do anything

@@ -24,6 +24,7 @@ export type Props = {
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   onChangeFriendshipsTab: (currentFriendshipsTab: FriendshipsTab) => void,
+  onClickShowcaseOffer: () => void,
   onClickShowcased: (target: ?HTMLElement, team: UserTeamShowcase) => void,
   onMissingProofClick: (missingProof: MissingProof) => void,
   onFolderClick: (folder: Folder) => void,
@@ -46,6 +47,7 @@ export type Props = {
   onClickFollowers: () => void,
   onClickFollowing: () => void,
   waiting: boolean,
+  youAreInTeams: boolean,
 }
 
 export default class Render extends Component<Props> {}

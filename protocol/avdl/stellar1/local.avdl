@@ -1,0 +1,7 @@
+@namespace("stellar.1") protocol local {
+  import idl "common.avdl";
+
+  array<Balance> balancesLocal(AccountID accountID);
+
+  void walletInit();
+}

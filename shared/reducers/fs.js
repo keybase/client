@@ -38,30 +38,36 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.sortSetting:
       return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
     case FsGen.downloadStarted: {
-      const {key, path, localPath} = action.payload
+      const {key, path, localPath, intent, opID} = action.payload
       const item = state.pathItems.get(path)
       return state.setIn(
         ['transfers', key],
-        Constants.makeTransferState({
-          type: 'download',
-          entryType: item ? item.type : 'unknown',
-          path,
-          localPath,
-          completePortion: 0,
-          isDone: false,
-          startedAt: Date.now(),
+        Constants.makeTransfer({
+          meta: Constants.makeTransferMeta({
+            type: 'download',
+            entryType: item ? item.type : 'unknown',
+            intent,
+            path,
+            localPath,
+            opID,
+          }),
+          state: Constants.makeTransferState({
+            completePortion: 0,
+            isDone: false,
+            startedAt: Date.now(),
+          }),
         })
       )
     }
-    case FsGen.fileTransferProgress: {
+    case FsGen.transferProgress: {
       const {key, completePortion, endEstimate} = action.payload
-      return state.updateIn(['transfers', key], (original: Types.TransferState) =>
+      return state.updateIn(['transfers', key, 'state'], (original: Types.TransferState) =>
         original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
     case FsGen.downloadFinished: {
       const {key, error} = action.payload
-      return state.updateIn(['transfers', key], (original: Types.TransferState) =>
+      return state.updateIn(['transfers', key, 'state'], (original: Types.TransferState) =>
         original.set('isDone', true).set('error', error)
       )
     }
@@ -80,10 +86,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.merge(action.payload)
     case FsGen.installKBFS:
       return state.merge({kbfsInstalling: true})
+    case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
-    case FsGen.installKBFSResult:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.uninstallKBFS:
       return state

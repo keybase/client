@@ -531,6 +531,13 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scstellarerror: 3100,
+  scstellarbadinput: 3101,
+  scstellarwrongrevision: 3102,
+  scstellarmissingbundle: 3103,
+  scstellarbadpuk: 3104,
+  scstellarmissingaccount: 3105,
+  scstellarbadprev: 3106,
 }
 
 export const cryptoSignED25519ForKBFSRpcChannelMap = (configKeys: Array<string>, request: CryptoSignED25519ForKBFSRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.crypto.signED25519ForKBFS', request)
@@ -2201,7 +2208,7 @@ export type DeviceEk = $ReadOnly<{seed: Bytes32, metadata: DeviceEkMetadata}>
 
 export type DeviceEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
-export type DeviceEkMetadataStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
+export type DeviceEkStatement = $ReadOnly<{currentDeviceEkMetadata: DeviceEkMetadata, existingDeviceEkMetadata?: ?Array<DeviceEkMetadata>}>
 
 export type DeviceID = String
 
@@ -3594,6 +3601,13 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 3100 // SCStellarError_3100
+  | 3101 // SCStellarBadInput_3101
+  | 3102 // SCStellarWrongRevision_3102
+  | 3103 // SCStellarMissingBundle_3103
+  | 3104 // SCStellarBadPuk_3104
+  | 3105 // SCStellarMissingAccount_3105
+  | 3106 // SCStellarBadPrev_3106
 
 export type StellarAccountID = String
 
@@ -3695,6 +3709,14 @@ export type TeamData = $ReadOnly<{secretless: Boolean, name: TeamName, chain: Te
 export type TeamDebugRes = $ReadOnly<{chain: TeamSigChainState}>
 
 export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration: PerTeamKeyGeneration, annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}, settings: TeamSettings, showcase: TeamShowcase}>
+
+export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
+
+export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
+
+export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
+
+export type TeamEkStatement = $ReadOnly<{currentTeamEkMetadata: TeamEkMetadata, existingTeamEkMetadata?: ?Array<TeamEkMetadata>}>
 
 export type TeamEncryptedKBFSKeyset = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
@@ -3983,7 +4005,7 @@ export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGenerati
 
 export type UserEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
 
-export type UserEkMetadataStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetatdata?: ?Array<UserEkMetadata>}>
+export type UserEkStatement = $ReadOnly<{currentUserEkMetadata: UserEkMetadata, existingUserEkMetadata?: ?Array<UserEkMetadata>}>
 
 export type UserGetUPAKRpcParam = $ReadOnly<{uid: UID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

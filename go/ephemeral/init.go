@@ -6,9 +6,9 @@ import (
 
 // Creates a ephemeral key storage and installs it into G.
 func NewEphemeralStorageAndInstall(g *libkb.GlobalContext) {
-	// TODO add TeamEk storage
 	g.SetDeviceEKStorage(NewDeviceEKStorage(g))
 	g.SetUserEKBoxStorage(NewUserEKBoxStorage(g))
+	g.SetTeamEKBoxStorage(NewTeamEKBoxStorage(g))
 	ekLib := NewEKLib(g)
 	g.SetEKLib(ekLib)
 	// TODO remove this when we want to release in the wild.

@@ -23,6 +23,7 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getTeamOperations = 'teams:getTeamOperations'
+export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const getTeams = 'teams:getTeams'
 export const ignoreRequest = 'teams:ignoreRequest'
@@ -33,6 +34,7 @@ export const leaveTeam = 'teams:leaveTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setChannelCreationError = 'teams:setChannelCreationError'
+export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
@@ -109,6 +111,7 @@ export const createEditTeamDescription = (
 export const createGetChannels = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getChannels})
 export const createGetDetails = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getDetails})
 export const createGetTeamOperations = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamOperations})
+export const createGetTeamPublicity = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamPublicity})
 export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamRetentionPolicy})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
 export const createIgnoreRequest = (
@@ -149,6 +152,12 @@ export const createSaveChannelMembership = (
   }>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: setChannelCreationError})
+export const createSetMemberPublicity = (
+  payload: $ReadOnly<{
+    teamname: string,
+    showcase: boolean,
+  }>
+) => ({error: false, payload, type: setMemberPublicity})
 export const createSetPublicity = (
   payload: $ReadOnly<{
     teamname: string,
@@ -192,6 +201,7 @@ export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDe
 export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
 export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
 export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
+export type GetTeamPublicityPayload = More.ReturnType<typeof createGetTeamPublicity>
 export type GetTeamRetentionPolicyPayload = More.ReturnType<typeof createGetTeamRetentionPolicy>
 export type GetTeamsPayload = More.ReturnType<typeof createGetTeams>
 export type IgnoreRequestPayload = More.ReturnType<typeof createIgnoreRequest>
@@ -202,6 +212,7 @@ export type LeaveTeamPayload = More.ReturnType<typeof createLeaveTeam>
 export type RemoveMemberOrPendingInvitePayload = More.ReturnType<typeof createRemoveMemberOrPendingInvite>
 export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChannelMembership>
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
+export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
 export type SetPublicityPayload = More.ReturnType<typeof createSetPublicity>
 export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCreationError>
 export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
@@ -227,6 +238,7 @@ export type Actions =
   | More.ReturnType<typeof createGetChannels>
   | More.ReturnType<typeof createGetDetails>
   | More.ReturnType<typeof createGetTeamOperations>
+  | More.ReturnType<typeof createGetTeamPublicity>
   | More.ReturnType<typeof createGetTeamRetentionPolicy>
   | More.ReturnType<typeof createGetTeams>
   | More.ReturnType<typeof createIgnoreRequest>
@@ -237,6 +249,7 @@ export type Actions =
   | More.ReturnType<typeof createRemoveMemberOrPendingInvite>
   | More.ReturnType<typeof createSaveChannelMembership>
   | More.ReturnType<typeof createSetChannelCreationError>
+  | More.ReturnType<typeof createSetMemberPublicity>
   | More.ReturnType<typeof createSetPublicity>
   | More.ReturnType<typeof createSetTeamCreationError>
   | More.ReturnType<typeof createSetTeamCreationPending>

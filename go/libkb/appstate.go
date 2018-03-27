@@ -25,11 +25,15 @@ func NewAppState(g *GlobalContext) *AppState {
 }
 
 // NextUpdate returns a channel that triggers when the app state changes
-func (a *AppState) NextUpdate() chan keybase1.AppState {
+func (a *AppState) NextUpdate(lastState *keybase1.AppState) chan keybase1.AppState {
 	a.Lock()
 	defer a.Unlock()
 	ch := make(chan keybase1.AppState, 1)
-	a.updateChs = append(a.updateChs, ch)
+	if lastState != nil && *lastState != a.state {
+		ch <- a.state
+	} else {
+		a.updateChs = append(a.updateChs, ch)
+	}
 	return ch
 }
 
