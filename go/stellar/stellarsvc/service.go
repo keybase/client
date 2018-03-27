@@ -107,6 +107,15 @@ func lookupRecipient(ctx context.Context, g *libkb.GlobalContext, to string) (*R
 	return &r, nil
 }
 
+type submitResult struct {
+	Status        libkb.AppStatus        `json:"status"`
+	PaymentResult stellar1.PaymentResult `json:"payment_result"`
+}
+
+func (s *submitResult) GetAppStatus() *libkb.AppStatus {
+	return &s.Status
+}
+
 func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
 	// look up sender wallet
 	primary, err := lookupSenderPrimary(ctx, g)
@@ -156,5 +165,20 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 		}
 	}
 
-	return stellar1.PaymentResult{}, nil
+	// submit the transaction
+	payload := make(libkb.JSONPayload)
+	payload["payment"] = post
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submit_payment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+
+	var res submitResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+
+	return res.PaymentResult, nil
 }
