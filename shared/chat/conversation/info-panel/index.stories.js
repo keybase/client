@@ -58,6 +58,7 @@ const conversationProps = {
   smallTeam: false,
   admin: false,
   canEditChannel: true,
+  canSetRetention: false,
   description: "You shouldn't be seeing this",
 
   onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
@@ -77,6 +78,7 @@ const teamCommonProps = {
   teamname: 'someteam',
   channelname: 'somechannel',
   canEditChannel: true,
+  canSetRetention: true,
 
   onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
   onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
