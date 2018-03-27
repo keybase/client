@@ -84,7 +84,8 @@ class Input extends Component<Props, State> {
     const v = this.getValue()
     const nextText = v.slice(0, startIdx) + text + v.slice(endIdx)
     this._onChangeText(nextText)
-    this.setState({selections: {selectionStart: newSelectionStart, selectionEnd: newSelectionEnd}})
+    // TODO: Set selection to newSelectionStart/newSelectionEnd once
+    // we're able to.
   }
 
   _onFocus = () => {
