@@ -71,6 +71,8 @@ export const isUserActivelyLookingAtThisThread = (
   )
 }
 
+export const setRetentionLoadingKey = (c: Types.ConversationIDKey) => `setRetention:${c}`
+
 export {
   findConversationFromParticipants,
   getConversationIDKeyMetasToLoad,

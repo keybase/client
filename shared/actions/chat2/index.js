@@ -1791,10 +1791,21 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
     throw err
   } finally {
     if (servicePolicy) {
-      ret = Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
-        convID,
-        policy: servicePolicy,
-      })
+      ret = Saga.sequentially([
+        Saga.put(
+          Chat2Gen.createSetLoading({key: Constants.setRetentionLoadingKey(conversationIDKey), loading: true})
+        ),
+        Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
+          convID,
+          policy: servicePolicy,
+        }),
+        Saga.put(
+          Chat2Gen.createSetLoading({
+            key: Constants.setRetentionLoadingKey(conversationIDKey),
+            loading: false,
+          })
+        ),
+      ])
     }
   }
   return ret
