@@ -141,7 +141,7 @@ helpers.rootLinuxNode(env, {
                                             }
                                         }
                                         // Only run visdiff for PRs
-                                        if (env.CHANGE_ID) {
+                                        if (false) { // env.CHANGE_ID) {
                                             wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
                                             withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                     credentialsId: 'visdiff-aws-creds',
@@ -201,9 +201,9 @@ helpers.rootLinuxNode(env, {
                     test_windows: {
                         // TODO: If we re-enable tests other than Go tests on
                         // Windows, this check should go away.
-                        if (false) { // if (hasGoChanges) {
+                        if (true) { // if (hasGoChanges) {
                             helpers.nodeWithCleanup('windows', {}, {}) {
-                                def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
+                                def BASEDIR="${pwd()}"
                                 def GOPATH="${BASEDIR}\\go"
                                 withEnv([
                                     'GOROOT=C:\\go',
