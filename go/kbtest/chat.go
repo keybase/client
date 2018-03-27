@@ -216,6 +216,8 @@ func (m *TlfMock) Lookup(ctx context.Context, tlfName string, public bool) (res 
 		for _, key := range cres.CryptKeys {
 			res.CryptKeys[chat1.ConversationMembersType_KBFS] =
 				append(res.CryptKeys[chat1.ConversationMembersType_KBFS], key)
+			res.CryptKeys[chat1.ConversationMembersType_TEAM] =
+				append(res.CryptKeys[chat1.ConversationMembersType_TEAM], key)
 		}
 	}
 	return res, nil

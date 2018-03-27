@@ -255,6 +255,30 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversation,
+	topicNameChanged []chat1.ConversationID) (res []chat1.Conversation) {
+	m := make(map[string]bool)
+	for _, t := range topicNameChanged {
+		m[t.String()] = true
+	}
+	for _, conv := range convs {
+		include := false
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			// include if this is a simple team, or the topic name has changed
+			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] {
+				include = true
+			}
+		default:
+			include = true
+		}
+		if include {
+			res = append(res, conv)
+		}
+	}
+	return res
+}
+
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	if !s.isConnected {
@@ -340,7 +364,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 			} else {
 				// Send notifications for a successful partial sync
-				convs := utils.PresentRemoteConversations(utils.RemoteConvs(incr.Convs))
+				convs := utils.PresentRemoteConversations(
+					utils.RemoteConvs(s.filterNotifyConvs(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)))
 				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid,
 					chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
 						Items: convs,
