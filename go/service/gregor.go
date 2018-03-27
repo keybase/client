@@ -392,12 +392,12 @@ func (g *gregorHandler) HandlerName() string {
 // safely send Gregor information to it
 func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "PushHandler")()
-	g.Lock()
-	defer g.Unlock()
 
 	g.G().Log.Debug("pushing inband handler %s to position %d", handler.Name(), len(g.ibmHandlers))
 
+	g.Lock()
 	g.ibmHandlers = append(g.ibmHandlers, handler)
+	g.Unlock()
 
 	// Only try replaying if we are logged in, it's possible that a handler can
 	// attach before that is true (like if we start the service logged out and
@@ -426,8 +426,8 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler) {
 	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "PushFirehoseHandler")()
 	g.Lock()
-	defer g.Unlock()
 	g.firehoseHandlers = append(g.firehoseHandlers, handler)
+	g.Unlock()
 
 	s, err := g.getState(context.Background())
 	if err != nil {
@@ -648,11 +648,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return chat.ErrDuplicateConnection
 	}
 	g.connMutex.Unlock()
-	g.chatLog.Debug(ctx, "non dup connection, proceeding")
 
-	g.Lock()
-	defer g.Unlock()
-	g.chatLog.Debug(ctx, "connected, lock obtained")
+	g.chatLog.Debug(ctx, "connected")
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
@@ -805,8 +802,6 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 
 func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) (err error) {
 	defer g.chatLog.Trace(ctx, func() error { return err }, "broadcastMessageOnce")()
-	g.Lock()
-	defer g.Unlock()
 
 	// Handle the message
 	var obm gregor.OutOfBandMessage
