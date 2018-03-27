@@ -670,7 +670,7 @@ func TestConversationLocking(t *testing.T) {
 	t.Logf("Trace 2 properly blocked by Trace 1")
 	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewCachingIdentifyNotifier(tc.Context()))
-	blockCb := make(chan struct{})
+	blockCb := make(chan struct{}, 5)
 	hcs.lockTab.blockCb = &blockCb
 	cb := make(chan acquireRes)
 	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
@@ -755,7 +755,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, blocked)
 
-	blockCb := make(chan struct{})
+	blockCb := make(chan struct{}, 5)
 	hcs.lockTab.blockCb = &blockCb
 	cb := make(chan acquireRes)
 	go func() {
