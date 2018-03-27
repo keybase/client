@@ -26,6 +26,7 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} f
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 
+import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 import type {Tab as FriendshipsTab} from './friendships'
@@ -65,7 +66,7 @@ const ShowcasedTeamRow = ({
   onClickShowcased,
   team,
 }: {
-  onClickShowcased: (event: ?HTMLElement, team: any) => void,
+  onClickShowcased: (event: ?HTMLElement, team: UserTeamShowcase) => void,
   team: any,
 }) => (
   <ClickableBox

@@ -24,6 +24,7 @@ import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 
+import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 
@@ -67,7 +68,7 @@ const ShowcasedTeamRow = ({
   onClickShowcased,
   team,
 }: {
-  onClickShowcased: (event: HTMLElement, team: any) => void,
+  onClickShowcased: (event: HTMLElement, team: UserTeamShowcase) => void,
   team: any,
 }) => (
   <Box
