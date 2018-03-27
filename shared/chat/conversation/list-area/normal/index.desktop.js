@@ -86,14 +86,16 @@ class Thread extends React.Component<Props, State> {
                 this._scrollableRef.scrollTop
               )
               window.requestAnimationFrame(() => {
-                if (this._scrollableRef.scrollTop !== newScrollTop) {
+                if (Math.abs(this._scrollableRef.scrollTop - newScrollTop) > 5) {
                   console.log('aaa bottom next loop', this._scrollableRef.scrollTop, newScrollTop)
-                  tryApply(triesLeft - 1)
+                  setTimeout(() => {
+                    tryApply(triesLeft - 1)
+                  }, 0)
                 }
               })
             })
           }
-          tryApply(5)
+          tryApply(10)
           // var triesLeft = 5
           // window.requestAnimationFrame(() => {
           // this._scrollableRef.scrollTop = newScrollTop
@@ -211,8 +213,7 @@ class Thread extends React.Component<Props, State> {
   // const now = Date.now()
   // if (!this._ignoreScrollUpTill || this._ignoreScrollUpTill < now) {
   // this._ignoreScrollUpTill = 0
-  // this.props.loadMoreMessages()
-  // } else {
+  // this.props.loadMoreMessages() } else {
   // console.log('skipping due to ignoreScrollUpTill')
   // }
   // }
@@ -275,8 +276,27 @@ class Thread extends React.Component<Props, State> {
   // }
   //
   _scrollableRef: any
+  _observer: any
+
+  _observed = mutationsList => {
+    console.log('aaa bott MUTATION', mutationsList)
+    this._restoreBottomWaypointScrollTop()
+  }
   _setScrollableRef = r => {
     this._scrollableRef = r
+
+    if (this._scrollableRef) {
+      if (this._observer) {
+        this._observer.disconnect()
+      }
+      this._observer = new window.MutationObserver(this._observed)
+      this._observer.observe(this._scrollableRef, {
+        // attributes: true,
+        childList: true,
+        // characterData: true,
+        subtree: true,
+      })
+    }
 
     // if (this.state.isLockedToBottom && this._scrollableRef) {
     if (this._isLockedToBottom && this._scrollableRef) {
@@ -399,6 +419,10 @@ class Thread extends React.Component<Props, State> {
     setInterval(this._dump, 1000)
   }
 
+  _onScroll = e => {
+    console.log('aaa bott scroll', e.nativeEvent)
+  }
+
   render() {
     this._debugDUMP()
 
@@ -474,9 +498,10 @@ class Thread extends React.Component<Props, State> {
         onClick={this._handleListClick}
         onCopyCapture={this._onCopyCapture}
         ref={this._setScrollableRef}
+        onScroll={this._onScroll}
       >
-        <style>{realCSS}</style>
-        <div>{rows}</div>
+        <style key="style">{realCSS}</style>
+        <div key="rows">{rows}</div>
       </div>
     )
     // const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible

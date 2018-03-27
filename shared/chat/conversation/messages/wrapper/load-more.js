@@ -11,7 +11,6 @@ type Props = {
 
 class MessageLoadingMore extends React.PureComponent<Props> {
   render() {
-    return null // TEMP to see if this stops the jumping
     return (
       <Box style={containerStyle}>
         {this.props.type === 'noMoreToLoad' && (
