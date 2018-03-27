@@ -6,7 +6,7 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
-import {isIOS} from '../constants/platform'
+import {isIOS, isAndroid} from '../constants/platform'
 
 import type {Props} from './input'
 
@@ -23,10 +23,19 @@ class Input extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
+    const value = props.value || ''
+
+    // It's not documented anywhere, but it appears that the initial
+    // selection is always set to the end of the initial text. See
+    // https://github.com/facebook/react-native/issues/18578 .
+    const selectionStart = value.length
+    const selectionEnd = value.length
+
     this.state = {
       focused: false,
       height: null,
-      selections: {selectionStart: 0, selectionEnd: 0},
+      androidWaitingForNextSelectionChange: isAndroid,
+      selections: {selectionStart, selectionEnd},
     }
   }
 
