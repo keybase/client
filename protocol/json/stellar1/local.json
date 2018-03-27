@@ -33,6 +33,10 @@
         {
           "name": "asset",
           "type": "Asset"
+        },
+        {
+          "name": "note",
+          "type": "string"
         }
       ],
       "response": "PaymentResult"

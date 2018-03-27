@@ -16,6 +16,7 @@ type SendLocalArg struct {
 	Recipient string `codec:"recipient" json:"recipient"`
 	Amount    string `codec:"amount" json:"amount"`
 	Asset     Asset  `codec:"asset" json:"asset"`
+	Note      string `codec:"note" json:"note"`
 }
 
 type WalletInitArg struct {
