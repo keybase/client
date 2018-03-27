@@ -119,10 +119,6 @@ func processKey(publicKey keybase1.PublicKeyV2NaCl,
 	addCryptPublicKey addCryptPublicKeyFunc,
 	kidNames map[keybase1.KID]string,
 	parents map[keybase1.KID]keybase1.KID) error {
-	if publicKey.Base.Revocation != nil {
-		return nil
-	}
-
 	// Import the KID to validate it.
 	key, err := libkb.ImportKeypairFromKID(publicKey.Base.Kid)
 	if err != nil {
@@ -172,6 +168,10 @@ func filterKeys(keys map[keybase1.KID]keybase1.PublicKeyV2NaCl) (
 	}
 
 	for _, publicKey := range keys {
+		if publicKey.Base.Revocation != nil {
+			continue
+		}
+
 		err := processKey(publicKey, addVerifyingKey, addCryptPublicKey,
 			kidNames, parents)
 		if err != nil {
