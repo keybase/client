@@ -108,6 +108,9 @@ const retentionStyles = {
       marginLeft: 16,
       marginRight: 45,
     },
+    isMobile: {
+      marginRight: 16,
+    },
   }),
   dropdownStyle: platformStyles({
     common: {
@@ -245,7 +248,7 @@ const typeSizeEstimator = (row: Row): number => {
       return 17
 
     case 'retention':
-      return 0 // TODO
+      return 75
 
     default:
       // eslint-disable-next-line no-unused-expressions
