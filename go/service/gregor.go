@@ -805,7 +805,7 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 }
 
 func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) (err error) {
-	defer g.chatLog.Trace(context.Background(), func() error { return err }, "broadcastMessageOnce")()
+	defer g.chatLog.Trace(ctx, func() error { return err }, "broadcastMessageOnce")()
 	g.Lock()
 	defer g.Unlock()
 
