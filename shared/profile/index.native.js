@@ -26,6 +26,7 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} f
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
 
+import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
 import type {Tab as FriendshipsTab} from './friendships'
@@ -40,6 +41,50 @@ type State = {
   currentFriendshipsTab: FriendshipsTab,
   activeMenuProof: ?Proof,
 }
+
+const EditControl = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
+  <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
+    <Text type="BodySmallSemibold">Teams</Text>
+    <Icon style={{marginLeft: 2}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+  </Box>
+)
+
+const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
+  <ClickableBox onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
+    <Box style={styleShowcasedTeamAvatar}>
+      <Icon type="icon-team-placeholder-avatar-32" size={32} />
+    </Box>
+    <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny}}>
+      <Text style={{color: globalColors.black_40}} type="BodySmallInlineLink">
+        Publish the teams you're in
+      </Text>
+    </Box>
+  </ClickableBox>
+)
+
+const ShowcasedTeamRow = ({
+  onClickShowcased,
+  team,
+}: {
+  onClickShowcased: (event: ?HTMLElement, team: UserTeamShowcase) => void,
+  team: any,
+}) => (
+  <ClickableBox
+    key={team.fqName}
+    onClick={event => onClickShowcased(null, team)}
+    style={styleShowcasedTeamContainer}
+  >
+    <Box style={styleShowcasedTeamAvatar}>
+      <Avatar teamname={team.fqName} size={40} />
+    </Box>
+    <Box style={styleShowcasedTeamName}>
+      <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+        {team.fqName}
+      </Text>
+      {team.open && <Meta style={styleMeta} title="OPEN" />}
+    </Box>
+  </ClickableBox>
+)
 
 class Profile extends Component<Props, State> {
   state = {
@@ -187,6 +232,13 @@ class Profile extends Component<Props, State> {
     const missingProofs = !this.props.isYou
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
+
+    const showEdit =
+      (this.props.userInfo && this.props.userInfo.showcasedTeams.length > 0) ||
+      (this.props.isYou && this.props.youAreInTeams)
+
+    const showShowcaseTeamsOffer = this.props.isYou && this.props.youAreInTeams
+
     return (
       <Box style={{backgroundColor: globalColors.white}}>
         {proofNotice && (
@@ -228,63 +280,28 @@ class Profile extends Component<Props, State> {
           )}
         <Box
           style={{
-            ...globalStyles.flexBoxRow,
+            ...globalStyles.flexBoxColumn,
             marginTop: globalMargins.small,
             marginRight: globalMargins.medium,
             marginLeft: globalMargins.medium,
             alignItems: 'flex-start',
           }}
         >
-          {(this.props.userInfo.showcasedTeams.length > 0 ||
-            (this.props.isYou && this.props.youAreInTeams)) && (
-            <Box style={{...globalStyles.flexBoxColumn}}>
-              <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
-                <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', width: '100%'}}>
-                  <Text type="BodySmallSemibold">Teams</Text>
-                  <Icon
-                    style={{marginRight: globalMargins.tiny}}
-                    type="iconfont-edit"
-                    onClick={this.props.onClickShowcaseOffer}
-                  />
-                </Box>
-              </Box>)}
-              {this.props.userInfo.showcasedTeams.length > 0
-                ? this.props.userInfo.showcasedTeams.map(team => (
-                    <ClickableBox
-                      key={team.fqName}
-                      onClick={event => this.props.onClickShowcased(null, team)}
-                      style={styleShowcasedTeamContainer}
-                    >
-                      <Box style={styleShowcasedTeamAvatar}>
-                        <Avatar teamname={team.fqName} size={40} />
-                      </Box>
-                      <Box style={styleShowcasedTeamName}>
-                        <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-                          {team.fqName}
-                        </Text>
-                        {team.open && <Meta style={styleMeta} title="OPEN" />}
-                      </Box>
-                    </ClickableBox>
-                  ))
-                : this.props.isYou &&
-                  this.props.youAreInTeams && (
-                    <ClickableBox
-                      onClick={this.props.onClickShowcaseOffer}
-                      style={styleShowcasedTeamContainer}
-                    >
-                      <Box style={styleShowcasedTeamAvatar}>
-                        <Icon type="icon-team-placeholder-avatar-32" size={32} />
-                      </Box>
-                      <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny}}>
-                        <Text style={{color: globalColors.black_40}} type="BodySmallInlineLink">
-                          Publish the teams you're in
-                        </Text>
-                      </Box>
-                    </ClickableBox>
-                  )}
-            </Box>
-          )}
+          {showEdit && <EditControl onClickShowcaseOffer={this.props.onClickShowcaseOffer} />}
+
+          {this.props.userInfo.showcasedTeams.length > 0
+            ? this.props.userInfo.showcasedTeams.map(team => (
+                <ShowcasedTeamRow
+                  key={team.fqName}
+                  onClickShowcased={this.props.onClickShowcased}
+                  team={team}
+                />
+              ))
+            : showShowcaseTeamsOffer && (
+                <ShowcaseTeamsOffer onClickShowcaseOffer={this.props.onClickShowcaseOffer} />
+              )}
         </Box>
+        )}
         <Box style={styleProofsAndFolders}>
           <LoadingWrapper
             duration={500}
