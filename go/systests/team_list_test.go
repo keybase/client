@@ -1,10 +1,10 @@
 package systests
 
 import (
+	"fmt"
 	"testing"
 
 	"golang.org/x/net/context"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -203,6 +203,8 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
+	fmt.Printf("-- TestTeamDuplicateUIDList A\n")
+
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 
 	bob.reset()
@@ -218,6 +220,7 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
+	fmt.Printf("-- TestTeamDuplicateUIDList B\n")
 
 	// Expecting just the active writer here, and not inactive
 	// (because of reset) invite.
@@ -246,12 +249,14 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	require.NoError(t, err)
 
 	check(&list)
+	fmt.Printf("-- TestTeamDuplicateUIDList C\n")
 
 	t.Logf("Calling TeamList")
 	list, err = teamCli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{})
 	require.NoError(t, err)
 
 	check(&list)
+	fmt.Printf("-- TestTeamDuplicateUIDList D\n")
 }
 
 func TestTeamTree(t *testing.T) {
@@ -279,15 +284,18 @@ func TestTeamTree(t *testing.T) {
 	}
 
 	subTeam1 := createSubteam(team, "staff")
+	fmt.Printf("-- TestTeamTree A\n")
 
 	sub1SubTeam1 := createSubteam(subTeam1, "legal")
 	sub1SubTeam2 := createSubteam(subTeam1, "hr")
 
 	subTeam2 := createSubteam(team, "offtopic")
+	fmt.Printf("-- TestTeamTree B\n")
 
 	sub2SubTeam1 := createSubteam(subTeam2, "games")
 	sub2SubTeam2 := createSubteam(subTeam2, "crypto")
 	sub2SubTeam3 := createSubteam(subTeam2, "cryptocurrency")
+	fmt.Printf("-- TestTeamTree C\n")
 
 	checkTeamTree := func(teamName string, expectedTree ...string) {
 		set := make(map[string]bool)
@@ -314,8 +322,10 @@ func TestTeamTree(t *testing.T) {
 	checkTeamTree(team, subTeam1, subTeam2, sub1SubTeam1, sub1SubTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
 	checkTeamTree(subTeam1, sub1SubTeam1, sub1SubTeam2)
 	checkTeamTree(subTeam2, sub2SubTeam1, sub2SubTeam2, sub2SubTeam3)
+	fmt.Printf("-- TestTeamTree D\n")
 
 	checkTeamTree(sub2SubTeam1)
 	checkTeamTree(sub2SubTeam2)
 	checkTeamTree(sub2SubTeam3)
+	fmt.Printf("-- TestTeamTree E\n")
 }
