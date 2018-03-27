@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
+import {retentionPolicyToServiceRetentionPolicy, makeRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -1774,13 +1774,27 @@ const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
     }),
   ])
 
-// TODO (DA) add some checks here
-const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) =>
-  Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-    policy: retentionPolicyToServiceRetentionPolicy(action.payload.policy),
-  })
-
+const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) => {
+  const {conversationIDKey, policy} = action.payload
+  const convID = Types.keyToConversationID(conversationIDKey)
+  let servicePolicy: ?RPCChatTypes.RetentionPolicy
+  let ret
+  try {
+    servicePolicy = retentionPolicyToServiceRetentionPolicy(makeRetentionPolicy(policy))
+  } catch (err) {
+    // should never happen
+    logger.error(`Unable to parse retention policy: ${err.message}`)
+    throw err
+  } finally {
+    if (servicePolicy) {
+      ret = Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
+        convID,
+        policy: servicePolicy,
+      })
+    }
+  }
+  return ret
+}
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {

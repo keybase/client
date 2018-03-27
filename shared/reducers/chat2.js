@@ -128,6 +128,11 @@ const metaMapReducer = (metaMap, action) => {
         return metaMap
       }
       const newMeta = Constants.inboxUIItemToConversationMeta(update.conv)
+      if (!newMeta) {
+        // public conversation, do nothing
+        logger.warn('Unable to parse inboxUIItem in conv retention policy update')
+        return metaMap
+      }
       return metaMap.set(newMeta.conversationIDKey, newMeta)
     default:
       return metaMap
@@ -628,6 +633,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.resetLetThemIn:
     case Chat2Gen.sendToPendingConversation:
     case Chat2Gen.sendTyping:
+    case Chat2Gen.setConvRetentionPolicy:
     case Chat2Gen.setupChatHandlers:
     case Chat2Gen.startConversation:
     case Chat2Gen.navigateToInbox:
