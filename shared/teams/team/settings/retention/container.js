@@ -55,67 +55,30 @@ const mapDispatchToProps = (
         },
       ])
     ),
-  _onSelectPolicy: (
-    policy: _RetentionPolicy,
-    changed: boolean,
-    decreased: boolean,
-    parentPolicy?: _RetentionPolicy
-  ) => {
-    if (type === 'simple') {
-      onSelect && onSelect(policy, changed, decreased)
+  onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => {
+    dispatch(
+      navigateAppend([
+        {
+          selected: 'retentionWarning',
+          props: {days, onCancel, onConfirm},
+        },
+      ])
+    )
+  },
+  setRetentionPolicy: (policy: _RetentionPolicy) => {
+    if (isTeamWide) {
+      dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
     } else {
-      const setPolicy = () => {
-        if (isTeamWide) {
-          dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
-        } else if (conversationIDKey) {
-          dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
-        } else {
-          throw new Error('RetentionPicker: tried to set conv retention policy with no conversationIDKey')
-        }
+      if (!conversationIDKey) {
+        throw new Error('Tried to set conv retention policy with no ConversationIDKey')
       }
-      if (decreased) {
-        dispatch(
-          navigateAppend([
-            {
-              selected: 'retentionWarning',
-              props: {days: policyToDays(policy, parentPolicy), onConfirm: setPolicy},
-            },
-          ])
-        )
-      } else {
-        setPolicy()
-      }
+      dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
     }
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const onSelectPolicy = (policy: _RetentionPolicy, changed: boolean, decreased: boolean) =>
-    dispatchProps._onSelectPolicy(policy, changed, decreased, stateProps.teamPolicy)
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    onSelectPolicy,
-    ...ownProps,
-  }
-}
-
-const policyToDays = (p: _RetentionPolicy, parent?: _RetentionPolicy) => {
-  switch (p.type) {
-    case 'retain':
-      return 0
-    case 'inherit':
-      if (!parent) {
-        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
-      }
-      return policyToDays(parent)
-    case 'expire':
-      return p.days
-  }
-}
-
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeamPolicy()

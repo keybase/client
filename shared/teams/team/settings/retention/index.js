@@ -23,8 +23,10 @@ export type Props = {
   isTeamWide: boolean,
   isSmallTeam?: boolean,
   type: 'simple' | 'auto',
-  onSelectPolicy: (policy: _RetentionPolicy, changed: boolean, lowered: boolean) => void,
+  setRetentionPolicy: (policy: _RetentionPolicy) => void,
+  onSelect: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
+  onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
 }
 
 type State = {
@@ -42,6 +44,34 @@ class RetentionPicker extends React.Component<Props, State> {
     showMenu: false,
   }
 
+  // We just updated the state with a new selection, do we show the warning
+  // dialog ourselves or do we call back up to the parent?
+  _handleSelection = () => {
+    const selected = this.state.selected
+    const changed = !policyEquals(this.state.selected, this.props.policy)
+    if (!changed) {
+      // noop
+      return
+    }
+    const decreased =
+      policyToComparable(selected, this.props.teamPolicy) <
+      policyToComparable(this.props.policy, this.props.teamPolicy)
+    if (this.props.type === 'simple') {
+      this.props.onSelect(selected, changed, decreased)
+      return
+    }
+    // auto case; show dialog if decreased, set immediately if not
+    const onConfirm = () => this.props.setRetentionPolicy(selected)
+    const onCancel = this._init
+    if (decreased) {
+      // show warning
+      this.props.onShowWarning(policyToDays(selected, this.props.teamPolicy), onConfirm, onCancel)
+      return
+    }
+    // set immediately
+    onConfirm()
+  }
+
   _onSelect = (val: number | 'retain' | 'inherit') => {
     let selected: _RetentionPolicy
     if (typeof val === 'number') {
@@ -51,13 +81,7 @@ class RetentionPicker extends React.Component<Props, State> {
     } else {
       selected = {type: 'retain', days: 0}
     }
-    this.setState({selected})
-
-    const changed = !(selected.type === this.props.policy.type && selected.days === this.props.policy.days)
-    const decreased =
-      policyToComparable(selected, this.props.teamPolicy) <
-      policyToComparable(this.props.policy, this.props.teamPolicy)
-    this.props.onSelectPolicy(selected, changed, decreased)
+    this.setState({selected}, this._handleSelection)
   }
 
   _makeItems = () => {
@@ -80,16 +104,20 @@ class RetentionPicker extends React.Component<Props, State> {
     const p = policy || this.props.policy
     this.setState({selected: p})
     // tell parent that nothing has changed
-    this.props.type === 'simple' && this.props.onSelectPolicy(p, false, false)
+    this.props.type === 'simple' && this.props.onSelect(p, false, false)
   }
 
   _label = () => {
     return policyToLabel(this.state.selected, this.props.teamPolicy)
   }
 
-  componentDidMount() {
+  _init = () => {
     this._makeItems()
     this._setInitialSelected()
+  }
+
+  componentDidMount() {
+    this._init()
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -218,6 +246,21 @@ const policyToComparable = (p: _RetentionPolicy, parent: ?_RetentionPolicy): num
   }
   return res
 }
+// For getting the number of days a retention policy resolves to
+const policyToDays = (p: _RetentionPolicy, parent?: _RetentionPolicy) => {
+  let ret = 0
+  switch (p.type) {
+    case 'inherit':
+      if (!parent) {
+        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
+      }
+      ret = policyToDays(parent)
+      break
+    case 'expire':
+      ret = p.days
+  }
+  return ret
+}
 const policyEquals = (p1?: _RetentionPolicy, p2?: _RetentionPolicy): boolean => {
   if (p1 && p2) {
     return p1.type === p2.type && p1.days === p2.days
@@ -233,5 +276,4 @@ const RetentionSwitcher = (props: Props) => {
   return <RetentionPicker {...props} />
 }
 
-export {daysToLabel}
 export default RetentionSwitcher

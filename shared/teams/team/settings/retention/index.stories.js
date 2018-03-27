@@ -12,9 +12,10 @@ const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
 
 const actions = {
-  onSelectPolicy: action('onSelectPolicy'),
+  setRetentionPolicy: action('setRetentionPolicy'),
+  onSelect: action('onSelectPolicy'),
   onShowDropdown: action('onShowDropdown'),
-  onUpdateParent: action('onUpdateParent'),
+  onShowWarning: action('onShowWarning'),
 }
 
 const onClick = action('onClick')
@@ -30,7 +31,7 @@ const teamWideItems = [
 const channelItems = [{title: 'Use team default (30 days)', onClick}, ...teamWideItems]
 
 const load = () => {
-  storiesOf('Chat/Teams/Retention', module)
+  storiesOf('Teams/Retention', module)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
@@ -54,6 +55,16 @@ const load = () => {
         policy={policyInherit}
         teamPolicy={policy30Days}
         type="simple"
+        {...actions}
+      />
+    ))
+    .add('Automatic show warning / set', () => (
+      <RetentionPicker
+        loading={false}
+        isTeamWide={false}
+        policy={policyInherit}
+        teamPolicy={policy30Days}
+        type="auto"
         {...actions}
       />
     ))
