@@ -3,7 +3,7 @@ package rpc
 import "golang.org/x/net/context"
 
 type task struct {
-	seqid      seqNumber
+	seqid      SeqNumber
 	cancelFunc context.CancelFunc
 }
 
@@ -25,8 +25,8 @@ type receiveHandler struct {
 
 	// Task loop channels
 	taskBeginCh  chan *task
-	taskCancelCh chan seqNumber
-	taskEndCh    chan seqNumber
+	taskCancelCh chan SeqNumber
+	taskEndCh    chan SeqNumber
 
 	log LogInterface
 }
@@ -40,8 +40,8 @@ func newReceiveHandler(enc encoder, protHandler *protocolHandler, l LogInterface
 		closedCh:    make(chan struct{}),
 
 		taskBeginCh:  make(chan *task),
-		taskCancelCh: make(chan seqNumber),
-		taskEndCh:    make(chan seqNumber),
+		taskCancelCh: make(chan SeqNumber),
+		taskEndCh:    make(chan SeqNumber),
 
 		log: l,
 	}
@@ -50,7 +50,7 @@ func newReceiveHandler(enc encoder, protHandler *protocolHandler, l LogInterface
 }
 
 func (r *receiveHandler) taskLoop() {
-	tasks := make(map[seqNumber]context.CancelFunc)
+	tasks := make(map[SeqNumber]context.CancelFunc)
 	for {
 		select {
 		case <-r.stopCh:

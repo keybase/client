@@ -391,12 +391,13 @@ func (g *gregorHandler) HandlerName() string {
 // when an external entity (like Electron) connects to the service, and we can
 // safely send Gregor information to it
 func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
-	g.Lock()
-	defer g.Unlock()
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "PushHandler")()
 
 	g.G().Log.Debug("pushing inband handler %s to position %d", handler.Name(), len(g.ibmHandlers))
 
+	g.Lock()
 	g.ibmHandlers = append(g.ibmHandlers, handler)
+	g.Unlock()
 
 	// Only try replaying if we are logged in, it's possible that a handler can
 	// attach before that is true (like if we start the service logged out and
@@ -423,9 +424,10 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 // get the "firehose" of gregor events. They're removed lazily as their underlying
 // connections die.
 func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler) {
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "PushFirehoseHandler")()
 	g.Lock()
-	defer g.Unlock()
 	g.firehoseHandlers = append(g.firehoseHandlers, handler)
+	g.Unlock()
 
 	s, err := g.getState(context.Background())
 	if err != nil {
@@ -531,6 +533,7 @@ func (g *gregorHandler) IsShutdown() bool {
 }
 
 func (g *gregorHandler) IsConnected() bool {
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "IsConnected")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 	return g.conn != nil && g.conn.IsConnected()
@@ -633,23 +636,22 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // OnConnect is called by the rpc library to indicate we have connected to
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
-	cli rpc.GenericClient, srv *rpc.Server) error {
+	cli rpc.GenericClient, srv *rpc.Server) (err error) {
+	defer g.chatLog.Trace(ctx, func() error { return err }, "OnConnect")()
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
 	g.connMutex.Lock()
 	if conn != g.conn {
 		g.connMutex.Unlock()
+		g.chatLog.Debug(ctx, "aborting on dup connection")
 		return chat.ErrDuplicateConnection
 	}
 	g.connMutex.Unlock()
 
-	g.Lock()
-	defer g.Unlock()
+	g.chatLog.Debug(ctx, "connected")
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
-
-	g.chatLog.Debug(ctx, "connected")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
 		return fmt.Errorf("error registering protocol: %s", err.Error())
 	}
@@ -798,9 +800,8 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
-func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) error {
-	g.Lock()
-	defer g.Unlock()
+func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) (err error) {
+	defer g.chatLog.Trace(ctx, func() error { return err }, "broadcastMessageOnce")()
 
 	// Handle the message
 	var obm gregor.OutOfBandMessage
@@ -1149,7 +1150,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
-	g.Debug(context.Background(), "shutdown")
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "Shutdown")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
