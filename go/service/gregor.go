@@ -633,16 +633,19 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // OnConnect is called by the rpc library to indicate we have connected to
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
-	cli rpc.GenericClient, srv *rpc.Server) error {
+	cli rpc.GenericClient, srv *rpc.Server) (err error) {
+	g.chatLog.Trace(ctx, func() error { return err }, "OnConnect")()
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
 	g.connMutex.Lock()
 	if conn != g.conn {
 		g.connMutex.Unlock()
+		g.chatLog.Debug(ctx, "aborting on dup connection")
 		return chat.ErrDuplicateConnection
 	}
 	g.connMutex.Unlock()
+	g.chatLog.Debug(ctx, "non dup connection, proceeding")
 
 	g.Lock()
 	defer g.Unlock()
@@ -1149,7 +1152,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
-	g.Debug(context.Background(), "shutdown")
+	g.chatLog.Trace(context.Background(), func() error { return nil }, "Shutdown")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
