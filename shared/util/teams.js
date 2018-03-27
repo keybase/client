@@ -22,4 +22,17 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: ?string): SortedAdm
   return {publicAdmins, publicAdminsOthers}
 }
 
-export {parsePublicAdmins}
+// Sorts teamnames canonically.
+function sortTeamnames(a: string, b: string) {
+  const aName = a.toUpperCase()
+  const bName = b.toUpperCase()
+  if (aName < bName) {
+    return -1
+  } else if (aName > bName) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
+export {parsePublicAdmins, sortTeamnames}

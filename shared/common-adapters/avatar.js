@@ -121,7 +121,6 @@ const mapStateToProps = (state: TypedState, ownProps: Props) => {
   }
 
   return {
-    _needAskForData: !state.config.avatars.hasOwnProperty(name),
     _urlMap,
   }
 }
@@ -187,19 +186,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isPlaceholder = false
   }
 
-  if (!url && !stateProps._needAskForData) {
+  if (!url) {
     const placeholder = isTeam ? teamPlaceHolders : avatarPlaceHolders
     url = iconTypeToImgSet(placeholder[String(ownProps.size)], ownProps.size)
     isPlaceholder = true
   }
 
   let _askForUserData = null
-  if (stateProps._needAskForData) {
-    if (isTeam) {
-      _askForUserData = () => dispatchProps._askForTeamUserData(ownProps.teamname)
-    } else {
-      _askForUserData = () => dispatchProps._askForUserData(ownProps.username)
-    }
+  if (isTeam) {
+    _askForUserData = () => dispatchProps._askForTeamUserData(ownProps.teamname)
+  } else {
+    _askForUserData = () => dispatchProps._askForUserData(ownProps.username)
   }
 
   const _name = isTeam ? ownProps.teamname : ownProps.username
@@ -255,7 +252,7 @@ const realConnector = compose(
         if (this.props._name === this.props._stateName) {
           this.props._maybeLoadUserData()
         }
-      }, 700)
+      }, 200)
       this.props.setMounted(this.props._name, _timeoutID)
     },
     componentWillReceiveProps(nextProps) {

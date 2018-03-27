@@ -7,18 +7,7 @@ protocol ephemeral {
   @typedef("int64")
   record EkGeneration {}
 
-  // NOTE: The device/user/team structs are very similar here, so it might seem
-  // like a good idea to unify them. However! One thing we have to be careful
-  // with is that signatures of one type don't get confused for another type.
-  // Thus we use distinct field names like "device_ephemeral_dh_public" and
-  // "user_ephemeral_dh_public". If anyone ever tries to refactor all these
-  // structs, please be careful with this detail.
-  record DeviceEkMetadataStatement {
-    @jsonkey("current_device_ek_metadata")
-    DeviceEkMetadata currentDeviceEkMetadata;
-    @jsonkey("existing_device_ek_metadata")
-    array<DeviceEkMetadata> existingDeviceEkMetadata;
-  }
+  ////////////////////////////////////////////////////////////////////////
 
   record DeviceEkMetadata {
     @jsonkey("device_ephemeral_dh_public")
@@ -29,16 +18,31 @@ protocol ephemeral {
     Time ctime;
   }
 
+  // NOTE: The device/user/team structs are very similar here, so it might seem
+  // like a good idea to unify them. However! One thing we have to be careful
+  // with is that signatures of one type don't get confused for another type.
+  // Thus we use distinct field names like "device_ephemeral_dh_public" and
+  // "user_ephemeral_dh_public". If anyone ever tries to refactor all these
+  // structs, please be careful with this detail.
+  record DeviceEkStatement {
+    @jsonkey("current_device_ek_metadata")
+    DeviceEkMetadata currentDeviceEkMetadata;
+    @jsonkey("existing_device_ek_metadata")
+    array<DeviceEkMetadata> existingDeviceEkMetadata;
+  }
+
   record DeviceEk {
     Bytes32 seed;
     DeviceEkMetadata metadata;
   }
 
-  record UserEkMetadataStatement {
+  ////////////////////////////////////////////////////////////////////////
+
+  record UserEkStatement {
     @jsonkey("current_user_ek_metadata")
     UserEkMetadata currentUserEkMetadata;
     @jsonkey("existing_user_ek_metadata")
-    array<UserEkMetadata> existingUserEkMetatdata;
+    array<UserEkMetadata> existingUserEkMetadata;
   }
 
   record UserEkMetadata {
@@ -60,5 +64,35 @@ protocol ephemeral {
   record UserEk {
     Bytes32 seed;
     UserEkMetadata metadata;
+  }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  record TeamEkMetadata {
+    @jsonkey("team_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record TeamEkStatement {
+    @jsonkey("current_team_ek_metadata")
+    TeamEkMetadata currentTeamEkMetadata;
+    @jsonkey("existing_team_ek_metadata")
+    array<TeamEkMetadata> existingTeamEkMetadata;
+  }
+
+  record TeamEkBoxed {
+    string box;
+    @jsonkey("user_ek_generation")
+    EkGeneration userEkGeneration;
+    TeamEkMetadata metadata;
+  }
+
+  record TeamEk {
+    Bytes32 seed;
+    TeamEkMetadata metadata;
   }
 }

@@ -15,7 +15,7 @@ import (
 const (
 	DevelServerURI      = "http://localhost:3000"
 	StagingServerURI    = "https://stage0.keybase.io"
-	ProductionServerURI = "https://api.keybase.io"
+	ProductionServerURI = "https://api-0.core.keybaseapi.com"
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
@@ -319,6 +319,7 @@ const (
 	LinkTypeUpdateSettings    LinkType = "update_settings"
 	LinkTypeWebServiceBinding LinkType = "web_service_binding"
 	LinkTypePerUserKey        LinkType = "per_user_key"
+	LinkTypeWallet            LinkType = "wallet"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"

@@ -1073,6 +1073,13 @@ func (e *Env) GetChatMemberType() string {
 	)
 }
 
+func (e *Env) GetAvatarSource() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_AVATAR_SOURCE") },
+		func() string { return "full" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.GetConfig().GetDeviceID()
 }
@@ -1318,7 +1325,7 @@ func (e *Env) WantsSystemd() bool {
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 
-func (e *Env) ForceSecretStoreFile() bool {
+func (e *Env) DarwinForceSecretStoreFile() bool {
 	return (e.GetRunMode() == DevelRunMode &&
 		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
 }

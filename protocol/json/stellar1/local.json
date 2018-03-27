@@ -1,0 +1,29 @@
+{
+  "protocol": "local",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "balancesLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Balance"
+      }
+    },
+    "walletInit": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "stellar.1"
+}

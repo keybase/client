@@ -510,3 +510,64 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 		require.True(t, m.Valid().MessageBody.IsNil(), "remaining messages should have no body")
 	}
 }
+
+func TestSyncerTeamFilter(t *testing.T) {
+	ctx, world, ri2, _, sender, list := setupTest(t, 2)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	u2 := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	ibox := storage.NewInbox(tc.Context(), uid)
+
+	iconv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username,
+		chat1.ConversationMembersType_TEAM)
+
+	_, _, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
+	require.NoError(t, err)
+	_, iconvs, err := ibox.ReadAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, iconvs, 2)
+	require.NoError(t, ibox.TeamTypeChanged(ctx, 1, tconv.GetConvID(), chat1.TeamType_COMPLEX, nil))
+	tconv.Metadata.TeamType = chat1.TeamType_COMPLEX
+
+	t.Logf("dont sync shallow team change")
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{iconv, tconv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case res := <-list.inboxSynced:
+		typ, err := res.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		require.Equal(t, 1, len(res.Incremental().Items))
+		require.Equal(t, iconv.GetConvID().String(), res.Incremental().Items[0].ConvID)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no sync")
+	}
+
+	t.Logf("sync it if metadata changed")
+	tconv.MaxMsgSummaries = append(tconv.MaxMsgSummaries, chat1.MessageSummary{
+		MsgID:       10,
+		MessageType: chat1.MessageType_METADATA,
+	})
+	doSync(t, syncer, ri, uid)
+	select {
+	case res := <-list.inboxSynced:
+		typ, err := res.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		require.Equal(t, 2, len(res.Incremental().Items))
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no sync")
+	}
+}

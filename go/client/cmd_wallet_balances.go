@@ -46,11 +46,9 @@ func (c *cmdWalletBalances) Run() error {
 		return err
 	}
 
-	arg := stellar1.BalancesArg{
-		AccountID: stellar1.AccountID(c.address),
-	}
+	accountID := stellar1.AccountID(c.address)
 
-	balances, err := cli.Balances(context.Background(), arg)
+	balances, err := cli.BalancesLocal(context.Background(), accountID)
 	if err != nil {
 		return err
 	}
