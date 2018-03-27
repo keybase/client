@@ -14,22 +14,25 @@ const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 const getOrderedMemberArray = (
   memberInfo: I.Set<Types.MemberInfo>,
   you: ?string,
-  listYouFirst: boolean
+  yourOperations: RPCTypes.TeamOperation
 ): Array<Types.MemberInfo> => {
   let info = memberInfo
   let returnArray = info.toArray().sort((a, b) => {
-    if (!a.active) {
-      if (!b.active) {
-        // both are inactive, compare usernames
-        return a.username.localeCompare(b.username)
+    // List inactive users first if admin
+    if (yourOperations.manageMembers) {
+      if (!a.active) {
+        if (!b.active) {
+          // both are inactive, compare usernames
+          return a.username.localeCompare(b.username)
+        }
+        // b is active, should go later
+        return -1
+      } else if (!b.active) {
+        // b is inactive, should come first
+        return 1
       }
-      // b is active, should go later
-      return -1
-    } else if (!b.active) {
-      // b is inactive, should come first
-      return 1
     }
-    if (listYouFirst && you) {
+    if (yourOperations.listFirst && you) {
       if (a.username === you) {
         return -1
       } else if (b.username === you) {
@@ -65,11 +68,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const _members = getOrderedMemberArray(
-    stateProps._memberInfo,
-    stateProps.you,
-    stateProps.yourOperations.listFirst
-  )
+  const _members = getOrderedMemberArray(stateProps._memberInfo, stateProps.you, stateProps.yourOperations)
   return {
     members: _members.map(member => ({
       type: 'member',
