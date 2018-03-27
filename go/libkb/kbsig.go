@@ -760,6 +760,7 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 		Me:         me,
 		LinkType:   LinkTypeWallet,
 		SigningKey: signingKey,
+		SigVersion: KeybaseSignatureV2,
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
