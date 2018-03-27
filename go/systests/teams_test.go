@@ -696,7 +696,9 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 }
 
 func (u *userPlusDevice) reset() {
-	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
+	// PC: try not doing this
+	// u.device.tctx.Tp.SkipLogoutIfRevokedCheck = true
+	u.device.tctx.Tp.SkipLogoutIfRevokedCheck = false
 	uvBefore := u.userVersion()
 	err := u.device.userClient.ResetUser(context.TODO(), 0)
 	require.NoError(u.tc.T, err)
