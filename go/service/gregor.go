@@ -391,6 +391,7 @@ func (g *gregorHandler) HandlerName() string {
 // when an external entity (like Electron) connects to the service, and we can
 // safely send Gregor information to it
 func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "PushHandler")()
 	g.Lock()
 	defer g.Unlock()
 
@@ -423,6 +424,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 // get the "firehose" of gregor events. They're removed lazily as their underlying
 // connections die.
 func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler) {
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "PushFirehoseHandler")()
 	g.Lock()
 	defer g.Unlock()
 	g.firehoseHandlers = append(g.firehoseHandlers, handler)
@@ -531,6 +533,7 @@ func (g *gregorHandler) IsShutdown() bool {
 }
 
 func (g *gregorHandler) IsConnected() bool {
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "IsConnected")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 	return g.conn != nil && g.conn.IsConnected()
@@ -634,7 +637,7 @@ func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.C
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) (err error) {
-	g.chatLog.Trace(ctx, func() error { return err }, "OnConnect")()
+	defer g.chatLog.Trace(ctx, func() error { return err }, "OnConnect")()
 
 	// If we get a random OnConnect on some other connection that is not g.conn, then
 	// just reject it.
@@ -801,7 +804,8 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
-func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) error {
+func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) (err error) {
+	defer g.chatLog.Trace(context.Background(), func() error { return err }, "broadcastMessageOnce")()
 	g.Lock()
 	defer g.Unlock()
 
@@ -1152,7 +1156,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
-	g.chatLog.Trace(context.Background(), func() error { return nil }, "Shutdown")()
+	defer g.chatLog.Trace(context.Background(), func() error { return nil }, "Shutdown")()
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
