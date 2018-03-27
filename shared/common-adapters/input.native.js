@@ -201,6 +201,9 @@ class Input extends Component<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
+    // We want to be able to set the selection property,
+    // too. Unfortunately, that triggers an Android crash:
+    // https://github.com/facebook/react-native/issues/18316 .
     const commonProps = {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
