@@ -5754,7 +5754,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "fontWeight": "normal",
                 "lineHeight": 1,
                 "padding": 4,
-                "paddingRight": 4,
                 "speak": "none",
                 "textTransform": "none",
                 "userSelect": "none",
@@ -6073,7 +6072,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "fontWeight": "normal",
                 "lineHeight": 1,
                 "padding": 4,
-                "paddingRight": 4,
                 "speak": "none",
                 "textTransform": "none",
                 "userSelect": "none",
@@ -28551,11 +28549,8 @@ exports[`Storyshots Files Preview 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "minHeight": 48,
+              "flexDirection": "column",
             }
           }
         >
@@ -28566,16 +28561,28 @@ exports[`Storyshots Files Preview 1`] = `
                 "display": "flex",
                 "flexDirection": "row",
                 "justifyContent": "center",
+                "minHeight": 48,
               }
             }
           >
-            <span
-              className="glamor-0"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                }
+              }
             >
-              Keybase Files
-            </span>
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Keybase Files
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -28828,11 +28835,8 @@ exports[`Storyshots Files Root 1`] = `
         <div
           style={
             Object {
-              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "minHeight": 48,
+              "flexDirection": "column",
             }
           }
         >
@@ -28843,16 +28847,28 @@ exports[`Storyshots Files Root 1`] = `
                 "display": "flex",
                 "flexDirection": "row",
                 "justifyContent": "center",
+                "minHeight": 48,
               }
             }
           >
-            <span
-              className="glamor-0"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                }
+              }
             >
-              Keybase Files
-            </span>
+              <span
+                className="glamor-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                Keybase Files
+              </span>
+            </div>
           </div>
         </div>
         <div>

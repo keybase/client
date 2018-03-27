@@ -45,19 +45,23 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let type
   let users
 
-  const broken = stateProps._meta.participants.filter(p =>
-    stateProps._users.infoMap.getIn([p, 'broken'], false)
-  )
-  if (!broken.isEmpty()) {
-    type = 'broken'
-    users = broken.toArray()
+  if (stateProps._meta.teamType !== 'adhoc') {
+    type = 'none'
   } else {
-    const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
-    if (!toInvite.isEmpty()) {
-      type = 'invite'
-      users = toInvite.toArray()
+    const broken = stateProps._meta.participants.filter(p =>
+      stateProps._users.infoMap.getIn([p, 'broken'], false)
+    )
+    if (!broken.isEmpty()) {
+      type = 'broken'
+      users = broken.toArray()
     } else {
-      type = 'none'
+      const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
+      if (!toInvite.isEmpty()) {
+        type = 'invite'
+        users = toInvite.toArray()
+      } else {
+        type = 'none'
+      }
     }
   }
 

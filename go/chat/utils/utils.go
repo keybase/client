@@ -707,12 +707,12 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	return msg.Valid().ServerHeader.Ctime
 }
 
-func GetConvSnippet(conv chat1.ConversationLocal) string {
+func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) string {
 	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
 	if err != nil {
 		return ""
 	}
-	return GetMsgSnippet(msg)
+	return GetMsgSnippet(msg, conv, currentUsername)
 }
 
 func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (chat1.MessageSummary, error) {
@@ -743,15 +743,25 @@ func systemMessageSnippet(msg chat1.MessageSystem) string {
 	}
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed) string {
+func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) string {
 	if !msg.IsValidFull() {
 		return ""
 	}
+	var prefix string
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		sender := msg.Valid().SenderUsername
+		if sender == currentUsername {
+			prefix = "You: "
+		} else {
+			prefix = fmt.Sprintf("%s: ", sender)
+		}
+	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return msg.Valid().MessageBody.Text().Body
+		return prefix + msg.Valid().MessageBody.Text().Body
 	case chat1.MessageType_ATTACHMENT:
-		return msg.Valid().MessageBody.Attachment().Object.Title
+		return prefix + msg.Valid().MessageBody.Attachment().Object.Title
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System())
 	}
@@ -804,7 +814,7 @@ func PresentConversationErrorLocal(rawConv chat1.ConversationErrorLocal) (res ch
 	return res
 }
 
-func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
+func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	var writerNames []string
 	fullNames := make(map[string]string)
 	for _, p := range rawConv.Info.Participants {
@@ -815,7 +825,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName
-	res.Snippet = GetConvSnippet(rawConv)
+	res.Snippet = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
 	res.Participants = writerNames
@@ -840,9 +850,9 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	return res
 }
 
-func PresentConversationLocals(convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
+func PresentConversationLocals(convs []chat1.ConversationLocal, currentUsername string) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(conv))
+		res = append(res, PresentConversationLocal(conv, currentUsername))
 	}
 	return res
 }

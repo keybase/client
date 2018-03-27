@@ -97,13 +97,13 @@ const metaMapReducer = (metaMap, action) => {
           default:
             return metaMap.update(
               action.payload.conversationIDKey,
-              meta =>
-                meta
-                  ? meta.withMutations(m => {
+              old =>
+                old
+                  ? old.withMutations(m => {
                       m.set('trustedState', 'error')
                       m.set('snippet', error.message)
                     })
-                  : meta
+                  : old
             )
         }
       } else {
@@ -112,9 +112,15 @@ const metaMapReducer = (metaMap, action) => {
     }
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
+        const neverCreate = !!action.payload.neverCreate
         action.payload.metas.forEach(meta => {
-          const old = map.get(meta.conversationIDKey)
-          map.set(meta.conversationIDKey, old ? Constants.updateMeta(old, meta) : meta)
+          map.update(meta.conversationIDKey, old => {
+            if (old) {
+              return Constants.updateMeta(old, meta)
+            } else {
+              return neverCreate ? old : meta
+            }
+          })
         })
       })
     case Chat2Gen.inboxRefresh:

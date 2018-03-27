@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
-import {downloadFilePath} from '../util/file'
+import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
 import memoize from 'lodash/memoize'
 
@@ -53,16 +53,26 @@ export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Re
   sort: makeSortSetting(),
 })
 
-export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
+export const makeTransferMeta: I.RecordFactory<Types._TransferMeta> = I.Record({
   type: 'download',
   entryType: 'unknown',
+  intent: 'none',
   path: Types.stringToPath(''),
   localPath: '',
+  opID: null,
+})
+
+export const makeTransferState: I.RecordFactory<Types._TransferState> = I.Record({
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
   isDone: false,
   startedAt: 0,
+})
+
+export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
+  meta: makeTransferMeta(),
+  state: makeTransferState(),
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -75,6 +85,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   kbfsInstalling: false,
   fuseInstalling: false,
   kextPermissionError: false,
+  showBanner: false,
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -242,3 +253,10 @@ export const makeDownloadKey = (path: Types.Path, localPath: string) =>
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
+export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
+  downloadFilePathNoSearch(Types.getPathName(p))
+
+export const isImage = (name: string): boolean => {
+  const lower = name.toLowerCase()
+  return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
+}

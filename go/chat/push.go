@@ -378,7 +378,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 
 func (g *PushHandler) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(*conv)
+		pc := utils.PresentConversationLocal(*conv, g.G().Env.GetUsername().String())
 		res = &pc
 	}
 	return res

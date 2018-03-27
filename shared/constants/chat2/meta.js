@@ -255,7 +255,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   offline: false,
   orangeLineOrdinal: null,
   paginationKey: null,
-  paginationMoreToLoad: true,
+  paginationMoreToLoad: false,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),

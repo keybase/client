@@ -26,6 +26,7 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+      <Custom Action="LogoutUser" Before="StopMainApp"><![CDATA[REMOVE ~= "ALL" AND NOT (UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED)]]></Custom>
       <Custom Action="StopMainApp" Before="StopUpdater"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="StopUpdater" Before="StopGUI"><![CDATA[Installed OR UPGRADINGPRODUCTCODE OR WIX_UPGRADE_DETECTED]]></Custom>
       <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
@@ -260,4 +261,12 @@
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
+  <Fragment>
+    <CustomAction Id="LogoutUser"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; logout"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+
 </Wix>

@@ -259,7 +259,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
-				pconv := utils.PresentConversationLocal(*convRes.ConvRes)
+				pconv := utils.PresentConversationLocal(*convRes.ConvRes, h.G().Env.GetUsername().String())
 				jbody, err := json.Marshal(pconv)
 				if err != nil {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
@@ -2386,7 +2386,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(convs)
+	res.Convs = utils.PresentConversationLocals(convs, h.G().Env.GetUsername().String())
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }

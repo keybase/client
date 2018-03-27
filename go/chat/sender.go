@@ -528,7 +528,7 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 
 func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(*conv)
+		pc := utils.PresentConversationLocal(*conv, s.G().Env.GetUsername().String())
 		res = &pc
 	}
 	return res

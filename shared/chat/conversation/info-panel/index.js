@@ -400,7 +400,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       if (props.smallTeam) {
         // Small team.
-        const retentionRows = props.canSetretention
+        const retentionRows = props.canSetRetention
           ? [
               {
                 type: 'divider',

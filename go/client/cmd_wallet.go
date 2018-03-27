@@ -10,7 +10,7 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 	subcommands := []cli.Command{
 		newCmdWalletBalances(cl, g),
 	}
-
+	subcommands = append(subcommands, getBuildSpecificWalletCommands(cl, g)...)
 	return cli.Command{
 		Name:        "wallet",
 		Subcommands: subcommands,

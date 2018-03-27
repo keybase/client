@@ -402,6 +402,7 @@ const outboxUIMessagetoMessage = (
     errorReason,
     ordinal: Types.numberToOrdinal(o.ordinal),
     outboxID: Types.stringToOutboxID(o.outboxID),
+    submitState: 'pending',
     text: new HiddenString(o.body),
     timestamp: o.ctime,
   })

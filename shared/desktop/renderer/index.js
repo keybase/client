@@ -90,6 +90,7 @@ function setupApp(store) {
 
   var inputMonitor = new InputMonitor(function(isActive) {
     store.dispatch(AppGen.createChangedActive({userActive: isActive}))
+    ipcRenderer.send('setAppState', {isUserActive: isActive})
   })
   inputMonitor.startActiveTimer()
 

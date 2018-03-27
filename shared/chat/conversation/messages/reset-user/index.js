@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box, Text, Icon, Button} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   allowChatWithoutThem: boolean,
@@ -13,7 +14,10 @@ type Props = {
 
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Box style={containerStyle}>
-    <Icon type="icon-skull-64" style={{margin: globalMargins.medium, height: 64}} />
+    <Icon
+      type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+      style={{margin: globalMargins.medium, height: 64}}
+    />
     <Box style={textContainerStyle}>
       <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
         <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>
@@ -79,7 +83,8 @@ const containerStyle = {
 
 const textContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  maxWidth: 280,
+  paddingLeft: 64,
+  paddingRight: 64,
   alignItems: 'center',
 }
 
