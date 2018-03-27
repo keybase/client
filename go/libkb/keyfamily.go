@@ -518,7 +518,7 @@ func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time)
 }
 
 func (ckf ComputedKeyFamily) getCkiIfActiveNow(kid keybase1.KID) (ret *ComputedKeyInfo, err error) {
-	return ckf.getCkiIfActiveAtTime(kid, time.Now())
+	return ckf.getCkiIfActiveAtTime(kid, time.Now().AddDate(20, 0, 0))
 }
 
 // FindActiveSibkey takes a given KID and finds the corresponding active sibkey
@@ -527,7 +527,7 @@ func (ckf ComputedKeyFamily) getCkiIfActiveNow(kid keybase1.KID) (ret *ComputedK
 // error saying why. Otherwise, it will return the key.  In this case either
 // key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveSibkey(kid keybase1.KID) (key GenericKey, cki ComputedKeyInfo, err error) {
-	return ckf.FindActiveSibkeyAtTime(kid, time.Now())
+	return ckf.FindActiveSibkeyAtTime(kid, time.Now().AddDate(20, 0, 0))
 }
 
 // As FindActiveSibkey, but for a specific time. Note that going back in time
