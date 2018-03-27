@@ -640,6 +640,7 @@ type TeamEKBoxStorage interface {
 
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
+	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {

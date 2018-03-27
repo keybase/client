@@ -42,6 +42,13 @@ func TestNewUserEK(t *testing.T) {
 	require.EqualValues(t, 1, currentMetadata.Generation)
 	require.Equal(t, statement.ExistingUserEkMetadata, []keybase1.UserEkMetadata{})
 
+	// We've stored the result in local storage
+	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(context.Background())
+	ek, err := userEKBoxStorage.Get(context.Background(), maxGeneration)
+	require.NoError(t, err)
+	require.Equal(t, ek.Metadata, publishedMetadata)
+
 	rawStorage := NewUserEKBoxStorage(tc.G)
 	// Put our storage in a bad state by deleting the maxGeneration
 	err = rawStorage.Delete(context.Background(), keybase1.EkGeneration(1))
