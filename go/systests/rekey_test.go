@@ -842,7 +842,6 @@ func testRekeyOnce(t libkb.TestingTB) {
 	// no rekey activity thereafter
 	rkt.expectAlreadyKeyedNoop(primaryDevice)
 
-
 	// 5.5 Now rekey fully and make sure that the gregor state is clean.
 	rkt.fullyRekeyAndAssertCleared(primaryDevice)
 

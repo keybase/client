@@ -10,8 +10,8 @@ type testRunFunc func(t libkb.TestingTB)
 
 type testAttempt struct {
 	sync.Mutex
-	t        *testing.T
-	failed   bool
+	t      *testing.T
+	failed bool
 }
 
 func (t *testAttempt) Error(args ...interface{}) {
@@ -87,15 +87,14 @@ func (t *testAttempt) Helper() {
 	t.t.Helper()
 }
 
-
-// retryFlakeyTestOnlyUseIfPermitted is not idea, so please do no use it
+// retryFlakeyTestOnlyUseIfPermitted is not ideal, so please do no use it
 // unless you ask max first. Right now, it's only being used for TestRekey,
 // which has a flake in it but hopefully is going to be phased out, so not
 // really worth fixing the flake.
 func retryFlakeyTestOnlyUseIfPermitted(t *testing.T, numTries int, test testRunFunc) {
 
-	for i := 0; i < numTries - 1; i++ {
-		attempt := testAttempt{t:t}
+	for i := 0; i < numTries-1; i++ {
+		attempt := testAttempt{t: t}
 		if attempt.run(test) {
 			return
 		}
