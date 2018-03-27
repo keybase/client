@@ -760,6 +760,7 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 		Me:         me,
 		LinkType:   LinkTypeWallet,
 		SigningKey: signingKey,
+		SigVersion: KeybaseSignatureV2,
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -804,7 +805,20 @@ func WalletProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
 	// Make sig
 	jw := jwRev
 	jw.SetValueAtPath("body.wallet_key.reverse_sig", jsonw.NewString(reverseSig))
-	sig, sigID, linkID, err := SignJSON(jw, signer)
+	innerJSON, err := jw.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	sig, sigID, linkID, err := MakeSig(
+		signer,
+		LinkTypeWallet, // @@@ TODO test for inner outer match
+		innerJSON,
+		SigHasRevokes(false),
+		keybase1.SeqType_PUBLIC,
+		SigIgnoreIfUnsupported(false),
+		me,
+		KeybaseSignatureV2,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -815,6 +829,7 @@ func WalletProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
 
 	res := make(JSONPayload)
 	res["sig"] = sig
+	res["sig_inner"] = string(innerJSON)
 	res["signing_kid"] = signer.GetKID().String()
 	res["public_key"] = walletSignerKey.GetKID().String()
 	res["type"] = LinkTypeWallet
