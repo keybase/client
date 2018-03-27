@@ -1,7 +1,7 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
-import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
+import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../../../util/container'
 import {getTeamRetentionPolicy} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
@@ -73,6 +73,7 @@ const mapDispatchToProps = (
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
+  setDisplayName('RetentionPicker'),
   lifecycle({
     componentDidMount: function() {
       this.props._loadTeamPolicy()
