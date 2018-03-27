@@ -652,10 +652,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	g.Lock()
 	defer g.Unlock()
+	g.chatLog.Debug(ctx, "connected, lock obtained")
 	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, chat.ErrChatServerTimeout)
 	chatCli := chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
-
-	g.chatLog.Debug(ctx, "connected")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
 		return fmt.Errorf("error registering protocol: %s", err.Error())
 	}
