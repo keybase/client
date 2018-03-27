@@ -79,8 +79,9 @@ func (b *BackgroundConvLoader) monitorAppState() {
 	ctx := context.Background()
 	suspended := false
 	b.Debug(ctx, "monitorAppState: starting up")
+	state := keybase1.AppState_FOREGROUND
 	for {
-		state := <-b.G().AppState.NextUpdate()
+		state := <-b.G().AppState.NextUpdate(&state)
 		switch state {
 		case keybase1.AppState_FOREGROUND:
 			b.Debug(ctx, "monitorAppState: foregrounded")

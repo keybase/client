@@ -125,7 +125,7 @@ func (s *Syncer) sendNotificationLoop() {
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
-		case state := <-s.G().AppState.NextUpdate():
+		case state := <-s.G().AppState.NextUpdate(nil):
 			// If we receive an update that app state has moved to the foreground, then trigger
 			// flushing these notifications
 			if state == keybase1.AppState_FOREGROUND {
