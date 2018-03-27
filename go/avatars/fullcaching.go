@@ -112,8 +112,9 @@ func (c *FullCachingSource) isStale(item lru.DiskLRUEntry) bool {
 
 func (c *FullCachingSource) monitorAppState() {
 	c.debug(context.Background(), "monitorAppState: starting up")
+	state := keybase1.AppState_FOREGROUND
 	for {
-		state := <-c.G().AppState.NextUpdate()
+		state = <-c.G().AppState.NextUpdate(&state)
 		ctx := context.Background()
 		switch state {
 		case keybase1.AppState_BACKGROUND:

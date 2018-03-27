@@ -219,8 +219,9 @@ func (g *gregorHandler) Init() {
 
 func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and react accordingly
+	state := keybase1.AppState_FOREGROUND
 	for {
-		state := <-g.G().AppState.NextUpdate()
+		state = <-g.G().AppState.NextUpdate(&state)
 		switch state {
 		case keybase1.AppState_BACKGROUNDACTIVE:
 			fallthrough
