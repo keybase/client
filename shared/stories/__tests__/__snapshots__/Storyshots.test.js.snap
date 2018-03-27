@@ -11773,7 +11773,7 @@ exports[`Storyshots Chat/Teams/Retention Channel inheriting from team 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              Use team default (30 days)
+              Use team default ([mocked])
             </span>
           </div>
           <div>
@@ -11977,7 +11977,7 @@ exports[`Storyshots Chat/Teams/Retention Team-wide 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              30 days
+              [mocked]
             </span>
           </div>
           <div>
