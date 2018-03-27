@@ -405,6 +405,7 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 
 	joe.reset()
 	divDebug(ctx, "Reset joe (%s), not re-provisioning though!", joe.username)
