@@ -3,20 +3,33 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
+	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
+const lruSize = 200
+
 type EKLib struct {
 	libkb.Contextified
+	teamEKGenCache *lru.Cache
 	sync.Mutex
 }
 
 func NewEKLib(g *libkb.GlobalContext) *EKLib {
+	nlru, err := lru.New(lruSize)
+	if err != nil {
+		// lru.New only panics if size <= 0
+		log.Panicf("Could not create lru cache: %v", err)
+	}
 	return &EKLib{
-		Contextified: libkb.NewContextified(g),
+		Contextified:   libkb.NewContextified(g),
+		teamEKGenCache: nlru,
 	}
 }
 
@@ -193,9 +206,41 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	return keygenNeeded(ek.Metadata.Ctime, merkleRoot), nil
 }
 
+type teamEKGenCacheEntry struct {
+	Generation keybase1.EkGeneration
+	Ctime      keybase1.Time
+}
+
+func (e *EKLib) newCacheEntry(generation keybase1.EkGeneration) *teamEKGenCacheEntry {
+	return &teamEKGenCacheEntry{
+		Generation: generation,
+		Ctime:      keybase1.TimeFromSeconds(time.Now().Unix()),
+	}
+}
+
+func (e *EKLib) cacheKey(teamID keybase1.TeamID) string {
+	return string(teamID)
+}
+
+func (e *EKLib) isEntryValid(val interface{}) (*teamEKGenCacheEntry, bool) {
+	cacheEntry, ok := val.(*teamEKGenCacheEntry)
+	if !ok || cacheEntry == nil {
+		return nil, false
+	}
+	return cacheEntry, (keybase1.TimeFromSeconds(time.Now().Unix()) - cacheEntry.Ctime) < keybase1.TimeFromSeconds(cacheEntryLifetimeSecs)
+}
+
+func (e *EKLib) PurgeTeamEKGenCache(context context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+	key := e.cacheKey(teamID)
+	val, ok := e.teamEKGenCache.Get(teamID)
+	if ok {
+		if cacheEntry, valid := e.isEntryValid(val); valid && cacheEntry.Generation != generation {
+			e.teamEKGenCache.Remove(key)
+		}
+	}
+}
+
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
-	// TODO put an LRU cache in front of this with a short lifetime so we don't
-	// hit the server ever time we want the latest key for a team.
 	e.Lock()
 	defer e.Unlock()
 
@@ -203,6 +248,16 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 		return teamEK, err
 	} else if !loggedIn {
 		return teamEK, fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
+	}
+
+	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
+	// Check if we have a cached latest generation
+	key := e.cacheKey(teamID)
+	val, ok := e.teamEKGenCache.Get(teamID)
+	if ok {
+		if cacheEntry, valid := e.isEntryValid(val); valid {
+			return teamEKBoxStorage.Get(ctx, teamID, cacheEntry.Generation)
+		}
 	}
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
@@ -226,8 +281,6 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 		return teamEK, err
 	} else if teamEKNeeded {
 		publishedMetadata, err = publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
-		// TODO implement a gregor notification for other clients to clear
-		// their cache and fetch the latest teamEK
 		if err != nil {
 			return teamEK, err
 		}
@@ -235,12 +288,17 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 		publishedMetadata = statement.CurrentTeamEkMetadata
 	}
 
-	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
 	_, err = teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
 	if err != nil {
 		return teamEK, err
 	}
-	return teamEKBoxStorage.Get(ctx, teamID, publishedMetadata.Generation)
+	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, publishedMetadata.Generation)
+	if err != nil {
+		return teamEK, err
+	}
+	// Cache the latest generation
+	e.teamEKGenCache.Add(key, e.newCacheEntry(publishedMetadata.Generation))
+	return teamEK, nil
 }
 
 func (e *EKLib) OnLogin() error {

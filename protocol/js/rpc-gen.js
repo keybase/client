@@ -2844,13 +2844,15 @@ export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
 
-export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean}>
+export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean}>
 
 export type NotifyAppExitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{teamID: TeamID, generation: EkGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4315,6 +4317,7 @@ export type IncomingCallMapType = {
   'keybase.1.logsend.prepareLogsend'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyApp.exit'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyBadges.badgeState'?: (params: $ReadOnly<{badgeState: BadgeState}>) => void,
+  'keybase.1.NotifyEphemeral.newTeamEk'?: (params: $ReadOnly<{teamID: TeamID, generation: EkGeneration}>) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $ReadOnly<{uid: UID}>) => void,
   'keybase.1.NotifyFS.FSActivity'?: (params: $ReadOnly<{notification: FSNotification}>) => void,
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: $ReadOnly<{status: FSPathSyncStatus}>, response: CommonResponseHandler) => void,
