@@ -681,13 +681,14 @@ const loadMoreMessages = (
       if (!calledClear && action.type !== Chat2Gen.loadOlderMessagesDueToScroll) {
         calledClear = true
         // only clear if we've never seen the oldest message, implying there is a gap
-        if (messages.length) {
-          const oldestOrdinal = messages[messages.length - 1].ordinal
-          const state: TypedState = yield Saga.select()
-          if (!state.chat2.messageOrdinals.get(conversationIDKey, oldestOrdinal)) {
-            yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
-          }
-        }
+        // if (messages.length) {
+        // const oldestOrdinal = messages[messages.length - 1].ordinal
+        // const state: TypedState = yield Saga.select()
+        // if (!state.chat2.messageOrdinals.get(conversationIDKey, oldestOrdinal)) {
+        // // TEMP always clear when changing convos
+        yield Saga.put(Chat2Gen.createClearOrdinals({conversationIDKey}))
+        // }
+        // }
       }
 
       if (messages.length) {

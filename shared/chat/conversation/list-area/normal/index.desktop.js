@@ -69,10 +69,46 @@ class Thread extends React.Component<Props, State> {
           console.log('aaa bottomwaypoint top is now: ', now, context)
           const diff = now - this._bottomWaypointScrollTop
           console.log('aaa bottomwaypoint dif: ', diff, context)
-          const newScrollTop = this._scrollableRef.scrollTop + diff
+          const newScrollTop = /* this._scrollableRef.scrollTop + */ diff
+          console.log('aaa bott apply diff')
+          // try 5 frames to settle down
+          const tryApply = triesLeft => {
+            if (triesLeft <= 0) {
+              return
+            }
+            console.log('aaa bott tryApply try: ', triesLeft)
+            window.requestAnimationFrame(() => {
+              this._scrollableRef.scrollTop = newScrollTop
+              console.log(
+                'aaa bottomwaypoint top is now adjusted setimmediate: ',
+                now,
+                context,
+                this._scrollableRef.scrollTop
+              )
+              window.requestAnimationFrame(() => {
+                if (this._scrollableRef.scrollTop !== newScrollTop) {
+                  console.log('aaa bottom next loop', this._scrollableRef.scrollTop, newScrollTop)
+                  tryApply(triesLeft - 1)
+                }
+              })
+            })
+          }
+          tryApply(5)
+          // var triesLeft = 5
+          // window.requestAnimationFrame(() => {
+          // this._scrollableRef.scrollTop = newScrollTop
+          // console.log(
+          // 'aaa bottomwaypoint top is now adjusted setimmediate: ',
+          // now,
+          // context,
+          // this._scrollableRef.scrollTop
+          // )
+          // window.requestAnimationFrame(() => {
+          // })
+          // })
           this._scrollableRef.scrollTop = newScrollTop
           now = node.offsetTop
-          console.log('aaa bottomwaypoint top is now adjusted: ', now, context)
+          console.log('aaa bottomwaypoint top is now adjusted: ', now, context, this._scrollableRef.scrollTop)
         }
       }
     }
@@ -134,6 +170,7 @@ class Thread extends React.Component<Props, State> {
     // }
     // }
     if (this._isLockedToBottom && this._scrollableRef) {
+      console.log('aaa botto LOCKING')
       this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
     } else if (this._bottomWaypoint && this._scrollableRef) {
       this._restoreBottomWaypointScrollTop()
@@ -243,6 +280,7 @@ class Thread extends React.Component<Props, State> {
 
     // if (this.state.isLockedToBottom && this._scrollableRef) {
     if (this._isLockedToBottom && this._scrollableRef) {
+      console.log('aaa bott NEW SCROOL REF')
       this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
     }
   }
@@ -269,7 +307,7 @@ class Thread extends React.Component<Props, State> {
 
     this._loadMoreLast = loadMoreLast
     this._saveBottomWaypointScrollTop()
-    /// AAA the call
+    /// bbb the call
     this.props.loadMoreMessages()
   }
   _waypointBottomOnEnter = data => {
@@ -330,13 +368,13 @@ class Thread extends React.Component<Props, State> {
   _debugOnce = false
   _dump = context => {
     if (this._bottomWaypoint && this._scrollableRef) {
-      const nodes = this._scrollableRef.childNodes[1].childNodes
-      const sizes = []
-      for (var node of nodes) {
-        sizes.push(node.offsetTop)
-      }
-      console.log('aaa bottom', sizes)
-      node = ReactDom.findDOMNode(this._bottomWaypoint)
+      // const nodes = this._scrollableRef.childNodes[1].childNodes
+      // const sizes = []
+      // for (var node of nodes) {
+      // sizes.push(node.offsetTop)
+      // }
+      // console.log('aaa bottom', sizes)
+      const node = ReactDom.findDOMNode(this._bottomWaypoint)
       if (node) {
         const now = node.offsetTop
         console.log('aaa bottomwaypoint top DEBUG now: ', now, context)
@@ -370,7 +408,7 @@ class Thread extends React.Component<Props, State> {
     const rows = []
     rows.push(
       <Waypoint key="waypointTop" topOffset={0} onEnter={this._waypointTopOnEnter}>
-        <div style={{backgroundColor: 'red', height: 10, width: '100%'}} />
+        <div style={{backgroundColor: 'red', height: 1, width: '100%'}} />
       </Waypoint>
     )
 
