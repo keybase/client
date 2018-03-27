@@ -69,7 +69,7 @@ const ShowcasedTeamRow = ({
   team,
 }: {
   onClickShowcased: (event: HTMLElement, team: UserTeamShowcase) => void,
-  team: any,
+  team: UserTeamShowcase,
 }) => (
   <Box
     key={team.fqName}
