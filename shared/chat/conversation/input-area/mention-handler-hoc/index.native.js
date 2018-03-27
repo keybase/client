@@ -123,10 +123,10 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       const selections = this.state._selection
       const word = this._getWordAtCursor(this.props.text)
 
-      if (word && selections && selections.selectionStart === selections.selectionEnd) {
+      if (selections && selections.selectionStart === selections.selectionEnd) {
         const startOfWordIdx = selections.selectionStart - word.length
         if (startOfWordIdx >= 0) {
-          // Put the selection to the end of newWord.
+          // Put the cursor at the end of newWord.
           const newSelectionIndex = startOfWordIdx + newWord.length
           this._inputRef &&
             this._inputRef.replaceText(
