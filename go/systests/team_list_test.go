@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"golang.org/x/net/context"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func findMember(user *smuUser, members []keybase1.TeamMemberDetails) *keybase1.TeamMemberDetails {
