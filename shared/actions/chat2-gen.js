@@ -8,7 +8,7 @@ import * as More from '../constants/types/more'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import HiddenString from '../util/hidden-string'
-import type {_RetentionPolicy} from '../constants/types/teams'
+import type {RetentionPolicy} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
@@ -90,7 +90,7 @@ export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{update: RPCC
 export const createSetConvRetentionPolicy = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
-    policy: _RetentionPolicy,
+    policy: RetentionPolicy,
   }>
 ) => ({error: false, payload, type: setConvRetentionPolicy})
 export const createAttachmentDownload = (

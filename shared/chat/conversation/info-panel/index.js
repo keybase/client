@@ -405,6 +405,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               {
                 type: 'divider',
                 key: nextKey(),
+                marginBottom: 0,
               },
               {
                 type: 'retention',
@@ -496,6 +497,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
                 {
                   type: 'divider',
                   key: nextKey(),
+                  marginBottom: 0,
                 },
                 {
                   type: 'retention',

@@ -56,7 +56,7 @@ export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{teamname: strin
 export const createSetTeamRetentionPolicy = (
   payload: $ReadOnly<{
     teamname: string,
-    policy: Types._RetentionPolicy,
+    policy: Types.RetentionPolicy,
   }>
 ) => ({error: false, payload, type: setTeamRetentionPolicy})
 export const createAddPeopleToTeam = (

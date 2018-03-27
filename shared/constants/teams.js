@@ -114,6 +114,33 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   deleteChatHistory: false,
 }
 
+const policyInherit = makeRetentionPolicy({type: 'inherit'})
+const policyRetain = makeRetentionPolicy({type: 'retain'})
+const policyDay = makeRetentionPolicy({type: 'expire', days: 1})
+const policyWeek = makeRetentionPolicy({type: 'expire', days: 7})
+const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
+const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
+const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
+const teamRetentionPolicies = [
+  policyDay,
+  policyWeek,
+  policyMonth,
+  policyThreeMonths,
+  policyYear,
+  policyRetain,
+]
+const retentionPolicies = {
+  policyInherit,
+  policyRetain,
+  policyDay,
+  policyWeek,
+  policyMonth,
+  policyThreeMonths,
+  policyYear,
+}
+
+const convRetentionPolicies = [policyInherit, ...teamRetentionPolicies]
+
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
 
@@ -242,4 +269,7 @@ export {
   isSubteam,
   serviceRetentionPolicyToRetentionPolicy,
   retentionPolicyToServiceRetentionPolicy,
+  teamRetentionPolicies,
+  convRetentionPolicies,
+  retentionPolicies,
 }

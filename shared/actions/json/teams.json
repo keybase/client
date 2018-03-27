@@ -139,7 +139,7 @@
     "setTeamRetentionPolicy": {
       "_description": "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
-      "policy": "Types._RetentionPolicy"
+      "policy": "Types.RetentionPolicy"
     }
   }
 }

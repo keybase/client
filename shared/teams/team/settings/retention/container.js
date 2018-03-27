@@ -4,7 +4,7 @@ import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../../../util/container'
 import {getTeamRetentionPolicy} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
-import {type _RetentionPolicy} from '../../../../constants/types/teams'
+import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {navigateAppend} from '../../../../actions/route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
@@ -17,27 +17,21 @@ export type OwnProps = {
   isTeamWide: boolean,
   isSmallTeam?: boolean,
   type: 'simple' | 'auto',
-  onSelect?: (policy: _RetentionPolicy, changed: boolean, decreased: boolean) => void,
+  onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
   const loading = !teamPolicy
-  const teamPolicyJS = !!teamPolicy && teamPolicy.toJS()
-  let policy = teamPolicyJS
-  if (!ownProps.isTeamWide && ownProps.conversationIDKey) {
-    const p = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
-    if (p) {
-      policy = p.toJS()
-    } else {
-      throw new Error('Conv retpolicy not present in metaMap!')
-    }
+  const policy =
+    !!ownProps.conversationIDKey && getConversationRetentionPolicy(state, ownProps.conversationIDKey)
+  if (!ownProps.isTeamWide && !policy) {
+    throw new Error('Conv retpolicy not present in metaMap')
   }
-
   return {
-    policy,
+    policy: ownProps.isTeamWide ? teamPolicy : policy,
     loading,
-    teamPolicy: ownProps.isTeamWide ? undefined : teamPolicyJS,
+    teamPolicy: ownProps.isTeamWide ? undefined : teamPolicy,
   }
 }
 
@@ -65,7 +59,7 @@ const mapDispatchToProps = (
       ])
     )
   },
-  setRetentionPolicy: (policy: _RetentionPolicy) => {
+  setRetentionPolicy: (policy: RetentionPolicy) => {
     if (isTeamWide) {
       dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
     } else {

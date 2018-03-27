@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {retentionPolicyToServiceRetentionPolicy, makeRetentionPolicy} from '../../constants/teams'
+import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -1784,7 +1784,7 @@ const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) 
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
   let ret
   try {
-    servicePolicy = retentionPolicyToServiceRetentionPolicy(makeRetentionPolicy(policy))
+    servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
   } catch (err) {
     // should never happen
     logger.error(`Unable to parse retention policy: ${err.message}`)
