@@ -1052,6 +1052,12 @@ func (s SigchainV2StubbedDisallowed) Error() string {
 	return "Link was stubbed but required"
 }
 
+type SigchainV2Required struct{}
+
+func (s SigchainV2Required) Error() string {
+	return "Link must use sig v2"
+}
+
 //=============================================================================
 
 type ReverseSigError struct {

@@ -658,8 +658,11 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 		}
 
 		if _, ok := tcl.(*WalletChainLink); ok {
-			// TODO CORE-7499: Assert that wallet chain links are be v2.
+			// Assert that wallet chain links are be >= v2.
 			// They must be v2 in order to be stubbable later for privacy.
+			if link.unpacked.sigVersion < 2 {
+				return cached, cki, SigchainV2Required{}
+			}
 			seenInflatedWalletLink = true
 		}
 
