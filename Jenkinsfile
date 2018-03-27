@@ -201,7 +201,7 @@ helpers.rootLinuxNode(env, {
                     test_windows: {
                         // TODO: If we re-enable tests other than Go tests on
                         // Windows, this check should go away.
-                        if (hasGoChanges) {
+                        if (false) { // if (hasGoChanges) {
                             helpers.nodeWithCleanup('windows', {}, {}) {
                                 def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
                                 def GOPATH="${BASEDIR}\\go"
