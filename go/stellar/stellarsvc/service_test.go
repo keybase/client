@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
@@ -30,9 +32,6 @@ func TestCreateWallet(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	_, err := kbtest.CreateAndSignupFakeUser("wall", tcs[0].G)
-	require.NoError(t, err)
-
 	created, err := CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.True(t, created)
@@ -42,7 +41,7 @@ func TestCreateWallet(t *testing.T) {
 	require.False(t, created)
 
 	t.Logf("Fetch the bundle")
-	bundle, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Equal(t, keybase1.StellarRevision(1), bundle.Revision)
 	require.Nil(t, bundle.Prev)
@@ -65,6 +64,45 @@ func TestCreateWallet(t *testing.T) {
 	require.Equal(t, bundle.Accounts[0].AccountID.String(), addr.String(), "addr looked up should match secret bundle")
 }
 
+func TestUpkeep(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	created, err := CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.True(t, created)
+
+	bundle, pukGen, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	originalID := bundle.OwnHash
+	originalPukGen := pukGen
+
+	err = stellar.Upkeep(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	bundle, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.Equal(t, bundle.OwnHash, originalID, "bundle should be unchanged by no-op upkeep")
+	require.Equal(t, originalPukGen, pukGen)
+
+	t.Logf("rotate puk")
+	engCtx := &engine.Context{NetContext: context.Background()}
+	engArg := &engine.PerUserKeyRollArgs{}
+	eng := engine.NewPerUserKeyRoll(tcs[0].G, engArg)
+	err = engine.RunEngine(eng, engCtx)
+	require.NoError(t, err)
+	require.True(t, eng.DidNewKey)
+
+	err = stellar.Upkeep(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	bundle, pukGen, err = remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.NotEqual(t, bundle.OwnHash, originalID, "bundle should be new")
+	require.NotEqual(t, originalPukGen, pukGen, "bundle should be for new puk")
+	require.Equal(t, 2, int(bundle.Revision))
+}
+
 // Create n TestContexts with logged in users
 // Returns (FakeUsers, TestContexts, CleanupFunction)
 func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
@@ -77,12 +115,12 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 	var fus []*kbtest.FakeUser
 	var tcs []*libkb.TestContext
 	for i := 0; i < n; i++ {
-		tc := SetupTest(t, "team", 1)
+		tc := SetupTest(t, "wall", 1)
 		tcs = append(tcs, &tc)
 		if i >= n-nPukless {
 			tc.Tp.DisableUpgradePerUserKey = true
 		}
-		fu, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+		fu, err := kbtest.CreateAndSignupFakeUser("wall", tc.G)
 		require.NoError(t, err)
 		fus = append(fus, fu)
 	}

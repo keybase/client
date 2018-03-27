@@ -27,13 +27,3 @@ func MakeNaclSigningKeyPairFromStellarSecretKey(sec keybase1.StellarSecretKey) (
 	}
 	return MakeNaclSigningKeyPairFromSecretBytes(byteSlice)
 }
-
-// Make the "stellar" section of an API arg.
-// Modifies `serverArg`.
-func AddWalletServerArg(serverArg JSONPayload, bundleEncB64 string, bundleVisB64 string, formatVersion int) {
-	section := make(JSONPayload)
-	section["encrypted"] = bundleEncB64
-	section["visible"] = bundleVisB64
-	section["version"] = formatVersion
-	serverArg["stellar"] = section
-}
