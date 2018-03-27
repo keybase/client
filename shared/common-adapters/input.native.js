@@ -23,6 +23,10 @@ class Input extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
+    // For now, leave selections null until we get the first selection
+    // notification, since we're unable to set selection on
+    // NativeTextInput.
+
     this.state = {
       focused: false,
       height: null,
