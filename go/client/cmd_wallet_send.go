@@ -19,15 +19,22 @@ type cmdWalletSend struct {
 }
 
 func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.StringFlag{
+			Name:  "m, message",
+			Usage: "Include a message with the payment.",
+		},
+	}
 	cmd := &cmdWalletSend{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
 		Name:         "send",
-		ArgumentHelp: "<recipient> <amount>",
+		ArgumentHelp: "<recipient> <amount> [-m message]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "send", c)
 		},
+		Flags: flags,
 	}
 }
 
@@ -38,6 +45,7 @@ func (c *cmdWalletSend) ParseArgv(ctx *cli.Context) error {
 
 	c.recipient = ctx.Args()[0]
 	c.amount = ctx.Args()[1]
+	c.note = ctx.String("message")
 	return nil
 }
 

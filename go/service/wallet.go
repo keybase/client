@@ -36,8 +36,12 @@ func (h *walletHandler) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
+func (h *walletHandler) logTag(ctx context.Context) context.Context {
+	return libkb.WithLogTag(ctx, "WA")
+}
+
 func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
-	ctx = libkb.WithLogTag(ctx, "WA")
+	ctx = h.logTag(ctx)
 	defer h.G().CTraceTimed(ctx, "WalletInit", func() error { return err })()
 	err = h.assertLoggedIn(ctx)
 	if err != nil {
@@ -47,31 +51,24 @@ func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
 	return err
 }
 
-type balancesResult struct {
-	Status   libkb.AppStatus    `json:"status"`
-	Balances []stellar1.Balance `json:"balances"`
-}
-
-func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
-	return &b.Status
-}
-
 func (h *walletHandler) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/balances",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:  ctx,
-	}
-
-	var res balancesResult
-	if err := h.G().API.GetDecode(apiArg, &res); err != nil {
+	var err error
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
+	if err = h.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
 
-	return res.Balances, nil
+	return stellarsvc.Balances(ctx, h.G(), accountID)
 }
 
 func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
-	return stellar1.PaymentResult{}, nil
+	var err error
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "SendLocal", func() error { return err })()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+
+	return stellarsvc.Send(ctx, h.G(), arg)
 }

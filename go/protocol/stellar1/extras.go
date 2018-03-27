@@ -36,6 +36,10 @@ func (a AccountID) String() string {
 	return string(a)
 }
 
+func (s SecretKey) String() string {
+	return "[secret key redacted]"
+}
+
 func (s SecretKey) SecureNoLogString() string {
 	return string(s)
 }
@@ -66,4 +70,13 @@ func (s Bundle) CheckInvariants() error {
 		return fmt.Errorf("revision %v < 1", s.Revision)
 	}
 	return nil
+}
+
+func (s Bundle) PrimaryAccount() (BundleEntry, error) {
+	for _, entry := range s.Accounts {
+		if entry.IsPrimary {
+			return entry, nil
+		}
+	}
+	return BundleEntry{}, errors.New("primary stellar account not found")
 }
