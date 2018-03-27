@@ -69,6 +69,7 @@ class SmallTeam extends React.PureComponent<Props> {
               subColor={props.subColor}
               hasResetUsers={props.hasResetUsers}
               youNeedToRekey={props.youNeedToRekey}
+              isSelected={props.isSelected}
             />
           </Box>
         </Box>
