@@ -19,10 +19,7 @@ export type Props = {
   onBlur?: () => void,
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
-  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
   onFocus?: () => void,
-  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
-  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   // TODO: Implement this for desktop.
   onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   rowsMax?: number,
@@ -34,6 +31,11 @@ export type Props = {
   style?: StylesCrossPlatform,
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
+
+  // Desktop only.
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
 
   // Mobile only
   onEndEditing?: ?() => void,
