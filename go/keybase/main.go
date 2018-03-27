@@ -103,11 +103,18 @@ func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
 		return
 	}
 
+	if !e.GetFeatureFlags().Admin() {
+		// Admin only for now
+		return
+	}
+
 	// We do our best but if it's not possible on some systems or
 	// configurations, it's not a fatal error. Also see documentation
 	// in ptrace_*.go files.
 	if err := libkb.DisableProcessTracing(); err != nil {
 		log.Debug("Unable to disable process tracing: %v", err.Error())
+	} else {
+		log.Debug("DisableProcessTracing call succeeded")
 	}
 }
 
