@@ -128,8 +128,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
 }
 
 const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicyPayload, state: TypedState) {
-  const teamname = action.payload.teamname
-  const policy = Constants.makeRetentionPolicy(action.payload.policy)
+  const {teamname, policy} = action.payload
 
   // get teamID
   const teamID = Constants.getTeamID(state, teamname)

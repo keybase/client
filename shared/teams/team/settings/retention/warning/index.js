@@ -20,6 +20,7 @@ type Props = {
   isBigTeam: boolean,
   setEnabled: boolean => void,
   onConfirm: () => void,
+  onCancel: () => void,
   onBack: () => void,
 }
 
@@ -60,7 +61,7 @@ const RetentionWarning = (props: Props) => {
           }
         />
         <ButtonBar>
-          <Button type="Secondary" onClick={props.onBack} label="Cancel" />
+          <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
           <Button
             type="Danger"
             onClick={props.onConfirm}

@@ -2,7 +2,8 @@
   "prelude": [
     "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as Types from '../constants/types/chat2'",
-    "import HiddenString from '../util/hidden-string'"
+    "import HiddenString from '../util/hidden-string'",
+    "import type {RetentionPolicy} from '../constants/types/teams'",
   ],
   "actions": {
     // Set the loading state. Loading true increments the value
@@ -356,6 +357,15 @@
     "setConversationOffline": {
       "conversationIDKey": "Types.ConversationIDKey",
       "offline": "boolean",
-    }
+    },
+    "setConvRetentionPolicy": {
+      "_description": "Sets the retention policy for a conversation. Valid operation for big team channels only.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "policy": "RetentionPolicy",
+    },
+    "updateConvRetentionPolicy": {
+      "_description": "Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap",
+      "conv": "RPCChatTypes.InboxUIItem",
+    },
   }
 }

@@ -8,6 +8,7 @@ import * as More from '../constants/types/more'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import HiddenString from '../util/hidden-string'
+import type {RetentionPolicy} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
@@ -65,6 +66,7 @@ export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
@@ -73,10 +75,24 @@ export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingSelected = 'chat2:setPendingSelected'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
+export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
+/**
+ * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
+ */
+export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{conv: RPCChatTypes.InboxUIItem}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+/**
+ * Sets the retention policy for a conversation. Valid operation for big team channels only.
+ */
+export const createSetConvRetentionPolicy = (
+  payload: $ReadOnly<{
+    conversationIDKey: Types.ConversationIDKey,
+    policy: RetentionPolicy,
+  }>
+) => ({error: false, payload, type: setConvRetentionPolicy})
 export const createAttachmentDownload = (
   payload: $ReadOnly<{
     conversationIDKey: Types.ConversationIDKey,
@@ -434,6 +450,7 @@ export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SendTypingPayload = More.ReturnType<typeof createSendTyping>
+export type SetConvRetentionPolicyPayload = More.ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConversationOffline>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
@@ -442,6 +459,7 @@ export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
+export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateNotificationSettingsPayload = More.ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 
@@ -503,6 +521,7 @@ export type Actions =
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSendTyping>
+  | More.ReturnType<typeof createSetConvRetentionPolicy>
   | More.ReturnType<typeof createSetConversationOffline>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
@@ -511,6 +530,7 @@ export type Actions =
   | More.ReturnType<typeof createSetPendingSelected>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>
+  | More.ReturnType<typeof createUpdateConvRetentionPolicy>
   | More.ReturnType<typeof createUpdateNotificationSettings>
   | More.ReturnType<typeof createUpdateTypers>
   | {type: 'common:resetStore', payload: void}

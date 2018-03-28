@@ -24,10 +24,12 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
   let admin = false
   let canEditChannel = false
+  let canSetRetention = false
   if (meta.teamname) {
     const yourOperations = getCanPerform(state, meta.teamname)
     admin = yourOperations.manageMembers
     canEditChannel = yourOperations.editChannelDescription
+    canSetRetention = yourOperations.setRetentionPolicy
   }
 
   return {
@@ -35,6 +37,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _infoMap: state.users.infoMap,
     admin,
     canEditChannel,
+    canSetRetention,
     channelname: meta.channelname,
     description: meta.description,
     isPreview: meta.membershipType === 'youArePreviewing',
