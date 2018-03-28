@@ -6,11 +6,9 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
@@ -53,14 +51,8 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         return modules;
     }
 
-    public List<Class<? extends JavaScriptModule>> createJSModules() {
-        List<Class<? extends JavaScriptModule>> modules = new ArrayList<>();
-        return modules;
-    }
-
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-        List<ViewManager> modules = Arrays.<ViewManager>asList(new VisiblePassReactEditTextManager());
-        return modules;
+        return Collections.emptyList();
     }
 }
