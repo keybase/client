@@ -1780,6 +1780,10 @@
         },
         {
           "type": "boolean",
+          "name": "chat"
+        },
+        {
+          "type": "boolean",
           "name": "deleteChannel"
         },
         {

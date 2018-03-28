@@ -41,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
     teamNameToRole: stateProps._teamNameToRole.toObject(),
     teamnames,
-    title: 'Showcase teams',
+    title: 'Publish your teams',
     waiting: stateProps._waiting.toObject(),
   }
 }
