@@ -661,6 +661,21 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-message-deletion-64.png'),
   },
+  'icon-message-retention-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-retention-32.png'),
+  },
+  'icon-message-retention-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-retention-48.png'),
+  },
+  'icon-message-retention-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-retention-64.png'),
+  },
   'icon-message-status-encrypting-24': {
     isFont: false,
     extension: 'png',

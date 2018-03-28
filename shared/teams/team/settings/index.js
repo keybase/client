@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
+import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -14,7 +15,7 @@ type Props = {
   publicityTeam: boolean,
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
-  savePublicity: any => void,
+  savePublicity: (Types.PublicitySettings, boolean, Types.RetentionPolicy) => void,
   setOpenTeamRole: (
     newOpenTeamRole: Types.TeamRoleType,
     setNewOpenTeamRole: (Types.TeamRoleType) => void
@@ -31,13 +32,14 @@ type NewSettings = {
   newPublicityTeam: boolean,
   newOpenTeam: boolean,
   newOpenTeamRole: Types.TeamRoleType,
-  newRetentionPolicy: Types._RetentionPolicy,
+  newRetentionPolicy: Types.RetentionPolicy,
 }
 
 // new settings
 type State = NewSettings & {
   publicitySettingsChanged: boolean,
   retentionPolicyChanged: boolean,
+  retentionPolicyDecreased: boolean,
 }
 
 type SettingProps = Props &
@@ -170,35 +172,27 @@ export class Settings extends React.Component<Props, State> {
       newPublicityTeam: this.props.publicityTeam,
       newOpenTeam: this.props.openTeam,
       newOpenTeamRole: this.props.openTeamRole,
-      newRetentionPolicy: {type: 'retain', days: 0}, // placeholder
+      newRetentionPolicy: retentionPolicies.policyRetain, // placeholder
       publicitySettingsChanged: false,
       retentionPolicyChanged: false,
+      retentionPolicyDecreased: false,
     }
   }
 
   componentWillReceiveProps(nextProps: Props) {
     // We just got new settings for this team, reset any user selections
     // to reflect the actual settings.
-    this.setState({
-      newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
-      newPublicityAnyMember: nextProps.publicityAnyMember,
-      newPublicityMember: nextProps.publicityMember,
-      newPublicityTeam: nextProps.publicityTeam,
-      newOpenTeam: nextProps.openTeam,
-      newOpenTeamRole: nextProps.openTeamRole,
-      publicitySettingsChanged: false,
-    })
-  }
-
-  onSavePublicity = () => {
-    this.props.savePublicity({
-      ignoreAccessRequests: this.state.newIgnoreAccessRequests,
-      openTeam: this.state.newOpenTeam,
-      openTeamRole: this.state.newOpenTeamRole,
-      publicityAnyMember: this.state.newPublicityAnyMember,
-      publicityMember: this.state.newPublicityMember,
-      publicityTeam: this.state.newPublicityTeam,
-    })
+    this.setState(
+      {
+        newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
+        newPublicityAnyMember: nextProps.publicityAnyMember,
+        newPublicityMember: nextProps.publicityMember,
+        newPublicityTeam: nextProps.publicityTeam,
+        newOpenTeam: nextProps.openTeam,
+        newOpenTeamRole: nextProps.openTeamRole,
+      },
+      this.setPublicitySettingsChanged
+    )
   }
 
   setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
@@ -219,14 +213,18 @@ export class Settings extends React.Component<Props, State> {
   }
 
   onSaveSettings = () => {
-    this.props.savePublicity({
-      ignoreAccessRequests: this.state.newIgnoreAccessRequests,
-      openTeam: this.state.newOpenTeam,
-      openTeamRole: this.state.newOpenTeamRole,
-      publicityAnyMember: this.state.newPublicityAnyMember,
-      publicityMember: this.state.newPublicityMember,
-      publicityTeam: this.state.newPublicityTeam,
-    })
+    this.props.savePublicity(
+      {
+        ignoreAccessRequests: this.state.newIgnoreAccessRequests,
+        openTeam: this.state.newOpenTeam,
+        openTeamRole: this.state.newOpenTeamRole,
+        publicityAnyMember: this.state.newPublicityAnyMember,
+        publicityMember: this.state.newPublicityMember,
+        publicityTeam: this.state.newPublicityTeam,
+      },
+      this.state.retentionPolicyDecreased,
+      this.state.newRetentionPolicy
+    )
   }
 
   onSetOpenTeamRole = () => {
@@ -235,12 +233,15 @@ export class Settings extends React.Component<Props, State> {
     )
   }
 
-  _onSelectRetentionPolicy = (p: Types._RetentionPolicy, changed: boolean) => {
-    // TODO (DESKTOP-6062)
-    // this component should know whether it needs to show the warning dialog after hitting the save button.
-    // it can still call onSaveSettings to save all the rest, and let the dialog deal with calling the
-    // RPC to change the setting. For now, nothing does the set-policy call.
-    this.setState({newRetentionPolicy: p, retentionPolicyChanged: changed}, this.setPublicitySettingsChanged)
+  _onSelectRetentionPolicy = (
+    newRetentionPolicy: Types.RetentionPolicy,
+    retentionPolicyChanged: boolean,
+    retentionPolicyDecreased: boolean
+  ) => {
+    this.setState(
+      {newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased},
+      this.setPublicitySettingsChanged
+    )
   }
 
   render() {
@@ -258,7 +259,7 @@ export class Settings extends React.Component<Props, State> {
         {(this.props.yourOperations.changeOpenTeam ||
           this.props.yourOperations.setTeamShowcase ||
           this.props.yourOperations.setPublicityAny) && (
-          <Box style={globalStyles.flexBoxColumn}>
+          <React.Fragment>
             <Box style={stylesSettingsTabRow}>
               <Text type="Header">Team</Text>
             </Box>
@@ -271,13 +272,15 @@ export class Settings extends React.Component<Props, State> {
               onSetOpenTeamRole={this.onSetOpenTeamRole}
             />
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-            <RetentionPicker
-              type="simple"
-              onSelect={this._onSelectRetentionPolicy}
-              teamname={this.props.teamname}
-              isTeamWide={true}
-            />
-          </Box>
+          </React.Fragment>
+        )}
+        {this.props.yourOperations.setRetentionPolicy && (
+          <RetentionPicker
+            type="simple"
+            onSelect={this._onSelectRetentionPolicy}
+            teamname={this.props.teamname}
+            isTeamWide={true}
+          />
         )}
         <Box
           style={{

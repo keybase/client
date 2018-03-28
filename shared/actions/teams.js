@@ -127,6 +127,31 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   }
 }
 
+const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicyPayload, state: TypedState) {
+  const {teamname, policy} = action.payload
+
+  // get teamID
+  const teamID = Constants.getTeamID(state, teamname)
+  if (!teamID) {
+    const errMsg = `Unable to find teamID for teamname ${teamname}`
+    logger.error(errMsg)
+    throw new Error(errMsg)
+  }
+
+  let servicePolicy: RPCChatTypes.RetentionPolicy
+  try {
+    servicePolicy = Constants.retentionPolicyToServiceRetentionPolicy(policy)
+  } catch (err) {
+    logger.error(err.message)
+    throw err
+  }
+  return Saga.sequentially([
+    Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+    Saga.call(RPCChatTypes.localSetTeamRetentionLocalRpcPromise, {teamID, policy: servicePolicy}),
+    Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+  ])
+}
+
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   const {invitees, role, teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
@@ -811,6 +836,18 @@ function _setupTeamHandlers() {
       }
       actions.forEach(dispatch)
     })
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatSetTeamRetention', args => {
+      logger.info('Got setTeamRetention from service')
+      const {convs, teamID} = args
+      if (convs.length === 0) {
+        logger.warn(`Teamhandler: Got setTeamRetention for team with no conversations: ${teamID}`)
+        return
+      }
+      const conv = convs[0]
+      const teamname = conv.name
+      const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(conv.teamRetention)
+      dispatch(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[teamname, newPolicy]])))
+    })
   })
 }
 
@@ -1028,6 +1065,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
     _checkRequestedAccessSuccess
   )
   yield Saga.safeTakeEvery(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamRetentionPolicy, _setTeamRetentionPolicy)
 }
 
 export default teamsSaga

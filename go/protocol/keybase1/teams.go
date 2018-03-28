@@ -1980,6 +1980,7 @@ type TeamOperation struct {
 	EditChannelDescription bool `codec:"editChannelDescription" json:"editChannelDescription"`
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
+	SetRetentionPolicy     bool `codec:"setRetentionPolicy" json:"setRetentionPolicy"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
 	JoinTeam               bool `codec:"joinTeam" json:"joinTeam"`
@@ -1999,6 +2000,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		EditChannelDescription: o.EditChannelDescription,
 		SetTeamShowcase:        o.SetTeamShowcase,
 		SetMemberShowcase:      o.SetMemberShowcase,
+		SetRetentionPolicy:     o.SetRetentionPolicy,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
 		JoinTeam:               o.JoinTeam,

@@ -104,6 +104,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   editChannelDescription: false,
   setTeamShowcase: false,
   setMemberShowcase: false,
+  setRetentionPolicy: false,
   changeOpenTeam: false,
   leaveTeam: false,
   joinTeam: false,
@@ -112,6 +113,33 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   changeTarsDisabled: false,
   deleteChatHistory: false,
 }
+
+const policyInherit = makeRetentionPolicy({type: 'inherit'})
+const policyRetain = makeRetentionPolicy({type: 'retain'})
+const policyDay = makeRetentionPolicy({type: 'expire', days: 1})
+const policyWeek = makeRetentionPolicy({type: 'expire', days: 7})
+const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
+const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
+const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
+const teamRetentionPolicies = [
+  policyDay,
+  policyWeek,
+  policyMonth,
+  policyThreeMonths,
+  policyYear,
+  policyRetain,
+]
+const retentionPolicies = {
+  policyInherit,
+  policyRetain,
+  policyDay,
+  policyWeek,
+  policyMonth,
+  policyThreeMonths,
+  policyYear,
+}
+
+const convRetentionPolicies = [policyInherit, ...teamRetentionPolicies]
 
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
@@ -160,7 +188,6 @@ const isSubteam = (maybeTeamname: string) => {
   }
   return true
 }
-
 const secondsToDays = (seconds: number) => seconds / (3600 * 24)
 const serviceRetentionPolicyToRetentionPolicy = (
   policy: ?RPCChatTypes.RetentionPolicy
@@ -187,6 +214,28 @@ const serviceRetentionPolicyToRetentionPolicy = (
     }
   }
   return retentionPolicy
+}
+
+const daysToSeconds = (days: number) => days * 3600 * 24
+const retentionPolicyToServiceRetentionPolicy = (
+  policy: Types.RetentionPolicy
+): RPCChatTypes.RetentionPolicy => {
+  let res: ?RPCChatTypes.RetentionPolicy
+  switch (policy.type) {
+    case 'retain':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.retain, retain: {}}
+      break
+    case 'expire':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.expire, expire: {age: daysToSeconds(policy.days)}}
+      break
+    case 'inherit':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.inherit, inherit: {}}
+      break
+  }
+  if (!res) {
+    throw new Error(`Unable to convert retention policy of unknown type: ${policy.type}`)
+  }
+  return res
 }
 
 // How many public admins should we display on a showcased team card at once?
@@ -219,4 +268,8 @@ export {
   isOwner,
   isSubteam,
   serviceRetentionPolicyToRetentionPolicy,
+  retentionPolicyToServiceRetentionPolicy,
+  teamRetentionPolicies,
+  convRetentionPolicies,
+  retentionPolicies,
 }

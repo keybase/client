@@ -12,8 +12,10 @@ const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
 
 const actions = {
-  onSelect: action('onSelect'),
+  setRetentionPolicy: action('setRetentionPolicy'),
+  onSelect: action('onSelectPolicy'),
   onShowDropdown: action('onShowDropdown'),
+  onShowWarning: action('onShowWarning'),
 }
 
 const onClick = action('onClick')
@@ -29,16 +31,42 @@ const teamWideItems = [
 const channelItems = [{title: 'Use team default (30 days)', onClick}, ...teamWideItems]
 
 const load = () => {
-  storiesOf('Chat/Teams/Retention', module)
+  storiesOf('Teams/Retention', module)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
     .add('Channel', () => (
-      <RetentionPicker isTeamWide={false} policy={policyRetain} teamPolicy={policy30Days} {...actions} />
+      <RetentionPicker
+        loading={false}
+        isTeamWide={false}
+        policy={policyRetain}
+        teamPolicy={policy30Days}
+        type="simple"
+        {...actions}
+      />
     ))
-    .add('Team-wide', () => <RetentionPicker isTeamWide={true} policy={policy30Days} {...actions} />)
+    .add('Team-wide', () => (
+      <RetentionPicker loading={false} isTeamWide={true} policy={policy30Days} type="simple" {...actions} />
+    ))
     .add('Channel inheriting from team', () => (
-      <RetentionPicker isTeamWide={false} policy={policyInherit} teamPolicy={policy30Days} {...actions} />
+      <RetentionPicker
+        loading={false}
+        isTeamWide={false}
+        policy={policyInherit}
+        teamPolicy={policy30Days}
+        type="simple"
+        {...actions}
+      />
+    ))
+    .add('Automatic show warning / set', () => (
+      <RetentionPicker
+        loading={false}
+        isTeamWide={false}
+        policy={policyInherit}
+        teamPolicy={policy30Days}
+        type="auto"
+        {...actions}
+      />
     ))
     .add('Team-wide dropdown', () => <RetentionDropdownView items={teamWideItems} onHidden={onHidden} />)
     .add('Channel dropdown', () => <RetentionDropdownView items={channelItems} onHidden={onHidden} />)

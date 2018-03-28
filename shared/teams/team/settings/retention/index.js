@@ -1,83 +1,132 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  isMobile,
+  platformStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../../../../styles'
 import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
-import {type RetentionPolicy, type _RetentionPolicy} from '../../../../constants/types/teams'
+import {type RetentionPolicy} from '../../../../constants/types/teams'
+import {retentionPolicies, teamRetentionPolicies, convRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
 
 export type Props = {
+  containerStyle?: StylesCrossPlatform,
+  dropdownStyle?: StylesCrossPlatform,
   policy: RetentionPolicy,
   teamPolicy?: RetentionPolicy,
-  onSelect: (policy: _RetentionPolicy, changed: boolean) => void,
+  loading: boolean,
   isTeamWide: boolean,
+  isSmallTeam?: boolean,
+  type: 'simple' | 'auto',
+  setRetentionPolicy: (policy: RetentionPolicy) => void,
+  onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
+  onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
 }
 
 type State = {
-  selected: _RetentionPolicy,
+  selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
 }
 
-const commonOptions = [1, 7, 30, 90, 365]
-
 class RetentionPicker extends React.Component<Props, State> {
   state = {
-    selected: {type: 'retain', days: 0},
+    selected: retentionPolicies.policyRetain,
     items: [],
     showMenu: false,
   }
 
-  _onSelect = (val: number | 'retain' | 'inherit') => {
-    let selected: _RetentionPolicy
-    if (typeof val === 'number') {
-      selected = {type: 'expire', days: val}
-    } else if (val === 'inherit') {
-      selected = {type: 'inherit', days: 0}
-    } else {
-      selected = {type: 'retain', days: 0}
+  // We just updated the state with a new selection, do we show the warning
+  // dialog ourselves or do we call back up to the parent?
+  _handleSelection = () => {
+    const selected = this.state.selected
+    const changed = !policyEquals(this.state.selected, this.props.policy)
+    const decreased =
+      policyToComparable(selected, this.props.teamPolicy) <
+      policyToComparable(this.props.policy, this.props.teamPolicy)
+    if (this.props.type === 'simple') {
+      this.props.onSelect(selected, changed, decreased)
+      return
     }
-    this.setState({selected})
-    const changed = !(selected.type === this.props.policy.type && selected.days === this.props.policy.days)
-    this.props.onSelect(selected, changed)
+    if (!changed) {
+      // noop
+      return
+    }
+    // auto case; show dialog if decreased, set immediately if not
+    const onConfirm = () => this.props.setRetentionPolicy(selected)
+    const onCancel = this._init
+    if (decreased) {
+      // show warning
+      this.props.onShowWarning(policyToDays(selected, this.props.teamPolicy), onConfirm, onCancel)
+      return
+    }
+    // set immediately
+    onConfirm()
+  }
+
+  _onSelect = (selected: RetentionPolicy) => {
+    this.setState({selected}, this._handleSelection)
   }
 
   _makeItems = () => {
-    const items = commonOptions.map(days => ({
-      title: daysToLabel(days),
-      onClick: () => this._onSelect(days),
-    }))
-    items.push({title: 'Keep forever', onClick: () => this._onSelect('retain')})
-    if (!this.props.isTeamWide && this.props.teamPolicy) {
-      // Add inherit option
-      items.unshift({
-        title: policyToInheritLabel(this.props.teamPolicy),
-        onClick: () => this._onSelect('inherit'),
+    if (this.props.isTeamWide) {
+      const items = teamRetentionPolicies.map(policy => {
+        if (policy.type === 'expire') {
+          return {title: daysToLabel(policy.days), onClick: () => this._onSelect(policy)}
+        }
+        return {title: 'Keep forever', onClick: () => this._onSelect(policy)}
       })
+      this.setState({items})
+      return
     }
+    const items = convRetentionPolicies.map(policy => {
+      if (policy.type === 'expire') {
+        return {title: daysToLabel(policy.days), onClick: () => this._onSelect(policy)}
+      } else if (policy.type === 'inherit') {
+        if (this.props.teamPolicy) {
+          return {title: policyToInheritLabel(this.props.teamPolicy), onClick: () => this._onSelect(policy)}
+        } else {
+          // never happens
+          throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+        }
+      }
+      return {title: 'Keep forever', onClick: () => this._onSelect(policy)}
+    })
     this.setState({items})
   }
 
   _setInitialSelected = (policy?: RetentionPolicy) => {
-    if (policy) {
-      this.setState({selected: policy})
-    } else if (this.props.policy) {
-      this.setState({selected: this.props.policy})
-    }
+    const p = policy || this.props.policy
+    this.setState({selected: p})
+    // tell parent that nothing has changed
+    this.props.type === 'simple' && this.props.onSelect(p, false, false)
   }
 
   _label = () => {
     return policyToLabel(this.state.selected, this.props.teamPolicy)
   }
 
-  componentDidMount() {
+  _init = () => {
     this._makeItems()
     this._setInitialSelected()
   }
 
+  componentDidMount() {
+    this._init()
+  }
+
   componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.policy !== this.props.policy || nextProps.teamPolicy !== this.props.teamPolicy) {
+    if (
+      !policyEquals(nextProps.policy, this.props.policy) ||
+      !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
+    ) {
       this._makeItems()
       this._setInitialSelected(nextProps.policy)
     }
@@ -89,15 +138,15 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   render() {
-    return this.props.policy ? (
-      <Box style={globalStyles.flexBoxColumn}>
+    return (
+      <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
           <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
         </Box>
         <ClickableBox
           onClick={this._onShowDropdown}
-          style={dropdownStyle}
+          style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >
           <Box style={labelStyle}>
@@ -105,14 +154,13 @@ class RetentionPicker extends React.Component<Props, State> {
           </Box>
           <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 7}} />
         </ClickableBox>
-        {this.props.isTeamWide && (
-          <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
-            Individual channels can override this.
-          </Text>
-        )}
+        {this.props.isTeamWide &&
+          !this.props.isSmallTeam && (
+            <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
+              Individual channels can override this.
+            </Text>
+          )}
       </Box>
-    ) : (
-      <ProgressIndicator style={progressIndicatorStyle} />
     )
   }
 }
@@ -159,7 +207,7 @@ const progressIndicatorStyle = platformStyles({
 })
 
 // Utilities for transforming retention policies <-> labels
-const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
+const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
   switch (p.type) {
     case 'retain':
       return 'Keep forever'
@@ -173,9 +221,57 @@ const policyToLabel = (p: _RetentionPolicy, parent: ?_RetentionPolicy) => {
   }
   return ''
 }
-const policyToInheritLabel = (p: _RetentionPolicy) => {
+const policyToInheritLabel = (p: RetentionPolicy) => {
   const label = policyToLabel(p)
   return `Use team default (${label})`
 }
+// Use only for comparing policy durations
+const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): number => {
+  let res: number = -1
+  switch (p.type) {
+    case 'retain':
+      res = Infinity
+      break
+    case 'inherit':
+      if (!parent) {
+        throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+      }
+      res = policyToComparable(parent)
+      break
+    case 'expire':
+      res = p.days
+      break
+  }
+  if (res === -1) {
+    // no good
+    throw new Error('Impossible case encountered: res = -1 in retention policyToComparable')
+  }
+  return res
+}
+// For getting the number of days a retention policy resolves to
+const policyToDays = (p: RetentionPolicy, parent?: RetentionPolicy) => {
+  let days = 0
+  switch (p.type) {
+    case 'inherit':
+      if (!parent) {
+        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
+      }
+      days = policyToDays(parent)
+      break
+    case 'expire':
+      days = p.days
+  }
+  return days
+}
+const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
+  if (p1 && p2) {
+    return p1.type === p2.type && p1.days === p2.days
+  }
+  return p1 === p2
+}
 
-export default RetentionPicker
+// Switcher to avoid having RetentionPicker try to process nonexistent data
+const RetentionSwitcher = (props: Props) =>
+  props.loading ? <ProgressIndicator style={progressIndicatorStyle} /> : <RetentionPicker {...props} />
+
+export default RetentionSwitcher
