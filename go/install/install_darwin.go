@@ -1293,17 +1293,23 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath, pidPa
 	}
 	pid := string(bytes.TrimSpace(p))
 
+	found := false
 	if infoPath != "" {
 		serviceInfo, err := libkb.LoadServiceInfo(infoPath)
 		if err != nil {
 			log.Warning("error loading service info for %s in file %s: %s", svc.Label(), infoPath, err)
 			return err
 		}
-		if strconv.Itoa(serviceInfo.Pid) != pid {
-			log.Warning("service info pid %d does not match fallback pid %s, not killing anything", serviceInfo.Pid, pid)
-			return errors.New("fallback PID mismatch")
+		if serviceInfo != nil {
+			if strconv.Itoa(serviceInfo.Pid) != pid {
+				log.Warning("service info pid %d does not match fallback pid %s, not killing anything", serviceInfo.Pid, pid)
+				return errors.New("fallback PID mismatch")
+			}
+			found = true
 		}
-	} else if pidPath != "" {
+	}
+
+	if !found && pidPath != "" {
 		lp, err := ioutil.ReadFile(pidPath)
 		if err != nil {
 			return err
@@ -1313,7 +1319,10 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath, pidPa
 			log.Warning("pid in file %s (%d) does not match fallback pid %s, not killing anything", pidPath, lpid, pid)
 			return errors.New("fallback PID mismatch")
 		}
-	} else {
+		found = true
+	}
+
+	if !found {
 		log.Warning("neither infoPath or pidPath specified, cannot verify fallback PID.")
 		return errors.New("unable to verify fallback PID")
 	}
