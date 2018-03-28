@@ -116,6 +116,18 @@ func (s *submitResult) GetAppStatus() *libkb.AppStatus {
 	return &s.Status
 }
 
+func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr) stellar1.PaymentPost {
+	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
+	return stellar1.PaymentPost{
+		Members: stellar1.Members{
+			FromStellar:  stellar1.AccountID(acctID.String()),
+			FromKeybase:  g.Env.GetUsername().String(),
+			FromUID:      uid,
+			FromDeviceID: deviceID,
+		},
+	}
+}
+
 func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
 	// look up sender wallet
 	primary, err := lookupSenderPrimary(ctx, g)
@@ -138,15 +150,7 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 		return stellar1.PaymentResult{}, err
 	}
 
-	post := stellar1.PaymentPost{
-		Members: stellar1.Members{
-			FromStellar: stellar1.AccountID(primaryAccountID.String()),
-			// FromKeybase: "XXXmyusernameXXX",  XXX TODO
-			// FromUID:     "XXXmyuidXXX",      // XXX TODO
-			// FromDeviceID: "", // XXX TODO
-			ToStellar: stellar1.AccountID(recipient.AccountID.String()),
-		},
-	}
+	post := postFromCurrentUser(ctx, g, primaryAccountID)
 
 	// check if recipient account exists
 	_, err = balanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
