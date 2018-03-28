@@ -51,3 +51,24 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (created boo
 	}
 	return CreateWallet(ctx, g)
 }
+
+// Upkeep makes sure the bundle is encrypted for the user's latest PUK.
+func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
+	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
+	pukring, err := g.GetPerUserKeyring()
+	if err != nil {
+		return err
+	}
+	err = pukring.Sync(ctx)
+	if err != nil {
+		return err
+	}
+	prevBundle, prevPukGen, err := remote.Fetch(ctx, g)
+	pukGen := pukring.CurrentGeneration()
+	if pukGen <= prevPukGen {
+		g.Log.CDebugf(ctx, "Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
+		return nil
+	}
+	nextBundle := bundle.Advance(prevBundle)
+	return remote.Post(ctx, g, nextBundle)
+}

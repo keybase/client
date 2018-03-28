@@ -330,6 +330,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
 	d.runBackgroundWalletInit()
+	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
 	go d.identifySelf()
 }
@@ -697,6 +698,23 @@ func (d *Service) runBackgroundWalletInit() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping background WalletInit")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundWalletUpkeep() {
+	eng := engine.NewWalletUpkeepBackground(d.G(), &engine.WalletUpkeepBackgroundArgs{})
+	go func() {
+		ectx := &engine.Context{NetContext: context.Background()}
+		err := engine.RunEngine(eng, ectx)
+		if err != nil {
+			d.G().Log.Warning("background WalletUpkeep error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background WalletUpkeep")
 		eng.Shutdown()
 		return nil
 	})
