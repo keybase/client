@@ -6,7 +6,22 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "DumpRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "seed"
+        },
+        {
+          "type": "string",
+          "name": "address"
+        }
+      ]
+    }
+  ],
   "messages": {
     "balancesLocal": {
       "request": [
@@ -44,6 +59,10 @@
     "walletInit": {
       "request": [],
       "response": null
+    },
+    "walletDump": {
+      "request": [],
+      "response": "DumpRes"
     }
   },
   "namespace": "stellar.1"

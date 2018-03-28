@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -71,4 +72,28 @@ func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg
 	}
 
 	return stellarsvc.Send(ctx, h.G(), arg)
+}
+
+func (h *walletHandler) WalletDump(ctx context.Context) (res stellar1.DumpRes, err error) {
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "WalletDump", func() error { return err })()
+	err = h.assertLoggedIn(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	bundle, err := remote.Fetch(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+
+	primary, err := bundle.PrimaryAccount()
+	if err != nil {
+		return res, err
+	}
+
+	res.Address = primary.AccountID.String()
+	res.Seed = primary.Signers[0].SecureNoLogString()
+
+	return res, nil
 }

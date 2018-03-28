@@ -8,6 +8,18 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type DumpRes struct {
+	Seed    string `codec:"seed" json:"seed"`
+	Address string `codec:"address" json:"address"`
+}
+
+func (o DumpRes) DeepCopy() DumpRes {
+	return DumpRes{
+		Seed:    o.Seed,
+		Address: o.Address,
+	}
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -22,10 +34,14 @@ type SendLocalArg struct {
 type WalletInitArg struct {
 }
 
+type WalletDumpArg struct {
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	WalletInit(context.Context) error
+	WalletDump(context.Context) (DumpRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -75,6 +91,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"walletDump": {
+				MakeArg: func() interface{} {
+					ret := make([]WalletDumpArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.WalletDump(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -96,5 +123,10 @@ func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res Pay
 
 func (c LocalClient) WalletInit(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.walletInit", []interface{}{WalletInitArg{}}, nil)
+	return
+}
+
+func (c LocalClient) WalletDump(ctx context.Context) (res DumpRes, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletDump", []interface{}{WalletDumpArg{}}, &res)
 	return
 }
