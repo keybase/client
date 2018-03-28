@@ -6,6 +6,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -74,26 +76,45 @@ func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg
 	return stellarsvc.Send(ctx, h.G(), arg)
 }
 
-func (h *walletHandler) WalletDump(ctx context.Context) (res stellar1.DumpRes, err error) {
+func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, err error) {
+	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
+		return errors.New("WalletDump only supported in devel run mode")
+	}
+
 	ctx = h.logTag(ctx)
 	defer h.G().CTraceTimed(ctx, "WalletDump", func() error { return err })()
 	err = h.assertLoggedIn(ctx)
 	if err != nil {
-		return res, err
+		return dump, err
 	}
 
-	bundle, err := remote.Fetch(ctx, h.G())
+	// verify passphrase
+	username := h.G().GetEnv().GetUsername().String()
+	h.G().Log.Debug("resetting account for %s", username)
+
+	arg := libkb.DefaultPassphrasePromptArg(h.G(), username)
+	secretUI := h.getSecretUI(sessionID, h.G())
+	res, err := secretUI.GetPassphrase(arg, nil)
 	if err != nil {
-		return res, err
+		return dump, err
 	}
+	_, err = h.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
+		bundle, err := remote.Fetch(ctx, h.G())
+		if err != nil {
+			return err
+		}
 
-	primary, err := bundle.PrimaryAccount()
+		primary, err := bundle.PrimaryAccount()
+		if err != nil {
+			return err
+		}
+
+		dump.Address = primary.AccountID.String()
+		dump.Seed = primary.Signers[0].SecureNoLogString()
+	})
 	if err != nil {
-		return res, err
+		return dump, err
 	}
 
-	res.Address = primary.AccountID.String()
-	res.Seed = primary.Signers[0].SecureNoLogString()
-
-	return res, nil
+	return dump, nil
 }
