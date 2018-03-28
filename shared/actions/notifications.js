@@ -32,6 +32,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
     team: true,
     tracking: true,
     users: true,
+    ephemeral: false,
   }
 
   const engineInst: Engine = yield Saga.call(engine)

@@ -123,8 +123,7 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
 	statement := keybase1.DeviceEkStatement{
-		CurrentDeviceEkMetadata: metadata,
-		// TODO: Make the server more forgiving if this list is wrong?
+		CurrentDeviceEkMetadata:  metadata,
 		ExistingDeviceEkMetadata: existingMetadata,
 	}
 

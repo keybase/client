@@ -64,6 +64,7 @@ type NotifyListener interface {
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamExit(teamID keybase1.TeamID)
+	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 }
 
 type NoopNotifyListener struct{}
@@ -112,8 +113,9 @@ func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno
 }
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
 }
-func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
-func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)    {}
+func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                 {}
+func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
+func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1270,4 +1272,35 @@ func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.
 		n.listener.TeamExit(teamID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamAbandoned notification")
+}
+
+func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+	if n == nil {
+		return
+	}
+
+	arg := keybase1.NewTeamEkArg{
+		Id:         teamID,
+		Generation: generation,
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending NewTeamEK notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Ephemeral {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyEphemeralClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).NewTeamEk(context.Background(), arg)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.NewTeamEK(teamID, generation)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent NewTeamEK notification")
 }

@@ -460,6 +460,12 @@ func (u *User) IDTable() *IdentityTable {
 	return u.idTable
 }
 
+// Return the active stellar public address for a user.
+// Returns nil if there is none or it has not been loaded.
+func (u *User) StellarWalletAddress() *keybase1.StellarAccountID {
+	return u.idTable.StellarWalletAddress()
+}
+
 func (u *User) sigChain() *SigChain {
 	return u.sigChainMem
 }

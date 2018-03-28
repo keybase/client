@@ -573,6 +573,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
 
 	first := true
+	seenInflatedWalletLink := false
 
 	for linkIndex, link := range links {
 		if isBad, reason := link.IsBad(); isBad {
@@ -586,6 +587,15 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 			}
 			if link.NeedsSignature() {
 				return cached, cki, SigchainV2StubbedSignatureNeededError{}
+			}
+			linkTypeV2, err := link.GetSigchainV2TypeFromV2Shell()
+			if err != nil {
+				return cached, cki, err
+			}
+			if linkTypeV2 == SigchainV2TypeWallet && seenInflatedWalletLink {
+				// There may not be stubbed wallet links following an unstubbed wallet links (for a given network).
+				// So that the server can't roll back someone's active wallet address.
+				return cached, cki, SigchainV2StubbedDisallowed{}
 			}
 			sc.G().VDL.Log(VLog1, "| Skipping over stubbed-out link: %s", link.id)
 			continue
@@ -645,6 +655,15 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 			if err != nil {
 				return cached, cki, err
 			}
+		}
+
+		if _, ok := tcl.(*WalletChainLink); ok {
+			// Assert that wallet chain links are be >= v2.
+			// They must be v2 in order to be stubbable later for privacy.
+			if link.unpacked.sigVersion < 2 {
+				return cached, cki, SigchainV2Required{}
+			}
+			seenInflatedWalletLink = true
 		}
 
 		if err = tcl.VerifyReverseSig(ckf); err != nil {

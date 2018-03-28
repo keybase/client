@@ -7,9 +7,9 @@ package service
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	stellarservice "github.com/keybase/client/go/stellar/service"
+	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -43,7 +43,7 @@ func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = stellarservice.CreateWallet(ctx, h.G())
+	_, err = stellarsvc.CreateWallet(ctx, h.G())
 	return err
 }
 

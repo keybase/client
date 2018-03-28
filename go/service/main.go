@@ -329,6 +329,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
+	d.runBackgroundWalletInit()
 	d.runTLFUpgrade()
 	go d.identifySelf()
 }
@@ -486,6 +487,7 @@ func (d *Service) startupGregor() {
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
 		d.gregor.PushHandler(d.home)
+		d.gregor.PushHandler(newEKHandler(d.G()))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
@@ -678,6 +680,23 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping per-user-key background upkeep")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundWalletInit() {
+	eng := engine.NewWalletInitBackground(d.G(), &engine.WalletInitBackgroundArgs{})
+	go func() {
+		ectx := &engine.Context{NetContext: context.Background()}
+		err := engine.RunEngine(eng, ectx)
+		if err != nil {
+			d.G().Log.Warning("background WalletInit error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background WalletInit")
 		eng.Shutdown()
 		return nil
 	})

@@ -65,7 +65,7 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 		return s.fetchAndPut(ctx, teamID, generation)
 	}
 	defer s.Unlock() // release the lock after we unbox
-	return s.unbox(ctx, teamEKBoxed)
+	return s.unbox(ctx, generation, teamEKBoxed)
 }
 
 func (s *TeamEKBoxStorage) getMap(ctx context.Context, teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap, found bool, err error) {
@@ -150,7 +150,7 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 		Metadata:         teamEKMetadata,
 	}
 
-	teamEK, err = s.unbox(ctx, teamEKBoxed)
+	teamEK, err = s.unbox(ctx, generation, teamEKBoxed)
 	if err != nil {
 		return teamEK, err
 	}
@@ -167,14 +167,14 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 	return teamEK, err
 }
 
-func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKBoxed keybase1.TeamEkBoxed) (teamEK keybase1.TeamEk, err error) {
+func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (teamEK keybase1.TeamEk, err error) {
 	defer s.G().CTrace(ctx, "TeamEKBoxStorage#unbox", func() error { return err })()
 
 	userEKBoxStorage := s.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
-	// TODO return specific error
 	if err != nil {
-		return teamEK, err
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
 	userSeed := UserEKSeed(userEK.Seed)
@@ -182,7 +182,8 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKBoxed keybase1.TeamE
 
 	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
 	if err != nil {
-		return teamEK, err
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
 	seed, err := newTeamEKSeedFromBytes(msg)
@@ -287,7 +288,7 @@ func (s *TeamEKBoxStorage) GetAll(ctx context.Context, teamID keybase1.TeamID) (
 	}
 
 	for generation, teamEKBoxed := range teamEKBoxes {
-		teamEK, err := s.unbox(ctx, teamEKBoxed)
+		teamEK, err := s.unbox(ctx, generation, teamEKBoxed)
 		if err != nil {
 			return nil, err
 		}

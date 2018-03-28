@@ -782,6 +782,7 @@ protocol teams {
     boolean manageMembers;
     boolean manageSubteams;
     boolean createChannel;
+    boolean chat;
     boolean deleteChannel;
     boolean renameChannel;
     boolean editChannelDescription;

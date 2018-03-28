@@ -374,14 +374,13 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	toSeqno := keybase1.Seqno(2)
 	var found bool
-	for i := 0; i < 10; i++ {
+	for i := 0; (i < 10) && !found; i++ {
 		select {
 		case arg := <-alice.notifications.changeCh:
 			t.Logf("membership change received: %+v", arg)
 			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				t.Logf("change matched with %q", arg.TeamID)
 				found = true
-				break
 			}
 		case <-time.After(1 * time.Second):
 		}

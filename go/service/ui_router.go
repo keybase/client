@@ -5,6 +5,8 @@ package service
 
 import (
 	"fmt"
+	"sync"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -32,62 +34,41 @@ type setObj struct {
 }
 
 type UIRouter struct {
+	sync.Mutex
 	libkb.Contextified
-	cm         *libkb.ConnectionManager
-	uis        map[libkb.UIKind]libkb.ConnectionID
-	setCh      chan setObj
-	getCh      chan getObj
-	shutdownCh chan struct{}
+	cm  *libkb.ConnectionManager
+	uis map[libkb.UIKind]libkb.ConnectionID
 }
 
 func NewUIRouter(g *libkb.GlobalContext) *UIRouter {
-	ret := &UIRouter{
+	return &UIRouter{
 		Contextified: libkb.NewContextified(g),
 		cm:           g.ConnectionManager,
 		uis:          make(map[libkb.UIKind]libkb.ConnectionID),
-		setCh:        make(chan setObj),
-		getCh:        make(chan getObj),
-		shutdownCh:   make(chan struct{}),
-	}
-	go ret.run()
-	return ret
-}
-
-func (u *UIRouter) Shutdown() {
-	u.shutdownCh <- struct{}{}
-}
-
-func (u *UIRouter) run() {
-	for {
-		select {
-		case <-u.shutdownCh:
-			return
-		case o := <-u.setCh:
-			u.uis[o.ui] = o.cid
-		case o := <-u.getCh:
-			var ret rpc.Transporter
-			cid, ok := u.uis[o.ui]
-			if ok {
-				if ret = u.cm.LookupConnection(cid); ret == nil {
-					u.G().Log.Debug("UIRouter: connection %v inactive, deleting registered UI %s", cid, o.ui)
-					delete(u.uis, o.ui)
-				}
-			}
-			o.retCh <- transporterAndConnectionID{transporter: ret, connectionID: cid}
-		}
 	}
 }
+
+func (u *UIRouter) Shutdown() {}
 
 func (u *UIRouter) SetUI(c libkb.ConnectionID, k libkb.UIKind) {
+	u.Lock()
+	defer u.Unlock()
 	u.G().Log.Debug("UIRouter: connection %v registering UI %s [%p]", c, k, u)
-	u.setCh <- setObj{c, k}
+	u.uis[k] = c
 }
 
 func (u *UIRouter) getUI(k libkb.UIKind) (rpc.Transporter, libkb.ConnectionID) {
-	retCh := make(chan transporterAndConnectionID)
-	u.getCh <- getObj{k, retCh}
-	ret := <-retCh
-	return ret.transporter, ret.connectionID
+	u.Lock()
+	defer u.Unlock()
+	var ret rpc.Transporter
+	cid, ok := u.uis[k]
+	if ok {
+		if ret = u.cm.LookupConnection(cid); ret == nil {
+			u.G().Log.Debug("UIRouter: connection %v inactive, deleting registered UI %s", cid, k)
+			delete(u.uis, k)
+		}
+	}
+	return ret, cid
 }
 
 func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {

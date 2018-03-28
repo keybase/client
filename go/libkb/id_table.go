@@ -877,6 +877,85 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
 
+//
+//=========================================================================
+// WalletChainLink
+
+type WalletChainLink struct {
+	GenericChainLink
+	addressKID keybase1.KID
+	reverseSig string
+	address    string
+	network    string
+	name       string
+}
+
+func ParseWalletChainLink(b GenericChainLink) (ret *WalletChainLink, err error) {
+	ret = &WalletChainLink{GenericChainLink: b}
+	mkErr := func(format string, args ...interface{}) error {
+		return ChainLinkError{fmt.Sprintf(format, args...) + fmt.Sprintf(" @%s", b.ToDebugString())}
+	}
+	bodyW := b.UnmarshalPayloadJSON()
+	walletSection := bodyW.AtPath("body.wallet")
+	walletKeySection := bodyW.AtPath("body.wallet_key")
+	ret.addressKID, err = GetKID(walletKeySection.AtKey("kid"))
+	if err != nil {
+		return nil, mkErr("Can't get address KID: %v", err)
+	}
+	ret.reverseSig, err = walletKeySection.AtKey("reverse_sig").GetString()
+	if err != nil {
+		return nil, mkErr("Missing reverse_sig: %v", err)
+	}
+	ret.address, err = walletSection.AtKey("address").GetString()
+	if err != nil {
+		return nil, mkErr("Can't get address: %v", err)
+	}
+	ret.network, err = walletSection.AtKey("network").GetString()
+	if err != nil {
+		return nil, mkErr("Can't get address network: %v", err)
+	}
+	ret.name, err = walletSection.AtKey("name").GetString()
+	if err != nil {
+		return nil, mkErr("Can't get account name: %v", err)
+	}
+
+	// Check the network and that the keys match.
+	if ret.network != string(WalletNetworkStellar) {
+		return nil, mkErr("Unsupported wallet network '%v'", ret.network)
+	}
+	accountKey, err := MakeNaclSigningKeyPairFromStellarAccountID(keybase1.StellarAccountID(ret.address))
+	if err != nil {
+		return nil, mkErr("Invalid stellar account address: '%v'", ret.address)
+	}
+	if !ret.addressKID.Equal(accountKey.GetKID()) {
+		return nil, mkErr("Mismatched wallet keys: '%v' <-/-> '%v", ret.addressKID, ret.address)
+	}
+
+	return ret, nil
+}
+
+func (s *WalletChainLink) Type() string { return string(LinkTypeWallet) }
+func (s *WalletChainLink) ToDisplayString() string {
+	return fmt.Sprintf("%v %v %v %v", s.network, s.name, s.address, s.addressKID.String())
+}
+func (s *WalletChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+	if tab.wallet == nil || tab.wallet.GetSeqno() <= s.GetSeqno() {
+		tab.wallet = s
+	}
+}
+
+// VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
+func (s *WalletChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) {
+	key, err := ImportNaclSigningKeyPairFromHex(s.addressKID.String())
+	if err != nil {
+		return fmt.Errorf("Invalid wallet reverse signing KID: %s", s.addressKID)
+	}
+
+	return VerifyReverseSig(s.G(), key, "body.wallet_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
+}
+
+//
 //=========================================================================
 // UntrackChainLink
 
@@ -1111,6 +1190,7 @@ type IdentityTable struct {
 	Order            []TypedChainLink
 	sigHints         *SigHints
 	cryptocurrency   []*CryptocurrencyChainLink
+	wallet           *WalletChainLink
 	checkResult      *CheckResult
 	eldest           keybase1.KID
 }
@@ -1174,6 +1254,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParsePerUserKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
+		case "wallet":
+			ret, err = ParseWalletChainLink(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}
@@ -1336,6 +1418,22 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 		}
 	}
 	return ret
+}
+
+// Return the active stellar public address for a user.
+// Returns nil if there is none or it has not been loaded.
+func (idt *IdentityTable) StellarWalletAddress() *keybase1.StellarAccountID {
+	// Return the account ID of the latest link with the network set to stellar.
+	if idt.wallet == nil {
+		return nil
+	}
+	link := idt.wallet
+	if link.network == string(WalletNetworkStellar) {
+		// Something should have already validated link.address as a stellar account ID.
+		tmp := keybase1.StellarAccountID(link.address)
+		return &tmp
+	}
+	return nil
 }
 
 func (idt *IdentityTable) Len() int {

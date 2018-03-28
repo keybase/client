@@ -150,7 +150,7 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		return metadata, nil, err
 	}
 
-	return metadata, nil, nil
+	return metadata, myTeamEKBoxed, nil
 }
 
 func boxTeamEKForMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, seed TeamEKSeed, teamMetadata keybase1.TeamEkMetadata) (boxes []TeamEKBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
