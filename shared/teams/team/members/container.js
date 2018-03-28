@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/teams'
 import * as I from 'immutable'
 import {type TypedState, connect} from '../../../util/container'
 import {Members} from '.'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 export type OwnProps = {
   teamname: string,
