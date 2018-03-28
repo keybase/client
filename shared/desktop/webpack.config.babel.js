@@ -158,30 +158,7 @@ const makeCommonConfig = () => {
   }
 }
 
-const makeMainThreadConfig = () =>
-  merge(commonConfig, {
-    entry: {
-      main: path.resolve(__dirname, 'app/index.js'),
-    },
-    name: 'mainThread',
-    target: 'electron-main',
-  })
-
 const makeRenderThreadConfig = () => {
-  const makeRenderPlugins = () => {
-    // Visual dashboard to see what the hot server is doing
-    const dashboardPlugin = flags.isShowingDashboard ? [new DashboardPlugin()] : []
-    // Allow hot module reload when editing files
-    const hmrPlugin =
-      flags.isHot && flags.isDev
-        ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
-        : []
-    // Don't spit out errors while building
-    const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
-
-    return [...dashboardPlugin, ...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
-  }
-
   // Have to inject some additional code if we're using HMR
   const HMREntries =
     flags.isHot && flags.isDev
@@ -193,21 +170,30 @@ const makeRenderThreadConfig = () => {
       : []
 
   return merge(commonConfig, {
+    context: path.resolve(__dirname, '..'),
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
     // Some eval sourcemaps cause issues with closures in chromium due to some bugs.
     devtool: flags.isDev ? 'eval' : 'source-map',
     entry: {
-      index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
-      'component-loader': [...HMREntries, path.resolve(__dirname, 'remote/component-loader.js')],
+      'component-loader': [...HMREntries, './desktop/remote/component-loader.js'],
+      index: [...HMREntries, './desktop/renderer/index.js'],
     },
     name: 'renderThread',
-    plugins: makeRenderPlugins(),
+    plugins: [
+      ...(flags.isShowingDashboard ? [new DashboardPlugin()] : []),
+      ...(flags.isHot && flags.isDev ? [new webpack.HotModuleReplacementPlugin()] : []),
+    ],
     target: 'electron-renderer',
   })
 }
 
 const commonConfig = makeCommonConfig()
-const mainThreadConfig = makeMainThreadConfig()
+const mainThreadConfig = merge(commonConfig, {
+  context: path.resolve(__dirname, '..'),
+  entry: {main: './desktop/app/index.js'},
+  name: 'mainThread',
+  target: 'electron-main',
+})
 const renderThreadConfig = makeRenderThreadConfig()
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
