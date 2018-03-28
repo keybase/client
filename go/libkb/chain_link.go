@@ -525,6 +525,8 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
 	if err != nil {
 		return err
 	}
+	// @@@ munge expiration to be really quick
+	ei = 4
 
 	tmp.etime = tmp.ctime + ei
 	h := sha256.Sum256(payload)
