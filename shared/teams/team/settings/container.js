@@ -5,10 +5,13 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import {type TypedState, connect} from '../../../util/container'
 import {Settings} from '.'
 import {anyWaiting} from '../../../constants/waiting'
-import {navigateAppend} from '../../../actions/route-tree'
+import typeof {navigateAppend, navigateUp} from '../../../actions/route-tree'
 
 export type OwnProps = {
   teamname: string,
+  // navigation closures from team page
+  navigateUp: navigateUp,
+  navigateAppend: navigateAppend,
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
@@ -34,7 +37,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   yourOperations: Constants.getCanPerform(state, teamname),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: Types.RetentionPolicy) =>

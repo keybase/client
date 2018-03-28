@@ -6,6 +6,7 @@ import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import RetentionPicker from './retention/container'
+import typeof {navigateAppend, navigateUp} from '../../../actions/route-tree'
 
 // initial settings (except retention policy)
 type Props = {
@@ -23,6 +24,9 @@ type Props = {
   teamname: Types.Teamname,
   yourOperations: Types.TeamOperations,
   waitingForSavePublicity: boolean,
+  // nav closures from team page,
+  navigateUp: navigateUp,
+  navigateAppend: navigateAppend,
 }
 
 type NewSettings = {
@@ -280,6 +284,8 @@ export class Settings extends React.Component<Props, State> {
             onSelect={this._onSelectRetentionPolicy}
             teamname={this.props.teamname}
             isTeamWide={true}
+            navigateUp={this.props.navigateUp}
+            navigateAppend={this.props.navigateAppend}
           />
         )}
         <Box

@@ -27,7 +27,14 @@ const renderRow = (index: number, row: TeamRow) => {
       return renderRequestsOrInvitesRow(index, row)
     }
     case 'settings': {
-      return <Settings key="settings" teamname={row.teamname} />
+      return (
+        <Settings
+          key="settings"
+          teamname={row.teamname}
+          navigateUp={row.navigateUp}
+          navigateAppend={row.navigateAppend}
+        />
+      )
     }
     default: {
       // eslint-disable-next-line no-unused-expressions

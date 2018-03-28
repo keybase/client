@@ -48,15 +48,15 @@ class RetentionPicker extends React.Component<Props, State> {
   _handleSelection = () => {
     const selected = this.state.selected
     const changed = !policyEquals(this.state.selected, this.props.policy)
-    if (!changed) {
-      // noop
-      return
-    }
     const decreased =
       policyToComparable(selected, this.props.teamPolicy) <
       policyToComparable(this.props.policy, this.props.teamPolicy)
     if (this.props.type === 'simple') {
       this.props.onSelect(selected, changed, decreased)
+      return
+    }
+    if (!changed) {
+      // noop
       return
     }
     // auto case; show dialog if decreased, set immediately if not

@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/teams'
+import typeof {navigateAppend, navigateUp} from '../../actions/route-tree'
 type HeaderRow = {
   type: 'header',
   key: 'headerKey',
@@ -103,6 +104,8 @@ type RequestsOrInvitesRow = Request | Invite | Divider | NoRequestsOrInvites
 type SettingsRow = {
   type: 'settings',
   teamname: Types.Teamname,
+  navigateUp: navigateUp,
+  navigateAppend: navigateAppend,
 }
 
 type TeamRow = HeaderRow | TabsRow | MemberRow | SubteamRow | RequestsOrInvitesRow | SettingsRow
