@@ -37,6 +37,14 @@ type KeySection struct {
 	PerUserKeyGeneration keybase1.PerUserKeyGeneration
 }
 
+func linkEntropy() (*jsonw.Wrapper, error) {
+	entropyBytes, err := RandBytes(18)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate entropy bytes: %v", err)
+	}
+	return jsonw.NewString(base64.StdEncoding.EncodeToString(entropyBytes)), nil
+}
+
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 	ret := jsonw.NewDictionary()
 
@@ -165,11 +173,17 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	track.SetKey("remote_proofs", outcome.TrackingStatement())
 
 	if err != nil {
-		return
+		return err
 	}
 
+	entropy, err := linkEntropy()
+	if err != nil {
+		return err
+	}
+	track.SetKey("entropy", entropy)
+
 	w.SetKey("track", track)
-	return
+	return err
 }
 
 func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
@@ -182,8 +196,15 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	untrack := jsonw.NewDictionary()
 	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
 	untrack.SetKey("id", UIDWrapper(u.GetUID()))
+
+	entropy, err := linkEntropy()
+	if err != nil {
+		return err
+	}
+	untrack.SetKey("entropy", entropy)
+
 	w.SetKey("untrack", untrack)
-	return
+	return err
 }
 
 func (s *SocialProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
@@ -451,10 +472,17 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 		SigVersion: sigVersion,
 	}.ToJSON(u.G())
 	if err != nil {
-		return
+		return nil, err
 	}
-	ret.AtKey("body").SetKey("service", typ.ToServiceJSON(remotename))
-	return
+	service := typ.ToServiceJSON(remotename)
+	entropy, err := linkEntropy()
+	if err != nil {
+		return nil, err
+	}
+	service.SetKey("entropy", entropy)
+
+	ret.AtKey("body").SetKey("service", service)
+	return ret, err
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
@@ -593,6 +621,11 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, typ Cryptocurre
 	currencySection := jsonw.NewDictionary()
 	currencySection.SetKey("address", jsonw.NewString(address))
 	currencySection.SetKey("type", jsonw.NewString(typ.String()))
+	entropy, err := linkEntropy()
+	if err != nil {
+		return nil, err
+	}
+	currencySection.SetKey("entropy", entropy)
 	body.SetKey("cryptocurrency", currencySection)
 	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()
@@ -771,11 +804,11 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 
 	// Inner links can be hidden. To prevent an attacker from figuring out the
 	// contents from the hash of the inner link, add 18 random bytes.
-	entropyBytes, err := RandBytes(18)
+	entropy, err := linkEntropy()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate entropy bytes: %v", err)
+		return nil, err
 	}
-	walletSection.SetKey("entropy", jsonw.NewString(base64.StdEncoding.EncodeToString(entropyBytes)))
+	walletSection.SetKey("entropy", entropy)
 
 	walletKeySection := jsonw.NewDictionary()
 	walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
