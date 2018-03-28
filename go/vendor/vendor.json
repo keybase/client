@@ -506,6 +506,12 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "9IAVZIwKPa9vqMs5qbSDgAtSMOg=",
+			"path": "github.com/stellar/go/amount",
+			"revision": "e55d6022945484273686a698c55d397a2283a623",
+			"revisionTime": "2018-03-27T18:02:38Z"
+		},
+		{
 			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",
 			"origin": "github.com/keybase/stellar-org/crc16",
 			"path": "github.com/stellar/go/crc16",

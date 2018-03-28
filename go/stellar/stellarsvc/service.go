@@ -173,7 +173,7 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 	payload := make(libkb.JSONPayload)
 	payload["payment"] = post
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/submit_payment",
+		Endpoint:    "stellar/submitpayment",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		NetContext:  ctx,
