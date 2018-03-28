@@ -124,7 +124,7 @@ const ShowcaseTeamOffer = (props: Props) => (
             isOpen={props.teamNameToIsOpen[name]}
             membercount={props.teammembercounts[name]}
             onPromote={promoted => props.onPromote(name, promoted)}
-            showcased={props.teamNameToIsShowcashing[name]}
+            showcased={props.teamNameToIsShowcasing[name]}
             waiting={!!props.waiting[teamWaitingKey(name)]}
           />
         ))}

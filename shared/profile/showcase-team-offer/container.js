@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => {
     _teamNameToCanPerform: state.entities.getIn(['teams', 'teamNameToCanPerform'], I.Map()),
     _teamNameToPublicitySettings: state.entities.getIn(['teams', 'teamNameToPublicitySettings'], I.Map()),
     _teamNameToAllowPromote: state.entities.getIn(['teams', 'teamNameToAllowPromote'], I.Map()),
-    _teamNameToIsShowcashing: state.entities.getIn(['teams', 'teamNameToIsShowcashing'], I.Map()),
+    _teamNameToIsShowcasing: state.entities.getIn(['teams', 'teamNameToIsShowcasing'], I.Map()),
     _teamNameToRole: state.entities.getIn(['teams', 'teamNameToRole'], I.Map()),
     _waiting: state.waiting,
   }
@@ -38,7 +38,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
-    teamNameToIsShowcashing: stateProps._teamNameToIsShowcashing.toObject(),
+    teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
     teamNameToRole: stateProps._teamNameToRole.toObject(),
     teamnames,
     title: 'Showcase teams',

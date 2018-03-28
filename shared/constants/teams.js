@@ -82,7 +82,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teamNameToAllowPromote: I.Map(),
-  teamNameToIsShowcashing: I.Map(),
+  teamNameToIsShowcasing: I.Map(),
   teammembercounts: I.Map(),
   newTeams: I.Set(),
   newTeamRequests: I.List(),

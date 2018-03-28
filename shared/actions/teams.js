@@ -500,14 +500,14 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     const teamNameToRole = {}
     const teamNameToIsOpen = {}
     const teamNameToAllowPromote = {}
-    const teamNameToIsShowcashing = {}
+    const teamNameToIsShowcasing = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
       teamNameToIsOpen[team.fqName] = team.isOpenTeam
       teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
-      teamNameToIsShowcashing[team.fqName] = team.isMemberShowcased
+      teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
     })
 
     // Dismiss any stale badges for teams we're no longer in
@@ -534,7 +534,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
           teamNameToIsOpen: I.Map(teamNameToIsOpen),
           teamNameToRole: I.Map(teamNameToRole),
           teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
-          teamNameToIsShowcashing: I.Map(teamNameToIsShowcashing),
+          teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
         })
       )
     )

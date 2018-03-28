@@ -24,7 +24,7 @@ export type Props = {
   teamnames: Array<Types.Teamname>,
   teamNameToIsOpen: {[string]: boolean},
   teamNameToAllowPromote: {[string]: boolean},
-  teamNameToIsShowcashing: {[string]: boolean},
+  teamNameToIsShowcasing: {[string]: boolean},
   teamNameToRole: {[string]: boolean},
   waiting: {[string]: number},
 }
