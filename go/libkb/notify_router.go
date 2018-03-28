@@ -120,59 +120,39 @@ func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybas
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
 type NotifyRouter struct {
+	sync.Mutex
 	Contextified
-	cm         *ConnectionManager
-	state      map[ConnectionID]keybase1.NotificationChannels
-	setCh      chan setObj
-	getCh      chan getObj
-	shutdownCh chan struct{}
-	listener   NotifyListener
+	cm       *ConnectionManager
+	state    map[ConnectionID]keybase1.NotificationChannels
+	listener NotifyListener
 }
 
 // NewNotifyRouter makes a new notification router; we should only
 // make one of these per process.
 func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
-	ret := &NotifyRouter{
+	return &NotifyRouter{
 		Contextified: NewContextified(g),
 		cm:           g.ConnectionManager,
 		state:        make(map[ConnectionID]keybase1.NotificationChannels),
-		setCh:        make(chan setObj),
-		getCh:        make(chan getObj),
-		shutdownCh:   make(chan struct{}),
 	}
-	go ret.run()
-	return ret
 }
 
 func (n *NotifyRouter) SetListener(listener NotifyListener) {
 	n.listener = listener
 }
 
-func (n *NotifyRouter) Shutdown() {
-	n.shutdownCh <- struct{}{}
-}
+func (n *NotifyRouter) Shutdown() {}
 
 func (n *NotifyRouter) setNotificationChannels(id ConnectionID, val keybase1.NotificationChannels) {
-	n.setCh <- setObj{id, val}
+	n.Lock()
+	defer n.Unlock()
+	n.state[id] = val
 }
 
 func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.NotificationChannels {
-	retCh := make(chan keybase1.NotificationChannels)
-	n.getCh <- getObj{id, retCh}
-	return <-retCh
-}
-
-func (n *NotifyRouter) run() {
-	for {
-		select {
-		case <-n.shutdownCh:
-			return
-		case o := <-n.setCh:
-			n.state[o.id] = o.val
-		case o := <-n.getCh:
-			o.retCh <- n.state[o.id]
-		}
-	}
+	n.Lock()
+	defer n.Unlock()
+	return n.state[id]
 }
 
 // AddConnection should be called every time there's a new RPC connection
