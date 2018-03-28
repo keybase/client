@@ -128,12 +128,8 @@ const metaMapReducer = (metaMap, action) => {
         ? metaMap.clear()
         : metaMap
     case Chat2Gen.updateConvRetentionPolicy:
-      const update = action.payload.update
-      if (!update.conv) {
-        logger.warn('Got conv retentionpolicy update with no inboxUIItem')
-        return metaMap
-      }
-      const newMeta = Constants.inboxUIItemToConversationMeta(update.conv)
+      const {conv} = action.payload
+      const newMeta = Constants.inboxUIItemToConversationMeta(conv)
       if (!newMeta) {
         logger.warn('Invalid inboxUIItem received in conv retention policy update')
         return metaMap

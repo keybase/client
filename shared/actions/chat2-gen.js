@@ -83,7 +83,7 @@ export const updateTypers = 'chat2:updateTypers'
 /**
  * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
  */
-export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{update: RPCChatTypes.NotifyChatChatSetConvRetentionRpcParam}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{conv: RPCChatTypes.InboxUIItem}>) => ({error: false, payload, type: updateConvRetentionPolicy})
 /**
  * Sets the retention policy for a conversation. Valid operation for big team channels only.
  */

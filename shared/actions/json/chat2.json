@@ -365,7 +365,7 @@
     },
     "updateConvRetentionPolicy": {
       "_description": "Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap",
-      "update": "RPCChatTypes.NotifyChatChatSetConvRetentionRpcParam",
+      "conv": "RPCChatTypes.InboxUIItem",
     },
   }
 }

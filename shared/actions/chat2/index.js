@@ -554,9 +554,18 @@ const setupChatHandlers = () => {
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
     Chat2Gen.createInboxRefresh({reason: 'leftAConversation'}),
   ])
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvRetention', update => [
-    Chat2Gen.createUpdateConvRetentionPolicy({update}),
-  ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvRetention', update => {
+    if (update.conv) {
+      return [Chat2Gen.createUpdateConvRetentionPolicy({conv: update.conv})]
+    }
+    // force to get the new retention policy
+    return [
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys: [Types.conversationIDToKey(update.convID)],
+        force: true,
+      }),
+    ]
+  })
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
