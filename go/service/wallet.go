@@ -78,7 +78,7 @@ func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg
 
 func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, err error) {
 	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return errors.New("WalletDump only supported in devel run mode")
+		return dump, errors.New("WalletDump only supported in devel run mode")
 	}
 
 	ctx = h.logTag(ctx)
@@ -93,7 +93,7 @@ func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, 
 	h.G().Log.Debug("resetting account for %s", username)
 
 	arg := libkb.DefaultPassphrasePromptArg(h.G(), username)
-	secretUI := h.getSecretUI(sessionID, h.G())
+	secretUI := h.getSecretUI(0, h.G())
 	res, err := secretUI.GetPassphrase(arg, nil)
 	if err != nil {
 		return dump, err
@@ -111,6 +111,8 @@ func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, 
 
 		dump.Address = primary.AccountID.String()
 		dump.Seed = primary.Signers[0].SecureNoLogString()
+
+		return nil
 	})
 	if err != nil {
 		return dump, err

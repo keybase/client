@@ -506,6 +506,27 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "9IAVZIwKPa9vqMs5qbSDgAtSMOg=",
+			"origin": "github.com/keybase/stellar-org/amount",
+			"path": "github.com/stellar/go/amount",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
+			"checksumSHA1": "nZkWZ3Glzc60inL76xJEsxe7Zn0=",
+			"origin": "github.com/keybase/stellar-org/build",
+			"path": "github.com/stellar/go/build",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
+			"checksumSHA1": "NROIWiOy7hvc3PnrrN+Su5Mo1D8=",
+			"origin": "github.com/keybase/stellar-org/clients/horizon",
+			"path": "github.com/stellar/go/clients/horizon",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
 			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",
 			"origin": "github.com/keybase/stellar-org/crc16",
 			"path": "github.com/stellar/go/crc16",
@@ -518,6 +539,20 @@
 			"path": "github.com/stellar/go/keypair",
 			"revision": "d286f70e23139d3b841fba1e19803d21840bc003",
 			"revisionTime": "2018-03-22T21:26:26Z"
+		},
+		{
+			"checksumSHA1": "smPjsSq12pIzKkI8PX1/YtgCbOY=",
+			"origin": "github.com/keybase/stellar-org/network",
+			"path": "github.com/stellar/go/network",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
+			"checksumSHA1": "ZCskSiuTr7jQM8iZunN+nHhCffw=",
+			"origin": "github.com/keybase/stellar-org/price",
+			"path": "github.com/stellar/go/price",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
 		},
 		{
 			"checksumSHA1": "V18U5E4j+epW4WLtwNcVsgoQkVQ=",
