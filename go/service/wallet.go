@@ -98,25 +98,31 @@ func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, 
 	if err != nil {
 		return dump, err
 	}
+	pwdOk := false
 	_, err = h.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
-		bundle, err := remote.Fetch(ctx, h.G())
-		if err != nil {
-			return err
-		}
-
-		primary, err := bundle.PrimaryAccount()
-		if err != nil {
-			return err
-		}
-
-		dump.Address = primary.AccountID.String()
-		dump.Seed = primary.Signers[0].SecureNoLogString()
+		pwdOk = true
 
 		return nil
 	})
 	if err != nil {
 		return dump, err
 	}
+	if !pwdOk {
+		return dump, libkb.PassphraseError{}
+	}
+
+	bundle, err := remote.Fetch(ctx, h.G())
+	if err != nil {
+		return dump, err
+	}
+
+	primary, err := bundle.PrimaryAccount()
+	if err != nil {
+		return dump, err
+	}
+
+	dump.Address = primary.AccountID.String()
+	dump.Seed = primary.Signers[0].SecureNoLogString()
 
 	return dump, nil
 }

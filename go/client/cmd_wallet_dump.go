@@ -4,6 +4,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -29,6 +30,12 @@ func (c *cmdWalletDump) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *cmdWalletDump) Run() error {
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
