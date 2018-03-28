@@ -112,11 +112,9 @@ const retentionStyles = {
       marginRight: 16,
     },
   }),
-  dropdownStyle: platformStyles({
-    common: {
-      width: '100%',
-    },
-  }),
+  dropdownStyle: {
+    width: '100%',
+  },
 }
 
 type SpacerRow = {

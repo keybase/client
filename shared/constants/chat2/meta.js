@@ -209,12 +209,15 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
-  let retentionPolicy = isTeam
-    ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
-    : makeRetentionPolicy()
-  if (isTeam && !i.convRetention) {
-    // default in this case is 'inherit', not 'retain'
-    retentionPolicy = makeRetentionPolicy({type: 'inherit'})
+  let retentionPolicy
+  if (isTeam) {
+    // default for team channels is 'inherit'
+    retentionPolicy = i.convRetention
+      ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+      : makeRetentionPolicy({type: 'inherit'})
+  } else {
+    // default for ad-hoc is 'retain'
+    retentionPolicy = makeRetentionPolicy()
   }
 
   return makeConversationMeta({
@@ -271,6 +274,10 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   wasFinalizedBy: '',
 })
 
+const emptyMeta = makeConversationMeta()
+export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.metaMap.get(id, emptyMeta)
+
 const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
@@ -324,9 +331,6 @@ export const getConversationRetentionPolicy = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey
 ) => {
-  const conv = state.chat2.metaMap.get(conversationIDKey)
-  if (!conv) {
-    return
-  }
+  const conv = getMeta(state, conversationIDKey)
   return conv.retentionPolicy
 }
