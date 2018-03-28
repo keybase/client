@@ -1,6 +1,9 @@
 package bundle
 
 import (
+	"fmt"
+
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stellar/go/keypair"
 )
@@ -31,6 +34,31 @@ func Advance(prevBundle stellar1.Bundle) stellar1.Bundle {
 	nextBundle.OwnHash = nil
 	nextBundle.Revision++
 	return nextBundle
+}
+
+// AddAccount adds an account to the bundle.
+// Mutates `bundle`.
+func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name string, makePrimary bool) error {
+	if bundle == nil {
+		return fmt.Errorf("nil bundle")
+	}
+	secretKey, accountID, err := libkb.ParseStellarSecretKey(string(secretKey))
+	if err != nil {
+		return err
+	}
+	if makePrimary {
+		for i := range bundle.Accounts {
+			bundle.Accounts[i].IsPrimary = false
+		}
+	}
+	bundle.Accounts = append(bundle.Accounts, stellar1.BundleEntry{
+		AccountID: accountID,
+		Mode:      stellar1.AccountMode_USER,
+		IsPrimary: makePrimary,
+		Signers:   []stellar1.SecretKey{secretKey},
+		Name:      "",
+	})
+	return bundle.CheckInvariants()
 }
 
 func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey, err error) {

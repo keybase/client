@@ -5,11 +5,12 @@ protocol local {
   array<Balance> balancesLocal(AccountID accountID);
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
-  void walletInit();
+  void walletInitLocal();
 
-  record DumpRes {
-    string seed;
-    string address;
-  }
-  DumpRes walletDump();
+  Bundle walletDumpLocal();
+
+  // Whether this account is one of this user's.
+  boolean ownAccountLocal(AccountID accountID);
+
+  void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
 }

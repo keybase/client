@@ -66,7 +66,10 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 	if len(clearBundle.Accounts) < 1 {
 		return errors.New("stellar bundle has no accounts")
 	}
-	stellarAccount := clearBundle.Accounts[0]
+	stellarAccount, err := clearBundle.PrimaryAccount()
+	if err != nil {
+		return err
+	}
 	if len(stellarAccount.Signers) < 1 {
 		return errors.New("stellar bundle has no signers")
 	}

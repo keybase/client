@@ -8,18 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type DumpRes struct {
-	Seed    string `codec:"seed" json:"seed"`
-	Address string `codec:"address" json:"address"`
-}
-
-func (o DumpRes) DeepCopy() DumpRes {
-	return DumpRes{
-		Seed:    o.Seed,
-		Address: o.Address,
-	}
-}
-
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -31,17 +19,28 @@ type SendLocalArg struct {
 	Note      string `codec:"note" json:"note"`
 }
 
-type WalletInitArg struct {
+type WalletInitLocalArg struct {
 }
 
-type WalletDumpArg struct {
+type WalletDumpLocalArg struct {
+}
+
+type OwnAccountLocalArg struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type ImportSecretKeyLocalArg struct {
+	SecretKey   SecretKey `codec:"secretKey" json:"secretKey"`
+	MakePrimary bool      `codec:"makePrimary" json:"makePrimary"`
 }
 
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
-	WalletInit(context.Context) error
-	WalletDump(context.Context) (DumpRes, error)
+	WalletInitLocal(context.Context) error
+	WalletDumpLocal(context.Context) (Bundle, error)
+	OwnAccountLocal(context.Context, AccountID) (bool, error)
+	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -80,24 +79,56 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"walletInit": {
+			"walletInitLocal": {
 				MakeArg: func() interface{} {
-					ret := make([]WalletInitArg, 1)
+					ret := make([]WalletInitLocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.WalletInit(ctx)
+					err = i.WalletInitLocal(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"walletDump": {
+			"walletDumpLocal": {
 				MakeArg: func() interface{} {
-					ret := make([]WalletDumpArg, 1)
+					ret := make([]WalletDumpLocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.WalletDump(ctx)
+					ret, err = i.WalletDumpLocal(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"ownAccountLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]OwnAccountLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]OwnAccountLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]OwnAccountLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.OwnAccountLocal(ctx, (*typedArgs)[0].AccountID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"importSecretKeyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ImportSecretKeyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ImportSecretKeyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ImportSecretKeyLocalArg)(nil), args)
+						return
+					}
+					err = i.ImportSecretKeyLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -121,12 +152,23 @@ func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res Pay
 	return
 }
 
-func (c LocalClient) WalletInit(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletInit", []interface{}{WalletInitArg{}}, nil)
+func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletInitLocal", []interface{}{WalletInitLocalArg{}}, nil)
 	return
 }
 
-func (c LocalClient) WalletDump(ctx context.Context) (res DumpRes, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletDump", []interface{}{WalletDumpArg{}}, &res)
+func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res)
+	return
+}
+
+func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (res bool, err error) {
+	__arg := OwnAccountLocalArg{AccountID: accountID}
+	err = c.Cli.Call(ctx, "stellar.1.local.ownAccountLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecretKeyLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil)
 	return
 }
