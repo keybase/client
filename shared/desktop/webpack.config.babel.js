@@ -2,8 +2,6 @@
 /* Our bundler for the desktop app.
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
- * if isDumb we render just the dumb sheet
- * is isVisDiff we render screenshots
  */
 import DashboardPlugin from 'webpack-dashboard/plugin'
 import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
@@ -21,8 +19,6 @@ const flags = {
   isDumb: getenv.boolish('DUMB', false),
   isHot: getenv.boolish('HOT', false),
   isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
-  isVisDiff: getenv.boolish('VISDIFF', false),
-  isTreeShake: getenv.boolish('TREESHAKE', false),
 }
 
 console.log('Flags: ', flags)
@@ -53,7 +49,6 @@ const makeCommonConfig = () => {
           [
             'env',
             {
-              ...(flags.isTreeShake ? {modules: false} : null),
               debug: false,
               targets: {
                 electron: '1.7.5',
@@ -102,7 +97,7 @@ const makeCommonConfig = () => {
     const defines = {
       __DEV__: flags.isDev,
       __HOT__: flags.isHot,
-      __SCREENSHOT__: flags.isVisDiff,
+      __SCREENSHOT__: false,
       __STORYBOOK__: false,
       __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
       'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
@@ -163,25 +158,14 @@ const makeCommonConfig = () => {
   }
 }
 
-const makeMainThreadConfig = () => {
-  const makeEntries = () => {
-    if (flags.isVisDiff) {
-      return {
-        'render-visdiff': path.resolve(__dirname, 'test/render-visdiff.js'),
-      }
-    } else {
-      return {
-        main: path.resolve(__dirname, 'app/index.js'),
-      }
-    }
-  }
-
-  return merge(commonConfig, {
-    entry: makeEntries(),
+const makeMainThreadConfig = () =>
+  merge(commonConfig, {
+    entry: {
+      main: path.resolve(__dirname, 'app/index.js'),
+    },
     name: 'mainThread',
     target: 'electron-main',
   })
-}
 
 const makeRenderThreadConfig = () => {
   const makeRenderPlugins = () => {
@@ -194,40 +178,13 @@ const makeRenderThreadConfig = () => {
         : []
     // Don't spit out errors while building
     const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
-    // Put common code between the entries into a sep. file
-    const commonChunksPlugin =
-      flags.isDev && !flags.isVisDiff
-        ? [
-            new webpack.optimize.CommonsChunkPlugin({
-              filename: 'common-chunks.js',
-              minChunks: 2,
-              name: 'common-chunks',
-            }),
-          ]
-        : []
 
-    // Put our vendored stuff into its own thing
-    const dllPlugin =
-      flags.isDev && !flags.isVisDiff && !flags.isTreeShake
-        ? [
-            new webpack.DllReferencePlugin({
-              manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
-            }),
-          ]
-        : []
-
-    return [
-      ...dashboardPlugin,
-      ...hmrPlugin,
-      ...noEmitOnErrorsPlugin,
-      ...dllPlugin,
-      ...commonChunksPlugin,
-    ].filter(Boolean)
+    return [...dashboardPlugin, ...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
   }
 
   // Have to inject some additional code if we're using HMR
   const HMREntries =
-    flags.isHot && flags.isDev && !flags.isTreeShake
+    flags.isHot && flags.isDev
       ? [
           'react-hot-loader/patch',
           'webpack-dev-server/client?http://localhost:4000',
@@ -235,83 +192,27 @@ const makeRenderThreadConfig = () => {
         ]
       : []
 
-  const makeEntries = () => {
-    if (flags.isVisDiff) {
-      return {
-        visdiff: path.resolve(__dirname, '../test/render-dumb-sheet.js'),
-      }
-    } else if (flags.isDumb) {
-      return {
-        index: [...HMREntries, path.resolve(__dirname, 'renderer/dumb.js')],
-      }
-    } else
-      return {
-        index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
-        'component-loader': [...HMREntries, path.resolve(__dirname, 'remote/component-loader.js')],
-      }
-  }
-
   return merge(commonConfig, {
-    dependencies: flags.isDev && !flags.isVisDiff && !flags.isTreeShake ? ['vendor'] : undefined,
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
-    // Some eval sourcemaps cause issues with closures in chromium due to some bugs. Visdiff suffers from this and we don't debug it so
-    // lets disable sourcemaps for it
-    devtool: flags.isVisDiff || flags.isTreeShake ? undefined : flags.isDev ? 'eval' : 'source-map',
-    entry: makeEntries(),
+    // Some eval sourcemaps cause issues with closures in chromium due to some bugs.
+    devtool: flags.isDev ? 'eval' : 'source-map',
+    entry: {
+      index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
+      'component-loader': [...HMREntries, path.resolve(__dirname, 'remote/component-loader.js')],
+    },
     name: 'renderThread',
     plugins: makeRenderPlugins(),
     target: 'electron-renderer',
   })
 }
 
-const makeDllConfig = () => {
-  return {
-    // This list came from looking at the webpack analyzer and choosing the largest / slowest items
-    entry: [
-      './markdown/parser',
-      'emoji-mart',
-      'framed-msgpack-rpc',
-      'immutable',
-      'inline-style-prefixer',
-      'lodash',
-      'moment',
-      'prop-types',
-      'qrcode-generator',
-      'react',
-      'react-dom',
-      'react-list',
-      'react-virtualized',
-      'recompose',
-      'redux',
-      'semver',
-    ],
-    name: 'vendor',
-    output: {
-      filename: 'dll.vendor.js',
-      library: 'vendor',
-      path: path.resolve(__dirname, 'dist/dll'),
-    },
-    plugins: [
-      new webpack.DllPlugin({
-        name: 'vendor',
-        path: path.resolve(__dirname, 'dll/vendor-manifest.json'),
-      }),
-      // Don't include all the moment locales
-      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-    ],
-    target: 'electron-renderer',
-  }
-}
-
 const commonConfig = makeCommonConfig()
 const mainThreadConfig = makeMainThreadConfig()
 const renderThreadConfig = makeRenderThreadConfig()
-const dllConfig = flags.isDev && !flags.isVisDiff && !flags.isTreeShake && makeDllConfig()
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
-const config = (flags.isBeforeHot
-  ? [mainThreadConfig, dllConfig]
-  : [mainThreadConfig, renderThreadConfig, dllConfig]
-).filter(Boolean)
+const config = (flags.isBeforeHot ? [mainThreadConfig] : [mainThreadConfig, renderThreadConfig]).filter(
+  Boolean
+)
 
 export default config

@@ -10,13 +10,15 @@ const commands = {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     nodeEnv: 'development',
-    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''}`,
+    shell: `${webpackCmd} --mode development --progress --profile --colors ${
+      webpackLog ? `--json > ${webpackLog}` : ''
+    }`,
   },
   'build-prod': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a production build of the js code',
     nodeEnv: 'production',
-    shell: `${webpackCmd} --progress`,
+    shell: `${webpackCmd} --mode production --progress`,
   },
   'build-treeshake': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', TREESHAKE: 'true'},
