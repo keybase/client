@@ -215,7 +215,7 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 
 const _inviteToTeamByPhone = function*(action: TeamsGen.InviteToTeamByPhonePayload) {
   const {teamname, role, phoneNumber, fullName = ''} = action.payload
-  const seitan = yield Saga.call(RPCTypes.teamsTeamCreateSeitanTokenRpcPromise, {
+  const seitan = yield Saga.call(RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise, {
     name: teamname,
     role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
     label: {t: 1, sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms)},
