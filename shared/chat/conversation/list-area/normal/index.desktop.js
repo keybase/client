@@ -10,6 +10,7 @@
 
 import * as React from 'react'
 import * as ReactDom from 'react-dom'
+import ReactList from 'react-list'
 import Message from '../../messages'
 // import Measure from 'react-measure'
 import Waypoint from 'react-waypoint'
@@ -25,7 +26,7 @@ type State = {
   // listRerender: number,
 }
 
-// const lockedToBottomSlop = 20
+const lockedToBottomSlop = 20
 
 class Thread extends React.Component<Props, State> {
   _isLockedToBottom: boolean = true
@@ -171,11 +172,14 @@ class Thread extends React.Component<Props, State> {
     // this._list && this._list.scrollToRow(idx)
     // }
     // }
-    if (this._isLockedToBottom && this._scrollableRef) {
-      console.log('aaa botto LOCKING')
-      this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
-    } else if (this._bottomWaypoint && this._scrollableRef) {
-      this._restoreBottomWaypointScrollTop()
+    // if (this._isLockedToBottom && this._scrollableRef) {
+    // console.log('aaa botto LOCKING')
+    // this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
+    // } else if (this._bottomWaypoint && this._scrollableRef) {
+    // this._restoreBottomWaypointScrollTop()
+    // }
+    if (this._isLockedToBottom && this._list) {
+      this._list.scrollTo(this._rowCount() - 1)
     }
   }
 
@@ -276,33 +280,33 @@ class Thread extends React.Component<Props, State> {
   // }
   //
   _scrollableRef: any
-  _observer: any
+  // _observer: any
 
-  _observed = mutationsList => {
-    console.log('aaa bott MUTATION', mutationsList)
-    this._restoreBottomWaypointScrollTop()
-  }
+  // _observed = mutationsList => {
+  // console.log('aaa bott MUTATION', mutationsList)
+  // this._restoreBottomWaypointScrollTop()
+  // }
   _setScrollableRef = r => {
     this._scrollableRef = r
 
-    if (this._scrollableRef) {
-      if (this._observer) {
-        this._observer.disconnect()
-      }
-      this._observer = new window.MutationObserver(this._observed)
-      this._observer.observe(this._scrollableRef, {
-        // attributes: true,
-        childList: true,
-        // characterData: true,
-        subtree: true,
-      })
-    }
+    // if (this._scrollableRef) {
+    // if (this._observer) {
+    // this._observer.disconnect()
+    // }
+    // this._observer = new window.MutationObserver(this._observed)
+    // this._observer.observe(this._scrollableRef, {
+    // // attributes: true,
+    // childList: true,
+    // // characterData: true,
+    // subtree: true,
+    // })
+    // }
 
     // if (this.state.isLockedToBottom && this._scrollableRef) {
-    if (this._isLockedToBottom && this._scrollableRef) {
-      console.log('aaa bott NEW SCROOL REF')
-      this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
-    }
+    // if (this._isLockedToBottom && this._scrollableRef) {
+    // console.log('aaa bott NEW SCROOL REF')
+    // this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
+    // }
   }
 
   _loadMoreLast = 0
@@ -421,9 +425,49 @@ class Thread extends React.Component<Props, State> {
 
   _onScroll = e => {
     console.log('aaa bott scroll', e.nativeEvent)
+    this._isLockedToBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - lockedToBottomSlop
   }
 
+  _renderItem = (index, key) => {
+    const ordinal = this.props.messageOrdinals.get(index)
+    const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
+    return (
+      <Message
+        key={ordinal}
+        ordinal={ordinal}
+        previous={prevOrdinal}
+        measure={null}
+        conversationIDKey={this.props.conversationIDKey}
+      />
+    )
+  }
+
+  _list = null
+  _setList = r => (this._list = r)
+
+  _rowCount = () => this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
+
   render() {
+    const rowCount = this._rowCount()
+    return null
+    return (
+      // onClick={this._handleListClick}
+      // onCopyCapture={this._onCopyCapture}
+      <div style={containerStyle} ref={this._setScrollableRef} onScroll={this._onScroll}>
+        <style>{realCSS}</style>
+        <ReactList
+          ref={this._setList}
+          useTranslate3d={true}
+          itemRenderer={this._renderItem}
+          pageSize={50}
+          length={rowCount}
+          type="variable"
+        />
+      </div>
+    )
+  }
+
+  render2() {
     this._debugDUMP()
 
     // this._topKey = null

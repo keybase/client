@@ -279,7 +279,7 @@ const makeDllConfig = () => {
       'qrcode-generator',
       'react',
       'react-dom',
-      'react-list',
+      // 'react-list',
       'react-virtualized',
       'recompose',
       'redux',
