@@ -5,7 +5,7 @@ import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../.
 import {getTeamRetentionPolicy} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
-import {navigateAppend, navigateUp} from '../../../../actions/route-tree'
+import {navigateAppend} from '../../../../actions/route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
 
@@ -18,8 +18,6 @@ export type OwnProps = {
   isSmallTeam?: boolean,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
-  navigateUp?: typeof navigateUp,
-  navigateAppend?: typeof navigateAppend,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -37,11 +35,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname: ownProps.teamname})),
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {conversationIDKey, teamname, onSelect, type, isTeamWide}: OwnProps
+) => ({
+  _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   onShowDropdown: (items, target) =>
     dispatch(
-      (ownProps.navigateAppend || navigateAppend)([
+      navigateAppend([
         {
           selected: 'retentionDropdown',
           props: {items, position: 'top center', targetRect: target && target.getBoundingClientRect()},
@@ -50,7 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     ),
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => {
     dispatch(
-      (ownProps.navigateAppend || navigateAppend)([
+      navigateAppend([
         {
           selected: 'retentionWarning',
           props: {days, onCancel, onConfirm},
@@ -59,13 +60,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     )
   },
   setRetentionPolicy: (policy: RetentionPolicy) => {
-    if (ownProps.isTeamWide) {
-      dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname: ownProps.teamname}))
+    if (isTeamWide) {
+      dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
     } else {
-      if (!ownProps.conversationIDKey) {
+      if (!conversationIDKey) {
         throw new Error('Tried to set conv retention policy with no ConversationIDKey')
       }
-      dispatch(createSetConvRetentionPolicy({policy, conversationIDKey: ownProps.conversationIDKey}))
+      dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
     }
   },
 })

@@ -4,7 +4,6 @@ import * as Types from '../../constants/types/teams'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 import List, {type TeamRows} from './list'
-import typeof {navigateAppend, navigateUp} from '../../actions/route-tree'
 
 export type Props = {
   teamname: Types.Teamname,
@@ -21,13 +20,10 @@ export type Props = {
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,
   onShowMenu: any => void,
-  // closures to pass for child navigation
-  navigateUp: navigateUp,
-  navigateAppend: navigateAppend,
 }
 
 const Team = (props: Props) => {
-  const {teamname, navigateAppend, navigateUp} = props
+  const {teamname} = props
 
   const rows: TeamRows = [{type: 'header', teamname, key: 'headerKey'}]
   rows.push({
@@ -48,7 +44,7 @@ const Team = (props: Props) => {
   })
 
   if (props.selectedTab === 'publicity') {
-    rows.push({type: 'settings', teamname, navigateUp, navigateAppend, key: 'settings'})
+    rows.push({type: 'settings', teamname, key: 'settings'})
   } else if (props.listItems) {
     rows.push(...props.listItems)
   }
