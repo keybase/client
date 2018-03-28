@@ -180,7 +180,7 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 	}
 
 	var res submitResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
 		return stellar1.PaymentResult{}, err
 	}
 
