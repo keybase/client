@@ -127,6 +127,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         const startOfWordIdx = selections.selectionStart - word.length
         if (startOfWordIdx >= 0) {
           // Put the cursor at the end of newWord.
+          // NOTE: This doesn't work yet; see comments in input.native.js.
           const newSelectionIndex = startOfWordIdx + newWord.length
           this._inputRef &&
             this._inputRef.replaceText(
