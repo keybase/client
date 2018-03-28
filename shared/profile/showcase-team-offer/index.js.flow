@@ -11,6 +11,7 @@ export type RowProps = {
   onPromote: (promote: boolean) => void,
   showcased: boolean,
   waiting: boolean,
+  isExplicitMember: boolean,
 }
 
 export type Props = {
@@ -21,9 +22,10 @@ export type Props = {
   onPromote: (name: Types.Teamname, promote: boolean) => void,
   teammembercounts: {[string]: number},
   teamnames: Array<Types.Teamname>,
-  teamNameToCanPerform: {[string]: Types.TeamOperations},
   teamNameToIsOpen: {[string]: boolean},
-  teamNameToPublicitySettings: {[string]: Types._PublicitySettings},
+  teamNameToAllowPromote: {[string]: boolean},
+  teamNameToIsShowcasing: {[string]: boolean},
+  teamNameToRole: {[string]: boolean},
   waiting: {[string]: number},
 }
 

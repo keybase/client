@@ -136,6 +136,8 @@ export type _State = {
   teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
+  teamNameToAllowPromote: I.Map<Teamname, boolean>,
+  teamNameToIsShowcasing: I.Map<Teamname, boolean>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
   newTeams: I.Set<string>,

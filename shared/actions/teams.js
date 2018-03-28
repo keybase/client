@@ -550,12 +550,16 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     const teammembercounts = {}
     const teamNameToRole = {}
     const teamNameToIsOpen = {}
+    const teamNameToAllowPromote = {}
+    const teamNameToIsShowcasing = {}
     const teamNameToID = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
       teamNameToIsOpen[team.fqName] = team.isOpenTeam
+      teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
+      teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
       teamNameToID[team.fqName] = team.teamID
     })
 
@@ -582,6 +586,8 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
           teammembercounts: I.Map(teammembercounts),
           teamNameToIsOpen: I.Map(teamNameToIsOpen),
           teamNameToRole: I.Map(teamNameToRole),
+          teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
+          teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
           teamNameToID: I.Map(teamNameToID),
         })
       )
@@ -713,6 +719,9 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+
+    // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
+    yield Saga.put(TeamsGen.createGetTeams())
   }
 }
 

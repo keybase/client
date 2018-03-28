@@ -68,17 +68,19 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		}
 
 		anMemberInfo := keybase1.AnnotatedMemberInfo{
-			TeamID:         memberInfo.TeamID,
-			FqName:         memberInfo.FqName,
-			UserID:         memberInfo.UserID,
-			Role:           memberInfo.Role,
-			IsImplicitTeam: memberInfo.IsImplicitTeam,
-			IsOpenTeam:     memberInfo.IsOpenTeam,
-			Implicit:       memberInfo.Implicit,
-			Username:       queryUsername.String(),
-			FullName:       queryFullName,
-			MemberCount:    memberInfo.MemberCount,
-			Active:         true,
+			TeamID:              memberInfo.TeamID,
+			FqName:              memberInfo.FqName,
+			UserID:              memberInfo.UserID,
+			Role:                memberInfo.Role,
+			IsImplicitTeam:      memberInfo.IsImplicitTeam,
+			IsOpenTeam:          memberInfo.IsOpenTeam,
+			Implicit:            memberInfo.Implicit,
+			Username:            queryUsername.String(),
+			FullName:            queryFullName,
+			MemberCount:         memberInfo.MemberCount,
+			Active:              true,
+			AllowProfilePromote: memberInfo.AllowProfilePromote,
+			IsMemberShowcased:   memberInfo.IsMemberShowcased,
 		}
 
 		res.Teams = append(res.Teams, anMemberInfo)

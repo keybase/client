@@ -192,17 +192,19 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 		}
 
 		anMemberInfo := &keybase1.AnnotatedMemberInfo{
-			TeamID:         team.ID,
-			FqName:         team.Name().String(),
-			UserID:         memberInfo.UserID,
-			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
-			IsImplicitTeam: team.IsImplicit(),
-			IsOpenTeam:     team.IsOpen(),
-			Implicit:       memberInfo.Implicit, // This part is still server trust
-			Username:       queryUsername.String(),
-			FullName:       queryFullName,
-			MemberCount:    0,
-			Active:         true,
+			TeamID:              team.ID,
+			FqName:              team.Name().String(),
+			UserID:              memberInfo.UserID,
+			Role:                memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+			IsImplicitTeam:      team.IsImplicit(),
+			IsOpenTeam:          team.IsOpen(),
+			Implicit:            memberInfo.Implicit, // This part is still server trust
+			Username:            queryUsername.String(),
+			FullName:            queryFullName,
+			MemberCount:         0,
+			Active:              true,
+			AllowProfilePromote: memberInfo.AllowProfilePromote,
+			IsMemberShowcased:   memberInfo.IsMemberShowcased,
 		}
 
 		members, err := team.Members()
