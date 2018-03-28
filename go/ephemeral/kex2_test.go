@@ -158,4 +158,6 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	require.EqualValues(t, userEKGenX, userEKGenY)
 	userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
 	require.Equal(t, userEKY, userEKX)
+
+	// TODO clear cache on storage and verify we can fetch the userekbox from the server.
 }

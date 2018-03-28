@@ -645,6 +645,7 @@ type EKLib interface {
 	NewDeviceEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (keybase1.DeviceEkStatement, string, error)
+	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
 }
 
 type ImplicitTeamConflictInfoCacher interface {

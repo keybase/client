@@ -335,6 +335,36 @@ func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation 
 	return signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, *merkleRootPtr)
 }
 
+// For device provisioning
+func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
+	// Let's make sure we are up to date with keys first and we have the latest userEK cached.
+	if err = e.KeygenIfNeeded(ctx); err != nil {
+		return nil, err
+	}
+
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(ctx)
+	if err != nil {
+		return nil, err
+	} else if maxGeneration < 0 {
+		e.G().Log.CWarningf(ctx, "No userEK found")
+		return nil, nil
+	}
+	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration)
+	if err != nil {
+		return nil, err
+	}
+	box, err := receiverKey.EncryptToString(userEK.Seed[:], nil)
+	if err != nil {
+		return nil, err
+	}
+	return &keybase1.UserEkBoxed{
+		Box:                box,
+		DeviceEkGeneration: deviceEKGeneration,
+		Metadata:           userEK.Metadata,
+	}, nil
+}
+
 func (e *EKLib) OnLogin() error {
 	return e.KeygenIfNeeded(context.Background())
 }
