@@ -273,6 +273,15 @@ func Version() string {
 	return libkb.VersionString()
 }
 
+func SetAppState(status string) string {
+	fmt.Printf("Received app state: %s", status)
+	return "success!"
+}
+
+func ShouldRequestExecutionTime() bool {
+
+}
+
 func startTrace(logFile string) {
 	if os.Getenv("KEYBASE_TRACE_MOBILE") != "1" {
 		return

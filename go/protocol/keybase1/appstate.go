@@ -15,6 +15,7 @@ const (
 	AppState_BACKGROUND       AppState = 1
 	AppState_INACTIVE         AppState = 2
 	AppState_BACKGROUNDACTIVE AppState = 3
+	AppState.BACKGROUNDFINAL
 )
 
 func (o AppState) DeepCopy() AppState { return o }
