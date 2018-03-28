@@ -824,7 +824,7 @@ type teamNotifyHandler struct {
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
+		changeCh:  make(chan keybase1.TeamChangedByIDArg, 10),
 		abandonCh: make(chan keybase1.TeamID, 10),
 		badgeCh:   make(chan keybase1.BadgeState, 10),
 	}
