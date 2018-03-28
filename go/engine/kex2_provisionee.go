@@ -312,6 +312,9 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, perUserKeyBox *keybas
 	// Finish the ephemeral key generation -- create a deviceEKStatement and
 	// prepare the boxMetadata for posting if we received a valid userEKBox
 	deviceEKStatement, signedDeviceEKStatement, userEKBoxMetadata, err := e.ephemeralKeygen(e.ctx.NetContext, userEKBox)
+	if err != nil {
+		return err
+	}
 
 	// post the key sigs to the api server
 	if err = e.postSigs(eddsaArgs, dhArgs, perUserKeyBox, userEKBoxMetadata, signedDeviceEKStatement); err != nil {
