@@ -14,7 +14,7 @@ type State = {
   focused: boolean,
   height: ?number,
   value: string,
-  selections: {selectionStart: number, selectionEnd: number} | null,
+  selections: {selectionStart: number, selectionEnd: number},
 }
 
 class Input extends Component<Props, State> {
@@ -32,7 +32,7 @@ class Input extends Component<Props, State> {
       focused: false,
       height: null,
       value: props.value || '',
-      selections: null,
+      selections: {selectionStart: 0, selectionEnd: 0},
     }
   }
 
