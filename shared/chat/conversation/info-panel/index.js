@@ -3,12 +3,13 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import {Box, Divider, HeaderHoc, List} from '../../../common-adapters'
 import {type Props as HeaderHocProps} from '../../../common-adapters/header-hoc'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 import {SmallTeamHeader, BigTeamHeader} from './header'
 import Notifications from './notifications/container'
 import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
+import RetentionPicker from '../../../teams/team/settings/retention/container'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -54,6 +55,7 @@ type InfoPanelProps = {
   onAddPeople: (?Element) => void,
   onViewTeam: () => void,
   onClickGear: (?Element) => void,
+  canSetRetention: boolean,
 
   // Used for big teams.
   canEditChannel: boolean,
@@ -62,6 +64,9 @@ type InfoPanelProps = {
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
 } & HeaderHocProps
+
+// FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
+// use this.props in _renderRow instead
 
 type AddPeopleRow = {
   type: 'add people',
@@ -88,6 +93,29 @@ const getDividerStyle = (row: DividerRow) => ({
   marginBottom: 'marginBottom' in row ? row.marginBottom : globalMargins.small,
   marginTop: 'marginTop' in row ? row.marginTop : globalMargins.small,
 })
+
+type RetentionRow = {
+  type: 'retention',
+  key: 'retention',
+  teamname: string,
+  isTeamWide: boolean,
+  isSmallTeam: boolean,
+}
+
+const retentionStyles = {
+  containerStyle: platformStyles({
+    common: {
+      marginLeft: 16,
+      marginRight: 45,
+    },
+    isMobile: {
+      marginRight: 16,
+    },
+  }),
+  dropdownStyle: {
+    width: '100%',
+  },
+}
 
 type SpacerRow = {
   type: 'spacer',
@@ -158,6 +186,7 @@ type TeamHeaderRow =
   | SpacerRow
   | NotificationsRow
   | ParticipantCountRow
+  | RetentionRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
@@ -215,6 +244,9 @@ const typeSizeEstimator = (row: Row): number => {
 
     case 'leave channel':
       return 17
+
+    case 'retention':
+      return 75
 
     default:
       // eslint-disable-next-line no-unused-expressions
@@ -313,6 +345,20 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
+      case 'retention':
+        return (
+          <RetentionPicker
+            key="retention"
+            containerStyle={retentionStyles.containerStyle}
+            dropdownStyle={retentionStyles.dropdownStyle}
+            conversationIDKey={this.props.selectedConversationIDKey}
+            teamname={row.teamname}
+            type="auto"
+            isTeamWide={row.isTeamWide}
+            isSmallTeam={row.isSmallTeam}
+          />
+        )
+
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(row.type: empty)
@@ -355,6 +401,24 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       if (props.smallTeam) {
         // Small team.
+        const retentionRows = props.canSetRetention
+          ? [
+              {
+                type: 'divider',
+                key: nextKey(),
+                marginBottom: 0,
+              },
+              {
+                type: 'retention',
+                key: 'retention',
+                conversationIDKey: props.selectedConversationIDKey,
+                teamname: props.teamname || '',
+                isTeamWide: props.smallTeam,
+                isSmallTeam: props.smallTeam,
+              },
+            ]
+          : []
+
         headerRows = [
           {type: 'spacer', key: nextKey(), height: globalMargins.small},
           smallTeamHeaderRow,
@@ -368,6 +432,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             type: 'notifications',
             key: 'notifications',
           },
+          ...retentionRows,
           {
             type: 'divider',
             key: nextKey(),
@@ -428,6 +493,24 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           ]
         } else {
           // Big team, no preview.
+          const retentionRows = props.canSetRetention
+            ? [
+                {
+                  type: 'divider',
+                  key: nextKey(),
+                  marginBottom: 0,
+                },
+                {
+                  type: 'retention',
+                  key: 'retention',
+                  conversationIDKey: props.selectedConversationIDKey,
+                  teamname: props.teamname || '',
+                  isTeamWide: props.smallTeam,
+                  isSmallTeam: props.smallTeam,
+                },
+              ]
+            : []
+
           headerRows = [
             headerRow,
             {
@@ -459,6 +542,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'notifications',
               key: 'notifications',
             },
+            ...retentionRows,
             {
               type: 'divider',
               key: nextKey(),

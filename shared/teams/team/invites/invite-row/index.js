@@ -25,20 +25,37 @@ export const TeamInviteRow = (props: Props) => {
         width: '100%',
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, alignItems: 'center'}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flexGrow: 1,
+          height: '100%',
+        }}
+      >
         <Avatar username={label} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Usernames
-            type="BodySemibold"
-            colorFollowing={true}
-            users={[{following, username: label, you: you === label}]}
-          />
-          <Box style={globalStyles.flexBoxRow}>
-            <Text type="BodySmall">{role && typeToLabel[role]}</Text>
+        <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, height: '100%', position: 'relative'}}>
+          <Box
+            style={{
+              ...globalStyles.fillAbsolute,
+              ...globalStyles.flexBoxRow,
+            }}
+          >
+            <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1, marginLeft: globalMargins.small}}>
+              <Usernames
+                type="BodySemibold"
+                colorFollowing={true}
+                inline={true}
+                users={[{following, username: label, you: you === label}]}
+              />
+              <Box style={globalStyles.flexBoxRow}>
+                <Text type="BodySmall">{role && typeToLabel[role]}</Text>
+              </Box>
+            </Box>
           </Box>
         </Box>
       </Box>
-      <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+      <Box style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.xtiny}}>
         <Button
           small={true}
           label={isMobile ? 'Cancel' : 'Cancel invite'}
