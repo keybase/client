@@ -8,7 +8,7 @@ import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
 
-import type {Props} from './input'
+import type {KeyboardType, Props} from './input'
 
 type State = {
   focused: boolean,
@@ -221,7 +221,7 @@ class Input extends Component<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    let keyboardType = this.props.keyboardType
+    let keyboardType: ?KeyboardType = this.props.keyboardType
     if (!keyboardType) {
       if (isAndroid && this.props.type === 'passwordVisible') {
         keyboardType = 'visible-password'

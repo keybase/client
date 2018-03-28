@@ -2,6 +2,23 @@
 import {Component} from 'react'
 import {type StylesCrossPlatform} from '../styles'
 
+export type KeyboardType =
+  | 'default'
+  | 'email-address'
+  | 'numeric'
+  | 'phone-pad'
+  // iOS only
+  | 'ascii-capable'
+  | 'numbers-and-punctuation'
+  | 'url'
+  | 'number-pad'
+  | 'name-phone-pad'
+  | 'decimal-pad'
+  | 'twitter'
+  | 'web-search'
+  // Android Only
+  | 'visible-password'
+
 export type Props = {
   // if true we use a smarter algorithm to decide when we need to recalculate our height
   // might be safe to use this everywhere but i wanted to limit it to just chat short term
@@ -42,22 +59,7 @@ export type Props = {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
   // If keyboardType is set, it overrides type.
-  keyboardType?:
-    | 'default'
-    | 'email-address'
-    | 'numeric'
-    | 'phone-pad'
-    // iOS only
-    | 'ascii-capable'
-    | 'numbers-and-punctuation'
-    | 'url'
-    | 'number-pad'
-    | 'name-phone-pad'
-    | 'decimal-pad'
-    | 'twitter'
-    | 'web-search'
-    // Android Only
-    | 'visible-password',
+  keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
 }
