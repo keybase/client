@@ -17,7 +17,16 @@ import {teamWaitingKey} from '../../constants/teams'
 
 import type {RowProps, Props} from './index'
 
-const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, waiting}: RowProps) => (
+const TeamRow = ({
+  canShowcase,
+  name,
+  isOpen,
+  membercount,
+  onPromote,
+  showcased,
+  waiting,
+  isExplicitMember,
+}: RowProps) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box
       style={{
@@ -55,8 +64,10 @@ const TeamRow = ({canShowcase, name, isOpen, membercount, onPromote, showcased, 
           waiting={waiting}
         />
       ) : (
-        <Text style={{color: globalColors.black_40, width: isMobile ? '35%' : '20%'}} type="BodySmall">
-          Admins aren’t allowing members to publish.
+        <Text style={{color: globalColors.black_40, width: isMobile ? '35%' : '25%'}} type="BodySmall">
+          {isExplicitMember
+            ? 'Admins aren’t allowing members to publish.'
+            : 'You are not a member. Add yourself to publish.'}
         </Text>
       )}
     </Box>
@@ -104,16 +115,16 @@ const ShowcaseTeamOffer = (props: Props) => (
         props.teamnames.map(name => (
           <TeamRow
             canShowcase={
-              props.teamNameToCanPerform[name] && props.teamNameToCanPerform[name].setMemberShowcase
+              (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
+              ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
             }
+            isExplicitMember={props.teamNameToRole[name] !== 'none'}
             key={name}
             name={name}
             isOpen={props.teamNameToIsOpen[name]}
             membercount={props.teammembercounts[name]}
             onPromote={promoted => props.onPromote(name, promoted)}
-            showcased={
-              props.teamNameToPublicitySettings[name] && props.teamNameToPublicitySettings[name].member
-            }
+            showcased={props.teamNameToIsShowcashing[name]}
             waiting={!!props.waiting[teamWaitingKey(name)]}
           />
         ))}

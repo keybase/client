@@ -553,6 +553,10 @@ protocol teams {
     union{null, ImplicitRole} implicit;
     @jsonkey("member_count")
     int memberCount;
+    @jsonkey("allow_profile_promote")
+    boolean allowProfilePromote;
+    @jsonkey("is_member_showcased")
+    boolean isMemberShowcased;
   }
 
   record TeamList {
@@ -582,6 +586,10 @@ protocol teams {
     @jsonkey("member_eldest_seqno")
     Seqno eldestSeqno;
     boolean active;
+    @jsonkey("allow_profile_promote")
+    boolean allowProfilePromote;
+    @jsonkey("is_member_showcased")
+    boolean isMemberShowcased;
   }
 
   record AnnotatedTeamList {
