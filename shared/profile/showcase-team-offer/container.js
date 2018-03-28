@@ -22,8 +22,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  loadPublicitySettings: teamname => dispatch(TeamsGen.createGetTeamPublicity({teamname})),
-  loadTeamOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
+  loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
