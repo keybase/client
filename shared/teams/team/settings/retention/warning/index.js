@@ -36,7 +36,7 @@ const Wrapper = ({children, onBack}) =>
 const RetentionWarning = (props: Props) => {
   const policyString = daysToLabel(props.days)
   return (
-    <Wrapper onBack={props.onBack}>
+    <Wrapper onBack={props.onCancel}>
       <Box style={containerStyle}>
         <Icon type={iconType} style={iconStyle} />
         <Text type="Header" style={headerStyle}>
