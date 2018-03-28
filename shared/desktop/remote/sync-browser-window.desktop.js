@@ -11,19 +11,6 @@ import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
 const ipcRenderer = electron.ipcRenderer
 
-const devScripts = __DEV__
-  ? [
-      {
-        async: false,
-        src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-      },
-      {
-        async: false,
-        src: hotPath('common-chunks.js'),
-      },
-    ]
-  : []
-
 type Props = {
   windowOpts: Object,
   windowPositionBottomRight: boolean,
@@ -49,7 +36,6 @@ const sendLoad = (webContents: any, windowParam: string, windowComponent: string
   webContents.send('load', {
     windowComponent,
     scripts: [
-      ...devScripts,
       {
         async: false,
         src: hotPath('component-loader.bundle.js'),
