@@ -37,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     teamNameToCanPerform: stateProps._teamNameToCanPerform.toObject(),
     teamNameToPublicitySettings: stateProps._teamNameToPublicitySettings.toObject(),
     teamnames,
-    title: 'Showcase teams',
+    title: 'Publish your teams',
     waiting: stateProps._waiting.toObject(),
   }
 }
