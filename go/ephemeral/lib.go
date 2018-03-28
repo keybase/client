@@ -318,11 +318,7 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 }
 
 func (e *EKLib) NewDeviceEphemeralSeed() (seed keybase1.Bytes32, err error) {
-	deviceEKSeed, err := newDeviceEphemeralSeed()
-	if err != nil {
-		return seed, nil
-	}
-	return keybase1.Bytes32(deviceEKSeed), nil
+	return makeNewRandomSeed()
 }
 
 func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {

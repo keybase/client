@@ -11,15 +11,16 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestKex2Provision(t *testing.T) {
-	subTestKex2Provision(t, false)
+	subTestKex2Provision(t, false /* upgradePerUserKey */)
 }
 
 func TestKex2ProvisionPUK(t *testing.T) {
-	subTestKex2Provision(t, true)
+	subTestKex2Provision(t, true /* upgradePerUserKey */)
 }
 
 func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
@@ -32,29 +33,37 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// provisioner needs to be logged in
 	userX, err := kbtest.CreateAndSignupFakeUser("X", tcX.G)
 	require.NoError(t, err)
-
-	// The test user has a PUK, but it's not automatically loaded. We have to
-	// explicitly sync it.
-	keyring, err := tcX.G.GetPerUserKeyring()
-	require.NoError(t, err)
-	err = keyring.Sync(context.Background())
-	require.NoError(t, err)
-
 	// provisioner needs to be logged in
 	err = userX.Login(tcX.G)
 	require.NoError(t, err)
 
-	ekLib := tcX.G.GetEKLib()
-	err = ekLib.KeygenIfNeeded(context.Background())
-	require.NoError(t, err)
+	// If we don't have a PUK, we can't make any EKs.
+	if upgradePerUserKey {
+		// The test user has a PUK, but it's not automatically loaded. We have to
+		// explicitly sync it.
+		keyring, err := tcX.G.GetPerUserKeyring()
+		require.NoError(t, err)
+		err = keyring.Sync(context.Background())
+		require.NoError(t, err)
+
+		ekLib := tcX.G.GetEKLib()
+		err = ekLib.KeygenIfNeeded(context.Background())
+		require.NoError(t, err)
+	}
 
 	// After the provision, Y should have access to this userEK generation
 	userEKBoxStorageX := tcX.G.GetUserEKBoxStorage()
-	expectedUserEKGen, err := userEKBoxStorageX.MaxGeneration(context.Background())
+	userEKGenX, err := userEKBoxStorageX.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.True(t, expectedUserEKGen > 0)
-	userEKX, err := userEKBoxStorageX.Get(context.Background(), expectedUserEKGen)
-	require.NoError(t, err)
+
+	var userEKX keybase1.UserEk
+	if upgradePerUserKey {
+		require.True(t, userEKGenX > 0)
+		userEKX, err = userEKBoxStorageX.Get(context.Background(), userEKGenX)
+		require.NoError(t, err)
+	} else {
+		require.EqualValues(t, userEKGenX, -1)
+	}
 
 	// device Y (provisionee) context:
 	tcY := libkb.SetupTest(t, "kex2provision", 2)
@@ -130,19 +139,23 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 	wg.Wait()
 
-	// Confirm that Y has a deviceEK.
 	deviceEKStorageY := tcY.G.GetDeviceEKStorage()
 	maxDeviceEKGenerationY, err := deviceEKStorageY.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.True(t, maxDeviceEKGenerationY > 0)
-	_, err = deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
-	require.NoError(t, err)
-
-	// Confirm Y has a userEK at the same generation as X.
+	if upgradePerUserKey {
+		// Confirm that Y has a deviceEK.
+		require.True(t, maxDeviceEKGenerationY > 0)
+		_, err = deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
+		require.NoError(t, err)
+	} else {
+		require.EqualValues(t, -1, maxDeviceEKGenerationY)
+	}
+	// Confirm Y has a userEK at the same generation as X. If we didn't have a
+	// PUK this generation will be -1.
 	userEKBoxStorageY := tcY.G.GetUserEKBoxStorage()
-	maxUserEKGenerationY, err := userEKBoxStorageY.MaxGeneration(context.Background())
+	userEKGenY, err := userEKBoxStorageY.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, expectedUserEKGen, maxUserEKGenerationY)
-	userEKY, err := userEKBoxStorageY.Get(context.Background(), maxUserEKGenerationY)
+	require.EqualValues(t, userEKGenX, userEKGenY)
+	userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
 	require.Equal(t, userEKY, userEKX)
 }

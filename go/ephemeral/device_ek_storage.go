@@ -119,12 +119,8 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 func (s *DeviceEKStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.get(ctx, generation)
-}
 
-func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
-	defer s.G().CTrace(ctx, fmt.Sprintf("DeviceEKStorage#get: generation:%v", generation), func() error { return err })()
-
+	// Try the cache first
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return deviceEK, err
@@ -133,6 +129,18 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	if ok {
 		return deviceEK, nil
 	}
+	// Try persistent storage.
+	deviceEK, err = s.get(ctx, generation)
+	if err != nil {
+		return deviceEK, err
+	}
+	// cache the result
+	cache[generation] = deviceEK
+	return deviceEK, nil
+}
+
+func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGeneration) (deviceEK keybase1.DeviceEk, err error) {
+	defer s.G().CTrace(ctx, fmt.Sprintf("DeviceEKStorage#get: generation:%v", generation), func() error { return err })()
 
 	key, err := s.key(ctx, generation)
 	if err != nil {
@@ -143,8 +151,6 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 		return deviceEK, err
 	}
 
-	// cache the result
-	cache[generation] = deviceEK
 	return deviceEK, nil
 }
 
@@ -167,11 +173,7 @@ func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGene
 	if err != nil {
 		return err
 	}
-	err = s.storage.Erase(ctx, key)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.storage.Erase(ctx, key)
 }
 
 func (s *DeviceEKStorage) getCache(ctx context.Context) (cache DeviceEKMap, err error) {
