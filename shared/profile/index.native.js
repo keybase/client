@@ -42,20 +42,22 @@ type State = {
   activeMenuProof: ?Proof,
 }
 
-const EditControl = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
+const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
     <Text type="BodySmallSemibold">Teams</Text>
-    <Icon style={{marginLeft: 2}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+    {!!isYou && (
+      <Icon style={{margin: 2, width: 22, height: 22}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+    )}
   </Box>
 )
 
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
   <ClickableBox onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
     <Box style={styleShowcasedTeamAvatar}>
-      <Icon type="icon-team-placeholder-avatar-32" size={32} />
+      <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmallInlineLink">
+    <Box style={{...globalStyles.flexBoxRow, marginTop: 4}}>
+      <Text style={{color: globalColors.black_20}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Text>
     </Box>
@@ -234,7 +236,7 @@ class Profile extends Component<Props, State> {
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
 
     const showEdit =
-      (this.props.userInfo && this.props.userInfo.showcasedTeams.length > 0) ||
+      (!this.props.isYou && this.props.userInfo && this.props.userInfo.showcasedTeams.length > 0) ||
       (this.props.isYou && this.props.youAreInTeams)
 
     const showShowcaseTeamsOffer = this.props.isYou && this.props.youAreInTeams
@@ -287,7 +289,9 @@ class Profile extends Component<Props, State> {
             alignItems: 'flex-start',
           }}
         >
-          {showEdit && <EditControl onClickShowcaseOffer={this.props.onClickShowcaseOffer} />}
+          {showEdit && (
+            <EditControl isYou={this.props.isYou} onClickShowcaseOffer={this.props.onClickShowcaseOffer} />
+          )}
 
           {this.props.userInfo.showcasedTeams.length > 0
             ? this.props.userInfo.showcasedTeams.map(team => (
@@ -301,7 +305,7 @@ class Profile extends Component<Props, State> {
                 <ShowcaseTeamsOffer onClickShowcaseOffer={this.props.onClickShowcaseOffer} />
               )}
         </Box>
-        )}
+
         <Box style={styleProofsAndFolders}>
           <LoadingWrapper
             duration={500}
