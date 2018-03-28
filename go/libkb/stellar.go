@@ -1,11 +1,11 @@
 package libkb
 
 import (
-	"github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stellar/go/strkey"
 )
 
-func MakeNaclSigningKeyPairFromStellarAccountID(accountID keybase1.StellarAccountID) (res NaclSigningKeyPair, err error) {
+func MakeNaclSigningKeyPairFromStellarAccountID(accountID stellar1.AccountID) (res NaclSigningKeyPair, err error) {
 	byteSlice, err := strkey.Decode(strkey.VersionByteAccountID, accountID.String())
 	if err != nil {
 		return res, err
@@ -20,8 +20,8 @@ func MakeNaclSigningKeyPairFromStellarAccountID(accountID keybase1.StellarAccoun
 	}, nil
 }
 
-func MakeNaclSigningKeyPairFromStellarSecretKey(sec keybase1.StellarSecretKey) (res NaclSigningKeyPair, err error) {
-	byteSlice, err := strkey.Decode(strkey.VersionByteSeed, sec.String())
+func MakeNaclSigningKeyPairFromStellarSecretKey(sec stellar1.SecretKey) (res NaclSigningKeyPair, err error) {
+	byteSlice, err := strkey.Decode(strkey.VersionByteSeed, sec.SecureNoLogString())
 	if err != nil {
 		return res, err
 	}

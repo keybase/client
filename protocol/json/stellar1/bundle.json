@@ -1,40 +1,27 @@
 {
-  "protocol": "stellar",
+  "protocol": "bundle",
   "imports": [
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
     {
       "type": "record",
-      "name": "StellarAccountID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "StellarSecretKey",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "StellarRevision",
+      "name": "BundleRevision",
       "fields": [],
       "typedef": "uint64",
       "lint": "ignore"
     },
     {
       "type": "record",
-      "name": "Hash",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
-      "type": "record",
-      "name": "EncryptedStellarBundle",
+      "name": "EncryptedBundle",
       "fields": [
         {
           "type": "int",
@@ -45,27 +32,27 @@
           "name": "e"
         },
         {
-          "type": "BoxNonce",
+          "type": "keybase1.BoxNonce",
           "name": "n"
         },
         {
-          "type": "PerUserKeyGeneration",
+          "type": "keybase1.PerUserKeyGeneration",
           "name": "gen"
         }
       ]
     },
     {
       "type": "enum",
-      "name": "StellarBundleVersion",
+      "name": "BundleVersion",
       "symbols": [
         "V1_1"
       ]
     },
     {
       "type": "variant",
-      "name": "StellarBundleSecretVersioned",
+      "name": "BundleSecretVersioned",
       "switch": {
-        "type": "StellarBundleVersion",
+        "type": "BundleVersion",
         "name": "version"
       },
       "cases": [
@@ -74,16 +61,16 @@
             "name": "V1",
             "def": false
           },
-          "body": "StellarBundleSecretV1"
+          "body": "BundleSecretV1"
         }
       ]
     },
     {
       "type": "record",
-      "name": "StellarBundleVisibleV1",
+      "name": "BundleVisibleV1",
       "fields": [
         {
-          "type": "StellarRevision",
+          "type": "BundleRevision",
           "name": "revision"
         },
         {
@@ -93,7 +80,7 @@
         {
           "type": {
             "type": "array",
-            "items": "StellarVisibleEntry"
+            "items": "BundleVisibleEntry"
           },
           "name": "accounts"
         }
@@ -101,7 +88,7 @@
     },
     {
       "type": "record",
-      "name": "StellarBundleSecretV1",
+      "name": "BundleSecretV1",
       "fields": [
         {
           "type": "Hash",
@@ -110,7 +97,7 @@
         {
           "type": {
             "type": "array",
-            "items": "StellarSecretEntry"
+            "items": "BundleSecretEntry"
           },
           "name": "accounts"
         }
@@ -118,7 +105,7 @@
     },
     {
       "type": "enum",
-      "name": "StellarAccountMode",
+      "name": "AccountMode",
       "symbols": [
         "NONE_0",
         "USER_1"
@@ -126,14 +113,14 @@
     },
     {
       "type": "record",
-      "name": "StellarVisibleEntry",
+      "name": "BundleVisibleEntry",
       "fields": [
         {
-          "type": "StellarAccountID",
+          "type": "AccountID",
           "name": "accountID"
         },
         {
-          "type": "StellarAccountMode",
+          "type": "AccountMode",
           "name": "mode"
         },
         {
@@ -144,16 +131,16 @@
     },
     {
       "type": "record",
-      "name": "StellarSecretEntry",
+      "name": "BundleSecretEntry",
       "fields": [
         {
-          "type": "StellarAccountID",
+          "type": "AccountID",
           "name": "accountID"
         },
         {
           "type": {
             "type": "array",
-            "items": "StellarSecretKey"
+            "items": "SecretKey"
           },
           "name": "signers"
         },
@@ -165,10 +152,10 @@
     },
     {
       "type": "record",
-      "name": "StellarBundle",
+      "name": "Bundle",
       "fields": [
         {
-          "type": "StellarRevision",
+          "type": "BundleRevision",
           "name": "revision"
         },
         {
@@ -182,7 +169,7 @@
         {
           "type": {
             "type": "array",
-            "items": "StellarEntry"
+            "items": "BundleEntry"
           },
           "name": "accounts"
         }
@@ -190,14 +177,14 @@
     },
     {
       "type": "record",
-      "name": "StellarEntry",
+      "name": "BundleEntry",
       "fields": [
         {
-          "type": "StellarAccountID",
+          "type": "AccountID",
           "name": "accountID"
         },
         {
-          "type": "StellarAccountMode",
+          "type": "AccountMode",
           "name": "mode"
         },
         {
@@ -207,7 +194,7 @@
         {
           "type": {
             "type": "array",
-            "items": "StellarSecretKey"
+            "items": "SecretKey"
           },
           "name": "signers"
         },
@@ -219,5 +206,5 @@
     }
   ],
   "messages": {},
-  "namespace": "keybase.1"
+  "namespace": "stellar.1"
 }

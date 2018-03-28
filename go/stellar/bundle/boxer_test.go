@@ -7,10 +7,11 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stretchr/testify/require"
 )
 
-const v1 = keybase1.StellarBundleVersion_V1
+const v1 = stellar1.BundleVersion_V1
 
 type canned struct {
 	pukSeedB64 string
@@ -170,15 +171,15 @@ func TestCanned(t *testing.T) {
 	bundle, v, err := Unbox(dec, c.visB64, c.puk(t))
 	require.NoError(t, err)
 	require.Equal(t, v1, v)
-	require.Equal(t, keybase1.StellarRevision(1), bundle.Revision)
+	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
 	require.Nil(t, bundle.Prev)
 	require.Equal(t, "CPbPvX1CVoMD60+dQhyLcW5pBY3758YAGUWN4Swxuy0=", base64.StdEncoding.EncodeToString(bundle.OwnHash))
 	require.Equal(t, encHash[:], []byte(bundle.OwnHash))
 	require.Len(t, bundle.Accounts, 1)
-	refAccount := keybase1.StellarEntry{
+	refAccount := stellar1.BundleEntry{
 		AccountID: "GDGRUNNTTEHFSGGNNENIFCXLHI5FGCRNB554HHYGDPBV5D3OCKZBSZO2",
-		Mode:      keybase1.StellarAccountMode_USER,
-		Signers:   []keybase1.StellarSecretKey{"SAGWDNEMLK2Z65NXQUGP6UMR4MDYZ3UQSUXLIEZU6KENJXEHEGIS23BT"},
+		Mode:      stellar1.AccountMode_USER,
+		Signers:   []stellar1.SecretKey{"SAGWDNEMLK2Z65NXQUGP6UMR4MDYZ3UQSUXLIEZU6KENJXEHEGIS23BT"},
 		IsPrimary: true,
 		Name:      "",
 	}
@@ -230,34 +231,34 @@ func TestBoxInvariantViolationDuplicateAccount(t *testing.T) {
 	require.Contains(t, err.Error(), "duplicate account ID")
 }
 
-func sampleBundle() keybase1.StellarBundle {
-	return keybase1.StellarBundle{
+func sampleBundle() stellar1.Bundle {
+	return stellar1.Bundle{
 		Revision: 1,
 		Prev:     nil,
-		Accounts: []keybase1.StellarEntry{{
+		Accounts: []stellar1.BundleEntry{{
 			AccountID: "GDRDPWSPKOEUNYZMWKNEC3WZTEDPT6XYGDWNO4VIASTFFZYS5WII2762",
-			Mode:      keybase1.StellarAccountMode_USER,
-			Signers:   []keybase1.StellarSecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
+			Mode:      stellar1.AccountMode_USER,
+			Signers:   []stellar1.SecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
 			IsPrimary: true,
 			Name:      "",
 		}},
 	}
 }
 
-func bundleDuplicateAccountIDs() keybase1.StellarBundle {
-	return keybase1.StellarBundle{
+func bundleDuplicateAccountIDs() stellar1.Bundle {
+	return stellar1.Bundle{
 		Revision: 1,
 		Prev:     nil,
-		Accounts: []keybase1.StellarEntry{{
+		Accounts: []stellar1.BundleEntry{{
 			AccountID: "GDRDPWSPKOEUNYZMWKNEC3WZTEDPT6XYGDWNO4VIASTFFZYS5WII2762",
-			Mode:      keybase1.StellarAccountMode_USER,
-			Signers:   []keybase1.StellarSecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
+			Mode:      stellar1.AccountMode_USER,
+			Signers:   []stellar1.SecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
 			IsPrimary: true,
 			Name:      "p1",
 		}, {
 			AccountID: "GDRDPWSPKOEUNYZMWKNEC3WZTEDPT6XYGDWNO4VIASTFFZYS5WII2762",
-			Mode:      keybase1.StellarAccountMode_USER,
-			Signers:   []keybase1.StellarSecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
+			Mode:      stellar1.AccountMode_USER,
+			Signers:   []stellar1.SecretKey{"SDGCPMBQHYAIWM3PQOEKWICDMLVT7REJ24J26QEYJYGB6FJRPTKDULQX"},
 			IsPrimary: false,
 			Name:      "p2",
 		}},

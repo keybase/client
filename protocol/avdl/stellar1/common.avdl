@@ -1,10 +1,12 @@
-
-@namespace("stellar.1") protocol common {
+@namespace("stellar.1")
+protocol common {
 
   @typedef("string") record AccountID {}
+  @typedef("string") record SecretKey {}
   @typedef("string") record TransactionID {}
   @typedef("string") record KeybaseTransactionID {}
   @typedef("long")   record TimeMs {} // ms since epoch
+  @typedef("bytes")  record Hash {}
 
   record Asset {
     string type;

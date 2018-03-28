@@ -10,6 +10,12 @@
     },
     {
       "type": "record",
+      "name": "SecretKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TransactionID",
       "fields": [],
       "typedef": "string"
@@ -25,6 +31,12 @@
       "name": "TimeMs",
       "fields": [],
       "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "Hash",
+      "fields": [],
+      "typedef": "bytes"
     },
     {
       "type": "record",

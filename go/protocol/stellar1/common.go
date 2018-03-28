@@ -13,6 +13,12 @@ func (o AccountID) DeepCopy() AccountID {
 	return o
 }
 
+type SecretKey string
+
+func (o SecretKey) DeepCopy() SecretKey {
+	return o
+}
+
 type TransactionID string
 
 func (o TransactionID) DeepCopy() TransactionID {
@@ -29,6 +35,17 @@ type TimeMs int64
 
 func (o TimeMs) DeepCopy() TimeMs {
 	return o
+}
+
+type Hash []byte
+
+func (o Hash) DeepCopy() Hash {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
 }
 
 type Asset struct {
