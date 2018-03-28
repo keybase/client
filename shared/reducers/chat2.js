@@ -135,8 +135,7 @@ const metaMapReducer = (metaMap, action) => {
       }
       const newMeta = Constants.inboxUIItemToConversationMeta(update.conv)
       if (!newMeta) {
-        // public conversation, do nothing
-        logger.warn('Unable to parse inboxUIItem in conv retention policy update')
+        logger.warn('Invalid inboxUIItem received in conv retention policy update')
         return metaMap
       }
       return metaMap.set(newMeta.conversationIDKey, newMeta)

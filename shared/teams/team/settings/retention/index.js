@@ -250,18 +250,18 @@ const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): numbe
 }
 // For getting the number of days a retention policy resolves to
 const policyToDays = (p: RetentionPolicy, parent?: RetentionPolicy) => {
-  let ret = 0
+  let days = 0
   switch (p.type) {
     case 'inherit':
       if (!parent) {
         throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
       }
-      ret = policyToDays(parent)
+      days = policyToDays(parent)
       break
     case 'expire':
-      ret = p.days
+      days = p.days
   }
-  return ret
+  return days
 }
 const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
   if (p1 && p2) {
@@ -271,11 +271,7 @@ const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
 }
 
 // Switcher to avoid having RetentionPicker try to process nonexistent data
-const RetentionSwitcher = (props: Props) => {
-  if (props.loading) {
-    return <ProgressIndicator style={progressIndicatorStyle} />
-  }
-  return <RetentionPicker {...props} />
-}
+const RetentionSwitcher = (props: Props) =>
+  props.loading ? <ProgressIndicator style={progressIndicatorStyle} /> : <RetentionPicker {...props} />
 
 export default RetentionSwitcher

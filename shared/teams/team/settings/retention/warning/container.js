@@ -14,12 +14,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
     onBack,
     onCancel: () => {
       onBack()
-      const onCancel: () => void = routeProps.get('onCancel')
+      const onCancel: ?() => void = routeProps.get('onCancel')
       onCancel && onCancel()
     },
     onConfirm: () => {
       onBack()
-      const cb: () => void = routeProps.get('onConfirm')
+      const cb: ?() => void = routeProps.get('onConfirm')
       cb && cb()
     },
   }
