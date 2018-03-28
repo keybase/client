@@ -1146,6 +1146,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.EditChannelDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.True(t, annPerms.SetMemberShowcase)
+	require.True(t, annPerms.SetRetentionPolicy)
 	require.True(t, annPerms.ChangeOpenTeam)
 	require.False(t, annPerms.LeaveTeam) // sole owner can't leave
 	require.False(t, annPerms.ListFirst) // only true for implicit admins
@@ -1163,6 +1164,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.EditChannelDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.True(t, bobPerms.SetMemberShowcase)
+	require.True(t, bobPerms.SetRetentionPolicy)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.True(t, bobPerms.LeaveTeam)
 	require.False(t, bobPerms.ListFirst)
@@ -1181,6 +1183,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, pamPerms.EditChannelDescription)
 	require.False(t, pamPerms.SetTeamShowcase)
 	require.True(t, pamPerms.SetMemberShowcase)
+	require.False(t, pamPerms.SetRetentionPolicy)
 	require.False(t, pamPerms.ChangeOpenTeam)
 	require.True(t, pamPerms.LeaveTeam)
 	require.False(t, pamPerms.ListFirst)
@@ -1199,6 +1202,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.EditChannelDescription)
 	require.False(t, eddPerms.SetTeamShowcase)
 	require.True(t, eddPerms.SetMemberShowcase)
+	require.False(t, eddPerms.SetRetentionPolicy)
 	require.False(t, eddPerms.ChangeOpenTeam)
 	require.True(t, eddPerms.LeaveTeam)
 	require.False(t, eddPerms.ListFirst)
@@ -1220,6 +1224,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, annPerms.EditChannelDescription)
 	require.True(t, annPerms.SetTeamShowcase)
 	require.False(t, annPerms.SetMemberShowcase)
+	require.False(t, annPerms.SetRetentionPolicy)
 	require.True(t, annPerms.ChangeOpenTeam) // not a member of the subteam
 	require.True(t, annPerms.ListFirst)
 	require.True(t, annPerms.JoinTeam)
@@ -1236,6 +1241,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, bobPerms.EditChannelDescription)
 	require.True(t, bobPerms.SetTeamShowcase)
 	require.False(t, bobPerms.SetMemberShowcase)
+	require.False(t, bobPerms.SetRetentionPolicy)
 	require.True(t, bobPerms.ChangeOpenTeam)
 	require.False(t, bobPerms.LeaveTeam) // not a member of the subteam
 	require.True(t, bobPerms.ListFirst)
@@ -1262,6 +1268,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.EditChannelDescription)
 	require.False(t, donnyPerms.SetTeamShowcase)
 	require.False(t, donnyPerms.SetMemberShowcase)
+	require.False(t, donnyPerms.SetRetentionPolicy)
 	require.False(t, donnyPerms.ChangeOpenTeam)
 	require.False(t, donnyPerms.ListFirst)
 	// TBD: require.True(t, donnyPerms.JoinTeam)

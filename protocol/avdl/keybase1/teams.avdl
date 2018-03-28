@@ -788,6 +788,7 @@ protocol teams {
     boolean editChannelDescription;
     boolean setTeamShowcase;
     boolean setMemberShowcase;
+    boolean setRetentionPolicy;
     boolean changeOpenTeam;
     boolean leaveTeam;
     boolean joinTeam;

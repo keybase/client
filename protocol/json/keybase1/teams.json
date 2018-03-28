@@ -1784,6 +1784,10 @@
         },
         {
           "type": "boolean",
+          "name": "setRetentionPolicy"
+        },
+        {
+          "type": "boolean",
           "name": "changeOpenTeam"
         },
         {

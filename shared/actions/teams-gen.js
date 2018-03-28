@@ -24,6 +24,7 @@ export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamPublicity = 'teams:getTeamPublicity'
+export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const getTeams = 'teams:getTeams'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByEmail = 'teams:inviteToTeamByEmail'
@@ -39,11 +40,25 @@ export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
+export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setupTeamHandlers = 'teams:setupTeamHandlers'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 
 // Action Creators
+/**
+ * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
+ */
+export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamRetentionPolicy})
+/**
+ * Sets the retention policy for a team. The store will be updated automatically.
+ */
+export const createSetTeamRetentionPolicy = (
+  payload: $ReadOnly<{
+    teamname: string,
+    policy: Types.RetentionPolicy,
+  }>
+) => ({error: false, payload, type: setTeamRetentionPolicy})
 export const createAddPeopleToTeam = (
   payload: $ReadOnly<{
     teamname: string,
@@ -200,6 +215,7 @@ export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
 export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
 export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
 export type GetTeamPublicityPayload = More.ReturnType<typeof createGetTeamPublicity>
+export type GetTeamRetentionPolicyPayload = More.ReturnType<typeof createGetTeamRetentionPolicy>
 export type GetTeamsPayload = More.ReturnType<typeof createGetTeams>
 export type IgnoreRequestPayload = More.ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByEmailPayload = More.ReturnType<typeof createInviteToTeamByEmail>
@@ -215,6 +231,7 @@ export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCr
 export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
 export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinError>
 export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
+export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetupTeamHandlersPayload = More.ReturnType<typeof createSetupTeamHandlers>
 export type UpdateChannelNamePayload = More.ReturnType<typeof createUpdateChannelName>
 export type UpdateTopicPayload = More.ReturnType<typeof createUpdateTopic>
@@ -236,6 +253,7 @@ export type Actions =
   | More.ReturnType<typeof createGetDetails>
   | More.ReturnType<typeof createGetTeamOperations>
   | More.ReturnType<typeof createGetTeamPublicity>
+  | More.ReturnType<typeof createGetTeamRetentionPolicy>
   | More.ReturnType<typeof createGetTeams>
   | More.ReturnType<typeof createIgnoreRequest>
   | More.ReturnType<typeof createInviteToTeamByEmail>
@@ -251,6 +269,7 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamCreationPending>
   | More.ReturnType<typeof createSetTeamJoinError>
   | More.ReturnType<typeof createSetTeamJoinSuccess>
+  | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetupTeamHandlers>
   | More.ReturnType<typeof createUpdateChannelName>
   | More.ReturnType<typeof createUpdateTopic>

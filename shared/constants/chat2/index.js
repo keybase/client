@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
-import {makeConversationMeta} from './meta'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 
@@ -24,9 +23,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   unreadMap: I.Map(),
 })
 
-const emptyMeta = makeConversationMeta()
-export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.metaMap.get(id, emptyMeta)
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -74,6 +70,7 @@ export const isUserActivelyLookingAtThisThread = (
 export {
   findConversationFromParticipants,
   getConversationIDKeyMetasToLoad,
+  getMeta,
   getRowParticipants,
   getRowStyles,
   inboxUIItemToConversationMeta,
