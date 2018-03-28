@@ -487,6 +487,7 @@ func (d *Service) startupGregor() {
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
 		d.gregor.PushHandler(d.home)
+		d.gregor.PushHandler(newEKHandler(d.G()))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {

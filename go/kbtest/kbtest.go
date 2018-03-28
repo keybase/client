@@ -209,8 +209,8 @@ func (n *TeamNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 
 func NewTeamNotifyListener() *TeamNotifyListener {
 	return &TeamNotifyListener{
-		changeByIDCh:   make(chan keybase1.TeamChangedByIDArg, 1),
-		changeByNameCh: make(chan keybase1.TeamChangedByNameArg, 1),
+		changeByIDCh:   make(chan keybase1.TeamChangedByIDArg, 10),
+		changeByNameCh: make(chan keybase1.TeamChangedByNameArg, 10),
 	}
 }
 
