@@ -3,18 +3,22 @@
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
-import DashboardPlugin from 'webpack-dashboard/plugin'
 import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
 import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 
-let flags = null
+// When we start the hot server we want to build the main/dll without hot reloading statically
+const config = (env, argv) => {
+  const isDev = !argv.mode !== 'production'
+  const flags = {
+    isDev,
+    isHot: getenv.boolish('HOT', false),
+  }
 
-// The common config all other derive from
-const makeCommonConfig = () => {
-  const makeRules = () => {
+  console.log('Flags: ', flags)
+  const makeCommonConfig = () => {
     const fileLoaderRule = {
       loader: 'file-loader',
       options: {
@@ -29,6 +33,7 @@ const makeCommonConfig = () => {
         babelrc: false,
         cacheDirectory: true,
         plugins: [
+          'react-hot-loader/babel',
           ['transform-builtin-extend', {globals: ['Error']}], // we override Error sometimes
           'transform-flow-strip-types', // ignore flow
           'transform-object-rest-spread', // not supported by electrons node yet
@@ -49,7 +54,7 @@ const makeCommonConfig = () => {
       },
     }
 
-    return [
+    const rules = [
       {
         // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
@@ -80,125 +85,87 @@ const makeCommonConfig = () => {
         use: ['style-loader', 'css-loader'],
       },
     ]
-  }
 
-  const makeCommonPlugins = () => {
-    const defines = {
-      __DEV__: flags.isDev,
-      __HOT__: flags.isHot,
-      __SCREENSHOT__: false,
-      __STORYBOOK__: false,
-      __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
-      'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
-    }
-    console.warn('Injecting defines: ', defines)
-    const definePlugin = [new webpack.DefinePlugin(defines)]
-
-    const uglifyPlugin = flags.isDev
-      ? []
-      : [
-          new UglifyJSPlugin({
-            sourceMap: true,
-            uglifyOptions: {
-              output: {
-                comments: false,
+    const makeCommonPlugins = () => {
+      const defines = {
+        __DEV__: flags.isDev,
+        __HOT__: flags.isHot,
+        __SCREENSHOT__: false,
+        __STORYBOOK__: false,
+        __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
+      }
+      console.warn('Injecting defines: ', defines)
+      const definePlugin = [new webpack.DefinePlugin(defines)]
+      const uglifyPlugin = flags.isDev
+        ? []
+        : [
+            new UglifyJSPlugin({
+              sourceMap: true,
+              uglifyOptions: {
+                output: {
+                  comments: false,
+                },
               },
-            },
-          }),
-        ]
+            }),
+          ]
 
-    return [...definePlugin, ...uglifyPlugin].filter(Boolean)
+      return [...definePlugin, ...uglifyPlugin].filter(Boolean)
+    }
+
+    // If we use the hot server it pulls in this config
+    const devServer = {
+      compress: false,
+      contentBase: path.resolve(__dirname, 'dist'),
+      hot: flags.isHot,
+      lazy: false,
+      overlay: true,
+      port: 4000,
+      publicPath: 'http://localhost:4000/dist/',
+      quiet: false,
+      stats: {colors: true},
+    }
+
+    return {
+      bail: true,
+      devServer,
+      module: {rules},
+      node: {__dirname: true},
+      output: {
+        filename: '[name].bundle.js',
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: flags.isHot ? 'http://localhost:4000/dist/' : '../dist/',
+      },
+      plugins: makeCommonPlugins(),
+      resolve: {
+        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+      },
+    }
   }
 
-  // If we use the hot server it pulls in this config
-  const devServer = {
-    compress: false,
-    contentBase: path.resolve(__dirname, 'dist'),
-    hot: flags.isHot,
-    lazy: false,
-    overlay: true,
-    port: 4000,
-    publicPath: 'http://localhost:4000/dist/',
-    quiet: false,
-    stats: {
-      colors: true,
-    },
-  }
-
-  return {
-    bail: true,
-    cache: flags.isDev,
-    devServer,
-    module: {
-      strictExportPresence: true,
-      rules: makeRules(),
-    },
-    node: {
-      __dirname: true,
-    },
-    output: {
-      filename: '[name].bundle.js',
-      path: path.resolve(__dirname, 'dist'),
-      publicPath: flags.isHot ? 'http://localhost:4000/dist/' : '../dist/',
-    },
-    plugins: makeCommonPlugins(),
-    resolve: {
-      extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
-    },
-  }
-}
-
-const makeRenderThreadConfig = () => {
-  // Have to inject some additional code if we're using HMR
-  const HMREntries =
-    flags.isHot && flags.isDev
-      ? [
-          'react-hot-loader/patch',
-          'webpack-dev-server/client?http://localhost:4000',
-          'webpack/hot/only-dev-server',
-        ]
-      : []
-
-  return merge(makeCommonConfig(), {
-    context: path.resolve(__dirname, '..'),
-    // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
-    // Some eval sourcemaps cause issues with closures in chromium due to some bugs.
-    devtool: flags.isDev ? 'eval' : 'source-map',
-    entry: {
-      'component-loader': [...HMREntries, './desktop/remote/component-loader.js'],
-      index: [...HMREntries, './desktop/renderer/index.js'],
-    },
-    name: 'renderThread',
-    plugins: [
-      ...(flags.isShowingDashboard ? [new DashboardPlugin()] : []),
-      ...(flags.isHot && flags.isDev ? [new webpack.HotModuleReplacementPlugin()] : []),
-    ],
-    target: 'electron-renderer',
-  })
-}
-
-// When we start the hot server we want to build the main/dll without hot reloading statically
-const config = (env, argv) => {
-  const isDev = !argv.mode !== 'production'
-  flags = {
-    // webpack dev server has issues serving mixed hot/not hot so we have to build non-hot things separately
-    isBeforeHot: getenv.boolish('BEFORE_HOT', false),
-    isDumb: getenv.boolish('DUMB', false),
-    isHot: getenv.boolish('HOT', false),
-    isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
-    isDev,
-  }
-
-  console.log('Flags: ', flags)
-  const mainThreadConfig = merge(makeCommonConfig(), {
+  const commonConfig = makeCommonConfig()
+  const mainThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
     entry: {main: './desktop/app/index.js'},
     name: 'mainThread',
     target: 'electron-main',
   })
-  const renderThreadConfig = makeRenderThreadConfig()
+  const renderThreadConfig = merge(commonConfig, {
+    context: path.resolve(__dirname, '..'),
+    devtool: flags.isDev ? 'eval' : 'source-map',
+    entry: {
+      'component-loader': './desktop/remote/component-loader.js',
+      index: './desktop/renderer/index.js',
+    },
+    name: 'renderThread',
+    plugins: [...(flags.isHot && flags.isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],
+    target: 'electron-renderer',
+  })
 
-  return (flags.isBeforeHot ? [mainThreadConfig] : [mainThreadConfig, renderThreadConfig]).filter(Boolean)
+  if (flags.isHot) {
+    return getenv.boolish('BEFORE_HOT', false) ? mainThreadConfig : renderThreadConfig
+  } else {
+    return [mainThreadConfig, renderThreadConfig]
+  }
 }
 
 export default config
