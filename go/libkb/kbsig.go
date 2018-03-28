@@ -9,6 +9,7 @@ package libkb
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -770,6 +771,14 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 	walletSection.SetKey("name", jsonw.NewString(""))
 	walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
 	walletSection.SetKey("network", jsonw.NewString(string(WalletNetworkStellar)))
+
+	// Inner links can be hidden. To prevent an attacker from figuring out the
+	// contents from the hash of the inner link, add 18 random bytes.
+	entropyBytes, err := RandBytes(18)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate entropy bytes: %v", err)
+	}
+	walletSection.SetKey("entropy", jsonw.NewString(base64.StdEncoding.EncodeToString(entropyBytes)))
 
 	walletKeySection := jsonw.NewDictionary()
 	walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
