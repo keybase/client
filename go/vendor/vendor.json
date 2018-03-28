@@ -575,6 +575,13 @@
 			"revisionTime": "2018-03-22T21:26:26Z"
 		},
 		{
+			"checksumSHA1": "esoxAJCO5SSWm7vADSHs3mFbdz0=",
+			"origin": "github.com/keybase/stellar-org/support/render/problem",
+			"path": "github.com/stellar/go/support/render/problem",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
 			"checksumSHA1": "9RcsggRabKj4lVyQBPl5qQSokAo=",
 			"origin": "github.com/keybase/stellar-org/xdr",
 			"path": "github.com/stellar/go/xdr",
