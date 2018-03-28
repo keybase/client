@@ -172,15 +172,15 @@ class Thread extends React.Component<Props, State> {
     // this._list && this._list.scrollToRow(idx)
     // }
     // }
-    // if (this._isLockedToBottom && this._scrollableRef) {
-    // console.log('aaa botto LOCKING')
-    // this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
-    // } else if (this._bottomWaypoint && this._scrollableRef) {
-    // this._restoreBottomWaypointScrollTop()
-    // }
-    if (this._isLockedToBottom && this._list) {
-      this._list.scrollTo(this._rowCount() - 1)
+    if (this._isLockedToBottom && this._scrollableRef) {
+      console.log('aaa botto LOCKING')
+      this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
+    } else if (this._bottomWaypoint && this._scrollableRef) {
+      this._restoreBottomWaypointScrollTop()
     }
+    // if (this._isLockedToBottom && this._list) {
+    // this._list.scrollTo(this._rowCount() - 1)
+    // }
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -303,10 +303,10 @@ class Thread extends React.Component<Props, State> {
     // }
 
     // if (this.state.isLockedToBottom && this._scrollableRef) {
-    // if (this._isLockedToBottom && this._scrollableRef) {
-    // console.log('aaa bott NEW SCROOL REF')
-    // this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
-    // }
+    if (this._isLockedToBottom && this._scrollableRef) {
+      console.log('aaa bott NEW SCROOL REF')
+      this._scrollableRef.scrollTop = this._scrollableRef.scrollHeight
+    }
   }
 
   _loadMoreLast = 0
@@ -423,51 +423,57 @@ class Thread extends React.Component<Props, State> {
     setInterval(this._dump, 1000)
   }
 
-  _onScroll = e => {
-    console.log('aaa bott scroll', e.nativeEvent)
-    this._isLockedToBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - lockedToBottomSlop
-  }
+  // _onScroll = e => {
+  // console.log('aaa bott scroll', e.nativeEvent)
+  // this._isLockedToBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - lockedToBottomSlop
+  // }
 
-  _renderItem = (index, key) => {
-    const ordinal = this.props.messageOrdinals.get(index)
-    const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
-    return (
-      <Message
-        key={ordinal}
-        ordinal={ordinal}
-        previous={prevOrdinal}
-        measure={null}
-        conversationIDKey={this.props.conversationIDKey}
-      />
-    )
-  }
+  // _renderItem = (i, key) => {
+  // const messages = []
+  // const start = i * 10
+  // const end = start + 10
+  // for (var index = start; index < end; ++index) {
+  // const ordinal = this.props.messageOrdinals.get(index)
+  // if (ordinal) {
+  // const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
+  // messages.push(
+  // <Message
+  // key={ordinal}
+  // ordinal={ordinal}
+  // previous={prevOrdinal}
+  // measure={null}
+  // conversationIDKey={this.props.conversationIDKey}
+  // />
+  // )
+  // }
+  // }
+  // return <div key={key}>{messages}</div>
+  // }
 
-  _list = null
-  _setList = r => (this._list = r)
+  // _list = null
+  // _setList = r => (this._list = r)
 
   _rowCount = () => this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
 
-  render() {
-    const rowCount = this._rowCount()
-    return null
-    return (
-      // onClick={this._handleListClick}
-      // onCopyCapture={this._onCopyCapture}
-      <div style={containerStyle} ref={this._setScrollableRef} onScroll={this._onScroll}>
-        <style>{realCSS}</style>
-        <ReactList
-          ref={this._setList}
-          useTranslate3d={true}
-          itemRenderer={this._renderItem}
-          pageSize={50}
-          length={rowCount}
-          type="variable"
-        />
-      </div>
-    )
-  }
+  // render() {
+  // const rowCount = this._rowCount() / 10
+  // return (
+  // // onClick={this._handleListClick}
+  // // onCopyCapture={this._onCopyCapture}
+  // <div style={containerStyle} ref={this._setScrollableRef} onScroll={this._onScroll}>
+  // <style>{realCSS}</style>
+  // <ReactList
+  // ref={this._setList}
+  // useTranslate3d={true}
+  // itemRenderer={this._renderItem}
+  // length={rowCount}
+  // type="variable"
+  // />
+  // </div>
+  // )
+  // }
 
-  render2() {
+  render() {
     this._debugDUMP()
 
     // this._topKey = null
@@ -536,13 +542,13 @@ class Thread extends React.Component<Props, State> {
       </Waypoint>
     )
 
+    // onScroll={this._onScroll}
     return (
       <div
         style={containerStyle}
         onClick={this._handleListClick}
         onCopyCapture={this._onCopyCapture}
         ref={this._setScrollableRef}
-        onScroll={this._onScroll}
       >
         <style key="style">{realCSS}</style>
         <div key="rows">{rows}</div>
