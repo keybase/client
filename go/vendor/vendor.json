@@ -526,11 +526,11 @@
 			"revisionTime": "2018-03-28T15:49:16Z"
 		},
 		{
-			"checksumSHA1": "NROIWiOy7hvc3PnrrN+Su5Mo1D8=",
+			"checksumSHA1": "w2iePIoeVYrSC+290DbhfsiVnV8=",
 			"origin": "github.com/keybase/stellar-org/clients/horizon",
 			"path": "github.com/stellar/go/clients/horizon",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "d7b62d43ecad5ba5cd8eb0d704f175c160300030",
+			"revisionTime": "2018-03-28T20:45:36Z"
 		},
 		{
 			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",

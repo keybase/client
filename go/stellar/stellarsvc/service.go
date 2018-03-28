@@ -152,6 +152,11 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 
 	post := postFromCurrentUser(ctx, g, primaryAccountID)
 
+	// Note:
+	// CreateAccountXLMTransaction and PaymentXLMTransaction use horizon
+	// to get the sequence number.  In the future we could provide an RPC
+	// to get it instead of having the clients go direct to horizon.
+
 	// check if recipient account exists
 	_, err = balanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {

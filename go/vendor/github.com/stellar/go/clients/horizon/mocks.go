@@ -1,10 +1,7 @@
 package horizon
 
-import (
-	"github.com/stretchr/testify/mock"
-	"golang.org/x/net/context"
-)
-
+// this requires a lot of dependencies
+/*
 // MockClient is a mockable horizon client.
 type MockClient struct {
 	mock.Mock
@@ -81,3 +78,4 @@ func (m *MockClient) SubmitTransaction(txeBase64 string) (TransactionSuccess, er
 
 // ensure that the MockClient implements ClientInterface
 var _ ClientInterface = &MockClient{}
+*/
