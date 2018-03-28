@@ -273,9 +273,10 @@ func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, 
 	if force || err.ShouldClear() {
 		s.G().Log.Warning("chat local storage corrupted: clearing")
 		if err := s.G().LocalChatDb.Delete(makeBlockIndexKey(convID, uid)); err != nil {
-			s.G().Log.Error("failed to delete chat index, clearing entire database (delete error: %s)", err)
+			s.G().Log.Error("failed to delete chat index, clearing entire local storage (delete error: %s)",
+				err)
 			if _, err = s.G().LocalChatDb.Nuke(); err != nil {
-				panic("unable to clear local storage")
+				s.G().Log.Error("failed to delete chat local storage: %s", err)
 			}
 		}
 	}
