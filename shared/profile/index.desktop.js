@@ -44,20 +44,22 @@ type State = {
   },
 }
 
-const EditControl = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
+const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
   <Box style={globalStyles.flexBoxRow}>
     <Text type="BodySmallSemibold">Teams</Text>
-    <Icon style={{marginLeft: globalMargins.xtiny}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+    {!!isYou && (
+      <Icon style={{marginLeft: globalMargins.xtiny}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+    )}
   </Box>
 )
 
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
   <Box onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
     <Box style={styleShowcasedTeamAvatar}>
-      <Icon type="icon-team-placeholder-avatar-24" size={24} />
+      <Icon type="icon-team-placeholder-avatar-24" size={24} style={{borderRadius: 5}} />
     </Box>
     <Box style={styleShowcasedTeamName}>
-      <Text style={{color: globalColors.black_40}} type="BodyPrimaryLink">
+      <Text style={{color: globalColors.black_20}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Text>
     </Box>
@@ -317,7 +319,7 @@ class ProfileRender extends PureComponent<Props, State> {
         : null
 
     const showEdit =
-      (this.props.userInfo && this.props.userInfo.showcasedTeams.length > 0) ||
+      (!this.props.isYou && this.props.userInfo && this.props.userInfo.showcasedTeams.length > 0) ||
       (this.props.isYou && this.props.youAreInTeams)
 
     const showShowcaseTeamsOffer = this.props.isYou && this.props.youAreInTeams
@@ -396,7 +398,12 @@ class ProfileRender extends PureComponent<Props, State> {
               <Box style={styleProofs}>
                 {!loading && (
                   <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
-                    {showEdit && <EditControl onClickShowcaseOffer={this.props.onClickShowcaseOffer} />}
+                    {showEdit && (
+                      <EditControl
+                        isYou={this.props.isYou}
+                        onClickShowcaseOffer={this.props.onClickShowcaseOffer}
+                      />
+                    )}
                     {this.props.userInfo.showcasedTeams.length > 0
                       ? this.props.userInfo.showcasedTeams.map(team => (
                           <ShowcasedTeamRow
