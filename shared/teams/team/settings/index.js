@@ -6,6 +6,7 @@ import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import RetentionPicker from './retention/container'
+import flags from '../../../util/feature-flags'
 
 // initial settings (except retention policy)
 type Props = {
@@ -274,14 +275,15 @@ export class Settings extends React.Component<Props, State> {
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
           </React.Fragment>
         )}
-        {this.props.yourOperations.setRetentionPolicy && (
-          <RetentionPicker
-            type="simple"
-            onSelect={this._onSelectRetentionPolicy}
-            teamname={this.props.teamname}
-            isTeamWide={true}
-          />
-        )}
+        {this.props.yourOperations.setRetentionPolicy &&
+          flags.setRetention && (
+            <RetentionPicker
+              type="simple"
+              onSelect={this._onSelectRetentionPolicy}
+              teamname={this.props.teamname}
+              isTeamWide={true}
+            />
+          )}
         <Box
           style={{
             ...stylesSettingsTabRow,

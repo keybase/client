@@ -10,6 +10,7 @@ import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings/retention/container'
+import flags from '../../../util/feature-flags'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -401,23 +402,24 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       if (props.smallTeam) {
         // Small team.
-        const retentionRows = props.canSetRetention
-          ? [
-              {
-                type: 'divider',
-                key: nextKey(),
-                marginBottom: 0,
-              },
-              {
-                type: 'retention',
-                key: 'retention',
-                conversationIDKey: props.selectedConversationIDKey,
-                teamname: props.teamname || '',
-                isTeamWide: props.smallTeam,
-                isSmallTeam: props.smallTeam,
-              },
-            ]
-          : []
+        const retentionRows =
+          props.canSetRetention && flags.setRetention
+            ? [
+                {
+                  type: 'divider',
+                  key: nextKey(),
+                  marginBottom: 0,
+                },
+                {
+                  type: 'retention',
+                  key: 'retention',
+                  conversationIDKey: props.selectedConversationIDKey,
+                  teamname: props.teamname || '',
+                  isTeamWide: props.smallTeam,
+                  isSmallTeam: props.smallTeam,
+                },
+              ]
+            : []
 
         headerRows = [
           {type: 'spacer', key: nextKey(), height: globalMargins.small},
@@ -493,23 +495,24 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           ]
         } else {
           // Big team, no preview.
-          const retentionRows = props.canSetRetention
-            ? [
-                {
-                  type: 'divider',
-                  key: nextKey(),
-                  marginBottom: 0,
-                },
-                {
-                  type: 'retention',
-                  key: 'retention',
-                  conversationIDKey: props.selectedConversationIDKey,
-                  teamname: props.teamname || '',
-                  isTeamWide: props.smallTeam,
-                  isSmallTeam: props.smallTeam,
-                },
-              ]
-            : []
+          const retentionRows =
+            props.canSetRetention && flags.setRetention
+              ? [
+                  {
+                    type: 'divider',
+                    key: nextKey(),
+                    marginBottom: 0,
+                  },
+                  {
+                    type: 'retention',
+                    key: 'retention',
+                    conversationIDKey: props.selectedConversationIDKey,
+                    teamname: props.teamname || '',
+                    isTeamWide: props.smallTeam,
+                    isSmallTeam: props.smallTeam,
+                  },
+                ]
+              : []
 
           headerRows = [
             headerRow,

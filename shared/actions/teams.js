@@ -26,6 +26,7 @@ import openSMS from '../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 import {createGlobalError} from '../actions/config-gen'
 import {convertToError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -128,6 +129,10 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
 }
 
 const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicyPayload, state: TypedState) {
+  if (!flags.setRetention) {
+    // shouldn't happen
+    return
+  }
   const {teamname, policy} = action.payload
 
   // get teamID
