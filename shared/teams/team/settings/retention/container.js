@@ -69,7 +69,7 @@ const mapDispatchToProps = (
         [
           {
             selected: 'retentionWarning',
-            props: {days, onCancel, onConfirm},
+            props: {days, onCancel, onConfirm, isTeamWide},
           },
         ],
         parentPath
