@@ -140,38 +140,6 @@ helpers.rootLinuxNode(env, {
                                                 sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                             }
                                         }
-                                        // Only run visdiff for PRs
-                                        if (env.CHANGE_ID) {
-                                            wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
-                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                    credentialsId: 'visdiff-aws-creds',
-                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                ],[$class: 'StringBinding',
-                                                    credentialsId: 'visdiff-github-token',
-                                                    variable: 'VISDIFF_GH_TOKEN',
-                                            ]]) {
-                                            withEnv([
-                                                "VISDIFF_S3_BUCKET=keybase-jenkins-visdiff",
-                                                "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
-                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                            ]) {
-                                                dir("shared") {
-                                                    sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                                }
-                                                try {
-                                                    timeout(time: 10, unit: 'MINUTES') {
-                                                        dir("shared") {
-                                                            stage("js visdiff") {
-                                                                sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                                            }
-                                                        }
-                                                    }
-                                                } catch (e) {
-                                                    helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
-                                                }
-                                            }}}
-                                        }
                                     }},
                                 )
                             },
@@ -227,37 +195,7 @@ helpers.rootLinuxNode(env, {
                                                 }
                                                 testGo("test_windows_go_")
                                             }
-                                        },
-                                        test_windows_js: {
-                                        // Only run visdiff for PRs
-                                        // FIXME (MBG): Disabled temporarily due to flaky false positives
-                                        // When this is re-enabled, remove the if (hasGoChanges) check at the
-                                        // beginning of this block.
-                                        if (false && env.CHANGE_ID) {
-                                        wrap([$class: 'Xvfb']) {
-                                            println "Test Windows JS"
-                                            dir("visdiff") {
-                                                bat "yarn cache clean"
-                                                bat "yarn install --pure-lockfile"
-                                            }
-                                            dir("desktop") {
-                                                bat "yarn cache clean"
-                                                bat "yarn install --pure-lockfile"
-                                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                        credentialsId: 'visdiff-aws-creds',
-                                                        usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                        passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                    ],[$class: 'StringBinding',
-                                                        credentialsId: 'visdiff-github-token',
-                                                        variable: 'VISDIFF_GH_TOKEN',
-                                                ]]) {
-                                                withEnv([
-                                                    "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                                ]) {
-                                                    bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
-                                                }}
-                                            }
-                                        }}},
+                                        }
                                     )
                                 }}
                             }
