@@ -6,6 +6,7 @@ import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../c
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 export type Props = {
+  canChat: boolean,
   canEditDescription: boolean,
   canJoinTeam: boolean,
   canManageMembers: boolean,
@@ -73,15 +74,17 @@ const TeamHeader = (props: Props) => (
 
       {/* Actions */}
       <ButtonBar direction="row" style={isMobile ? {width: 'auto', marginBottom: -8} : undefined}>
-        <Button type="Primary" label="Chat" onClick={props.onChat}>
-          <Icon
-            type="iconfont-chat"
-            style={{
-              marginRight: 8,
-              color: globalColors.white,
-            }}
-          />
-        </Button>
+        {props.canChat && (
+          <Button type="Primary" label="Chat" onClick={props.onChat}>
+            <Icon
+              type="iconfont-chat"
+              style={{
+                marginRight: 8,
+                color: globalColors.white,
+              }}
+            />
+          </Button>
+        )}
         {props.canManageMembers && (
           <Button
             type="Secondary"

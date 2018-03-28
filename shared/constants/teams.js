@@ -98,6 +98,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
 export const initialCanUserPerform: RPCTypes.TeamOperation = {
   manageMembers: false,
   manageSubteams: false,
+  chat: false,
   createChannel: false,
   deleteChannel: false,
   renameChannel: false,

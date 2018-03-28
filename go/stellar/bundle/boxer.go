@@ -191,6 +191,15 @@ func Decrypt(encBundle keybase1.EncryptedStellarBundle,
 	return res, err
 }
 
+// Create the next bundle given a decrypted bundle.
+func Advance(prevBundle keybase1.StellarBundle) keybase1.StellarBundle {
+	nextBundle := prevBundle.DeepCopy()
+	nextBundle.Prev = nextBundle.OwnHash
+	nextBundle.OwnHash = nil
+	nextBundle.Revision++
+	return nextBundle
+}
+
 func accountsSplit(accounts []keybase1.StellarEntry) (vis []keybase1.StellarVisibleEntry, sec []keybase1.StellarSecretEntry) {
 	for _, acc := range accounts {
 		vis = append(vis, keybase1.StellarVisibleEntry{

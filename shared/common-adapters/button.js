@@ -24,9 +24,9 @@ export type Props = {
   className?: string,
 }
 
-const Progress = ({small}) => (
+const Progress = ({small, white}) => (
   <Box style={progress}>
-    <ProgressIndicator style={progressStyle(small)} white={true} />
+    <ProgressIndicator style={progressStyle(small)} white={white} />
   </Box>
 )
 
@@ -81,6 +81,8 @@ class Button extends React.Component<Props> {
 
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
+    const whiteSpinner = this.props.type !== 'PrimaryGreenActive'
+
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
         <Box
@@ -100,7 +102,7 @@ class Button extends React.Component<Props> {
               {this.props.label}
             </Text>
           )}
-          {this.props.waiting && <Progress small={this.props.small} />}
+          {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
     )

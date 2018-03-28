@@ -196,10 +196,14 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
 		tt.t.Fatal(err)
 	}
+	if err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications)); err != nil {
+		tt.t.Fatal(err)
+	}
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
 	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
-		Team:   true,
-		Badges: true,
+		Team:      true,
+		Badges:    true,
+		Ephemeral: true,
 	}); err != nil {
 		tt.t.Fatal(err)
 	}
@@ -817,16 +821,18 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh  chan keybase1.TeamChangedByIDArg
-	abandonCh chan keybase1.TeamID
-	badgeCh   chan keybase1.BadgeState
+	changeCh    chan keybase1.TeamChangedByIDArg
+	abandonCh   chan keybase1.TeamID
+	badgeCh     chan keybase1.BadgeState
+	newTeamEKCh chan keybase1.NewTeamEkArg
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:  make(chan keybase1.TeamChangedByIDArg, 1),
-		abandonCh: make(chan keybase1.TeamID, 10),
-		badgeCh:   make(chan keybase1.BadgeState, 10),
+		changeCh:    make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:   make(chan keybase1.TeamID, 10),
+		badgeCh:     make(chan keybase1.BadgeState, 10),
+		newTeamEKCh: make(chan keybase1.NewTeamEkArg, 10),
 	}
 }
 
@@ -854,6 +860,11 @@ func (n *teamNotifyHandler) TeamAbandoned(ctx context.Context, teamID keybase1.T
 
 func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.BadgeState) error {
 	n.badgeCh <- badgeState
+	return nil
+}
+
+func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamEkArg) error {
+	n.newTeamEKCh <- arg
 	return nil
 }
 
@@ -1143,6 +1154,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ChangeTarsDisabled)
 	require.True(t, annPerms.DeleteChatHistory)
+	require.True(t, annPerms.Chat)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1160,6 +1172,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetPublicityAny)
 	require.True(t, bobPerms.ChangeTarsDisabled)
 	require.True(t, bobPerms.DeleteChatHistory)
+	require.True(t, bobPerms.Chat)
 
 	// Some ops are fine for writers
 	require.False(t, pamPerms.ManageMembers)
@@ -1178,8 +1191,9 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, pamPerms.SetPublicityAny)
 	require.False(t, pamPerms.ChangeTarsDisabled)
 	require.False(t, pamPerms.DeleteChatHistory)
+	require.True(t, pamPerms.Chat)
 
-	// Only SetMemberShowcase (by default) and LeaveTeam is available for readers
+	// Only SetMemberShowcase (by default), LeaveTeam, and Chat is available for readers
 	require.False(t, eddPerms.ManageMembers)
 	require.False(t, eddPerms.ManageSubteams)
 	require.False(t, eddPerms.CreateChannel)
@@ -1196,6 +1210,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, eddPerms.SetPublicityAny)
 	require.False(t, eddPerms.ChangeTarsDisabled)
 	require.False(t, eddPerms.DeleteChatHistory)
+	require.True(t, eddPerms.Chat)
 
 	annPerms = callCanPerform(ann, subteam)
 	bobPerms = callCanPerform(bob, subteam)
@@ -1216,6 +1231,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, annPerms.SetPublicityAny)
 	require.True(t, annPerms.ChangeTarsDisabled)
 	require.False(t, annPerms.DeleteChatHistory)
+	require.False(t, annPerms.Chat)
 
 	require.True(t, bobPerms.ManageMembers)
 	require.True(t, bobPerms.ManageSubteams)
@@ -1233,6 +1249,7 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.True(t, bobPerms.SetPublicityAny)
 	require.True(t, bobPerms.ChangeTarsDisabled)
 	require.False(t, bobPerms.DeleteChatHistory)
+	require.False(t, bobPerms.Chat)
 
 	// Invalid team for pam
 	_, err = teams.CanUserPerform(context.TODO(), pam.tc.G, subteam)
@@ -1257,4 +1274,5 @@ func TestTeamCanUserPerform(t *testing.T) {
 	// TBD: require.True(t, donnyPerms.JoinTeam)
 	require.False(t, donnyPerms.SetPublicityAny)
 	require.False(t, donnyPerms.DeleteChatHistory)
+	require.False(t, donnyPerms.Chat)
 }
