@@ -13,6 +13,7 @@ import type {Props} from './input'
 type State = {
   focused: boolean,
   height: ?number,
+  value: string,
   selections: {selectionStart: number, selectionEnd: number} | null,
 }
 
@@ -30,6 +31,7 @@ class Input extends Component<Props, State> {
     this.state = {
       focused: false,
       height: null,
+      value: props.value || '',
       selections: null,
     }
   }
@@ -38,6 +40,12 @@ class Input extends Component<Props, State> {
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
     this._input && this._input.setNativeProps(nativeProps)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (nextProps.hasOwnProperty('value')) {
+      this.setState({value: nextProps.value || ''})
+    }
   }
 
   _onContentSizeChange = event => {
@@ -65,11 +73,11 @@ class Input extends Component<Props, State> {
   }
 
   getValue(): string {
-    return this.props.value || ''
+    return this.state.value || ''
   }
 
   _onChangeText = (text: string) => {
-    this.props.onChangeText && this.props.onChangeText(text)
+    this.setState({value: text}, () => this.props.onChangeText && this.props.onChangeText(text))
   }
 
   focus() {
