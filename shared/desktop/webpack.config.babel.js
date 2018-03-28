@@ -10,18 +10,7 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 
-// External parameters which control the config
-const isDev = process.env.NODE_ENV !== 'production'
-const flags = {
-  // webpack dev server has issues serving mixed hot/not hot so we have to build non-hot things separately
-  isBeforeHot: getenv.boolish('BEFORE_HOT', false),
-  isDev,
-  isDumb: getenv.boolish('DUMB', false),
-  isHot: getenv.boolish('HOT', false),
-  isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
-}
-
-console.log('Flags: ', flags)
+let flags = null
 
 // The common config all other derive from
 const makeCommonConfig = () => {
@@ -141,6 +130,7 @@ const makeCommonConfig = () => {
     cache: flags.isDev,
     devServer,
     module: {
+      strictExportPresence: true,
       rules: makeRules(),
     },
     node: {
@@ -169,7 +159,7 @@ const makeRenderThreadConfig = () => {
         ]
       : []
 
-  return merge(commonConfig, {
+  return merge(makeCommonConfig(), {
     context: path.resolve(__dirname, '..'),
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
     // Some eval sourcemaps cause issues with closures in chromium due to some bugs.
@@ -187,18 +177,28 @@ const makeRenderThreadConfig = () => {
   })
 }
 
-const commonConfig = makeCommonConfig()
-const mainThreadConfig = merge(commonConfig, {
-  context: path.resolve(__dirname, '..'),
-  entry: {main: './desktop/app/index.js'},
-  name: 'mainThread',
-  target: 'electron-main',
-})
-const renderThreadConfig = makeRenderThreadConfig()
-
 // When we start the hot server we want to build the main/dll without hot reloading statically
-const config = (flags.isBeforeHot ? [mainThreadConfig] : [mainThreadConfig, renderThreadConfig]).filter(
-  Boolean
-)
+const config = (env, argv) => {
+  const isDev = !argv.mode !== 'production'
+  flags = {
+    // webpack dev server has issues serving mixed hot/not hot so we have to build non-hot things separately
+    isBeforeHot: getenv.boolish('BEFORE_HOT', false),
+    isDumb: getenv.boolish('DUMB', false),
+    isHot: getenv.boolish('HOT', false),
+    isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
+    isDev,
+  }
+
+  console.log('Flags: ', flags)
+  const mainThreadConfig = merge(makeCommonConfig(), {
+    context: path.resolve(__dirname, '..'),
+    entry: {main: './desktop/app/index.js'},
+    name: 'mainThread',
+    target: 'electron-main',
+  })
+  const renderThreadConfig = makeRenderThreadConfig()
+
+  return (flags.isBeforeHot ? [mainThreadConfig] : [mainThreadConfig, renderThreadConfig]).filter(Boolean)
+}
 
 export default config
