@@ -879,9 +879,9 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 
 //
 //=========================================================================
-// WalletChainLink
+// WalletStellarChainLink
 
-type WalletChainLink struct {
+type WalletStellarChainLink struct {
 	GenericChainLink
 	addressKID keybase1.KID
 	reverseSig string
@@ -890,8 +890,8 @@ type WalletChainLink struct {
 	name       string
 }
 
-func ParseWalletChainLink(b GenericChainLink) (ret *WalletChainLink, err error) {
-	ret = &WalletChainLink{GenericChainLink: b}
+func ParseWalletStellarChainLink(b GenericChainLink) (ret *WalletStellarChainLink, err error) {
+	ret = &WalletStellarChainLink{GenericChainLink: b}
 	mkErr := func(format string, args ...interface{}) error {
 		return ChainLinkError{fmt.Sprintf(format, args...) + fmt.Sprintf(" @%s", b.ToDebugString())}
 	}
@@ -934,19 +934,19 @@ func ParseWalletChainLink(b GenericChainLink) (ret *WalletChainLink, err error) 
 	return ret, nil
 }
 
-func (s *WalletChainLink) Type() string { return string(LinkTypeWallet) }
-func (s *WalletChainLink) ToDisplayString() string {
+func (s *WalletStellarChainLink) Type() string { return string(LinkTypeWalletStellar) }
+func (s *WalletStellarChainLink) ToDisplayString() string {
 	return fmt.Sprintf("%v %v %v %v", s.network, s.name, s.address, s.addressKID.String())
 }
-func (s *WalletChainLink) insertIntoTable(tab *IdentityTable) {
+func (s *WalletStellarChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
-	if tab.wallet == nil || tab.wallet.GetSeqno() <= s.GetSeqno() {
-		tab.wallet = s
+	if tab.stellar == nil || tab.stellar.GetSeqno() <= s.GetSeqno() {
+		tab.stellar = s
 	}
 }
 
 // VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
-func (s *WalletChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) {
+func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) {
 	key, err := ImportNaclSigningKeyPairFromHex(s.addressKID.String())
 	if err != nil {
 		return fmt.Errorf("Invalid wallet reverse signing KID: %s", s.addressKID)
@@ -1190,7 +1190,7 @@ type IdentityTable struct {
 	Order            []TypedChainLink
 	sigHints         *SigHints
 	cryptocurrency   []*CryptocurrencyChainLink
-	wallet           *WalletChainLink
+	stellar          *WalletStellarChainLink
 	checkResult      *CheckResult
 	eldest           keybase1.KID
 }
@@ -1254,8 +1254,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParsePerUserKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
-		case "wallet":
-			ret, err = ParseWalletChainLink(base)
+		case string(LinkTypeWalletStellar):
+			ret, err = ParseWalletStellarChainLink(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}
@@ -1424,10 +1424,10 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 // Returns nil if there is none or it has not been loaded.
 func (idt *IdentityTable) StellarWalletAddress() *keybase1.StellarAccountID {
 	// Return the account ID of the latest link with the network set to stellar.
-	if idt.wallet == nil {
+	if idt.stellar == nil {
 		return nil
 	}
-	link := idt.wallet
+	link := idt.stellar
 	if link.network == string(WalletNetworkStellar) {
 		// Something should have already validated link.address as a stellar account ID.
 		tmp := keybase1.StellarAccountID(link.address)
