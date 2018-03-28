@@ -222,8 +222,13 @@ class Input extends Component<Props, State> {
         : this.props.hintText || ' ')
 
     let keyboardType = this.props.keyboardType
-    if (!keyboardType && isAndroid && this.props.type === 'passwordVisible') {
-      keyboardType = 'visible-password'
+    if (!keyboardType) {
+      if (isAndroid && this.props.type === 'passwordVisible') {
+        keyboardType = 'visible-password'
+      } else {
+        // Defers to secureTextEntry.
+        keyboardType = 'default'
+      }
     }
 
     // We want to be able to set the selection property,
