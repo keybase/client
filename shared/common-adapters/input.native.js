@@ -226,7 +226,7 @@ class Input extends Component<Props, State> {
       if (isAndroid && this.props.type === 'passwordVisible') {
         keyboardType = 'visible-password'
       } else {
-        // Defers to secureTextEntry.
+        // Defers to secureTextEntry when props.type === 'password'.
         keyboardType = 'default'
       }
     }
