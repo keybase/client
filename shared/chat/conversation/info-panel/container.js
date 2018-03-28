@@ -14,8 +14,9 @@ import {getCanPerform} from '../../../constants/teams'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  // ? because this isn't a route on desktop, and headerHoc is mobile only
-  navigateUp?: typeof Route.navigateUp,
+  // TODO DESKTOP-6256 get rid of the explicit piping of these on desktop
+  navigateAppend: typeof Route.navigateAppend,
+  navigateUp: typeof Route.navigateUp,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -47,10 +48,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateAppend, navigateUp}) => ({
   _onAddPeople: (teamname: string, target) =>
     dispatch(
-      Route.navigateAppend([
+      navigateAppend([
         {
           props: {
             teamname,
@@ -63,7 +64,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
     ),
   _onOpenMenu: (teamname: string, isSmallTeam: boolean, target) =>
     dispatch(
-      Route.navigateAppend([
+      navigateAppend([
         {
           props: {
             teamname,
@@ -81,7 +82,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onShowBlockConversationDialog: () => {
     dispatch(
-      Route.navigateAppend([
+      navigateAppend([
         {
           props: {conversationIDKey},
           selected: 'showBlockConversationDialog',
@@ -91,7 +92,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
   },
   onShowNewTeamDialog: () => {
     dispatch(
-      Route.navigateAppend([
+      navigateAppend([
         {
           props: {conversationIDKey},
           selected: 'showNewTeamDialog',
@@ -100,11 +101,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp})
     )
   },
   _onLeaveTeam: (teamname: TeamTypes.Teamname) =>
-    dispatch(Route.navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
+    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   _onEditChannel: (teamname: string) =>
-    dispatch(Route.navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
+    dispatch(navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
@@ -117,6 +118,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
+  navigateAppend: ownProps.navigateAppend,
+  navigateUp: ownProps.navigateUp,
   onAddPeople: (target: ?Element) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
@@ -136,7 +139,9 @@ const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergePro
 type SelectorOwnProps = {
   conversationIDKey: ?Types.ConversationIDKey,
   routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile its a route
-  navigateUp?: typeof Route.navigateUp,
+  // TODO DESKTOP-6256 get rid of piping on desktop
+  navigateAppend: typeof Route.navigateAppend,
+  navigateUp: typeof Route.navigateUp,
 }
 
 const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) => {
@@ -149,15 +154,24 @@ const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) 
 
 type SelectorDispatchProps = {
   onBack: () => void,
+  navigateAppend: typeof Route.navigateAppend,
+  navigateUp: typeof Route.navigateUp,
 }
 
-const mapDispatchToSelectorProps = (dispatch: Dispatch, {navigateUp}): SelectorDispatchProps => ({
+const mapDispatchToSelectorProps = (
+  dispatch: Dispatch,
+  {navigateAppend, navigateUp}
+): SelectorDispatchProps => ({
   // Used by HeaderHoc.
   onBack: () => navigateUp && dispatch(navigateUp()),
+  navigateAppend: navigateAppend,
+  navigateUp: navigateUp,
 })
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
+  navigateAppend: typeof Route.navigateAppend,
+  navigateUp: typeof Route.navigateUp,
   onBack: () => void,
 }
 class InfoPanelSelector extends React.PureComponent<Props> {
@@ -166,7 +180,14 @@ class InfoPanelSelector extends React.PureComponent<Props> {
       return null
     }
 
-    return <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+    return (
+      <ConnectedInfoPanel
+        onBack={this.props.onBack}
+        conversationIDKey={this.props.conversationIDKey}
+        navigateAppend={this.props.navigateAppend}
+        navigateUp={this.props.navigateUp}
+      />
+    )
   }
 }
 

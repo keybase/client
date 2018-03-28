@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
 import {connect, type TypedState} from '../../util/container'
+import typeof {navigateAppend, navigateUp} from '../../actions/route-tree'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
@@ -12,6 +13,9 @@ import Rekey from './rekey/container'
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
+  // closures to pass to info panel through conversation (on desktop) (TODO DESKTOP-6256 these will be unnecessary)
+  navigateAppend: navigateAppend,
+  navigateUp: navigateUp,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
@@ -23,7 +27,13 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'noConvo':
         return <NoConversation />
       case 'normal':
-        return <Normal conversationIDKey={this.props.conversationIDKey} />
+        return (
+          <Normal
+            conversationIDKey={this.props.conversationIDKey}
+            navigateAppend={this.props.navigateAppend}
+            navigateUp={this.props.navigateUp}
+          />
+        )
       case 'youAreReset':
         return <YouAreReset />
       case 'rekey':
@@ -82,6 +92,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     conversationIDKey: conversationIDKey || Types.stringToConversationIDKey(''), // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
     type,
+    navigateAppend: ownProps.navigateAppend,
+    navigateUp: ownProps.navigateUp,
   }
 }
 

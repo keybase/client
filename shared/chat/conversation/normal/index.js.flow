@@ -1,11 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import typeof {navigateAppend, navigateUp} from '../../../actions/route-tree'
 
 export type Props = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   listScrollDownCounter: number,
+  // closures to pass down to children
+  navigateAppend: navigateAppend,
+  navigateUp: navigateUp,
   showLoader: boolean,
   onAttach: (paths: Array<string>) => void,
   onFocusInput: () => void,

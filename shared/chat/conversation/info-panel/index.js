@@ -10,6 +10,7 @@ import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings/retention/container'
+import typeof {navigateAppend, navigateUp} from '../../../actions/route-tree'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -56,6 +57,9 @@ type InfoPanelProps = {
   onViewTeam: () => void,
   onClickGear: (?Element) => void,
   canSetRetention: boolean,
+  // closures to pass to retention picker
+  navigateAppend: navigateAppend,
+  navigateUp: navigateUp,
 
   // Used for big teams.
   canEditChannel: boolean,
@@ -352,6 +356,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             containerStyle={retentionStyles.containerStyle}
             dropdownStyle={retentionStyles.dropdownStyle}
             conversationIDKey={this.props.selectedConversationIDKey}
+            navigateAppend={this.props.navigateAppend}
+            navigateUp={this.props.navigateUp}
             teamname={row.teamname}
             type="auto"
             isTeamWide={row.isTeamWide}

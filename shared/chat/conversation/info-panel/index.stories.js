@@ -8,6 +8,9 @@ import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
 
+const navigateAppend = action('navigateAppend')
+const navigateUp = action('navigateUp')
+
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
 }
@@ -29,6 +32,8 @@ const retentionPickerPropSelector = props => ({
   _loadTeamPolicy: action('_loadTeamPolicy'),
   containerStyle: props.containerStyle,
   dropdownStyle: props.dropdownStyle,
+  navigateAppend,
+  navigateUp,
   policy: retentionPolicies.policyThreeMonths,
   teamPolicy: retentionPolicies.policyMonth,
   loading: false,
@@ -66,6 +71,8 @@ const commonProps = {
   ],
   onBack: unexpected('onBack'),
   onShowProfile: (username: string) => action(`onShowProfile(${username})`),
+  navigateAppend,
+  navigateUp,
 }
 
 const conversationProps = {

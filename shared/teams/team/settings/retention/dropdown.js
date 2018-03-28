@@ -32,7 +32,7 @@ const RetentionDropdown = (props: Props) => {
     <PopupMenu items={items} onHidden={onHidden} style={{overflow: 'visible'}} />
   ) : (
     <ModalLessPopupMenu
-      closeOnClick={true}
+      // closeOnClick={true}
       items={items}
       onHidden={onHidden}
       style={{overflow: 'visible', width: 220}}

@@ -2,7 +2,6 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import * as RouteTree from '../../../actions/route-tree'
 import Normal from '.'
 import {compose, connect, withStateHandlers, type TypedState} from '../../../util/container'
 
@@ -12,20 +11,20 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   return {conversationIDKey, showLoader, threadLoadedOffline: meta.offline}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
-    dispatch(
-      RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
-    ),
+    dispatch(navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])),
   _onOpenInfoPanelMobile: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}])),
+    dispatch(navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}])),
   onShowTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
+    navigateAppend: ownProps.navigateAppend,
+    navigateUp: ownProps.navigateUp,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onOpenInfoPanelMobile: () => dispatchProps._onOpenInfoPanelMobile(stateProps.conversationIDKey),
     onShowTracker: dispatchProps.onShowTracker,
