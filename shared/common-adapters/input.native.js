@@ -34,6 +34,12 @@ class Input extends Component<Props, State> {
     }
   }
 
+  // Needed to support wrapping with e.g. a ClickableBox. See
+  // https://facebook.github.io/react-native/docs/direct-manipulation.html .
+  setNativeProps = (nativeProps: Object) => {
+    this._input && this._input.setNativeProps(nativeProps)
+  }
+
   _onContentSizeChange = event => {
     if (
       this.props.multiline &&
