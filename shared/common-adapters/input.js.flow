@@ -41,11 +41,13 @@ export type Props = {
   onEndEditing?: ?() => void,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
+  // If keyboardType is set, it overrides type.
   keyboardType?:
     | 'default'
     | 'email-address'
     | 'numeric'
     | 'phone-pad'
+    // iOS only
     | 'ascii-capable'
     | 'numbers-and-punctuation'
     | 'url'
@@ -53,7 +55,9 @@ export type Props = {
     | 'name-phone-pad'
     | 'decimal-pad'
     | 'twitter'
-    | 'web-search',
+    | 'web-search'
+    // Android Only
+    | 'visible-password',
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
 }

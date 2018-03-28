@@ -6,7 +6,7 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
-import {isIOS} from '../constants/platform'
+import {isIOS, isAndroid} from '../constants/platform'
 
 import type {Props} from './input'
 
@@ -221,6 +221,11 @@ class Input extends Component<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
+    let keyboardType = this.props.keyboardType
+    if (!keyboardType && isAndroid && this.props.type === 'passwordVisible') {
+      keyboardType = 'visible-password'
+    }
+
     // We want to be able to set the selection property,
     // too. Unfortunately, that triggers an Android crash:
     // https://github.com/facebook/react-native/issues/18316 .
@@ -228,7 +233,7 @@ class Input extends Component<Props, State> {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
       editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
-      keyboardType: this.props.keyboardType,
+      keyboardType,
       autoFocus: this.props.autoFocus,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
