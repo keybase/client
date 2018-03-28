@@ -206,15 +206,21 @@ func TestTeamDuplicateUIDList(t *testing.T) {
 	fmt.Printf("-- TestTeamDuplicateUIDList A\n")
 
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	fmt.Printf("-- TestTeamDuplicateUIDList A.1\n")
 
 	bob.reset()
+	fmt.Printf("-- TestTeamDuplicateUIDList A.2\n")
 	bob.loginAfterReset()
+	fmt.Printf("-- TestTeamDuplicateUIDList A.3\n")
 
 	t.Logf("Bob (%s) resets and reprovisions", bob.username)
+	fmt.Printf("-- TestTeamDuplicateUIDList A.4\n")
 
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	fmt.Printf("-- TestTeamDuplicateUIDList A.5\n")
 
 	teamCli := ann.teamsClient
+	fmt.Printf("-- TestTeamDuplicateUIDList A.6\n")
 	details, err := teamCli.TeamGet(context.TODO(), keybase1.TeamGetArg{
 		Name:        team,
 		ForceRepoll: true,
