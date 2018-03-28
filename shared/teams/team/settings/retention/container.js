@@ -19,7 +19,7 @@ import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
 
 // TODO make this typing tighter to guarantee the team properties if `isTeam` is true
-// and we should also derive some of these props (isSmallTeam, )
+// and we should also derive some of these props (isSmallTeam, more if possible)
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
   teamname?: string,
@@ -31,13 +31,14 @@ export type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const isTeam = !!ownProps.teamname
-  const teamPolicy = isTeam && getTeamRetentionPolicy(state, ownProps.teamname)
+  const teamPolicy = ownProps.teamname && getTeamRetentionPolicy(state, ownProps.teamname)
   // we need to show a spinner, but only if it's a team
   const loading = isTeam && !teamPolicy
   if (!isTeam && !ownProps.conversationIDKey) {
     throw new Error('RetentionPicker got no conversationIDKey for ad-hoc conversation!')
   }
-  const policy = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
+  const policy =
+    !!ownProps.conversationIDKey && getConversationRetentionPolicy(state, ownProps.conversationIDKey)
   if (!ownProps.isTeamWide && !policy) {
     throw new Error('Conv retpolicy not present in metaMap')
   }
@@ -83,7 +84,7 @@ const mapDispatchToProps = (
   },
   setRetentionPolicy: (policy: RetentionPolicy) => {
     if (isTeamWide) {
-      dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+      teamname && dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
     } else {
       if (!conversationIDKey) {
         throw new Error('Tried to set conv retention policy with no ConversationIDKey')
