@@ -155,14 +155,15 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 	// check if recipient account exists
 	_, err = balanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
-		// if no balance, create_account
-		// if amount < 1 XLM, return error
+		// if no balance, create_account operation
+		// we could check here to make sure that amount is at least 1XLM
+		// but for now, just let stellar-core tell us there was an error
 		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.CreateAccountXLMTransaction(primarySeed, recipient.AccountID, arg.Amount)
 		if err != nil {
 			return stellar1.PaymentResult{}, err
 		}
 	} else {
-		// if balance, payment tx
+		// if balance, payment operation
 		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.PaymentXLMTransaction(primarySeed, recipient.AccountID, arg.Amount)
 		if err != nil {
 			return stellar1.PaymentResult{}, err
