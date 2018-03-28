@@ -21,7 +21,8 @@ export type Props = {
   policy: RetentionPolicy,
   teamPolicy?: RetentionPolicy,
   loading: boolean,
-  isTeamWide: boolean,
+  isTeam: boolean,
+  isTeamWide?: boolean,
   isSmallTeam?: boolean,
   type: 'simple' | 'auto',
   setRetentionPolicy: (policy: RetentionPolicy) => void,
@@ -76,7 +77,8 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   _makeItems = () => {
-    if (this.props.isTeamWide) {
+    if (this.props.isTeamWide || !this.props.isTeam) {
+      // same items for team-wide policies and ad-hoc conversations
       const items = teamRetentionPolicies.map(policy => {
         if (policy.type === 'expire') {
           return {title: daysToLabel(policy.days), onClick: () => this._onSelect(policy)}

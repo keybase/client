@@ -97,9 +97,9 @@ const getDividerStyle = (row: DividerRow) => ({
 type RetentionRow = {
   type: 'retention',
   key: 'retention',
-  teamname: string,
-  isTeamWide: boolean,
-  isSmallTeam: boolean,
+  teamname?: string,
+  isTeamWide?: boolean,
+  isSmallTeam?: boolean,
 }
 
 const retentionStyles = {
@@ -414,6 +414,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
                 conversationIDKey: props.selectedConversationIDKey,
                 teamname: props.teamname || '',
                 isTeamWide: props.smallTeam,
+                isTeam: true,
                 isSmallTeam: props.smallTeam,
               },
             ]
@@ -506,6 +507,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
                   conversationIDKey: props.selectedConversationIDKey,
                   teamname: props.teamname || '',
                   isTeamWide: props.smallTeam,
+                  isTeam: true,
                   isSmallTeam: props.smallTeam,
                 },
               ]
@@ -578,6 +580,18 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'notifications',
           key: 'notifications',
         },
+        {
+          type: 'divider',
+          key: nextKey(),
+          marginBottom: 0,
+        },
+        {
+          type: 'retention',
+          key: 'retention',
+          conversationIDKey: props.selectedConversationIDKey,
+          isTeam: false,
+        },
+
         {
           type: 'divider',
           key: nextKey(),

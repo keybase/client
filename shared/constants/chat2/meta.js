@@ -209,15 +209,11 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
-  let retentionPolicy
-  if (isTeam) {
-    // default for team channels is 'inherit'
-    retentionPolicy = i.convRetention
-      ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
-      : makeRetentionPolicy({type: 'inherit'})
-  } else {
-    // default for ad-hoc is 'retain'
-    retentionPolicy = makeRetentionPolicy()
+  // default inherit for teams, retain for ad-hoc
+  let retentionPolicy = isTeam ? makeRetentionPolicy({type: 'inherit'}) : makeRetentionPolicy()
+  if (i.convRetention) {
+    // it has been set for this conversation
+    retentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.convRetention)
   }
 
   return makeConversationMeta({

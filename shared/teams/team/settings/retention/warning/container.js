@@ -5,6 +5,9 @@ import RetentionWarning from '.'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     days: routeProps.get('days'),
+    isTeam: routeProps.get('isTeam'),
+    isTeamWide: routeProps.get('isTeamWide'),
+    isSmallTeam: routeProps.get('isSmallTeam'),
   }
 }
 

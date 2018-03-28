@@ -39,6 +39,7 @@ const load = () => {
       <RetentionPicker
         loading={false}
         isTeamWide={false}
+        isTeam={true}
         policy={policyRetain}
         teamPolicy={policy30Days}
         type="simple"
@@ -52,6 +53,7 @@ const load = () => {
       <RetentionPicker
         loading={false}
         isTeamWide={false}
+        isTeam={true}
         policy={policyInherit}
         teamPolicy={policy30Days}
         type="simple"
@@ -62,6 +64,7 @@ const load = () => {
       <RetentionPicker
         loading={false}
         isTeamWide={false}
+        isTeam={true}
         policy={policyInherit}
         teamPolicy={policy30Days}
         type="auto"
