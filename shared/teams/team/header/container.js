@@ -15,6 +15,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     _you: state.config.username,
+    canChat: yourOperations.chat,
     canEditDescription: yourOperations.editChannelDescription,
     canJoinTeam: yourOperations.joinTeam,
     canManageMembers: yourOperations.manageMembers,
@@ -47,6 +48,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  canChat: stateProps.canChat,
   canEditDescription: stateProps.canEditDescription,
   canJoinTeam: stateProps.canJoinTeam,
   canManageMembers: stateProps.canManageMembers,
