@@ -48,6 +48,10 @@ const mergeProps = (stateProps, dispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  lifecycle({}),
+  lifecycle({
+    componentWillMount: function() {
+      this.props.loadTeams()
+    },
+  }),
   branch(() => isMobile, HeaderHoc)
 )(Render)
