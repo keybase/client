@@ -15,7 +15,7 @@ type FullSelfer interface {
 	WithUser(arg LoadUserArg, f func(u *User) error) (err error)
 	HandleUserChanged(u keybase1.UID) error
 	Update(ctx context.Context, u *User) error
-	Clone() FullSelfer
+	New() FullSelfer
 	OnLogin() error
 }
 
@@ -47,7 +47,7 @@ func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error    { return n
 func (n *UncachedFullSelf) OnLogin() error                            { return nil }
 func (n *UncachedFullSelf) Update(ctx context.Context, u *User) error { return nil }
 
-func (n *UncachedFullSelf) Clone() FullSelfer { return NewUncachedFullSelf(n.G()) }
+func (n *UncachedFullSelf) New() FullSelfer { return NewUncachedFullSelf(n.G()) }
 
 func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
 	return &UncachedFullSelf{NewContextified(g)}
@@ -74,7 +74,7 @@ func NewCachedFullSelf(g *GlobalContext) *CachedFullSelf {
 	}
 }
 
-func (m *CachedFullSelf) Clone() FullSelfer { return NewCachedFullSelf(m.G()) }
+func (m *CachedFullSelf) New() FullSelfer { return NewCachedFullSelf(m.G()) }
 
 func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 	if arg.self {
