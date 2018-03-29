@@ -231,7 +231,6 @@ func (b *BackgroundConvLoader) recvTaskWithShutdown(ctx context.Context, cb chan
 	case ch := <-b.stopCh:
 		b.Debug(ctx, "loop: shutting down: uid: %s reason: load task", b.uid)
 		close(ch)
-		close(cb)
 		return nil, false
 	}
 }
@@ -301,7 +300,7 @@ func (b *BackgroundConvLoader) loop() {
 
 			// Run the load of the conversation with a callback so we can abort the loop on shutdown. If
 			// the load failed, it will return a new task to enqueue (if we haven't been shutdown).
-			cb := make(chan *clTask)
+			cb := make(chan *clTask, 1)
 			go func() {
 				gtask := b.load(bgctx, task, uid)
 				cb <- gtask
