@@ -272,7 +272,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
-	// Sync the puk, if the pukring is nil, we don't have a puk and have
+	// Sync the PUK, if the pukring is nil, we don't have a PUK and have
 	// nothing to box. We also can't make a userEKBox which is signed by the
 	// PUK.
 	pukring, err := e.syncPUK()

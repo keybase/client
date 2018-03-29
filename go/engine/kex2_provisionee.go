@@ -195,7 +195,7 @@ func (e *Kex2Provisionee) handleHello(uid keybase1.UID, token keybase1.SessionTo
 
 	ekLib := e.G().GetEKLib()
 	if ekLib != nil {
-		e.deviceEKSeed, err = ekLib.NewDeviceEphemeralSeed()
+		e.deviceEKSeed, err = ekLib.NewEphemeralSeed()
 		if err != nil {
 			return res, err
 		}

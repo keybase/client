@@ -317,7 +317,7 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 	return teamEK, nil
 }
 
-func (e *EKLib) NewDeviceEphemeralSeed() (seed keybase1.Bytes32, err error) {
+func (e *EKLib) NewEphemeralSeed() (seed keybase1.Bytes32, err error) {
 	return makeNewRandomSeed()
 }
 
