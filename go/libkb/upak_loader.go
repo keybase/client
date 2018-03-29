@@ -674,7 +674,7 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 }
 
 func (u *CachedUPAKLoader) loadUserWithKIDAndInfo(ctx context.Context, uid keybase1.UID, kid keybase1.KID, info *CachedUserLoadInfo) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
-	argBase := NewLoadUserByUIDArg(ctx, u.G(), uid)
+	argBase := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 
 	// See comment in LoadKeyV2
 	attempts := []LoadUserArg{
