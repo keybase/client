@@ -31,8 +31,6 @@ import keybase.Keybase;
 
 import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
-import static keybase.Keybase.appWillExit;
-import static keybase.Keybase.appDidEnterBackground;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -127,14 +125,32 @@ public class MainActivity extends ReactActivity {
     }
 
     @Override
+    protected void onStart() {
+        Keybase.setAppStateForeground();
+        super.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        Keybase.setAppStateBackground();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Keybase.setAppStateBackground();
+        super.onResume();
+    }
+
+    @Override
     protected void onStop() {
-        appDidEnterBackground();
+        Keybase.setAppStateBackground();
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        appWillExit();
+        Keybase.appWillExit();
         super.onDestroy();
     }
 
