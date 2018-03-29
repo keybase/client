@@ -5,20 +5,19 @@ import RetentionWarning from '.'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     days: routeProps.get('days'),
+    isChannel: routeProps.get('isChannel'),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
-  const onBack = () => dispatch(navigateUp())
   return {
-    onBack,
-    onCancel: () => {
-      onBack()
+    onBack: () => {
+      dispatch(navigateUp())
       const onCancel: ?() => void = routeProps.get('onCancel')
       onCancel && onCancel()
     },
     onConfirm: () => {
-      onBack()
+      dispatch(navigateUp())
       const cb: ?() => void = routeProps.get('onConfirm')
       cb && cb()
     },
