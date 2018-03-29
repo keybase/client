@@ -19,7 +19,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory =
-    meta.teamType === 'adhoc' || (flags.deleteChatHistory && yourOperations && yourOperations.deleteChatHistory)
+    meta.teamType === 'adhoc' ||
+    (flags.deleteChatHistory && yourOperations && yourOperations.deleteChatHistory)
   return {
     _canDeleteHistory,
     _you: state.config.username,
