@@ -285,7 +285,7 @@ func (g *GlobalContext) resetFullSelferWithLoginStateLock() {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	if g.fullSelfer != nil {
-		g.fullSelfer = g.fullSelfer.Clone()
+		g.fullSelfer = g.fullSelfer.New()
 	}
 }
 
