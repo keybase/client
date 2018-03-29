@@ -125,12 +125,6 @@ public class MainActivity extends ReactActivity {
     }
 
     @Override
-    protected void onStart() {
-        Keybase.setAppStateForeground();
-        super.onStart();
-    }
-
-    @Override
     protected void onPause() {
         Keybase.setAppStateBackground();
         super.onPause();
@@ -138,14 +132,8 @@ public class MainActivity extends ReactActivity {
 
     @Override
     protected void onResume() {
-        Keybase.setAppStateBackground();
+        Keybase.setAppStateForeground();
         super.onResume();
-    }
-
-    @Override
-    protected void onStop() {
-        Keybase.setAppStateBackground();
-        super.onStop();
     }
 
     @Override
