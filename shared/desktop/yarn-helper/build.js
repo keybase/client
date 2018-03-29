@@ -4,6 +4,7 @@ import os from 'os'
 const webpackLog = null // '~/webpack-log.txt'
 const webpackCmd = 'webpack --config ./desktop/webpack.config.babel.js'
 const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
+const outputStats = false
 
 const commands = {
   'build-dev': {
@@ -16,7 +17,7 @@ const commands = {
   'build-prod': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a production build of the js code',
-    shell: `${webpackCmd} --mode production --progress`,
+    shell: `${webpackCmd} --mode production --progress ${outputStats ? '--json > webpack-stats.json' : ''}`,
   },
   'hot-server': {
     code: hotServer,
