@@ -91,10 +91,6 @@ func (c *cmdWalletImport) GetUsage() libkb.Usage {
 }
 
 func (c *cmdWalletImport) promptSecretKey() (stellar1.SecretKey, stellar1.AccountID, error) {
-	// TODO: use a better passphrase prompter.
-	// Use gui or perhaps pinentry if possible.
-	// Have retrier.
-
 	secStr, err := c.G().UI.GetTerminalUI().PromptPassword(PromptDescriptorImportStellarSecretKey, "Enter a stellar secret key to import")
 	if err != nil {
 		return "", "", err
@@ -106,7 +102,10 @@ func (c *cmdWalletImport) promptSecretKey() (stellar1.SecretKey, stellar1.Accoun
 }
 
 func (c *cmdWalletImport) confirm(accountID stellar1.AccountID) error {
-	promptText := fmt.Sprintf("Do you want to import the account %s?", accountID.String())
+	promptText := fmt.Sprintf(`
+Ready to import account: %v
+The stellar secret key will be encrypted, uploaded, and made available on all of your devices.
+Ready to import?`, accountID)
 	doIt, err := c.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorConfirmStellarImport, promptText, libkb.PromptDefaultYes)
 	if err != nil {
 		return err
