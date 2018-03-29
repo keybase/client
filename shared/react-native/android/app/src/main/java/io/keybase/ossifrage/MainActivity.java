@@ -29,8 +29,11 @@ import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import keybase.Keybase;
 
+import static android.R.attr.key;
+import static android.content.Context.MODE_PRIVATE;
 import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
+import static keybase.Keybase.appWillExit;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -122,6 +125,12 @@ public class MainActivity extends ReactActivity {
             ContactsPermissionsWrapper.callbackWrapper(requestCode, permissions, grantResults);
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        appWillExit();
     }
 
     /**

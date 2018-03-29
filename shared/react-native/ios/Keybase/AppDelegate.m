@@ -22,6 +22,7 @@
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
+@property UIBackgroundTaskIdentifier shutdownTask;
 @end
 
 #if TARGET_OS_SIMULATOR
@@ -128,8 +129,8 @@ const BOOL isDebug = NO;
   // that). If you're building onto a phone, you'll have to change
   // localhost:8081 to point to the bundler running on your computer.
   //
-  // jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+    jsCodeLocation = [NSURL URLWithString:@"http://10.0.1.19:8081/index.ios.bundle?platform=ios&dev=true"];
+// jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 #ifdef SYSTRACING
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
                                             launchOptions:launchOptions];
@@ -229,6 +230,18 @@ const BOOL isDebug = NO;
   [self.resignImageView.layer removeAllAnimations];
   // Snapshot happens right after this call, force alpha immediately w/o animation else you'll get a half animated overlay
   self.resignImageView.alpha = 1;
+  
+  const bool requestTime = KeybaseAppDidEnterBackground();
+  if (requestTime && (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {
+    UIApplication *app = [UIApplication sharedApplication];
+    self.shutdownTask = [app beginBackgroundTaskWithExpirationHandler:^{
+      NSLog(@"DANNYDEBUG: telling service app will exit\n");
+      KeybaseAppWillExit();
+      [app endBackgroundTask:self.shutdownTask];
+      self.shutdownTask = UIBackgroundTaskInvalid;
+    }];
+  }
+  
 }
 
 // Sometimes these lifecycle calls can be skipped so try and catch them all
