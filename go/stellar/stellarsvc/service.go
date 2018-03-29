@@ -191,3 +191,28 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 
 	return res.PaymentResult, nil
 }
+
+func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (isOwn bool, err error) {
+	bundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return false, err
+	}
+	for _, account := range bundle.Accounts {
+		if account.AccountID.Eq(accountID) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool) (err error) {
+	return stellar.ImportSecretKey(ctx, g, secretKey, makePrimary)
+}
+
+func Dump(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, err error) {
+	if g.Env.GetRunMode() != libkb.DevelRunMode {
+		return res, errors.New("WalletDump only supported in devel run mode")
+	}
+	res, _, err = remote.Fetch(ctx, g)
+	return res, err
+}

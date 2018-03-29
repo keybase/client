@@ -36,6 +36,10 @@ func (a AccountID) String() string {
 	return string(a)
 }
 
+func (a AccountID) Eq(b AccountID) bool {
+	return a == b
+}
+
 func (s SecretKey) String() string {
 	return "[secret key redacted]"
 }

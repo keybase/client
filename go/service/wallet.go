@@ -9,9 +9,7 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -22,7 +20,7 @@ type walletHandler struct {
 	*BaseHandler
 }
 
-var _ keybase1.WalletInterface = (*walletHandler)(nil)
+var _ stellar1.LocalInterface = (*walletHandler)(nil)
 
 func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext) *walletHandler {
 	return &walletHandler{
@@ -43,9 +41,9 @@ func (h *walletHandler) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
-func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
+func (h *walletHandler) WalletInitLocal(ctx context.Context) (err error) {
 	ctx = h.logTag(ctx)
-	defer h.G().CTraceTimed(ctx, "WalletInit", func() error { return err })()
+	defer h.G().CTraceTimed(ctx, "WalletInitLocal", func() error { return err })()
 	err = h.assertLoggedIn(ctx)
 	if err != nil {
 		return err
@@ -76,7 +74,9 @@ func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg
 	return stellarsvc.Send(ctx, h.G(), arg)
 }
 
-func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, err error) {
+func (h *walletHandler) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "WalletDumpLocal", func() error { return err })()
 	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
 		return dump, errors.New("WalletDump only supported in devel run mode")
 	}
@@ -109,19 +109,26 @@ func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, 
 	if !pwdOk {
 		return dump, libkb.PassphraseError{}
 	}
+	return stellarsvc.Dump(ctx, h.G())
+}
 
-	bundle, _, err := remote.Fetch(ctx, h.G())
+func (h *walletHandler) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "OwnAccountLocal", func() error { return err })()
+	err = h.assertLoggedIn(ctx)
 	if err != nil {
-		return dump, err
+		return false, err
 	}
+	return stellarsvc.OwnAccount(ctx, h.G(), accountID)
+}
 
-	primary, err := bundle.PrimaryAccount()
+func (h *walletHandler) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "ImportSecretKeyLocal", func() error { return err })()
+	err = h.assertLoggedIn(ctx)
 	if err != nil {
-		return dump, err
+		return err
 	}
-
-	dump.Address = primary.AccountID.String()
-	dump.Seed = primary.Signers[0].SecureNoLogString()
-
-	return dump, nil
+	err = stellarsvc.ImportSecretKey(ctx, h.G(), arg.SecretKey, arg.MakePrimary)
+	return err
 }

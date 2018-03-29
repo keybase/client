@@ -1,6 +1,8 @@
 package client
 
 import (
+	"encoding/base64"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -40,14 +42,30 @@ func (c *cmdWalletDump) Run() error {
 	if err != nil {
 		return err
 	}
-	dump, err := cli.WalletDump(context.Background())
+	bundle, err := cli.WalletDumpLocal(context.Background())
 	if err != nil {
 		return err
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("%+v\n", dump)
-
+	dui.Printf("Revision: %v\n", bundle.Revision)
+	dui.Printf("Prev: %v\n", base64.StdEncoding.EncodeToString(bundle.Prev))
+	dui.Printf("OwnHash: %v\n", base64.StdEncoding.EncodeToString(bundle.OwnHash))
+	for i, account := range bundle.Accounts {
+		if account.IsPrimary {
+			dui.Printf("\n[%v] PRIMARY\n", i)
+		} else {
+			dui.Printf("\n[%v]\n", i)
+		}
+		if len(account.Name) > 0 {
+			dui.Printf("Name: %v\n", account.Name)
+		}
+		dui.Printf("AccountID: %v\n", account.AccountID)
+		for j, signer := range account.Signers {
+			dui.Printf("Signers[%v]: %v\n", j, signer.SecureNoLogString())
+		}
+		dui.Printf("Mode: %v\n", account.Mode)
+	}
 	return nil
 }
 

@@ -6,22 +6,7 @@
       "type": "idl"
     }
   ],
-  "types": [
-    {
-      "type": "record",
-      "name": "DumpRes",
-      "fields": [
-        {
-          "type": "string",
-          "name": "seed"
-        },
-        {
-          "type": "string",
-          "name": "address"
-        }
-      ]
-    }
-  ],
+  "types": [],
   "messages": {
     "balancesLocal": {
       "request": [
@@ -56,13 +41,35 @@
       ],
       "response": "PaymentResult"
     },
-    "walletInit": {
+    "walletInitLocal": {
       "request": [],
       "response": null
     },
-    "walletDump": {
+    "walletDumpLocal": {
       "request": [],
-      "response": "DumpRes"
+      "response": "Bundle"
+    },
+    "ownAccountLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
+    },
+    "importSecretKeyLocal": {
+      "request": [
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        },
+        {
+          "name": "makePrimary",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"
