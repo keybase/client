@@ -15,7 +15,7 @@ type FullSelfer interface {
 	WithUser(arg LoadUserArg, f func(u *User) error) (err error)
 	HandleUserChanged(u keybase1.UID) error
 	Update(ctx context.Context, u *User) error
-	OnLogout() error
+	Clone() FullSelfer
 	OnLogin() error
 }
 
@@ -44,9 +44,10 @@ func (n *UncachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) erro
 }
 
 func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error    { return nil }
-func (n *UncachedFullSelf) OnLogout() error                           { return nil }
 func (n *UncachedFullSelf) OnLogin() error                            { return nil }
 func (n *UncachedFullSelf) Update(ctx context.Context, u *User) error { return nil }
+
+func (n *UncachedFullSelf) Clone() FullSelfer { return NewUncachedFullSelf(n.G()) }
 
 func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
 	return &UncachedFullSelf{NewContextified(g)}
@@ -72,6 +73,8 @@ func NewCachedFullSelf(g *GlobalContext) *CachedFullSelf {
 		Contextified: NewContextified(g),
 	}
 }
+
+func (m *CachedFullSelf) Clone() FullSelfer { return NewCachedFullSelf(m.G()) }
 
 func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 	if arg.self {
@@ -256,14 +259,6 @@ func (m *CachedFullSelf) HandleUserChanged(u keybase1.UID) error {
 	} else {
 		m.G().Log.Debug("| CachedFullSelf#HandleUserChanged: Ignoring cache bust for UID=%s", u)
 	}
-	return nil
-}
-
-// OnLogout clears the cached self user.
-func (m *CachedFullSelf) OnLogout() error {
-	m.Lock()
-	defer m.Unlock()
-	m.me = nil
 	return nil
 }
 
