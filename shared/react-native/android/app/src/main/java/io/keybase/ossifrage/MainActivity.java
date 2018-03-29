@@ -34,6 +34,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
 import static keybase.Keybase.appWillExit;
+import static keybase.Keybase.appDidEnterBackground;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -128,9 +129,15 @@ public class MainActivity extends ReactActivity {
     }
 
     @Override
+    protected void onStop() {
+        appDidEnterBackground();
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
-        super.onDestroy();
         appWillExit();
+        super.onDestroy();
     }
 
     /**

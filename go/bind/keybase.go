@@ -273,23 +273,18 @@ func Version() string {
 	return libkb.VersionString()
 }
 
-// AppDidEnterBackground notifies the service that the app is in the background [iOS only]
-// and may be suspended at any point
-// if this function returns true; iOS will grant about 3 minutes to the service
+// AppDidEnterBackground notifies the service that the app is in the background
+// [iOS] returning true will request about ~3mins from iOS to continue execution
 func AppDidEnterBackground() (requestExecTime bool) {
-	kbCtx.Log.Debug("DANNYDEBUG: Requesting more execution time...\n")
 	// js already notifies about background state
 	requestExecTime = false
 	return
 }
 
 // AppWillExit notifies the service that the app is about to be killed
-// on iOS this is called when requested execution time expires, but
-// will not be called if the user force quits the app
-// on android this is called if the app is cleared during system cleanup
-// or when the user force quits the app
+// on iOS this is called when requested execution time expires / the app terminates
+// on android might be called when the app terminates
 func AppWillExit() {
-	kbCtx.Log.Debug("DANNYDEBUG: Got app will exit from service\n")
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDFINAL)
 }
 
