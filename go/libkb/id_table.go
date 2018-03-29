@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
@@ -923,7 +924,7 @@ func ParseWalletStellarChainLink(b GenericChainLink) (ret *WalletStellarChainLin
 	if ret.network != string(WalletNetworkStellar) {
 		return nil, mkErr("Unsupported wallet network '%v'", ret.network)
 	}
-	accountKey, err := MakeNaclSigningKeyPairFromStellarAccountID(keybase1.StellarAccountID(ret.address))
+	accountKey, err := MakeNaclSigningKeyPairFromStellarAccountID(stellar1.AccountID(ret.address))
 	if err != nil {
 		return nil, mkErr("Invalid stellar account address: '%v'", ret.address)
 	}
@@ -1422,7 +1423,7 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 
 // Return the active stellar public address for a user.
 // Returns nil if there is none or it has not been loaded.
-func (idt *IdentityTable) StellarWalletAddress() *keybase1.StellarAccountID {
+func (idt *IdentityTable) StellarWalletAddress() *stellar1.AccountID {
 	// Return the account ID of the latest link with the network set to stellar.
 	if idt.stellar == nil {
 		return nil
@@ -1430,7 +1431,7 @@ func (idt *IdentityTable) StellarWalletAddress() *keybase1.StellarAccountID {
 	link := idt.stellar
 	if link.network == string(WalletNetworkStellar) {
 		// Something should have already validated link.address as a stellar account ID.
-		tmp := keybase1.StellarAccountID(link.address)
+		tmp := stellar1.AccountID(link.address)
 		return &tmp
 	}
 	return nil
