@@ -272,6 +272,7 @@ const BOOL isDebug = NO;
       KeybaseSetAppStateInactive();
       break;
     default:
+      KeybaseSetAppStateForeground();
       break;
   }
 }
