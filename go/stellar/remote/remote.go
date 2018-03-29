@@ -80,7 +80,7 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 
 	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: make sigs")
 
-	sig, err := libkb.WalletProofReverseSigned(me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
+	sig, err := libkb.StellarProofReverseSigned(me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
 	if err != nil {
 		return err
 	}

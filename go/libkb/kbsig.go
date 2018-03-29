@@ -745,8 +745,8 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	return res, nil
 }
 
-// WalletProof creates a proof of a stellar wallet.
-func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
+// StellarProof creates a proof of a stellar wallet.
+func StellarProof(me *User, walletAddress keybase1.StellarAccountID,
 	signingKey GenericKey) (*jsonw.Wrapper, error) {
 	if me == nil {
 		return nil, fmt.Errorf("missing user object for proof")
@@ -759,7 +759,7 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 
 	ret, err := ProofMetadata{
 		Me:         me,
-		LinkType:   LinkTypeWallet,
+		LinkType:   LinkTypeWalletStellar,
 		SigningKey: signingKey,
 		SigVersion: KeybaseSignatureV2,
 	}.ToJSON(me.G())
@@ -795,18 +795,18 @@ func WalletProof(me *User, walletAddress keybase1.StellarAccountID,
 // Make a stellar proof with a reverse sig.
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
-func WalletProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
-	walletSigner keybase1.StellarSecretKey, signer GenericKey) (JSONPayload, error) {
+func StellarProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
+	stellarSigner keybase1.StellarSecretKey, signer GenericKey) (JSONPayload, error) {
 	// Make reverse sig
-	jwRev, err := WalletProof(me, walletAddress, signer)
+	jwRev, err := StellarProof(me, walletAddress, signer)
 	if err != nil {
 		return nil, err
 	}
-	walletSignerKey, err := MakeNaclSigningKeyPairFromStellarSecretKey(walletSigner)
+	stellarSignerKey, err := MakeNaclSigningKeyPairFromStellarSecretKey(stellarSigner)
 	if err != nil {
 		return nil, err
 	}
-	reverseSig, _, _, err := SignJSON(jwRev, walletSignerKey)
+	reverseSig, _, _, err := SignJSON(jwRev, stellarSignerKey)
 	if err != nil {
 		return nil, err
 	}
@@ -820,7 +820,7 @@ func WalletProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
 	}
 	sig, sigID, linkID, err := MakeSig(
 		signer,
-		LinkTypeWallet,
+		LinkTypeWalletStellar,
 		innerJSON,
 		SigHasRevokes(false),
 		keybase1.SeqType_PUBLIC,
@@ -840,7 +840,7 @@ func WalletProofReverseSigned(me *User, walletAddress keybase1.StellarAccountID,
 	res["sig"] = sig
 	res["sig_inner"] = string(innerJSON)
 	res["signing_kid"] = signer.GetKID().String()
-	res["public_key"] = walletSignerKey.GetKID().String()
-	res["type"] = LinkTypeWallet
+	res["public_key"] = stellarSignerKey.GetKID().String()
+	res["type"] = LinkTypeWalletStellar
 	return res, nil
 }
