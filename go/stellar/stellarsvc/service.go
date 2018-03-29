@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -61,21 +60,21 @@ func balanceXLM(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 	return stellar1.Balance{}, errors.New("no native balance")
 }
 
-func lookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (keybase1.StellarEntry, error) {
-	bundle, err := remote.Fetch(ctx, g)
+func lookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntry, error) {
+	bundle, _, err := remote.Fetch(ctx, g)
 	if err != nil {
-		return keybase1.StellarEntry{}, err
+		return stellar1.BundleEntry{}, err
 	}
 
 	primary, err := bundle.PrimaryAccount()
 	if err != nil {
-		return keybase1.StellarEntry{}, err
+		return stellar1.BundleEntry{}, err
 	}
 	if len(primary.Signers) == 0 {
-		return keybase1.StellarEntry{}, errors.New("no signer for primary bundle")
+		return stellar1.BundleEntry{}, errors.New("no signer for primary bundle")
 	}
 	if len(primary.Signers) > 1 {
-		return keybase1.StellarEntry{}, errors.New("only single signer supported")
+		return stellar1.BundleEntry{}, errors.New("only single signer supported")
 	}
 
 	return primary, nil

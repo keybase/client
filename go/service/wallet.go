@@ -110,7 +110,7 @@ func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, 
 		return dump, libkb.PassphraseError{}
 	}
 
-	bundle, err := remote.Fetch(ctx, h.G())
+	bundle, _, err := remote.Fetch(ctx, h.G())
 	if err != nil {
 		return dump, err
 	}
