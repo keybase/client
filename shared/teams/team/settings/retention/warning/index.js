@@ -20,7 +20,6 @@ type Props = {
   isBigTeam: boolean,
   setEnabled: boolean => void,
   onConfirm: () => void,
-  onCancel: () => void,
   onBack: () => void,
 }
 
@@ -36,7 +35,7 @@ const Wrapper = ({children, onBack}) =>
 const RetentionWarning = (props: Props) => {
   const policyString = daysToLabel(props.days)
   return (
-    <Wrapper onBack={props.onCancel}>
+    <Wrapper onBack={props.onBack}>
       <Box style={containerStyle}>
         <Icon type={iconType} style={iconStyle} />
         <Text type="Header" style={headerStyle}>
@@ -61,7 +60,7 @@ const RetentionWarning = (props: Props) => {
           }
         />
         <ButtonBar>
-          <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
+          <Button type="Secondary" onClick={props.onBack} label="Cancel" />
           <Button
             type="Danger"
             onClick={props.onConfirm}
@@ -102,6 +101,7 @@ const iconStyle = platformStyles({
 const headerStyle = platformStyles({
   common: {
     marginBottom: globalMargins.small,
+    textAlign: 'center',
   },
 })
 
