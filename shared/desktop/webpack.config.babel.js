@@ -11,19 +11,14 @@ import webpack from 'webpack'
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = (env, argv) => {
-  const isDev = !argv.mode !== 'production'
-  const flags = {
-    isDev,
-    isHot: getenv.boolish('HOT', false),
-  }
+  const isDev = argv.mode !== 'production'
+  const isHot = isDev && getenv.boolish('HOT', false)
 
-  console.log('Flags: ', flags)
+  console.log('Flags: ', {isDev, isHot})
   const makeCommonConfig = () => {
     const fileLoaderRule = {
       loader: 'file-loader',
-      options: {
-        name: '[name].[ext]',
-      },
+      options: {name: '[name].[ext]'},
     }
 
     const babelRule = {
@@ -33,24 +28,13 @@ const config = (env, argv) => {
         babelrc: false,
         cacheDirectory: true,
         plugins: [
-          'react-hot-loader/babel',
+          ...(isHot ? ['react-hot-loader/babel'] : []),
           ['transform-builtin-extend', {globals: ['Error']}], // we override Error sometimes
           'transform-flow-strip-types', // ignore flow
           'transform-object-rest-spread', // not supported by electrons node yet
           'babel-plugin-transform-class-properties', // not supported by electrons node yet
         ],
-        presets: [
-          [
-            'env',
-            {
-              debug: false,
-              targets: {
-                electron: '1.7.5',
-              },
-            },
-          ],
-          'babel-preset-react',
-        ],
+        presets: [['@babel/preset-env', {debug: false, targets: {electron: '1.7.5'}}], '@babel/preset-react'],
       },
     }
 
@@ -59,7 +43,7 @@ const config = (env, argv) => {
         // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
         test: /\.jpg$/,
-        use: [flags.isDev ? fileLoaderRule : 'null-loader'],
+        use: [isDev ? fileLoaderRule : 'null-loader'],
       },
       {
         include: path.resolve(__dirname, '../images/icons'),
@@ -86,37 +70,11 @@ const config = (env, argv) => {
       },
     ]
 
-    const makeCommonPlugins = () => {
-      const defines = {
-        __DEV__: flags.isDev,
-        __HOT__: flags.isHot,
-        __SCREENSHOT__: false,
-        __STORYBOOK__: false,
-        __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
-      }
-      console.warn('Injecting defines: ', defines)
-      const definePlugin = [new webpack.DefinePlugin(defines)]
-      const uglifyPlugin = flags.isDev
-        ? []
-        : [
-            new UglifyJSPlugin({
-              sourceMap: true,
-              uglifyOptions: {
-                output: {
-                  comments: false,
-                },
-              },
-            }),
-          ]
-
-      return [...definePlugin, ...uglifyPlugin].filter(Boolean)
-    }
-
     // If we use the hot server it pulls in this config
     const devServer = {
       compress: false,
       contentBase: path.resolve(__dirname, 'dist'),
-      hot: flags.isHot,
+      hot: isHot,
       lazy: false,
       overlay: true,
       port: 4000,
@@ -124,6 +82,15 @@ const config = (env, argv) => {
       quiet: false,
       stats: {colors: true},
     }
+
+    const defines = {
+      __DEV__: isDev,
+      __HOT__: isHot,
+      __SCREENSHOT__: false,
+      __STORYBOOK__: false,
+      __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
+    }
+    console.warn('Injecting defines: ', defines)
 
     return {
       bail: true,
@@ -133,12 +100,28 @@ const config = (env, argv) => {
       output: {
         filename: '[name].bundle.js',
         path: path.resolve(__dirname, 'dist'),
-        publicPath: flags.isHot ? 'http://localhost:4000/dist/' : '../dist/',
+        publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
       },
-      plugins: makeCommonPlugins(),
+      plugins: [new webpack.DefinePlugin(defines)],
       resolve: {
         extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
       },
+      ...(isDev
+        ? {}
+        : {
+            optimization: {
+              minimizer: [
+                new UglifyJSPlugin({
+                  sourceMap: true,
+                  uglifyOptions: {
+                    output: {
+                      comments: false,
+                    },
+                  },
+                }),
+              ],
+            },
+          }),
     }
   }
 
@@ -151,17 +134,17 @@ const config = (env, argv) => {
   })
   const renderThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
-    devtool: flags.isDev ? 'eval' : 'source-map',
+    devtool: isDev ? 'eval' : 'source-map',
     entry: {
       'component-loader': './desktop/remote/component-loader.js',
       index: './desktop/renderer/index.js',
     },
     name: 'renderThread',
-    plugins: [...(flags.isHot && flags.isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],
+    plugins: [...(isHot && isDev ? [new webpack.HotModuleReplacementPlugin()] : [])],
     target: 'electron-renderer',
   })
 
-  if (flags.isHot) {
+  if (isHot) {
     return getenv.boolish('BEFORE_HOT', false) ? mainThreadConfig : renderThreadConfig
   } else {
     return [mainThreadConfig, renderThreadConfig]
