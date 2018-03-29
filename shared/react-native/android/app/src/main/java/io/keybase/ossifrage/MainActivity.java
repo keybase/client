@@ -29,8 +29,6 @@ import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import keybase.Keybase;
 
-import static android.R.attr.key;
-import static android.content.Context.MODE_PRIVATE;
 import static android.os.Build.VERSION_CODES.O;
 import static keybase.Keybase.initOnce;
 import static keybase.Keybase.appWillExit;
