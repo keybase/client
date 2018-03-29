@@ -18,6 +18,7 @@ type Props = {
   days: number,
   enabled: boolean,
   isBigTeam: boolean,
+  isChannel: boolean,
   setEnabled: boolean => void,
   onConfirm: () => void,
   onBack: () => void,
@@ -34,6 +35,7 @@ const Wrapper = ({children, onBack}) =>
 
 const RetentionWarning = (props: Props) => {
   const policyString = daysToLabel(props.days)
+  const convType = props.isChannel ? 'channel' : "team's chats"
   return (
     <Wrapper onBack={props.onBack}>
       <Box style={containerStyle}>
@@ -42,20 +44,24 @@ const RetentionWarning = (props: Props) => {
           Destroy chat messages after {policyString}?
         </Text>
         <Text type="Body" style={bodyStyle}>
-          You are about to set the message deletion policy in this team's chats to{' '}
-          <Text type="BodySemibold">{policyString}.</Text> This will affect all the team's channels, except
-          the ones you've set manually.
+          You are about to set the message deletion policy in this {convType} to{' '}
+          <Text type="BodySemibold">{policyString}.</Text>{' '}
+          {!props.isChannel &&
+            "This will affect all the team's channels, except the ones you've set manually."}
         </Text>
         <Checkbox
           checked={props.enabled}
           onCheck={props.setEnabled}
+          style={checkboxStyle}
           label="I understand."
           labelComponent={
             <Box style={confirmLabelStyle}>
               <Text type="Body">
                 I understand that messages older than {policyString} will be deleted for everyone.
               </Text>
-              <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
+              {!props.isChannel && (
+                <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
+              )}
             </Box>
           }
         />
@@ -112,12 +118,20 @@ const bodyStyle = platformStyles({
   },
 })
 
+const checkboxStyle = platformStyles({
+  isMobile: {
+    marginLeft: globalMargins.tiny,
+    marginRight: globalMargins.tiny,
+  },
+})
+
 const confirmLabelStyle = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
   },
   isMobile: {
     marginBottom: globalMargins.small,
+    marginLeft: globalMargins.tiny,
   },
   isElectron: {
     marginBottom: globalMargins.xlarge,
