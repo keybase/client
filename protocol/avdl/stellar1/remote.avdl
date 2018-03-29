@@ -80,12 +80,6 @@ protocol remote {
 
     string signedTransaction;
   }
-
-  record PaymentResult {
-    TransactionID stellarID;
-    KeybaseTransactionID keybaseID;
-    int Ledger;
-  }
   
   array<Balance> balances(keybase1.UID uid, AccountID accountID);
   array<TransactionSummary> recentTransactions(keybase1.UID uid, AccountID accountID, int count);

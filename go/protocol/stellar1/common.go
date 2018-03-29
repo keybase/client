@@ -111,6 +111,20 @@ func (e TransactionStatus) String() string {
 	return ""
 }
 
+type PaymentResult struct {
+	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
+	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
+	Ledger    int                  `codec:"Ledger" json:"Ledger"`
+}
+
+func (o PaymentResult) DeepCopy() PaymentResult {
+	return PaymentResult{
+		StellarID: o.StellarID.DeepCopy(),
+		KeybaseID: o.KeybaseID.DeepCopy(),
+		Ledger:    o.Ledger,
+	}
+}
+
 type CommonInterface interface {
 }
 

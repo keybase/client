@@ -84,6 +84,24 @@
         "ERROR_TRANSIENT_3",
         "ERROR_PERMANENT_4"
       ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "int",
+          "name": "Ledger"
+        }
+      ]
     }
   ],
   "messages": {},

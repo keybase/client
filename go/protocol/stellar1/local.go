@@ -8,16 +8,40 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type DumpRes struct {
+	Seed    string `codec:"seed" json:"seed"`
+	Address string `codec:"address" json:"address"`
+}
+
+func (o DumpRes) DeepCopy() DumpRes {
+	return DumpRes{
+		Seed:    o.Seed,
+		Address: o.Address,
+	}
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
+type SendLocalArg struct {
+	Recipient string `codec:"recipient" json:"recipient"`
+	Amount    string `codec:"amount" json:"amount"`
+	Asset     Asset  `codec:"asset" json:"asset"`
+	Note      string `codec:"note" json:"note"`
 }
 
 type WalletInitArg struct {
 }
 
+type WalletDumpArg struct {
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
+	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	WalletInit(context.Context) error
+	WalletDump(context.Context) (DumpRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -40,6 +64,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"sendLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SendLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SendLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SendLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SendLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"walletInit": {
 				MakeArg: func() interface{} {
 					ret := make([]WalletInitArg, 1)
@@ -47,6 +87,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					err = i.WalletInit(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"walletDump": {
+				MakeArg: func() interface{} {
+					ret := make([]WalletDumpArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.WalletDump(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -65,7 +116,17 @@ func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (re
 	return
 }
 
+func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res PaymentResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.sendLocal", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) WalletInit(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.walletInit", []interface{}{WalletInitArg{}}, nil)
+	return
+}
+
+func (c LocalClient) WalletDump(ctx context.Context) (res DumpRes, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletDump", []interface{}{WalletDumpArg{}}, &res)
 	return
 }

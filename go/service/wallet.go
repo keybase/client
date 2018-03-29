@@ -6,9 +6,12 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -36,8 +39,12 @@ func (h *walletHandler) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
+func (h *walletHandler) logTag(ctx context.Context) context.Context {
+	return libkb.WithLogTag(ctx, "WA")
+}
+
 func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
-	ctx = libkb.WithLogTag(ctx, "WA")
+	ctx = h.logTag(ctx)
 	defer h.G().CTraceTimed(ctx, "WalletInit", func() error { return err })()
 	err = h.assertLoggedIn(ctx)
 	if err != nil {
@@ -47,27 +54,74 @@ func (h *walletHandler) WalletInit(ctx context.Context) (err error) {
 	return err
 }
 
-type balancesResult struct {
-	Status   libkb.AppStatus    `json:"status"`
-	Balances []stellar1.Balance `json:"balances"`
-}
-
-func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
-	return &b.Status
-}
-
 func (h *walletHandler) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/balances",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:  ctx,
-	}
-
-	var res balancesResult
-	if err := h.G().API.GetDecode(apiArg, &res); err != nil {
+	var err error
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
+	if err = h.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
 
-	return res.Balances, nil
+	return stellarsvc.Balances(ctx, h.G(), accountID)
+}
+
+func (h *walletHandler) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
+	var err error
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "SendLocal", func() error { return err })()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+
+	return stellarsvc.Send(ctx, h.G(), arg)
+}
+
+func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, err error) {
+	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
+		return dump, errors.New("WalletDump only supported in devel run mode")
+	}
+
+	ctx = h.logTag(ctx)
+	defer h.G().CTraceTimed(ctx, "WalletDump", func() error { return err })()
+	err = h.assertLoggedIn(ctx)
+	if err != nil {
+		return dump, err
+	}
+
+	// verify passphrase
+	username := h.G().GetEnv().GetUsername().String()
+
+	arg := libkb.DefaultPassphrasePromptArg(h.G(), username)
+	secretUI := h.getSecretUI(0, h.G())
+	res, err := secretUI.GetPassphrase(arg, nil)
+	if err != nil {
+		return dump, err
+	}
+	pwdOk := false
+	_, err = h.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
+		pwdOk = true
+
+		return nil
+	})
+	if err != nil {
+		return dump, err
+	}
+	if !pwdOk {
+		return dump, libkb.PassphraseError{}
+	}
+
+	bundle, _, err := remote.Fetch(ctx, h.G())
+	if err != nil {
+		return dump, err
+	}
+
+	primary, err := bundle.PrimaryAccount()
+	if err != nil {
+		return dump, err
+	}
+
+	dump.Address = primary.AccountID.String()
+	dump.Seed = primary.Signers[0].SecureNoLogString()
+
+	return dump, nil
 }

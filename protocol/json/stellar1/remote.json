@@ -245,24 +245,6 @@
           "name": "signedTransaction"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "PaymentResult",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "stellarID"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "keybaseID"
-        },
-        {
-          "type": "int",
-          "name": "Ledger"
-        }
-      ]
     }
   ],
   "messages": {

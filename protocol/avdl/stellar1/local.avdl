@@ -3,6 +3,13 @@ protocol local {
   import idl "common.avdl";
 
   array<Balance> balancesLocal(AccountID accountID);
+  PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
   void walletInit();
+
+  record DumpRes {
+    string seed;
+    string address;
+  }
+  DumpRes walletDump();
 }
