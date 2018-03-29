@@ -156,8 +156,19 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	userEKGenY, err := userEKBoxStorageY.MaxGeneration(context.Background())
 	require.NoError(t, err)
 	require.EqualValues(t, userEKGenX, userEKGenY)
-	userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
-	require.Equal(t, userEKY, userEKX)
 
-	// TODO clear cache on storage and verify we can fetch the userekbox from the server.
+	if upgradePerUserKey {
+		userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
+		require.NoError(t, err)
+		require.Equal(t, userEKX, userEKY)
+
+		// Now clear local store and make sure the server has reboxed userEK.
+		rawUserEKBoxStorage := NewUserEKBoxStorage(tcY.G)
+		rawUserEKBoxStorage.Delete(context.Background(), userEKGenY)
+		userEKBoxStorageY.ClearCache()
+
+		userEKYFetched, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
+		require.NoError(t, err)
+		require.Equal(t, userEKX, userEKYFetched)
+	}
 }
