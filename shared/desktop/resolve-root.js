@@ -13,7 +13,9 @@ if (__STORYBOOK__) {
   // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
 
   const app = electron.app || electron.remote.app
-  root = !__DEV__ ? path.join(app.getAppPath(), './desktop') : path.join(__dirname)
+  // root = !__DEV__ ? path.join(app.getAppPath(), './desktop') : path.join(__dirname)
+  // // TEMP just to test prod agians cold
+  root = false ? path.join(app.getAppPath(), './desktop') : path.join(__dirname)
 }
 
 function fix(str) {

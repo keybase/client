@@ -6,7 +6,6 @@ import {
   pathToString,
   makeRouteDefNode,
   makeRouteStateNode,
-  // InvalidRouteError,
   routeSetProps,
   routeNavigate,
   routeSetState,

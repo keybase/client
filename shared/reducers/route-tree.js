@@ -182,7 +182,7 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
       action
     )
   } catch (err) {
-    if (action.type === Constants.refreshRouteDef && err instanceof InvalidRouteError) {
+    if (action.type === Constants.refreshRouteDef && err && err.messsage.startsWith('RT:')) {
       logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
       logger.error(

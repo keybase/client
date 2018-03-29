@@ -29,12 +29,14 @@ const config = (env, argv) => {
         cacheDirectory: true,
         plugins: [
           ...(isHot ? ['react-hot-loader/babel'] : []),
-          ['transform-builtin-extend', {globals: ['Error']}], // we override Error sometimes
-          'transform-flow-strip-types', // ignore flow
-          'transform-object-rest-spread', // not supported by electrons node yet
-          'babel-plugin-transform-class-properties', // not supported by electrons node yet
+          '@babel/transform-flow-strip-types', // ignore flow
+          '@babel/plugin-proposal-object-rest-spread', // not supported by electrons node yet
+          '@babel/plugin-proposal-class-properties', // not supported by electrons node yet
         ],
-        presets: [['@babel/preset-env', {debug: false, targets: {electron: '1.7.5'}}], '@babel/preset-react'],
+        presets: [
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.7.5'}}],
+          '@babel/preset-react',
+        ],
       },
     }
 
@@ -106,6 +108,9 @@ const config = (env, argv) => {
       resolve: {
         extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
       },
+      stats: {
+        optimizationBailout: true,
+      },
       ...(isDev
         ? {}
         : {
@@ -134,7 +139,7 @@ const config = (env, argv) => {
   })
   const renderThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
-    devtool: isDev ? 'eval' : 'source-map',
+    devtool: 'source-map', // TEMP // isDev ? 'eval' : 'source-map',
     entry: {
       'component-loader': './desktop/remote/component-loader.js',
       index: './desktop/renderer/index.js',
