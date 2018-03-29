@@ -326,7 +326,10 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, perUserKeyBox *keybas
 		return err
 	}
 
-	// store the ephemeralkeys, if any
+	// store the ephemeralkeys, if any. If this fails after we have posted the
+	// client will no not have access to the userEK it was just reboxed for
+	// unfortunately. Without any EKs, the normal generation machinery will
+	// take over and they will make a new userEK
 	return e.storeEKs(e.ctx.NetContext, deviceEKStatement, userEKBox)
 }
 
