@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,13 +16,10 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	_, err = publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
+	prevStatement, err := fetchUserEKStatement(context.Background(), tc.G)
 	require.NoError(t, err)
-
-	// Before we've published any userEK's, activeUserEKMetadata should return nil.
-	nilStatement, err := fetchUserEKStatement(context.Background(), tc.G)
-	require.NoError(t, err)
-	require.Nil(t, nilStatement)
+	prevExisting := prevStatement.ExistingUserEkMetadata
+	prevExisting = append(prevExisting, prevStatement.CurrentUserEkMetadata)
 
 	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
@@ -39,8 +35,7 @@ func TestNewUserEK(t *testing.T) {
 	statement := *statementPtr
 	currentMetadata := statement.CurrentUserEkMetadata
 	require.Equal(t, currentMetadata, publishedMetadata)
-	require.EqualValues(t, 1, currentMetadata.Generation)
-	require.Equal(t, statement.ExistingUserEkMetadata, []keybase1.UserEkMetadata{})
+	require.Equal(t, statement.ExistingUserEkMetadata, prevExisting)
 
 	// We've stored the result in local storage
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
@@ -51,14 +46,14 @@ func TestNewUserEK(t *testing.T) {
 
 	rawStorage := NewUserEKBoxStorage(tc.G)
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = rawStorage.Delete(context.Background(), keybase1.EkGeneration(1))
+	err = rawStorage.Delete(context.Background(), maxGeneration)
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the
 	// maxGeneration from the server and continue
 	publishedMetadata2, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
-	require.EqualValues(t, 2, publishedMetadata2.Generation)
+	require.EqualValues(t, maxGeneration+1, publishedMetadata2.Generation)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata
