@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -96,12 +97,29 @@ func lookupRecipient(ctx context.Context, g *libkb.GlobalContext, to string) (*R
 		Input: to,
 	}
 
-	// temporary: only handle stellar addresses
-	var err error
-	r.AccountID, err = stellarnet.NewAddressStr(to)
+	if to[0] == 'G' && len(to) > 16 {
+		var err error
+		r.AccountID, err = stellarnet.NewAddressStr(to)
+		if err != nil {
+			return nil, err
+		}
+
+		return &r, nil
+	}
+
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, to))
 	if err != nil {
 		return nil, err
 	}
+	accountID := user.StellarWalletAddress()
+	if accountID == nil {
+		return nil, fmt.Errorf("keybase user %s does not have a stellar wallet", to)
+	}
+	r.AccountID, err = stellarnet.NewAddressStr(accountID.String())
+	if err != nil {
+		return nil, err
+	}
+	r.User = user
 
 	return &r, nil
 }
@@ -115,9 +133,9 @@ func (s *submitResult) GetAppStatus() *libkb.AppStatus {
 	return &s.Status
 }
 
-func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr) stellar1.PaymentPost {
+func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *Recipient) stellar1.PaymentPost {
 	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
-	return stellar1.PaymentPost{
+	post := stellar1.PaymentPost{
 		Members: stellar1.Members{
 			FromStellar:  stellar1.AccountID(acctID.String()),
 			FromKeybase:  g.Env.GetUsername().String(),
@@ -125,6 +143,16 @@ func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID ste
 			FromDeviceID: deviceID,
 		},
 	}
+
+	if recipient != nil {
+		post.Members.ToStellar = stellar1.AccountID(recipient.AccountID.String())
+		if recipient.User != nil {
+			post.Members.ToUID = recipient.User.GetUID()
+			post.Members.ToKeybase = recipient.User.GetName()
+		}
+	}
+
+	return post
 }
 
 func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
@@ -149,7 +177,7 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 		return stellar1.PaymentResult{}, err
 	}
 
-	post := postFromCurrentUser(ctx, g, primaryAccountID)
+	post := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
 
 	// Note:
 	// CreateAccountXLMTransaction and PaymentXLMTransaction use horizon
