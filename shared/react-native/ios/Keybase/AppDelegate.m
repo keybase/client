@@ -222,6 +222,7 @@ const BOOL isDebug = NO;
   [UIView animateWithDuration:0.3 delay:0.1 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
     self.resignImageView.alpha = 1;
   } completion:nil];
+  KeybaseSetAppStateInactive();
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
@@ -246,10 +247,33 @@ const BOOL isDebug = NO;
 // Sometimes these lifecycle calls can be skipped so try and catch them all
 - (void)applicationDidBecomeActive:(UIApplication *)application {
   [self hideCover];
+  [self notifyAppState:application];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
   [self hideCover];
+  KeybaseSetAppStateBackground();
+}
+
+- (void)applicationDidFinishLaunching:(UIApplication *)application {
+  [self notifyAppState:application];
+}
+
+- (void)notifyAppState:(UIApplication *)application {
+  const UIApplicationState state = application.applicationState;
+  switch (state) {
+    case UIApplicationStateActive:
+      KeybaseSetAppStateForeground();
+      break;
+    case UIApplicationStateBackground:
+      KeybaseSetAppStateBackground();
+      break;
+    case UIApplicationStateInactive:
+      KeybaseSetAppStateInactive();
+      break;
+    default:
+      break;
+  }
 }
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
