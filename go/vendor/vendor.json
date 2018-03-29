@@ -218,16 +218,16 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "IvrDXwIixB5yPPbo6tq1/1cSn78=",
+			"checksumSHA1": "niLm+6SukuYgFJgnCuDd/KLgPjU=",
 			"path": "github.com/keybase/go-crypto/ed25519",
-			"revision": "13107bbcdf2f5e2862f7b1b005335f8afca30a24",
-			"revisionTime": "2017-05-08T13:19:45Z"
+			"revision": "d11a37f123888ff060339f516e392032dfcb98ff",
+			"revisionTime": "2018-03-29T17:18:20Z"
 		},
 		{
-			"checksumSHA1": "4+fslB6pCbplNq4viy6CrOkkY6Y=",
+			"checksumSHA1": "oFj+c+T9/0PTmvpz1Vlx1L6aI98=",
 			"path": "github.com/keybase/go-crypto/ed25519/internal/edwards25519",
-			"revision": "13107bbcdf2f5e2862f7b1b005335f8afca30a24",
-			"revisionTime": "2017-05-08T13:19:45Z"
+			"revision": "d11a37f123888ff060339f516e392032dfcb98ff",
+			"revisionTime": "2018-03-29T17:18:20Z"
 		},
 		{
 			"checksumSHA1": "ZpRdb5OIjExm3FCm7CTc8TtSBy8=",
