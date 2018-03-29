@@ -145,8 +145,20 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	if upgradePerUserKey {
 		// Confirm that Y has a deviceEK.
 		require.True(t, maxDeviceEKGenerationY > 0)
-		_, err = deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
+		deviceEKY, err := deviceEKStorageY.Get(context.Background(), maxDeviceEKGenerationY)
 		require.NoError(t, err)
+
+		// Make sure the server knows about our device_ek
+		merkleRootPtr, err := tcY.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
+		require.NoError(t, err)
+
+		fetchedDevices, err := allActiveDeviceEKMetadata(context.Background(), tcY.G, *merkleRootPtr)
+		require.NoError(t, err)
+
+		deviceEKMetatdata, ok := fetchedDevices[tcY.G.ActiveDevice.DeviceID()]
+		require.True(t, ok)
+		require.Equal(t, deviceEKY.Metadata, deviceEKMetatdata)
+
 	} else {
 		require.EqualValues(t, -1, maxDeviceEKGenerationY)
 	}
