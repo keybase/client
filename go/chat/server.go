@@ -493,6 +493,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		return res, err
 	}
 
+	// Set last select conversation on syncer
+	h.G().Syncer.SelectConversation(ctx, arg.ConversationID)
+
 	// Decode presentation form pagination
 	pagination, err := utils.DecodePagination(arg.Pagination)
 	if err != nil {
