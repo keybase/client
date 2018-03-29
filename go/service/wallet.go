@@ -90,7 +90,6 @@ func (h *walletHandler) WalletDump(ctx context.Context) (dump stellar1.DumpRes, 
 
 	// verify passphrase
 	username := h.G().GetEnv().GetUsername().String()
-	h.G().Log.Debug("resetting account for %s", username)
 
 	arg := libkb.DefaultPassphrasePromptArg(h.G(), username)
 	secretUI := h.getSecretUI(0, h.G())
