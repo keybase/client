@@ -75,6 +75,7 @@ export {
   getRowStyles,
   inboxUIItemToConversationMeta,
   makeConversationMeta,
+  retentionSavingKey,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,

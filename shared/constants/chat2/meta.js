@@ -327,6 +327,8 @@ export const findConversationFromParticipants = (state: TypedState, participants
   )
 }
 
+export const retentionSavingKey = (c: Types.ConversationIDKey) => `retentionSaving:${c}`
+
 export const getConversationRetentionPolicy = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey

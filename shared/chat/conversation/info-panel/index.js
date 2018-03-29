@@ -9,7 +9,7 @@ import Notifications from './notifications/container'
 import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
-import RetentionPicker from '../../../teams/team/settings/retention/container'
+import RetentionWithSaveState from './retention/container'
 
 const border = `1px solid ${globalColors.black_05}`
 const listStyle = {
@@ -347,7 +347,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
       case 'retention':
         return (
-          <RetentionPicker
+          <RetentionWithSaveState
             key="retention"
             containerStyle={retentionStyles.containerStyle}
             dropdownStyle={retentionStyles.dropdownStyle}
