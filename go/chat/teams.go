@@ -375,7 +375,7 @@ func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID, tl
 			return nil
 		}
 		if err = loadAttempt(false); err != nil {
-			if _, ok := err.(ImpteamUpgradeBadteamError); ok {
+			if IsOfflineError(err) != OfflineErrorKindOnline {
 				// try again on bad team, might have had an old team cached
 				g.Log.CDebugf(ctx, "++Chat: LoadTeam: trying again: %s", err)
 				if err = loadAttempt(true); err != nil {
