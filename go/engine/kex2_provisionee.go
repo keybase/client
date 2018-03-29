@@ -611,7 +611,6 @@ func (e *Kex2Provisionee) saveKeys() error {
 }
 
 func (e *Kex2Provisionee) ephemeralKeygen(ctx context.Context, userEKBox *keybase1.UserEkBoxed) (deviceEKStatement keybase1.DeviceEkStatement, deviceEKStatementSig string, userEKBoxMetadata *keybase1.UserEkBoxMetadata, err error) {
-	// TODO is this the return signature we want? need to see what we need on the server side..
 	defer e.G().CTrace(ctx, "ephemeralKeygen", func() error { return err })()
 
 	if userEKBox == nil { // We will create EKs after provisioning in the normal way
@@ -663,7 +662,10 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 
 func (e *Kex2Provisionee) storeEKs(ctx context.Context, deviceEKStatement keybase1.DeviceEkStatement, userEKBox *keybase1.UserEkBoxed) (err error) {
 	defer e.G().Trace("Kex2Provisionee.storeEKs", func() error { return err })()
-	if userEKBox == nil {
+	ekLib := e.G().GetEKLib()
+	if ekLib == nil || !ekLib.ShouldRun(ctx) {
+		return nil
+	} else if userEKBox == nil {
 		e.G().Log.CWarningf(ctx, "userEKBox nil, no ephemeral keys to store")
 		return nil
 	}
