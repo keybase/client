@@ -17,7 +17,9 @@ import {globalMargins, globalStyles, isMobile, platformStyles} from '../../../..
 type Props = {
   days: number,
   enabled: boolean,
-  isBigTeam: boolean,
+  isSmallTeam: boolean, // TODO DESKTOP-6376 use this in conjunction with isTeamWide to decide on wording
+  isTeamWide: boolean,
+  isTeam: boolean,
   setEnabled: boolean => void,
   onConfirm: () => void,
   onCancel: () => void,
@@ -35,6 +37,14 @@ const Wrapper = ({children, onBack}) =>
 
 const RetentionWarning = (props: Props) => {
   const policyString = daysToLabel(props.days)
+  let convType = "team's channels"
+  if (!props.isTeam) {
+    convType = 'conversation'
+  } else if (!props.isTeamWide) {
+    convType = 'channel'
+  } else if (props.isTeam) {
+    convType = 'team'
+  }
   return (
     <Wrapper onBack={props.onCancel}>
       <Box style={containerStyle}>
@@ -43,9 +53,14 @@ const RetentionWarning = (props: Props) => {
           Destroy chat messages after {policyString}?
         </Text>
         <Text type="Body" style={bodyStyle}>
-          You are about to set the message deletion policy in this team's chats to{' '}
-          <Text type="BodySemibold">{policyString}.</Text> This will affect all the team's channels, except
-          the ones you've set manually.
+          You are about to set the message deletion policy in this {convType} to{' '}
+          <Text type="BodySemibold">{policyString}.</Text>{' '}
+          {props.isTeamWide &&
+            !props.isSmallTeam && (
+              <Text type="Body">
+                This will affect all the team's channels, except the ones you've set manually.
+              </Text>
+            )}
         </Text>
         <Checkbox
           checked={props.enabled}
@@ -56,7 +71,10 @@ const RetentionWarning = (props: Props) => {
               <Text type="Body">
                 I understand that messages older than {policyString} will be deleted for everyone.
               </Text>
-              <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
+              {props.isTeamWide &&
+                !props.isSmallTeam && (
+                  <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
+                )}
             </Box>
           }
         />

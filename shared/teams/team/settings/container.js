@@ -40,7 +40,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: Types.RetentionPolicy) =>
     dispatch(TeamsGen.createSetTeamRetentionPolicy({teamname, policy})),
   _showRetentionWarning: (days: number, onConfirm: () => void) =>
-    dispatch(navigateAppend([{selected: 'retentionWarning', props: {days, onConfirm}}])),
+    dispatch(
+      navigateAppend([
+        {selected: 'retentionWarning', props: {days, onConfirm, isTeamWide: true, isTeam: true}},
+      ])
+    ),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([

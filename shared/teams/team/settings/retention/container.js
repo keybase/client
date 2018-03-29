@@ -18,20 +18,25 @@ import {type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
 
-// if you supply an onSelect callback, this won't trigger any popup on its own
-// if you don't, the selection will immediately be applied / warning shown on selection
+// TODO make this typing tighter to guarantee the team properties if `isTeam` is true
+// and we should also derive some of these props (isSmallTeam, more if possible)
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
-  teamname: string,
-  isTeamWide: boolean,
+  teamname?: string,
+  isTeamWide?: boolean,
   isSmallTeam?: boolean,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
-  const loading = !teamPolicy
+  const isTeam = !!ownProps.teamname
+  const teamPolicy = ownProps.teamname && getTeamRetentionPolicy(state, ownProps.teamname)
+  // we need to show a spinner, but only if it's a team
+  const loading = isTeam && !teamPolicy
+  if (!isTeam && !ownProps.conversationIDKey) {
+    throw new Error('RetentionPicker got no conversationIDKey for ad-hoc conversation!')
+  }
   const policy =
     !!ownProps.conversationIDKey && getConversationRetentionPolicy(state, ownProps.conversationIDKey)
   if (!ownProps.isTeamWide && !policy) {
@@ -41,6 +46,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     _path,
     policy: ownProps.isTeamWide ? teamPolicy : policy,
+    isTeam,
     loading,
     teamPolicy: ownProps.isTeamWide ? undefined : teamPolicy,
   }
@@ -48,9 +54,9 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (
   dispatch: Dispatch,
-  {conversationIDKey, teamname, onSelect, type, isTeamWide}: OwnProps
+  {conversationIDKey, teamname, onSelect, type, isTeamWide, isSmallTeam}: OwnProps
 ) => ({
-  _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
+  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowDropdown: (items, target, parentPath: Path) =>
     dispatch(
       navigateTo(
@@ -69,7 +75,7 @@ const mapDispatchToProps = (
         [
           {
             selected: 'retentionWarning',
-            props: {days, onCancel, onConfirm},
+            props: {days, onCancel, onConfirm, isTeamWide, isTeam: !!teamname, isSmallTeam},
           },
         ],
         parentPath
@@ -78,7 +84,7 @@ const mapDispatchToProps = (
   },
   setRetentionPolicy: (policy: RetentionPolicy) => {
     if (isTeamWide) {
-      dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+      teamname && dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
     } else {
       if (!conversationIDKey) {
         throw new Error('Tried to set conv retention policy with no ConversationIDKey')
