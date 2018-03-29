@@ -137,6 +137,12 @@
 			"revisionTime": "2015-08-24T01:38:10-07:00"
 		},
 		{
+			"checksumSHA1": "3q4JKX5xsgQVKyMWw8FOM8ea+0U=",
+			"path": "github.com/go-errors/errors",
+			"revision": "a6af135bd4e28680facf08a3d206b454abc877a4",
+			"revisionTime": "2018-02-26T18:00:45Z"
+		},
+		{
 			"path": "github.com/golang/groupcache/singleflight",
 			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987",
 			"revisionTime": "2015-01-25T10:08:32-08:00"
@@ -540,6 +546,13 @@
 			"revisionTime": "2018-03-22T21:26:26Z"
 		},
 		{
+			"checksumSHA1": "7breOdx3oym3WOByXt4Lphr4chc=",
+			"origin": "github.com/keybase/stellar-org/hash",
+			"path": "github.com/stellar/go/hash",
+			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
+			"revisionTime": "2018-03-28T15:49:16Z"
+		},
+		{
 			"checksumSHA1": "TaeZqYYacz34dGxerxURukIvrXU=",
 			"origin": "github.com/keybase/stellar-org/keypair",
 			"path": "github.com/stellar/go/keypair",
@@ -575,11 +588,11 @@
 			"revisionTime": "2018-03-22T21:26:26Z"
 		},
 		{
-			"checksumSHA1": "esoxAJCO5SSWm7vADSHs3mFbdz0=",
+			"checksumSHA1": "pyj3VCpH5DgWiNSVJ+Oe/5GCd5o=",
 			"origin": "github.com/keybase/stellar-org/support/render/problem",
 			"path": "github.com/stellar/go/support/render/problem",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "3bfc312455e94df6c47ec3223a7ee56cbf22da70",
+			"revisionTime": "2018-03-29T15:39:59Z"
 		},
 		{
 			"checksumSHA1": "9RcsggRabKj4lVyQBPl5qQSokAo=",
