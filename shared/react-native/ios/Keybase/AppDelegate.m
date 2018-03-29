@@ -236,7 +236,6 @@ const BOOL isDebug = NO;
   if (requestTime && (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {
     UIApplication *app = [UIApplication sharedApplication];
     self.shutdownTask = [app beginBackgroundTaskWithExpirationHandler:^{
-      NSLog(@"DANNYDEBUG: telling service app will exit\n");
       KeybaseAppWillExit();
       [app endBackgroundTask:self.shutdownTask];
       self.shutdownTask = UIBackgroundTaskInvalid;
