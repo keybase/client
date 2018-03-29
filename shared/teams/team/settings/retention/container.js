@@ -48,7 +48,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (
   dispatch: Dispatch,
-  {conversationIDKey, teamname, onSelect, type, isTeamWide, isSmallTeam}: OwnProps
+  {conversationIDKey, teamname, onSelect, type, isTeamWide}: OwnProps
 ) => ({
   _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowDropdown: (items, target, parentPath: Path) =>
