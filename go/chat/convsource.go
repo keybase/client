@@ -231,7 +231,7 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
-var errConvLockTabDeadlock = errors.New("acquire conv lock deadlock")
+var errConvLockTabDeadlock = errors.New("timeout reading thread")
 
 type conversationLock struct {
 	refs, shares int
