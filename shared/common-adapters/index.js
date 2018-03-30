@@ -84,7 +84,6 @@ export {default as Image} from './image'
 export {default as Input} from './input'
 export {default as List} from './list'
 export {default as LoadingLine} from './loading-line'
-export {default as LinkWithIcon} from './link-with-icon'
 export {default as ListItem} from './list-item'
 export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc}
