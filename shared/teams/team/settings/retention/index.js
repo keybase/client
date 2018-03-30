@@ -16,6 +16,7 @@ import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/te
 import {daysToLabel} from '../../../../util/timestamp'
 
 export type Props = {
+  canSetPolicy: boolean,
   containerStyle?: StylesCrossPlatform,
   dropdownStyle?: StylesCrossPlatform,
   policy: RetentionPolicy,

@@ -10,7 +10,12 @@ import {
   withHandlers,
   type TypedState,
 } from '../../../../util/container'
-import {getTeamRetentionPolicy, retentionPolicies} from '../../../../constants/teams'
+import {
+  getTeamRetentionPolicy,
+  retentionPolicies,
+  getCanPerform,
+  hasCanPerform,
+} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {navigateTo, pathSelector} from '../../../../actions/route-tree'
@@ -35,6 +40,9 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   let showOverrideNotice = false
   let loading = false
   let entityType = ownProps.entityType
+  let canSetPolicy = true
+  let yourOperations
+  let _permissionsLoaded = true
   switch (entityType) {
     case 'adhoc':
       if (ownProps.conversationIDKey) {
@@ -51,6 +59,9 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
         policy = getConversationRetentionPolicy(state, conversationIDKey)
         teamPolicy = getTeamRetentionPolicy(state, teamname)
         loading = !teamPolicy
+        yourOperations = getCanPerform(state, teamname)
+        _permissionsLoaded = hasCanPerform(state, teamname)
+        canSetPolicy = yourOperations.setRetentionPolicy
         showInheritOption = true
         showOverrideNotice = false
         break
@@ -61,8 +72,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     case 'small team':
       if (ownProps.teamname) {
         let teamname = ownProps.teamname
+        yourOperations = getCanPerform(state, teamname)
+        _permissionsLoaded = hasCanPerform(state, teamname)
+        canSetPolicy = yourOperations.setRetentionPolicy
         let tempPolicy = getTeamRetentionPolicy(state, teamname)
-        loading = !tempPolicy
+        loading = !(tempPolicy && _permissionsLoaded)
         if (tempPolicy) {
           policy = tempPolicy
         }
@@ -73,8 +87,12 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       throw new Error('RetentionPicker needs a teamname to set small team retention policies')
     case 'big team':
       if (ownProps.teamname) {
-        let tempPolicy2 = getTeamRetentionPolicy(state, ownProps.teamname)
-        loading = !tempPolicy2
+        let teamname = ownProps.teamname
+        yourOperations = getCanPerform(state, teamname)
+        _permissionsLoaded = hasCanPerform(state, teamname)
+        canSetPolicy = yourOperations.setRetentionPolicy
+        let tempPolicy2 = getTeamRetentionPolicy(state, teamname)
+        loading = !(tempPolicy2 && _permissionsLoaded)
         if (tempPolicy2) {
           policy = tempPolicy2
         }
@@ -97,6 +115,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const _path = pathSelector(state)
   return {
     _path,
+    _permissionsLoaded,
+    canSetPolicy,
     loading,
     policy,
     showInheritOption,
@@ -110,6 +130,7 @@ const mapDispatchToProps = (
   {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
+  _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _onShowDropdown: (items, target, parentPath: Path) =>
     dispatch(
       navigateTo(
@@ -158,6 +179,7 @@ export default compose(
     },
     componentDidMount: function() {
       this.props._loadTeamPolicy()
+      !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },
   }),
   withHandlers({
