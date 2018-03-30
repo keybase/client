@@ -18,9 +18,11 @@ import {type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import RetentionPicker from './'
 
+export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
+
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
-  entityType: 'adhoc' | 'channel' | 'small team' | 'big team',
+  entityType: RetentionEntityType,
   teamname?: string,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,

@@ -98,6 +98,8 @@ type RetentionRow = {
   type: 'retention',
   key: 'retention',
   teamname?: string,
+  // this should match RetentionEntityType from team/settings/retention/container
+  // setting it explicity causes flow to be unable to resolve these row types
   entityType: 'adhoc' | 'channel' | 'small team' | 'big team',
 }
 
