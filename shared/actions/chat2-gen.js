@@ -382,7 +382,7 @@ export const createStartConversation = (
   payload: $ReadOnly<{
     participants?: ?Array<string>,
     tlf?: ?string,
-    forceImmediate?: boolean,
+    fromAReset?: boolean,
   }>
 ) => ({error: false, payload, type: startConversation})
 export const createUpdateNotificationSettings = (

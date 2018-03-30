@@ -1066,7 +1066,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 // Start a conversation, or select an existing one
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
-  const {participants, tlf} = action.payload
+  const {participants, tlf, fromAReset} = action.payload
   const you = state.config.username || ''
 
   let users: Array<string> = []
@@ -1118,7 +1118,9 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 
   return Saga.sequentially([
     // its a fixed set of users so it's not a search (aka you can't add people to it)
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
+    Saga.put(
+      Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
+    ),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
     Saga.put(Chat2Gen.createNavigateToThread()),
   ])
