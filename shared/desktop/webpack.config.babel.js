@@ -126,6 +126,7 @@ const config = (env, argv) => {
                     output: {
                       comments: false,
                     },
+                    // warnings: 'verbose', // uncomment to see more of what uglify is doing
                   },
                 }),
               ],
