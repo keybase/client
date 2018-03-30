@@ -201,5 +201,6 @@
   },
   "optionalDependencies": {
     "regedit": "2.2.7"
-  }
+  },
+  "sideEffects": false
 }

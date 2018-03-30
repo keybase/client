@@ -70,7 +70,7 @@ const routeTree = makeRouteDefNode({
             component: DevMenu,
             children: {
               dumbSheet: {
-                component: __DEV__ ? DumbSheet : null,
+                component: DumbSheet,
                 tags: makeLeafTags({modal: true}),
               },
             },

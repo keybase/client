@@ -13,8 +13,9 @@ import webpack from 'webpack'
 const config = (env, argv) => {
   const isDev = argv.mode !== 'production'
   const isHot = isDev && getenv.boolish('HOT', false)
+  const isStats = getenv.boolish('STATS', false)
 
-  console.log('Flags: ', {isDev, isHot})
+  !isStats && console.log('Flags: ', {isDev, isHot})
   const makeCommonConfig = () => {
     const fileLoaderRule = {
       loader: 'file-loader',
@@ -104,7 +105,10 @@ const config = (env, argv) => {
         path: path.resolve(__dirname, 'dist'),
         publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
       },
-      plugins: [new webpack.DefinePlugin(defines)],
+      plugins: [
+        new webpack.DefinePlugin(defines), // Inject some defines
+        new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
+      ],
       resolve: {
         extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
       },

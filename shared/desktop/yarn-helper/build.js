@@ -1,21 +1,19 @@
 // @flow
 import os from 'os'
 
-const webpackLog = null // '~/webpack-log.txt'
 const webpackCmd = 'webpack --config ./desktop/webpack.config.babel.js'
 const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
+// set to true if you want to analyze the webpack output
 const outputStats = false
 
 const commands = {
   'build-dev': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
-    shell: `${webpackCmd} --mode development --progress --profile --colors ${
-      webpackLog ? `--json > ${webpackLog}` : ''
-    }`,
+    shell: `${webpackCmd} --mode development --progress --profile --colors`,
   },
   'build-prod': {
-    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
+    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', STATS: outputStats ? 'true' : 'false'},
     help: 'Make a production build of the js code',
     shell: `${webpackCmd} --mode production --progress ${outputStats ? '--json > webpack-stats.json' : ''}`,
   },
