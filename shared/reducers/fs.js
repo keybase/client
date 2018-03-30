@@ -75,7 +75,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['transfers', action.payload.key])
     }
     case FsGen.fuseStatusResult:
-      return state.mergeIn(['flags'], {fuseStatus: action.payload.status})
+      return state.merge({fuseStatus: action.payload.status})
     case FsGen.setFlags:
       return state.mergeIn(['flags'], action.payload)
     case FsGen.installFuse:
