@@ -552,6 +552,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
+	<-tc.ChatG.ConvLoader.Stop(context.Background())
 
 	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	convID := conv.GetConvID()
