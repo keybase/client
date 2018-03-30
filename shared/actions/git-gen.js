@@ -23,46 +23,46 @@ export const setLoading = 'git:setLoading'
 export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
 // Action Creators
-export const createBadgeAppForGit = (payload: $ReadOnly<{ids: Array<string>}>) => ({error: false, payload, type: badgeAppForGit})
-export const createCreatePersonalRepo = (payload: $ReadOnly<{name: string}>) => ({error: false, payload, type: createPersonalRepo})
+export const createBadgeAppForGit = (payload: $ReadOnly<{|ids: Array<string>|}>) => ({error: false, payload, type: badgeAppForGit})
+export const createCreatePersonalRepo = (payload: $ReadOnly<{|name: string|}>) => ({error: false, payload, type: createPersonalRepo})
 export const createCreateTeamRepo = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     name: string,
     teamname: string,
     notifyTeam: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: createTeamRepo})
-export const createDeletePersonalRepo = (payload: $ReadOnly<{name: string}>) => ({error: false, payload, type: deletePersonalRepo})
+export const createDeletePersonalRepo = (payload: $ReadOnly<{|name: string|}>) => ({error: false, payload, type: deletePersonalRepo})
 export const createDeleteTeamRepo = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     name: string,
     teamname: string,
     notifyTeam: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: deleteTeamRepo})
-export const createHandleIncomingGregor = (payload: $ReadOnly<{messages: Array<RPCTypesGregor.OutOfBandMessage>}>) => ({error: false, payload, type: handleIncomingGregor})
+export const createHandleIncomingGregor = (payload: $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>) => ({error: false, payload, type: handleIncomingGregor})
 export const createLoadGit = () => ({error: false, payload: undefined, type: loadGit})
 export const createLoadGitRepo = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: ?string,
     teamname: ?string,
-  }>
+  |}>
 ) => ({error: false, payload, type: loadGitRepo})
 export const createNavigateToTeamRepo = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     repoID: string,
     teamname: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: navigateToTeamRepo})
-export const createSetError = (payload: $ReadOnly<{error: ?Error}>) => ({error: false, payload, type: setError})
-export const createSetLoading = (payload: $ReadOnly<{loading: boolean}>) => ({error: false, payload, type: setLoading})
+export const createSetError = (payload: $ReadOnly<{|error: ?Error|}>) => ({error: false, payload, type: setError})
+export const createSetLoading = (payload: $ReadOnly<{|loading: boolean|}>) => ({error: false, payload, type: setLoading})
 export const createSetTeamRepoSettings = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     chatDisabled: boolean,
     channelName: ?string,
     teamname: string,
     repoID: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: setTeamRepoSettings})
 
 // Action Payloads

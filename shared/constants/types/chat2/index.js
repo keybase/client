@@ -5,7 +5,11 @@ import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
 
-export type PendingMode = 'none' | 'searchingForUsers' | 'fixedSetOfUsers'
+export type PendingMode =
+  | 'none' // no pending
+  | 'searchingForUsers' // doing a search
+  | 'fixedSetOfUsers' // selected a set of users externally
+  | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count

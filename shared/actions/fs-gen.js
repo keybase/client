@@ -31,77 +31,77 @@ export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
 // Action Creators
-export const createCancelTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: cancelTransfer})
-export const createDismissTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: dismissTransfer})
+export const createCancelTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: cancelTransfer})
+export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: dismissTransfer})
 export const createDownload = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     localPath?: string,
     intent: Types.TransferIntent,
-  }>
+  |}>
 ) => ({error: false, payload, type: download})
 export const createDownloadFinished = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     error?: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: downloadFinished})
 export const createDownloadStarted = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     path: Types.Path,
     localPath: Types.LocalPath,
     intent: Types.TransferIntent,
     opID: RPCTypes.OpID,
-  }>
+  |}>
 ) => ({error: false, payload, type: downloadStarted})
-export const createFilePreviewLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: filePreviewLoad})
+export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     meta: Types.PathItem,
-  }>
+  |}>
 ) => ({error: false, payload, type: filePreviewLoaded})
-export const createFolderListLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: folderListLoad})
+export const createFolderListLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: folderListLoad})
 export const createFolderListLoaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     pathItems: I.Map<Types.Path, Types.PathItem>,
-  }>
+  |}>
 ) => ({error: false, payload, type: folderListLoaded})
 export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
 export const createFuseStatusResult = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     prevStatus: ?RPCTypes.FuseStatus,
     status: RPCTypes.FuseStatus,
-  }>
+  |}>
 ) => ({error: false, payload, type: fuseStatusResult})
 export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
-export const createInstallFuseResult = (payload: $ReadOnly<{kextPermissionError: boolean}>) => ({error: false, payload, type: installFuseResult})
+export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
-export const createOpenInFileUI = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: openInFileUI})
+export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
 export const createSetFlags = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     kbfsOpening?: boolean,
     kbfsInstalling?: boolean,
     fuseInstalling?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setFlags})
 export const createSortSetting = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     sortSetting: Types.SortSetting,
-  }>
+  |}>
 ) => ({error: false, payload, type: sortSetting})
 export const createTransferProgress = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     completePortion: number,
     endEstimate?: number,
-  }>
+  |}>
 ) => ({error: false, payload, type: transferProgress})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
-export const createUninstallKBFSConfirm = (payload: $ReadOnly<{onSuccess: () => void}>) => ({error: false, payload, type: uninstallKBFSConfirm})
+export const createUninstallKBFSConfirm = (payload: $ReadOnly<{|onSuccess: () => void|}>) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
 export type CancelTransferPayload = More.ReturnType<typeof createCancelTransfer>

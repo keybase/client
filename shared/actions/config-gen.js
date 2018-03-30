@@ -36,12 +36,12 @@ export const setStartedDueToPush = 'config:setStartedDueToPush'
 export const updateFollowing = 'config:updateFollowing'
 
 // Action Creators
-export const createBootstrap = (payload: $ReadOnly<{isReconnect?: boolean}>) => ({error: false, payload, type: bootstrap})
+export const createBootstrap = (payload: $ReadOnly<{|isReconnect?: boolean|}>) => ({error: false, payload, type: bootstrap})
 export const createBootstrapAttemptFailed = () => ({error: false, payload: undefined, type: bootstrapAttemptFailed})
 export const createBootstrapFailed = () => ({error: false, payload: undefined, type: bootstrapFailed})
 export const createBootstrapRetry = () => ({error: false, payload: undefined, type: bootstrapRetry})
 export const createBootstrapStatusLoaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     deviceID: string,
     deviceName: string,
     followers?: ?Array<string>,
@@ -50,37 +50,37 @@ export const createBootstrapStatusLoaded = (
     registered: boolean,
     uid: string,
     username: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createBootstrapSuccess = () => ({error: false, payload: undefined, type: bootstrapSuccess})
-export const createChangeKBFSPath = (payload: $ReadOnly<{kbfsPath: string}>) => ({error: false, payload, type: changeKBFSPath})
+export const createChangeKBFSPath = (payload: $ReadOnly<{|kbfsPath: string|}>) => ({error: false, payload, type: changeKBFSPath})
 export const createClearRouteState = () => ({error: false, payload: undefined, type: clearRouteState})
-export const createConfigLoaded = (payload: $ReadOnly<{config: RPCTypes.Config}>) => ({error: false, payload, type: configLoaded})
-export const createDaemonError = (payload: $ReadOnly<{daemonError: ?Error}>) => ({error: false, payload, type: daemonError})
-export const createDebugDump = (payload: $ReadOnly<{items: Array<string>}>) => ({error: false, payload, type: debugDump})
-export const createExtendedConfigLoaded = (payload: $ReadOnly<{extendedConfig: RPCTypes.ExtendedStatus}>) => ({error: false, payload, type: extendedConfigLoaded})
+export const createConfigLoaded = (payload: $ReadOnly<{|config: RPCTypes.Config|}>) => ({error: false, payload, type: configLoaded})
+export const createDaemonError = (payload: $ReadOnly<{|daemonError: ?Error|}>) => ({error: false, payload, type: daemonError})
+export const createDebugDump = (payload: $ReadOnly<{|items: Array<string>|}>) => ({error: false, payload, type: debugDump})
+export const createExtendedConfigLoaded = (payload: $ReadOnly<{|extendedConfig: RPCTypes.ExtendedStatus|}>) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
-export const createGlobalError = (payload: $ReadOnly<{globalError: ?Error}>) => ({error: false, payload, type: globalError})
-export const createLoadAvatars = (payload: $ReadOnly<{usernames: Array<string>}>) => ({error: false, payload, type: loadAvatars})
-export const createLoadTeamAvatars = (payload: $ReadOnly<{teamnames: Array<string>}>) => ({error: false, payload, type: loadTeamAvatars})
-export const createLoadedAvatars = (payload: $ReadOnly<{nameToUrlMap: {[name: string]: ?Object}}>) => ({error: false, payload, type: loadedAvatars})
+export const createGlobalError = (payload: $ReadOnly<{|globalError: ?Error|}>) => ({error: false, payload, type: globalError})
+export const createLoadAvatars = (payload: $ReadOnly<{|usernames: Array<string>|}>) => ({error: false, payload, type: loadAvatars})
+export const createLoadTeamAvatars = (payload: $ReadOnly<{|teamnames: Array<string>|}>) => ({error: false, payload, type: loadTeamAvatars})
+export const createLoadedAvatars = (payload: $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
-export const createPushLoaded = (payload: $ReadOnly<{pushLoaded: boolean}>) => ({error: false, payload, type: pushLoaded})
+export const createPushLoaded = (payload: $ReadOnly<{|pushLoaded: boolean|}>) => ({error: false, payload, type: pushLoaded})
 export const createReadyForBootstrap = () => ({error: false, payload: undefined, type: readyForBootstrap})
 export const createRetryBootstrap = () => ({error: false, payload: undefined, type: retryBootstrap})
-export const createSetInitialState = (payload: $ReadOnly<{initialState: ?Types.InitialState}>) => ({error: false, payload, type: setInitialState})
+export const createSetInitialState = (payload: $ReadOnly<{|initialState: ?Types.InitialState|}>) => ({error: false, payload, type: setInitialState})
 export const createSetOpenAtLogin = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     open: boolean,
     writeFile: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setOpenAtLogin})
 export const createSetStartedDueToPush = () => ({error: false, payload: undefined, type: setStartedDueToPush})
 export const createUpdateFollowing = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     isTracking: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateFollowing})
 
 // Action Payloads

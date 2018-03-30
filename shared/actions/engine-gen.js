@@ -12,10 +12,10 @@ export const waitingForRpc = 'engine:waitingForRpc'
 
 // Action Creators
 export const createWaitingForRpc = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     waiting: boolean,
     name: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: waitingForRpc})
 
 // Action Payloads
