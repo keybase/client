@@ -1,12 +1,13 @@
 // @flow
 import React, {Component} from 'react'
+import type {StylesCrossPlatform} from '../styles/css'
 import type {Props as CheckboxProps} from './checkbox'
 import type {Props as InputProps} from './input'
 
 export type Props = {
   inputProps: InputProps,
-  style?: Object,
-  checkboxContainerStyle?: Object,
+  style?: StylesCrossPlatform,
+  checkboxContainerStyle?: StylesCrossPlatform,
   checkboxesProps: Array<CheckboxProps>,
 }
 
