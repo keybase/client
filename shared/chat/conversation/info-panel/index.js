@@ -97,7 +97,7 @@ const getDividerStyle = (row: DividerRow) => ({
 type RetentionRow = {
   type: 'retention',
   key: 'retention',
-  teamname: string,
+  teamname?: string,
   entityType: 'adhoc' | 'channel' | 'small team' | 'big team',
 }
 
@@ -573,6 +573,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         {
           type: 'notifications',
           key: 'notifications',
+        },
+        {
+          type: 'divider',
+          key: nextKey(),
+          marginBottom: 0,
+        },
+        {
+          type: 'retention',
+          key: 'retention',
+          entityType: 'adhoc',
         },
         {
           type: 'divider',
