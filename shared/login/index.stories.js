@@ -25,7 +25,12 @@ const commonProps: Props = {
 }
 
 const load = () => {
-  storiesOf('Login', module).add('Login', () => <Login {...commonProps} />)
+  storiesOf('Login', module)
+    .add('Single previous user', () => <Login {...commonProps} />)
+    .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
+    .add('Multiple previous users', () => (
+      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />
+    ))
 }
 
 export default load
