@@ -10,7 +10,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = isLinux || (state.fs.flags.fuseStatus && state.fs.flags.fuseStatus.kextStarted)
+  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
     kbfsEnabled,
     showBanner: state.fs.flags.showBanner,

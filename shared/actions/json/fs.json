@@ -59,7 +59,9 @@
     "setFlags": {
       "kbfsOpening?": "boolean",
       "kbfsInstalling?": "boolean",
-      "fuseInstalling?": "boolean"
+      "fuseInstalling?": "boolean",
+      "kextPermissionError?": "boolean",
+      "showBanner?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {

@@ -107,7 +107,7 @@ function _open(openPath: string): Promise<*> {
 
 export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
   const openPath = path || Config.defaultKBFSPath
-  const enabled = state.fs.flags.fuseStatus && state.fs.flags.fuseStatus.kextStarted
+  const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(_open, openPath)
   } else {

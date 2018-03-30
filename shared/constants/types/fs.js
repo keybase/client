@@ -93,7 +93,6 @@ export type PathBreadcrumbItem = {
 }
 
 export type _Flags = {
-  fuseStatus: ?RPCTypes.FuseStatus,
   kbfsOpening: boolean,
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
@@ -108,6 +107,7 @@ export type _State = {
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, Transfer>,
+  fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
 }
 export type State = I.RecordOf<_State>

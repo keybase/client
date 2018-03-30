@@ -85,6 +85,8 @@ export const createSetFlags = (
     kbfsOpening?: boolean,
     kbfsInstalling?: boolean,
     fuseInstalling?: boolean,
+    kextPermissionError?: boolean,
+    showBanner?: boolean,
   |}>
 ) => ({error: false, payload, type: setFlags})
 export const createSortSetting = (

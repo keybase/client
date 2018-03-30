@@ -8,7 +8,7 @@ import {isMobile, isLinux} from '../../constants/platform'
 import FolderHeader from './header'
 
 const mapStateToProps = (state: TypedState) => ({
-  kbfsEnabled: isLinux || (state.fs.flags.fuseStatus && state.fs.flags.fuseStatus.kextStarted),
+  kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

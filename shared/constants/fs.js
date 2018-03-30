@@ -76,7 +76,6 @@ export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
 })
 
 export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
-  fuseStatus: null,
   kbfsOpening: false,
   kbfsInstalling: false,
   fuseInstalling: false,
@@ -86,6 +85,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
+  fuseStatus: null,
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
