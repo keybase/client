@@ -22,6 +22,7 @@ export type Props = {
   onFocus?: () => void,
   onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  // TODO: Implement this for desktop.
   onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   rowsMax?: number,
   maxLength?: number,
