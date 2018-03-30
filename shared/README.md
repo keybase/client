@@ -248,7 +248,10 @@ echo "pid    watches cmd"; for x in $(find /proc/*/fd/* -type l -lname 'anon_ino
 
 which prints a list of commands with inotify watches sorted by number
 of watches in decreasing order. On my system, flow and storybook use
-up about 11000 watches.
+up about 11000 watches. (See [this StackExchange
+answer](https://unix.stackexchange.com/a/426001) for an explanation
+for the above one-liner; however, its command is slower due to using
+`lsof`.)
 
 See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
