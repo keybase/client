@@ -1,8 +1,9 @@
 // @flow
 import {Component} from 'react'
+import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
-  style?: Object,
+  style?: StylesCrossPlatform,
   vertical?: boolean,
 }
 
