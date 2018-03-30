@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/settings'
 import flags from '../../util/feature-flags'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {platformStyles, globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
 
 import type {Props, SettingsItem as SettingsItemType} from './index'
@@ -77,20 +77,28 @@ const styleNavBox = {
   borderRight: '1px solid ' + globalColors.black_05,
   width: 144,
 }
-const itemStyle = {
-  ...globalStyles.flexBoxRow,
-  height: 32,
-  width: '100%',
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  alignItems: 'center',
-  position: 'relative',
-  textTransform: 'uppercase',
-}
-const selectedStyle = {
-  ...itemStyle,
-  borderLeft: '3px solid ' + globalColors.blue,
-}
+const itemStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    height: 32,
+    width: '100%',
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  isElectron: {
+    textTransform: 'uppercase',
+  },
+})
+
+const selectedStyle = platformStyles({
+  common: itemStyle,
+  isElectron: {
+    borderLeft: '3px solid ' + globalColors.blue,
+  },
+})
+
 const itemTextStyle = {
   color: globalColors.black_60,
 }
