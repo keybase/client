@@ -97,6 +97,7 @@ func NewTeamLoader(g *libkb.GlobalContext) *TeamLoader {
 func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	tlfName string, membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
+	defer t.Trace(ctx, func() error { return err }, "loadTeam(%s,%s,%v)", tlfName, tlfID, membersType)()
 
 	// Set up load team argument construction, possibly controlled by the caller
 	ltarg := func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
@@ -136,9 +137,10 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 			return nil
 		}
 		if err = loadAttempt(false); err != nil {
-			if IsOfflineError(err) != OfflineErrorKindOnline {
+			t.Debug(ctx, "loadTeam: failed to load the team: err: %s", err)
+			if IsOfflineError(err) == OfflineErrorKindOnline {
 				// try again on bad team, might have had an old team cached
-				t.Debug(ctx, "loadTeam: trying again: %s", err)
+				t.Debug(ctx, "loadTeam: non-offline error, trying again: %s", err)
 				if err = loadAttempt(true); err != nil {
 					return team, err
 				}
