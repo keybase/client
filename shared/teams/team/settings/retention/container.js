@@ -34,56 +34,64 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   let showInheritOption = false
   let showOverrideNotice = false
   let loading = false
-
-  switch (ownProps.entityType) {
+  let entityType = ownProps.entityType
+  switch (entityType) {
     case 'adhoc':
-      if (!ownProps.conversationIDKey) {
-        throw new Error('RetentionPicker needs a conversationIDKey to set adhoc retention policies')
+      if (ownProps.conversationIDKey) {
+        policy = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
+        showInheritOption = false
+        showOverrideNotice = false
+        break
       }
-      policy = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
-      showInheritOption = false
-      showOverrideNotice = false
-      break
+      throw new Error('RetentionPicker needs a conversationIDKey to set adhoc retention policies')
     case 'channel':
-      if (!(ownProps.conversationIDKey && ownProps.teamname)) {
-        throw new Error(
-          'RetentionPicker needs a conversationIDKey AND teamname to set channel retention policies'
-        )
+      if (ownProps.conversationIDKey && ownProps.teamname) {
+        let teamname = ownProps.teamname
+        let conversationIDKey = ownProps.conversationIDKey
+        policy = getConversationRetentionPolicy(state, conversationIDKey)
+        teamPolicy = getTeamRetentionPolicy(state, teamname)
+        loading = !teamPolicy
+        showInheritOption = true
+        showOverrideNotice = false
+        break
       }
-      policy = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
-      teamPolicy = (ownProps.teamname && getTeamRetentionPolicy(state, ownProps.teamname)) || null
-      loading = !teamPolicy
-      showInheritOption = true
-      showOverrideNotice = false
-      break
+      throw new Error(
+        'RetentionPicker needs a conversationIDKey AND teamname to set channel retention policies'
+      )
     case 'small team':
-      if (!ownProps.teamname) {
-        throw new Error('RetentionPicker needs a teamname to set small team retention policies')
+      if (ownProps.teamname) {
+        let teamname = ownProps.teamname
+        let tempPolicy = getTeamRetentionPolicy(state, teamname)
+        loading = !tempPolicy
+        if (tempPolicy) {
+          policy = tempPolicy
+        }
+        showInheritOption = false
+        showOverrideNotice = false
+        break
       }
-      let tempPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
-      loading = !tempPolicy
-      if (tempPolicy) {
-        policy = tempPolicy
-      }
-      showInheritOption = false
-      showOverrideNotice = false
-      break
+      throw new Error('RetentionPicker needs a teamname to set small team retention policies')
     case 'big team':
-      if (!ownProps.teamname) {
-        throw new Error('RetentionPicker needs a teamname to set big team retention policies')
+      if (ownProps.teamname) {
+        let tempPolicy2 = getTeamRetentionPolicy(state, ownProps.teamname)
+        loading = !tempPolicy2
+        if (tempPolicy2) {
+          policy = tempPolicy2
+        }
+        showInheritOption = false
+        showOverrideNotice = true
+        break
       }
-      let tempPolicy2 = getTeamRetentionPolicy(state, ownProps.teamname)
-      loading = !tempPolicy2
-      if (tempPolicy2) {
-        policy = tempPolicy2
-      }
-      showInheritOption = false
-      showOverrideNotice = true
-      break
+      throw new Error('RetentionPicker needs a teamname to set big team retention policies')
     default:
       // eslint-disable-next-line no-unused-expressions
-      ;(ownProps.entityType: empty)
-      throw new Error(`RetentionPicker: impossible entityType encountered: ${ownProps.entityType}`)
+      ;(entityType: empty)
+    // Issue with flow here: https://github.com/facebook/flow/issues/6068
+    // throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
+  }
+
+  if (!['adhoc', 'channel', 'small team', 'big team'].includes(entityType)) {
+    throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
 
   const _path = pathSelector(state)
