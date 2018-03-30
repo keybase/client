@@ -10,8 +10,8 @@ import path from 'path'
 import webpack from 'webpack'
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
-const config = (env, argv) => {
-  const isDev = argv.mode !== 'production'
+const config = (_, {mode}) => {
+  const isDev = mode !== 'production'
   const isHot = isDev && getenv.boolish('HOT', false)
   const isStats = getenv.boolish('STATS', false)
 
@@ -98,6 +98,7 @@ const config = (env, argv) => {
     return {
       bail: true,
       devServer,
+      mode: isDev ? 'development' : 'production',
       module: {rules},
       node: {__dirname: true},
       output: {

@@ -102,7 +102,7 @@ function main() {
 function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
   process.env.APP_VERSION = appVersion
-  const webpackConfig = require('./webpack.config.babel.js').default
+  const webpackConfig = require('./webpack.config.babel.js').default(null, {mode: 'production'})
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       console.error(err)
