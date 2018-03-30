@@ -49743,7 +49743,199 @@ exports[`Storyshots Teams TeamList 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Automatic show warning / set 1`] = `
+exports[`Storyshots Teams/Retention Adhoc 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  color: inherit;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 8,
+              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="glamor-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "borderColor": "#e6e6e6",
+              "borderRadius": 100,
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": 220,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+              "width": 220,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "justifyContent": "center",
+                "minHeight": 32,
+                "width": "100%",
+              }
+            }
+          >
+            <span
+              className="glamor-2"
+              onClick={undefined}
+              title={undefined}
+            >
+              [mocked]
+            </span>
+          </div>
+          <div>
+            <span
+              className="glamor-3"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 7,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Automatically show warning / set policy 1`] = `
 .glamor-0,
 [data-glamor-0] {
   font-size: 11px;
@@ -49935,6 +50127,217 @@ exports[`Storyshots Teams/Retention Automatic show warning / set 1`] = `
 </div>
 `;
 
+exports[`Storyshots Teams/Retention Big team 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  color: inherit;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 8,
+              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="glamor-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "borderColor": "#e6e6e6",
+              "borderRadius": 100,
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": 220,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+              "width": 220,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "justifyContent": "center",
+                "minHeight": 32,
+                "width": "100%",
+              }
+            }
+          >
+            <span
+              className="glamor-2"
+              onClick={undefined}
+              title={undefined}
+            >
+              [mocked]
+            </span>
+          </div>
+          <div>
+            <span
+              className="glamor-3"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 7,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="glamor-4"
+          onClick={undefined}
+          title={undefined}
+        >
+          Individual channels can override this.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Teams/Retention Channel 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -50093,7 +50496,7 @@ exports[`Storyshots Teams/Retention Channel 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              Keep forever
+              [mocked]
             </span>
           </div>
           <div>
@@ -50379,7 +50782,7 @@ exports[`Storyshots Teams/Retention Channel dropdown 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Channel inheriting from team 1`] = `
+exports[`Storyshots Teams/Retention Channel inheriting 1`] = `
 .glamor-0,
 [data-glamor-0] {
   font-size: 11px;
@@ -50571,7 +50974,7 @@ exports[`Storyshots Teams/Retention Channel inheriting from team 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Team-wide 1`] = `
+exports[`Storyshots Teams/Retention Small team 1`] = `
 .glamor-0,
 [data-glamor-0] {
   font-size: 11px;
@@ -50602,18 +51005,6 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
 .glamor-3,
 [data-glamor-3] {
   color: inherit;
-}
-
-.glamor-4,
-[data-glamor-4] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  margin-top: 4px;
 }
 
 <div
@@ -50741,7 +51132,7 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              [mocked]
+              Keep forever
             </span>
           </div>
           <div>
@@ -50769,13 +51160,6 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
             </span>
           </div>
         </div>
-        <span
-          className="glamor-4"
-          onClick={undefined}
-          title={undefined}
-        >
-          Individual channels can override this.
-        </span>
       </div>
     </div>
   </div>

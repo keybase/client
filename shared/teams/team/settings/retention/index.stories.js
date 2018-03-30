@@ -37,33 +37,63 @@ const load = () => {
     ))
     .add('Channel', () => (
       <RetentionPicker
+        policy={policy30Days}
+        teamPolicy={policyRetain}
         loading={false}
-        isTeamWide={false}
+        showInheritOption={true}
+        showOverrideNotice={false}
+        type="simple"
+        {...actions}
+      />
+    ))
+    .add('Big team', () => (
+      <RetentionPicker
+        policy={policy30Days}
+        loading={false}
+        showInheritOption={false}
+        showOverrideNotice={true}
+        type="simple"
+        {...actions}
+      />
+    ))
+    .add('Small team', () => (
+      <RetentionPicker
         policy={policyRetain}
-        teamPolicy={policy30Days}
+        loading={false}
+        showInheritOption={false}
+        showOverrideNotice={false}
         type="simple"
         {...actions}
       />
     ))
-    .add('Team-wide', () => (
-      <RetentionPicker loading={false} isTeamWide={true} policy={policy30Days} type="simple" {...actions} />
-    ))
-    .add('Channel inheriting from team', () => (
+    .add('Adhoc', () => (
       <RetentionPicker
+        policy={policy30Days}
         loading={false}
-        isTeamWide={false}
-        policy={policyInherit}
-        teamPolicy={policy30Days}
+        showInheritOption={false}
+        showOverrideNotice={false}
         type="simple"
         {...actions}
       />
     ))
-    .add('Automatic show warning / set', () => (
+    .add('Channel inheriting', () => (
       <RetentionPicker
-        loading={false}
-        isTeamWide={false}
         policy={policyInherit}
         teamPolicy={policy30Days}
+        loading={false}
+        showInheritOption={true}
+        showOverrideNotice={false}
+        type="simple"
+        {...actions}
+      />
+    ))
+    .add('Automatically show warning / set policy', () => (
+      <RetentionPicker
+        policy={policyInherit}
+        teamPolicy={policy30Days}
+        loading={false}
+        showInheritOption={true}
+        showOverrideNotice={false}
         type="auto"
         {...actions}
       />

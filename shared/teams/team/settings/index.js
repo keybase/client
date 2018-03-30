@@ -279,7 +279,7 @@ export class Settings extends React.Component<Props, State> {
             type="simple"
             onSelect={this._onSelectRetentionPolicy}
             teamname={this.props.teamname}
-            isTeamWide={true}
+            entityType="big team"
           />
         )}
         <Box

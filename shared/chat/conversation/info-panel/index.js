@@ -98,8 +98,7 @@ type RetentionRow = {
   type: 'retention',
   key: 'retention',
   teamname: string,
-  isTeamWide: boolean,
-  isSmallTeam: boolean,
+  entityType: 'adhoc' | 'channel' | 'small team' | 'big team',
 }
 
 const retentionStyles = {
@@ -351,11 +350,12 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key="retention"
             containerStyle={retentionStyles.containerStyle}
             dropdownStyle={retentionStyles.dropdownStyle}
-            conversationIDKey={this.props.selectedConversationIDKey}
+            conversationIDKey={
+              ['adhoc', 'channel'].includes(row.entityType) ? this.props.selectedConversationIDKey : undefined
+            }
+            entityType={row.entityType}
             teamname={row.teamname}
             type="auto"
-            isTeamWide={row.isTeamWide}
-            isSmallTeam={row.isSmallTeam}
           />
         )
 
@@ -411,10 +411,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               {
                 type: 'retention',
                 key: 'retention',
-                conversationIDKey: props.selectedConversationIDKey,
                 teamname: props.teamname || '',
-                isTeamWide: props.smallTeam,
-                isSmallTeam: props.smallTeam,
+                entityType: 'small team',
               },
             ]
           : []
@@ -503,10 +501,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
                 {
                   type: 'retention',
                   key: 'retention',
-                  conversationIDKey: props.selectedConversationIDKey,
+                  entityType: 'channel',
                   teamname: props.teamname || '',
-                  isTeamWide: props.smallTeam,
-                  isSmallTeam: props.smallTeam,
                 },
               ]
             : []
