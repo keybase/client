@@ -165,7 +165,7 @@
     "electron": "1.7.13",
     "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
     "electron-packager": "9.1.0",
-    "eslint": "4.18.2",
+    "eslint": "4.19.1",
     "eslint-config-standard": "11.0.0",
     "eslint-config-standard-jsx": "5.0.0",
     "eslint-config-standard-react": "6.0.0",
