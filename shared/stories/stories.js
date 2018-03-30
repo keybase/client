@@ -20,6 +20,7 @@ import fs from '../fs/index.stories.js'
 import git from '../git/index.stories'
 import icon from '../common-adapters/icon.stories'
 import input from '../common-adapters/input.stories'
+import login from '../login/index.stories'
 import nameWithIcon from '../common-adapters/name-with-icon.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
 import retention from '../teams/team/settings/retention/index.stories'
@@ -55,6 +56,7 @@ const stories = {
   git,
   icon,
   input,
+  login,
   nameWithIcon,
   peopleTask,
   peopleFollowNotification,
