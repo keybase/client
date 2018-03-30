@@ -1,5 +1,6 @@
 // @flow
 import {Component} from 'react'
+import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
   // if true we use a smarter algorithm to decide when we need to recalculate our height
@@ -8,12 +9,12 @@ export type Props = {
   autoFocus?: boolean,
   className?: string,
   editable?: boolean,
-  errorStyle?: ?Object,
+  errorStyle?: StylesCrossPlatform,
   errorText?: ?string,
   floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
   hideUnderline?: boolean,
   hintText?: ?string,
-  inputStyle?: Object,
+  inputStyle?: StylesCrossPlatform,
   multiline?: boolean,
   onBlur?: () => void,
   onClick?: (event: Event) => void,
@@ -29,8 +30,8 @@ export type Props = {
   rowsMin?: number,
   small?: boolean,
   smallLabel?: string,
-  smallLabelStyle?: ?Object,
-  style?: Object,
+  smallLabelStyle?: StylesCrossPlatform,
+  style?: StylesCrossPlatform,
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
 
