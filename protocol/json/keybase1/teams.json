@@ -1345,6 +1345,16 @@
           "type": "int",
           "name": "memberCount",
           "jsonkey": "member_count"
+        },
+        {
+          "type": "boolean",
+          "name": "allowProfilePromote",
+          "jsonkey": "allow_profile_promote"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased",
+          "jsonkey": "is_member_showcased"
         }
       ]
     },
@@ -1428,6 +1438,16 @@
         {
           "type": "boolean",
           "name": "active"
+        },
+        {
+          "type": "boolean",
+          "name": "allowProfilePromote",
+          "jsonkey": "allow_profile_promote"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased",
+          "jsonkey": "is_member_showcased"
         }
       ]
     },
@@ -1781,6 +1801,10 @@
         {
           "type": "boolean",
           "name": "setMemberShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "setRetentionPolicy"
         },
         {
           "type": "boolean",

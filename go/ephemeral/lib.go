@@ -33,14 +33,32 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 	}
 }
 
-func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
-	e.Lock()
-	defer e.Unlock()
-
+func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
 		return err
 	} else if !loggedIn {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
+	}
+
+	pukring, err := e.G().GetPerUserKeyring()
+	if err != nil {
+		return err
+	}
+	if err := pukring.Sync(ctx); err != nil {
+		return err
+	}
+	if !pukring.HasAnyKeys() {
+		return fmt.Errorf("A PUK is needed to generate ephmeral keys. Aborting.")
+	}
+	return nil
+}
+
+func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
+	e.Lock()
+	defer e.Unlock()
+
+	if err = e.checkLoginAndPUK(ctx); err != nil {
+		return err
 	}
 
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
@@ -244,10 +262,8 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 	e.Lock()
 	defer e.Unlock()
 
-	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
+	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return teamEK, err
-	} else if !loggedIn {
-		return teamEK, fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
 	}
 
 	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()

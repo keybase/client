@@ -30,6 +30,10 @@ export type _TeamSettings = RPCTypes.TeamSettings
 export type TeamSettings = I.RecordOf<_TeamSettings>
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
+// `days` should be left as 0 unless `type` is expire
+export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}
+export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
+
 export type _ChannelInfo = {
   channelname: ?string,
   description: ?string,
@@ -107,6 +111,7 @@ export type _State = {
   teamCreationError: string,
   teamCreationPending: boolean,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
+  teamNameToID: I.Map<Teamname, string>,
   teamNameToInvites: I.Map<
     Teamname,
     I.Set<
@@ -125,11 +130,14 @@ export type _State = {
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>,
+  teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
   teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
+  teamNameToAllowPromote: I.Map<Teamname, boolean>,
+  teamNameToIsShowcasing: I.Map<Teamname, boolean>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
   newTeams: I.Set<string>,

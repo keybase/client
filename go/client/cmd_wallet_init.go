@@ -22,17 +22,17 @@ func newCmdWalletInit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 	}
 	return cli.Command{
 		Name:  "init",
-		Usage: "Initialize your cryptocurrency wallet (dev only)",
+		Usage: "Initialize cryptocurrency wallet (dev only)",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "init", c)
 		},
-		Description: "Initialize your cryptocurrency wallet (dev only)",
+		Description: "Initialize cryptocurrency wallet (dev only)",
 	}
 }
 
 func (v *cmdWalletInit) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 0 {
-		return errors.New("no args required")
+		return errors.New("expected no arguments")
 	}
 	return nil
 }
@@ -42,7 +42,7 @@ func (v *cmdWalletInit) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	return cli.WalletInit(context.TODO())
+	return cli.WalletInitLocal(context.TODO())
 }
 
 func (v *cmdWalletInit) GetUsage() libkb.Usage {

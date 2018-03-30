@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -24,22 +25,22 @@ bundlepack := msgpack(StellarBundleSecretVersioned)
 */
 
 type BoxResult struct {
-	Enc           keybase1.EncryptedStellarBundle
+	Enc           stellar1.EncryptedBundle
 	EncB64        string // base64 msgpack'd Enc
 	VisB64        string // base64 msgpack'd Vis
-	FormatVersion keybase1.StellarBundleVersion
+	FormatVersion stellar1.BundleVersion
 }
 
 // Box encrypts a stellar key bundle for a PUK.
-func Box(bundle keybase1.StellarBundle, pukGen keybase1.PerUserKeyGeneration,
+func Box(bundle stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration,
 	puk libkb.PerUserKeySeed) (res BoxResult, err error) {
 	err = bundle.CheckInvariants()
 	if err != nil {
 		return res, err
 	}
 	accountsVisible, accountsSecret := accountsSplit(bundle.Accounts)
-	res.FormatVersion = keybase1.StellarBundleVersion_V1
-	visibleV1 := keybase1.StellarBundleVisibleV1{
+	res.FormatVersion = stellar1.BundleVersion_V1
+	visibleV1 := stellar1.BundleVisibleV1{
 		Revision: bundle.Revision,
 		Prev:     bundle.Prev,
 		Accounts: accountsVisible,
@@ -50,7 +51,7 @@ func Box(bundle keybase1.StellarBundle, pukGen keybase1.PerUserKeyGeneration,
 	}
 	res.VisB64 = base64.StdEncoding.EncodeToString(visiblePack)
 	visibleHash := sha256.Sum256(visiblePack)
-	versionedSecret := keybase1.NewStellarBundleSecretVersionedWithV1(keybase1.StellarBundleSecretV1{
+	versionedSecret := stellar1.NewBundleSecretVersionedWithV1(stellar1.BundleSecretV1{
 		VisibleHash: visibleHash[:],
 		Accounts:    accountsSecret,
 	})
@@ -61,8 +62,8 @@ func Box(bundle keybase1.StellarBundle, pukGen keybase1.PerUserKeyGeneration,
 // Encrypt encrypts the stellar key bundle for the PUK.
 // Returns the encrypted struct and a base64 encoding for posting to the server.
 // Does not check invariants.
-func Encrypt(bundle keybase1.StellarBundleSecretVersioned, pukGen keybase1.PerUserKeyGeneration,
-	puk libkb.PerUserKeySeed) (res keybase1.EncryptedStellarBundle, resB64 string, err error) {
+func Encrypt(bundle stellar1.BundleSecretVersioned, pukGen keybase1.PerUserKeyGeneration,
+	puk libkb.PerUserKeySeed) (res stellar1.EncryptedBundle, resB64 string, err error) {
 	// Msgpack (inner)
 	clearpack, err := libkb.MsgpackEncode(bundle)
 	if err != nil {
@@ -84,7 +85,7 @@ func Encrypt(bundle keybase1.StellarBundleSecretVersioned, pukGen keybase1.PerUs
 	secbox := secretbox.Seal(nil, clearpack[:], &nonce, (*[libkb.NaclSecretBoxKeySize]byte)(&symmetricKey))
 
 	// Annotate
-	res = keybase1.EncryptedStellarBundle{
+	res = stellar1.EncryptedBundle{
 		V:   1,
 		E:   secbox,
 		N:   nonce,
@@ -101,8 +102,8 @@ func Encrypt(bundle keybase1.StellarBundleSecretVersioned, pukGen keybase1.PerUs
 }
 
 type DecodeResult struct {
-	Enc     keybase1.EncryptedStellarBundle
-	EncHash keybase1.Hash
+	Enc     stellar1.EncryptedBundle
+	EncHash stellar1.Hash
 }
 
 // Decode decodes but does not decrypt the bundle.
@@ -125,7 +126,7 @@ func Decode(encryptedBundleB64 string) (res DecodeResult, err error) {
 // And decodes and verifies the visible bundle.
 // Does not check the prev hash.
 func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
-	puk libkb.PerUserKeySeed) (res keybase1.StellarBundle, version keybase1.StellarBundleVersion, err error) {
+	puk libkb.PerUserKeySeed) (res stellar1.Bundle, version stellar1.BundleVersion, err error) {
 	versioned, err := Decrypt(decodeRes.Enc, puk)
 	if err != nil {
 		return res, version, err
@@ -135,7 +136,7 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 		return res, version, err
 	}
 	switch version {
-	case keybase1.StellarBundleVersion_V1:
+	case stellar1.BundleVersion_V1:
 		visiblePack, err := base64.StdEncoding.DecodeString(visibleBundleB64)
 		if err != nil {
 			return res, version, err
@@ -145,7 +146,7 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 		if !hmac.Equal(visibleHash[:], secretV1.VisibleHash) {
 			return res, version, errors.New("corrupted bundle: visible hash mismatch")
 		}
-		var visibleV1 keybase1.StellarBundleVisibleV1
+		var visibleV1 stellar1.BundleVisibleV1
 		err = libkb.MsgpackDecode(&visibleV1, visiblePack)
 		if err != nil {
 			return res, version, fmt.Errorf("error unpacking visible bundle: %v", err)
@@ -167,8 +168,8 @@ func Unbox(decodeRes DecodeResult, visibleBundleB64 string,
 
 // Decrypt decrypts the stellar key bundle.
 // Does not check invariants.
-func Decrypt(encBundle keybase1.EncryptedStellarBundle,
-	puk libkb.PerUserKeySeed) (res keybase1.StellarBundleSecretVersioned, err error) {
+func Decrypt(encBundle stellar1.EncryptedBundle,
+	puk libkb.PerUserKeySeed) (res stellar1.BundleSecretVersioned, err error) {
 	// Derive key
 	symmetricKey, err := puk.DeriveSymmetricKey(libkb.DeriveReasonPUKStellarBundle)
 	if err != nil {
@@ -191,23 +192,14 @@ func Decrypt(encBundle keybase1.EncryptedStellarBundle,
 	return res, err
 }
 
-// Create the next bundle given a decrypted bundle.
-func Advance(prevBundle keybase1.StellarBundle) keybase1.StellarBundle {
-	nextBundle := prevBundle.DeepCopy()
-	nextBundle.Prev = nextBundle.OwnHash
-	nextBundle.OwnHash = nil
-	nextBundle.Revision++
-	return nextBundle
-}
-
-func accountsSplit(accounts []keybase1.StellarEntry) (vis []keybase1.StellarVisibleEntry, sec []keybase1.StellarSecretEntry) {
+func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibleEntry, sec []stellar1.BundleSecretEntry) {
 	for _, acc := range accounts {
-		vis = append(vis, keybase1.StellarVisibleEntry{
+		vis = append(vis, stellar1.BundleVisibleEntry{
 			AccountID: acc.AccountID,
 			Mode:      acc.Mode,
 			IsPrimary: acc.IsPrimary,
 		})
-		sec = append(sec, keybase1.StellarSecretEntry{
+		sec = append(sec, stellar1.BundleSecretEntry{
 			AccountID: acc.AccountID,
 			Signers:   acc.Signers,
 			Name:      acc.Name,
@@ -216,17 +208,17 @@ func accountsSplit(accounts []keybase1.StellarEntry) (vis []keybase1.StellarVisi
 	return vis, sec
 }
 
-func merge(secret keybase1.StellarBundleSecretV1, visible keybase1.StellarBundleVisibleV1) (res keybase1.StellarBundle, err error) {
+func merge(secret stellar1.BundleSecretV1, visible stellar1.BundleVisibleV1) (res stellar1.Bundle, err error) {
 	if len(secret.Accounts) != len(visible.Accounts) {
 		return res, fmt.Errorf("corrupted bundle: secret and visible have different counts")
 	}
-	var accounts []keybase1.StellarEntry
+	var accounts []stellar1.BundleEntry
 	for i, sec := range secret.Accounts {
 		vis := visible.Accounts[i]
 		if sec.AccountID != vis.AccountID {
 			return res, fmt.Errorf("corrupted bundle: mismatched account ID")
 		}
-		accounts = append(accounts, keybase1.StellarEntry{
+		accounts = append(accounts, stellar1.BundleEntry{
 			AccountID: vis.AccountID,
 			Mode:      vis.Mode,
 			IsPrimary: vis.IsPrimary,
@@ -234,7 +226,7 @@ func merge(secret keybase1.StellarBundleSecretV1, visible keybase1.StellarBundle
 			Name:      sec.Name,
 		})
 	}
-	return keybase1.StellarBundle{
+	return stellar1.Bundle{
 		Revision: visible.Revision,
 		Prev:     visible.Prev,
 		Accounts: accounts,

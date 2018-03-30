@@ -4,6 +4,7 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import invert from 'lodash/invert'
 
 import type {Service} from './types/search'
@@ -56,6 +57,11 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
   joinAs: 1,
 })
 
+export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Record({
+  type: 'retain',
+  days: 0,
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
   convIDToChannelInfo: I.Map(),
@@ -69,6 +75,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
   teamNameToConvIDs: I.Map(),
+  teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
   teamNameToLoadingInvites: I.Map(),
@@ -76,11 +83,14 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToResetUsers: I.Map(),
+  teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
   teamNameToSubteams: I.Map(),
   teamNameToCanPerform: I.Map(),
   teamNameToTeamSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
+  teamNameToAllowPromote: I.Map(),
+  teamNameToIsShowcasing: I.Map(),
   teammembercounts: I.Map(),
   newTeams: I.Set(),
   newTeamRequests: I.List(),
@@ -97,6 +107,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   editChannelDescription: false,
   setTeamShowcase: false,
   setMemberShowcase: false,
+  setRetentionPolicy: false,
   changeOpenTeam: false,
   leaveTeam: false,
   joinTeam: false,
@@ -105,6 +116,33 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   changeTarsDisabled: false,
   deleteChatHistory: false,
 }
+
+const policyInherit = makeRetentionPolicy({type: 'inherit'})
+const policyRetain = makeRetentionPolicy({type: 'retain'})
+const policyDay = makeRetentionPolicy({type: 'expire', days: 1})
+const policyWeek = makeRetentionPolicy({type: 'expire', days: 7})
+const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
+const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
+const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
+const teamRetentionPolicies = [
+  policyDay,
+  policyWeek,
+  policyMonth,
+  policyThreeMonths,
+  policyYear,
+  policyRetain,
+]
+const retentionPolicies = {
+  policyInherit,
+  policyRetain,
+  policyDay,
+  policyWeek,
+  policyMonth,
+  policyThreeMonths,
+  policyYear,
+}
+
+const convRetentionPolicies = [policyInherit, ...teamRetentionPolicies]
 
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
@@ -136,6 +174,12 @@ const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.entities.getIn(['teams', 'teammembercounts', teamname], 0)
 
+const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
+  state.entities.getIn(['teams', 'teamNameToID', teamname], '')
+
+const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
+  state.entities.getIn(['teams', 'teamNameToRetentionPolicy', teamname], null)
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -146,6 +190,55 @@ const isSubteam = (maybeTeamname: string) => {
     return false
   }
   return true
+}
+const secondsToDays = (seconds: number) => seconds / (3600 * 24)
+const serviceRetentionPolicyToRetentionPolicy = (
+  policy: ?RPCChatTypes.RetentionPolicy
+): Types.RetentionPolicy => {
+  // !policy implies a default policy of retainment
+  let retentionPolicy: Types.RetentionPolicy = makeRetentionPolicy({type: 'retain'})
+  if (policy) {
+    // replace retentionPolicy with whatever is explicitly set
+    switch (policy.typ) {
+      case RPCChatTypes.commonRetentionPolicyType.retain:
+        retentionPolicy = makeRetentionPolicy({type: 'retain'})
+        break
+      case RPCChatTypes.commonRetentionPolicyType.expire:
+        if (!policy.expire) {
+          throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
+        }
+        retentionPolicy = makeRetentionPolicy({
+          type: 'expire',
+          days: secondsToDays(policy.expire.age),
+        })
+        break
+      case RPCChatTypes.commonRetentionPolicyType.inherit:
+        retentionPolicy = makeRetentionPolicy({type: 'inherit'})
+    }
+  }
+  return retentionPolicy
+}
+
+const daysToSeconds = (days: number) => days * 3600 * 24
+const retentionPolicyToServiceRetentionPolicy = (
+  policy: Types.RetentionPolicy
+): RPCChatTypes.RetentionPolicy => {
+  let res: ?RPCChatTypes.RetentionPolicy
+  switch (policy.type) {
+    case 'retain':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.retain, retain: {}}
+      break
+    case 'expire':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.expire, expire: {age: daysToSeconds(policy.days)}}
+      break
+    case 'inherit':
+      res = {typ: RPCChatTypes.commonRetentionPolicyType.inherit, inherit: {}}
+      break
+  }
+  if (!res) {
+    throw new Error(`Unable to convert retention policy of unknown type: ${policy.type}`)
+  }
+  return res
 }
 
 // How many public admins should we display on a showcased team card at once?
@@ -171,8 +264,15 @@ export {
   getTeamNameFromConvID,
   getChannelInfoFromConvID,
   getChannelNameFromConvID,
+  getTeamID,
+  getTeamRetentionPolicy,
   getTopicFromConvID,
   isAdmin,
   isOwner,
   isSubteam,
+  serviceRetentionPolicyToRetentionPolicy,
+  retentionPolicyToServiceRetentionPolicy,
+  teamRetentionPolicies,
+  convRetentionPolicies,
+  retentionPolicies,
 }

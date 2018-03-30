@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
@@ -43,12 +43,12 @@ func TestCreateWallet(t *testing.T) {
 	t.Logf("Fetch the bundle")
 	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	require.Equal(t, keybase1.StellarRevision(1), bundle.Revision)
+	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
 	require.Nil(t, bundle.Prev)
 	require.NotNil(t, bundle.OwnHash)
 	require.Len(t, bundle.Accounts, 1)
 	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
-	require.Equal(t, keybase1.StellarAccountMode_USER, bundle.Accounts[0].Mode)
+	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
 	require.True(t, bundle.Accounts[0].IsPrimary)
 	require.Len(t, bundle.Accounts[0].Signers, 1)
 	require.Equal(t, "", bundle.Accounts[0].Name)
