@@ -92,17 +92,23 @@ export type PathBreadcrumbItem = {
   onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
 }
 
-export type _State = {
-  pathItems: I.Map<Path, PathItem>,
-  pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Set<Path>,
-  transfers: I.Map<string, Transfer>,
+export type _Flags = {
   fuseStatus: ?RPCTypes.FuseStatus,
   kbfsOpening: boolean,
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
   kextPermissionError: boolean,
   showBanner: boolean,
+}
+
+export type Flags = I.RecordOf<_Flags>
+
+export type _State = {
+  pathItems: I.Map<Path, PathItem>,
+  pathUserSettings: I.Map<Path, PathUserSetting>,
+  loadingPaths: I.Set<Path>,
+  transfers: I.Map<string, Transfer>,
+  flags: Flags,
 }
 export type State = I.RecordOf<_State>
 

@@ -75,17 +75,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['transfers', action.payload.key])
     }
     case FsGen.fuseStatusResult:
-      return state.merge({fuseStatus: action.payload.status})
+      return state.mergeIn(['flags'], {fuseStatus: action.payload.status})
     case FsGen.setFlags:
-      return state.merge(action.payload)
+      return state.mergeIn(['flags'], action.payload)
     case FsGen.installFuse:
-      return state.merge({fuseInstalling: true, kextPermissionError: false})
+      return state.mergeIn(['flags'], {fuseInstalling: true, kextPermissionError: false})
     case FsGen.installFuseResult:
       // To prevent races, we overlap flags set to true. So we don't unset the
       // fuseInstalling flag here.
-      return state.merge(action.payload)
+      return state.mergeIn(['flags'], action.payload)
     case FsGen.installKBFS:
-      return state.merge({kbfsInstalling: true})
+      return state.mergeIn(['flags'], {kbfsInstalling: true})
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:

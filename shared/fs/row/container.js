@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   return {
     _username,
     path,
-    kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
+    kbfsEnabled: isLinux || (state.fs.flags.fuseStatus && state.fs.flags.fuseStatus.kextStarted),
     pathItem,
   }
 }

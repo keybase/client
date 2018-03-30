@@ -10,12 +10,12 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  const kbfsEnabled = isLinux || (state.fs.flags.fuseStatus && state.fs.flags.fuseStatus.kextStarted)
   return {
     kbfsEnabled,
-    showBanner: state.fs.showBanner,
-    inProgress: state.fs.fuseInstalling || state.fs.kbfsInstalling || state.fs.kbfsOpening,
-    showSecurityPrefs: !kbfsEnabled && state.fs.kextPermissionError,
+    showBanner: state.fs.flags.showBanner,
+    inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
+    showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
   }
 }
 

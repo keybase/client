@@ -75,17 +75,21 @@ export const makeTransfer: I.RecordFactory<Types._Transfer> = I.Record({
   state: makeTransferState(),
 })
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
-  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  loadingPaths: I.Set(),
-  transfers: I.Map(),
+export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   fuseStatus: null,
   kbfsOpening: false,
   kbfsInstalling: false,
   fuseInstalling: false,
   kextPermissionError: false,
   showBanner: false,
+})
+
+export const makeState: I.RecordFactory<Types._State> = I.Record({
+  flags: makeFlags(),
+  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
+  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  loadingPaths: I.Set(),
+  transfers: I.Map(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
