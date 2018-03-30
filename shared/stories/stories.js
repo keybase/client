@@ -15,6 +15,8 @@ import chatUserMentionHud from '../chat/conversation/input-area/user-mention-hud
 import checkbox from '../common-adapters/checkbox.stories'
 import devices from '../devices/index.stories'
 import dropdown from '../common-adapters/dropdown.stories'
+import formWithCheckbox from '../common-adapters/form-with-checkbox.stories'
+import fs from '../fs/index.stories.js'
 import git from '../git/index.stories'
 import icon from '../common-adapters/icon.stories'
 import input from '../common-adapters/input.stories'
@@ -29,7 +31,6 @@ import editTeamDescription from '../teams/edit-team-description/index.stories'
 import peopleTask from '../people/task/index.stories'
 import peopleFollowNotification from '../people/follow-notification/index.stories'
 import peopleFollowSuggestions from '../people/follow-suggestions/index.stories'
-import fs from '../fs/index.stories.js'
 
 const stories = {
   avatar,
@@ -49,6 +50,7 @@ const stories = {
   devices,
   dropdown,
   editTeamDescription,
+  formWithCheckbox,
   fs,
   git,
   icon,
