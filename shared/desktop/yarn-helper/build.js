@@ -23,7 +23,7 @@ const commands = {
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
   },
   package: {
-    env: {BABEL_ENV: 'yarn', NO_SOURCE_MAPS: 'true'},
+    env: {BABEL_ENV: 'yarn'},
     help: 'Package up the production js code',
     shell: `babel-node ${spaceArg} desktop/package.js`,
   },

@@ -44,14 +44,14 @@ const companyName = 'Keybase, Inc.'
 
 const packagerOpts = {
   appBundleId: 'keybase.Electron',
-  helperBundleId: 'keybase.ElectronHelper',
-  appVersion: appVersion,
-  buildVersion: appVersion + comment,
   appCopyright: appCopyright,
-  dir: desktopPath('./build'),
-  name: appName,
+  appVersion: appVersion,
   asar: shouldUseAsar,
+  buildVersion: appVersion + comment,
+  dir: desktopPath('./build'),
+  helperBundleId: 'keybase.ElectronHelper',
   ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
+  name: appName,
 }
 
 function main() {
@@ -68,9 +68,9 @@ function main() {
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
   fs.writeJsonSync(desktopPath('build/package.json'), {
+    main: 'desktop/dist/main.bundle.js',
     name: appName,
     version: appVersion,
-    main: 'desktop/dist/main.bundle.js',
   })
 
   const icon = argv.icon
@@ -155,20 +155,20 @@ function pack(plat, arch, cb) {
 
   let opts = {
     ...packagerOpts,
-    platform: plat,
-    arch: arch,
-    prune: true,
+    arch,
     out: packageOutDir,
+    platform: plat,
+    prune: true,
   }
 
   if (plat === 'win32') {
     opts = {
       ...opts,
       'version-string': {
-        OriginalFilename: appName + '.exe',
-        FileDescription: appName,
-        ProductName: appName,
         CompanyName: companyName,
+        FileDescription: appName,
+        OriginalFilename: appName + '.exe',
+        ProductName: appName,
       },
     }
   }

@@ -7,6 +7,10 @@
     "yarn": {
       "presets": ['@babel/preset-env'],
       "plugins": ['@babel/plugin-proposal-object-rest-spread', '@babel/transform-flow-strip-types']
+    },
+    "test": {
+      "presets": ['@babel/preset-env', 'react'],
+      "plugins": ['@babel/plugin-proposal-object-rest-spread', '@babel/transform-flow-strip-types']
     }
   }
 }
