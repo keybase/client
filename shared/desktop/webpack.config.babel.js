@@ -143,7 +143,7 @@ const config = (env, argv) => {
   })
   const renderThreadConfig = merge(commonConfig, {
     context: path.resolve(__dirname, '..'),
-    devtool: 'source-map', // TEMP // isDev ? 'eval' : 'source-map',
+    devtool: isDev ? 'eval' : 'source-map',
     entry: {
       'component-loader': './desktop/remote/component-loader.js',
       index: './desktop/renderer/index.js',

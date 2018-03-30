@@ -5,7 +5,6 @@ import * as CommonConstants from '../constants/common'
 import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
 import {
-  InvalidRouteError,
   getPath,
   pathToString,
   routeSetProps,

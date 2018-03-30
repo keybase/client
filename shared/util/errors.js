@@ -1,6 +1,7 @@
 // @flow
 
 export class RPCError {
+  message: string
   code: number // Consult type StatusCode in rpc-gen.js for what this means
   fields: any
   desc: string
@@ -52,8 +53,12 @@ export function convertToError(err: Object, method?: string): Error {
     return err
   }
 
+  if (err instanceof RPCError) {
+    return new Error(err.message)
+  }
+
   if (err.hasOwnProperty('desc') && err.hasOwnProperty('code')) {
-    return convertToRPCError(err, method)
+    return new Error(convertToRPCError(err, method).message)
   }
 
   return new Error(`Unknown error: ${JSON.stringify(err)}`)
