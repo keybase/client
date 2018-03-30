@@ -403,22 +403,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       if (props.smallTeam) {
         // Small team.
-        const retentionRows = props.canSetRetention
-          ? [
-              {
-                type: 'divider',
-                key: nextKey(),
-                marginBottom: 0,
-              },
-              {
-                type: 'retention',
-                key: 'retention',
-                teamname: props.teamname || '',
-                entityType: 'small team',
-              },
-            ]
-          : []
-
         headerRows = [
           {type: 'spacer', key: nextKey(), height: globalMargins.small},
           smallTeamHeaderRow,
@@ -432,7 +416,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             type: 'notifications',
             key: 'notifications',
           },
-          ...retentionRows,
+          {
+            type: 'divider',
+            key: nextKey(),
+            marginBottom: 0,
+          },
+          {
+            type: 'retention',
+            key: 'retention',
+            teamname: props.teamname || '',
+            entityType: 'small team',
+          },
           {
             type: 'divider',
             key: nextKey(),
@@ -493,22 +487,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           ]
         } else {
           // Big team, no preview.
-          const retentionRows = props.canSetRetention
-            ? [
-                {
-                  type: 'divider',
-                  key: nextKey(),
-                  marginBottom: 0,
-                },
-                {
-                  type: 'retention',
-                  key: 'retention',
-                  entityType: 'channel',
-                  teamname: props.teamname || '',
-                },
-              ]
-            : []
-
           headerRows = [
             headerRow,
             {
@@ -540,7 +518,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'notifications',
               key: 'notifications',
             },
-            ...retentionRows,
+            {
+              type: 'divider',
+              key: nextKey(),
+              marginBottom: 0,
+            },
+            {
+              type: 'retention',
+              key: 'retention',
+              entityType: 'channel',
+              teamname: props.teamname || '',
+            },
             {
               type: 'divider',
               key: nextKey(),

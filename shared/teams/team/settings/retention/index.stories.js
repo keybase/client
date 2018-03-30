@@ -37,6 +37,7 @@ const load = () => {
     ))
     .add('Channel', () => (
       <RetentionPicker
+        entityType="channel"
         canSetPolicy={true}
         policy={policy30Days}
         teamPolicy={policyRetain}
@@ -49,6 +50,7 @@ const load = () => {
     ))
     .add('Big team', () => (
       <RetentionPicker
+        entityType="big team"
         canSetPolicy={true}
         policy={policy30Days}
         loading={false}
@@ -60,6 +62,7 @@ const load = () => {
     ))
     .add('Small team', () => (
       <RetentionPicker
+        entityType="small team"
         canSetPolicy={true}
         policy={policyRetain}
         loading={false}
@@ -71,6 +74,7 @@ const load = () => {
     ))
     .add('Adhoc', () => (
       <RetentionPicker
+        entityType="adhoc"
         canSetPolicy={true}
         policy={policy30Days}
         loading={false}
@@ -82,6 +86,7 @@ const load = () => {
     ))
     .add('Channel inheriting', () => (
       <RetentionPicker
+        entityType="channel"
         canSetPolicy={true}
         policy={policyInherit}
         teamPolicy={policy30Days}
@@ -94,6 +99,7 @@ const load = () => {
     ))
     .add('Automatically show warning / set policy', () => (
       <RetentionPicker
+        entityType="channel"
         canSetPolicy={true}
         policy={policyInherit}
         teamPolicy={policy30Days}

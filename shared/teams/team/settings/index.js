@@ -274,7 +274,7 @@ export class Settings extends React.Component<Props, State> {
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
           </React.Fragment>
         )}
-        {this.props.yourOperations.setRetentionPolicy && (
+        {this.props.yourOperations.chat && (
           <RetentionPicker
             type="simple"
             onSelect={this._onSelectRetentionPolicy}

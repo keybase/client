@@ -117,6 +117,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     _path,
     _permissionsLoaded,
     canSetPolicy,
+    entityType, // used only to display policy to non-admins
     loading,
     policy,
     showInheritOption,
