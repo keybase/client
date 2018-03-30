@@ -51,7 +51,7 @@ func getTeamKeys(ctx context.Context, team *teams.Team, public bool) (res types.
 	return res, nil
 }
 
-func loadTeamForDecryption(ctx context.Context, g *libkb.GlobalContext, name string, teamID chat1.TLFID,
+func loadTeamForDecryption(ctx context.Context, loader *TeamLoader, name string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (*teams.Team, error) {
 
@@ -67,7 +67,7 @@ func loadTeamForDecryption(ctx context.Context, g *libkb.GlobalContext, name str
 			}
 		}
 	}
-	team, err := LoadTeam(ctx, g, teamID, name, membersType, public,
+	team, err := loader.loadTeam(ctx, teamID, name, membersType, public,
 		func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
 			return keybase1.LoadTeamArg{
 				ID:         teamID,
@@ -82,15 +82,106 @@ func loadTeamForDecryption(ctx context.Context, g *libkb.GlobalContext, name str
 	return team, nil
 }
 
+type TeamLoader struct {
+	libkb.Contextified
+	utils.DebugLabeler
+}
+
+func NewTeamLoader(g *libkb.GlobalContext) *TeamLoader {
+	return &TeamLoader{
+		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamLoader", false),
+	}
+}
+
+func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
+	tlfName string, membersType chat1.ConversationMembersType, public bool,
+	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
+
+	// Set up load team argument construction, possibly controlled by the caller
+	ltarg := func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
+		return keybase1.LoadTeamArg{
+			ID:     teamID,
+			Public: public,
+		}
+	}
+	if loadTeamArgOverride != nil {
+		ltarg = loadTeamArgOverride
+	}
+
+	switch membersType {
+	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
+		teamID, err := keybase1.TeamIDFromString(tlfID.String())
+		if err != nil {
+			return team, err
+		}
+		return teams.Load(ctx, t.G(), ltarg(teamID))
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		teamID, err := tlfIDToTeamID.Lookup(ctx, tlfID, t.G().API)
+		if err != nil {
+			return team, err
+		}
+		loadAttempt := func(repoll bool) error {
+			arg := ltarg(teamID)
+			arg.ForceRepoll = arg.ForceRepoll || repoll
+			team, err = teams.Load(ctx, t.G(), arg)
+			if err != nil {
+				return err
+			}
+			if !tlfID.EqString(team.KBFSTLFID()) {
+				return ImpteamUpgradeBadteamError{
+					Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
+				}
+			}
+			return nil
+		}
+		if err = loadAttempt(false); err != nil {
+			if IsOfflineError(err) != OfflineErrorKindOnline {
+				// try again on bad team, might have had an old team cached
+				t.Debug(ctx, "loadTeam: trying again: %s", err)
+				if err = loadAttempt(true); err != nil {
+					return team, err
+				}
+			} else {
+				//generic error we bail out
+				return team, err
+			}
+		}
+
+		impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
+		if err != nil {
+			return team, err
+		}
+		if impTeamName != tlfName {
+			// Try resolving given name, maybe there has been a resolution
+			resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
+			if err != nil {
+				return team, err
+			}
+			if impTeamName != resName.String() {
+				return team, ImpteamUpgradeBadteamError{
+					Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
+						tlfName),
+				}
+			}
+		}
+		return team, nil
+	}
+	return team, fmt.Errorf("invalid impteam members type: %v", membersType)
+}
+
 type TeamsNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+
+	loader *TeamLoader
 }
 
 func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	return &TeamsNameInfoSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamsNameInfoSource", false),
+		loader:       NewTeamLoader(g.ExternalG()),
 	}
 }
 
@@ -124,7 +215,7 @@ func (t *TeamsNameInfoSource) EncryptionKeys(ctx context.Context, name string, t
 	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
-	team, err := LoadTeam(ctx, t.G().ExternalG(), teamID, name, membersType, public, nil)
+	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, err
 	}
@@ -136,7 +227,7 @@ func (t *TeamsNameInfoSource) DecryptionKeys(ctx context.Context, name string, t
 	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
-	team, err := loadTeamForDecryption(ctx, t.G().ExternalG(), name, teamID, membersType, public,
+	team, err := loadTeamForDecryption(ctx, t.loader, name, teamID, membersType, public,
 		keyGeneration, kbfsEncrypted)
 	if err != nil {
 		return res, err
@@ -148,6 +239,8 @@ type ImplicitTeamsNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*NameIdentifier
+
+	loader         *TeamLoader
 	lookupUpgraded bool
 }
 
@@ -156,6 +249,7 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *Im
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "ImplicitTeamsNameInfoSource", false),
 		NameIdentifier: NewNameIdentifier(g),
+		loader:         NewTeamLoader(g.ExternalG()),
 		lookupUpgraded: lookupUpgraded,
 	}
 }
@@ -242,7 +336,7 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKeys(ctx context.Context, name s
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 
-	team, err := LoadTeam(ctx, t.G().ExternalG(), teamID, name, membersType, public, nil)
+	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, err
 	}
@@ -259,7 +353,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKeys(ctx context.Context, name s
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
 
-	team, err := loadTeamForDecryption(ctx, t.G().ExternalG(), name, teamID, membersType, public,
+	team, err := loadTeamForDecryption(ctx, t.loader, name, teamID, membersType, public,
 		keyGeneration, kbfsEncrypted)
 	if err != nil {
 		return res, err
@@ -332,79 +426,3 @@ func (t *tlfIDToTeamIDMap) Lookup(ctx context.Context, tlfID chat1.TLFID, api li
 }
 
 var tlfIDToTeamID = newTlfIDToTeamIDMap()
-
-func LoadTeam(ctx context.Context, g *libkb.GlobalContext, tlfID chat1.TLFID, tlfName string,
-	membersType chat1.ConversationMembersType, public bool,
-	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
-
-	// Set up load team argument construction, possibly controlled by the caller
-	ltarg := func(teamID keybase1.TeamID) keybase1.LoadTeamArg {
-		return keybase1.LoadTeamArg{
-			ID:     teamID,
-			Public: public,
-		}
-	}
-	if loadTeamArgOverride != nil {
-		ltarg = loadTeamArgOverride
-	}
-
-	switch membersType {
-	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_TEAM:
-		teamID, err := keybase1.TeamIDFromString(tlfID.String())
-		if err != nil {
-			return team, err
-		}
-		return teams.Load(ctx, g, ltarg(teamID))
-	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		teamID, err := tlfIDToTeamID.Lookup(ctx, tlfID, g.API)
-		if err != nil {
-			return team, err
-		}
-		loadAttempt := func(repoll bool) error {
-			arg := ltarg(teamID)
-			arg.ForceRepoll = arg.ForceRepoll || repoll
-			team, err = teams.Load(ctx, g, arg)
-			if err != nil {
-				return err
-			}
-			if !tlfID.EqString(team.KBFSTLFID()) {
-				return ImpteamUpgradeBadteamError{
-					Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
-				}
-			}
-			return nil
-		}
-		if err = loadAttempt(false); err != nil {
-			if IsOfflineError(err) != OfflineErrorKindOnline {
-				// try again on bad team, might have had an old team cached
-				g.Log.CDebugf(ctx, "++Chat: LoadTeam: trying again: %s", err)
-				if err = loadAttempt(true); err != nil {
-					return team, err
-				}
-			} else {
-				//generic error we bail out
-				return team, err
-			}
-		}
-
-		impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
-		if err != nil {
-			return team, err
-		}
-		if impTeamName != tlfName {
-			// Try resolving given name, maybe there has been a resolution
-			resName, err := teams.ResolveImplicitTeamDisplayName(ctx, g, tlfName, public)
-			if err != nil {
-				return team, err
-			}
-			if impTeamName != resName.String() {
-				return team, ImpteamUpgradeBadteamError{
-					Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-						tlfName),
-				}
-			}
-		}
-		return team, nil
-	}
-	return team, fmt.Errorf("invalid impteam members type: %v", membersType)
-}
