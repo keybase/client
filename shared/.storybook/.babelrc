@@ -1,40 +1,4 @@
 {
-  "plugins": [
-    [
-      "babel-plugin-transform-builtin-extend",
-      {
-        "globals": [
-          "Error"
-        ]
-      }
-    ],
-    "transform-flow-strip-types",
-    "transform-object-rest-spread",
-    "babel-plugin-transform-class-properties",
-    "transform-es2015-destructuring",
-    [
-      "transform-runtime",
-      {
-        "polyfill": false,
-        "regenerator": true
-      }
-    ]
-  ],
-  "presets": [
-    [
-      "env",
-      {
-        "debug": false,
-        "exclude": [
-          "transform-regenerator"
-        ],
-        "modules": "commonjs",
-        "targets": {
-          "browsers": "last 2 Chrome versions"
-        },
-        "useBuiltIns": false
-      }
-    ],
-    "babel-preset-react"
-  ]
+    "presets": ['@babel/preset-env', '@babel/preset-react'],
+    "plugins": ['@babel/plugin-proposal-object-rest-spread', '@babel/transform-flow-strip-types', '@babel/plugin-proposal-class-properties']
 }
