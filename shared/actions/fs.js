@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/fs'
 import * as FsGen from './fs-gen'
 import * as I from 'immutable'
@@ -20,6 +21,99 @@ import {
 import {isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
+
+const _jsonToFolders = (json: Object, myKID: any): Array<Types.FolderRPCWithMeta> => {
+  const folderSets = [json.favorites, json.ignored, json.new]
+  const fillFolder = folder => {
+    folder.waitingForParticipantUnlock = []
+    folder.youCanUnlock = []
+
+    if (!folder.problem_set) {
+      return
+    }
+
+    const solutions = folder.problem_set.solution_kids || {}
+    if (Object.keys(solutions).length) {
+      folder.meta = 'rekey'
+    }
+
+    if (folder.problem_set.can_self_help) {
+      const mySolutions = solutions[myKID] || []
+      folder.youCanUnlock = mySolutions.map(kid => {
+        const device = json.devices[kid]
+        return {...device, deviceID: kid}
+      })
+    } else {
+      folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
+        const devices = solutions[userID].map(kid => json.devices[kid].name)
+        const numDevices = devices.length
+        const last = numDevices > 1 ? devices.pop() : null
+
+        return {
+          name: json.users[userID],
+          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
+            last ? ` or ${last}` : ''
+          }.`,
+        }
+      })
+    }
+  }
+
+  folderSets.forEach(folders => folders.forEach(fillFolder))
+  return flatten(folderSets)
+}
+
+// TODO: unexport once it's used.
+// TODO: hook up PathItems
+export function _getFavoritesRPCToFiles(
+  txt: string,
+  username: string = '',
+  loggedIn: boolean
+): Array<Types.FolderRPCWithMeta> {
+  let json
+  try {
+    json = JSON.parse(txt)
+  } catch (err) {
+    logger.warn('Invalid json from getFavorites: ', err)
+    return []
+  }
+
+  const myKID = findKey(json.users, name => name === username)
+
+  // inject our meta tag
+  json.favorites && json.favorites.forEach(injectMeta(null))
+  json.ignored && json.ignored.forEach(injectMeta('ignored'))
+  json.new && json.new.forEach(injectMeta('new'))
+
+  // figure out who can solve the rekey
+  const folders: Array<FolderRPCWithMeta> = _jsonToFolders(json, myKID)
+
+  // Ensure private/public folders exist for us
+  if (username && loggedIn) {
+    ;[true, false].forEach(isPrivate => {
+      const idx = folders.findIndex(f => f.name === username && f.private === isPrivate)
+      let toAdd = {
+        meta: null,
+        name: username,
+        private: isPrivate,
+        notificationsOn: false,
+        created: false,
+        waitingForParticipantUnlock: [],
+        youCanUnlock: [],
+        folderType: isPrivate ? RPCTypes.favoriteFolderType.private : RPCTypes.favoriteFolderType.public,
+      }
+
+      if (idx !== -1) {
+        toAdd = folders[idx]
+        folders.splice(idx, 1)
+      }
+
+      folders.unshift(toAdd)
+    })
+  }
+
+  return folders
+}
 
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path

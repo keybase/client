@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
+import * as Devices from './devices'
 import {type IconType} from '../../common-adapters/icon'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -13,8 +14,8 @@ export type ProgressType = 'pending' | 'loaded'
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
-  size: number,
   lastWriter: RPCTypes.User,
+  size: number,
   progress: ProgressType,
 }
 
@@ -258,4 +259,24 @@ export type ItemStyles = {
   iconSpec: PathItemIconSpec,
   textColor: string,
   textType: TextType,
+}
+
+export type MetaType = 'new' | 'rekey' | 'ignored' | null
+
+export type Device = {
+  type: Devices.DeviceType,
+  name: string,
+  deviceID: string,
+}
+
+export type ParticipantUnlock = {
+  name: string,
+  devices: string,
+}
+
+export type FolderRPCWithMeta = {
+  ...RPCTypes.Folder,
+  meta: MetaType,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
 }
