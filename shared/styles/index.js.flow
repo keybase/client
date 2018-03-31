@@ -48,8 +48,16 @@ declare export var statusBarHeight: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
 declare export function styleSheetCreate(obj: Object): Object
-type _Elem = Object | null | false | void | $ReadOnlyArray<Object | null | false | void>
-declare export function collapseStyles(styles: Array<_Elem>): any
+
+type _Elem = Object | null | false | void
+// CollapsableStyle is a generic version of ?StylesMobile and family,
+// slightly extended to support "isFoo && myStyle".
+export type CollapsibleStyle = _Elem | $ReadOnlyArray<_Elem>
+// This has to return any, since there are still components with style
+// fields erroneously typed to not accept an array.
+//
+// TODO: Fix all of those, then type the return value.
+declare export function collapseStyles(styles: Array<CollapsibleStyle>): any
 
 declare export var windowStyle: {
   minWidth: number,

@@ -3,6 +3,7 @@ import {StatusBar, StyleSheet} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
 import flattenDepth from 'lodash/flattenDepth'
+import {type CollapsibleStyle} from '.'
 import * as Shared from './shared'
 
 const font = isIOS
@@ -48,8 +49,7 @@ export const globalStyles = {
 export const statusBarHeight = isAndroid ? StatusBar.currentHeight : 20
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
-type _Elem = null | Object | $ReadOnlyArray<Object | null | false | void>
-export const collapseStyles = (styles: Array<_Elem>): Array<Object | null | false | void> => {
+export const collapseStyles = (styles: Array<CollapsibleStyle>): Array<Object | null | false | void> => {
   return flattenDepth(styles, 2)
 }
 export const transition = (...properties: Array<string>) => ({})
