@@ -48,7 +48,7 @@ declare export var statusBarHeight: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
 declare export function styleSheetCreate(obj: Object): Object
-declare export function collapseStyles(styles: any): any
+declare export function collapseStyles(styles: Array<any>): any
 
 declare export var windowStyle: {
   minWidth: number,
