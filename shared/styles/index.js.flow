@@ -57,7 +57,7 @@ export type CollapsibleStyle = _Elem | $ReadOnlyArray<_Elem>
 // fields erroneously typed to not accept an array.
 //
 // TODO: Fix all of those, then type the return value.
-declare export function collapseStyles(styles: Array<CollapsibleStyle>): any
+declare export function collapseStyles(styles: $ReadOnlyArray<CollapsibleStyle>): any
 
 declare export var windowStyle: {
   minWidth: number,
