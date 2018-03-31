@@ -2,8 +2,7 @@
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
-import isArray from 'lodash/isArray'
-import flattenDeep from 'lodash/flattenDeep'
+import flattenDepth from 'lodash/flattenDepth'
 import * as Shared from './shared'
 
 export const windowStyle = {
@@ -107,12 +106,9 @@ export const backgroundURL = (...to: Array<string>) => {
 
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
-export const collapseStyles = (styles: Array<Object> | Object): Object => {
-  if (!isArray(styles)) {
-    return styles
-  }
-
-  const flattenedStyles = flattenDeep(styles)
+type _Elem = null | Object | $ReadOnlyArray<Object | null | false | void>
+export const collapseStyles = (styles: Array<_Elem>): Object => {
+  const flattenedStyles = flattenDepth(styles, 2)
   return flattenedStyles.reduce((map, item) => ({...map, ...item}), {})
 }
 export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'
