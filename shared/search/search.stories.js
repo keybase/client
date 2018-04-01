@@ -1,18 +1,18 @@
 // @noflow
-import * as I from 'immutable'
+// import * as I from 'immutable'
 import * as React from 'react'
-import * as Constants from '../constants/search'
+// import * as Constants from '../constants/search'
 import ResultRow from './result-row'
-import ResultsList from './results-list'
+// import ResultsList from './results-list'
 import ServicesFilter from './services-filter'
 import UserInput from './user-input'
-import {Box, Text} from '../common-adapters'
-import {makeState as makeEntitiesState} from '../constants/entities'
+// import {Box, Text} from '../common-adapters'
+// import {makeState as makeEntitiesState} from '../constants/entities'
 import {compose, withHandlers, withStateHandlers} from 'recompose'
 import {isMobile} from '../constants/platform'
 import {storiesOf, action} from '../stories/storybook'
-import {Provider} from 'react-redux'
-import {createStore} from 'redux'
+// import {Provider} from 'react-redux'
+// import {createStore} from 'redux'
 
 const inputCommon = {
   onAddSelectedUser: action('Add selected user'),
