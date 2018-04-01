@@ -17,10 +17,15 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	deviceEKMetadata, err := publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
+	// Login hooks should have run
+	deviceEKStorage := tc.G.GetDeviceEKStorage()
+	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background())
+	require.True(t, deviceEKMaxGen > 0)
 	require.NoError(t, err)
 
-	userEKMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
+	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
+	userEKMaxGen, err := userEKBoxStorage.MaxGeneration(context.Background())
+	require.True(t, userEKMaxGen > 0)
 	require.NoError(t, err)
 
 	teamID := createTeam(tc)
@@ -77,11 +82,10 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	// Let's delete our userEK and verify we will refetch and unbox properly
 	rawUserEKBoxStorage := NewUserEKBoxStorage(tc.G)
-	err = rawUserEKBoxStorage.Delete(context.Background(), userEKMetadata.Generation)
+	err = rawUserEKBoxStorage.Delete(context.Background(), userEKMaxGen)
 	require.NoError(t, err)
 
-	userStorage := tc.G.GetUserEKBoxStorage()
-	userStorage.ClearCache()
+	userEKBoxStorage.ClearCache()
 
 	teamEK, err = s.Get(context.Background(), teamID, teamEKMetadata.Generation)
 	require.NoError(t, err)
@@ -89,12 +93,11 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	// No let's the deviceEK which we can't recover from
 	rawDeviceEKStorage := NewDeviceEKStorage(tc.G)
-	err = rawDeviceEKStorage.Delete(context.Background(), deviceEKMetadata.Generation)
+	err = rawDeviceEKStorage.Delete(context.Background(), deviceEKMaxGen)
 	require.NoError(t, err)
 
-	deviceStorage := tc.G.GetDeviceEKStorage()
-	deviceStorage.ClearCache()
-	deviceEK, err := deviceStorage.Get(context.Background(), deviceEKMetadata.Generation)
+	deviceEKStorage.ClearCache()
+	deviceEK, err := deviceEKStorage.Get(context.Background(), deviceEKMaxGen)
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 

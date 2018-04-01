@@ -15,8 +15,8 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _chatWithoutThem: (username: string, conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey, username})),
+  _chatWithoutThem: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
   _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username})),
   _viewProfile: (username: string) => dispatch(TrackerGen.createShowUserProfile({username})),
@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   allowChatWithoutThem: stateProps.allowChatWithoutThem,
-  chatWithoutThem: () => dispatchProps._chatWithoutThem(stateProps.username, stateProps._conversationIDKey),
+  chatWithoutThem: () => dispatchProps._chatWithoutThem(stateProps._conversationIDKey),
   letThemIn: () => dispatchProps._letThemIn(stateProps.username, stateProps._conversationIDKey),
   username: stateProps.username,
   viewProfile: () => dispatchProps._viewProfile(stateProps.username),

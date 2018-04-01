@@ -13,12 +13,12 @@ export const updateFullnames = 'users:updateFullnames'
 
 // Action Creators
 export const createUpdateBrokenState = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     newlyBroken: Array<string>,
     newlyFixed: Array<string>,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateBrokenState})
-export const createUpdateFullnames = (payload: $ReadOnly<{usernameToFullname: {[username: string]: string}}>) => ({error: false, payload, type: updateFullnames})
+export const createUpdateFullnames = (payload: $ReadOnly<{|usernameToFullname: {[username: string]: string}|}>) => ({error: false, payload, type: updateFullnames})
 
 // Action Payloads
 export type UpdateBrokenStatePayload = More.ReturnType<typeof createUpdateBrokenState>

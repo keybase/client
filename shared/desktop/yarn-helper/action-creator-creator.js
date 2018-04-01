@@ -87,11 +87,11 @@ function payloadKeys(p: Object) {
 
 function printPayload(p: Object) {
   return payloadKeys(p).length
-    ? '(payload: $ReadOnly<{' +
+    ? '(payload: $ReadOnly<{|' +
         payloadKeys(p)
           .map(key => `${key}: ${isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
           .join(',\n') +
-        '}>)'
+        '|}>)'
     : '()'
 }
 

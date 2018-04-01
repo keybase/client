@@ -2,9 +2,11 @@ package stellar
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/remote"
 )
@@ -52,6 +54,19 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (created boo
 	return CreateWallet(ctx, g)
 }
 
+// InitWalletSoft creates a user's initial wallet if they don't already have one.
+// Does not get in the way of intentional user actions.
+func InitWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
+	var err error
+	defer g.CTraceTimed(ctx, "InitWalletSoft", func() error { return err })()
+	if !g.LocalSigchainGuard().IsAvailable(ctx, "InitWalletSoft") {
+		err = fmt.Errorf("yielding to guard")
+		return
+	}
+	_, err = CreateWalletGated(ctx, g)
+	return
+}
+
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
 func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Upkeep", func() error { return err })()
@@ -70,5 +85,18 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 		return nil
 	}
 	nextBundle := bundle.Advance(prevBundle)
+	return remote.Post(ctx, g, nextBundle)
+}
+
+func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool) (err error) {
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	nextBundle := bundle.Advance(prevBundle)
+	err = bundle.AddAccount(&nextBundle, secretKey, "", makePrimary)
+	if err != nil {
+		return err
+	}
+	if makePrimary {
+		return remote.PostWithChainlink(ctx, g, nextBundle)
+	}
 	return remote.Post(ctx, g, nextBundle)
 }

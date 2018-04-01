@@ -7,7 +7,6 @@
 package teams
 
 import (
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -234,11 +233,11 @@ func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libk
 }
 
 func makeSCTeamEntropy() (SCTeamEntropy, error) {
-	rb, err := libkb.RandBytes(18)
+	entropy, err := libkb.LinkEntropy()
 	if err != nil {
 		return SCTeamEntropy(""), err
 	}
-	return SCTeamEntropy(base64.StdEncoding.EncodeToString(rb)), nil
+	return SCTeamEntropy(entropy), nil
 }
 
 func seqTypeForTeamPublicness(public bool) keybase1.SeqType {

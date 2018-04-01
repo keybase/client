@@ -1,7 +1,16 @@
-@namespace("stellar.1") protocol local {
+@namespace("stellar.1")
+protocol local {
   import idl "common.avdl";
 
   array<Balance> balancesLocal(AccountID accountID);
+  PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
-  void walletInit();
+  void walletInitLocal();
+
+  Bundle walletDumpLocal();
+
+  // Whether this account is one of this user's.
+  boolean ownAccountLocal(AccountID accountID);
+
+  void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
 }

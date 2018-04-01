@@ -20,8 +20,55 @@
         "items": "Balance"
       }
     },
-    "walletInit": {
+    "sendLocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "PaymentResult"
+    },
+    "walletInitLocal": {
       "request": [],
+      "response": null
+    },
+    "walletDumpLocal": {
+      "request": [],
+      "response": "Bundle"
+    },
+    "ownAccountLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
+    },
+    "importSecretKeyLocal": {
+      "request": [
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        },
+        {
+          "name": "makePrimary",
+          "type": "boolean"
+        }
+      ],
       "response": null
     }
   },

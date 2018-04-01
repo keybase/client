@@ -231,7 +231,7 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
-var errConvLockTabDeadlock = errors.New("acquire conv lock deadlock")
+var errConvLockTabDeadlock = errors.New("timeout reading thread")
 
 type conversationLock struct {
 	refs, shares int
@@ -476,24 +476,12 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.U
 			var names []string
 			tlfID := msg.Valid().ClientHeader.Conv.Tlfid
 			switch conv.GetMembersType() {
-			case chat1.ConversationMembersType_KBFS:
+			case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
+				chat1.ConversationMembersType_IMPTEAMUPGRADE:
 				names = utils.SplitTLFName(tlfName)
 			case chat1.ConversationMembersType_TEAM:
 				// early out of team convs
 				return nil
-			case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
-				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
-				team, err := LoadTeam(ctx, s.G().ExternalG(), tlfID, tlfName, conv.GetMembersType(),
-					msg.Valid().ClientHeader.TlfPublic, nil)
-				if err != nil {
-					return err
-				}
-				display, err := team.ImplicitTeamDisplayName(ctx)
-				if err != nil {
-					return err
-				}
-				names = utils.SplitTLFName(display.String())
 			}
 
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",

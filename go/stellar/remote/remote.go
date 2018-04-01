@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
 )
 
@@ -30,7 +31,7 @@ func ShouldCreate(ctx context.Context, g *libkb.GlobalContext) (should bool, err
 }
 
 // Post a bundle to the server with a chainlink.
-func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle keybase1.StellarBundle) (err error) {
+func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bundle) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PostWithChainlink", func() error { return err })()
 
 	uid := g.ActiveDevice.UID()
@@ -65,7 +66,10 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 	if len(clearBundle.Accounts) < 1 {
 		return errors.New("stellar bundle has no accounts")
 	}
-	stellarAccount := clearBundle.Accounts[0]
+	stellarAccount, err := clearBundle.PrimaryAccount()
+	if err != nil {
+		return err
+	}
 	if len(stellarAccount.Signers) < 1 {
 		return errors.New("stellar bundle has no signers")
 	}
@@ -80,7 +84,7 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 
 	g.Log.CDebugf(ctx, "Stellar.PostWithChainLink: make sigs")
 
-	sig, err := libkb.WalletProofReverseSigned(me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
+	sig, err := libkb.StellarProofReverseSigned(me, stellarAccount.AccountID, stellarAccount.Signers[0], sigKey)
 	if err != nil {
 		return err
 	}
@@ -108,7 +112,7 @@ func PostWithChainlink(ctx context.Context, g *libkb.GlobalContext, clearBundle 
 }
 
 // Post a bundle to the server.
-func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle keybase1.StellarBundle) (err error) {
+func Post(ctx context.Context, g *libkb.GlobalContext, clearBundle stellar1.Bundle) (err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Post", func() error { return err })()
 	pukGen, pukSeed, err := getLatestPuk(ctx, g)
 	if err != nil {
@@ -159,7 +163,7 @@ func (r *fetchRes) GetAppStatus() *libkb.AppStatus {
 }
 
 // Fetch and unbox the latest bundle from the server.
-func Fetch(ctx context.Context, g *libkb.GlobalContext) (res keybase1.StellarBundle, pukGen keybase1.PerUserKeyGeneration, err error) {
+func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.Fetch", func() error { return err })()
 	arg := libkb.NewAPIArgWithNetContext(ctx, "stellar/bundle")
 	arg.SessionType = libkb.APISessionTypeREQUIRED

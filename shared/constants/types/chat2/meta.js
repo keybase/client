@@ -3,6 +3,7 @@
 import * as I from 'immutable'
 import * as Common from './common'
 import type {Ordinal} from './message'
+import type {RetentionPolicy} from '../teams'
 
 type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 type TeamType = 'small' | 'big' | 'adhoc'
@@ -32,6 +33,7 @@ export type _ConversationMeta = {
   participants: I.OrderedSet<string>,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,
+  retentionPolicy: RetentionPolicy,
   snippet: string,
   supersededBy: ?Common.ConversationIDKey,
   supersedes: ?Common.ConversationIDKey,

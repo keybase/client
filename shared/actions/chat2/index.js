@@ -15,6 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
+import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -553,6 +554,18 @@ const setupChatHandlers = () => {
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
     Chat2Gen.createInboxRefresh({reason: 'leftAConversation'}),
   ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvRetention', update => {
+    if (update.conv) {
+      return [Chat2Gen.createUpdateConvRetentionPolicy({conv: update.conv})]
+    }
+    // force to get the new retention policy
+    return [
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys: [Types.conversationIDToKey(update.convID)],
+        force: true,
+      }),
+    ]
+  })
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
@@ -1053,7 +1066,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 // Start a conversation, or select an existing one
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
-  const {participants, tlf} = action.payload
+  const {participants, tlf, fromAReset} = action.payload
   const you = state.config.username || ''
 
   let users: Array<string> = []
@@ -1105,7 +1118,9 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 
   return Saga.sequentially([
     // its a fixed set of users so it's not a search (aka you can't add people to it)
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
+    Saga.put(
+      Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
+    ),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
     Saga.put(Chat2Gen.createNavigateToThread()),
   ])
@@ -1774,6 +1789,27 @@ const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
     }),
   ])
 
+const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) => {
+  const {conversationIDKey, policy} = action.payload
+  const convID = Types.keyToConversationID(conversationIDKey)
+  let servicePolicy: ?RPCChatTypes.RetentionPolicy
+  let ret
+  try {
+    servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+  } catch (err) {
+    // should never happen
+    logger.error(`Unable to parse retention policy: ${err.message}`)
+    throw err
+  } finally {
+    if (servicePolicy) {
+      ret = Saga.call(RPCChatTypes.localSetConvRetentionLocalRpcPromise, {
+        convID,
+        policy: servicePolicy,
+      })
+    }
+  }
+  return ret
+}
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -1887,6 +1923,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.muteConversation, muteConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
+
+  yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
 }
 
 export default chat2Saga
