@@ -23,7 +23,7 @@ module.exports = (storybookBaseConfig, configType) => {
       __SCREENSHOT__: true,
       'process.platform': JSON.stringify('darwin'),
     }),
-    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../dev/storybook-connect.js'),
+    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.js'),
     new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
     new webpack.NormalModuleReplacementPlugin(/route-tree/, __dirname + '/../__mocks__/empty.js')

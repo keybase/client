@@ -67,7 +67,8 @@
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
       "react-list": "<rootDir>/__mocks__/react-list.js",
-      "desktop/resolve-root": "<rootDir>/__mocks__/resolve-root.js"
+      "desktop/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
+      "react-redux": "<rootDir>/__mocks__/react-redux.js"
     },
     "moduleFileExtensions": [
       "js",
@@ -182,7 +183,7 @@
     "flow-bin": "0.68.0",
     "fs-extra": "4.0.2",
     "jest": "22.4.3",
-    "jest-glamor-react": "3.3.0",
+    "jest-glamor-react": "4.2.1",
     "json5": "0.5.1",
     "klaw-sync": "3.0.2",
     "minimist": "1.2.0",
