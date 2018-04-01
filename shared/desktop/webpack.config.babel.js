@@ -28,16 +28,9 @@ const config = (_, {mode}) => {
         // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
         babelrc: false,
         cacheDirectory: true,
-        plugins: [
-          ...(isHot ? ['react-hot-loader/babel'] : []),
-          '@babel/transform-flow-strip-types', // ignore flow
-          '@babel/plugin-proposal-object-rest-spread', // not supported by electrons node yet
-          '@babel/plugin-proposal-class-properties', // not supported by electrons node yet
-        ],
-        presets: [
-          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.7.5'}}],
-          '@babel/preset-react',
-        ],
+        extends: path.join(__dirname, '..', '.babelrc'),
+        plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
+        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.7.5'}}]],
       },
     }
 

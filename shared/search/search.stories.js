@@ -269,7 +269,7 @@ const load = () => {
         </Box>
       )
     })
-    .add('Results List', () => {
+  /* .add('Results List', () => {
       const common = {
         items: ['chris'],
         keyPath: ['searchChat'],
@@ -345,7 +345,7 @@ const load = () => {
           </Box>
         </Provider>
       )
-    })
+    }) */
 }
 
 export default load
