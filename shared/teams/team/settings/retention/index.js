@@ -281,13 +281,18 @@ const progressIndicatorStyle = {
   marginTop: globalMargins.small,
 }
 
-const saveStateStyle = {
-  ...globalStyles.flexBoxRow,
-  height: 17,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: globalMargins.tiny,
-}
+const saveStateStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    height: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: globalMargins.tiny,
+  },
+  isMobile: {
+    height: globalMargins.medium,
+  },
+})
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
