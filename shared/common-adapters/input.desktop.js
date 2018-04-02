@@ -326,8 +326,8 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     const smallLabelStyle = collapseStyles([
+      globalStyles.fontSemibold,
       {
-        ...globalStyles.fontSemibold,
         fontSize: _bodySmallTextStyle.fontSize,
         lineHeight: `${_lineHeight}px`,
         marginRight: 8,
