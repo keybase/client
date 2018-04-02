@@ -659,7 +659,7 @@ const loadMoreMessages = (
   }
 
   // Update bookkeeping
-  _loadingMessagesWithPaginationKey[conversationIDKey] = paginationKey
+  _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] = paginationKey
 
   // we clear on the first callback. we sometimes don't get a cached context
   let calledClear = false
@@ -683,7 +683,10 @@ const loadMoreMessages = (
       }, [])
 
       // Still loading this conversation w/ this paginationKey?
-      if (_loadingMessagesWithPaginationKey[conversationIDKey] === paginationKey) {
+      if (
+        _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] ===
+        paginationKey
+      ) {
         let newPaginationKey = Types.stringToPaginationKey(
           (uiMessages.pagination && uiMessages.pagination.next) || ''
         )
@@ -1096,7 +1099,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
             : parseFolderNameToUsers('', names)
                 .map(u => u.username)
                 .filter(u => u !== you)
-        conversationIDKey = Constants.getExistingConversationWithUsers(I.Set(users), you, state.chat2.metaMap)
+        conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
       } else if (type === 'team') {
         // Actually a team, find general channel
         const meta = state.chat2.metaMap.find(
