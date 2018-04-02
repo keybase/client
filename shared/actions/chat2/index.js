@@ -659,7 +659,7 @@ const loadMoreMessages = (
   }
 
   // Update bookkeeping
-  _loadingMessagesWithPaginationKey[conversationIDKey] = paginationKey
+  _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] = paginationKey
 
   // we clear on the first callback. we sometimes don't get a cached context
   let calledClear = false
@@ -683,7 +683,10 @@ const loadMoreMessages = (
       }, [])
 
       // Still loading this conversation w/ this paginationKey?
-      if (_loadingMessagesWithPaginationKey[conversationIDKey] === paginationKey) {
+      if (
+        _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] ===
+        paginationKey
+      ) {
         let newPaginationKey = Types.stringToPaginationKey(
           (uiMessages.pagination && uiMessages.pagination.next) || ''
         )
