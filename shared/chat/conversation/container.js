@@ -39,21 +39,23 @@ class Conversation extends React.PureComponent<SwitchProps> {
 const mapStateToProps = (state: TypedState): * => {
   let _conversationIDKey
   let _pendingConversationUsers
-  let _findExisting = false
 
   if (state.chat2.pendingSelected) {
     _pendingConversationUsers = state.chat2.pendingConversationUsers
-    _findExisting = state.chat2.pendingMode !== 'startingFromAReset'
+    if (state.chat2.pendingMode !== 'startingFromAReset') {
+      _conversationIDKey = Constants.findConversationFromParticipants(
+        state,
+        state.chat2.pendingConversationUsers
+      )
+    }
   } else {
     _conversationIDKey = Constants.getSelectedConversation(state)
   }
 
   return {
     _conversationIDKey,
-    _findExisting,
     _metaMap: state.chat2.metaMap,
     _pendingConversationUsers,
-    _you: state.config.username || '',
   }
 }
 
@@ -72,13 +74,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       type = 'normal'
     }
   } else if (stateProps._pendingConversationUsers) {
-    conversationIDKey = stateProps._findExisting
-      ? Constants.getExistingConversationWithUsers(
-          stateProps._pendingConversationUsers,
-          stateProps._you,
-          stateProps._metaMap
-        )
-      : undefined
     type = 'normal'
   } else {
     type = 'noConvo'

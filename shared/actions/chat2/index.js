@@ -1096,7 +1096,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
             : parseFolderNameToUsers('', names)
                 .map(u => u.username)
                 .filter(u => u !== you)
-        conversationIDKey = Constants.getExistingConversationWithUsers(I.Set(users), you, state.chat2.metaMap)
+        conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
       } else if (type === 'team') {
         // Actually a team, find general channel
         const meta = state.chat2.metaMap.find(
