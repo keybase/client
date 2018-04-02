@@ -9,12 +9,12 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
 } from '../../../../styles'
-import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import {Box, ClickableBox, HOCTimers, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
-import {type SaveStateType} from '../../../../chat/conversation/info-panel/notifications'
+import {SaveStateComponent, type SaveStateType} from '../../../../chat/conversation/info-panel/notifications'
 import {type RetentionEntityType} from './container'
 
 export type Props = {
@@ -32,6 +32,10 @@ export type Props = {
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
+
+  // HOCTimers
+  setTimeout: typeof setTimeout,
+  clearTimeout: typeof clearTimeout,
 }
 
 type State = {
@@ -41,6 +45,9 @@ type State = {
   showMenu: boolean,
 }
 
+const savingTimeout = 300
+const savedTimeout = 2500
+
 class RetentionPicker extends React.Component<Props, State> {
   state = {
     saveState: 'same',
@@ -48,6 +55,7 @@ class RetentionPicker extends React.Component<Props, State> {
     items: [],
     showMenu: false,
   }
+  _timeoutID: TimeoutID
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -66,7 +74,10 @@ class RetentionPicker extends React.Component<Props, State> {
       // noop
       return
     }
-    const onConfirm = () => this.props.setRetentionPolicy(selected)
+    const onConfirm = () => {
+      this.props.setRetentionPolicy(selected)
+      this._setSaving()
+    }
     const onCancel = this._init
     if (decreased) {
       // show warning
@@ -79,6 +90,22 @@ class RetentionPicker extends React.Component<Props, State> {
 
   _onSelect = (selected: RetentionPolicy) => {
     this.setState({selected}, this._handleSelection)
+  }
+
+  _setSaving = () => {
+    this.setState({saveState: 'saving'})
+    this.props.clearTimeout(this._timeoutID)
+    this._timeoutID = this.props.setTimeout(() => {
+      this._setJustSaved()
+    }, savingTimeout)
+  }
+
+  _setJustSaved = () => {
+    this.setState({saveState: 'justSaved'})
+    this.props.clearTimeout(this._timeoutID)
+    this._timeoutID = this.props.setTimeout(() => {
+      this.setState({saveState: 'same'})
+    }, savedTimeout)
   }
 
   _makeItems = () => {
@@ -131,6 +158,10 @@ class RetentionPicker extends React.Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    this.props.clearTimeout(this._timeoutID)
+  }
+
   _onShowDropdown = (evt: SyntheticEvent<Element>) => {
     const target = isMobile ? null : evt.currentTarget
     this.props.onShowDropdown(this.state.items, target)
@@ -157,6 +188,11 @@ class RetentionPicker extends React.Component<Props, State> {
           <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
             Individual channels can override this.
           </Text>
+        )}
+        {this.props.showSaveState && (
+          <Box style={saveStateStyle}>
+            <SaveStateComponent saveState={this.state.saveState} />
+          </Box>
         )}
       </Box>
     )
@@ -229,6 +265,13 @@ const progressIndicatorStyle = {
   width: 30,
   height: 30,
   marginTop: globalMargins.small,
+}
+
+const saveStateStyle = {
+  ...globalStyles.flexBoxRow,
+  height: globalMargins.large,
+  justifyContent: 'center',
+  paddingTop: globalMargins.small,
 }
 
 // Utilities for transforming retention policies <-> labels
@@ -336,4 +379,4 @@ const RetentionSwitcher = (props: Props & {entityType: RetentionEntityType}) => 
   return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
 }
 
-export default RetentionSwitcher
+export default HOCTimers(RetentionSwitcher)
