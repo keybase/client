@@ -88,6 +88,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   _onSelect = (selected: RetentionPolicy) => {
+    // set saveState to 'same' in case we're in the middle of an animation
     this._setSame()
     this.setState({selected}, this._handleSelection)
   }
@@ -100,6 +101,7 @@ class RetentionPicker extends React.Component<Props, State> {
     this.setState({saveState: 'justSaved'})
     this.props.clearTimeout(this._timeoutID)
     this._timeoutID = this.props.setTimeout(() => {
+      // clear notice after timeout
       this._setSame()
     }, savedTimeout)
   }
@@ -155,8 +157,9 @@ class RetentionPicker extends React.Component<Props, State> {
       !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
     ) {
       if (policyEquals(nextProps.policy, this.state.selected)) {
+        // we just got updated retention policy matching the selected one
         this._setJustSaved()
-      }
+      } // we could show a notice that we received a new value in an else block
       this._makeItems()
       this._setInitialSelected(nextProps.policy)
     }
