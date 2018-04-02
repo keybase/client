@@ -182,17 +182,9 @@ func (a *apiReply) GetAppStatus() *libkb.AppStatus {
 	return &a.Status
 }
 
-func uidsToString(uids []keybase1.UID) string {
-	s := make([]string, len(uids))
-	for i, uid := range uids {
-		s[i] = string(uid)
-	}
-	return strings.Join(s, ",")
-}
-
 func uidsToStringForLog(uids []keybase1.UID) string {
 	if len(uids) < 5 {
-		return uidsToString(uids)
+		return libkb.UidsToString(uids)
 	}
 
 	return fmt.Sprintf("%s,...,%s [%d total UIDs]", uids[0], uids[len(uids)-1], len(uids))
@@ -218,7 +210,7 @@ func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperCon
 		g.GetLog().CDebugf(ctx, "user/names refreshers: %s", refreshers)
 	}
 	arg.Args = libkb.HTTPArgs{
-		"uids":       libkb.S{Val: uidsToString(uids)},
+		"uids":       libkb.S{Val: libkb.UidsToString(uids)},
 		"no_cache":   libkb.B{Val: noCache},
 		"refreshers": libkb.S{Val: refreshers},
 	}

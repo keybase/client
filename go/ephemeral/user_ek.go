@@ -64,15 +64,16 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		return "", nil, newMetadata, nil, err
 	}
 
-	prevStatement, err := fetchUserEKStatement(ctx, g)
+	prevStatements, err := fetchUserEKStatements(ctx, g, []keybase1.UID{g.Env.GetUID()})
 	if err != nil {
 		return "", nil, newMetadata, nil, err
 	}
 	var generation keybase1.EkGeneration
-	if prevStatement == nil {
+	statement, ok := prevStatements[g.Env.GetUID()]
+	if !ok || statement == nil {
 		generation = 1 // start at generation 1
 	} else {
-		generation = prevStatement.CurrentUserEkMetadata.Generation + 1
+		generation = statement.CurrentUserEkMetadata.Generation + 1
 	}
 
 	dhKeypair := seed.DeriveDHKey()
@@ -90,11 +91,12 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	// Get the list of existing userEKs to form the full statement. Make sure
 	// that if it's nil, we replace it with an empty slice. Although those are
 	// practically the same in Go, they get serialized to different JSON.
-	existingActiveMetadata, err := filterStaleUserEKStatement(ctx, g, prevStatement, merkleRoot)
+	active, err := filterStaleUserEKStatements(ctx, g, prevStatements, merkleRoot)
 	if err != nil {
 		return "", nil, newMetadata, nil, err
 	}
-	if existingActiveMetadata == nil {
+	existingActiveMetadata, ok := active[g.Env.GetUID()]
+	if !ok {
 		existingActiveMetadata = []keybase1.UserEkMetadata{}
 	}
 
@@ -191,7 +193,7 @@ func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot
 }
 
 type userEKStatementResponse struct {
-	Sig *string `json:"sig"`
+	Sigs map[keybase1.UID]*string `json:"sig"`
 }
 
 // Returns nil if the user has never published a userEK. If the user has
@@ -199,14 +201,16 @@ type userEKStatementResponse struct {
 // one, this function will also return nil and log a warning. This is a
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
-func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext) (statement *keybase1.UserEkStatement, err error) {
+func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []keybase1.UID) (statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
 	defer g.CTrace(ctx, "fetchUserEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
-		Args:        libkb.HTTPArgs{},
+		Args: libkb.HTTPArgs{
+			"uids": libkb.S{Val: libkb.UidsToString(uids)},
+		},
 	}
 	res, err := g.GetAPI().Get(apiArg)
 	if err != nil {
@@ -226,19 +230,23 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext) (statemen
 		return nil, nil
 	}
 
-	statement, wrongKID, err := verifySigWithLatestPUK(ctx, g, g.Env.GetUID(), *parsedResponse.Sig)
-	// Check the wrongKID condition before checking the error, since an error
-	// is still returned in this case. TODO: Turn this warning into an error
-	// after EK support is sufficiently widespread.
-	if wrongKID {
-		g.Log.CWarningf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
+	statements = make(map[keybase1.UID]*keybase1.UserEkStatement
+	for uid, sig := range parsedResponse.Sigs {
+		statement, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, *sig)
+		// Check the wrongKID condition before checking the error, since an error
+		// is still returned in this case. TODO: Turn this warning into an error
+		// after EK support is sufficiently widespread.
+		if wrongKID {
+			g.Log.CWarningf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
+			return nil, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		statements[uid] = sig
 	}
 
-	return statement, nil
+	return statements, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -293,20 +301,30 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 	return &parsedStatement, false, nil
 }
 
-func filterStaleUserEKStatement(ctx context.Context, g *libkb.GlobalContext, statement *keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (active []keybase1.UserEkMetadata, err error) {
-	defer g.CTrace(ctx, "filterStaleUserEKStatement", func() error { return err })()
+func filterStaleUserEKStatments(ctx context.Context, g *libkb.GlobalContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkMetadata, err error) {
+	defer g.CTrace(ctx, "filterStaleUserEKStatments", func() error { return err })()
 
-	if statement == nil {
-		return nil, err
-	}
-
-	allMetadata := append([]keybase1.UserEkMetadata{}, statement.ExistingUserEkMetadata...)
-	allMetadata = append(allMetadata, statement.CurrentUserEkMetadata)
-	for _, existing := range allMetadata {
-		if !ctimeIsStale(existing.Ctime, merkleRoot) {
-			active = append(active, existing)
+	activeMap = make(map[keybase1.UID]keybase1.UserEkMetadata)
+	for uid, statement := range statementMap {
+		if statement == nil {
+			g.Log.CDebugf(ctx, "found stale userStatement for uid: %s", uid)
+			continue
 		}
+		metadata := statement.CurrentUserEkMetadata
+		if ctimeIsStale(metadata.Ctime, merkleRoot) {
+			g.Log.CDebugf(ctx, "found stale userStatement for KID: %s", metadata.Kid)
+			continue
+		}
+		activeMap[uid] = metadata
 	}
 
-	return active, nil
+	return activeMap, nil
+}
+
+func activeUserEKMetadata(ctx context.Context, g *libkb.GlobalContext, uids []keybase1.UID, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkMetadata, err error) {
+	statementMap, err := fetchUserEKStatements(ctx, g, uids)
+	if err != nil {
+		return activeMap, err
+	}
+	return filterStaleUserEKStatments(ctx, g, statementMap, merkleRoot)
 }

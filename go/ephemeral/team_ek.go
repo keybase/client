@@ -88,7 +88,7 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 
 	dhKeypair := seed.DeriveDHKey()
 
-	metadata = keybase1.TeamEkMetadata{
+	metadata := keybase1.TeamEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   merkleRoot.HashMeta(),
@@ -134,7 +134,15 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		return metadata, nil, err
 	}
 
-	boxes, myTeamEKBoxed, err := boxTeamEKForMembers(ctx, g, teamID, merkleRoot, seed, metadata)
+	membersMetadata, err := activeMemberEKMetadata(ctx, g, teamID, merkleRoot)
+	if err != nil {
+		return metadata, nil, err
+	}
+	teamEK := keybase1.TeamEk{
+		Seed:     seed,
+		Metadata: metadata,
+	}
+	boxes, myTeamEKBoxed, err := boxTeamEKForUsers(ctx, g, membersMetadata, teamEK)
 	if err != nil {
 		return metadata, nil, err
 	}
@@ -147,28 +155,23 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	return metadata, myTeamEKBoxed, nil
 }
 
-func boxTeamEKForMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, seed TeamEKSeed, teamMetadata keybase1.TeamEkMetadata) (boxes []keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
-	defer g.CTrace(ctx, "boxTeamEKForMembers", func() error { return err })()
-
-	membersMetadata, err := activeMemberEKMetadata(ctx, g, teamID, merkleRoot)
-	if err != nil {
-		return nil, nil, err
-	}
+func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata, teamEK keybase1.TeamEk) (boxes []keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
+	defer g.CTrace(ctx, "boxTeamEKForUsers", func() error { return err })()
 
 	myUID := g.Env.GetUID()
-	for uid, memberMetadata := range membersMetadata {
-		recipientKey, err := libkb.ImportKeypairFromKID(memberMetadata.Kid)
+	for uid, metadata := range usersMetadata {
+		recipientKey, err := libkb.ImportKeypairFromKID(metadata.Kid)
 		if err != nil {
 			return nil, nil, err
 		}
 		// Encrypting with a nil sender means we'll generate a random sender private key.
-		box, err := recipientKey.EncryptToString(seed[:], nil)
+		box, err := recipientKey.EncryptToString(teamEK.Seed[:], nil)
 		if err != nil {
 			return nil, nil, err
 		}
 		boxMetadata := keybase1.TeamEkBoxMetadata{
 			RecipientUID:        uid,
-			RecipientGeneration: memberMetadata.Generation,
+			RecipientGeneration: metadata.Generation,
 			Box:                 box,
 		}
 		boxes = append(boxes, boxMetadata)
@@ -176,8 +179,8 @@ func boxTeamEKForMembers(ctx context.Context, g *libkb.GlobalContext, teamID key
 		if uid == myUID {
 			myTeamEKBoxed = &keybase1.TeamEkBoxed{
 				Box:              box,
-				UserEkGeneration: memberMetadata.Generation,
-				Metadata:         teamMetadata,
+				UserEkGeneration: metadata.Generation,
+				Metadata:         teamEK.Metadata,
 			}
 		}
 	}
@@ -375,30 +378,13 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 	return statementMap, nil
 }
 
-func filterStaleMemberEKStatements(ctx context.Context, g *libkb.GlobalContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkMetadata, err error) {
-	defer g.CTrace(ctx, "filterStaleMemberEKStatements", func() error { return err })()
-
-	activeMap = make(map[keybase1.UID]keybase1.UserEkMetadata)
-	for uid, memberStatement := range statementMap {
-		if memberStatement == nil {
-			g.Log.CDebugf(ctx, "found stale memberStatement for uid: %s", uid)
-			continue
-		}
-		memberMetadata := memberStatement.CurrentUserEkMetadata
-		if ctimeIsStale(memberMetadata.Ctime, merkleRoot) {
-			g.Log.CDebugf(ctx, "found stale memberStatement for KID: %s", memberMetadata.Kid)
-			continue
-		}
-		activeMap[uid] = memberMetadata
-	}
-
-	return activeMap, nil
-}
-
 func activeMemberEKMetadata(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkMetadata, err error) {
 	statementMap, err := fetchTeamMemberStatements(ctx, g, teamID)
 	if err != nil {
 		return activeMap, err
 	}
-	return filterStaleMemberEKStatements(ctx, g, statementMap, merkleRoot)
+	return filterStaleUserEKStatments(ctx, g, statementMap, merkleRoot)
 }
+
+// TODO add server support for multiple UIDs at user_ek endpoint
+// TODO figure out how to test..

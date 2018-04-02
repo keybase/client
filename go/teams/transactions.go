@@ -628,6 +628,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		return err
 	}
 
+	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
 	if perTeamKeySection != nil {
 		// We have a new per team key, find first TeamChangeReq
 		// section that removes users and add it there.
@@ -641,6 +642,15 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}
 		if !found {
 			return fmt.Errorf("AddMemberTx.Post got a PerTeamKey but couldn't find a link with None to attach it")
+		}
+	} else { // If we didn't rotate the PTK, let's rebox the existing PTK for any of the new members
+		ekLib := g.GetEKLib()
+		if ekLib != nil {
+			memSet.removeExistingMembers(ctx, team)
+			teamEKBoxes, err := ekLib.BoxLatestTeamEK(ctx, memSet.recipients)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -679,17 +689,12 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		return err
 	}
 
-	payload := libkb.JSONPayload{}
-	payload["sigs"] = readySigs
-	if lease != nil {
-		payload["downgrade_lease_id"] = lease.LeaseID
-	}
-	if len(implicitAdminBoxes) != 0 {
-		payload["implicit_team_keys"] = implicitAdminBoxes
-	}
-	if secretBoxes != nil {
-		payload["per_team_key"] = secretBoxes
-	}
+	payload := team.sigPayload(readySigs, sigPayloadArgs{
+		secretBoxes:        secretBoxes,
+		lease:              lease,
+		implicitAdminBoxes: implicitAdminBoxes,
+		teamEKBoxes:        teamEKBoxes,
+	})
 
 	if err := team.postMulti(payload); err != nil {
 		return err

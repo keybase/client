@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +19,8 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	prevStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	uids := []keybase1.UID{tc.G.Env.GetUID()}
+	prevStatement, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
 	prevExisting := prevStatement.ExistingUserEkMetadata
 	prevExisting = append(prevExisting, prevStatement.CurrentUserEkMetadata)
@@ -31,7 +33,7 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
-	statementPtr, err := fetchUserEKStatement(context.Background(), tc.G)
+	statementPtr, err := fetchUserEKStatement(context.Background(), tc.G, uids)
 	require.NoError(t, err)
 	require.NotNil(t, statementPtr)
 	statement := *statementPtr

@@ -319,16 +319,16 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 		publishedMetadata = statement.CurrentTeamEkMetadata
 	}
 
-	_, err = teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
-	if err != nil {
-		return teamEK, err
-	}
 	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, publishedMetadata.Generation)
 	if err != nil {
 		return teamEK, err
 	}
 	// Cache the latest generation
 	e.teamEKGenCache.Add(key, e.newCacheEntry(publishedMetadata.Generation))
+	_, err = teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
+	if err != nil {
+		return teamEK, err
+	}
 	return teamEK, nil
 }
 
@@ -366,7 +366,8 @@ func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKey
 	maxGeneration, err := userEKBoxStorage.MaxGeneration(ctx)
 	if err != nil {
 		return nil, err
-	} else if maxGeneration < 0 {
+	}
+	if maxGeneration < 0 {
 		e.G().Log.CWarningf(ctx, "No userEK found")
 		return nil, nil
 	}
@@ -391,6 +392,37 @@ func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoo
 		return "", nil, newMetadata, nil, err
 	}
 	return prepareNewUserEK(ctx, e.G(), merkleRoot, signingKey)
+}
+
+func (e *EKLib) BoxLatestTeamEk(ctx context.Context, recipients []keybase1.UID) (teamEKBoxes []*keybase1.TeamEkBoxMetadata, err error) {
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(ctx) {
+		return nil, nil
+	}
+
+	// If we need a new teamEK let's just create it when needed, the new
+	// members will be part of the team and will have access to it via the
+	// normal mechanisms.
+	if e.NewTeamEKNeeded(ctx) {
+		return nil, nil
+	}
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return nil, err
+	}
+
+	teamEKBoxStorage := e.G().GetUserEKBoxStorage()
+	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx)
+	if err != nil {
+		return nil, err
+	}
+	teamEK, err := teamEKBoxStorage.Get(ctx, maxGeneration)
+	if err != nil {
+		return nil, err
+	}
+	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), recipients, *merkleRootPtr)
+	boxes, _, err := boxTeamEKForUsers(ctx, e.G(), usersMetadata, teamEK)
+	return &boxes, nil
 }
 
 func (e *EKLib) OnLogin() error {
