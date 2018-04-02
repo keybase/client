@@ -21,6 +21,10 @@ class RetentionWithSaveState extends React.Component<Props, State> {
     saveState: 'same',
   }
 
+  componentWillReceiveProps(nextProps: Props) {
+    // alert(`Got new saving!: ${this.props.saving}`)
+  }
+
   render() {
     return (
       <React.Fragment>

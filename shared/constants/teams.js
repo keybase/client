@@ -16,6 +16,7 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 // Add granularity as necessary
 export const teamWaitingKey = (teamname: string) => `team:${teamname}`
 export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
+export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,
