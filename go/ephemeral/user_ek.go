@@ -69,11 +69,11 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		return "", nil, newMetadata, nil, err
 	}
 	var generation keybase1.EkGeneration
-	statement, ok := prevStatements[g.Env.GetUID()]
-	if !ok || statement == nil {
+	prevStatement, ok := prevStatements[g.Env.GetUID()]
+	if !ok || prevStatement == nil {
 		generation = 1 // start at generation 1
 	} else {
-		generation = statement.CurrentUserEkMetadata.Generation + 1
+		generation = prevStatement.CurrentUserEkMetadata.Generation + 1
 	}
 
 	dhKeypair := seed.DeriveDHKey()
@@ -206,7 +206,7 @@ type userEKStatementResponse struct {
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
 func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []keybase1.UID) (statements map[keybase1.UID]*keybase1.UserEkStatement, err error) {
-	defer g.CTrace(ctx, "fetchUserEKStatement", func() error { return err })()
+	defer g.CTrace(ctx, "fetchUserEKStatements", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek",

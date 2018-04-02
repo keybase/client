@@ -118,7 +118,7 @@ func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context) (err error) {
 }
 
 func (e *EKLib) cleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
-	defer e.G().CTrace(ctx, "CleanupStaleUserAndDeviceEKs", func() error { return err })()
+	defer e.G().CTrace(ctx, "cleanupStaleUserAndDeviceEKs", func() error { return err })()
 
 	epick := libkb.FirstErrorPicker{}
 
@@ -220,6 +220,8 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 }
 
 func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, statement *keybase1.TeamEkStatement) (needed bool, err error) {
+	defer e.G().CTrace(ctx, "newTeamEKNeeded", func() error { return err })()
+
 	// Let's see what the latest server statement is.
 	// No statement, so we need a teamEK
 	if statement == nil {
@@ -265,7 +267,8 @@ func (e *EKLib) isEntryValid(val interface{}) (*teamEKGenCacheEntry, bool) {
 	return cacheEntry, (keybase1.TimeFromSeconds(time.Now().Unix()) - cacheEntry.Ctime) < keybase1.TimeFromSeconds(cacheEntryLifetimeSecs)
 }
 
-func (e *EKLib) PurgeTeamEKGenCache(context context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+
 	key := e.cacheKey(teamID)
 	val, ok := e.teamEKGenCache.Get(teamID)
 	if ok {
@@ -276,6 +279,8 @@ func (e *EKLib) PurgeTeamEKGenCache(context context.Context, teamID keybase1.Tea
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -344,6 +349,8 @@ func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
 }
 
 func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+	defer e.G().CTrace(ctx, "SignedDeviceEKStatementFromSeed", func() error { return err })()
+
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return statement, signedStatement, err
@@ -354,6 +361,8 @@ func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation 
 
 // For device provisioning
 func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
+	defer e.G().CTrace(ctx, "BoxLatestUserEK", func() error { return err })()
+
 	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(ctx) {
 		return nil, nil
@@ -397,6 +406,8 @@ func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoo
 }
 
 func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, recipients []keybase1.UID) (teamEKBoxes *[]keybase1.TeamEkBoxMetadata, err error) {
+	defer e.G().CTrace(ctx, "BoxLatestTeamEK", func() error { return err })()
+
 	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(ctx) {
 		return nil, nil

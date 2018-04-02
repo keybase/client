@@ -77,7 +77,12 @@ func TestDeviceRevokeNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Confirm that the user has a userEK.
-	firstStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	require.NoError(t, err)
+	firstStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
 
 	// Load the full user so that we can grab their devices.
@@ -98,8 +103,10 @@ func TestDeviceRevokeNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Finally, confirm that the revocation above rolled a new userEK.
-	secondStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
+	secondStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after revoke, should have userEK gen 2")
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
 	require.NoError(t, err)
@@ -120,7 +127,12 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Confirm that the user has a userEK.
-	firstStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	require.NoError(t, err)
+	firstStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
 
 	// Do a PUK roll.
@@ -133,8 +145,10 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Finally, confirm that the roll above also rolled a new userEK.
-	secondStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
+	secondStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
 	require.NoError(t, err)

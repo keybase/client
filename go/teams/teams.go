@@ -1376,7 +1376,10 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 		payload["legacy_tlf_upgrade"] = args.legacyTLFUpgrade
 	}
 	if args.teamEKBoxes != nil {
-		payload["team_ek_box"] = args.teamEKBoxes
+		payload["team_ek_rebox"] = libkb.JSONPayload{
+			"boxes":   args.teamEKBoxes,
+			"team_id": t.ID,
+		}
 	}
 
 	if t.G().VDL.DumpPayload() {
