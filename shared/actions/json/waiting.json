@@ -2,10 +2,10 @@
   "prelude": [],
   "actions": {
     "incrementWaiting": {
-      "key": "string"
+      "key": ["string", "Array<string>"]
     },
     "decrementWaiting": {
-      "key": "string"
+      "key": ["string", "Array<string>"]
     }
   }
 }
