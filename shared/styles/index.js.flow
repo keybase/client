@@ -50,7 +50,7 @@ declare export function backgroundURL(...path: Array<string>): string
 declare export function styleSheetCreate(obj: Object): Object
 
 type _Elem = Object | null | false | void
-// CollapsableStyle is a generic version of ?StylesMobile and family,
+// CollapsibleStyle is a generic version of ?StylesMobile and family,
 // slightly extended to support "isFoo && myStyle".
 export type CollapsibleStyle = _Elem | $ReadOnlyArray<_Elem>
 // This has to return any, since there are still components with style
