@@ -3,7 +3,7 @@ import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './checkbox'
-import {globalStyles, globalColors, transition, desktopStyles} from '../styles'
+import {collapseStyles, globalStyles, globalColors, transition, desktopStyles} from '../styles'
 
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
@@ -33,7 +33,7 @@ class Checkbox extends Component<Props> {
 
     return (
       <div
-        style={{...styleContainer, ...clickableStyle, ...this.props.style}}
+        style={collapseStyles([styleContainer, clickableStyle, this.props.style])}
         onClick={e =>
           // If something in labelComponent needs to catch a click without calling this, use
           // event.preventDefault()
