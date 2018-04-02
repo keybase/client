@@ -583,6 +583,8 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   return arr
 }, [])
 
+// We bookkeep the current request's paginationkey in case we get very slow callbacks so we we can ignore new paginationKeys that are too old
+const _loadingMessagesWithPaginationKey = {}
 // Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
 const loadMoreMessages = (
   action:
@@ -656,6 +658,9 @@ const loadMoreMessages = (
     numberOfMessagesToLoad = numMessagesOnInitialLoad
   }
 
+  // Update bookkeeping
+  _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] = paginationKey
+
   // we clear on the first callback. we sometimes don't get a cached context
   let calledClear = false
   const onGotThread = function*({thread}: {thread: string}, context: 'full' | 'cached') {
@@ -677,16 +682,24 @@ const loadMoreMessages = (
         return arr
       }, [])
 
-      let paginationKey = Types.stringToPaginationKey(
-        (uiMessages.pagination && uiMessages.pagination.next) || ''
-      )
+      // Still loading this conversation w/ this paginationKey?
+      if (
+        _loadingMessagesWithPaginationKey[Types.conversationIDKeyToString(conversationIDKey)] ===
+        paginationKey
+      ) {
+        let newPaginationKey = Types.stringToPaginationKey(
+          (uiMessages.pagination && uiMessages.pagination.next) || ''
+        )
 
-      if (context === 'full') {
-        const paginationMoreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-        // if last is true we ignore paginationkey
-        paginationKey = paginationMoreToLoad ? paginationKey : Types.stringToPaginationKey('')
+        if (context === 'full') {
+          const paginationMoreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+          // if last is true on the full payload we blow away paginationKey
+          newPaginationKey = paginationMoreToLoad ? newPaginationKey : Types.stringToPaginationKey('')
+        }
+        yield Saga.put(
+          Chat2Gen.createMetaUpdatePagination({conversationIDKey, paginationKey: newPaginationKey})
+        )
       }
-      yield Saga.put(Chat2Gen.createMetaUpdatePagination({conversationIDKey, paginationKey}))
 
       // If we're loading the thread clean lets clear
       if (!calledClear && action.type !== Chat2Gen.loadOlderMessagesDueToScroll) {
@@ -1086,7 +1099,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
             : parseFolderNameToUsers('', names)
                 .map(u => u.username)
                 .filter(u => u !== you)
-        conversationIDKey = Constants.getExistingConversationWithUsers(I.Set(users), you, state.chat2.metaMap)
+        conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
       } else if (type === 'team') {
         // Actually a team, find general channel
         const meta = state.chat2.metaMap.find(
