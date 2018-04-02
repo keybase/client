@@ -31,13 +31,7 @@ func (s *UserEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonUserEKEncryption)
 }
 
-type UserEKBoxMetadata struct {
-	RecipientDeviceID   keybase1.DeviceID     `json:"recipient_device_id"`
-	RecipientGeneration keybase1.EkGeneration `json:"recipient_generation"`
-	Box                 string                `json:"box"`
-}
-
-func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxes []UserEKBoxMetadata) (err error) {
+func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxes []keybase1.UserEkBoxMetadata) (err error) {
 	defer g.CTrace(ctx, "postNewUserEK", func() error { return err })()
 
 	boxesJSON, err := json.Marshal(boxes)
@@ -152,7 +146,7 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 	return metadata, myUserEKBoxed, nil
 }
 
-func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []UserEKBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
+func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []keybase1.UserEkBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
 	defer g.CTrace(ctx, "boxUserEKForDevices", func() error { return err })()
 
 	devicesMetadata, err := allActiveDeviceEKMetadata(ctx, g, merkleRoot)
@@ -171,7 +165,7 @@ func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot
 		if err != nil {
 			return nil, nil, err
 		}
-		boxMetadata := UserEKBoxMetadata{
+		boxMetadata := keybase1.UserEkBoxMetadata{
 			RecipientDeviceID:   deviceID,
 			RecipientGeneration: deviceMetadata.Generation,
 			Box:                 box,

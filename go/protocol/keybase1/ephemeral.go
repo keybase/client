@@ -115,6 +115,20 @@ func (o UserEkBoxed) DeepCopy() UserEkBoxed {
 	}
 }
 
+type UserEkBoxMetadata struct {
+	Box                 string       `codec:"box" json:"box"`
+	RecipientGeneration EkGeneration `codec:"recipientGeneration" json:"recipient_generation"`
+	RecipientDeviceID   DeviceID     `codec:"recipientDeviceID" json:"recipient_device_id"`
+}
+
+func (o UserEkBoxMetadata) DeepCopy() UserEkBoxMetadata {
+	return UserEkBoxMetadata{
+		Box:                 o.Box,
+		RecipientGeneration: o.RecipientGeneration.DeepCopy(),
+		RecipientDeviceID:   o.RecipientDeviceID.DeepCopy(),
+	}
+}
+
 type UserEk struct {
 	Seed     Bytes32        `codec:"seed" json:"seed"`
 	Metadata UserEkMetadata `codec:"metadata" json:"metadata"`
@@ -176,6 +190,20 @@ func (o TeamEkBoxed) DeepCopy() TeamEkBoxed {
 		Box:              o.Box,
 		UserEkGeneration: o.UserEkGeneration.DeepCopy(),
 		Metadata:         o.Metadata.DeepCopy(),
+	}
+}
+
+type TeamEkBoxMetadata struct {
+	Box                 string       `codec:"box" json:"box"`
+	RecipientGeneration EkGeneration `codec:"recipientGeneration" json:"recipient_generation"`
+	RecipientUID        UID          `codec:"recipientUID" json:"recipient_uid"`
+}
+
+func (o TeamEkBoxMetadata) DeepCopy() TeamEkBoxMetadata {
+	return TeamEkBoxMetadata{
+		Box:                 o.Box,
+		RecipientGeneration: o.RecipientGeneration.DeepCopy(),
+		RecipientUID:        o.RecipientUID.DeepCopy(),
 	}
 }
 

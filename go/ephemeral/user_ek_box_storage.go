@@ -41,8 +41,8 @@ func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err er
 }
 
 func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, err error) {
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#getCache", func() error { return err })()
 	if !s.indexed {
-		defer s.G().CTrace(ctx, "UserEKBoxStorage#indexInner", func() error { return err })()
 
 		key, err := s.dbKey(ctx)
 		if err != nil {
@@ -58,7 +58,7 @@ func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, er
 }
 
 func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Get", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#Get: generation:%v", generation), func() error { return err })()
 
 	s.Lock()
 
@@ -89,7 +89,7 @@ type UserEKBoxedResponse struct {
 }
 
 func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#fetchAndPut", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndPut: generation: %v", generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
@@ -158,7 +158,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 }
 
 func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Put", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#Put: generation:%v", generation), func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -180,7 +180,7 @@ func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGenera
 }
 
 func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#unbox", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#unbox: generation:%v", userEKGeneration), func() error { return err })()
 
 	deviceEKStorage := s.G().GetDeviceEKStorage()
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
@@ -216,7 +216,7 @@ func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGen
 }
 
 func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase1.EkGeneration) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#delete", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#deleteMany: generations:%v", generations), func() error { return err })()
 
 	cache, err := s.getCache(ctx)
 	if err != nil {
