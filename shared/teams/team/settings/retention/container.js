@@ -54,8 +54,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       throw new Error('RetentionPicker needs a conversationIDKey to set adhoc retention policies')
     case 'channel':
       if (ownProps.conversationIDKey && ownProps.teamname) {
-        let teamname = ownProps.teamname
-        let conversationIDKey = ownProps.conversationIDKey
+        const teamname = ownProps.teamname
+        const conversationIDKey = ownProps.conversationIDKey
         policy = getConversationRetentionPolicy(state, conversationIDKey)
         teamPolicy = getTeamRetentionPolicy(state, teamname)
         loading = !teamPolicy
@@ -71,11 +71,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       )
     case 'small team':
       if (ownProps.teamname) {
-        let teamname = ownProps.teamname
+        const teamname = ownProps.teamname
         yourOperations = getCanPerform(state, teamname)
         _permissionsLoaded = hasCanPerform(state, teamname)
         canSetPolicy = yourOperations.setRetentionPolicy
-        let tempPolicy = getTeamRetentionPolicy(state, teamname)
+        const tempPolicy = getTeamRetentionPolicy(state, teamname)
         loading = !(tempPolicy && _permissionsLoaded)
         if (tempPolicy) {
           policy = tempPolicy
@@ -87,14 +87,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       throw new Error('RetentionPicker needs a teamname to set small team retention policies')
     case 'big team':
       if (ownProps.teamname) {
-        let teamname = ownProps.teamname
+        const teamname = ownProps.teamname
         yourOperations = getCanPerform(state, teamname)
         _permissionsLoaded = hasCanPerform(state, teamname)
         canSetPolicy = yourOperations.setRetentionPolicy
-        let tempPolicy2 = getTeamRetentionPolicy(state, teamname)
-        loading = !(tempPolicy2 && _permissionsLoaded)
-        if (tempPolicy2) {
-          policy = tempPolicy2
+        const tempPolicy = getTeamRetentionPolicy(state, teamname)
+        loading = !(tempPolicy && _permissionsLoaded)
+        if (tempPolicy) {
+          policy = tempPolicy
         }
         showInheritOption = false
         showOverrideNotice = true
