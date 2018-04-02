@@ -33,6 +33,9 @@
     "getTeamOperations": {
       "teamname": "string"
     },
+    "getTeamPublicity": {
+      "teamname": "string"
+    },
     "saveChannelMembership": {
       "teamname": "string",
       "channelState": "Types.ChannelMembershipState"
@@ -85,6 +88,10 @@
       "teamname": "string",
       "username": "string"
     },
+    "setMemberPublicity": {
+      "teamname": "string",
+      "showcase": "boolean"
+    },
     "setPublicity": {
       "teamname": "string",
       "settings": "Types.PublicitySettings"
@@ -124,6 +131,15 @@
     },
     "checkRequestedAccess": {
       "teamname": "string"
+    },
+    "getTeamRetentionPolicy": {
+      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
+      "teamname": "string"
+    },
+    "setTeamRetentionPolicy": {
+      "_description": "Sets the retention policy for a team. The store will be updated automatically.",
+      "teamname": "string",
+      "policy": "Types.RetentionPolicy"
     }
   }
 }

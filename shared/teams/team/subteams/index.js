@@ -53,7 +53,6 @@ const NoSubteams = ({row}) => (
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       flexShrink: 0,
-      height: globalMargins.medium,
       padding: globalMargins.tiny,
       width: '100%',
     }}

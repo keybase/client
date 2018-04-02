@@ -1,26 +1,32 @@
 // @flow
+import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import {connect, type TypedState} from '../../util/container'
-import {Set} from 'immutable'
-import {compose, branch, lifecycle, renderComponent} from 'recompose'
-import ReallyLeaveTeam from '.'
+import ReallyLeaveTeam, {Spinner, type Props as RenderProps} from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
-import {isSubteam} from '../../constants/teams'
+import {type Teamname} from '../../constants/types/teams'
+
+type Props = RenderProps & {
+  _canLeaveTeam: boolean,
+  _loadOperations: (teamname: Teamname) => void,
+  _loaded: boolean,
+}
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
-  const members = state.entities.getIn(['teams', 'teamNameToMembers', name], Set())
-  const _lastOwner = members.size <= 1 && !isSubteam(name)
+  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', name], null)
+  const _canLeaveTeam = (canPerform && canPerform.leaveTeam) || false
   return {
-    _lastOwner,
+    _canLeaveTeam,
+    _loaded: !!canPerform,
     name,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
+  _loadOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onClose: () => dispatch(navigateUp()),
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
@@ -29,12 +35,22 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  branch(props => props._lastOwner, renderComponent(LastOwnerDialog)),
-  lifecycle({
-    componentDidMount: function() {
-      this.props._loadTeam(this.props.name)
-    },
-  })
-)(ReallyLeaveTeam)
+class Switcher extends React.PureComponent<Props> {
+  componentWillMount() {
+    if (!this.props._loaded) {
+      this.props._loadOperations(this.props.name)
+    }
+  }
+
+  render() {
+    if (!this.props._loaded) {
+      return <Spinner {...this.props} />
+    }
+    if (!this.props._canLeaveTeam) {
+      return <LastOwnerDialog {...this.props} />
+    }
+    return <ReallyLeaveTeam {...this.props} />
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Switcher)

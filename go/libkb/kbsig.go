@@ -9,11 +9,13 @@ package libkb
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -34,6 +36,14 @@ type KeySection struct {
 	SigningUser          UserBasic
 	IncludePGPHash       bool
 	PerUserKeyGeneration keybase1.PerUserKeyGeneration
+}
+
+func LinkEntropy() (string, error) {
+	entropyBytes, err := RandBytes(18)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate entropy bytes: %v", err)
+	}
+	return base64.StdEncoding.EncodeToString(entropyBytes), nil
 }
 
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
@@ -164,11 +174,17 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	track.SetKey("remote_proofs", outcome.TrackingStatement())
 
 	if err != nil {
-		return
+		return err
 	}
 
+	entropy, err := LinkEntropy()
+	if err != nil {
+		return err
+	}
+	track.SetKey("entropy", jsonw.NewString(entropy))
+
 	w.SetKey("track", track)
-	return
+	return err
 }
 
 func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
@@ -181,8 +197,15 @@ func (u *User) ToUntrackingStatement(w *jsonw.Wrapper) (err error) {
 	untrack := jsonw.NewDictionary()
 	untrack.SetKey("basics", u.ToUntrackingStatementBasics())
 	untrack.SetKey("id", UIDWrapper(u.GetUID()))
+
+	entropy, err := LinkEntropy()
+	if err != nil {
+		return err
+	}
+	untrack.SetKey("entropy", jsonw.NewString(entropy))
+
 	w.SetKey("untrack", untrack)
-	return
+	return err
 }
 
 func (s *SocialProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
@@ -450,10 +473,17 @@ func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename s
 		SigVersion: sigVersion,
 	}.ToJSON(u.G())
 	if err != nil {
-		return
+		return nil, err
 	}
-	ret.AtKey("body").SetKey("service", typ.ToServiceJSON(remotename))
-	return
+	service := typ.ToServiceJSON(remotename)
+	entropy, err := LinkEntropy()
+	if err != nil {
+		return nil, err
+	}
+	service.SetKey("entropy", jsonw.NewString(entropy))
+
+	ret.AtKey("body").SetKey("service", service)
+	return ret, err
 }
 
 // SimpleSignJson marshals the given Json structure and then signs it.
@@ -468,10 +498,7 @@ func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 }
 
 func GetDefaultSigVersion(g *GlobalContext) SigVersion {
-	if g.Env.GetFeatureFlags().Admin() {
-		return KeybaseSignatureV2
-	}
-	return KeybaseSignatureV1
+	return KeybaseSignatureV2
 }
 
 func MakeSig(
@@ -595,6 +622,11 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, typ Cryptocurre
 	currencySection := jsonw.NewDictionary()
 	currencySection.SetKey("address", jsonw.NewString(address))
 	currencySection.SetKey("type", jsonw.NewString(typ.String()))
+	entropy, err := LinkEntropy()
+	if err != nil {
+		return nil, err
+	}
+	currencySection.SetKey("entropy", jsonw.NewString(entropy))
 	body.SetKey("cryptocurrency", currencySection)
 	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()
@@ -741,5 +773,105 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	res["signing_kid"] = signer.GetKID().String()
 	res["type"] = LinkTypePerUserKey
 	res["public_keys"] = publicKeysEntry
+	return res, nil
+}
+
+// StellarProof creates a proof of a stellar wallet.
+func StellarProof(me *User, walletAddress stellar1.AccountID,
+	signingKey GenericKey) (*jsonw.Wrapper, error) {
+	if me == nil {
+		return nil, fmt.Errorf("missing user object for proof")
+	}
+	walletPubKey, err := MakeNaclSigningKeyPairFromStellarAccountID(walletAddress)
+	if err != nil {
+		return nil, err
+	}
+	walletKID := walletPubKey.GetKID()
+
+	ret, err := ProofMetadata{
+		Me:         me,
+		LinkType:   LinkTypeWalletStellar,
+		SigningKey: signingKey,
+		SigVersion: KeybaseSignatureV2,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	walletSection := jsonw.NewDictionary()
+	walletSection.SetKey("name", jsonw.NewString(""))
+	walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
+	walletSection.SetKey("network", jsonw.NewString(string(WalletNetworkStellar)))
+
+	// Inner links can be hidden. To prevent an attacker from figuring out the
+	// contents from the hash of the inner link, add 18 random bytes.
+	entropy, err := LinkEntropy()
+	if err != nil {
+		return nil, err
+	}
+	walletSection.SetKey("entropy", jsonw.NewString(entropy))
+
+	walletKeySection := jsonw.NewDictionary()
+	walletKeySection.SetKey("kid", jsonw.NewString(walletKID.String()))
+	// The caller is responsible for overwriting reverse_sig after signing.
+	walletKeySection.SetKey("reverse_sig", jsonw.NewNil())
+
+	body := ret.AtKey("body")
+	body.SetKey("wallet", walletSection)
+	body.SetKey("wallet_key", walletKeySection)
+
+	return ret, nil
+}
+
+// Make a stellar proof with a reverse sig.
+// Modifies the User `me` with a sigchain bump and key delegation.
+// Returns a JSONPayload ready for use in "sigs" in sig/multi.
+func StellarProofReverseSigned(me *User, walletAddress stellar1.AccountID,
+	stellarSigner stellar1.SecretKey, signer GenericKey) (JSONPayload, error) {
+	// Make reverse sig
+	jwRev, err := StellarProof(me, walletAddress, signer)
+	if err != nil {
+		return nil, err
+	}
+	stellarSignerKey, err := MakeNaclSigningKeyPairFromStellarSecretKey(stellarSigner)
+	if err != nil {
+		return nil, err
+	}
+	reverseSig, _, _, err := SignJSON(jwRev, stellarSignerKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sig
+	jw := jwRev
+	jw.SetValueAtPath("body.wallet_key.reverse_sig", jsonw.NewString(reverseSig))
+	innerJSON, err := jw.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	sig, sigID, linkID, err := MakeSig(
+		signer,
+		LinkTypeWalletStellar,
+		innerJSON,
+		SigHasRevokes(false),
+		keybase1.SeqType_PUBLIC,
+		SigIgnoreIfUnsupported(false),
+		me,
+		KeybaseSignatureV2,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user locally
+	me.SigChainBump(linkID, sigID)
+	// TODO: do we need to locally do something like me.localDelegatePerUserKey?
+
+	res := make(JSONPayload)
+	res["sig"] = sig
+	res["sig_inner"] = string(innerJSON)
+	res["signing_kid"] = signer.GetKID().String()
+	res["public_key"] = stellarSignerKey.GetKID().String()
+	res["type"] = LinkTypeWalletStellar
 	return res, nil
 }

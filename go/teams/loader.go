@@ -292,6 +292,7 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 		case GreenLinkError:
 			// Try again
 			l.G().Log.CDebugf(ctx, "TeamLoader retrying after green link")
+			arg.forceRepoll = true
 			continue
 		}
 		return res, err

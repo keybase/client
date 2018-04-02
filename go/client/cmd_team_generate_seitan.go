@@ -83,13 +83,13 @@ func (c *CmdTeamGenerateSeitan) Run() error {
 	labelSms.F = c.FullName
 	labelSms.N = c.Number
 
-	arg := keybase1.TeamCreateSeitanTokenArg{
+	arg := keybase1.TeamCreateSeitanTokenV2Arg{
 		Name:  c.Team,
 		Role:  c.Role,
 		Label: keybase1.NewSeitanKeyLabelWithSms(labelSms),
 	}
 
-	res, err := cli.TeamCreateSeitanToken(context.Background(), arg)
+	res, err := cli.TeamCreateSeitanTokenV2(context.Background(), arg)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (c *CmdTeamGenerateSeitan) GetUsage() libkb.Usage {
 	}
 }
 
-const teamGenerateSeitanDoc = `"keybase team generate-token" allows you to create a one-time use,
+const teamGenerateSeitanDoc = `"keybase generate-invite-token" allows you to create a one-time use,
 expiring, cryptographically secure token that someone can use to join
 a team.
 

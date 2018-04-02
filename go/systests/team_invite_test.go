@@ -247,17 +247,20 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	require.Equal(t, details.Members.Admins[0].Username, bob.username)
 }
 
-func TestImpTeamWithRooter(t *testing.T) {
+func testImpTeamWithRooterParametrized(t *testing.T, public bool) {
+	t.Logf("testImpTeamWithRooterParametrized(public=%t)", public)
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
 	alice := tt.addUser("alice")
 	bob := tt.addUser("bob")
+	tt.logUserNames()
 
 	rooterUser := bob.username + "@rooter"
 	displayName := strings.Join([]string{alice.username, rooterUser}, ",")
 
-	team, err := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	team, err := alice.lookupImplicitTeam(true /*create*/, displayName, public)
 	require.NoError(t, err)
 
 	t.Logf("Created implicit team %v\n", team)
@@ -272,14 +275,35 @@ func TestImpTeamWithRooter(t *testing.T) {
 	// Poll for new team name, without the "@rooter"
 	newDisplayName := strings.Join([]string{alice.username, bob.username}, ",")
 
-	team2, err := alice.lookupImplicitTeam(false /*create*/, newDisplayName, false /*isPublic*/)
-	require.NoError(t, err)
-	require.Equal(t, team, team2)
+	lookupAs := func(u *userPlusDevice) {
+		team2, err := u.lookupImplicitTeam(false /*create*/, newDisplayName, public)
+		require.NoError(t, err)
+		require.Equal(t, team, team2)
 
-	// Lookup by old name should get the same result
-	team2, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
-	require.NoError(t, err)
-	require.Equal(t, team, team2)
+		// Lookup by old name should get the same result
+		team2, err = u.lookupImplicitTeam(false /*create*/, displayName, public)
+		require.NoError(t, err)
+		require.Equal(t, team, team2)
+
+		// Test resolver
+		_, err = teams.ResolveIDToName(context.Background(), u.tc.G, team)
+		require.NoError(t, err)
+	}
+
+	lookupAs(alice)
+	lookupAs(bob)
+
+	if public {
+		doug := tt.addUser("doug")
+		t.Logf("Signed up %s (%s) to test public access", doug.username, doug.uid)
+
+		lookupAs(doug)
+	}
+}
+
+func TestImpTeamWithRooter(t *testing.T) {
+	testImpTeamWithRooterParametrized(t, false /* public */)
+	testImpTeamWithRooterParametrized(t, true /* public */)
 }
 
 func TestImpTeamWithRooterConflict(t *testing.T) {
@@ -350,14 +374,13 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	toSeqno := keybase1.Seqno(2)
 	var found bool
-	for i := 0; i < 10; i++ {
+	for i := 0; (i < 10) && !found; i++ {
 		select {
 		case arg := <-alice.notifications.changeCh:
 			t.Logf("membership change received: %+v", arg)
 			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
 				t.Logf("change matched with %q", arg.TeamID)
 				found = true
-				break
 			}
 		case <-time.After(1 * time.Second):
 		}

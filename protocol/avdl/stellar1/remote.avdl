@@ -1,22 +1,8 @@
-@namespace("stellar.1") protocol remote {
+@namespace("stellar.1")
+protocol remote {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
-
-  @typedef("string") record AccountID {}
-  @typedef("string") record TransactionID {}
-  @typedef("bytes")  record KeybaseTransactionID {}
-
-  record Asset {
-    string type;
-    string code;
-    string issuer;
-  }
-
-  record Balance {
-    Asset asset;
-    string amount;
-    string limit;
-  }
+  import idl "common.avdl";
 
   record EncryptedNote {
     int v;             // version 
@@ -25,18 +11,33 @@
     keybase1.KID KID;  // public key data was encrypted for
   }
 
+  record Members {
+    AccountID fromStellar;
+    string fromKeybase;
+    keybase1.UID fromUID;
+    keybase1.DeviceID fromDeviceID;
+    AccountID toStellar;
+    string toKeybase;
+    keybase1.UID toUID;
+  }
+
   record TransactionSummary {
     TransactionID stellarID;
     KeybaseTransactionID keybaseID;
+    TransactionStatus status;
+    string errMsg;
 
     EncryptedNote note;
 
     Asset asset;
     string amount;
-    AccountID stellarFrom;
-    AccountID stellarTo;
-    keybase1.UID keybaseFrom;
-    keybase1.UID keybaseTo;
+    string displayAmount;
+    string displayCurrency;
+
+    Members members;
+
+    TimeMs ctime;
+    TimeMs rtime;
   }
 
   record Operation {
@@ -47,10 +48,6 @@
 
     Asset asset;
     string amount;
-    AccountID stellarFrom;
-    AccountID stellarTo;
-    keybase1.UID keybaseFrom;
-    keybase1.UID keybaseTo;
   }
 
   record TransactionDetails {
@@ -63,34 +60,25 @@
     string sourceAccountSequence;
     int feePaid;
 
+    Members members;
     EncryptedNote note;
-
     array<string> signatures;
-
     array<Operation> operations;
+
+    TimeMs ctime;
   }
 
   record PaymentPost {
-    AccountID from;
-    AccountID to;
-    uint64 sequenceNumber;
-    string keybaseFrom;
-    string keybaseTo;
+    uint64 stellarAccountSeqno;
 
-    string transactionType;
-    string xlmAmount;
+    Members members;
+
     string displayAmount;
     string displayCurrency;
 
     EncryptedNote note;
 
     string signedTransaction;
-  }
-
-  record PaymentResult {
-    TransactionID stellarID;
-    KeybaseTransactionID keybaseID;
-    int Ledger;
   }
   
   array<Balance> balances(keybase1.UID uid, AccountID accountID);

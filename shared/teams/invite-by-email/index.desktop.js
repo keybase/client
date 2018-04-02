@@ -77,6 +77,7 @@ const InviteByEmail = (props: Props) => (
                 props.onRoleChange(selectedRole)
               )
             }
+            underlayColor="rgba(0, 0, 0, 0)"
           >
             <Dropdown
               items={_makeDropdownItems()}

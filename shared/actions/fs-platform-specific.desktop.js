@@ -133,23 +133,12 @@ function waitForMount(attempt: number): Promise<*> {
   })
 }
 
-function* waitForMountAndOpenSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.put(FsGen.createSetFlags({kbfsOpening: true}))
-  try {
-    yield Saga.call(waitForMount, 0)
-    // TODO: should handle current mount directory
-    yield Saga.put(FsGen.createOpenInFileUI({payload: {path: Config.defaultKBFSPath}}))
-  } finally {
-    yield Saga.put(FsGen.createSetFlags({kbfsOpening: false}))
-  }
-}
-
 export const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
 export const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
   Saga.sequentially([
-    Saga.put(FsGen.createInstallKBFSResult({result})),
-    Saga.put(FsGen.createSetFlags({kbfsOpening: true, kbfsInstalling: false})),
-    Saga.call(waitForMountAndOpenSaga),
+    Saga.call(waitForMount, 0),
+    // $FlowFixMe @jzila please fix
+    Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
   ])
 
 export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {

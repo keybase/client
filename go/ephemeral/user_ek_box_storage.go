@@ -33,7 +33,7 @@ func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err er
 	if err != nil {
 		return dbKey, err
 	}
-	key := fmt.Sprintf("user-ephemeral-key-box-%s-%s", s.G().Env.GetUsername(), uv.EldestSeqno)
+	key := fmt.Sprintf("userEphemeralKeyBox-%s-%s", s.G().Env.GetUsername(), uv.EldestSeqno)
 	return libkb.DbKey{
 		Typ: libkb.DBUserEKBox,
 		Key: key,
@@ -41,8 +41,9 @@ func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err er
 }
 
 func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, err error) {
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#getCache", func() error { return err })()
 	if !s.indexed {
-		defer s.G().CTrace(ctx, "UserEKBoxStorage#indexInner", func() error { return err })()
+
 		key, err := s.dbKey(ctx)
 		if err != nil {
 			return s.cache, err
@@ -57,22 +58,25 @@ func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, er
 }
 
 func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Get", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#Get: generation:%v", generation), func() error { return err })()
+
 	s.Lock()
-	defer s.Unlock()
 
 	cache, err := s.getCache(ctx)
 	if err != nil {
+		s.Unlock()
 		return userEK, err
 	}
 
 	// Try cache first
 	userEKBoxed, ok := cache[generation]
 	if ok {
-		return s.unbox(ctx, userEKBoxed)
+		defer s.Unlock() // release the lock after we unbox
+		return s.unbox(ctx, generation, userEKBoxed)
 	}
 
 	// We don't have anything in our cache, fetch from the server
+	s.Unlock() // release the lock while we fetch
 	return s.fetchAndPut(ctx, generation)
 }
 
@@ -85,7 +89,8 @@ type UserEKBoxedResponse struct {
 }
 
 func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#fetchAndPut", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndPut: generation: %v", generation), func() error { return err })()
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -110,7 +115,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	// Before we store anything, let's verify that the server returned
 	// signature is valid and the KID it has signed matches the boxed seed.
 	// Otherwise something's fishy..
-	userEKStatement, wrongKID, err := verifySigWithLatestPUK(ctx, s.G(), result.Result.Sig)
+	userEKStatement, wrongKID, err := verifySigWithLatestPUK(ctx, s.G(), s.G().Env.GetUID(), result.Result.Sig)
 
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
@@ -128,13 +133,14 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 		return userEK, err
 	}
 
+	userEKMetadata := userEKStatement.CurrentUserEkMetadata
 	userEKBoxed := keybase1.UserEkBoxed{
 		Box:                result.Result.Box,
 		DeviceEkGeneration: result.Result.DeviceEKGeneration,
-		Metadata:           userEKStatement.CurrentUserEk,
+		Metadata:           userEKMetadata,
 	}
 
-	userEK, err = s.unbox(ctx, userEKBoxed)
+	userEK, err = s.unbox(ctx, generation, userEKBoxed)
 	if err != nil {
 		return userEK, err
 	}
@@ -142,23 +148,20 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	seed := UserEKSeed(userEK.Seed)
 	keypair := seed.DeriveDHKey()
 
-	if !keypair.GetKID().Equal(userEKStatement.CurrentUserEk.Kid) {
-		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKStatement.CurrentUserEk.Kid)
+	if !keypair.GetKID().Equal(userEKMetadata.Kid) {
+		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKMetadata.Kid)
 	}
 
 	// Store the boxed version, return the unboxed
-	err = s.put(ctx, generation, userEKBoxed)
+	err = s.Put(ctx, generation, userEKBoxed)
 	return userEK, err
 }
 
 func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#Put: generation:%v", generation), func() error { return err })()
+
 	s.Lock()
 	defer s.Unlock()
-	return s.put(ctx, generation, userEKBoxed)
-}
-
-func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#put", func() error { return err })()
 
 	key, err := s.dbKey(ctx)
 	if err != nil {
@@ -176,12 +179,14 @@ func (s *UserEKBoxStorage) put(ctx context.Context, generation keybase1.EkGenera
 	return nil
 }
 
-func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKBoxed keybase1.UserEkBoxed) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#unbox", func() error { return err })()
+func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (userEK keybase1.UserEk, err error) {
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#unbox: generation:%v", userEKGeneration), func() error { return err })()
+
 	deviceEKStorage := s.G().GetDeviceEKStorage()
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
-		return userEK, err
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
 	deviceSeed := DeviceEKSeed(deviceEK.Seed)
@@ -189,7 +194,8 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKBoxed keybase1.UserE
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
-		return userEK, err
+		s.G().Log.CWarningf(ctx, "%v", err)
+		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
 	seed, err := newUserEKSeedFromBytes(msg)
@@ -210,7 +216,8 @@ func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGen
 }
 
 func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase1.EkGeneration) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#delete", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#deleteMany: generations:%v", generations), func() error { return err })()
+
 	cache, err := s.getCache(ctx)
 	if err != nil {
 		return err
@@ -227,6 +234,7 @@ func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase
 
 func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKUnboxedMap, err error) {
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#GetAll", func() error { return err })()
+
 	s.Lock()
 	defer s.Unlock()
 	cache, err := s.getCache(ctx)
@@ -236,7 +244,7 @@ func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKUnboxedMap
 
 	userEKs = make(UserEKUnboxedMap)
 	for generation, userEKBoxed := range cache {
-		userEK, err := s.unbox(ctx, userEKBoxed)
+		userEK, err := s.unbox(ctx, generation, userEKBoxed)
 		if err != nil {
 			return userEKs, err
 		}
@@ -245,15 +253,16 @@ func (s *UserEKBoxStorage) GetAll(ctx context.Context) (userEKs UserEKUnboxedMap
 	return userEKs, err
 }
 
-// Used for testing
 func (s *UserEKBoxStorage) ClearCache() {
 	s.Lock()
 	defer s.Unlock()
 	s.cache = make(UserEKBoxMap)
+	s.indexed = false
 }
 
 func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration keybase1.EkGeneration, err error) {
 	defer s.G().CTrace(ctx, "UserEKBoxStorage#MaxGeneration", func() error { return err })()
+
 	s.Lock()
 	defer s.Unlock()
 
@@ -273,6 +282,7 @@ func (s *UserEKBoxStorage) MaxGeneration(ctx context.Context) (maxGeneration key
 
 func (s *UserEKBoxStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
 	defer s.G().CTrace(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
+
 	s.Lock()
 	defer s.Unlock()
 

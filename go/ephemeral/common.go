@@ -9,19 +9,47 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// NOTE: If you change this value you should change it in web/ephemeral.iced
+// and go/ekreaperd/reaper.go as well.
 // Keys last at most one week
 const KeyLifetimeSecs = 60 * 60 * 24 * 7 // one week
 // Everyday we want to generate a new key if possible
 const KeyGenLifetimeSecs = 60 * 60 * 24 // one day
 
-func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
-	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() > KeyLifetimeSecs
+type EKType string
+
+const (
+	DeviceEKStr EKType = "deviceEK"
+	UserEKStr   EKType = "userEK"
+	TeamEKStr   EKType = "teamEK"
+)
+
+type EKUnboxErr struct {
+	boxType           EKType
+	boxGeneration     keybase1.EkGeneration
+	missingType       EKType
+	missingGeneration keybase1.EkGeneration
 }
 
-// We should wrap any entry points to the library with this before we're ready
-// to fully release it.
-func ShouldRun(g *libkb.GlobalContext) bool {
-	return g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingType EKType, missingGeneration keybase1.EkGeneration) *EKUnboxErr {
+	return &EKUnboxErr{
+		missingType:       missingType,
+		boxType:           boxType,
+		missingGeneration: missingGeneration,
+		boxGeneration:     boxGeneration,
+	}
+}
+
+func (e *EKUnboxErr) Error() string {
+	return fmt.Sprintf("Error unboxing [%s]@generation%v missing [%s]@generation%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
+}
+
+func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyLifetimeSecs
+}
+
+func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
+	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
 }
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {

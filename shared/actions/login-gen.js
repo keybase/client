@@ -43,12 +43,12 @@ export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
 export const waitingForResponse = 'login:waitingForResponse'
 
 // Action Creators
-export const createAddNewDevice = (payload: $ReadOnly<{role: Types.DeviceRole}>) => ({error: false, payload, type: addNewDevice})
-export const createChooseGPGMethod = (payload: $ReadOnly<{exportKey: boolean}>) => ({error: false, payload, type: chooseGPGMethod})
+export const createAddNewDevice = (payload: $ReadOnly<{|role: Types.DeviceRole|}>) => ({error: false, payload, type: addNewDevice})
+export const createChooseGPGMethod = (payload: $ReadOnly<{|exportKey: boolean|}>) => ({error: false, payload, type: chooseGPGMethod})
 export const createClearQRCode = () => ({error: false, payload: undefined, type: clearQRCode})
-export const createConfiguredAccounts = (payload: $ReadOnly<{accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>}>) => ({error: false, payload, type: configuredAccounts})
-export const createConfiguredAccountsError = (payload: $ReadOnly<{error: Error}>) => ({error: true, payload, type: configuredAccounts})
-export const createLoginError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: loginError})
+export const createConfiguredAccounts = (payload: $ReadOnly<{|accounts: ?Array<{|hasStoredSecret: boolean, username: string|}>|}>) => ({error: false, payload, type: configuredAccounts})
+export const createConfiguredAccountsError = (payload: $ReadOnly<{|error: Error|}>) => ({error: true, payload, type: configuredAccounts})
+export const createLoginError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: loginError})
 export const createLogout = () => ({error: false, payload: undefined, type: logout})
 export const createLogoutDone = () => ({error: false, payload: undefined, type: logoutDone})
 export const createNavBasedOnLoginAndInitialState = () => ({error: false, payload: undefined, type: navBasedOnLoginAndInitialState})
@@ -56,40 +56,40 @@ export const createOnBack = () => ({error: false, payload: undefined, type: onBa
 export const createOnFinish = () => ({error: false, payload: undefined, type: onFinish})
 export const createOnWont = () => ({error: false, payload: undefined, type: onWont})
 export const createOpenAccountResetPage = () => ({error: false, payload: undefined, type: openAccountResetPage})
-export const createProvisionTextCodeEntered = (payload: $ReadOnly<{phrase: HiddenString}>) => ({error: false, payload, type: provisionTextCodeEntered})
-export const createProvisioningError = (payload: $ReadOnly<{error: Error}>) => ({error: false, payload, type: provisioningError})
-export const createQrScanned = (payload: $ReadOnly<{phrase: HiddenString}>) => ({error: false, payload, type: qrScanned})
+export const createProvisionTextCodeEntered = (payload: $ReadOnly<{|phrase: HiddenString|}>) => ({error: false, payload, type: provisionTextCodeEntered})
+export const createProvisioningError = (payload: $ReadOnly<{|error: Error|}>) => ({error: false, payload, type: provisioningError})
+export const createQrScanned = (payload: $ReadOnly<{|phrase: HiddenString|}>) => ({error: false, payload, type: qrScanned})
 export const createRelogin = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     usernameOrEmail: string,
     passphrase: HiddenString,
-  }>
+  |}>
 ) => ({error: false, payload, type: relogin})
 export const createResetQRCodeScanned = () => ({error: false, payload: undefined, type: resetQRCodeScanned})
-export const createSelectDeviceId = (payload: $ReadOnly<{deviceId: string}>) => ({error: false, payload, type: selectDeviceId})
-export const createSetCameraBrokenMode = (payload: $ReadOnly<{codePageCameraBrokenMode: boolean}>) => ({error: false, payload, type: setCameraBrokenMode})
-export const createSetCodePageMode = (payload: $ReadOnly<{codePageMode: Types.Mode}>) => ({error: false, payload, type: setCodePageMode})
-export const createSetDeletedSelf = (payload: $ReadOnly<{deletedUsername: string}>) => ({error: false, payload, type: setDeletedSelf})
-export const createSetMyDeviceCodeState = (payload: $ReadOnly<{codePageMyDeviceRole: Types.DeviceRole}>) => ({error: false, payload, type: setMyDeviceCodeState})
-export const createSetOtherDeviceCodeState = (payload: $ReadOnly<{codePageOtherDeviceRole: Types.DeviceRole}>) => ({error: false, payload, type: setOtherDeviceCodeState})
-export const createSetQRCode = (payload: $ReadOnly<{codePageQrCode: HiddenString}>) => ({error: false, payload, type: setQRCode})
-export const createSetRevokedSelf = (payload: $ReadOnly<{revoked: string}>) => ({error: false, payload, type: setRevokedSelf})
+export const createSelectDeviceId = (payload: $ReadOnly<{|deviceId: string|}>) => ({error: false, payload, type: selectDeviceId})
+export const createSetCameraBrokenMode = (payload: $ReadOnly<{|codePageCameraBrokenMode: boolean|}>) => ({error: false, payload, type: setCameraBrokenMode})
+export const createSetCodePageMode = (payload: $ReadOnly<{|codePageMode: Types.Mode|}>) => ({error: false, payload, type: setCodePageMode})
+export const createSetDeletedSelf = (payload: $ReadOnly<{|deletedUsername: string|}>) => ({error: false, payload, type: setDeletedSelf})
+export const createSetMyDeviceCodeState = (payload: $ReadOnly<{|codePageMyDeviceRole: Types.DeviceRole|}>) => ({error: false, payload, type: setMyDeviceCodeState})
+export const createSetOtherDeviceCodeState = (payload: $ReadOnly<{|codePageOtherDeviceRole: Types.DeviceRole|}>) => ({error: false, payload, type: setOtherDeviceCodeState})
+export const createSetQRCode = (payload: $ReadOnly<{|codePageQrCode: HiddenString|}>) => ({error: false, payload, type: setQRCode})
+export const createSetRevokedSelf = (payload: $ReadOnly<{|revoked: string|}>) => ({error: false, payload, type: setRevokedSelf})
 export const createSetTextCode = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     codePageEnterCodeErrorText: string,
     codePageTextCode: HiddenString,
-  }>
+  |}>
 ) => ({error: false, payload, type: setTextCode})
 export const createStartLogin = () => ({error: false, payload: undefined, type: startLogin})
-export const createSubmitDeviceName = (payload: $ReadOnly<{deviceName: string}>) => ({error: false, payload, type: submitDeviceName})
+export const createSubmitDeviceName = (payload: $ReadOnly<{|deviceName: string|}>) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitPassphrase = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     passphrase: HiddenString,
     storeSecret: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: submitPassphrase})
-export const createSubmitUsernameOrEmail = (payload: $ReadOnly<{usernameOrEmail: string}>) => ({error: false, payload, type: submitUsernameOrEmail})
-export const createWaitingForResponse = (payload: $ReadOnly<{waiting: boolean}>) => ({error: false, payload, type: waitingForResponse})
+export const createSubmitUsernameOrEmail = (payload: $ReadOnly<{|usernameOrEmail: string|}>) => ({error: false, payload, type: submitUsernameOrEmail})
+export const createWaitingForResponse = (payload: $ReadOnly<{|waiting: boolean|}>) => ({error: false, payload, type: waitingForResponse})
 
 // Action Payloads
 export type AddNewDevicePayload = More.ReturnType<typeof createAddNewDevice>

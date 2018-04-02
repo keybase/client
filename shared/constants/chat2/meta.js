@@ -11,6 +11,7 @@ import {globalColors} from '../../styles'
 import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
+import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -208,6 +209,17 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
+  let retentionPolicy
+  if (isTeam) {
+    // default for team channels is 'inherit'
+    retentionPolicy = i.convRetention
+      ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+      : makeRetentionPolicy({type: 'inherit'})
+  } else {
+    // default for ad-hoc is 'retain'
+    retentionPolicy = makeRetentionPolicy()
+  }
+
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
@@ -220,6 +232,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
     participants: I.OrderedSet(i.participants || []),
     resetParticipants,
+    retentionPolicy,
     snippet: i.snippet,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
@@ -245,10 +258,11 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   offline: false,
   orangeLineOrdinal: null,
   paginationKey: null,
-  paginationMoreToLoad: true,
+  paginationMoreToLoad: false,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
+  retentionPolicy: makeRetentionPolicy(),
   snippet: '',
   supersededBy: null,
   supersedes: null,
@@ -259,6 +273,10 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   trustedState: 'untrusted',
   wasFinalizedBy: '',
 })
+
+const emptyMeta = makeConversationMeta()
+export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.metaMap.get(id, emptyMeta)
 
 const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
@@ -307,4 +325,12 @@ export const findConversationFromParticipants = (state: TypedState, participants
       // Ignore the order of participants
       meta.teamType === 'adhoc' && meta.participants.toSet().equals(toFind)
   )
+}
+
+export const getConversationRetentionPolicy = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  const conv = getMeta(state, conversationIDKey)
+  return conv.retentionPolicy
 }

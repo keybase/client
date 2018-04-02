@@ -17,3 +17,7 @@ export function formatTimeForPopup(time: number): string {
 export function formatTimeForRevoked(time: number): string {
   return '[mocked]'
 }
+
+export function daysToLabel(days: number): string {
+  return '[mocked]'
+}

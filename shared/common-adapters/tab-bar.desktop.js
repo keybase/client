@@ -183,7 +183,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
 
   _renderIcon(color: string, badgeNumber: number) {
     if (this.props.source.type !== 'icon') return // needed to make flow happy
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.darkBlue3
+    const backgroundColor = globalColors.darkBlue3
     return (
       <Box
         style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}

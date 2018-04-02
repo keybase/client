@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -17,13 +16,6 @@ func ephemeralKeyTestSetup(t *testing.T) libkb.TestContext {
 	NewEphemeralStorageAndInstall(tc.G)
 
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
-	require.NoError(t, err)
-
-	// The test user has a PUK, but it's not automatically loaded. We have to
-	// explicitly sync it.
-	keyring, err := tc.G.GetPerUserKeyring()
-	require.NoError(t, err)
-	err = keyring.Sync(context.Background())
 	require.NoError(t, err)
 
 	return tc
@@ -83,4 +75,16 @@ func TestDeleteExpiredKeys(t *testing.T) {
 	expired = getExpiredGenerations(keyMap, now)
 	expected = []keybase1.EkGeneration{0, 1, 2}
 	require.Equal(t, expected, expired)
+}
+
+func verifyUserEK(t *testing.T, metadata keybase1.UserEkMetadata, ek keybase1.UserEk) {
+	seed := UserEKSeed(ek.Seed)
+	keypair := seed.DeriveDHKey()
+	require.Equal(t, metadata.Kid, keypair.GetKID())
+}
+
+func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.TeamEk) {
+	seed := TeamEKSeed(ek.Seed)
+	keypair := seed.DeriveDHKey()
+	require.Equal(t, metadata.Kid, keypair.GetKID())
 }

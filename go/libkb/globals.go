@@ -74,6 +74,7 @@ type GlobalContext struct {
 	teamLoader       TeamLoader       // Play back teams for id/name properties
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
+	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
 	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	CardCache        *UserCardCache   // cache of keybase1.UserCard objects
@@ -273,6 +274,21 @@ func (g *GlobalContext) LoginState() *LoginState {
 	return g.loginState
 }
 
+// resetFullSelferWithLoginStateLock is used to clear the fullSelfer
+// when a loginStateMu is held. This is trickier than it ought to be because
+// of deadlock potential. If we try to reach inside our existing CachedFullSelf
+// and grab the mutex that protects the me object (to clear it), we chance calling
+// into LoadUser, which can attemp to grab the login state, which would deadlock.
+// So just do the stupid thing, which is to throw away the existing CachedFullSelf
+// and swap in a new one.
+func (g *GlobalContext) resetFullSelferWithLoginStateLock() {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	if g.fullSelfer != nil {
+		g.fullSelfer = g.fullSelfer.New()
+	}
+}
+
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
@@ -299,7 +315,7 @@ func (g *GlobalContext) Logout() error {
 		g.CardCache.Shutdown()
 	}
 
-	g.GetFullSelfer().OnLogout()
+	g.resetFullSelferWithLoginStateLock()
 
 	tl := g.teamLoader
 	if tl != nil {
@@ -321,15 +337,6 @@ func (g *GlobalContext) Logout() error {
 		}
 	}
 	g.secretStoreMu.Unlock()
-
-	g.cacheMu.Lock()
-	if g.LocalDb != nil {
-		_, err := g.LocalDb.Nuke()
-		if err != nil {
-			g.Log.Debug("Failed to nuke DB: %s", err)
-		}
-	}
-	g.cacheMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
@@ -513,6 +520,12 @@ func (g *GlobalContext) GetUserEKBoxStorage() UserEKBoxStorage {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.userEKBoxStorage
+}
+
+func (g *GlobalContext) GetTeamEKBoxStorage() TeamEKBoxStorage {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamEKBoxStorage
 }
 
 func (g *GlobalContext) GetImplicitTeamConflictInfoCacher() LRUer {
@@ -941,6 +954,11 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 		return nil
 	}
 
+	if g.Env.GetSkipLogoutIfRevokedCheck() {
+		g.Log.Debug("LogoutIfRevoked: skipping check (SkipLogoutIfRevokedCheck)")
+		return nil
+	}
+
 	me, err := LoadMe(NewLoadUserForceArg(g))
 	if err != nil {
 		return err
@@ -1029,6 +1047,12 @@ func (g *GlobalContext) SetUserEKBoxStorage(s UserEKBoxStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.userEKBoxStorage = s
+}
+
+func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamEKBoxStorage = s
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {

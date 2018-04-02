@@ -20,7 +20,8 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name: "balances",
+		Name:        "balances",
+		Description: "Show account balances",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)
 		},
@@ -46,11 +47,9 @@ func (c *cmdWalletBalances) Run() error {
 		return err
 	}
 
-	arg := stellar1.BalancesArg{
-		AccountID: stellar1.AccountID(c.address),
-	}
+	accountID := stellar1.AccountID(c.address)
 
-	balances, err := cli.Balances(context.Background(), arg)
+	balances, err := cli.BalancesLocal(context.Background(), accountID)
 	if err != nil {
 		return err
 	}

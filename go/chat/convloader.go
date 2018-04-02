@@ -79,8 +79,9 @@ func (b *BackgroundConvLoader) monitorAppState() {
 	ctx := context.Background()
 	suspended := false
 	b.Debug(ctx, "monitorAppState: starting up")
+	state := keybase1.AppState_FOREGROUND
 	for {
-		state := <-b.G().AppState.NextUpdate()
+		state = <-b.G().AppState.NextUpdate(&state)
 		switch state {
 		case keybase1.AppState_FOREGROUND:
 			b.Debug(ctx, "monitorAppState: foregrounded")
@@ -223,9 +224,9 @@ func (b *BackgroundConvLoader) recvTimeWithShutdown(ctx context.Context, ch <-ch
 }
 
 // recvTaskWithShutdown receives a task, but also will abort on shutdown
-func (b *BackgroundConvLoader) recvTaskWithShutdown(ctx context.Context, ch chan *clTask) (*clTask, bool) {
+func (b *BackgroundConvLoader) recvTaskWithShutdown(ctx context.Context, cb chan *clTask) (*clTask, bool) {
 	select {
-	case task := <-ch:
+	case task := <-cb:
 		return task, true
 	case ch := <-b.stopCh:
 		b.Debug(ctx, "loop: shutting down: uid: %s reason: load task", b.uid)
@@ -299,7 +300,7 @@ func (b *BackgroundConvLoader) loop() {
 
 			// Run the load of the conversation with a callback so we can abort the loop on shutdown. If
 			// the load failed, it will return a new task to enqueue (if we haven't been shutdown).
-			cb := make(chan *clTask)
+			cb := make(chan *clTask, 1)
 			go func() {
 				gtask := b.load(bgctx, task, uid)
 				cb <- gtask

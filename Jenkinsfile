@@ -203,7 +203,7 @@ helpers.rootLinuxNode(env, {
                         // Windows, this check should go away.
                         if (hasGoChanges) {
                             helpers.nodeWithCleanup('windows', {}, {}) {
-                                def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
+                                def BASEDIR="${pwd()}"
                                 def GOPATH="${BASEDIR}\\go"
                                 withEnv([
                                     'GOROOT=C:\\go',

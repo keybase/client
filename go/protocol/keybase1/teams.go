@@ -1558,14 +1558,16 @@ func (o ImplicitRole) DeepCopy() ImplicitRole {
 }
 
 type MemberInfo struct {
-	UserID         UID           `codec:"userID" json:"uid"`
-	TeamID         TeamID        `codec:"teamID" json:"team_id"`
-	FqName         string        `codec:"fqName" json:"fq_name"`
-	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
-	Role           TeamRole      `codec:"role" json:"role"`
-	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
-	MemberCount    int           `codec:"memberCount" json:"member_count"`
+	UserID              UID           `codec:"userID" json:"uid"`
+	TeamID              TeamID        `codec:"teamID" json:"team_id"`
+	FqName              string        `codec:"fqName" json:"fq_name"`
+	IsImplicitTeam      bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam          bool          `codec:"isOpenTeam" json:"is_open_team"`
+	Role                TeamRole      `codec:"role" json:"role"`
+	Implicit            *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	MemberCount         int           `codec:"memberCount" json:"member_count"`
+	AllowProfilePromote bool          `codec:"allowProfilePromote" json:"allow_profile_promote"`
+	IsMemberShowcased   bool          `codec:"isMemberShowcased" json:"is_member_showcased"`
 }
 
 func (o MemberInfo) DeepCopy() MemberInfo {
@@ -1583,7 +1585,9 @@ func (o MemberInfo) DeepCopy() MemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
-		MemberCount: o.MemberCount,
+		MemberCount:         o.MemberCount,
+		AllowProfilePromote: o.AllowProfilePromote,
+		IsMemberShowcased:   o.IsMemberShowcased,
 	}
 }
 
@@ -1608,19 +1612,21 @@ func (o TeamList) DeepCopy() TeamList {
 }
 
 type AnnotatedMemberInfo struct {
-	UserID         UID           `codec:"userID" json:"uid"`
-	TeamID         TeamID        `codec:"teamID" json:"team_id"`
-	Username       string        `codec:"username" json:"username"`
-	FullName       string        `codec:"fullName" json:"full_name"`
-	FqName         string        `codec:"fqName" json:"fq_name"`
-	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
-	Role           TeamRole      `codec:"role" json:"role"`
-	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
-	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
-	MemberCount    int           `codec:"memberCount" json:"member_count"`
-	EldestSeqno    Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
-	Active         bool          `codec:"active" json:"active"`
+	UserID              UID           `codec:"userID" json:"uid"`
+	TeamID              TeamID        `codec:"teamID" json:"team_id"`
+	Username            string        `codec:"username" json:"username"`
+	FullName            string        `codec:"fullName" json:"full_name"`
+	FqName              string        `codec:"fqName" json:"fq_name"`
+	IsImplicitTeam      bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam          bool          `codec:"isOpenTeam" json:"is_open_team"`
+	Role                TeamRole      `codec:"role" json:"role"`
+	Implicit            *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	NeedsPUK            bool          `codec:"needsPUK" json:"needsPUK"`
+	MemberCount         int           `codec:"memberCount" json:"member_count"`
+	EldestSeqno         Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
+	Active              bool          `codec:"active" json:"active"`
+	AllowProfilePromote bool          `codec:"allowProfilePromote" json:"allow_profile_promote"`
+	IsMemberShowcased   bool          `codec:"isMemberShowcased" json:"is_member_showcased"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1640,10 +1646,12 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
-		NeedsPUK:    o.NeedsPUK,
-		MemberCount: o.MemberCount,
-		EldestSeqno: o.EldestSeqno.DeepCopy(),
-		Active:      o.Active,
+		NeedsPUK:            o.NeedsPUK,
+		MemberCount:         o.MemberCount,
+		EldestSeqno:         o.EldestSeqno.DeepCopy(),
+		Active:              o.Active,
+		AllowProfilePromote: o.AllowProfilePromote,
+		IsMemberShowcased:   o.IsMemberShowcased,
 	}
 }
 
@@ -1975,11 +1983,13 @@ type TeamOperation struct {
 	ManageMembers          bool `codec:"manageMembers" json:"manageMembers"`
 	ManageSubteams         bool `codec:"manageSubteams" json:"manageSubteams"`
 	CreateChannel          bool `codec:"createChannel" json:"createChannel"`
+	Chat                   bool `codec:"chat" json:"chat"`
 	DeleteChannel          bool `codec:"deleteChannel" json:"deleteChannel"`
 	RenameChannel          bool `codec:"renameChannel" json:"renameChannel"`
 	EditChannelDescription bool `codec:"editChannelDescription" json:"editChannelDescription"`
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
+	SetRetentionPolicy     bool `codec:"setRetentionPolicy" json:"setRetentionPolicy"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
 	JoinTeam               bool `codec:"joinTeam" json:"joinTeam"`
@@ -1994,11 +2004,13 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		ManageMembers:          o.ManageMembers,
 		ManageSubteams:         o.ManageSubteams,
 		CreateChannel:          o.CreateChannel,
+		Chat:                   o.Chat,
 		DeleteChannel:          o.DeleteChannel,
 		RenameChannel:          o.RenameChannel,
 		EditChannelDescription: o.EditChannelDescription,
 		SetTeamShowcase:        o.SetTeamShowcase,
 		SetMemberShowcase:      o.SetMemberShowcase,
+		SetRetentionPolicy:     o.SetRetentionPolicy,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
 		JoinTeam:               o.JoinTeam,

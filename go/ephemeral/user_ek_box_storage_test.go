@@ -17,13 +17,19 @@ func TestUserEKBoxStorage(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	deviceEKMetadata, err := publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
+	// Login hooks should have run
+	deviceEKStorage := tc.G.GetDeviceEKStorage()
+	deviceEKMaxGen, err := deviceEKStorage.MaxGeneration(context.Background())
+	require.True(t, deviceEKMaxGen > 0)
+	require.NoError(t, err)
+
+	s := tc.G.GetUserEKBoxStorage()
+	userEKMaxGen, err := s.MaxGeneration(context.Background())
+	require.True(t, userEKMaxGen > 0)
 	require.NoError(t, err)
 
 	userEKMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
-
-	s := tc.G.GetUserEKBoxStorage()
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(context.Background(), userEKMetadata.Generation+1)
@@ -35,14 +41,12 @@ func TestUserEKBoxStorage(t *testing.T) {
 	userEK, err := s.Get(context.Background(), userEKMetadata.Generation)
 	require.NoError(t, err)
 
-	seed := UserEKSeed(userEK.Seed)
-	keypair := seed.DeriveDHKey()
-	require.Equal(t, userEKMetadata.Kid, keypair.GetKID())
+	verifyUserEK(t, userEKMetadata, userEK)
 
 	// Test MaxGeneration
 	maxGeneration, err := s.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.EqualValues(t, 1, maxGeneration)
+	require.True(t, maxGeneration > 0)
 
 	//	NOTE: We don't expose Delete on the interface put on the GlobalContext
 	//	since they should never be called, only DeleteExpired should be used.
@@ -50,23 +54,20 @@ func TestUserEKBoxStorage(t *testing.T) {
 	rawUserEKBoxStorage := NewUserEKBoxStorage(tc.G)
 	userEKs, err := rawUserEKBoxStorage.GetAll(context.Background())
 	require.NoError(t, err)
-	require.Equal(t, 1, len(userEKs))
+	require.EqualValues(t, maxGeneration, len(userEKs))
 
 	userEK, ok := userEKs[userEKMetadata.Generation]
 	require.True(t, ok)
 
-	seed = UserEKSeed(userEK.Seed)
-	keypair = seed.DeriveDHKey()
-	require.Equal(t, userEKMetadata.Kid, keypair.GetKID())
+	verifyUserEK(t, userEKMetadata, userEK)
 
 	// Let's delete our deviceEK and verify we can't unbox the userEK
 	rawDeviceEKStorage := NewDeviceEKStorage(tc.G)
-	err = rawDeviceEKStorage.Delete(context.Background(), deviceEKMetadata.Generation)
+	err = rawDeviceEKStorage.Delete(context.Background(), deviceEKMaxGen)
 	require.NoError(t, err)
 
-	deviceStorage := tc.G.GetDeviceEKStorage()
-	deviceStorage.ClearCache()
-	deviceEK, err := deviceStorage.Get(context.Background(), deviceEKMetadata.Generation)
+	deviceEKStorage.ClearCache()
+	deviceEK, err := deviceEKStorage.Get(context.Background(), deviceEKMaxGen)
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
@@ -78,15 +79,14 @@ func TestUserEKBoxStorage(t *testing.T) {
 	err = rawUserEKBoxStorage.Delete(context.Background(), userEKMetadata.Generation)
 	require.NoError(t, err)
 
-	userEKs, err = rawUserEKBoxStorage.GetAll(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, 0, len(userEKs))
+	userEK, err = rawUserEKBoxStorage.Get(context.Background(), userEKMetadata.Generation)
+	require.Error(t, err)
 
 	s.ClearCache()
 
 	maxGeneration, err = s.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	require.EqualValues(t, -1, maxGeneration)
+	require.EqualValues(t, userEKMaxGen, maxGeneration)
 
 	expired, err := s.DeleteExpired(context.Background(), merkleRoot)
 	expected := []keybase1.EkGeneration(nil)

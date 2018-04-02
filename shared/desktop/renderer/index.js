@@ -9,6 +9,7 @@ import * as DevGen from '../../actions/dev-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
+import {setupLoginHMR} from '../../actions/login'
 import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container'
@@ -17,8 +18,7 @@ import electron, {ipcRenderer} from 'electron'
 import {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
-import {loginRouteTree} from '../../app/routes'
-import {AppContainer} from 'react-hot-loader'
+import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
@@ -90,6 +90,7 @@ function setupApp(store) {
 
   var inputMonitor = new InputMonitor(function(isActive) {
     store.dispatch(AppGen.createChangedActive({userActive: isActive}))
+    ipcRenderer.send('setAppState', {isUserActive: isActive})
   })
   inputMonitor.startActiveTimer()
 
@@ -144,15 +145,13 @@ const FontLoader = () => (
 
 function render(store, MainComponent) {
   ReactDOM.render(
-    <AppContainer>
-      <Root store={store}>
-        <div style={{display: 'flex', flex: 1}}>
-          <RemoteProxies />
-          <FontLoader />
-          <MainComponent />
-        </div>
-      </Root>
-    </AppContainer>,
+    <Root store={store}>
+      <div style={{display: 'flex', flex: 1}}>
+        <RemoteProxies />
+        <FontLoader />
+        <MainComponent />
+      </div>
+    </Root>,
     // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
@@ -167,15 +166,21 @@ function setupHMR(store) {
     return
   }
 
+  const refreshRoutes = () => {
+    const appRouteTree = require('../../app/routes-app').default
+    const loginRouteTree = require('../../app/routes-login').default
+    store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+    try {
+      const NewMain = require('../../app/main.desktop').default
+      render(store, NewMain)
+    } catch (_) {}
+  }
+
   module.hot &&
-    module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
-      const routes = require('../../app/routes')
-      store.dispatch(refreshRouteDef(routes.loginRouteTree, routes.appRouteTree))
-      try {
-        const NewMain = require('../../app/main.desktop').default
-        render(store, NewMain)
-      } catch (_) {}
-    })
+    module.hot.accept(
+      ['../../app/main.desktop', '../../app/routes-app', '../../app/routes-login'],
+      refreshRoutes
+    )
 
   module.hot &&
     module.hot.accept('../../local-debug-live', () => {
@@ -184,6 +189,8 @@ function setupHMR(store) {
     })
 
   module.hot && module.hot.accept('../../common-adapters/index.js', () => {})
+
+  setupLoginHMR(refreshRoutes)
 }
 
 function load() {

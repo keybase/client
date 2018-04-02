@@ -25,10 +25,17 @@ import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../constants/tabs
 import {deletePushTokenSaga} from './push'
 import {getExtendedStatus} from './config'
 import {isMobile} from '../constants/platform'
-import {appRouteTree, loginRouteTree} from '../app/routes'
+import appRouteTree from '../app/routes-app'
+import loginRouteTree from '../app/routes-login'
 import {pathSelector, navigateTo, navigateAppend, switchRouteDef} from './route-tree'
 import {type InitialState} from '../constants/types/config'
 import {type TypedState} from '../constants/reducer'
+
+// Login dips into the routing dep tree, so we need to tell
+// webpack that we can still handle updates that propagate to here.
+export function setupLoginHMR(cb: () => void) {
+  module.hot && module.hot.accept(['../app/routes-app', '../app/routes-login'], cb)
+}
 
 const deviceType: DevicesTypes.DeviceType = isMobile ? 'mobile' : 'desktop'
 const InputCancelError = {
@@ -145,6 +152,11 @@ function* navBasedOnLoginAndInitialState(): Saga.SagaGenerator<any, any> {
     yield Saga.put(switchRouteDef(loginRouteTree))
     yield Saga.put.resolve(getExtendedStatus())
     yield Saga.call(getAccounts)
+    // We may have logged successfully in by now, check before trying to navigate
+    const state = yield Saga.select()
+    if (state.config.loggedIn) {
+      return
+    }
     yield Saga.put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen

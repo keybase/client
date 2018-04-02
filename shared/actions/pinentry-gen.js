@@ -20,19 +20,19 @@ export const subtractEntity = 'pinentry:subtractEntity'
 
 // Action Creators
 export const createDeleteEntity = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     keyPath: Array<string>,
     ids: Iterable<any>,
-  }>
+  |}>
 ) => ({error: false, payload, type: deleteEntity})
 export const createMergeEntity = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     keyPath: Array<string>,
     entities: I.Map<any, any> | I.List<any>,
-  }>
+  |}>
 ) => ({error: false, payload, type: mergeEntity})
 export const createNewPinentry = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     showTyping: RPCTypes.Feature,
     type: RPCTypes.PassphraseType,
     sessionID: number,
@@ -41,27 +41,27 @@ export const createNewPinentry = (
     submitLabel: ?string,
     cancelLabel: ?string,
     retryLabel: ?string,
-  }>
+  |}>
 ) => ({error: false, payload, type: newPinentry})
-export const createOnCancel = (payload: $ReadOnly<{sessionID: number}>) => ({error: false, payload, type: onCancel})
+export const createOnCancel = (payload: $ReadOnly<{|sessionID: number|}>) => ({error: false, payload, type: onCancel})
 export const createOnSubmit = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     sessionID: number,
     passphrase: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: onSubmit})
 export const createRegisterPinentryListener = () => ({error: false, payload: undefined, type: registerPinentryListener})
 export const createReplaceEntity = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     keyPath: Array<string>,
     entities: I.Map<any, any> | I.List<any>,
-  }>
+  |}>
 ) => ({error: false, payload, type: replaceEntity})
 export const createSubtractEntity = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     keyPath: Array<string>,
     entities: I.List<any>,
-  }>
+  |}>
 ) => ({error: false, payload, type: subtractEntity})
 
 // Action Payloads

@@ -1,0 +1,109 @@
+{
+  "protocol": "common",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "AccountID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SecretKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TransactionID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KeybaseTransactionID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TimeMs",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "Hash",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "Asset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "issuer"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Balance",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "limit"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TransactionStatus",
+      "symbols": [
+        "NONE_0",
+        "PENDING_1",
+        "SUCCESS_2",
+        "ERROR_TRANSIENT_3",
+        "ERROR_PERMANENT_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "int",
+          "name": "Ledger"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "stellar.1"
+}

@@ -1,0 +1,27 @@
+{
+  "protocol": "NotifyEphemeral",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "newTeamEk": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "generation",
+          "type": "EkGeneration"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

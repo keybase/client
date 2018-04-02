@@ -21,57 +21,57 @@ export const userInputItemsUpdated = 'search:userInputItemsUpdated'
 
 // Action Creators
 export const createAddResultsToUserInput = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     searchKey: string,
     searchResults: Array<Types.SearchResultId>,
-  }>
+  |}>
 ) => ({error: false, payload, type: addResultsToUserInput})
-export const createClearSearchResults = (payload: $ReadOnly<{searchKey: string}>) => ({error: false, payload, type: clearSearchResults})
+export const createClearSearchResults = (payload: $ReadOnly<{|searchKey: string|}>) => ({error: false, payload, type: clearSearchResults})
 export const createFinishedSearch = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     searchResults: Array<Types.SearchResultId>,
     searchResultTerm: string,
     service: Types.Service,
     searchKey: string,
     searchShowingSuggestions?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: finishedSearch})
 export const createRemoveResultsToUserInput = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     searchKey: string,
     searchResults: Array<Types.SearchResultId>,
-  }>
+  |}>
 ) => ({error: false, payload, type: removeResultsToUserInput})
 export const createSearch = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     term: string,
     service: Types.Service,
     searchKey: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: search})
 export const createSearchSuggestions = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     maxUsers?: number,
     searchKey: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: searchSuggestions})
 export const createSetUserInputItems = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     searchKey: string,
     searchResults: Array<Types.SearchResultId>,
-  }>
+  |}>
 ) => ({error: false, payload, type: setUserInputItems})
 export const createUpdateSelectedSearchResult = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     searchKey: string,
     id: ?Types.SearchResultId,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateSelectedSearchResult})
 export const createUserInputItemsUpdated = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     searchKey: string,
     userInputItemIds: Array<Types.SearchResultId>,
-  }>
+  |}>
 ) => ({error: false, payload, type: userInputItemsUpdated})
 
 // Action Payloads

@@ -9,57 +9,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type AccountID string
-
-func (o AccountID) DeepCopy() AccountID {
-	return o
-}
-
-type TransactionID string
-
-func (o TransactionID) DeepCopy() TransactionID {
-	return o
-}
-
-type KeybaseTransactionID []byte
-
-func (o KeybaseTransactionID) DeepCopy() KeybaseTransactionID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
-type Asset struct {
-	Type   string `codec:"type" json:"type"`
-	Code   string `codec:"code" json:"code"`
-	Issuer string `codec:"issuer" json:"issuer"`
-}
-
-func (o Asset) DeepCopy() Asset {
-	return Asset{
-		Type:   o.Type,
-		Code:   o.Code,
-		Issuer: o.Issuer,
-	}
-}
-
-type Balance struct {
-	Asset  Asset  `codec:"asset" json:"asset"`
-	Amount string `codec:"amount" json:"amount"`
-	Limit  string `codec:"limit" json:"limit"`
-}
-
-func (o Balance) DeepCopy() Balance {
-	return Balance{
-		Asset:  o.Asset.DeepCopy(),
-		Amount: o.Amount,
-		Limit:  o.Limit,
-	}
-}
-
 type EncryptedNote struct {
 	V   int          `codec:"v" json:"v"`
 	E   []byte       `codec:"e" json:"e"`
@@ -86,43 +35,67 @@ func (o EncryptedNote) DeepCopy() EncryptedNote {
 	}
 }
 
+type Members struct {
+	FromStellar  AccountID         `codec:"fromStellar" json:"fromStellar"`
+	FromKeybase  string            `codec:"fromKeybase" json:"fromKeybase"`
+	FromUID      keybase1.UID      `codec:"fromUID" json:"fromUID"`
+	FromDeviceID keybase1.DeviceID `codec:"fromDeviceID" json:"fromDeviceID"`
+	ToStellar    AccountID         `codec:"toStellar" json:"toStellar"`
+	ToKeybase    string            `codec:"toKeybase" json:"toKeybase"`
+	ToUID        keybase1.UID      `codec:"toUID" json:"toUID"`
+}
+
+func (o Members) DeepCopy() Members {
+	return Members{
+		FromStellar:  o.FromStellar.DeepCopy(),
+		FromKeybase:  o.FromKeybase,
+		FromUID:      o.FromUID.DeepCopy(),
+		FromDeviceID: o.FromDeviceID.DeepCopy(),
+		ToStellar:    o.ToStellar.DeepCopy(),
+		ToKeybase:    o.ToKeybase,
+		ToUID:        o.ToUID.DeepCopy(),
+	}
+}
+
 type TransactionSummary struct {
-	StellarID   TransactionID        `codec:"stellarID" json:"stellarID"`
-	KeybaseID   KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Note        EncryptedNote        `codec:"note" json:"note"`
-	Asset       Asset                `codec:"asset" json:"asset"`
-	Amount      string               `codec:"amount" json:"amount"`
-	StellarFrom AccountID            `codec:"stellarFrom" json:"stellarFrom"`
-	StellarTo   AccountID            `codec:"stellarTo" json:"stellarTo"`
-	KeybaseFrom keybase1.UID         `codec:"keybaseFrom" json:"keybaseFrom"`
-	KeybaseTo   keybase1.UID         `codec:"keybaseTo" json:"keybaseTo"`
+	StellarID       TransactionID        `codec:"stellarID" json:"stellarID"`
+	KeybaseID       KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
+	Status          TransactionStatus    `codec:"status" json:"status"`
+	ErrMsg          string               `codec:"errMsg" json:"errMsg"`
+	Note            EncryptedNote        `codec:"note" json:"note"`
+	Asset           Asset                `codec:"asset" json:"asset"`
+	Amount          string               `codec:"amount" json:"amount"`
+	DisplayAmount   string               `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency string               `codec:"displayCurrency" json:"displayCurrency"`
+	Members         Members              `codec:"members" json:"members"`
+	Ctime           TimeMs               `codec:"ctime" json:"ctime"`
+	Rtime           TimeMs               `codec:"rtime" json:"rtime"`
 }
 
 func (o TransactionSummary) DeepCopy() TransactionSummary {
 	return TransactionSummary{
-		StellarID:   o.StellarID.DeepCopy(),
-		KeybaseID:   o.KeybaseID.DeepCopy(),
-		Note:        o.Note.DeepCopy(),
-		Asset:       o.Asset.DeepCopy(),
-		Amount:      o.Amount,
-		StellarFrom: o.StellarFrom.DeepCopy(),
-		StellarTo:   o.StellarTo.DeepCopy(),
-		KeybaseFrom: o.KeybaseFrom.DeepCopy(),
-		KeybaseTo:   o.KeybaseTo.DeepCopy(),
+		StellarID:       o.StellarID.DeepCopy(),
+		KeybaseID:       o.KeybaseID.DeepCopy(),
+		Status:          o.Status.DeepCopy(),
+		ErrMsg:          o.ErrMsg,
+		Note:            o.Note.DeepCopy(),
+		Asset:           o.Asset.DeepCopy(),
+		Amount:          o.Amount,
+		DisplayAmount:   o.DisplayAmount,
+		DisplayCurrency: o.DisplayCurrency,
+		Members:         o.Members.DeepCopy(),
+		Ctime:           o.Ctime.DeepCopy(),
+		Rtime:           o.Rtime.DeepCopy(),
 	}
 }
 
 type Operation struct {
-	ID              string       `codec:"ID" json:"ID"`
-	OpType          string       `codec:"opType" json:"opType"`
-	CreatedAt       int          `codec:"createdAt" json:"createdAt"`
-	TransactionHash string       `codec:"TransactionHash" json:"TransactionHash"`
-	Asset           Asset        `codec:"asset" json:"asset"`
-	Amount          string       `codec:"amount" json:"amount"`
-	StellarFrom     AccountID    `codec:"stellarFrom" json:"stellarFrom"`
-	StellarTo       AccountID    `codec:"stellarTo" json:"stellarTo"`
-	KeybaseFrom     keybase1.UID `codec:"keybaseFrom" json:"keybaseFrom"`
-	KeybaseTo       keybase1.UID `codec:"keybaseTo" json:"keybaseTo"`
+	ID              string `codec:"ID" json:"ID"`
+	OpType          string `codec:"opType" json:"opType"`
+	CreatedAt       int    `codec:"createdAt" json:"createdAt"`
+	TransactionHash string `codec:"TransactionHash" json:"TransactionHash"`
+	Asset           Asset  `codec:"asset" json:"asset"`
+	Amount          string `codec:"amount" json:"amount"`
 }
 
 func (o Operation) DeepCopy() Operation {
@@ -133,10 +106,6 @@ func (o Operation) DeepCopy() Operation {
 		TransactionHash: o.TransactionHash,
 		Asset:           o.Asset.DeepCopy(),
 		Amount:          o.Amount,
-		StellarFrom:     o.StellarFrom.DeepCopy(),
-		StellarTo:       o.StellarTo.DeepCopy(),
-		KeybaseFrom:     o.KeybaseFrom.DeepCopy(),
-		KeybaseTo:       o.KeybaseTo.DeepCopy(),
 	}
 }
 
@@ -149,9 +118,11 @@ type TransactionDetails struct {
 	SourceAccount         AccountID            `codec:"sourceAccount" json:"sourceAccount"`
 	SourceAccountSequence string               `codec:"sourceAccountSequence" json:"sourceAccountSequence"`
 	FeePaid               int                  `codec:"feePaid" json:"feePaid"`
+	Members               Members              `codec:"members" json:"members"`
 	Note                  EncryptedNote        `codec:"note" json:"note"`
 	Signatures            []string             `codec:"signatures" json:"signatures"`
 	Operations            []Operation          `codec:"operations" json:"operations"`
+	Ctime                 TimeMs               `codec:"ctime" json:"ctime"`
 }
 
 func (o TransactionDetails) DeepCopy() TransactionDetails {
@@ -164,6 +135,7 @@ func (o TransactionDetails) DeepCopy() TransactionDetails {
 		SourceAccount:         o.SourceAccount.DeepCopy(),
 		SourceAccountSequence: o.SourceAccountSequence,
 		FeePaid:               o.FeePaid,
+		Members:               o.Members.DeepCopy(),
 		Note:                  o.Note.DeepCopy(),
 		Signatures: (func(x []string) []string {
 			if x == nil {
@@ -187,50 +159,27 @@ func (o TransactionDetails) DeepCopy() TransactionDetails {
 			}
 			return ret
 		})(o.Operations),
+		Ctime: o.Ctime.DeepCopy(),
 	}
 }
 
 type PaymentPost struct {
-	From              AccountID     `codec:"from" json:"from"`
-	To                AccountID     `codec:"to" json:"to"`
-	SequenceNumber    uint64        `codec:"sequenceNumber" json:"sequenceNumber"`
-	KeybaseFrom       string        `codec:"keybaseFrom" json:"keybaseFrom"`
-	KeybaseTo         string        `codec:"keybaseTo" json:"keybaseTo"`
-	TransactionType   string        `codec:"transactionType" json:"transactionType"`
-	XlmAmount         string        `codec:"xlmAmount" json:"xlmAmount"`
-	DisplayAmount     string        `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency   string        `codec:"displayCurrency" json:"displayCurrency"`
-	Note              EncryptedNote `codec:"note" json:"note"`
-	SignedTransaction string        `codec:"signedTransaction" json:"signedTransaction"`
+	StellarAccountSeqno uint64        `codec:"stellarAccountSeqno" json:"stellarAccountSeqno"`
+	Members             Members       `codec:"members" json:"members"`
+	DisplayAmount       string        `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency     string        `codec:"displayCurrency" json:"displayCurrency"`
+	Note                EncryptedNote `codec:"note" json:"note"`
+	SignedTransaction   string        `codec:"signedTransaction" json:"signedTransaction"`
 }
 
 func (o PaymentPost) DeepCopy() PaymentPost {
 	return PaymentPost{
-		From:              o.From.DeepCopy(),
-		To:                o.To.DeepCopy(),
-		SequenceNumber:    o.SequenceNumber,
-		KeybaseFrom:       o.KeybaseFrom,
-		KeybaseTo:         o.KeybaseTo,
-		TransactionType:   o.TransactionType,
-		XlmAmount:         o.XlmAmount,
-		DisplayAmount:     o.DisplayAmount,
-		DisplayCurrency:   o.DisplayCurrency,
-		Note:              o.Note.DeepCopy(),
-		SignedTransaction: o.SignedTransaction,
-	}
-}
-
-type PaymentResult struct {
-	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
-	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Ledger    int                  `codec:"Ledger" json:"Ledger"`
-}
-
-func (o PaymentResult) DeepCopy() PaymentResult {
-	return PaymentResult{
-		StellarID: o.StellarID.DeepCopy(),
-		KeybaseID: o.KeybaseID.DeepCopy(),
-		Ledger:    o.Ledger,
+		StellarAccountSeqno: o.StellarAccountSeqno,
+		Members:             o.Members.DeepCopy(),
+		DisplayAmount:       o.DisplayAmount,
+		DisplayCurrency:     o.DisplayCurrency,
+		Note:                o.Note.DeepCopy(),
+		SignedTransaction:   o.SignedTransaction,
 	}
 }
 
