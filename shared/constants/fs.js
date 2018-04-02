@@ -90,6 +90,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
+  badges: I.Map(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -204,7 +205,7 @@ export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
   const gib = mib * kib
   const tib = gib * kib
 
-  if (!meta) return ''
+  if (!meta || !meta.size) return ''
   const size = meta.size
   if (size >= tib) return `${Math.round(size / tib)} TB`
   if (size >= gib) return `${Math.round(size / gib)} GB`

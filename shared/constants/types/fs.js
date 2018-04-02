@@ -10,6 +10,26 @@ export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 export type ProgressType = 'pending' | 'loaded'
+export type MetaType = 'new' | 'ignored' | null
+
+export type Device = {
+  type: Devices.DeviceType,
+  name: string,
+  deviceID: string,
+}
+
+export type ParticipantUnlock = {
+  name: string,
+  devices: string,
+}
+
+export type TLFMetadata = {
+  folderType: RPCTypes.FolderType,
+  meta: MetaType,
+  needsRekey: boolean,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
+}
 
 export type PathItemMetadata = {
   name: string,
@@ -17,7 +37,13 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   size: number,
   progress: ProgressType,
+  tlfMeta?: TLFMetadata,
 }
+
+export type _MinimalPathItem = {
+  name: string,
+} & TLFMetadata
+export type MinimalPathItem = I.RecordOf<_MinimalPathItem>
 
 export type _FolderPathItem = {
   type: 'folder',
@@ -110,6 +136,7 @@ export type _State = {
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
+  badges: I.Map<Path, number>,
 }
 export type State = I.RecordOf<_State>
 
@@ -261,22 +288,20 @@ export type ItemStyles = {
   textType: TextType,
 }
 
-export type MetaType = 'new' | 'rekey' | 'ignored' | null
-
-export type Device = {
-  type: Devices.DeviceType,
-  name: string,
-  deviceID: string,
-}
-
-export type ParticipantUnlock = {
-  name: string,
-  devices: string,
-}
-
 export type FolderRPCWithMeta = {
-  ...RPCTypes.Folder,
   meta: MetaType,
+  needsRekey: boolean,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
+} & RPCTypes.Folder
+
+export type FavoriteBadges = {
+  '/keybase/private': number,
+  '/keybase/public': number,
+  '/keybase/team': number,
+}
+
+export type FavoriteFolder = {
+  name: string,
+  tlfMeta: TLFMetadata,
 }

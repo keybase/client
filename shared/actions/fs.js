@@ -21,12 +21,23 @@ import {
 import {isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
+import {FolderTypeToString} from '../constants/rpc'
+import {findKey} from 'lodash'
 
-const _jsonToFolders = (json: Object, myKID: any): Array<Types.FolderRPCWithMeta> => {
-  const folderSets = [json.favorites, json.ignored, json.new]
-  const fillFolder = folder => {
+// Take the parsed JSON from kbfs/favorite/list, and populate an array of
+// Types.FolderRPCWithMeta with the appropriate metadata:
+//
+// 1) Is this favorite ignored or new?
+// 2) Does it need a rekey?
+//
+const _fillMetadataInFavoritesResult = (
+  favoritesResult: Object,
+  myKID: any
+): Array<Types.FolderRPCWithMeta> => {
+  const fillFolder = meta => folder => {
     folder.waitingForParticipantUnlock = []
     folder.youCanUnlock = []
+    folder.meta = meta
 
     if (!folder.problem_set) {
       return
@@ -34,23 +45,23 @@ const _jsonToFolders = (json: Object, myKID: any): Array<Types.FolderRPCWithMeta
 
     const solutions = folder.problem_set.solution_kids || {}
     if (Object.keys(solutions).length) {
-      folder.meta = 'rekey'
+      folder.needsRekey = true
     }
 
     if (folder.problem_set.can_self_help) {
       const mySolutions = solutions[myKID] || []
       folder.youCanUnlock = mySolutions.map(kid => {
-        const device = json.devices[kid]
+        const device = favoritesResult.devices[kid]
         return {...device, deviceID: kid}
       })
     } else {
       folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
-        const devices = solutions[userID].map(kid => json.devices[kid].name)
+        const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
         const numDevices = devices.length
         const last = numDevices > 1 ? devices.pop() : null
 
         return {
-          name: json.users[userID],
+          name: favoritesResult.users[userID],
           devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
             last ? ` or ${last}` : ''
           }.`,
@@ -59,60 +70,79 @@ const _jsonToFolders = (json: Object, myKID: any): Array<Types.FolderRPCWithMeta
     }
   }
 
-  folderSets.forEach(folders => folders.forEach(fillFolder))
-  return flatten(folderSets)
+  favoritesResult.favorites.forEach(fillFolder(null))
+  favoritesResult.ignored.forEach(fillFolder('ignored'))
+  favoritesResult.new.forEach(fillFolder('new'))
+  return [...favoritesResult.favorites, ...favoritesResult.ignored, ...favoritesResult.new]
+}
+
+function _folderToPathItems(txt: string = '', username: string, loggedIn: boolean) {
+  let favoritesResult
+  let badges = {
+    '/keybase/private': 0,
+    '/keybase/public': 0,
+    '/keybase/team': 0,
+  }
+  try {
+    favoritesResult = JSON.parse(txt)
+  } catch (err) {
+    logger.warn('Invalid json from getFavorites: ', err)
+    return {
+      badges: badges,
+      folders: I.Map(),
+    }
+  }
+
+  const myKID = findKey(favoritesResult.users, name => name === username)
+
+  // figure out who can solve the rekey
+  const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
+  const favoriteFolders = folders.map(
+    ({name, folderType, meta, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
+      const folderTypeString = FolderTypeToString(folderType)
+      if (meta === 'new') {
+        badges['/keybase/' + folderTypeString] += 1
+      }
+      return [
+        // key
+        Types.stringToPath(`/keybase/${folderTypeString}/{name}`),
+        // value
+        {
+          name,
+          tlfMeta: {
+            folderType,
+            meta,
+            needsRekey,
+            waitingForParticipantUnlock,
+            youCanUnlock,
+          },
+        },
+      ]
+    }
+  )
+
+  return {
+    badges: badges,
+    folders: I.Map(favoriteFolders),
+  }
 }
 
 // TODO: unexport once it's used.
-// TODO: hook up PathItems
-export function _getFavoritesRPCToFiles(
-  txt: string,
-  username: string = '',
-  loggedIn: boolean
-): Array<Types.FolderRPCWithMeta> {
-  let json
+export function* _listFavoritesSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
   try {
-    json = JSON.parse(txt)
-  } catch (err) {
-    logger.warn('Invalid json from getFavorites: ', err)
-    return []
-  }
-
-  const myKID = findKey(json.users, name => name === username)
-
-  // inject our meta tag
-  json.favorites && json.favorites.forEach(injectMeta(null))
-  json.ignored && json.ignored.forEach(injectMeta('ignored'))
-  json.new && json.new.forEach(injectMeta('new'))
-
-  // figure out who can solve the rekey
-  const folders: Array<FolderRPCWithMeta> = _jsonToFolders(json, myKID)
-
-  // Ensure private/public folders exist for us
-  if (username && loggedIn) {
-    ;[true, false].forEach(isPrivate => {
-      const idx = folders.findIndex(f => f.name === username && f.private === isPrivate)
-      let toAdd = {
-        meta: null,
-        name: username,
-        private: isPrivate,
-        notificationsOn: false,
-        created: false,
-        waitingForParticipantUnlock: [],
-        youCanUnlock: [],
-        folderType: isPrivate ? RPCTypes.favoriteFolderType.private : RPCTypes.favoriteFolderType.public,
-      }
-
-      if (idx !== -1) {
-        toAdd = folders[idx]
-        folders.splice(idx, 1)
-      }
-
-      folders.unshift(toAdd)
+    const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+      args: [{key: 'problems', value: '1'}],
+      endpoint: 'kbfs/favorite/list',
     })
-  }
+    const username = state.config.username || ''
+    const loggedIn = state.config.loggedIn
+    const foldersAndBadges = _folderToPathItems(results && results.body, username, loggedIn)
 
-  return folders
+    yield Saga.put(FsGen.createFavoritesLoaded(foldersAndBadges))
+  } catch (e) {
+    logger.warn('Error listing favorites:', e)
+  }
 }
 
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {

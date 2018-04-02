@@ -29,14 +29,23 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         }
         return true
       })
+      // We use mergeDeepIn so that we don't override the existing values in
+      // our state for keys that aren't present in the new object.
+      // This is useful when we calculate metadata for favorites:
+      //   e.g. meta: 'new' | 'ignored'
+      //        needsRekey: boolean
       return state
-        .mergeIn(['pathItems'], toMerge)
+        .mergeDeepIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
+    case FsGen.favoritesLoaded:
+      const {badges, folders} = action.payload
+      return state.mergeDeepIn('pathItems', folders).mergeIn('badges', badges)
     case FsGen.sortSetting:
-      return state.setIn(['pathUserSettings', action.payload.path, 'sort'], action.payload.sortSetting)
+      const {path, sortSetting} = action.payload
+      return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
       const item = state.pathItems.get(path)
