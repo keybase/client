@@ -46,7 +46,7 @@ function _setupPinentryHandlers() {
 function _onNewPinentry(action: PinentryGen.NewPinentryPayload) {
   return Saga.put(
     PinentryGen.createReplaceEntity({
-      entities: I.Map([[String(action.payload.sessionID), action.payload]]),
+      entities: I.Map([[action.payload.sessionID, action.payload]]),
       keyPath: ['sessionIDToPinentry'],
     })
   )
