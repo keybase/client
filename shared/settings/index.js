@@ -25,6 +25,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   isModal: stateProps.isModal,
   selectedTab: stateProps.selectedTab,
+  ...dispatchProps,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)
