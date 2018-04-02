@@ -55,6 +55,7 @@ class RetentionPicker extends React.Component<Props, State> {
     showMenu: false,
   }
   _timeoutID: TimeoutID
+  _showSaved: boolean
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -75,16 +76,18 @@ class RetentionPicker extends React.Component<Props, State> {
     }
     const onConfirm = () => {
       this.props.setRetentionPolicy(selected)
-      this._setSaving()
     }
     const onCancel = this._init
     if (decreased) {
       // show warning
+      this._showSaved = false
       this.props.onShowWarning(policyToDays(selected, this.props.teamPolicy), onConfirm, onCancel)
       return
     }
     // set immediately
     onConfirm()
+    this._showSaved = true
+    this._setSaving()
   }
 
   _onSelect = (selected: RetentionPolicy) => {
@@ -98,6 +101,11 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   _setJustSaved = () => {
+    if (!this._showSaved) {
+      // Don't show if we went through the confirmation dialog flow
+      this._setSame()
+      return
+    }
     this.setState({saveState: 'justSaved'})
     this.props.clearTimeout(this._timeoutID)
     this._timeoutID = this.props.setTimeout(() => {
