@@ -17,7 +17,7 @@ export type Props = {
   toggleChannelWide: () => void,
 }
 
-const SaveStateComponent = ({saveState}) => {
+export const SaveStateComponent = ({saveState}: {saveState: SaveStateType}) => {
   switch (saveState) {
     case 'same':
       return null
