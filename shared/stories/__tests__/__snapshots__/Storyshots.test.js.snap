@@ -861,11 +861,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (mute
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       />
@@ -1563,11 +1563,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       >
@@ -2281,11 +2281,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       >
@@ -2981,11 +2981,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       />
@@ -49820,7 +49820,6 @@ exports[`Storyshots Teams/Retention Adhoc 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -50012,7 +50011,6 @@ exports[`Storyshots Teams/Retention Automatically show warning / set policy 1`] 
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -50216,7 +50214,6 @@ exports[`Storyshots Teams/Retention Big team 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -50415,7 +50412,6 @@ exports[`Storyshots Teams/Retention Channel 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -50859,7 +50855,6 @@ exports[`Storyshots Teams/Retention Channel inheriting 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -51046,7 +51041,6 @@ exports[`Storyshots Teams/Retention Non-admin channel 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 2,
-              "marginTop": 16,
             }
           }
         >
@@ -51168,7 +51162,6 @@ exports[`Storyshots Teams/Retention Non-admin channel inherit 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 2,
-              "marginTop": 16,
             }
           }
         >
@@ -51290,7 +51283,6 @@ exports[`Storyshots Teams/Retention Non-admin small team 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 2,
-              "marginTop": 16,
             }
           }
         >
@@ -51412,7 +51404,6 @@ exports[`Storyshots Teams/Retention Non-admin team-wide 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 2,
-              "marginTop": 16,
             }
           }
         >
@@ -51539,7 +51530,6 @@ exports[`Storyshots Teams/Retention Small team 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
