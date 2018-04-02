@@ -385,6 +385,14 @@ func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKey
 	}, nil
 }
 
+func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoot, pukSeed libkb.PerUserKeySeed) (sig string, boxes []keybase1.UserEkBoxMetadata, newMetadata keybase1.UserEkMetadata, myBox *keybase1.UserEkBoxed, err error) {
+	signingKey, err := pukSeed.DeriveSigningKey()
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	return prepareNewUserEK(ctx, e.G(), merkleRoot, signingKey)
+}
+
 func (e *EKLib) OnLogin() error {
 	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(context.Background()) {
