@@ -1,0 +1,32 @@
+// @flow
+import {Component} from 'react'
+import * as React from 'react'
+import * as Types from '../../constants/types/teams'
+
+export type RowProps = {
+  canShowcase: boolean,
+  name: Types.Teamname,
+  isOpen: boolean,
+  membercount: number,
+  onPromote: (promote: boolean) => void,
+  showcased: boolean,
+  waiting: boolean,
+  isExplicitMember: boolean,
+}
+
+export type Props = {
+  customComponent?: ?React.Node,
+  headerStyle?: ?Object,
+  onBack: () => void,
+  onCancel?: () => void,
+  onPromote: (name: Types.Teamname, promote: boolean) => void,
+  teammembercounts: {[string]: number},
+  teamnames: Array<Types.Teamname>,
+  teamNameToIsOpen: {[string]: boolean},
+  teamNameToAllowPromote: {[string]: boolean},
+  teamNameToIsShowcasing: {[string]: boolean},
+  teamNameToRole: {[string]: boolean},
+  waiting: {[string]: number},
+}
+
+export default class ShowcaseTeamOffer extends Component<Props> {}

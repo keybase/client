@@ -31,6 +31,7 @@ type Syncer struct {
 	flushCh           chan struct{}
 	notificationQueue map[string][]chat1.ConversationStaleUpdate
 	fullReload        map[string]bool
+	lastLoadedConv    chat1.ConversationID
 }
 
 func NewSyncer(g *globals.Context) *Syncer {
@@ -125,7 +126,7 @@ func (s *Syncer) sendNotificationLoop() {
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
-		case state := <-s.G().AppState.NextUpdate():
+		case state := <-s.G().AppState.NextUpdate(nil):
 			// If we receive an update that app state has moved to the foreground, then trigger
 			// flushing these notifications
 			if state == keybase1.AppState_FOREGROUND {
@@ -255,6 +256,31 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversation,
+	topicNameChanged []chat1.ConversationID) (res []chat1.Conversation) {
+	m := make(map[string]bool)
+	for _, t := range topicNameChanged {
+		m[t.String()] = true
+	}
+	for _, conv := range convs {
+		include := false
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			// include if this is a simple team, or the topic name has changed
+			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
+				conv.GetConvID().Eq(s.lastLoadedConv) {
+				include = true
+			}
+		default:
+			include = true
+		}
+		if include {
+			res = append(res, conv)
+		}
+	}
+	return res
+}
+
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	if !s.isConnected {
@@ -340,7 +366,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 			} else {
 				// Send notifications for a successful partial sync
-				convs := utils.PresentRemoteConversations(utils.RemoteConvs(incr.Convs))
+				convs := utils.PresentRemoteConversations(
+					utils.RemoteConvs(s.filterNotifyConvs(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)))
 				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid,
 					chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
 						Items: convs,
@@ -363,4 +390,11 @@ func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
 	s.Lock()
 	defer s.Unlock()
 	s.offlinables = append(s.offlinables, offlinable)
+}
+
+func (s *Syncer) SelectConversation(ctx context.Context, convID chat1.ConversationID) {
+	s.Lock()
+	defer s.Unlock()
+	s.Debug(ctx, "SelectConversation: setting last loaded conv to: %s", convID)
+	s.lastLoadedConv = convID
 }

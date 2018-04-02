@@ -12,6 +12,7 @@ import ConfirmOrPending from './confirm-or-pending-container'
 import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile-container'
+import ShowcaseTeamOffer from './showcase-team-offer/container'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 
@@ -64,6 +65,11 @@ const profileRoute = makeRouteDefNode({
     search: {
       children: {},
       component: SearchPopup,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    showcaseTeamOffer: {
+      children: {},
+      component: ShowcaseTeamOffer,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     showcasedTeamInfo: {

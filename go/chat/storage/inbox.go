@@ -1256,11 +1256,24 @@ type InboxSyncRes struct {
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
 	Expunges           []InboxSyncResExpunge
+	TopicNameChanged   []chat1.ConversationID
 }
 
 type InboxSyncResExpunge struct {
 	ConvID  chat1.ConversationID
 	Expunge chat1.Expunge
+}
+
+func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Conversation) bool {
+	oldMsg, oldErr := oldConv.GetMaxMessage(chat1.MessageType_METADATA)
+	newMsg, newErr := newConv.GetMaxMessage(chat1.MessageType_METADATA)
+	if oldErr != nil && newErr != nil {
+		return false
+	}
+	if oldErr != newErr {
+		return true
+	}
+	return oldMsg.GetMessageID() != newMsg.GetMessageID()
 }
 
 func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
@@ -1302,6 +1315,10 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 					Expunge: newConv.Expunge,
 				})
 			}
+			if i.topicNameChanged(ctx, oldConv, newConv) {
+				res.TopicNameChanged = append(res.TopicNameChanged, newConv.Metadata.ConversationID)
+			}
+
 			ibox.Conversations[index].Conv = newConv
 			delete(convMap, conv.GetConvID().String())
 		}

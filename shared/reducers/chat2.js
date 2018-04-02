@@ -6,6 +6,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import {isMobile} from '../constants/platform'
+import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -96,13 +97,13 @@ const metaMapReducer = (metaMap, action) => {
           default:
             return metaMap.update(
               action.payload.conversationIDKey,
-              meta =>
-                meta
-                  ? meta.withMutations(m => {
+              old =>
+                old
+                  ? old.withMutations(m => {
                       m.set('trustedState', 'error')
                       m.set('snippet', error.message)
                     })
-                  : meta
+                  : old
             )
         }
       } else {
@@ -111,15 +112,29 @@ const metaMapReducer = (metaMap, action) => {
     }
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
+        const neverCreate = !!action.payload.neverCreate
         action.payload.metas.forEach(meta => {
-          const old = map.get(meta.conversationIDKey)
-          map.set(meta.conversationIDKey, old ? Constants.updateMeta(old, meta) : meta)
+          map.update(meta.conversationIDKey, old => {
+            if (old) {
+              return Constants.updateMeta(old, meta)
+            } else {
+              return neverCreate ? old : meta
+            }
+          })
         })
       })
     case Chat2Gen.inboxRefresh:
       return ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
         ? metaMap.clear()
         : metaMap
+    case Chat2Gen.updateConvRetentionPolicy:
+      const {conv} = action.payload
+      const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+      if (!newMeta) {
+        logger.warn('Invalid inboxUIItem received in conv retention policy update')
+        return metaMap
+      }
+      return metaMap.set(newMeta.conversationIDKey, newMeta)
     default:
       return metaMap
   }
@@ -590,6 +605,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaDelete:
     case Chat2Gen.metaUpdatePagination:
     case Chat2Gen.setConversationOffline:
+    case Chat2Gen.updateConvRetentionPolicy:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -618,6 +634,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.resetLetThemIn:
     case Chat2Gen.sendToPendingConversation:
     case Chat2Gen.sendTyping:
+    case Chat2Gen.setConvRetentionPolicy:
     case Chat2Gen.setupChatHandlers:
     case Chat2Gen.startConversation:
     case Chat2Gen.navigateToInbox:

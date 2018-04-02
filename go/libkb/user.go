@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
@@ -458,6 +459,12 @@ func (u *User) GetPublicChainTail() *MerkleTriple {
 
 func (u *User) IDTable() *IdentityTable {
 	return u.idTable
+}
+
+// Return the active stellar public address for a user.
+// Returns nil if there is none or it has not been loaded.
+func (u *User) StellarWalletAddress() *stellar1.AccountID {
+	return u.idTable.StellarWalletAddress()
 }
 
 func (u *User) sigChain() *SigChain {

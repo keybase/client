@@ -20,7 +20,8 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name: "balances",
+		Name:        "balances",
+		Description: "Show account balances",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)
 		},

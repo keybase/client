@@ -35,7 +35,7 @@ type Protocol struct {
 
 type protocolMap map[string]Protocol
 
-type seqNumber int
+type SeqNumber int
 
 type protocolHandler struct {
 	wef       WrapErrorFunc

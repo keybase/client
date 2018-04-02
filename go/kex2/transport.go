@@ -104,7 +104,7 @@ const sessionIDText = "Kex v2 Session ID"
 
 // NewConn establishes a Kex session based on the given secret. Will work for
 // both ends of the connection, regardless of which order the two started
-// their conntection. Will communicate with the other end via the given message router.
+// their connection. Will communicate with the other end via the given message router.
 // You can specify an optional timeout to cancel any reads longer than that timeout.
 func NewConn(ctx context.Context, lctx LogContext, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
 	mac := hmac.New(sha256.New, []byte(s[:]))

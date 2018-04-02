@@ -24,6 +24,7 @@ type NotificationChannels struct {
 	Badges       bool `codec:"badges" json:"badges"`
 	Reachability bool `codec:"reachability" json:"reachability"`
 	Team         bool `codec:"team" json:"team"`
+	Ephemeral    bool `codec:"ephemeral" json:"ephemeral"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -43,6 +44,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Badges:       o.Badges,
 		Reachability: o.Reachability,
 		Team:         o.Team,
+		Ephemeral:    o.Ephemeral,
 	}
 }
 

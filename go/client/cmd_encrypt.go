@@ -62,16 +62,6 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 	}
 
-	// TODO: This mode is now the default, and we're only retaining this flag
-	// for backwards compatibility with the docker tests. Remove it after the
-	// switchover is landed.
-	if libkb.DefaultRunMode == libkb.DevelRunMode {
-		flags = append(flags, cli.BoolFlag{
-			Name:  "signcrypt",
-			Usage: "TEMPORARY",
-		})
-	}
-
 	return cli.Command{
 		Name:         "encrypt",
 		ArgumentHelp: "<usernames...>",

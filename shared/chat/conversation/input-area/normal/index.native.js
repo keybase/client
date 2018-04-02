@@ -190,7 +190,9 @@ const styles = styleSheetCreate({
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
-    padding: 6,
+    paddingBottom: 6,
+    paddingRight: 6,
+    paddingTop: 6,
   },
   editingTabStyle: {
     ...globalStyles.flexBoxColumn,
@@ -200,7 +202,8 @@ const styles = styleSheetCreate({
   },
   input: {
     marginLeft: globalMargins.tiny,
-    padding: 6,
+    paddingBottom: 6,
+    paddingTop: 6,
     ...(isIOS
       ? {}
       : {

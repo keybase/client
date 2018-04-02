@@ -1556,15 +1556,6 @@ export const simpleFSPathType = {
   kbfs: 1,
 }
 
-export const stellarStellarAccountMode = {
-  none: 0,
-  user: 1,
-}
-
-export const stellarStellarBundleVersion = {
-  v1: 1,
-}
-
 export const teamsCanUserPerformRpcChannelMap = (configKeys: Array<string>, request: TeamsCanUserPerformRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.canUserPerform', request)
 
 export const teamsCanUserPerformRpcPromise = (request: TeamsCanUserPerformRpcParam): Promise<TeamsCanUserPerformResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.canUserPerform', request, (error: RPCError, result: TeamsCanUserPerformResult) => (error ? reject(error) : resolve(result))))
@@ -1952,7 +1943,7 @@ export type AccountPassphrasePromptRpcParam = $ReadOnly<{guiArg: GUIEntryArg, in
 
 export type AccountResetAccountRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean}>
+export type AnnotatedMemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, username: String, fullName: String, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, needsPUK: Boolean, memberCount: Int, eldestSeqno: Seqno, active: Boolean, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
 
 export type AnnotatedTeamInvite = $ReadOnly<{role: TeamRole, id: TeamInviteID, type: TeamInviteType, name: TeamInviteName, uv: UserVersion, inviter: UserVersion, inviterUsername: String, teamName: String, userActive: Boolean}>
 
@@ -2248,8 +2239,6 @@ export type EncryptedBytes32 = any
 
 export type EncryptedGitMetadata = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerTeamKeyGeneration}>
 
-export type EncryptedStellarBundle = $ReadOnly<{v: Int, e: Bytes, n: BoxNonce, gen: PerUserKeyGeneration}>
-
 export type ErrorNum = Int
 
 export type ExitCode =
@@ -2459,11 +2448,9 @@ export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason:
 
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
-export type Hash = Bytes
-
 export type HashMeta = Bytes
 
-export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes}>
+export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes, deviceEkKID: KID}>
 
 export type HelloRes = String
 
@@ -2651,7 +2638,7 @@ export type KbfsMountGetCurrentMountDirRpcParam = ?$ReadOnly<{incomingCallMap?: 
 
 export type KbfsMountSetCurrentMountDirRpcParam = $ReadOnly<{dir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, userEkBox?: ?UserEkBoxed, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type Kex2Provisionee2Hello2RpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2760,7 +2747,7 @@ export type MDPriority = Int
 
 export type MaskB64 = Bytes
 
-export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int}>
+export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String, isImplicitTeam: Boolean, isOpenTeam: Boolean, role: TeamRole, implicit?: ?ImplicitRole, memberCount: Int, allowProfilePromote: Boolean, isMemberShowcased: Boolean}>
 
 export type MerkleGetCurrentMerkleRootRpcParam = $ReadOnly<{freshnessMsec: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2844,13 +2831,15 @@ export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
 
-export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean}>
+export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean}>
 
 export type NotifyAppExitRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyBadgesBadgeStateRpcParam = $ReadOnly<{badgeState: BadgeState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyCtlSetNotificationsRpcParam = $ReadOnly<{channels: NotificationChannels, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type NotifyEphemeralNewTeamEkRpcParam = $ReadOnly<{id: TeamID, generation: EkGeneration, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifyFSFSActivityRpcParam = $ReadOnly<{notification: FSNotification, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3609,32 +3598,6 @@ export type StatusCode =
   | 3105 // SCStellarMissingAccount_3105
   | 3106 // SCStellarBadPrev_3106
 
-export type StellarAccountID = String
-
-export type StellarAccountMode =
-  | 0 // NONE_0
-  | 1 // USER_1
-
-export type StellarBundle = $ReadOnly<{revision: StellarRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<StellarEntry>}>
-
-export type StellarBundleSecretV1 = $ReadOnly<{visibleHash: Hash, accounts?: ?Array<StellarSecretEntry>}>
-
-export type StellarBundleSecretVersioned = {version: 1, v1: ?StellarBundleSecretV1}
-
-export type StellarBundleVersion = 1 // V1_1
-
-export type StellarBundleVisibleV1 = $ReadOnly<{revision: StellarRevision, prev: Hash, accounts?: ?Array<StellarVisibleEntry>}>
-
-export type StellarEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, isPrimary: Boolean, signers?: ?Array<StellarSecretKey>, name: String}>
-
-export type StellarRevision = Uint64
-
-export type StellarSecretEntry = $ReadOnly<{accountID: StellarAccountID, signers?: ?Array<StellarSecretKey>, name: String}>
-
-export type StellarSecretKey = String
-
-export type StellarVisibleEntry = $ReadOnly<{accountID: StellarAccountID, mode: StellarAccountMode, isPrimary: Boolean}>
-
 export type Stream = $ReadOnly<{fd: Int}>
 
 export type StreamUiCloseRpcParam = $ReadOnly<{s: Stream, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3712,6 +3675,8 @@ export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration:
 
 export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
 
+export type TeamEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientUID: UID}>
+
 export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
 
 export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
@@ -3780,7 +3745,7 @@ export type TeamNamePart = String
 
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 
-export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
+export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
 
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
 
@@ -4000,6 +3965,8 @@ export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
+
+export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 
@@ -4315,6 +4282,7 @@ export type IncomingCallMapType = {
   'keybase.1.logsend.prepareLogsend'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyApp.exit'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyBadges.badgeState'?: (params: $ReadOnly<{badgeState: BadgeState}>) => void,
+  'keybase.1.NotifyEphemeral.newTeamEk'?: (params: $ReadOnly<{id: TeamID, generation: EkGeneration}>) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: $ReadOnly<{uid: UID}>) => void,
   'keybase.1.NotifyFS.FSActivity'?: (params: $ReadOnly<{notification: FSNotification}>) => void,
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: $ReadOnly<{status: FSPathSyncStatus}>, response: CommonResponseHandler) => void,

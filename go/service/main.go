@@ -329,6 +329,8 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
+	d.runBackgroundWalletInit()
+	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
 	go d.identifySelf()
 }
@@ -486,6 +488,7 @@ func (d *Service) startupGregor() {
 
 		d.gregor.PushHandler(newTeamHandler(d.G(), d.badger))
 		d.gregor.PushHandler(d.home)
+		d.gregor.PushHandler(newEKHandler(d.G()))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
@@ -551,23 +554,17 @@ func (d *Service) hourlyChecks() {
 		if err := d.G().LogoutIfRevoked(); err != nil {
 			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 		}
-		// TODO remove this when we want to release in the wild.
-		if ephemeral.ShouldRun(d.G()) {
-			ekLib := d.G().GetEKLib()
-			ekLib.KeygenIfNeeded(context.Background())
-		}
+		ekLib := d.G().GetEKLib()
+		ekLib.KeygenIfNeeded(context.Background())
 		for {
 			<-ticker.C
 			d.G().Log.Debug("+ hourly check loop")
 			d.G().Log.Debug("| checking tracks on an hour timer")
 			libkb.CheckTracking(d.G())
 
-			// TODO remove this when we want to release in the wild.
-			if ephemeral.ShouldRun(d.G()) {
-				ekLib := d.G().GetEKLib()
-				d.G().Log.Debug("| checking if ephemeral keys need to be created or deleted")
-				ekLib.KeygenIfNeeded(context.Background())
-			}
+			ekLib := d.G().GetEKLib()
+			d.G().Log.Debug("| checking if ephemeral keys need to be created or deleted")
+			ekLib.KeygenIfNeeded(context.Background())
 			d.G().Log.Debug("| checking if current device revoked")
 			if err := d.G().LogoutIfRevoked(); err != nil {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
@@ -678,6 +675,40 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping per-user-key background upkeep")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundWalletInit() {
+	eng := engine.NewWalletInitBackground(d.G(), &engine.WalletInitBackgroundArgs{})
+	go func() {
+		ectx := &engine.Context{NetContext: context.Background()}
+		err := engine.RunEngine(eng, ectx)
+		if err != nil {
+			d.G().Log.Warning("background WalletInit error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background WalletInit")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundWalletUpkeep() {
+	eng := engine.NewWalletUpkeepBackground(d.G(), &engine.WalletUpkeepBackgroundArgs{})
+	go func() {
+		ectx := &engine.Context{NetContext: context.Background()}
+		err := engine.RunEngine(eng, ectx)
+		if err != nil {
+			d.G().Log.Warning("background WalletUpkeep error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background WalletUpkeep")
 		eng.Shutdown()
 		return nil
 	})

@@ -1350,7 +1350,8 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		ret.LeaveTeam = leaveTeam
 	}
 
-	ret.CreateChannel = isWriter()
+	writer := isWriter()
+	ret.CreateChannel = writer
 
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
@@ -1358,9 +1359,11 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	}
 
 	ret.DeleteChannel = admin
-	ret.RenameChannel = isWriter()
-	ret.EditChannelDescription = isWriter()
+	ret.RenameChannel = writer
+	ret.EditChannelDescription = writer
 	ret.DeleteChatHistory = admin
+	ret.SetRetentionPolicy = admin
+	ret.Chat = isRoleOrAbove(keybase1.TeamRole_READER)
 
 	return ret, err
 }

@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -17,13 +16,6 @@ func ephemeralKeyTestSetup(t *testing.T) libkb.TestContext {
 	NewEphemeralStorageAndInstall(tc.G)
 
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
-	require.NoError(t, err)
-
-	// The test user has a PUK, but it's not automatically loaded. We have to
-	// explicitly sync it.
-	keyring, err := tc.G.GetPerUserKeyring()
-	require.NoError(t, err)
-	err = keyring.Sync(context.Background())
 	require.NoError(t, err)
 
 	return tc

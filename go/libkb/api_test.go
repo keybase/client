@@ -30,8 +30,8 @@ func TestIsReddit(t *testing.T) {
 }
 
 const (
-	uriExpected  = "https://api.keybase.io"
-	pingExpected = "https://api.keybase.io/_/api/1.0/ping.json"
+	uriExpected  = "https://api-0.core.keybaseapi.com"
+	pingExpected = "https://api-0.core.keybaseapi.com/_/api/1.0/ping.json"
 )
 
 func TestProductionCA(t *testing.T) {

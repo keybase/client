@@ -61,6 +61,8 @@ const (
 	PromptDescriptorDeleteSubteam
 	PromptDescriptorChatDeleteHistory
 	PromptDescriptorChatSetRetention
+	PromptDescriptorImportStellarSecretKey
+	PromptDescriptorConfirmStellarImport
 )
 
 const (
