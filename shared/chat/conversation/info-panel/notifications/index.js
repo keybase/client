@@ -164,7 +164,7 @@ const styleRadioButton = {
 
 const styleSaveState = {
   ...globalStyles.flexBoxRow,
-  height: globalMargins.large,
+  height: globalMargins.medium,
   justifyContent: 'center',
-  paddingTop: globalMargins.small,
+  alignItems: 'center',
 }

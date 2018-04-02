@@ -245,7 +245,6 @@ const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
 const headingStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  marginTop: globalMargins.small,
   marginBottom: globalMargins.tiny,
 }
 
@@ -284,9 +283,10 @@ const progressIndicatorStyle = {
 
 const saveStateStyle = {
   ...globalStyles.flexBoxRow,
-  height: globalMargins.large,
+  height: 17,
   justifyContent: 'center',
-  paddingTop: globalMargins.small,
+  alignItems: 'center',
+  marginTop: globalMargins.tiny,
 }
 
 // Utilities for transforming retention policies <-> labels
