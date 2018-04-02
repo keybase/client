@@ -444,7 +444,7 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
-func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
+func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
 	if s, err := jsonparser.GetString(payload, "body", "key", "fingerprint"); err == nil {
 		if tmp.pgpFingerprint, err = PGPFingerprintFromHex(s); err != nil {
 			return err
@@ -527,8 +527,8 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
 	}
 
 	tmp.etime = tmp.ctime + ei
-	h := sha256.Sum256(payload)
-	tmp.payloadHash = h[:]
+
+	tmp.payloadHash = fixAndHashPayload(g, payload, tmp.sigID)
 
 	if tmp.sigVersion == 2 {
 		tmp.payloadV2 = payload
@@ -539,7 +539,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payload []byte) error {
 
 func (c *ChainLink) UnpackLocal(payload []byte) (err error) {
 	tmp := ChainLinkUnpacked{}
-	err = tmp.unpackPayloadJSON(payload)
+	err = tmp.unpackPayloadJSON(c.G(), payload)
 	if err == nil {
 		tmp.payloadLocal = payload
 		c.unpacked = &tmp
@@ -660,7 +660,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID, packed []byte) er
 	}
 
 	// unpack the payload
-	if err := tmp.unpackPayloadJSON(payload); err != nil {
+	if err := tmp.unpackPayloadJSON(c.G(), payload); err != nil {
 		c.G().Log.Debug("unpack payload json err: %s", err)
 		return err
 	}
@@ -843,10 +843,33 @@ func (c *ChainLink) fixPayload(payload []byte, sigID keybase1.SigID) []byte {
 	if s, ok := badWhitespaceChainLinks[sigID]; ok {
 		if payload[len(payload)-1] != '\n' {
 			c.G().Log.Debug("Fixing payload by adding newline on link '%s': %s", sigID, s)
-			return append(payload, '\n')
+
+			// Careful not to mutate the passed in payload via append. So make
+			// a copy first.
+			ret := make([]byte, len(payload))
+			copy(ret, payload)
+			ret = append(ret, '\n')
+
+			return ret
 		}
 	}
 	return payload
+}
+
+// fixAndHashPayload does the inverse of ChainLink#fixPayload. It strips off a trailing
+// newline for buggy signature payloads, and then computes the hash of the result. This is
+// necessary now that we are computing chain link IDs from signature bodies.
+func fixAndHashPayload(g *GlobalContext, payload []byte, sigID keybase1.SigID) []byte {
+	toHash := payload
+	if s, ok := badWhitespaceChainLinks[sigID]; ok {
+		last := len(payload) - 1
+		if payload[last] == '\n' {
+			g.Log.Debug("Fixing payload hash by stripping newline on link '%s': %s", sigID, s)
+			toHash = payload[0:last]
+		}
+	}
+	ret := sha256.Sum256(toHash)
+	return ret[:]
 }
 
 func (c *ChainLink) getSigPayload() ([]byte, error) {
