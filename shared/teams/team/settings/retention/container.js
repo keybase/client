@@ -31,6 +31,7 @@ export type OwnProps = {
   containerStyle?: StylesCrossPlatform,
   dropdownStyle?: StylesCrossPlatform,
   entityType: RetentionEntityType,
+  showSaveState?: boolean,
   teamname?: string,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,

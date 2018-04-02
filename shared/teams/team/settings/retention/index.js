@@ -14,6 +14,7 @@ import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
+import {type SaveStateType} from '../../../../chat/conversation/info-panel/notifications'
 import {type RetentionEntityType} from './container'
 
 export type Props = {
@@ -25,6 +26,7 @@ export type Props = {
   loading: boolean, // for when we're waiting to fetch the team policy
   showInheritOption: boolean,
   showOverrideNotice: boolean,
+  showSaveState: boolean,
   type: 'simple' | 'auto',
   setRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
@@ -33,6 +35,7 @@ export type Props = {
 }
 
 type State = {
+  saveState: SaveStateType,
   selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
@@ -40,6 +43,7 @@ type State = {
 
 class RetentionPicker extends React.Component<Props, State> {
   state = {
+    saveState: 'same',
     selected: retentionPolicies.policyRetain,
     items: [],
     showMenu: false,

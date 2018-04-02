@@ -19,6 +19,11 @@ const actions = {
   onShowWarning: action('onShowWarning'),
 }
 
+const commonProps = {
+  loading: false,
+  showSaveState: false,
+}
+
 const onClick = action('onClick')
 const onHidden = action('onHidden')
 const teamWideItems = [
@@ -30,7 +35,6 @@ const teamWideItems = [
   {title: 'Keep forever', onClick},
 ]
 const channelItems = [{title: 'Use team default (30 days)', onClick}, ...teamWideItems]
-
 const load = () => {
   storiesOf('Teams/Retention', module)
     .addDecorator(story => (
@@ -42,10 +46,10 @@ const load = () => {
         canSetPolicy={true}
         policy={policy30Days}
         teamPolicy={policyRetain}
-        loading={false}
         showInheritOption={true}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -54,10 +58,10 @@ const load = () => {
         entityType="big team"
         canSetPolicy={true}
         policy={policy30Days}
-        loading={false}
         showInheritOption={false}
         showOverrideNotice={true}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -66,10 +70,10 @@ const load = () => {
         entityType="small team"
         canSetPolicy={true}
         policy={policyRetain}
-        loading={false}
         showInheritOption={false}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -78,10 +82,10 @@ const load = () => {
         entityType="adhoc"
         canSetPolicy={true}
         policy={policy30Days}
-        loading={false}
         showInheritOption={false}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -91,10 +95,10 @@ const load = () => {
         canSetPolicy={true}
         policy={policyInherit}
         teamPolicy={policy30Days}
-        loading={false}
         showInheritOption={true}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -104,10 +108,10 @@ const load = () => {
         canSetPolicy={true}
         policy={policyInherit}
         teamPolicy={policy30Days}
-        loading={false}
         showInheritOption={true}
         showOverrideNotice={false}
         type="auto"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -116,10 +120,10 @@ const load = () => {
         entityType="big team"
         canSetPolicy={false}
         policy={policy30Days}
-        loading={false}
         showInheritOption={false}
         showOverrideNotice={true}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -129,10 +133,10 @@ const load = () => {
         canSetPolicy={false}
         policy={policy30Days}
         teamPolicy={policyRetain}
-        loading={false}
         showInheritOption={true}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -142,10 +146,10 @@ const load = () => {
         canSetPolicy={false}
         policy={policyInherit}
         teamPolicy={policy7Days}
-        loading={false}
         showInheritOption={true}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
@@ -154,10 +158,10 @@ const load = () => {
         entityType="small team"
         canSetPolicy={false}
         policy={policy7Days}
-        loading={false}
         showInheritOption={false}
         showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
