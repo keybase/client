@@ -58,7 +58,7 @@ func serverMaxDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot l
 }
 
 func publishNewDeviceEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata keybase1.DeviceEkMetadata, err error) {
-	defer g.CTrace(ctx, "PublishNewDeviceEK", func() error { return err })()
+	defer g.CTrace(ctx, "publishNewDeviceEK", func() error { return err })()
 
 	seed, err := newDeviceEphemeralSeed()
 	if err != nil {
@@ -113,7 +113,24 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		return metadata, err
 	}
 
-	metadata = keybase1.DeviceEkMetadata{
+	// Sign the statement blob with the device's long term signing key.
+	signingKey, err := g.ActiveDevice.SigningKey()
+	if err != nil {
+		return metadata, err
+	}
+
+	statement, signedStatement, err := signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, merkleRoot)
+
+	err = postNewDeviceEK(ctx, g, signedStatement)
+	if err != nil {
+		return metadata, err
+	}
+
+	return statement.CurrentDeviceEkMetadata, nil
+}
+
+func signDeviceEKStatement(generation keybase1.EkGeneration, dhKeypair *libkb.NaclDHKeyPair, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata, merkleRoot libkb.MerkleRoot) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+	metadata := keybase1.DeviceEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   merkleRoot.HashMeta(),
@@ -122,32 +139,18 @@ func signAndPublishDeviceEK(ctx context.Context, g *libkb.GlobalContext, generat
 		// extra round trip.
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
-	statement := keybase1.DeviceEkStatement{
+	statement = keybase1.DeviceEkStatement{
 		CurrentDeviceEkMetadata:  metadata,
 		ExistingDeviceEkMetadata: existingMetadata,
 	}
 
 	statementJSON, err := json.Marshal(statement)
 	if err != nil {
-		return metadata, err
+		return statement, signedStatement, err
 	}
 
-	// Sign the statement blob with the device's long term signing key.
-	signingKey, err := g.ActiveDevice.SigningKey()
-	if err != nil {
-		return metadata, err
-	}
-	signedPacket, _, err := signingKey.SignToString(statementJSON)
-	if err != nil {
-		return metadata, err
-	}
-
-	err = postNewDeviceEK(ctx, g, signedPacket)
-	if err != nil {
-		return metadata, err
-	}
-
-	return metadata, nil
+	signedStatement, _, err = signingKey.SignToString(statementJSON)
+	return statement, signedStatement, err
 }
 
 type deviceEKStatementResponse struct {

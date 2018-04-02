@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/stellar"
 )
 
 // loginProvision is an engine that will provision the current
@@ -143,6 +144,10 @@ func (e *loginProvision) Run(ctx *Context) error {
 
 	// check to make sure local files stored correctly
 	e.verifyLocalStorage()
+
+	go func() {
+		stellar.InitWalletSoft(context.Background(), e.G())
+	}()
 
 	return nil
 }

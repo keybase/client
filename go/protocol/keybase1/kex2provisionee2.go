@@ -11,12 +11,14 @@ import (
 type Hello2Res struct {
 	EncryptionKey KID      `codec:"encryptionKey" json:"encryptionKey"`
 	SigPayload    HelloRes `codec:"sigPayload" json:"sigPayload"`
+	DeviceEkKID   KID      `codec:"deviceEkKID" json:"deviceEkKID"`
 }
 
 func (o Hello2Res) DeepCopy() Hello2Res {
 	return Hello2Res{
 		EncryptionKey: o.EncryptionKey.DeepCopy(),
 		SigPayload:    o.SigPayload.DeepCopy(),
+		DeviceEkKID:   o.DeviceEkKID.DeepCopy(),
 	}
 }
 
@@ -45,6 +47,7 @@ type DidCounterSign2Arg struct {
 	Sig          []byte         `codec:"sig" json:"sig"`
 	PpsEncrypted string         `codec:"ppsEncrypted" json:"ppsEncrypted"`
 	PukBox       *PerUserKeyBox `codec:"pukBox,omitempty" json:"pukBox,omitempty"`
+	UserEkBox    *UserEkBoxed   `codec:"userEkBox,omitempty" json:"userEkBox,omitempty"`
 }
 
 type Kex2Provisionee2Interface interface {

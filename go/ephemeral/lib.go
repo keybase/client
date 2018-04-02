@@ -53,10 +53,25 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	return nil
 }
 
+// We should wrap any entry points to the library with this before we're ready
+// to fully release it.
+func (e *EKLib) ShouldRun(ctx context.Context) bool {
+	g := e.G()
+	willRun := g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+	if !willRun {
+		e.G().Log.CWarningf(ctx, "EKLib skipping run, set KEYBASE_FEATURES=ephemeral to enable this feature during development")
+	}
+	return willRun
+}
+
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	e.Lock()
 	defer e.Unlock()
 
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(ctx) {
+		return nil
+	}
 	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return err
 	}
@@ -317,11 +332,72 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 	return teamEK, nil
 }
 
+func (e *EKLib) NewEphemeralSeed() (seed keybase1.Bytes32, err error) {
+	return makeNewRandomSeed()
+}
+
+func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
+	deviceEKSeed := DeviceEKSeed(seed)
+	return deviceEKSeed.DeriveDHKey()
+}
+
+func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return statement, signedStatement, err
+	}
+	dhKeypair := e.DeriveDeviceDHKey(seed)
+	return signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, *merkleRootPtr)
+}
+
+// For device provisioning
+func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(ctx) {
+		return nil, nil
+	}
+
+	// Let's make sure we are up to date with keys first and we have the latest userEK cached.
+	if err = e.KeygenIfNeeded(ctx); err != nil {
+		return nil, err
+	}
+
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(ctx)
+	if err != nil {
+		return nil, err
+	} else if maxGeneration < 0 {
+		e.G().Log.CWarningf(ctx, "No userEK found")
+		return nil, nil
+	}
+	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration)
+	if err != nil {
+		return nil, err
+	}
+	box, err := receiverKey.EncryptToString(userEK.Seed[:], nil)
+	if err != nil {
+		return nil, err
+	}
+	return &keybase1.UserEkBoxed{
+		Box:                box,
+		DeviceEkGeneration: deviceEKGeneration,
+		Metadata:           userEK.Metadata,
+	}, nil
+}
+
 func (e *EKLib) OnLogin() error {
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(context.Background()) {
+		return nil
+	}
 	return e.KeygenIfNeeded(context.Background())
 }
 
 func (e *EKLib) OnLogout() error {
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(context.Background()) {
+		return nil
+	}
 	deviceEKStorage := e.G().GetDeviceEKStorage()
 	if deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()

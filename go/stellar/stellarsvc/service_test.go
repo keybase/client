@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
+	"github.com/stellar/go/keypair"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,7 +58,6 @@ func TestCreateWallet(t *testing.T) {
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
 	require.NoError(t, err)
 	addr := u0.StellarWalletAddress()
-	require.NoError(t, err)
 	t.Logf("Found account: %v", addr)
 	_, err = libkb.MakeNaclSigningKeyPairFromStellarAccountID(*addr)
 	require.NoError(t, err, "stellar key should be nacl pubable")
@@ -103,6 +103,53 @@ func TestUpkeep(t *testing.T) {
 	require.Equal(t, 2, int(bundle.Revision))
 }
 
+func TestImport(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_, err := CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	a1, s1 := randomStellarKeypair()
+	err = ImportSecretKey(context.Background(), tcs[0].G, s1, false)
+	require.NoError(t, err)
+
+	err = ImportSecretKey(context.Background(), tcs[0].G, s1, false)
+	require.Error(t, err)
+
+	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
+	require.NoError(t, err)
+	addr := u0.StellarWalletAddress()
+	require.False(t, a1.Eq(*addr))
+
+	a2, s2 := randomStellarKeypair()
+	own, err := OwnAccount(context.Background(), tcs[0].G, a2)
+	require.NoError(t, err)
+	require.False(t, own)
+
+	err = ImportSecretKey(context.Background(), tcs[0].G, s2, true)
+	require.NoError(t, err)
+
+	u0, err = tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
+	require.NoError(t, err)
+	addr = u0.StellarWalletAddress()
+	require.False(t, a1.Eq(*addr))
+
+	err = ImportSecretKey(context.Background(), tcs[0].G, s2, true)
+	require.Error(t, err)
+
+	own, err = OwnAccount(context.Background(), tcs[0].G, a1)
+	require.NoError(t, err)
+	require.True(t, own)
+	own, err = OwnAccount(context.Background(), tcs[0].G, a2)
+	require.NoError(t, err)
+	require.True(t, own)
+
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.Len(t, bundle.Accounts, 3)
+}
+
 // Create n TestContexts with logged in users
 // Returns (FakeUsers, TestContexts, CleanupFunction)
 func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
@@ -133,4 +180,12 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
 	}
 	return fus, tcs, cleanup
+}
+
+func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
+	full, err := keypair.Random()
+	if err != nil {
+		panic(err)
+	}
+	return stellar1.AccountID(full.Address()), stellar1.SecretKey(full.Seed())
 }
