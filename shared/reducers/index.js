@@ -57,9 +57,9 @@ const reducers = {
 
 const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)
 
-export default function(state: TypedState, action: any): TypedState {
+export default function(state: TypedState | void, action: any): TypedState {
   // Warn if any keys did not change after a resetStore action
-  if (__DEV__ && action.type === resetStore) {
+  if (__DEV__ && action.type === resetStore && state) {
     // Don't give a false warning if the state is the same cause its the initial state
     const initialState = reducer(undefined, action)
     const nextState = reducer(state, action)
