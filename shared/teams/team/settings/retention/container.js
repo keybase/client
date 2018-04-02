@@ -46,8 +46,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       throw new Error('RetentionPicker needs a conversationIDKey to set adhoc retention policies')
     case 'channel':
       if (ownProps.conversationIDKey && ownProps.teamname) {
-        let teamname = ownProps.teamname
-        let conversationIDKey = ownProps.conversationIDKey
+        const teamname = ownProps.teamname
+        const conversationIDKey = ownProps.conversationIDKey
         policy = getConversationRetentionPolicy(state, conversationIDKey)
         teamPolicy = getTeamRetentionPolicy(state, teamname)
         loading = !teamPolicy
@@ -60,8 +60,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       )
     case 'small team':
       if (ownProps.teamname) {
-        let teamname = ownProps.teamname
-        let tempPolicy = getTeamRetentionPolicy(state, teamname)
+        const teamname = ownProps.teamname
+        const tempPolicy = getTeamRetentionPolicy(state, teamname)
         loading = !tempPolicy
         if (tempPolicy) {
           policy = tempPolicy
@@ -73,10 +73,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       throw new Error('RetentionPicker needs a teamname to set small team retention policies')
     case 'big team':
       if (ownProps.teamname) {
-        let tempPolicy2 = getTeamRetentionPolicy(state, ownProps.teamname)
-        loading = !tempPolicy2
-        if (tempPolicy2) {
-          policy = tempPolicy2
+        const tempPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
+        loading = !tempPolicy
+        if (tempPolicy) {
+          policy = tempPolicy
         }
         showInheritOption = false
         showOverrideNotice = true
