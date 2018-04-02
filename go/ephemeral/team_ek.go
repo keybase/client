@@ -88,7 +88,7 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 
 	dhKeypair := seed.DeriveDHKey()
 
-	metadata := keybase1.TeamEkMetadata{
+	metadata = keybase1.TeamEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   merkleRoot.HashMeta(),
@@ -134,12 +134,16 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		return metadata, nil, err
 	}
 
-	membersMetadata, err := activeMemberEKMetadata(ctx, g, teamID, merkleRoot)
+	statementMap, err := fetchTeamMemberStatements(ctx, g, teamID)
+	if err != nil {
+		return metadata, nil, err
+	}
+	membersMetadata, err := activeUserEKMetadata(ctx, g, statementMap, merkleRoot)
 	if err != nil {
 		return metadata, nil, err
 	}
 	teamEK := keybase1.TeamEk{
-		Seed:     seed,
+		Seed:     keybase1.Bytes32(seed),
 		Metadata: metadata,
 	}
 	boxes, myTeamEKBoxed, err := boxTeamEKForUsers(ctx, g, membersMetadata, teamEK)
@@ -377,14 +381,3 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 	}
 	return statementMap, nil
 }
-
-func activeMemberEKMetadata(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkMetadata, err error) {
-	statementMap, err := fetchTeamMemberStatements(ctx, g, teamID)
-	if err != nil {
-		return activeMap, err
-	}
-	return filterStaleUserEKStatments(ctx, g, statementMap, merkleRoot)
-}
-
-// TODO add server support for multiple UIDs at user_ek endpoint
-// TODO figure out how to test..

@@ -19,9 +19,12 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	uids := []keybase1.UID{tc.G.Env.GetUID()}
-	prevStatement, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	prevStatements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
+	prevStatement, ok := prevStatements[uid]
+	require.True(t, ok)
 	prevExisting := prevStatement.ExistingUserEkMetadata
 	prevExisting = append(prevExisting, prevStatement.CurrentUserEkMetadata)
 
@@ -33,10 +36,11 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
-	statementPtr, err := fetchUserEKStatement(context.Background(), tc.G, uids)
+	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
-	require.NotNil(t, statementPtr)
-	statement := *statementPtr
+	statement, ok := statements[uid]
+	require.True(t, ok)
+	require.NotNil(t, statement)
 	currentMetadata := statement.CurrentUserEkMetadata
 	require.Equal(t, currentMetadata, publishedMetadata)
 	require.Equal(t, statement.ExistingUserEkMetadata, prevExisting)

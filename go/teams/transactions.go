@@ -646,8 +646,15 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	} else { // If we didn't rotate the PTK, let's rebox the existing PTK for any of the new members
 		ekLib := g.GetEKLib()
 		if ekLib != nil {
+			// Only box up for the latest members
 			memSet.removeExistingMembers(ctx, team)
-			teamEKBoxes, err := ekLib.BoxLatestTeamEK(ctx, memSet.recipients)
+			i := 0
+			uids := make([]keybase1.UID, len(memSet.recipients))
+			for uv := range memSet.recipients {
+				uids[i] = uv.Uid
+				i++
+			}
+			teamEKBoxes, err = ekLib.BoxLatestTeamEK(ctx, team.ID, uids)
 			if err != nil {
 				return err
 			}

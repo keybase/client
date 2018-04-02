@@ -178,12 +178,14 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	defer e.G().CTrace(ctx, "newUserEKNeeded", func() error { return err })()
 
 	// Let's see what the latest server statement is.
-	statement, err := fetchUserEKStatement(ctx, e.G())
+	myUID := e.G().Env.GetUID()
+	statements, err := fetchUserEKStatements(ctx, e.G(), []keybase1.UID{myUID})
 	if err != nil {
 		return false, err
 	}
+	statement, ok := statements[myUID]
 	// No statement, so we need a userEK
-	if statement == nil {
+	if !ok || statement == nil {
 		return true, nil
 	}
 	// Can we access this generation? If not, let's regenerate.
@@ -394,7 +396,7 @@ func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoo
 	return prepareNewUserEK(ctx, e.G(), merkleRoot, signingKey)
 }
 
-func (e *EKLib) BoxLatestTeamEk(ctx context.Context, recipients []keybase1.UID) (teamEKBoxes []*keybase1.TeamEkBoxMetadata, err error) {
+func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, recipients []keybase1.UID) (teamEKBoxes *[]keybase1.TeamEkBoxMetadata, err error) {
 	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(ctx) {
 		return nil, nil
@@ -403,24 +405,30 @@ func (e *EKLib) BoxLatestTeamEk(ctx context.Context, recipients []keybase1.UID) 
 	// If we need a new teamEK let's just create it when needed, the new
 	// members will be part of the team and will have access to it via the
 	// normal mechanisms.
-	if e.NewTeamEKNeeded(ctx) {
+	if teamEKNeeded, err := e.NewTeamEKNeeded(ctx, teamID); err != nil {
+		return nil, err
+	} else if teamEKNeeded {
 		return nil, nil
 	}
 	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
 	if err != nil {
 		return nil, err
 	}
+	statementMap, err := fetchUserEKStatements(ctx, e.G(), recipients)
+	if err != nil {
+		return nil, err
+	}
+	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), statementMap, *merkleRootPtr)
 
-	teamEKBoxStorage := e.G().GetUserEKBoxStorage()
-	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx)
+	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
+	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
 	if err != nil {
 		return nil, err
 	}
-	teamEK, err := teamEKBoxStorage.Get(ctx, maxGeneration)
+	teamEK, err := teamEKBoxStorage.Get(ctx, teamID, maxGeneration)
 	if err != nil {
 		return nil, err
 	}
-	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), recipients, *merkleRootPtr)
 	boxes, _, err := boxTeamEKForUsers(ctx, e.G(), usersMetadata, teamEK)
 	return &boxes, nil
 }
