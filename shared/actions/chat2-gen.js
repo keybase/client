@@ -306,8 +306,7 @@ export const createMetaRequestingTrusted = (payload: $ReadOnly<{|conversationIDK
 export const createMetaUpdatePagination = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
-    paginationKey: Types.PaginationKey,
-    paginationMoreToLoad: boolean,
+    paginationKey: ?Types.PaginationKey,
   |}>
 ) => ({error: false, payload, type: metaUpdatePagination})
 export const createMetasReceived = (

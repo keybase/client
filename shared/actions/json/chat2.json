@@ -108,8 +108,7 @@
     // We updated our view of a thread
     "metaUpdatePagination": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "Types.PaginationKey",
-      "paginationMoreToLoad": "boolean",
+      "paginationKey": "?Types.PaginationKey",
     },
     // Add a new message
     "messagesAdd": {

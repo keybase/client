@@ -43,6 +43,7 @@ const entityTransformer = (action: Entity.Actions) => ({
 })
 
 const defaultTransformer: ActionTransformer<*, *> = ({type}) => ({type})
+const fullOutput = a => a
 
 const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [RouteTreeConstants.switchTo]: pathActionTransformer,
@@ -55,6 +56,7 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   'entity:merge': entityTransformer,
   'entity:replace': entityTransformer,
   'entity:subtract': entityTransformer,
+
   _loadAvatarHelper: nullTransform,
   [ConfigGen.loadAvatars]: nullTransform,
   [ConfigGen.loadTeamAvatars]: nullTransform,
@@ -63,12 +65,14 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [EngineGen.waitingForRpc]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [AppGen.changedFocus]: nullTransform,
-  [Chat2Gen.setLoading]: a => a,
-  [Chat2Gen.clearLoading]: a => a,
-  [Chat2Gen.selectConversation]: a => a,
-  [Chat2Gen.metaNeedsUpdating]: a => a,
   [Chat2Gen.updateTypers]: nullTransform,
-  [ConfigGen.globalError]: a => a,
+
+  [Chat2Gen.setLoading]: fullOutput,
+  [Chat2Gen.clearLoading]: fullOutput,
+  [Chat2Gen.selectConversation]: fullOutput,
+  [Chat2Gen.metaNeedsUpdating]: fullOutput,
+  [Chat2Gen.metaUpdatePagination]: fullOutput,
+  [ConfigGen.globalError]: fullOutput,
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

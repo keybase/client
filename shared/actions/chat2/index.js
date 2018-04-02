@@ -677,17 +677,16 @@ const loadMoreMessages = (
         return arr
       }, [])
 
-      if (context === 'cached') {
-        yield Saga.put(
-          Chat2Gen.createMetaUpdatePagination({
-            conversationIDKey,
-            paginationKey: Types.stringToPaginationKey(
-              (uiMessages.pagination && uiMessages.pagination.next) || ''
-            ),
-            paginationMoreToLoad: uiMessages.pagination ? !uiMessages.pagination.last : true,
-          })
-        )
+      let paginationKey = Types.stringToPaginationKey(
+        (uiMessages.pagination && uiMessages.pagination.next) || ''
+      )
+
+      if (context === 'full') {
+        const paginationMoreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+        // if last is true we ignore paginationkey
+        paginationKey = paginationMoreToLoad ? paginationKey : Types.stringToPaginationKey('')
       }
+      yield Saga.put(Chat2Gen.createMetaUpdatePagination({conversationIDKey, paginationKey}))
 
       // If we're loading the thread clean lets clear
       if (!calledClear && action.type !== Chat2Gen.loadOlderMessagesDueToScroll) {
