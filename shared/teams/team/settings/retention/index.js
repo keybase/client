@@ -45,7 +45,6 @@ type State = {
   showMenu: boolean,
 }
 
-const savingTimeout = 300
 const savedTimeout = 2500
 
 class RetentionPicker extends React.Component<Props, State> {
@@ -89,23 +88,25 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   _onSelect = (selected: RetentionPolicy) => {
+    this._setSame()
     this.setState({selected}, this._handleSelection)
   }
 
   _setSaving = () => {
     this.setState({saveState: 'saving'})
-    this.props.clearTimeout(this._timeoutID)
-    this._timeoutID = this.props.setTimeout(() => {
-      this._setJustSaved()
-    }, savingTimeout)
   }
 
   _setJustSaved = () => {
     this.setState({saveState: 'justSaved'})
     this.props.clearTimeout(this._timeoutID)
     this._timeoutID = this.props.setTimeout(() => {
-      this.setState({saveState: 'same'})
+      this._setSame()
     }, savedTimeout)
+  }
+
+  _setSame = () => {
+    this.props.clearTimeout(this._timeoutID)
+    this.setState({saveState: 'same'})
   }
 
   _makeItems = () => {
@@ -153,6 +154,9 @@ class RetentionPicker extends React.Component<Props, State> {
       !policyEquals(nextProps.policy, this.props.policy) ||
       !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
     ) {
+      if (policyEquals(nextProps.policy, this.state.selected)) {
+        this._setJustSaved()
+      }
       this._makeItems()
       this._setInitialSelected(nextProps.policy)
     }
