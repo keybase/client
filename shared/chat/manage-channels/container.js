@@ -16,7 +16,7 @@ import {
   withStateHandlers,
   withPropsOnChange,
 } from '../../util/container'
-import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
+import {navigateTo, navigateAppend, switchTo} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
 import {
@@ -60,8 +60,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const currentPath = pathSelector(state)
-
   return {
     _hasOperations,
     canCreateChannels,
@@ -69,7 +67,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
-    currentPath,
   }
 }
 
@@ -137,7 +134,7 @@ export default compose(
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
-    onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
+    onClickChannel: ({channels, _onPreview, _onView}) => (conversationIDKey: string) => {
       const channel = channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
         logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
@@ -146,7 +143,7 @@ export default compose(
       if (channel.selected) {
         _onView(conversationIDKey)
       } else {
-        _onPreview(conversationIDKey, currentPath)
+        _onPreview(conversationIDKey)
       }
     },
   }),
