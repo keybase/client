@@ -48,13 +48,14 @@ export default compose(
   withStateHandlers(
     {
       _conversationIDKey: null,
-      _lastOrdinalTime: Date.now(),
+      _lastLoadMoreOrdinalTime: Date.now(),
+      lastLoadMoreOrdinal: null,
     },
     {
       // We don't let you try and load more within a second. Used to use the ordinal but maybe we just never want a super quick load
       loadMoreMessages: (state, props) => ordinal => {
         if (state._conversationIDKey === props.conversationIDKey) {
-          if (state._lastOrdinalTime + 1000 > Date.now()) {
+          if (state._lastLoadMoreOrdinalTime + 1000 > Date.now()) {
             // ignore a load if its too recent for the same ordinal
             return
           }
@@ -63,7 +64,8 @@ export default compose(
         props._loadMoreMessages()
         return {
           _conversationIDKey: props.conversationIDKey,
-          _lastOrdinalTime: Date.now(),
+          _lastLoadMoreOrdinalTime: Date.now(),
+          lastLoadMoreOrdinal: ordinal,
         }
       },
     }

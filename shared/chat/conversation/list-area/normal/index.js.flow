@@ -9,6 +9,7 @@ export type Props = {|
   onFocusInput: () => void,
   loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
   editingOrdinal: ?Types.Ordinal,
+  lastLoadMoreOrdinal: ?Types.Ordinal,
 |}
 
 export default class ConversationList extends React.Component<Props> {}

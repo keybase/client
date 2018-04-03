@@ -41,12 +41,15 @@ class Thread extends React.Component<Props> {
         this._list && this._list.scrollToRow(idx + 1)
       }
     } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size && this._list) {
+      // try and maintain scroll position, doens't work great
       if (prevProps.messageOrdinals.size > 1) {
-        const toFind = prevProps.messageOrdinals.get(0)
-        const idx = toFind ? this.props.messageOrdinals.indexOf(toFind) : -1
-        if (idx !== -1) {
-          const scrollToIdx = idx + 1
-          this._list.scrollToRow(scrollToIdx)
+        const toFind = prevProps.messageOrdinals.first()
+        if (toFind === this.props.lastLoadMoreOrdinal) {
+          const idx = toFind ? this.props.messageOrdinals.indexOf(toFind) : -1
+          if (idx !== -1) {
+            const scrollToIdx = idx + 1
+            this._list.scrollToRow(scrollToIdx)
+          }
         }
       }
     }
@@ -74,7 +77,7 @@ class Thread extends React.Component<Props> {
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
-      this.props.loadMoreMessages(this.props.messageOrdinals.last())
+      this.props.loadMoreMessages(this.props.messageOrdinals.first())
     }
   }, 500)
 
