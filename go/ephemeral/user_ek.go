@@ -31,13 +31,9 @@ func (s *UserEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonUserEKEncryption)
 }
 
-type UserEKBoxMetadata struct {
-	RecipientDeviceID   keybase1.DeviceID     `json:"recipient_device_id"`
-	RecipientGeneration keybase1.EkGeneration `json:"recipient_generation"`
-	Box                 string                `json:"box"`
-}
-
-func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxes []UserEKBoxMetadata) (err error) {
+// Upload a new userEK directly, when we're not adding it to a PUK or device
+// transaction.
+func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxes []keybase1.UserEkBoxMetadata) (err error) {
 	defer g.CTrace(ctx, "postNewUserEK", func() error { return err })()
 
 	boxesJSON, err := json.Marshal(boxes)
@@ -57,45 +53,31 @@ func postNewUserEK(ctx context.Context, g *libkb.GlobalContext, sig string, boxe
 	return err
 }
 
-func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, err error) {
-	defer g.CTrace(ctx, "publishNewUserEK", func() error { return err })()
-
+// There are two cases where we need to generate a new userEK. One is where
+// we're rolling the userEK by itself, and we need to sign it with the current
+// PUK. The other is where we're rolling the PUK, and we need to sign a new
+// userEK with the new PUK to upload both together. This helper covers the
+// steps common to both cases.
+func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, pukSigning *libkb.NaclSigningKeyPair) (sig string, boxes []keybase1.UserEkBoxMetadata, newMetadata keybase1.UserEkMetadata, myBox *keybase1.UserEkBoxed, err error) {
 	seed, err := newUserEphemeralSeed()
 	if err != nil {
-		return metadata, err
+		return "", nil, newMetadata, nil, err
 	}
 
-	statement, err := fetchUserEKStatement(ctx, g)
+	prevStatement, err := fetchUserEKStatement(ctx, g)
 	if err != nil {
-		return metadata, err
+		return "", nil, newMetadata, nil, err
 	}
 	var generation keybase1.EkGeneration
-	if statement == nil {
+	if prevStatement == nil {
 		generation = 1 // start at generation 1
 	} else {
-		generation = statement.CurrentUserEkMetadata.Generation + 1
+		generation = prevStatement.CurrentUserEkMetadata.Generation + 1
 	}
-
-	metadata, myUserEKBoxed, err := signAndPublishUserEK(ctx, g, generation, seed, merkleRoot, statement)
-	if err != nil {
-		return metadata, err
-	}
-
-	if myUserEKBoxed == nil {
-		g.Log.CWarningf(ctx, "No box made for own deviceEK")
-	} else {
-		storage := g.GetUserEKBoxStorage()
-		err = storage.Put(ctx, generation, *myUserEKBoxed)
-	}
-	return metadata, err
-}
-
-func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generation keybase1.EkGeneration, seed UserEKSeed, merkleRoot libkb.MerkleRoot, prevStatement *keybase1.UserEkStatement) (metadata keybase1.UserEkMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
-	defer g.CTrace(ctx, "signAndPublishUserEK", func() error { return err })()
 
 	dhKeypair := seed.DeriveDHKey()
 
-	metadata = keybase1.UserEkMetadata{
+	metadata := keybase1.UserEkMetadata{
 		Kid:        dhKeypair.GetKID(),
 		Generation: generation,
 		HashMeta:   merkleRoot.HashMeta(),
@@ -110,7 +92,7 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 	// practically the same in Go, they get serialized to different JSON.
 	existingActiveMetadata, err := filterStaleUserEKStatement(ctx, g, prevStatement, merkleRoot)
 	if err != nil {
-		return metadata, nil, err
+		return "", nil, newMetadata, nil, err
 	}
 	if existingActiveMetadata == nil {
 		existingActiveMetadata = []keybase1.UserEkMetadata{}
@@ -122,37 +104,56 @@ func signAndPublishUserEK(ctx context.Context, g *libkb.GlobalContext, generatio
 	}
 	statementJSON, err := json.Marshal(statement)
 	if err != nil {
-		return metadata, nil, err
+		return "", nil, newMetadata, nil, err
 	}
-
-	// Sign the statement blob with the latest PUK.
-	pukKeyring, err := g.GetPerUserKeyring()
+	sig, _, err = pukSigning.SignToString(statementJSON)
 	if err != nil {
-		return metadata, nil, err
-	}
-	signingKey, err := pukKeyring.GetLatestSigningKey(ctx)
-	if err != nil {
-		return metadata, nil, err
-	}
-	signedPacket, _, err := signingKey.SignToString(statementJSON)
-	if err != nil {
-		return metadata, nil, err
+		return "", nil, newMetadata, nil, err
 	}
 
 	boxes, myUserEKBoxed, err := boxUserEKForDevices(ctx, g, merkleRoot, seed, metadata)
 	if err != nil {
-		return metadata, nil, err
+		return "", nil, newMetadata, nil, err
 	}
 
-	err = postNewUserEK(ctx, g, signedPacket, boxes)
-	if err != nil {
-		return metadata, nil, err
-	}
-
-	return metadata, myUserEKBoxed, nil
+	return sig, boxes, metadata, myUserEKBoxed, nil
 }
 
-func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []UserEKBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
+// Create a new userEK and upload it. Add our box to the local box store.
+func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, err error) {
+	defer g.CTrace(ctx, "publishNewUserEK", func() error { return err })()
+
+	// Sign the statement blob with the latest PUK.
+	pukKeyring, err := g.GetPerUserKeyring()
+	if err != nil {
+		return metadata, err
+	}
+	pukSigning, err := pukKeyring.GetLatestSigningKey(ctx)
+	if err != nil {
+		return metadata, err
+	}
+
+	sig, boxes, newMetadata, myBox, err := prepareNewUserEK(ctx, g, merkleRoot, pukSigning)
+	if err != nil {
+		return metadata, err
+	}
+
+	err = postNewUserEK(ctx, g, sig, boxes)
+	if err != nil {
+		return metadata, err
+	}
+
+	// Cache the new box after we see the post succeeded.
+	if myBox == nil {
+		g.Log.CWarningf(ctx, "No box made for own deviceEK")
+	} else {
+		storage := g.GetUserEKBoxStorage()
+		err = storage.Put(ctx, newMetadata.Generation, *myBox)
+	}
+	return newMetadata, err
+}
+
+func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []keybase1.UserEkBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
 	defer g.CTrace(ctx, "boxUserEKForDevices", func() error { return err })()
 
 	devicesMetadata, err := allActiveDeviceEKMetadata(ctx, g, merkleRoot)
@@ -171,7 +172,7 @@ func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot
 		if err != nil {
 			return nil, nil, err
 		}
-		boxMetadata := UserEKBoxMetadata{
+		boxMetadata := keybase1.UserEkBoxMetadata{
 			RecipientDeviceID:   deviceID,
 			RecipientGeneration: deviceMetadata.Generation,
 			Box:                 box,

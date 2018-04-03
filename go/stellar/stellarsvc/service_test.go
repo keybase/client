@@ -8,10 +8,12 @@ import (
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
+	"github.com/stellar/go/keypair"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,11 +34,11 @@ func TestCreateWallet(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	created, err := CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.True(t, created)
 
-	created, err = CreateWallet(context.Background(), tcs[0].G)
+	created, err = stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -57,7 +59,6 @@ func TestCreateWallet(t *testing.T) {
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
 	require.NoError(t, err)
 	addr := u0.StellarWalletAddress()
-	require.NoError(t, err)
 	t.Logf("Found account: %v", addr)
 	_, err = libkb.MakeNaclSigningKeyPairFromStellarAccountID(*addr)
 	require.NoError(t, err, "stellar key should be nacl pubable")
@@ -68,7 +69,7 @@ func TestUpkeep(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.True(t, created)
 
@@ -103,6 +104,63 @@ func TestUpkeep(t *testing.T) {
 	require.Equal(t, 2, int(bundle.Revision))
 }
 
+func TestImport(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	srv := newTestServer(tcs[0].G)
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	a1, s1 := randomStellarKeypair()
+	argS1 := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
+	require.NoError(t, err)
+
+	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
+	require.Error(t, err)
+
+	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
+	require.NoError(t, err)
+	addr := u0.StellarWalletAddress()
+	require.False(t, a1.Eq(*addr))
+
+	a2, s2 := randomStellarKeypair()
+	own, err := srv.OwnAccountLocal(context.Background(), a2)
+	require.NoError(t, err)
+	require.False(t, own)
+
+	argS2 := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s2,
+		MakePrimary: true,
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
+	require.NoError(t, err)
+
+	u0, err = tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
+	require.NoError(t, err)
+	addr = u0.StellarWalletAddress()
+	require.False(t, a1.Eq(*addr))
+
+	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
+	require.Error(t, err)
+
+	own, err = srv.OwnAccountLocal(context.Background(), a1)
+	require.NoError(t, err)
+	require.True(t, own)
+	own, err = srv.OwnAccountLocal(context.Background(), a2)
+	require.NoError(t, err)
+	require.True(t, own)
+
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.Len(t, bundle.Accounts, 3)
+}
+
 // Create n TestContexts with logged in users
 // Returns (FakeUsers, TestContexts, CleanupFunction)
 func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
@@ -133,4 +191,28 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
 	}
 	return fus, tcs, cleanup
+}
+
+func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
+	full, err := keypair.Random()
+	if err != nil {
+		panic(err)
+	}
+	return stellar1.AccountID(full.Address()), stellar1.SecretKey(full.Seed())
+}
+
+type nullSecretUI struct{}
+
+func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, nil
+}
+
+type testUISource struct{}
+
+func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
+	return nullSecretUI{}
+}
+
+func newTestServer(g *libkb.GlobalContext) *Server {
+	return New(g, &testUISource{})
 }

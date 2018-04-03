@@ -12,6 +12,9 @@ export type Props = {
   onBlur?: (ev: SyntheticInputEvent<>) => void,
 }
 
+// TODO: This is used in only one place; move this out of
+// common-adapters.
+
 export default class AutosizeInput extends Component<Props> {
   focus: () => void
 }

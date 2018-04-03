@@ -3,13 +3,21 @@ import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import Icon from './icon'
-import {globalStyles, globalColors, globalMargins, glamorous, isMobile, desktopStyles} from '../styles'
+import {
+  type StylesCrossPlatform,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  glamorous,
+  isMobile,
+  desktopStyles,
+} from '../styles'
 
 type Props = {
   onChanged: (selected: React.Node) => void,
   selected?: React.Node,
   items: Array<React.Node>,
-  style?: any,
+  style?: StylesCrossPlatform,
 }
 type State = {
   expanded: boolean,

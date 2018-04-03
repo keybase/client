@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
 
   let loadMoreType = null
   if (!previous) {
-    loadMoreType = meta.paginationMoreToLoad ? 'moreToLoad' : 'noMoreToLoad'
+    loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
   }
 
   return {

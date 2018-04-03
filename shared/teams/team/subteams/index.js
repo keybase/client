@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type {SubteamRow} from '../row-types'
 import {Box, ClickableBox, Icon, List, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../styles'
 import TeamSubteamRow from './subteam-row/container'
 import SubteamBanner from './subteam-banner'
 
@@ -25,16 +25,7 @@ const SubteamRowRender = ({row}) => (
 )
 
 const AddSubTeam = ({row}) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      height: globalMargins.medium,
-      padding: globalMargins.medium,
-      width: '100%',
-    }}
-  >
+  <Box style={addSubteamStyle}>
     <ClickableBox
       onClick={row.onCreateSubteam}
       style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
@@ -46,6 +37,19 @@ const AddSubTeam = ({row}) => (
     </ClickableBox>
   </Box>
 )
+
+const addSubteamStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexShrink: 0,
+    padding: globalMargins.tiny,
+    width: '100%',
+  },
+  isMobile: {
+    paddingTop: globalMargins.small,
+  },
+})
 
 const NoSubteams = ({row}) => (
   <Box

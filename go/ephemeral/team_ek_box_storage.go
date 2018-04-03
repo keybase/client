@@ -46,7 +46,7 @@ func (s *TeamEKBoxStorage) dbKey(ctx context.Context, teamID keybase1.TeamID) (d
 }
 
 func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#Get", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#Get: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	s.Lock()
 
@@ -69,7 +69,7 @@ func (s *TeamEKBoxStorage) Get(ctx context.Context, teamID keybase1.TeamID, gene
 }
 
 func (s *TeamEKBoxStorage) getMap(ctx context.Context, teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap, found bool, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#getMap", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#getMap: teamID:%v", teamID), func() error { return err })()
 
 	teamEKBoxes, found = s.cache.GetMap(teamID)
 	if found {
@@ -91,7 +91,7 @@ func (s *TeamEKBoxStorage) getMap(ctx context.Context, teamID keybase1.TeamID) (
 }
 
 type TeamEKBoxedResponse struct {
-	Result struct {
+	Result *struct {
 		Box              string                `json:"box"`
 		UserEKGeneration keybase1.EkGeneration `json:"user_ek_generation"`
 		Sig              string                `json:"sig"`
@@ -99,7 +99,7 @@ type TeamEKBoxedResponse struct {
 }
 
 func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#fetchAndPut", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#fetchAndPut: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/team_ek_box",
@@ -120,6 +120,10 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 	err = res.Body.UnmarshalAgain(&result)
 	if err != nil {
 		return teamEK, err
+	}
+
+	if result.Result == nil {
+		return teamEK, fmt.Errorf("server didn't return a box for teamEK generation %d", generation)
 	}
 
 	// Before we store anything, let's verify that the server returned
@@ -168,7 +172,7 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 }
 
 func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (teamEK keybase1.TeamEk, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#unbox", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#unbox: teamEKGeneration: %v", teamEKGeneration), func() error { return err })()
 
 	userEKBoxStorage := s.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
@@ -198,7 +202,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 }
 
 func (s *TeamEKBoxStorage) Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#Put", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#Put: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -227,7 +231,7 @@ func (s *TeamEKBoxStorage) Delete(ctx context.Context, teamID keybase1.TeamID, g
 }
 
 func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamID, generations []keybase1.EkGeneration) (err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#delete", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#delete: teamID:%v, generations:%v", teamID, generations), func() error { return err })()
 
 	teamEKBoxes, found, err := s.getMap(ctx, teamID)
 	if err != nil {
@@ -253,7 +257,7 @@ func (s *TeamEKBoxStorage) deleteMany(ctx context.Context, teamID keybase1.TeamI
 }
 
 func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#DeleteExpired", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#DeleteExpired: teamID:%v", teamID), func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -274,7 +278,7 @@ func (s *TeamEKBoxStorage) DeleteExpired(ctx context.Context, teamID keybase1.Te
 }
 
 func (s *TeamEKBoxStorage) GetAll(ctx context.Context, teamID keybase1.TeamID) (teamEKs TeamEKMap, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#GetAll", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#GetAll: teamID:%v", teamID), func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -304,7 +308,7 @@ func (s *TeamEKBoxStorage) ClearCache() {
 }
 
 func (s *TeamEKBoxStorage) MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (maxGeneration keybase1.EkGeneration, err error) {
-	defer s.G().CTrace(ctx, "TeamEKBoxStorage#MaxGeneration", func() error { return nil })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("TeamEKBoxStorage#MaxGeneration: teamID:%v", teamID), func() error { return nil })()
 
 	s.Lock()
 	defer s.Unlock()

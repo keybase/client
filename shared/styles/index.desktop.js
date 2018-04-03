@@ -2,7 +2,7 @@
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
-import isArray from 'lodash/isArray'
+import {type CollapsibleStyle} from '.'
 import * as Shared from './shared'
 
 export const windowStyle = {
@@ -106,14 +106,9 @@ export const backgroundURL = (...to: Array<string>) => {
 
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
-export const collapseStyles = (styles: Array<Object> | Object) => {
-  if (isArray(styles)) {
-    return styles.reduce((map, item) => {
-      return {...map, ...item}
-    }, {})
-  } else {
-    return styles
-  }
+export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
+  const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
+  return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
 }
 export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'

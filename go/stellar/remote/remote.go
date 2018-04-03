@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -200,4 +201,84 @@ func addWalletServerArg(serverArg libkb.JSONPayload, bundleEncB64 string, bundle
 	section["visible"] = bundleVisB64
 	section["version"] = formatVersion
 	serverArg["stellar"] = section
+}
+
+type seqnoResult struct {
+	Status       libkb.AppStatus `json:"status"`
+	AccountSeqno string          `json:"seqno"`
+}
+
+func (s *seqnoResult) GetAppStatus() *libkb.AppStatus {
+	return &s.Status
+}
+
+func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (uint64, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountseqno",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:  ctx,
+	}
+
+	var res seqnoResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return 0, err
+	}
+
+	seqno, err := strconv.ParseUint(res.AccountSeqno, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return seqno, nil
+}
+
+type balancesResult struct {
+	Status   libkb.AppStatus    `json:"status"`
+	Balances []stellar1.Balance `json:"balances"`
+}
+
+func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/balances",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:  ctx,
+	}
+
+	var res balancesResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return nil, err
+	}
+
+	return res.Balances, nil
+}
+
+type submitResult struct {
+	Status        libkb.AppStatus        `json:"status"`
+	PaymentResult stellar1.PaymentResult `json:"payment_result"`
+}
+
+func (s *submitResult) GetAppStatus() *libkb.AppStatus {
+	return &s.Status
+}
+
+func SubmitTransaction(ctx context.Context, g *libkb.GlobalContext, payload libkb.JSONPayload) (stellar1.PaymentResult, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitpayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+
+	var res submitResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+
+	return res.PaymentResult, nil
 }

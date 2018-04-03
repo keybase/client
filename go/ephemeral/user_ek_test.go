@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
@@ -57,3 +59,83 @@ func TestNewUserEK(t *testing.T) {
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata
+
+func TestDeviceRevokeNewUserEK(t *testing.T) {
+	tc := libkb.SetupTest(t, "kex2provision", 2)
+	defer tc.Cleanup()
+	NewEphemeralStorageAndInstall(tc.G)
+
+	// Include a paper key with this test user, so that we have something to
+	// revoke.
+	user, err := kbtest.CreateAndSignupFakeUserPaper("e", tc.G)
+	require.NoError(t, err)
+
+	// Confirm that the user has a userEK.
+	firstStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
+
+	// Load the full user so that we can grab their devices.
+	arg := libkb.NewLoadUserByNameArg(tc.G, user.Username)
+	fullUser, err := libkb.LoadUser(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	paperKey := fullUser.GetComputedKeyInfos().PaperDevices()[0]
+
+	// Revoke the paper key.
+	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: paperKey.ID}, tc.G)
+	ctx := &engine.Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: user.NewSecretUI(),
+	}
+	err = engine.RunEngine(revokeEngine, ctx)
+	require.NoError(t, err)
+
+	// Finally, confirm that the revocation above rolled a new userEK.
+	secondStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after revoke, should have userEK gen 2")
+	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
+	require.NoError(t, err)
+	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
+	// Repeat those checks after clearing the cache, to test unboxing.
+	tc.G.GetUserEKBoxStorage().ClearCache()
+	userEK, err = tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
+	require.NoError(t, err)
+	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
+}
+
+func TestPukRollNewUserEK(t *testing.T) {
+	tc := libkb.SetupTest(t, "kex2provision", 2)
+	defer tc.Cleanup()
+	NewEphemeralStorageAndInstall(tc.G)
+
+	user, err := kbtest.CreateAndSignupFakeUser("e", tc.G)
+	require.NoError(t, err)
+
+	// Confirm that the user has a userEK.
+	firstStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
+
+	// Do a PUK roll.
+	rollEngine := engine.NewPerUserKeyRoll(tc.G, &engine.PerUserKeyRollArgs{})
+	ctx := &engine.Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: user.NewSecretUI(),
+	}
+	err = engine.RunEngine(rollEngine, ctx)
+	require.NoError(t, err)
+
+	// Finally, confirm that the roll above also rolled a new userEK.
+	secondStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
+	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
+	require.NoError(t, err)
+	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
+	// Repeat those checks after clearing the cache, to test unboxing.
+	tc.G.GetUserEKBoxStorage().ClearCache()
+	userEK, err = tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
+	require.NoError(t, err)
+	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
+}
