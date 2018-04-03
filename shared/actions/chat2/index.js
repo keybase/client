@@ -829,24 +829,31 @@ const messageDelete = (action: Chat2Gen.MessageDeletePayload, state: TypedState)
   }
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
-    logger.warn('Deleting message w/ no meta')
-    logger.debug('Deleting message w/ no meta', message)
-    return
-  }
 
   // We have to cancel pending messages
   if (!message.id) {
     if (message.outboxID) {
-      return Saga.sequentially([
+      const actions = [
         Saga.call(RPCChatTypes.localCancelPostRpcPromise, {
           outboxID: Types.outboxIDToRpcOutboxID(message.outboxID),
         }),
         Saga.put(Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})),
-      ])
+      ]
+      if (!meta) {
+        // this was a pending conversation
+        // clear out pending row and exit search
+        actions.push(
+          Saga.put(Chat2Gen.createClearPendingConversation()),
+          Saga.put(Chat2Gen.createExitSearch({canceled: true}))
+        )
+      }
+      return Saga.sequentially(actions)
     } else {
       logger.warn('Delete of no message id and no outboxid')
     }
+  } else if (!meta) {
+    logger.warn('Deleting non-pending message w/ no meta')
+    logger.debug('Deleting non-pending message w/ no meta', message)
   } else {
     return Saga.call(RPCChatTypes.localPostDeleteNonblockRpcPromise, {
       clientPrev: 0,
@@ -995,6 +1002,7 @@ const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPending
       reason: e.message,
     })
   )
+
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
   return Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
