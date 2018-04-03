@@ -6,7 +6,7 @@ import Checkbox from './checkbox'
 import Input from './input'
 import Box from './box'
 import Text from './text'
-import {globalStyles, globalMargins} from '../styles'
+import {globalStyles, globalMargins, collapseStyles} from '../styles'
 
 class FormWithCheckbox extends Component<Props> {
   render() {
@@ -16,10 +16,14 @@ class FormWithCheckbox extends Component<Props> {
 
     return (
       <Box
-        style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 15, ...this.props.style}}
+        style={collapseStyles([
+          globalStyles.flexBoxColumn,
+          {alignItems: 'center', marginBottom: 15},
+          this.props.style,
+        ])}
       >
         <Input {...inputWOError} />
-        <Box style={{...styles.checkboxContainer, ...this.props.checkboxContainerStyle}}>
+        <Box style={collapseStyles([styles.checkboxContainer, this.props.checkboxContainerStyle])}>
           {checkboxesProps.map(p => {
             const checkProps: CheckboxProps = {key: p.label, ...p}
             return <Checkbox key={p.label} {...checkProps} />

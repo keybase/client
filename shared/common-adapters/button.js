@@ -4,7 +4,7 @@ import ClickableBox from './clickable-box'
 import ProgressIndicator from './progress-indicator'
 import * as React from 'react'
 import Text from './text'
-import {globalColors, globalStyles, globalMargins, isMobile} from '../styles'
+import {type StylesCrossPlatform, globalColors, globalStyles, globalMargins, isMobile} from '../styles'
 
 export type Props = {
   children?: React.Node,
@@ -13,8 +13,8 @@ export type Props = {
   onMouseEnter?: Function,
   onMouseLeave?: Function,
   label: ?string,
-  style?: ?Object,
-  labelStyle?: ?Object,
+  style?: StylesCrossPlatform,
+  labelStyle?: StylesCrossPlatform,
   type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'PrimaryGreen' | 'PrimaryGreenActive',
   disabled?: ?boolean,
   waiting?: ?boolean,

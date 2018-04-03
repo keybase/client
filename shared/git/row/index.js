@@ -14,7 +14,7 @@ import {
   HOCTimers,
 } from '../../common-adapters'
 
-import {globalStyles, globalColors, globalMargins, transition, isMobile} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
 
 export type Props = {
   canDelete: boolean,
@@ -306,23 +306,28 @@ const _copyStyle = {
   paddingRight: isMobile ? 24 : 12,
 }
 
-const _inputInputStyle = {
-  ...globalStyles.fontTerminal,
+const _inputInputStyle = platformStyles({
+  common: {
+    ...globalStyles.fontTerminal,
+    color: globalColors.darkBlue,
+  },
   // on desktop the input text isn't vertically aligned
-  ...(isMobile
-    ? {fontSize: 15}
-    : {
-        display: 'inline-block',
-        fontSize: 13,
-        paddingTop: 3,
-      }),
-  color: globalColors.darkBlue,
-}
+  isMobile: {fontSize: 15},
+  isElectron: {
+    display: 'inline-block',
+    fontSize: 13,
+    paddingTop: 3,
+  },
+})
 
-const _inputStyle = {
-  paddingTop: isMobile ? 10 : undefined,
-  width: '100%',
-}
+const _inputStyle = platformStyles({
+  common: {
+    width: '100%',
+  },
+  isMobile: {
+    paddingTop: 10,
+  },
+})
 
 const _bubbleStyle = {
   ...globalStyles.flexBoxCenter,

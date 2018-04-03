@@ -66,7 +66,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const loadMoreType = meta.paginationMoreToLoad ? 'moreToLoad' : 'noMoreToLoad'
+  const loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
   const hasOlderResetConversation = !!meta.supersedes
   return {

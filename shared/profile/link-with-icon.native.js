@@ -1,9 +1,6 @@
 // @flow
 import * as React from 'react'
-import Box from './box'
-import ClickableBox from './clickable-box'
-import Icon from './icon'
-import Text from './text'
+import {Box, ClickableBox, Icon, Text} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
 import type {Props} from './link-with-icon'
 
