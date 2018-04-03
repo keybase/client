@@ -3,6 +3,8 @@
 import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
 import Message from '../../messages'
+import SpecialTopMessage from '../../messages/special-top-message'
+import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
@@ -106,8 +108,13 @@ class Thread extends React.Component<Props, State> {
   }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
-    const ordinal = this.props.messageOrdinals.get(index)
-    const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
+    const isSpecialTopMessage = index === 0
+    const isSpecialBottomMessage = index === this.props.messageOrdinals.size
+    const isOrdinalMessage = !isSpecialBottomMessage && !isSpecialTopMessage
+    const ordinalIndex = index - 1
+    const ordinal = isOrdinalMessage ? this.props.messageOrdinals.get(ordinalIndex) : null
+    const prevOrdinal =
+      isOrdinalMessage && ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -116,16 +123,30 @@ class Thread extends React.Component<Props, State> {
         parent={parent}
         rowIndex={index}
       >
-        {({measure}) => (
-          <div style={style}>
-            <Message
-              ordinal={ordinal}
-              previous={prevOrdinal}
-              measure={measure}
-              conversationIDKey={this.props.conversationIDKey}
-            />
-          </div>
-        )}
+        {({measure}) => {
+          let contents
+
+          if (isSpecialTopMessage) {
+            contents = (
+              <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+            )
+          } else if (isSpecialBottomMessage) {
+            contents = (
+              <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+            )
+          } else if (typeof ordinal === 'number') {
+            contents = (
+              <Message
+                ordinal={ordinal}
+                previous={prevOrdinal}
+                measure={measure}
+                conversationIDKey={this.props.conversationIDKey}
+              />
+            )
+          }
+
+          return <div style={style}>{contents}</div>
+        }}
       </Virtualized.CellMeasurer>
     )
   }
@@ -151,7 +172,7 @@ class Thread extends React.Component<Props, State> {
   }
 
   render() {
-    const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
+    const rowCount = this.props.messageOrdinals.size + 2 // extra rows on top and bottom
     const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
     return (

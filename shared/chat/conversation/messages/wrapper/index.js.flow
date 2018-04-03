@@ -14,8 +14,6 @@ export type Props = {
   isRevoked: boolean,
   isSelected: boolean,
   isYou: boolean,
-  loadMoreType: null | 'moreToLoad' | 'noMoreToLoad',
-  hasOlderResetConversation: boolean,
   message: Types.Message,
   messageFailed: boolean,
   messageSent: boolean,
@@ -25,7 +23,6 @@ export type Props = {
   onCancel: null | (() => void),
   onAuthorClick: () => void,
   orangeLineAbove: boolean,
-  showTeamOffer: boolean,
   timestamp: string,
 }
 

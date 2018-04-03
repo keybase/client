@@ -14,16 +14,11 @@ import {
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey, onFocusInput: () => void}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const hasExtraRow = !meta.resetParticipants.isEmpty() || !!meta.supersededBy || !!meta.wasFinalizedBy
-  return {
-    conversationIDKey,
-    editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
-    hasExtraRow,
-    messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
-  }
-}
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
+  conversationIDKey,
+  editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
+  messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
+})
 
 type DispatchProps = {
   _loadMoreMessages: () => void,
@@ -38,7 +33,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps): 
 const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
-  hasExtraRow: stateProps.hasExtraRow,
   loadMoreMessages: dispatchProps._loadMoreMessages,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: isMobile
