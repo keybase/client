@@ -136,6 +136,7 @@ export default function(
     case FavoriteGen.favoriteIgnored:
     case FavoriteGen.favoriteList:
     case FavoriteGen.setupKBFSChangedHandler:
+    case FavoriteGen.requestFSSyncStatus:
     case KBFSGen.installKBFSResult:
     case KBFSGen.list:
     case KBFSGen.listed:

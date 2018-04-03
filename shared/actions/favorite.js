@@ -15,7 +15,6 @@ import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {isMobile} from '../constants/platform'
 
-import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import type {FolderRPCWithMeta} from '../constants/types/folders'
 
@@ -237,7 +236,7 @@ function _notify(state: Types.FolderState): void {
   previousNotifyState = newNotifyState
 }
 
-function _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
+function _setupKBFSChangedHandler() {
   if (isMobile) {
     return
   }
@@ -245,7 +244,8 @@ function _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
   let _kbfsUploading = false // Don't send duplicates else we get high cpu usage.
   return Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncStatusResponse', ({status}) => {
-      if ((status: RPCTypes.FSSyncStatus).totalSyncingBytes <= 0) { // not syncing
+      if ((status: RPCTypes.FSSyncStatus).totalSyncingBytes <= 0) {
+        // not syncing
         if (_kbfsUploading) {
           _kbfsUploading = false
           dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
