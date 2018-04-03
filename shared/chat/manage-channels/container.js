@@ -16,7 +16,7 @@ import {
   withStateHandlers,
   withPropsOnChange,
 } from '../../util/container'
-import {navigateTo, navigateAppend, switchTo} from '../../actions/route-tree'
+import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {chatTab} from '../../constants/tabs'
 import {
@@ -91,21 +91,19 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       )
       dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
     },
-    _onPreview: (conversationIDKey: ChatTypes.ConversationIDKey, previousPath?: string[]) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'preview'}))
+    _onView: (conversationIDKey: ChatTypes.ConversationIDKey, preview: boolean) => {
+      dispatch(
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: preview ? 'preview' : 'manageView'})
+      )
       dispatch(
         navigateTo([
           chatTab,
           {
             selected: ChatTypes.conversationIDKeyToString(conversationIDKey),
-            props: {previousPath: previousPath || null},
+            props: {},
           },
         ])
       )
-    },
-    _onView: (conversationIDKey: ChatTypes.ConversationIDKey) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'manageView'}))
-      dispatch(switchTo([chatTab]))
     },
   }
 }
@@ -134,17 +132,13 @@ export default compose(
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
-    onClickChannel: ({channels, _onPreview, _onView}) => (conversationIDKey: string) => {
+    onClickChannel: ({channels, _onView}) => (conversationIDKey: string) => {
       const channel = channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
         logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
         return
       }
-      if (channel.selected) {
-        _onView(conversationIDKey)
-      } else {
-        _onPreview(conversationIDKey)
-      }
+      _onView(conversationIDKey, !channel.selected)
     },
   }),
   lifecycle({
