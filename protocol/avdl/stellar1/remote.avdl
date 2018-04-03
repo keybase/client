@@ -80,9 +80,42 @@ protocol remote {
 
     string signedTransaction;
   }
-  
+
+  record PaymentSummary {
+    // One or the other or both.
+    union { null, PaymentSummaryStellar } stellar; // Info from stellar network
+    union { null, PaymentSummaryKeybase } keybase; // Info from keybase storage
+
+    // Common values
+    TransactionID stellarTxID;
+    AccountID from;
+    AccountID to;
+    string amount; // amount of asset transfered
+    Asset asset;
+  }
+
+  record PaymentSummaryKeybase {
+    KeybaseTransactionID kbTxID;
+    TransactionStatus status;
+    string submitErrMsg;
+    TimeMs ctime;
+    TimeMs rtime; // time of last status update
+    keybase1.UID fromUID;
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UID } toUID;
+    // union { null, EncryptedNote }  note; // TODO
+    union { null, string } displayAmount;
+    union { null, string } displayCurrency;
+  }
+
+  record PaymentSummaryStellar {
+    uint64 operationID;
+    TimeMs ctime;
+  }
+
   array<Balance> balances(keybase1.UID uid, AccountID accountID);
   array<TransactionSummary> recentTransactions(keybase1.UID uid, AccountID accountID, int count);
+  array<PaymentSummary> recentPayments(keybase1.UID uid, AccountID accountID, int limit);
   TransactionDetails transaction(keybase1.UID uid, TransactionID id);
 
   // js can't handle uint64, so returning a string

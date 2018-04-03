@@ -29,6 +29,11 @@ func (k KeybaseTransactionID) String() string {
 }
 
 func ToTimeMs(t time.Time) TimeMs {
+	// the result of calling UnixNano on the zero Time is undefined.
+	// https://golang.org/pkg/time/#Time.UnixNano
+	if t.IsZero() {
+		return 0
+	}
 	return TimeMs(t.UnixNano() / 1000000)
 }
 
@@ -83,4 +88,12 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 		}
 	}
 	return BundleEntry{}, errors.New("primary stellar account not found")
+}
+
+func AssetNative() Asset {
+	return Asset{
+		Type:   "native",
+		Code:   "",
+		Issuer: "",
+	}
 }
