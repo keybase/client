@@ -34,6 +34,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       // This is useful when we calculate metadata for favorites:
       //   e.g. meta: 'new' | 'ignored'
       //        needsRekey: boolean
+      // TODO: figure out why mergeDeepIn doesn't work
       return state
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
