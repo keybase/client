@@ -50974,6 +50974,494 @@ exports[`Storyshots Teams/Retention Channel inheriting 1`] = `
 </div>
 `;
 
+exports[`Storyshots Teams/Retention Non-admin channel 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="glamor-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Admins have set this channel to auto-delete messages after [mocked]
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Non-admin channel inherit 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="glamor-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Messages in this channel will expire after [mocked], which is the team default.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Non-admin small team 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="glamor-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Admins have set this chat to auto-delete messages after [mocked]
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Non-admin team-wide 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="glamor-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="glamor-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="glamor-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Admins have set this team to auto-delete messages after [mocked]
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Teams/Retention Small team 1`] = `
 .glamor-0,
 [data-glamor-0] {

@@ -14,8 +14,10 @@ import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
+import {type RetentionEntityType} from './container'
 
 export type Props = {
+  canSetPolicy: boolean,
   containerStyle?: StylesCrossPlatform,
   dropdownStyle?: StylesCrossPlatform,
   policy: RetentionPolicy,
@@ -157,14 +159,45 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 }
 
-const headingStyle = platformStyles({
-  common: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginTop: globalMargins.small,
-    marginBottom: globalMargins.tiny,
-  },
-})
+const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
+  let convType = ''
+  switch (props.entityType) {
+    case 'big team':
+      convType = 'team'
+      break
+    case 'small team':
+      convType = 'chat'
+      break
+    case 'channel':
+      convType = 'channel'
+      break
+    case 'chat':
+    default:
+      throw new Error(`Bad entityType encountered in RetentionDisplay: ${props.entityType}`)
+  }
+  const text = policyToExplanation(convType, props.policy, props.teamPolicy)
+  return (
+    <Box style={collapseStyles([globalStyles.flexBoxColumn, props.containerStyle])}>
+      <Box style={displayHeadingStyle}>
+        <Text type="BodySmallSemibold">Message deletion</Text>
+        <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
+      </Box>
+      <Text type="BodySmall">{text}</Text>
+    </Box>
+  )
+}
+
+const headingStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  marginTop: globalMargins.small,
+  marginBottom: globalMargins.tiny,
+}
+
+const displayHeadingStyle = {
+  ...headingStyle,
+  marginBottom: 2,
+}
 
 const dropdownStyle = platformStyles({
   common: {
@@ -182,21 +215,17 @@ const dropdownStyle = platformStyles({
   },
 })
 
-const labelStyle = platformStyles({
-  common: {
-    ...globalStyles.flexBoxCenter,
-    minHeight: isMobile ? 40 : 32,
-    width: '100%',
-  },
-})
+const labelStyle = {
+  ...globalStyles.flexBoxCenter,
+  minHeight: isMobile ? 40 : 32,
+  width: '100%',
+}
 
-const progressIndicatorStyle = platformStyles({
-  common: {
-    width: 30,
-    height: 30,
-    marginTop: globalMargins.small,
-  },
-})
+const progressIndicatorStyle = {
+  width: 30,
+  height: 30,
+  marginTop: globalMargins.small,
+}
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
@@ -261,9 +290,46 @@ const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
   }
   return p1 === p2
 }
+const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: RetentionPolicy) => {
+  let exp = ''
+  switch (p.type) {
+    case 'inherit':
+      if (!parent) {
+        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
+      }
+      let behavior = ''
+      switch (parent.type) {
+        case 'inherit':
+          throw new Error(`Got invalid type 'inherit' for team-wide policy`)
+        case 'retain':
+          behavior = 'be retained indefinitely'
+          break
+        case 'expire':
+          behavior = `expire after ${daysToLabel(parent.days)}`
+          break
+        default:
+          throw new Error(`Impossible policy type encountered: ${parent.type}`)
+      }
+      exp = `Messages in this ${convType} will ${behavior}, which is the team default.`
+      break
+    case 'retain':
+      exp = `Admins have set this ${convType} to retain messages indefinitely.`
+      break
+    case 'expire':
+      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(p.days)}`
+      break
+    default:
+      throw new Error(`Impossible policy type encountered: ${p.type}`)
+  }
+  return exp
+}
 
 // Switcher to avoid having RetentionPicker try to process nonexistent data
-const RetentionSwitcher = (props: Props) =>
-  props.loading ? <ProgressIndicator style={progressIndicatorStyle} /> : <RetentionPicker {...props} />
+const RetentionSwitcher = (props: Props & {entityType: RetentionEntityType}) => {
+  if (props.loading) {
+    return <ProgressIndicator style={progressIndicatorStyle} />
+  }
+  return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
+}
 
 export default RetentionSwitcher
