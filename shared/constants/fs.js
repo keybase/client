@@ -22,6 +22,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
+  badgeCount: 0,
   children: I.List(),
   type: 'folder',
 })
@@ -32,6 +33,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
+  badgeCount: 0,
   type: 'file',
 })
 
@@ -41,6 +43,7 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
+  badgeCount: 0,
   type: 'unknown',
 })
 
@@ -90,7 +93,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
-  badges: I.Map(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({

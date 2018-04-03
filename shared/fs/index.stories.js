@@ -80,6 +80,7 @@ const load = () => {
       <FilePreview
         path={Types.stringToPath(previewPathName)}
         meta={{
+          badgeCount: 0,
           name: previewPathName,
           lastModifiedTimestamp: 1518029754000,
           size: 15000,

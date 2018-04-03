@@ -12,7 +12,6 @@
     },
     "favoritesLoad": {},
     "favoritesLoaded": {
-      "badges": "Types.FavoriteBadges",
       "folders": "I.Map<Types.Path, Types.FavoriteFolder>"
     },
     "filePreviewLoad": {

@@ -37,6 +37,7 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   size: number,
   progress: ProgressType,
+  badgeCount: number,
   tlfMeta?: TLFMetadata,
 }
 
@@ -136,7 +137,6 @@ export type _State = {
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
-  badges: I.Map<Path, number>,
 }
 export type State = I.RecordOf<_State>
 
@@ -295,13 +295,8 @@ export type FolderRPCWithMeta = {
   youCanUnlock: Array<Device>,
 } & RPCTypes.Folder
 
-export type FavoriteBadges = {
-  '/keybase/private': number,
-  '/keybase/public': number,
-  '/keybase/team': number,
-}
-
 export type FavoriteFolder = {
   name: string,
-  tlfMeta: TLFMetadata,
+  tlfMeta?: TLFMetadata,
+  badgeCount?: number,
 }

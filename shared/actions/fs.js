@@ -87,10 +87,7 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
     favoritesResult = JSON.parse(txt)
   } catch (err) {
     logger.warn('Invalid json from getFavorites: ', err)
-    return {
-      badges: badges,
-      folders: I.Map(),
-    }
+    return I.Map()
   }
 
   const myKID = findKey(favoritesResult.users, name => name === username)
@@ -120,11 +117,18 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
       ]
     }
   )
+  Object.keys(badges).forEach(badgeKey => {
+    const badgePath = Types.stringToPath(badgeKey)
+    favoriteFolders.push([
+      badgePath,
+      {
+        name: Types.getPathName(badgePath),
+        badgeCount: badges[badgeKey],
+      }
+    ])
+  })
 
-  return {
-    badges: badges,
-    folders: I.Map(favoriteFolders),
-  }
+  return I.Map(favoriteFolders)
 }
 
 function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
@@ -136,9 +140,9 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
     })
     const username = state.config.username || ''
     const loggedIn = state.config.loggedIn
-    const foldersAndBadges = _folderToPathItems(results && results.body, username, loggedIn)
+    const folders = _folderToPathItems(results && results.body, username, loggedIn)
 
-    yield Saga.put(FsGen.createFavoritesLoaded(foldersAndBadges))
+    yield Saga.put(FsGen.createFavoritesLoaded({folders}))
   } catch (e) {
     logger.warn('Error listing favorites:', e)
   }

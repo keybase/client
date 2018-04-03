@@ -44,8 +44,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.favoritesLoad:
       return state
     case FsGen.favoritesLoaded:
-      const {badges, folders} = action.payload
-      return state.mergeDeepIn(['pathItems'], folders).mergeIn(['badges'], badges)
+      return state.mergeDeepIn(['pathItems'], action.payload.folders)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)

@@ -58,12 +58,7 @@ export const createDownloadStarted = (
   |}>
 ) => ({error: false, payload, type: downloadStarted})
 export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
-export const createFavoritesLoaded = (
-  payload: $ReadOnly<{|
-    badges: Types.FavoriteBadges,
-    folders: I.Map<Types.Path, Types.FavoriteFolder>,
-  |}>
-) => ({error: false, payload, type: favoritesLoaded})
+export const createFavoritesLoaded = (payload: $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteFolder>|}>) => ({error: false, payload, type: favoritesLoaded})
 export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (
   payload: $ReadOnly<{|
