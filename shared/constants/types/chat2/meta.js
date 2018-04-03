@@ -29,7 +29,6 @@ export type _ConversationMeta = {
   offline: boolean,
   orangeLineOrdinal: ?Ordinal,
   paginationKey: ?PaginationKey,
-  paginationMoreToLoad: boolean,
   participants: I.OrderedSet<string>,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,

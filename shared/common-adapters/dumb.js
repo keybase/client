@@ -8,7 +8,6 @@ import {
   Avatar,
   Button,
   Box,
-  Checkbox,
   ChoiceList,
   Icon,
   Input,
@@ -25,7 +24,6 @@ import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors, isMobile} from '../styles'
 import {iconMeta} from './icon.constants'
 
-const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
 const onSelect = () => console.log('on select!')
 
@@ -288,34 +286,6 @@ const buttonsMap: DumbComponentMap<Button> = {
       type: 'Secondary',
       backgroundMode: 'Terminal',
       fullWidth: true,
-    },
-  },
-}
-
-const checkboxMap: DumbComponentMap<Checkbox> = {
-  component: Checkbox,
-  mocks: {
-    'Normal - checked': {
-      label: 'Normal - checked',
-      onCheck,
-      checked: true,
-    },
-    'Normal - unchecked': {
-      label: 'Normal - unchecked',
-      onCheck,
-      checked: false,
-    },
-    'Disabled - checked': {
-      label: 'Disabled - checked',
-      onCheck,
-      disabled: true,
-      checked: true,
-    },
-    'Disabled - unchecked': {
-      label: 'Disabled - unchecked',
-      onCheck,
-      disabled: true,
-      checked: false,
     },
   },
 }
@@ -1072,7 +1042,6 @@ export default {
   AutosizeInput: autosizeInputMap,
   Avatar: avatarMap,
   Buttons: buttonsMap,
-  Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
   Colors: colorsMap,
   Icon: iconMap,

@@ -23,6 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
   const uninstall = () => dispatch(FsGen.createUninstallKBFS())
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
+    // $FlowFixMe @jzila please fix
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm({onSuccess: uninstall})),

@@ -14,11 +14,11 @@ import {
   PopupMenu,
   Text,
   UserBio,
-  UserActions,
   UserProofs,
   Usernames,
   BackButton,
 } from '../common-adapters'
+import UserActions from './user-actions'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'

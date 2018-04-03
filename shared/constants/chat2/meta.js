@@ -100,7 +100,7 @@ const getTeamType = ({teamType, membersType}) => {
   }
 }
 
-// Upgrade a meta, try and keep exising values if possible to reduce render thrashing in components
+// Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
   old: Types.ConversationMeta,
@@ -120,7 +120,6 @@ export const updateMeta = (
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
     m.set('paginationKey', old.paginationKey)
-    m.set('paginationMoreToLoad', old.paginationMoreToLoad)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -255,7 +254,6 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   offline: false,
   orangeLineOrdinal: null,
   paginationKey: null,
-  paginationMoreToLoad: false,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),

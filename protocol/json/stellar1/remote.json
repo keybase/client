@@ -297,6 +297,19 @@
       ],
       "response": "TransactionDetails"
     },
+    "accountSeqno": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "string"
+    },
     "submitPayment": {
       "request": [
         {

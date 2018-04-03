@@ -49,155 +49,155 @@ export const updateTopic = 'teams:updateTopic'
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
  */
-export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamRetentionPolicy})
+export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamRetentionPolicy})
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
 export const createSetTeamRetentionPolicy = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     policy: Types.RetentionPolicy,
-  }>
+  |}>
 ) => ({error: false, payload, type: setTeamRetentionPolicy})
 export const createAddPeopleToTeam = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     role: string,
     sendChatNotification: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: addPeopleToTeam})
 export const createAddToTeam = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     email: string,
     username: string,
     role: Types.TeamRoleType,
     sendChatNotification: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: addToTeam})
 export const createBadgeAppForTeams = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     newTeamNames: Array<string>,
     newTeamAccessRequests: Array<string>,
     teamsWithResetUsers: Array<$ReadOnly<{id: Buffer, teamname: string, username: string}>>,
-  }>
+  |}>
 ) => ({error: false, payload, type: badgeAppForTeams})
-export const createCheckRequestedAccess = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: checkRequestedAccess})
+export const createCheckRequestedAccess = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: checkRequestedAccess})
 export const createCreateChannel = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     channelname: string,
     description: ?string,
     rootPath: I.List<string>,
     sourceSubPath: I.List<string>,
     destSubPath: I.List<string>,
-  }>
+  |}>
 ) => ({error: false, payload, type: createChannel})
 export const createCreateNewTeam = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     joinSubteam: boolean,
     teamname: string,
     rootPath: I.List<string>,
     sourceSubPath: I.List<string>,
     destSubPath: I.List<string>,
-  }>
+  |}>
 ) => ({error: false, payload, type: createNewTeam})
 export const createCreateNewTeamFromConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: ChatTypes.ConversationIDKey,
     teamname: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: createNewTeamFromConversation})
-export const createDeleteChannelConfirmed = (payload: $ReadOnly<{conversationIDKey: ChatTypes.ConversationIDKey}>) => ({error: false, payload, type: deleteChannelConfirmed})
+export const createDeleteChannelConfirmed = (payload: $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey|}>) => ({error: false, payload, type: deleteChannelConfirmed})
 export const createEditMembership = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     username: string,
     role: Types.TeamRoleType,
-  }>
+  |}>
 ) => ({error: false, payload, type: editMembership})
 export const createEditTeamDescription = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     description: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: editTeamDescription})
-export const createGetChannels = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getChannels})
-export const createGetDetails = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getDetails})
-export const createGetTeamOperations = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamOperations})
-export const createGetTeamPublicity = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: getTeamPublicity})
+export const createGetChannels = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getChannels})
+export const createGetDetails = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getDetails})
+export const createGetTeamOperations = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamOperations})
+export const createGetTeamPublicity = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamPublicity})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
 export const createIgnoreRequest = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     username: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: ignoreRequest})
 export const createInviteToTeamByEmail = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     role: Types.TeamRoleType,
     invitees: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: inviteToTeamByEmail})
 export const createInviteToTeamByPhone = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     role: Types.TeamRoleType,
     phoneNumber: string,
     fullName: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: inviteToTeamByPhone})
-export const createJoinTeam = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: joinTeam})
-export const createLeaveTeam = (payload: $ReadOnly<{teamname: string}>) => ({error: false, payload, type: leaveTeam})
+export const createJoinTeam = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: joinTeam})
+export const createLeaveTeam = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: leaveTeam})
 export const createRemoveMemberOrPendingInvite = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     email: string,
     teamname: string,
     username: string,
     inviteID: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: removeMemberOrPendingInvite})
 export const createSaveChannelMembership = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     channelState: Types.ChannelMembershipState,
-  }>
+  |}>
 ) => ({error: false, payload, type: saveChannelMembership})
-export const createSetChannelCreationError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: setChannelCreationError})
+export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
 export const createSetMemberPublicity = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     showcase: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setMemberPublicity})
 export const createSetPublicity = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     teamname: string,
     settings: Types.PublicitySettings,
-  }>
+  |}>
 ) => ({error: false, payload, type: setPublicity})
-export const createSetTeamCreationError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: setTeamCreationError})
-export const createSetTeamCreationPending = (payload: $ReadOnly<{pending: boolean}>) => ({error: false, payload, type: setTeamCreationPending})
-export const createSetTeamJoinError = (payload: $ReadOnly<{error: string}>) => ({error: false, payload, type: setTeamJoinError})
+export const createSetTeamCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamCreationError})
+export const createSetTeamCreationPending = (payload: $ReadOnly<{|pending: boolean|}>) => ({error: false, payload, type: setTeamCreationPending})
+export const createSetTeamJoinError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamJoinError})
 export const createSetTeamJoinSuccess = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     success: boolean,
     teamname: ?string,
-  }>
+  |}>
 ) => ({error: false, payload, type: setTeamJoinSuccess})
 export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
 export const createUpdateChannelName = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: ChatTypes.ConversationIDKey,
     newChannelName: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateChannelName})
 export const createUpdateTopic = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: ChatTypes.ConversationIDKey,
     newTopic: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateTopic})
 
 // Action Payloads

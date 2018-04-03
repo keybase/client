@@ -135,6 +135,26 @@
     },
     {
       "type": "record",
+      "name": "UserEkBoxMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "recipientGeneration",
+          "jsonkey": "recipient_generation"
+        },
+        {
+          "type": "DeviceID",
+          "name": "recipientDeviceID",
+          "jsonkey": "recipient_device_id"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserEk",
       "fields": [
         {
@@ -206,6 +226,26 @@
         {
           "type": "TeamEkMetadata",
           "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEkBoxMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "recipientGeneration",
+          "jsonkey": "recipient_generation"
+        },
+        {
+          "type": "UID",
+          "name": "recipientUID",
+          "jsonkey": "recipient_uid"
         }
       ]
     },

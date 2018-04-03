@@ -52,12 +52,6 @@ func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool 
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
 }
 
-// We should wrap any entry points to the library with this before we're ready
-// to fully release it.
-func ShouldRun(g *libkb.GlobalContext) bool {
-	return g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
-}
-
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {
 	bs, err := libkb.RandBytes(libkb.NaclDHKeysize)
 	if err != nil {

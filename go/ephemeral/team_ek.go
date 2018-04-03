@@ -32,13 +32,7 @@ func (s *TeamEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonTeamEKEncryption)
 }
 
-type TeamEKBoxMetadata struct {
-	RecipientUID        keybase1.UID          `json:"recipient_uid"`
-	RecipientGeneration keybase1.EkGeneration `json:"recipient_generation"`
-	Box                 string                `json:"box"`
-}
-
-func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string, boxes []TeamEKBoxMetadata) (err error) {
+func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string, boxes []keybase1.TeamEkBoxMetadata) (err error) {
 	defer g.CTrace(ctx, "postNewTeamEK", func() error { return err })()
 
 	boxesJSON, err := json.Marshal(boxes)
@@ -153,7 +147,7 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	return metadata, myTeamEKBoxed, nil
 }
 
-func boxTeamEKForMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, seed TeamEKSeed, teamMetadata keybase1.TeamEkMetadata) (boxes []TeamEKBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
+func boxTeamEKForMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, seed TeamEKSeed, teamMetadata keybase1.TeamEkMetadata) (boxes []keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
 	defer g.CTrace(ctx, "boxTeamEKForMembers", func() error { return err })()
 
 	membersMetadata, err := activeMemberEKMetadata(ctx, g, teamID, merkleRoot)
@@ -172,7 +166,7 @@ func boxTeamEKForMembers(ctx context.Context, g *libkb.GlobalContext, teamID key
 		if err != nil {
 			return nil, nil, err
 		}
-		boxMetadata := TeamEKBoxMetadata{
+		boxMetadata := keybase1.TeamEkBoxMetadata{
 			RecipientUID:        uid,
 			RecipientGeneration: memberMetadata.Generation,
 			Box:                 box,

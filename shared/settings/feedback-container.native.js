@@ -137,6 +137,7 @@ const extraChatLogs = (state: TypedState) => {
       metaMap: {
         ...chat.metaMap.get(c, I.Map()).toJS(),
         channelname: 'X',
+        description: 'X',
         snippet: 'X',
       },
       pendingMode: chat.pendingMode,

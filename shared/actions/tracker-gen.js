@@ -55,171 +55,171 @@ export const waiting = 'tracker:waiting'
 
 // Action Creators
 export const createCacheIdentify = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     uid: string,
     goodTill: number,
-  }>
+  |}>
 ) => ({error: false, payload, type: cacheIdentify})
 export const createFollow = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     localIgnore?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: follow})
-export const createGetMyProfile = (payload: $ReadOnly<{ignoreCache?: boolean}>) => ({error: false, payload, type: getMyProfile})
+export const createGetMyProfile = (payload: $ReadOnly<{|ignoreCache?: boolean|}>) => ({error: false, payload, type: getMyProfile})
 export const createGetProfile = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     ignoreCache?: boolean,
     forceDisplay?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: getProfile})
-export const createIdentifyFinished = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: identifyFinished})
+export const createIdentifyFinished = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: identifyFinished})
 export const createIdentifyFinishedError = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     error: string,
-  }>
+  |}>
 ) => ({error: true, payload, type: identifyFinished})
-export const createIdentifyStarted = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: identifyStarted})
-export const createIgnore = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: ignore})
+export const createIdentifyStarted = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: identifyStarted})
+export const createIgnore = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: ignore})
 export const createMarkActiveIdentifyUi = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     active: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: markActiveIdentifyUi})
-export const createOnClose = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: onClose})
+export const createOnClose = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: onClose})
 export const createOnError = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     extraText: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: onError})
-export const createOpenProofUrl = (payload: $ReadOnly<{proof: Types.Proof}>) => ({error: false, payload, type: openProofUrl})
+export const createOpenProofUrl = (payload: $ReadOnly<{|proof: Types.Proof|}>) => ({error: false, payload, type: openProofUrl})
 export const createParseFriendship = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     uid: string,
     fullname: string,
     followsYou: string,
     following: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: parseFriendship})
 export const createPendingIdentify = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     pending: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: pendingIdentify})
-export const createRefollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: refollow})
-export const createRemoteDismiss = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: remoteDismiss})
+export const createRefollow = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: refollow})
+export const createRemoteDismiss = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: remoteDismiss})
 export const createReportLastTrack = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     tracking?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: reportLastTrack})
-export const createResetProofs = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: resetProofs})
+export const createResetProofs = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: resetProofs})
 export const createSetNeedTrackTokenDismiss = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     needTrackTokenDismiss: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setNeedTrackTokenDismiss})
-export const createSetOnFollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: setOnFollow})
-export const createSetOnRefollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: setOnRefollow})
-export const createSetOnUnfollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: setOnUnfollow})
+export const createSetOnFollow = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: setOnFollow})
+export const createSetOnRefollow = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: setOnRefollow})
+export const createSetOnUnfollow = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: setOnUnfollow})
 export const createSetProofs = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     identity: RPCTypes.Identity,
-  }>
+  |}>
 ) => ({error: false, payload, type: setProofs})
-export const createSetRegisterIdentifyUi = (payload: $ReadOnly<{started: boolean}>) => ({error: false, payload, type: setRegisterIdentifyUi})
+export const createSetRegisterIdentifyUi = (payload: $ReadOnly<{|started: boolean|}>) => ({error: false, payload, type: setRegisterIdentifyUi})
 export const createSetUpdateTrackers = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     trackers: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
     tracking: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
-  }>
+  |}>
 ) => ({error: false, payload, type: setUpdateTrackers})
 export const createSetupTrackerHandlers = () => ({error: false, payload: undefined, type: setupTrackerHandlers})
 export const createShowNonUser = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam,
-  }>
+  |}>
 ) => ({error: false, payload, type: showNonUser})
-export const createShowTracker = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: showTracker})
-export const createUnfollow = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: unfollow})
+export const createShowTracker = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: showTracker})
+export const createUnfollow = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: unfollow})
 export const createUpdateBTC = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     address: string,
     sigID: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateBTC})
-export const createUpdateEldestKidChanged = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateEldestKidChanged})
+export const createUpdateEldestKidChanged = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: updateEldestKidChanged})
 export const createUpdateFolders = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     tlfs: Array<FolderTypes.Folder>,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateFolders})
 export const createUpdatePGPKey = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     pgpFingerprint: Buffer,
     kid: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updatePGPKey})
 export const createUpdateProof = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     remoteProof: RPCTypes.RemoteProof,
     linkCheckResult: RPCTypes.LinkCheckResult,
     username: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateProof})
-export const createUpdateProofState = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateProofState})
+export const createUpdateProofState = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: updateProofState})
 export const createUpdateReason = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     reason: ?string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateReason})
 export const createUpdateSelectedTeam = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     selectedTeam: string,
     username: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateSelectedTeam})
 export const createUpdateTrackToken = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     trackToken: RPCTypes.TrackToken,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateTrackToken})
-export const createUpdateTrackers = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateTrackers})
+export const createUpdateTrackers = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: updateTrackers})
 export const createUpdateUserInfo = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     userCard: RPCTypes.UserCard,
     username: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateUserInfo})
-export const createUpdateUsername = (payload: $ReadOnly<{username: string}>) => ({error: false, payload, type: updateUsername})
+export const createUpdateUsername = (payload: $ReadOnly<{|username: string|}>) => ({error: false, payload, type: updateUsername})
 export const createUpdateZcash = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     address: string,
     sigID: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateZcash})
 export const createWaiting = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     username: string,
     waiting: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: waiting})
 
 // Action Payloads

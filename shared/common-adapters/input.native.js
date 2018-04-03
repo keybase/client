@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import {globalStyles, globalColors, styleSheetCreate} from '../styles'
+import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
 import type {Props} from './input'
@@ -266,7 +266,7 @@ class Input extends Component<Props, State> {
     const singlelineProps = {
       ...commonProps,
       multiline: false,
-      style: {...singlelineStyle, ...this.props.inputStyle},
+      style: collapseStyles([singlelineStyle, this.props.inputStyle]),
       type:
         {
           password: 'password',
@@ -280,7 +280,7 @@ class Input extends Component<Props, State> {
       multiline: true,
       blurOnSubmit: false,
       onContentSizeChange: this._onContentSizeChange,
-      style: {...multilineStyle, ...this.props.inputStyle},
+      style: collapseStyles([multilineStyle, this.props.inputStyle]),
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {}),
     }
 
@@ -293,7 +293,10 @@ class Input extends Component<Props, State> {
         )}
         {!!this.props.small &&
           !!this.props.smallLabel && (
-            <Text type="BodySmall" style={[styles.smallLabel, {lineHeight}, this.props.smallLabelStyle]}>
+            <Text
+              type="BodySmall"
+              style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
+            >
               {this.props.smallLabel}
             </Text>
           )}
@@ -307,7 +310,7 @@ class Input extends Component<Props, State> {
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small && (
-          <Text type="BodyError" style={[styles.error, this.props.errorStyle]}>
+          <Text type="BodyError" style={collapseStyles([styles.error, this.props.errorStyle])}>
             {this.props.errorText || ''}
           </Text>
         )}
