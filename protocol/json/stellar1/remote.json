@@ -373,26 +373,6 @@
         "items": "Balance"
       }
     },
-    "recentTransactions": {
-      "request": [
-        {
-          "name": "uid",
-          "type": "keybase1.UID"
-        },
-        {
-          "name": "accountID",
-          "type": "AccountID"
-        },
-        {
-          "name": "count",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "TransactionSummary"
-      }
-    },
     "recentPayments": {
       "request": [
         {
