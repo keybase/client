@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
-	"github.com/keybase/stellarnet"
 )
 
 type UISource interface {
@@ -135,26 +134,4 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	}
 	_, err = stellar.CreateWallet(ctx, s.G())
 	return err
-}
-
-func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *stellar.Recipient) stellar1.PaymentPost {
-	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
-	post := stellar1.PaymentPost{
-		Members: stellar1.Members{
-			FromStellar:  stellar1.AccountID(acctID.String()),
-			FromKeybase:  g.Env.GetUsername().String(),
-			FromUID:      uid,
-			FromDeviceID: deviceID,
-		},
-	}
-
-	if recipient != nil {
-		post.Members.ToStellar = stellar1.AccountID(recipient.AccountID.String())
-		if recipient.User != nil {
-			post.Members.ToUID = recipient.User.GetUID()
-			post.Members.ToKeybase = recipient.User.GetName()
-		}
-	}
-
-	return post
 }
