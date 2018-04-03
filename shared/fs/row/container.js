@@ -66,6 +66,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   name: stateProps.pathItem.name,
   type: stateProps.pathItem.type,
+  tlfMeta: stateProps.pathItem.tlfMeta,
+  badgeCount: stateProps.pathItem.badgeCount,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
   lastWriter: stateProps.pathItem.lastWriter.username,
   onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),

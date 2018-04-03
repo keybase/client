@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, glamorous, platformStyles} from '../../styles'
 import memoize from 'lodash/memoize'
-import {Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
+import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 
@@ -13,6 +13,8 @@ type RowProps = {
   lastModifiedTimestamp: number,
   lastWriter: string,
   itemStyles: Types.ItemStyles,
+  badgeCount: number,
+  tlfMeta?: Types.TLFMetadata,
   onOpen: () => void,
   openInFileUI: () => void,
   onAction: (event: SyntheticEvent<>) => void,
@@ -32,21 +34,34 @@ const HoverBox = isMobile
       },
     })
 
-const RowMeta = ({meta}) => {
-  if (!meta || meta === 'ignored') {
-    return
+const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
+  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount)) {
+    return <Box />
   }
 
-  const metaStyle = {
+  const badgeStyleNew = {
     color: globalColors.white,
-    backgroundColor: meta === 'rekey' ? globalColors.red : globalColors.orange,
+    backgroundColor: globalColors.orange,
     marginTop: 2,
+  }
+
+  const badgeStyleRekey = {
+    color: globalColors.white,
+    backgroundColor: globalColors.red,
+    marginTop: 16,
+  }
+
+  const badgeStyleCount = {
+    marginLeft: 0,
+    marginRight: 0,
   }
 
   return (
     <Box style={{width: 0, display: 'flex'}}>
       <Box style={styleBadge}>
-        <Meta title={meta} style={metaStyle} />
+        {needsRekey && <Meta title="rekey" style={badgeStyleRekey} />}
+        {isNew && <Meta title="new" style={badgeStyleNew} />}
+        {badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
       </Box>
     </Box>
   )
@@ -58,6 +73,7 @@ export const Row = (props: RowProps) => (
       <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
           <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
+          <RowMeta {...props} />
           <Box style={folderBoxStyle}>
             <Text
               type={props.itemStyles.textType}
@@ -187,4 +203,3 @@ const styleBadge = {
   left: 46,
   top: 4,
 }
-
