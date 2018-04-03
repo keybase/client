@@ -8,6 +8,8 @@ type Props = {
   hasUnread: boolean,
   participants: Array<string>,
   showBold: boolean,
+  showGear: boolean,
+  onClickGear: (SyntheticEvent<Element>) => void,
   backgroundColor: ?string,
   subColor: string,
   timestamp: ?string,

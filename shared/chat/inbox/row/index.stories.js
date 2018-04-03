@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box} from '../../../common-adapters'
-import {storiesOf, action} from '../../../stories/storybook'
+import {storiesOf, action, unexpected} from '../../../stories/storybook'
 import {globalColors} from '../../../styles'
 import {SmallTeam} from './small-team'
 import {FilterSmallTeam} from './filter-small-team'
@@ -16,6 +16,7 @@ const simpleCommon = {
   hasUnread: false,
   isMuted: false,
   isSelected: false,
+  onClickGear: unexpected('onClickGear'),
   onSelectConversation: action('onSelectConversation'),
   participants: ['chris'],
   rekeyInfo: null,
@@ -36,6 +37,7 @@ const mocks = [
     conversationIDKey: '3',
     hasUnread: false,
     hasBadge: false,
+    onClickGear: action('onClickGear'),
     showBold: false,
     snippet: 'elisa: Hopefully not',
     teamname: 'fortgreenmoms',

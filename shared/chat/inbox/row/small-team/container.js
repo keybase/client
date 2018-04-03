@@ -25,6 +25,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
+  _onClickGear: (teamname: string, evt: SyntheticEvent<Element>) => {},
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
 })
@@ -35,6 +36,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
+  const onClickGear = (evt: SyntheticEvent<Element>) =>
+    dispatchProps._onClickGear(stateProps._meta.teamname, evt)
 
   return {
     backgroundColor: styles.backgroundColor,
@@ -44,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
+    onClickGear,
     // Don't allow you to select yourself
     onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
     participantNeedToRekey,
