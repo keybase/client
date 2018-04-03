@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -99,4 +100,34 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 		return remote.PostWithChainlink(ctx, g, nextBundle)
 	}
 	return remote.Post(ctx, g, nextBundle)
+}
+
+func BalanceXLM(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.Balance, error) {
+	balances, err := remote.Balances(ctx, g, accountID)
+	if err != nil {
+		return stellar1.Balance{}, err
+	}
+
+	for _, b := range balances {
+		if b.Asset.Type == "native" {
+			return b, nil
+		}
+	}
+
+	return stellar1.Balance{}, errors.New("no native balance")
+}
+
+func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
+	bundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return false, err
+	}
+
+	for _, account := range bundle.Accounts {
+		if account.AccountID.Eq(accountID) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

@@ -49,7 +49,7 @@ func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID
 		return nil, err
 	}
 
-	return Balances(ctx, s.G(), accountID)
+	return remote.Balances(ctx, s.G(), accountID)
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
@@ -59,7 +59,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 	if err != nil {
 		return err
 	}
-	return ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
 }
 
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
@@ -69,7 +69,19 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 	if err != nil {
 		return false, err
 	}
-	return OwnAccount(ctx, s.G(), accountID)
+
+	bundle, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		return false, err
+	}
+
+	for _, account := range bundle.Accounts {
+		if account.AccountID.Eq(accountID) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
@@ -118,9 +130,15 @@ func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err
 	if !pwdOk {
 		return dump, libkb.PassphraseError{}
 	}
-	return Dump(ctx, s.G())
+
+	dump, _, err = remote.Fetch(ctx, s.G())
+
+	return dump, err
 }
 
+// WalletInitLocal creates and posts an initial stellar bundle for a user.
+// Only succeeds if they do not already have one.
+// Safe to call even if the user has a bundle already.
 func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "WalletInitLocal", func() error { return err })()
@@ -128,57 +146,8 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = CreateWallet(ctx, s.G())
+	_, err = stellar.CreateWallet(ctx, s.G())
 	return err
-}
-
-// Service handlers
-
-// CreateWallet creates and posts an initial stellar bundle for a user.
-// Only succeeds if they do not already have one.
-// Safe to call even if the user has a bundle already.
-func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
-	return stellar.CreateWallet(ctx, g)
-}
-
-type balancesResult struct {
-	Status   libkb.AppStatus    `json:"status"`
-	Balances []stellar1.Balance `json:"balances"`
-}
-
-func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
-	return &b.Status
-}
-
-func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/balances",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
-		NetContext:  ctx,
-	}
-
-	var res balancesResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
-		return nil, err
-	}
-
-	return res.Balances, nil
-}
-
-func balanceXLM(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.Balance, error) {
-	balances, err := Balances(ctx, g, accountID)
-	if err != nil {
-		return stellar1.Balance{}, err
-	}
-
-	for _, b := range balances {
-		if b.Asset.Type == "native" {
-			return b, nil
-		}
-	}
-
-	return stellar1.Balance{}, errors.New("no native balance")
 }
 
 func lookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntry, error) {
@@ -207,11 +176,7 @@ type Recipient struct {
 	AccountID stellarnet.AddressStr
 }
 
-// TODO: actually lookup the recipient and handle
-// 1. stellar addresses GXXXXX
-// 2. stellar federation address rebecca*keybase.io
-// 3. keybase username
-// 4. keybase assertion
+// TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
 func lookupRecipient(ctx context.Context, g *libkb.GlobalContext, to string) (*Recipient, error) {
 	r := Recipient{
 		Input: to,
@@ -322,7 +287,7 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 	}
 
 	// check if recipient account exists
-	_, err = balanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
+	_, err = stellar.BalanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
@@ -355,29 +320,4 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 	}
 
 	return res.PaymentResult, nil
-}
-
-func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (isOwn bool, err error) {
-	bundle, _, err := remote.Fetch(ctx, g)
-	if err != nil {
-		return false, err
-	}
-	for _, account := range bundle.Accounts {
-		if account.AccountID.Eq(accountID) {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool) (err error) {
-	return stellar.ImportSecretKey(ctx, g, secretKey, makePrimary)
-}
-
-func Dump(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, err error) {
-	if g.Env.GetRunMode() != libkb.DevelRunMode {
-		return res, errors.New("WalletDump only supported in devel run mode")
-	}
-	res, _, err = remote.Fetch(ctx, g)
-	return res, err
 }
