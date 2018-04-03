@@ -4,6 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
+import {navigateAppend} from '../../../../actions/route-tree'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
@@ -25,7 +26,20 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
-  _onClickGear: (teamname: string, evt: SyntheticEvent<Element>) => {},
+  _onClickGear: (teamname: string, evt: SyntheticEvent<Element>) =>
+    dispatch(
+      navigateAppend([
+        {
+          selected: 'infoPanelMenu',
+          props: {
+            teamname,
+            isSmallTeam: true,
+            position: 'bottom right',
+            targetRect: isMobile ? null : evt.currentTarget.getBoundingClientRect(),
+          },
+        },
+      ])
+    ),
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
 })
