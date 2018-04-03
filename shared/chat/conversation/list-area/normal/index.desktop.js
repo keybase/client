@@ -109,7 +109,7 @@ class Thread extends React.Component<Props, State> {
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
     const isSpecialTopMessage = index === 0
-    const isSpecialBottomMessage = index === this.props.messageOrdinals.size
+    const isSpecialBottomMessage = isSpecialTopMessage ? index === this.props.messageOrdinals.size : false
     const isOrdinalMessage = !isSpecialBottomMessage && !isSpecialTopMessage
     const ordinalIndex = index - 1
     const ordinal = isOrdinalMessage ? this.props.messageOrdinals.get(ordinalIndex) : null

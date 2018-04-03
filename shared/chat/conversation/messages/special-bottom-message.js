@@ -9,9 +9,19 @@ import {connect, type TypedState} from '../../../util/container'
 type Props = {
   showResetParticipants: Types.ConversationIDKey | null,
   showSuperseded: Types.ConversationIDKey | null,
+  measure: ?() => void,
 }
 
 class BottomMessage extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps: Props) {
+    if (
+      this.props.measure &&
+      (this.props.showResetParticipants !== prevProps.showResetParticipants ||
+        this.props.showSuperseded !== prevProps.showSuperseded)
+    ) {
+      this.props.measure()
+    }
+  }
   render() {
     if (this.props.showResetParticipants) {
       return <ResetUser conversationIDKey={this.props.showResetParticipants} />

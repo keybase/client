@@ -9,7 +9,7 @@ import {
   type Dispatch,
   compose,
   lifecycle,
-  isMobile,
+  withStateHandlers,
 } from '../../../../util/container'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey, onFocusInput: () => void}
@@ -31,13 +31,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps): 
 })
 
 const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
+  _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
-  loadMoreMessages: dispatchProps._loadMoreMessages,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
-  messageOrdinals: isMobile
-    ? stateProps.messageOrdinals.toList().reverse()
-    : stateProps.messageOrdinals.toList(),
+  messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
 })
 
@@ -47,6 +45,31 @@ let markedInitiallyLoaded = false
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers(
+    {
+      _conversationIDKey: null,
+      _lastOrdinal: null,
+      _lastOrdinalTime: Date.now(),
+    },
+    {
+      // We don't let you try and load more for the same top ordinal within a second
+      loadMoreMessages: (state, props) => ordinal => {
+        if (state._conversationIDKey === props.conversationIDKey && state._lastOrdinal === ordinal) {
+          if (state._lastOrdinalTime + 1000 > Date.now()) {
+            // ignore a load if its too recent for the same ordinal
+            return
+          }
+        }
+
+        props._loadMoreMessages()
+        return {
+          _conversationIDKey: props.conversationIDKey,
+          _lastOrdinal: ordinal,
+          _lastOrdinalTime: Date.now(),
+        }
+      },
+    }
+  ),
   lifecycle({
     componentDidMount() {
       if (markedInitiallyLoaded) {

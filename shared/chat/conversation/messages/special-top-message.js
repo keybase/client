@@ -13,9 +13,21 @@ type Props = {
   hasOlderResetConversation: boolean,
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
   showTeamOffer: boolean,
+  measure: ?() => void,
 }
 
 class TopMessage extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps: Props) {
+    // remeasure if the layout changes. On purpose we don't change size when loadMoreType changes
+    if (
+      this.props.measure &&
+      (this.props.hasOlderResetConversation !== prevProps.hasOlderResetConversation ||
+        this.props.showTeamOffer !== prevProps.showTeamOffer)
+    ) {
+      this.props.measure()
+    }
+  }
+
   render() {
     return (
       <Box style={containerStyle}>
