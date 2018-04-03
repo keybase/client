@@ -2,18 +2,22 @@
 @namespace("keybase.1")
 protocol Kex2Provisionee2 {
   import idl "common.avdl";
+  import idl "ephemeral.avdl";
 
   record Hello2Res {
     KID encryptionKey;
     HelloRes sigPayload;
+    KID deviceEkKID;
   }
 
   Hello2Res hello2(UID uid, SessionToken token, CsrfToken csrf, string sigBody);
+
   void didCounterSign2(
     bytes sig,
     string ppsEncrypted,
     // Current generation per-user-secret boxed for the new device
-    union { null, PerUserKeyBox } pukBox
+    union { null, PerUserKeyBox } pukBox,
+    union { null, UserEkBoxed } userEkBox
   );
 
   @lint("ignore")

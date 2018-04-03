@@ -10,6 +10,8 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/stellar"
+	context "golang.org/x/net/context"
 )
 
 // PerUserKeyUpgrade is an engine.
@@ -97,5 +99,12 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	eng := NewPerUserKeyRoll(e.G(), arg)
 	err = RunEngine(eng, ctx)
 	e.DidNewKey = eng.DidNewKey
+
+	if eng.DidNewKey {
+		go func() {
+			stellar.InitWalletSoft(context.Background(), e.G())
+		}()
+	}
+
 	return err
 }

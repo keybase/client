@@ -1,10 +1,11 @@
 // @flow
 import React, {Component} from 'react'
+import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
   className?: ?string,
   children?: any,
-  style?: any,
+  style?: StylesCrossPlatform,
   onClick?: ?(event: SyntheticEvent<Element>) => void,
   onPress?: void,
   onLongPress?: ?(event: SyntheticEvent<Element>) => void,

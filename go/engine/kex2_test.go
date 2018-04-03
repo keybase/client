@@ -25,6 +25,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// provisioner needs to be logged in
@@ -33,6 +34,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "kex2provision")
 	defer tcY.Cleanup()
+
 	tcY.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	var secretX kex2.Secret

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Box from './box'
-import {globalColors} from '../styles'
+import {collapseStyles, globalColors} from '../styles'
 
 import type {Props} from './divider'
 
@@ -9,7 +9,7 @@ class Divider extends Component<Props> {
   render() {
     const orientationStyle = this.props.vertical ? {maxWidth: 1, minWidth: 1} : {maxHeight: 1, minHeight: 1}
 
-    return <Box style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
+    return <Box style={collapseStyles([styles.divider, orientationStyle, this.props.style])} />
   }
 }
 

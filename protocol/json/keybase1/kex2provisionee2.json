@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "ephemeral.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -18,6 +22,10 @@
         {
           "type": "HelloRes",
           "name": "sigPayload"
+        },
+        {
+          "type": "KID",
+          "name": "deviceEkKID"
         }
       ]
     },
@@ -79,6 +87,13 @@
           "type": [
             null,
             "PerUserKeyBox"
+          ]
+        },
+        {
+          "name": "userEkBox",
+          "type": [
+            null,
+            "UserEkBoxed"
           ]
         }
       ],

@@ -61,6 +61,14 @@ protocol ephemeral {
     UserEkMetadata metadata;
   }
 
+  record UserEkBoxMetadata {
+    string box;
+    @jsonkey("recipient_generation")
+    EkGeneration recipientGeneration;
+    @jsonkey("recipient_device_id")
+    DeviceID recipientDeviceID;
+  }
+
   record UserEk {
     Bytes32 seed;
     UserEkMetadata metadata;
@@ -89,6 +97,14 @@ protocol ephemeral {
     @jsonkey("user_ek_generation")
     EkGeneration userEkGeneration;
     TeamEkMetadata metadata;
+  }
+
+  record TeamEkBoxMetadata {
+    string box;
+    @jsonkey("recipient_generation")
+    EkGeneration recipientGeneration;
+    @jsonkey("recipient_uid")
+    UID recipientUID;
   }
 
   record TeamEk {

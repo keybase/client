@@ -145,7 +145,7 @@ class DumbSheetRender extends Component<Props, any> {
       this._mockStore = mockStore
       if (mockStore) {
         if (!this.state.mockStore) {
-          this.setState({mockStore: createStore(old => mockStore, mockStore)})
+          this.setState({mockStore: createStore((old: ?Object, action: any) => mockStore, mockStore)})
         } else {
           // necessary to stop warnings about dynamically replacing the store https://github.com/reactjs/react-redux/releases/tag/v2.0.0
           this.setState(prevState => ({mockStore: prevState.mockStore.replaceReducer(old => mockStore)}))

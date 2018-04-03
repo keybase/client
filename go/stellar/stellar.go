@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -51,6 +52,19 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (created boo
 		return false, nil
 	}
 	return CreateWallet(ctx, g)
+}
+
+// InitWalletSoft creates a user's initial wallet if they don't already have one.
+// Does not get in the way of intentional user actions.
+func InitWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
+	var err error
+	defer g.CTraceTimed(ctx, "InitWalletSoft", func() error { return err })()
+	if !g.LocalSigchainGuard().IsAvailable(ctx, "InitWalletSoft") {
+		err = fmt.Errorf("yielding to guard")
+		return
+	}
+	_, err = CreateWalletGated(ctx, g)
+	return
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
