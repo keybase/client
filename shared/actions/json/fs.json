@@ -10,6 +10,7 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
+    "favoritesLoad": {},
     "favoritesLoaded": {
       "badges": "Types.FavoriteBadges",
       "folders": "I.Map<Types.Path, Types.FavoriteFolder>"

@@ -14,25 +14,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 
-type OwnProps = {
-  path: Types.Path,
-}
-
-type StateProps = {
-  _itemNames: I.List<string>,
-  _username?: string,
-  _pathItems: I.Map<Types.Path, Types.PathItem>,
-  _sortSetting: Types.SortSetting,
-
-  path: Types.Path,
-  progress: Types.ProgressType,
-}
-
-type DispatchProps = {
-  loadFolderList: (path: Types.Path) => void,
-}
-
-const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {path}) => {
   const itemDetail = state.fs.pathItems.get(path)
   return {
     _itemNames: itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List(),
@@ -46,9 +28,10 @@ const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+  loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const pathItems = stateProps._itemNames.map(name =>
     stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
   )
@@ -62,6 +45,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     path: stateProps.path,
 
     loadFolderList: dispatchProps.loadFolderList,
+    loadFavorites: dispatchProps.loadFavorites,
   }
 }
 
@@ -73,14 +57,17 @@ const ConnectedFiles = compose(
 const FilesLoadingHoc = compose(
   connect(undefined, (dispatch: Dispatch) => ({
     loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
+    loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
   })),
-  mapProps(({routeProps, loadFolderList}) => ({
+  mapProps(({routeProps, loadFolderList, loadFavorites}) => ({
     path: routeProps.get('path', Constants.defaultPath),
     loadFolderList,
+    loadFavorites,
   })),
   lifecycle({
     componentWillMount() {
       this.props.loadFolderList(this.props.path)
+      this.props.loadFavorites()
     },
     componentWillReceiveProps(nextProps) {
       // This check is needed since otherwise when e.g. user clicks a popup

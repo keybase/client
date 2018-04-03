@@ -105,7 +105,7 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
       }
       return [
         // key
-        Types.stringToPath(`/keybase/${folderTypeString}/{name}`),
+        Types.stringToPath(`/keybase/${folderTypeString}/${name}`),
         // value
         {
           name,
@@ -127,8 +127,7 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
   }
 }
 
-// TODO: unexport once it's used.
-export function* _listFavoritesSaga(): Saga.SagaGenerator<any, any> {
+function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   try {
     const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
@@ -199,7 +198,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   ]
 
   // Get metadata fields of the directory that we just loaded from state to
-  // avoid override them.
+  // avoid overriding them.
   const state = yield Saga.select()
   const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
 
@@ -334,6 +333,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
+  yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)

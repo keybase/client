@@ -35,14 +35,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       //   e.g. meta: 'new' | 'ignored'
       //        needsRekey: boolean
       return state
-        .mergeDeepIn(['pathItems'], toMerge)
+        .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
+    case FsGen.favoritesLoad:
+      return state
     case FsGen.favoritesLoaded:
       const {badges, folders} = action.payload
-      return state.mergeDeepIn('pathItems', folders).mergeIn('badges', badges)
+      return state.mergeDeepIn(['pathItems'], folders).mergeIn(['badges'], badges)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)

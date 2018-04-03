@@ -14,6 +14,7 @@ export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
 export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
@@ -56,6 +57,7 @@ export const createDownloadStarted = (
     opID: RPCTypes.OpID,
   |}>
 ) => ({error: false, payload, type: downloadStarted})
+export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
 export const createFavoritesLoaded = (
   payload: $ReadOnly<{|
     badges: Types.FavoriteBadges,
@@ -118,6 +120,7 @@ export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfe
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
+export type FavoritesLoadPayload = More.ReturnType<typeof createFavoritesLoad>
 export type FavoritesLoadedPayload = More.ReturnType<typeof createFavoritesLoaded>
 export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
 export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
@@ -143,6 +146,7 @@ export type Actions =
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>
   | More.ReturnType<typeof createDownloadStarted>
+  | More.ReturnType<typeof createFavoritesLoad>
   | More.ReturnType<typeof createFavoritesLoaded>
   | More.ReturnType<typeof createFilePreviewLoad>
   | More.ReturnType<typeof createFilePreviewLoaded>
