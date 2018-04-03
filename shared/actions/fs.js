@@ -34,10 +34,12 @@ const _fillMetadataInFavoritesResult = (
   favoritesResult: Object,
   myKID: any
 ): Array<Types.FolderRPCWithMeta> => {
-  const fillFolder = meta => folder => {
+  const fillFolder = toMerge => folder => {
     folder.waitingForParticipantUnlock = []
     folder.youCanUnlock = []
-    folder.meta = meta
+    Object.keys(toMerge).forEach(key => {
+      folder[key] = toMerge[key]
+    })
 
     if (!folder.problem_set) {
       return
@@ -70,9 +72,9 @@ const _fillMetadataInFavoritesResult = (
     }
   }
 
-  favoritesResult.favorites.forEach(fillFolder(null))
-  favoritesResult.ignored.forEach(fillFolder('ignored'))
-  favoritesResult.new.forEach(fillFolder('new'))
+  favoritesResult.favorites.forEach(fillFolder({isIgnored: false, isNew: false}))
+  favoritesResult.ignored.forEach(fillFolder({isIgnored: true, isNew: false}))
+  favoritesResult.new.forEach(fillFolder({isIgnored: false, isNew: true}))
   return [...favoritesResult.favorites, ...favoritesResult.ignored, ...favoritesResult.new]
 }
 
@@ -95,9 +97,9 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
   // figure out who can solve the rekey
   const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
   const favoriteFolders = folders.map(
-    ({name, folderType, meta, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
+    ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
       const folderTypeString = FolderTypeToString(folderType)
-      if (meta === 'new') {
+      if (isNew) {
         badges['/keybase/' + folderTypeString] += 1
       }
       return [
@@ -108,7 +110,8 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
           name,
           tlfMeta: {
             folderType,
-            meta,
+            isIgnored,
+            isNew,
             needsRekey,
             waitingForParticipantUnlock,
             youCanUnlock,

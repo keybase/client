@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, glamorous, platformStyles} from '../../styles'
 import memoize from 'lodash/memoize'
-import {Box, ClickableBox, Icon, Text, Divider} from '../../common-adapters'
+import {Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 
@@ -31,6 +31,26 @@ const HoverBox = isMobile
         color: globalColors.black_60,
       },
     })
+
+const RowMeta = ({meta}) => {
+  if (!meta || meta === 'ignored') {
+    return
+  }
+
+  const metaStyle = {
+    color: globalColors.white,
+    backgroundColor: meta === 'rekey' ? globalColors.red : globalColors.orange,
+    marginTop: 2,
+  }
+
+  return (
+    <Box style={{width: 0, display: 'flex'}}>
+      <Box style={styleBadge}>
+        <Meta title={meta} style={metaStyle} />
+      </Box>
+    </Box>
+  )
+}
 
 export const Row = (props: RowProps) => (
   <Box>
@@ -161,3 +181,10 @@ const rowTextStyles = memoize(color =>
     },
   })
 )
+
+const styleBadge = {
+  position: 'absolute',
+  left: 46,
+  top: 4,
+}
+

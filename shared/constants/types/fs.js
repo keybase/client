@@ -10,7 +10,6 @@ export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 export type ProgressType = 'pending' | 'loaded'
-export type MetaType = 'new' | 'ignored' | null
 
 export type Device = {
   type: Devices.DeviceType,
@@ -25,7 +24,8 @@ export type ParticipantUnlock = {
 
 export type TLFMetadata = {
   folderType: RPCTypes.FolderType,
-  meta: MetaType,
+  isIgnored: boolean,
+  isNew: boolean,
   needsRekey: boolean,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
@@ -289,7 +289,8 @@ export type ItemStyles = {
 }
 
 export type FolderRPCWithMeta = {
-  meta: MetaType,
+  isIgnored: boolean,
+  isNew: boolean,
   needsRekey: boolean,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
