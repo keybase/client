@@ -48,6 +48,7 @@ export default compose(
   withStateHandlers(
     {
       _conversationIDKey: null,
+      // TODO maybe ignore ordinal and never allow more loads too quickly
       _lastOrdinal: null,
       _lastOrdinalTime: Date.now(),
     },
