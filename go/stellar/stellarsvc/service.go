@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/xdr"
 )
 
 // Service handlers
@@ -155,6 +156,23 @@ func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID ste
 	return post
 }
 
+type seqnoProv struct {
+	ctx context.Context
+	g   *libkb.GlobalContext
+}
+
+// SequenceForAccount implements build.SequenceProvider
+func (s *seqnoProv) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
+	seqno, err := remote.AccountSeqno(s.ctx, s.g, stellar1.AccountID(aid))
+	if err != nil {
+		return 0, err
+	}
+
+	s.g.Log.Warning("%s sequence number: %d", aid, seqno)
+
+	return xdr.SequenceNumber(seqno), nil
+}
+
 func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
 	// look up sender wallet
 	primary, err := lookupSenderPrimary(ctx, g)
@@ -179,10 +197,10 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 
 	post := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
 
-	// Note:
-	// CreateAccountXLMTransaction and PaymentXLMTransaction use horizon
-	// to get the sequence number.  In the future we could provide an RPC
-	// to get it instead of having the clients go direct to horizon.
+	sp := &seqnoProv{
+		ctx: ctx,
+		g:   g,
+	}
 
 	// check if recipient account exists
 	_, err = balanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
@@ -190,13 +208,13 @@ func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
 		// but for now, just let stellar-core tell us there was an error
-		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.CreateAccountXLMTransaction(primarySeed, recipient.AccountID, arg.Amount)
+		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.CreateAccountXLMTransaction(primarySeed, recipient.AccountID, arg.Amount, sp)
 		if err != nil {
 			return stellar1.PaymentResult{}, err
 		}
 	} else {
 		// if balance, payment operation
-		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.PaymentXLMTransaction(primarySeed, recipient.AccountID, arg.Amount)
+		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.PaymentXLMTransaction(primarySeed, recipient.AccountID, arg.Amount, sp)
 		if err != nil {
 			return stellar1.PaymentResult{}, err
 		}
