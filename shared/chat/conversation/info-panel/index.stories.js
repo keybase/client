@@ -1,16 +1,12 @@
 // @flow
 import React from 'react'
-import {storiesOf, action} from '../../../stories/storybook'
+import {storiesOf, action, unexpected} from '../../../stories/storybook'
 import * as Types from '../../../constants/types/chat2'
 import * as PropProviders from '../../../stories/prop-providers'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {InfoPanel, type InfoPanelProps} from '.'
-
-const unexpected = (name: string) => () => {
-  throw new Error(`unexpected ${name}`)
-}
 
 const onlyValidConversationsProps = {
   conversationIDKey: 'fake key',
