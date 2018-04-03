@@ -3,14 +3,11 @@ package stellarsvc
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
-	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/xdr"
 )
 
 type UISource interface {
@@ -81,7 +78,7 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 		return stellar1.PaymentResult{}, err
 	}
 
-	return Send(ctx, s.G(), arg)
+	return stellar.SendPayment(ctx, s.G(), stellar.RecipientInput(arg.Recipient), arg.Amount)
 }
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
@@ -137,176 +134,4 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	}
 	_, err = stellar.CreateWallet(ctx, s.G())
 	return err
-}
-
-func lookupSenderPrimary(ctx context.Context, g *libkb.GlobalContext) (stellar1.BundleEntry, error) {
-	bundle, _, err := remote.Fetch(ctx, g)
-	if err != nil {
-		return stellar1.BundleEntry{}, err
-	}
-
-	primary, err := bundle.PrimaryAccount()
-	if err != nil {
-		return stellar1.BundleEntry{}, err
-	}
-	if len(primary.Signers) == 0 {
-		return stellar1.BundleEntry{}, errors.New("no signer for primary bundle")
-	}
-	if len(primary.Signers) > 1 {
-		return stellar1.BundleEntry{}, errors.New("only single signer supported")
-	}
-
-	return primary, nil
-}
-
-type Recipient struct {
-	Input     string
-	User      *libkb.User
-	AccountID stellarnet.AddressStr
-}
-
-// TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
-func lookupRecipient(ctx context.Context, g *libkb.GlobalContext, to string) (*Recipient, error) {
-	r := Recipient{
-		Input: to,
-	}
-
-	if to[0] == 'G' && len(to) > 16 {
-		var err error
-		r.AccountID, err = stellarnet.NewAddressStr(to)
-		if err != nil {
-			return nil, err
-		}
-
-		return &r, nil
-	}
-
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, to))
-	if err != nil {
-		return nil, err
-	}
-	accountID := user.StellarWalletAddress()
-	if accountID == nil {
-		return nil, fmt.Errorf("keybase user %s does not have a stellar wallet", to)
-	}
-	r.AccountID, err = stellarnet.NewAddressStr(accountID.String())
-	if err != nil {
-		return nil, err
-	}
-	r.User = user
-
-	return &r, nil
-}
-
-type submitResult struct {
-	Status        libkb.AppStatus        `json:"status"`
-	PaymentResult stellar1.PaymentResult `json:"payment_result"`
-}
-
-func (s *submitResult) GetAppStatus() *libkb.AppStatus {
-	return &s.Status
-}
-
-func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *Recipient) stellar1.PaymentPost {
-	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
-	post := stellar1.PaymentPost{
-		Members: stellar1.Members{
-			FromStellar:  stellar1.AccountID(acctID.String()),
-			FromKeybase:  g.Env.GetUsername().String(),
-			FromUID:      uid,
-			FromDeviceID: deviceID,
-		},
-	}
-
-	if recipient != nil {
-		post.Members.ToStellar = stellar1.AccountID(recipient.AccountID.String())
-		if recipient.User != nil {
-			post.Members.ToUID = recipient.User.GetUID()
-			post.Members.ToKeybase = recipient.User.GetName()
-		}
-	}
-
-	return post
-}
-
-type seqnoProv struct {
-	ctx context.Context
-	g   *libkb.GlobalContext
-}
-
-// SequenceForAccount implements build.SequenceProvider
-func (s *seqnoProv) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
-	seqno, err := remote.AccountSeqno(s.ctx, s.g, stellar1.AccountID(aid))
-	if err != nil {
-		return 0, err
-	}
-
-	s.g.Log.Warning("%s sequence number: %d", aid, seqno)
-
-	return xdr.SequenceNumber(seqno), nil
-}
-
-func Send(ctx context.Context, g *libkb.GlobalContext, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
-	// look up sender wallet
-	primary, err := lookupSenderPrimary(ctx, g)
-	if err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-	primaryAccountID, err := stellarnet.NewAddressStr(primary.AccountID.String())
-	if err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-	primarySeed, err := stellarnet.NewSeedStr(primary.Signers[0].SecureNoLogString())
-	if err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-	senderAcct := stellarnet.NewAccount(primaryAccountID)
-
-	// look up recipient
-	recipient, err := lookupRecipient(ctx, g, arg.Recipient)
-	if err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-
-	post := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
-
-	sp := &seqnoProv{
-		ctx: ctx,
-		g:   g,
-	}
-
-	// check if recipient account exists
-	_, err = stellar.BalanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
-	if err != nil {
-		// if no balance, create_account operation
-		// we could check here to make sure that amount is at least 1XLM
-		// but for now, just let stellar-core tell us there was an error
-		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.CreateAccountXLMTransaction(primarySeed, recipient.AccountID, arg.Amount, sp)
-		if err != nil {
-			return stellar1.PaymentResult{}, err
-		}
-	} else {
-		// if balance, payment operation
-		post.StellarAccountSeqno, post.SignedTransaction, err = senderAcct.PaymentXLMTransaction(primarySeed, recipient.AccountID, arg.Amount, sp)
-		if err != nil {
-			return stellar1.PaymentResult{}, err
-		}
-	}
-
-	// submit the transaction
-	payload := make(libkb.JSONPayload)
-	payload["payment"] = post
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/submitpayment",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		JSONPayload: payload,
-		NetContext:  ctx,
-	}
-
-	var res submitResult
-	if err := g.API.PostDecode(apiArg, &res); err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-
-	return res.PaymentResult, nil
 }
