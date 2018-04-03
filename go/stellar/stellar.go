@@ -79,6 +79,9 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 		return err
 	}
 	prevBundle, prevPukGen, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
 	pukGen := pukring.CurrentGeneration()
 	if pukGen <= prevPukGen {
 		g.Log.CDebugf(ctx, "Stellar.Upkeep: early out prevPukGen:%v < pukGen:%v", prevPukGen, pukGen)
