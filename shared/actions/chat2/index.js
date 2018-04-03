@@ -1802,6 +1802,10 @@ const blockConversation = (action: Chat2Gen.BlockConversationPayload) =>
   ])
 
 const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload) => {
+  if (!flags.setRetention) {
+    // shouldn't happen
+    return
+  }
   const {conversationIDKey, policy} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
