@@ -1789,7 +1789,8 @@ export const tlfKeysTLFIdentifyBehavior = {
   saltpack: 7,
   cli: 8,
   gui: 9,
-  defaultKbfs: 10,
+  pages: 10,
+  defaultKbfs: 11,
 }
 
 export const tlfPublicCanonicalTLFNameAndIDRpcChannelMap = (configKeys: Array<string>, request: TlfPublicCanonicalTLFNameAndIDRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.tlf.publicCanonicalTLFNameAndID', request)
@@ -3629,7 +3630,8 @@ export type TLFIdentifyBehavior =
   | 7 // SALTPACK_7
   | 8 // CLI_8
   | 9 // GUI_9
-  | 10 // DEFAULT_KBFS_10
+  | 10 // PAGES_10
+  | 11 // DEFAULT_KBFS_11
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 

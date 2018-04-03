@@ -21,7 +21,8 @@ const (
 	TLFIdentifyBehavior_SALTPACK        TLFIdentifyBehavior = 7
 	TLFIdentifyBehavior_CLI             TLFIdentifyBehavior = 8
 	TLFIdentifyBehavior_GUI             TLFIdentifyBehavior = 9
-	TLFIdentifyBehavior_DEFAULT_KBFS    TLFIdentifyBehavior = 10
+	TLFIdentifyBehavior_PAGES           TLFIdentifyBehavior = 10
+	TLFIdentifyBehavior_DEFAULT_KBFS    TLFIdentifyBehavior = 11
 )
 
 func (o TLFIdentifyBehavior) DeepCopy() TLFIdentifyBehavior { return o }
@@ -37,7 +38,8 @@ var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
 	"SALTPACK":        7,
 	"CLI":             8,
 	"GUI":             9,
-	"DEFAULT_KBFS":    10,
+	"PAGES":           10,
+	"DEFAULT_KBFS":    11,
 }
 
 var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
@@ -51,7 +53,8 @@ var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 	7:  "SALTPACK",
 	8:  "CLI",
 	9:  "GUI",
-	10: "DEFAULT_KBFS",
+	10: "PAGES",
+	11: "DEFAULT_KBFS",
 }
 
 func (e TLFIdentifyBehavior) String() string {
