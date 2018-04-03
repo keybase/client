@@ -42,12 +42,7 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metaUpdatePagination:
       return metaMap.update(
         action.payload.conversationIDKey,
-        meta =>
-          meta
-            ? meta
-                .set('paginationKey', action.payload.paginationKey)
-                .set('paginationMoreToLoad', action.payload.paginationMoreToLoad)
-            : meta
+        meta => (meta ? meta.set('paginationKey', action.payload.paginationKey) : meta)
       )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
