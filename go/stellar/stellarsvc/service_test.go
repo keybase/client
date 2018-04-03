@@ -33,11 +33,11 @@ func TestCreateWallet(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	created, err := CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.True(t, created)
 
-	created, err = CreateWallet(context.Background(), tcs[0].G)
+	created, err = stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.False(t, created)
 
@@ -68,7 +68,7 @@ func TestUpkeep(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	created, err := CreateWallet(context.Background(), tcs[0].G)
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.True(t, created)
 
@@ -107,14 +107,14 @@ func TestImport(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	_, err := CreateWallet(context.Background(), tcs[0].G)
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	a1, s1 := randomStellarKeypair()
-	err = ImportSecretKey(context.Background(), tcs[0].G, s1, false)
+	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s1, false)
 	require.NoError(t, err)
 
-	err = ImportSecretKey(context.Background(), tcs[0].G, s1, false)
+	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s1, false)
 	require.Error(t, err)
 
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
@@ -123,11 +123,11 @@ func TestImport(t *testing.T) {
 	require.False(t, a1.Eq(*addr))
 
 	a2, s2 := randomStellarKeypair()
-	own, err := OwnAccount(context.Background(), tcs[0].G, a2)
+	own, err := stellar.OwnAccount(context.Background(), tcs[0].G, a2)
 	require.NoError(t, err)
 	require.False(t, own)
 
-	err = ImportSecretKey(context.Background(), tcs[0].G, s2, true)
+	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s2, true)
 	require.NoError(t, err)
 
 	u0, err = tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
@@ -135,13 +135,13 @@ func TestImport(t *testing.T) {
 	addr = u0.StellarWalletAddress()
 	require.False(t, a1.Eq(*addr))
 
-	err = ImportSecretKey(context.Background(), tcs[0].G, s2, true)
+	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s2, true)
 	require.Error(t, err)
 
-	own, err = OwnAccount(context.Background(), tcs[0].G, a1)
+	own, err = stellar.OwnAccount(context.Background(), tcs[0].G, a1)
 	require.NoError(t, err)
 	require.True(t, own)
-	own, err = OwnAccount(context.Background(), tcs[0].G, a2)
+	own, err = stellar.OwnAccount(context.Background(), tcs[0].G, a2)
 	require.NoError(t, err)
 	require.True(t, own)
 

@@ -232,3 +232,28 @@ func AccountSeqno(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 
 	return seqno, nil
 }
+
+type balancesResult struct {
+	Status   libkb.AppStatus    `json:"status"`
+	Balances []stellar1.Balance `json:"balances"`
+}
+
+func (b *balancesResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/balances",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{"account_id": libkb.S{Val: string(accountID)}},
+		NetContext:  ctx,
+	}
+
+	var res balancesResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return nil, err
+	}
+
+	return res.Balances, nil
+}
