@@ -70,18 +70,7 @@ func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.Account
 		return false, err
 	}
 
-	bundle, _, err := remote.Fetch(ctx, s.G())
-	if err != nil {
-		return false, err
-	}
-
-	for _, account := range bundle.Accounts {
-		if account.AccountID.Eq(accountID) {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return stellar.OwnAccount(ctx, s.G(), accountID)
 }
 
 func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stellar1.PaymentResult, error) {
