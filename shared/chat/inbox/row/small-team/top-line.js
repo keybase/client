@@ -73,24 +73,24 @@ class SimpleTopLine extends React.Component<Props> {
             />
           </Box>
         </Box>
-        {!this.props.showGear && (
-          <Text
-            key="0"
-            type="BodySmall"
-            style={platformStyles({
-              common: {
-                ...boldOverride,
-                backgroundColor: this.props.backgroundColor,
-                color: this.props.subColor,
-              },
-            })}
-          >
-            {this.props.timestamp}
-          </Text>
-        )}
+        <Text
+          key="0"
+          type="BodySmall"
+          className={this.props.showGear ? 'small-team-timestamp' : undefined}
+          style={platformStyles({
+            common: {
+              ...boldOverride,
+              backgroundColor: this.props.backgroundColor,
+              color: this.props.subColor,
+            },
+          })}
+        >
+          {this.props.timestamp}
+        </Text>
         {this.props.showGear && (
           <Icon
             type="iconfont-gear"
+            className="small-team-gear"
             onClick={this.props.onClickGear}
             style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
           />

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
-import {globalStyles, globalColors, isMobile, desktopStyles} from '../../../../styles'
+import {glamorous, globalStyles, globalColors, isMobile, desktopStyles} from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
@@ -29,27 +29,20 @@ type Props = {
   youNeedToRekey: boolean,
 }
 
-type State = {showGear: boolean}
+const SmallTeamBox = isMobile
+  ? Box
+  : glamorous(Box)({
+      '& .small-team-gear': {display: 'none'},
+      ':hover .small-team-gear': {display: 'unset'},
+      ':hover .small-team-timestamp': {display: 'none'},
+    })
 
-class SmallTeam extends React.PureComponent<Props, State> {
-  state = {showGear: false}
-
-  _setShowGear = (showGear: boolean) => {
-    if (!isMobile && !!this.props.teamname) {
-      this.setState({showGear})
-    }
-  }
-
+class SmallTeam extends React.PureComponent<Props> {
   render() {
     const props = this.props
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
-        <Box
-          // don't move these to the ClickableBox (DESKTOP-6397)
-          onMouseEnter={() => this._setShowGear(true)}
-          onMouseLeave={() => this._setShowGear(false)}
-          style={props.isSelected ? rowContainerStyleSelected : rowContainerStyle}
-        >
+        <SmallTeamBox style={props.isSelected ? rowContainerStyleSelected : rowContainerStyle}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -73,7 +66,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               iconHoverColor={props.iconHoverColor}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
-              showGear={this.state.showGear}
+              showGear={!!props.teamname && !isMobile}
               onClickGear={props.onClickGear}
               subColor={props.subColor}
               timestamp={props.timestamp}
@@ -92,7 +85,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               isSelected={props.isSelected}
             />
           </Box>
-        </Box>
+        </SmallTeamBox>
       </ClickableBox>
     )
   }
