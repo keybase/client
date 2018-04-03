@@ -170,7 +170,15 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes fetchRes
 	err = g.API.GetDecode(arg, &apiRes)
-	if err != nil {
+	switch err := err.(type) {
+	case nil:
+	case libkb.AppStatusError:
+		switch keybase1.StatusCode(err.Code) {
+		case keybase1.StatusCode_SCNotFound:
+			g.Log.CDebugf(ctx, "replacing error: %v", err)
+			return res, 0, errors.New("logged-in user has no wallet accounts")
+		}
+	default:
 		return res, 0, err
 	}
 	decodeRes, err := bundle.Decode(apiRes.EncryptedB64)
@@ -281,4 +289,32 @@ func SubmitTransaction(ctx context.Context, g *libkb.GlobalContext, payload libk
 	}
 
 	return res.PaymentResult, nil
+}
+
+// TODO make status mixin
+type recentPaymentsResult struct {
+	Status libkb.AppStatus           `json:"status"`
+	Result []stellar1.PaymentSummary `json:"res"`
+}
+
+func (s *recentPaymentsResult) GetAppStatus() *libkb.AppStatus {
+	return &s.Status
+}
+
+func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
+	accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+	payload := make(libkb.JSONPayload)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/recentpayments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+			"limit":      libkb.I{Val: limit},
+		},
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var apiRes recentPaymentsResult
+	err = g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
 }
