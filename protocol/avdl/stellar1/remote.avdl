@@ -85,5 +85,7 @@ protocol remote {
   array<TransactionSummary> recentTransactions(keybase1.UID uid, AccountID accountID, int count);
   TransactionDetails transaction(keybase1.UID uid, TransactionID id);
 
+  // js can't handle uint64, so returning a string
+  string accountSeqno(keybase1.UID uid, AccountID accountID);
   PaymentResult submitPayment(keybase1.UID uid, PaymentPost payment);
 }

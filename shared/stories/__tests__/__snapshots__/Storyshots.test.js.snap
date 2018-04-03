@@ -16295,6 +16295,459 @@ exports[`Storyshots Common Dropdown 1`] = `
 </div>
 `;
 
+exports[`Storyshots Common Form w/ checkbox 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: #ffffff;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "marginBottom": 15,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+            "marginBottom": 16,
+            "marginTop": 16,
+          }
+        }
+      >
+        <style>
+          ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+        </style>
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        />
+        <input
+          autoFocus={undefined}
+          className={undefined}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onClick={[Function]}
+          onCompositionEnd={[Function]}
+          onCompositionStart={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          placeholder={undefined}
+          readOnly={undefined}
+          style={
+            Object {
+              "WebkitFontSmoothing": "antialiased",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "border": "none",
+              "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+              "color": "rgba(0, 0, 0, 0.75)",
+              "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 16,
+              "fontWeight": 600,
+              "height": 28,
+              "lineHeight": "20px",
+              "maxWidth": 460,
+              "minWidth": 333,
+              "outlineWidth": 0,
+              "textAlign": "center",
+              "textRendering": "optimizeLegibility",
+            }
+          }
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "marginTop": 7,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-1"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          >
+            checkbox
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Form w/ multiple checkboxes 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  color: #ffffff;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "marginBottom": 15,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+            "marginBottom": 16,
+            "marginTop": 16,
+          }
+        }
+      >
+        <style>
+          ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+        </style>
+        <span
+          className="glamor-0"
+          onClick={undefined}
+          title={undefined}
+        />
+        <input
+          autoFocus={undefined}
+          className={undefined}
+          onBlur={[Function]}
+          onChange={[Function]}
+          onClick={[Function]}
+          onCompositionEnd={[Function]}
+          onCompositionStart={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          placeholder={undefined}
+          readOnly={undefined}
+          style={
+            Object {
+              "WebkitFontSmoothing": "antialiased",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "border": "none",
+              "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+              "color": "rgba(0, 0, 0, 0.75)",
+              "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 16,
+              "fontWeight": 600,
+              "height": 28,
+              "lineHeight": "20px",
+              "maxWidth": 460,
+              "minWidth": 333,
+              "outlineWidth": 0,
+              "textAlign": "center",
+              "textRendering": "optimizeLegibility",
+            }
+          }
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "marginTop": 7,
+            "position": "relative",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-1"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          >
+            checkbox 1
+          </span>
+        </div>
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "flex-start",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "backgroundColor": "inherit",
+                "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                "borderRadius": 2,
+                "height": 13,
+                "marginRight": 8,
+                "marginTop": 2,
+                "opacity": 1,
+                "position": "relative",
+                "transition": "background 0.1s ease-out",
+                "width": 13,
+              }
+            }
+          >
+            <div>
+              <span
+                className="glamor-1"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 9,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "left": 1,
+                    "lineHeight": 1,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "speak": "none",
+                    "textTransform": "none",
+                    "top": 1,
+                    "transition": "opacity 0.1s ease-out",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-2"
+            onClick={undefined}
+            title={undefined}
+          >
+            checkbox 2
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Common Icon 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -24529,6 +24982,372 @@ exports[`Storyshots Common Icon 1`] = `
 </div>
 `;
 
+exports[`Storyshots Common Input (multiline) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "marginBottom": 16,
+          "marginTop": 16,
+        }
+      }
+    >
+      <style>
+        ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+      </style>
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      />
+      <textarea
+        autoFocus={undefined}
+        className={undefined}
+        onBlur={[Function]}
+        onChange={[Function]}
+        onClick={[Function]}
+        onCompositionEnd={[Function]}
+        onCompositionStart={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        placeholder={undefined}
+        readOnly={undefined}
+        rows={2}
+        style={
+          Object {
+            "WebkitFontSmoothing": "antialiased",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "border": "none",
+            "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "flex": 1,
+            "fontFamily": "OpenSans",
+            "fontSize": 16,
+            "fontWeight": 600,
+            "height": "initial",
+            "lineHeight": "20px",
+            "minHeight": 41,
+            "minWidth": 333,
+            "outlineWidth": 0,
+            "overflowY": "hidden",
+            "paddingBottom": 0,
+            "paddingTop": 0,
+            "resize": "none",
+            "textAlign": "center",
+            "textRendering": "optimizeLegibility",
+            "width": "100%",
+            "wrap": "off",
+          }
+        }
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Input (password) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "marginBottom": 16,
+          "marginTop": 16,
+        }
+      }
+    >
+      <style>
+        ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+      </style>
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      />
+      <input
+        autoFocus={undefined}
+        className={undefined}
+        onBlur={[Function]}
+        onChange={[Function]}
+        onClick={[Function]}
+        onCompositionEnd={[Function]}
+        onCompositionStart={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        placeholder={undefined}
+        readOnly={undefined}
+        style={
+          Object {
+            "WebkitFontSmoothing": "antialiased",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "border": "none",
+            "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "flex": 1,
+            "fontFamily": "OpenSans",
+            "fontSize": 16,
+            "fontWeight": 600,
+            "height": 28,
+            "lineHeight": "20px",
+            "maxWidth": 460,
+            "minWidth": 333,
+            "outlineWidth": 0,
+            "textAlign": "center",
+            "textRendering": "optimizeLegibility",
+          }
+        }
+        type="password"
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Input (single line) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "marginBottom": 16,
+          "marginTop": 16,
+        }
+      }
+    >
+      <style>
+        ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+      </style>
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      />
+      <input
+        autoFocus={undefined}
+        className={undefined}
+        onBlur={[Function]}
+        onChange={[Function]}
+        onClick={[Function]}
+        onCompositionEnd={[Function]}
+        onCompositionStart={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        placeholder={undefined}
+        readOnly={undefined}
+        style={
+          Object {
+            "WebkitFontSmoothing": "antialiased",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "border": "none",
+            "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "flex": 1,
+            "fontFamily": "OpenSans",
+            "fontSize": 16,
+            "fontWeight": 600,
+            "height": 28,
+            "lineHeight": "20px",
+            "maxWidth": 460,
+            "minWidth": 333,
+            "outlineWidth": 0,
+            "textAlign": "center",
+            "textRendering": "optimizeLegibility",
+          }
+        }
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Input (visible password) 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "marginBottom": 16,
+          "marginTop": 16,
+        }
+      }
+    >
+      <style>
+        ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+      </style>
+      <span
+        className="glamor-0"
+        onClick={undefined}
+        title={undefined}
+      />
+      <input
+        autoFocus={undefined}
+        className={undefined}
+        onBlur={[Function]}
+        onChange={[Function]}
+        onClick={[Function]}
+        onCompositionEnd={[Function]}
+        onCompositionStart={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        placeholder={undefined}
+        readOnly={undefined}
+        style={
+          Object {
+            "WebkitFontSmoothing": "antialiased",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "border": "none",
+            "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "flex": 1,
+            "fontFamily": "OpenSans",
+            "fontSize": 16,
+            "fontWeight": 600,
+            "height": 28,
+            "lineHeight": "20px",
+            "maxWidth": 460,
+            "minWidth": 333,
+            "outlineWidth": 0,
+            "textAlign": "center",
+            "textRendering": "optimizeLegibility",
+          }
+        }
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Common Name with icon 1`] = `
 .glamor-0,
 [data-glamor-0] {
@@ -30731,6 +31550,1553 @@ exports[`Storyshots Git Root 1`] = `
         }
       }
     />
+  </div>
+</div>
+`;
+
+exports[`Storyshots Login Error 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-112.png') 1x, url('icons/icon-placeholder-avatar-112@2x.png') 2x);
+  border-radius: 50%;
+  height: 112px;
+  max-width: 112px;
+  min-width: 112px;
+  opacity: 1;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: #e6e6e6;
+  border: solid 1px #e6e6e6;
+  border-radius: 100px;
+  padding-right: 16px;
+  width: 270px;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+}
+
+.glamor-4:hover,
+[data-glamor-4]:hover {
+  border: solid 1px #73A6FF;
+  color: #73A6FF;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 16px;
+  line-height: 18px;
+  color: #ff6f21;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+  padding-left: 18px;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  color: inherit;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #ffffff;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ff4d61;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-10,
+[data-glamor-10] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.60);
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 24px;
+}
+
+.glamor-11,
+[data-glamor-11] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #4C8EFF;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 30px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": 430,
+            "width": 410,
+          }
+        }
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "height": 112,
+              "maxWidth": 112,
+              "minHeight": 112,
+              "minWidth": 112,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-0"
+          />
+          <div
+            className="glamor-1"
+          />
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "display": "flex",
+              "flexDirection": "column",
+              "marginTop": -56,
+              "padding": 30,
+              "paddingTop": 86,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
+            onClick={[Function]}
+          >
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 50,
+                  "cursor": "pointer",
+                  "display": "inline-block",
+                  "flex": 1,
+                  "flexDirection": "column",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "lineHeight": "inherit",
+                  "minWidth": undefined,
+                  "paddingLeft": 24,
+                  "paddingRight": 24,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "height": "100%",
+                    "justifyContent": "center",
+                    "position": "relative",
+                  }
+                }
+              >
+                <span
+                  className="glamor-2"
+                  onClick={undefined}
+                  title={undefined}
+                />
+              </div>
+            </div>
+            <div>
+              <span
+                className="glamor-3"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 11,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "lineHeight": 1,
+                    "speak": "none",
+                    "textTransform": "none",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "display": "flex",
+                "flexDirection": "column",
+                "marginBottom": 15,
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "marginBottom": 0,
+                  "marginTop": 16,
+                }
+              }
+            >
+              <style>
+                ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+              </style>
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              />
+              <input
+                autoFocus={true}
+                className={undefined}
+                onBlur={[Function]}
+                onChange={[Function]}
+                onClick={undefined}
+                onCompositionEnd={[Function]}
+                onCompositionStart={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                placeholder="Passphrase"
+                readOnly={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "border": "none",
+                    "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+                    "color": "rgba(0, 0, 0, 0.75)",
+                    "flex": 1,
+                    "fontFamily": "OpenSans",
+                    "fontSize": 16,
+                    "fontWeight": 600,
+                    "height": 28,
+                    "lineHeight": "20px",
+                    "maxWidth": 460,
+                    "minWidth": 333,
+                    "outlineWidth": 0,
+                    "textAlign": "center",
+                    "textRendering": "optimizeLegibility",
+                  }
+                }
+                type="password"
+                value=""
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "marginTop": 7,
+                  "position": "relative",
+                }
+              }
+            >
+              <div
+                onClick={[Function]}
+                style={
+                  Object {
+                    "alignItems": "flex-start",
+                    "cursor": "pointer",
+                    "display": "flex",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "backgroundColor": "inherit",
+                      "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                      "borderRadius": 2,
+                      "height": 13,
+                      "marginRight": 8,
+                      "marginTop": 2,
+                      "opacity": 1,
+                      "position": "relative",
+                      "transition": "background 0.1s ease-out",
+                      "width": 13,
+                    }
+                  }
+                >
+                  <div>
+                    <span
+                      className="glamor-6"
+                      onClick={null}
+                      onMouseEnter={undefined}
+                      onMouseLeave={undefined}
+                      style={
+                        Object {
+                          "WebkitFontSmoothing": "antialiased",
+                          "fontFamily": "kb",
+                          "fontSize": 9,
+                          "fontStyle": "normal",
+                          "fontVariant": "normal",
+                          "fontWeight": "normal",
+                          "left": 1,
+                          "lineHeight": 1,
+                          "opacity": 0,
+                          "position": "absolute",
+                          "speak": "none",
+                          "textTransform": "none",
+                          "top": 1,
+                          "transition": "opacity 0.1s ease-out",
+                          "userSelect": "none",
+                        }
+                      }
+                    >
+                      
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="glamor-7"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Show typing
+                </span>
+              </div>
+            </div>
+            <span
+              className="glamor-8"
+              onClick={undefined}
+              title={undefined}
+            >
+              Oh, no! What a mess!
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#4C8EFF",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginTop": 0,
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-9"
+                onClick={undefined}
+                title={undefined}
+              >
+                Log in
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-10"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Forgot passphrase?
+          </span>
+        </div>
+      </div>
+      <span
+        className="glamor-11"
+        onClick={[Function]}
+        title={undefined}
+      >
+        Create an account
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Login Multiple previous users 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-112.png') 1x, url('icons/icon-placeholder-avatar-112@2x.png') 2x);
+  border-radius: 50%;
+  height: 112px;
+  max-width: 112px;
+  min-width: 112px;
+  opacity: 1;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: #e6e6e6;
+  border: solid 1px #e6e6e6;
+  border-radius: 100px;
+  padding-right: 16px;
+  width: 270px;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+}
+
+.glamor-4:hover,
+[data-glamor-4]:hover {
+  border: solid 1px #73A6FF;
+  color: #73A6FF;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 16px;
+  line-height: 18px;
+  color: #ff6f21;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+  padding-left: 18px;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  color: inherit;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #ffffff;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.60);
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 24px;
+}
+
+.glamor-10,
+[data-glamor-10] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #4C8EFF;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 30px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": 430,
+            "width": 410,
+          }
+        }
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "height": 112,
+              "maxWidth": 112,
+              "minHeight": 112,
+              "minWidth": 112,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-0"
+          />
+          <div
+            className="glamor-1"
+          />
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "display": "flex",
+              "flexDirection": "column",
+              "marginTop": -56,
+              "padding": 30,
+              "paddingTop": 86,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
+            onClick={[Function]}
+          >
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 50,
+                  "cursor": "pointer",
+                  "display": "inline-block",
+                  "flex": 1,
+                  "flexDirection": "column",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "lineHeight": "inherit",
+                  "minWidth": undefined,
+                  "paddingLeft": 24,
+                  "paddingRight": 24,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "height": "100%",
+                    "justifyContent": "center",
+                    "position": "relative",
+                  }
+                }
+              >
+                <span
+                  className="glamor-2"
+                  onClick={undefined}
+                  title={undefined}
+                />
+              </div>
+            </div>
+            <div>
+              <span
+                className="glamor-3"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 11,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "lineHeight": 1,
+                    "speak": "none",
+                    "textTransform": "none",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "display": "flex",
+                "flexDirection": "column",
+                "marginBottom": 15,
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "marginBottom": 0,
+                  "marginTop": 16,
+                }
+              }
+            >
+              <style>
+                ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+              </style>
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              />
+              <input
+                autoFocus={true}
+                className={undefined}
+                onBlur={[Function]}
+                onChange={[Function]}
+                onClick={undefined}
+                onCompositionEnd={[Function]}
+                onCompositionStart={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                placeholder="Passphrase"
+                readOnly={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "border": "none",
+                    "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+                    "color": "rgba(0, 0, 0, 0.75)",
+                    "flex": 1,
+                    "fontFamily": "OpenSans",
+                    "fontSize": 16,
+                    "fontWeight": 600,
+                    "height": 28,
+                    "lineHeight": "20px",
+                    "maxWidth": 460,
+                    "minWidth": 333,
+                    "outlineWidth": 0,
+                    "textAlign": "center",
+                    "textRendering": "optimizeLegibility",
+                  }
+                }
+                type="password"
+                value=""
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "marginTop": 7,
+                  "position": "relative",
+                }
+              }
+            >
+              <div
+                onClick={[Function]}
+                style={
+                  Object {
+                    "alignItems": "flex-start",
+                    "cursor": "pointer",
+                    "display": "flex",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "backgroundColor": "inherit",
+                      "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                      "borderRadius": 2,
+                      "height": 13,
+                      "marginRight": 8,
+                      "marginTop": 2,
+                      "opacity": 1,
+                      "position": "relative",
+                      "transition": "background 0.1s ease-out",
+                      "width": 13,
+                    }
+                  }
+                >
+                  <div>
+                    <span
+                      className="glamor-6"
+                      onClick={null}
+                      onMouseEnter={undefined}
+                      onMouseLeave={undefined}
+                      style={
+                        Object {
+                          "WebkitFontSmoothing": "antialiased",
+                          "fontFamily": "kb",
+                          "fontSize": 9,
+                          "fontStyle": "normal",
+                          "fontVariant": "normal",
+                          "fontWeight": "normal",
+                          "left": 1,
+                          "lineHeight": 1,
+                          "opacity": 0,
+                          "position": "absolute",
+                          "speak": "none",
+                          "textTransform": "none",
+                          "top": 1,
+                          "transition": "opacity 0.1s ease-out",
+                          "userSelect": "none",
+                        }
+                      }
+                    >
+                      
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="glamor-7"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Show typing
+                </span>
+              </div>
+            </div>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#4C8EFF",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginTop": 0,
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-8"
+                onClick={undefined}
+                title={undefined}
+              >
+                Log in
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-9"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Forgot passphrase?
+          </span>
+        </div>
+      </div>
+      <span
+        className="glamor-10"
+        onClick={[Function]}
+        title={undefined}
+      >
+        Create an account
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Login Single previous user 1`] = `
+.glamor-0,
+[data-glamor-0] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.glamor-1,
+[data-glamor-1] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-112.png') 1x, url('icons/icon-placeholder-avatar-112@2x.png') 2x);
+  border-radius: 50%;
+  height: 112px;
+  max-width: 112px;
+  min-width: 112px;
+  opacity: 1;
+}
+
+.glamor-4,
+[data-glamor-4] {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: #e6e6e6;
+  border: solid 1px #e6e6e6;
+  border-radius: 100px;
+  padding-right: 16px;
+  width: 270px;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+}
+
+.glamor-4:hover,
+[data-glamor-4]:hover {
+  border: solid 1px #73A6FF;
+  color: #73A6FF;
+}
+
+.glamor-2,
+[data-glamor-2] {
+  font-size: 16px;
+  line-height: 18px;
+  color: #ff6f21;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+  padding-left: 18px;
+}
+
+.glamor-3,
+[data-glamor-3] {
+  color: inherit;
+}
+
+.glamor-5,
+[data-glamor-5] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #4C8EFF;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  min-height: 15px;
+  display: block;
+}
+
+.glamor-6,
+[data-glamor-6] {
+  color: #ffffff;
+}
+
+.glamor-7,
+[data-glamor-7] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.glamor-8,
+[data-glamor-8] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.glamor-9,
+[data-glamor-9] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.60);
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 24px;
+}
+
+.glamor-10,
+[data-glamor-10] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #4C8EFF;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 30px;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "display": "flex",
+          "flex": 1,
+          "flexDirection": "column",
+          "justifyContent": "center",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": 430,
+            "width": 410,
+          }
+        }
+      >
+        <div
+          onClick={undefined}
+          style={
+            Object {
+              "height": 112,
+              "maxWidth": 112,
+              "minHeight": 112,
+              "minWidth": 112,
+              "position": "relative",
+              "userSelect": "none",
+            }
+          }
+        >
+          <div
+            className="glamor-0"
+          />
+          <div
+            className="glamor-1"
+          />
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "display": "flex",
+              "flexDirection": "column",
+              "marginTop": -56,
+              "padding": 30,
+              "paddingTop": 86,
+            }
+          }
+        >
+          <div
+            className="glamor-4"
+            onClick={[Function]}
+          >
+            <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 50,
+                  "cursor": "pointer",
+                  "display": "inline-block",
+                  "flex": 1,
+                  "flexDirection": "column",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "lineHeight": "inherit",
+                  "minWidth": undefined,
+                  "paddingLeft": 24,
+                  "paddingRight": 24,
+                  "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "height": "100%",
+                    "justifyContent": "center",
+                    "position": "relative",
+                  }
+                }
+              >
+                <span
+                  className="glamor-2"
+                  onClick={undefined}
+                  title={undefined}
+                />
+              </div>
+            </div>
+            <div>
+              <span
+                className="glamor-3"
+                onClick={null}
+                onMouseEnter={undefined}
+                onMouseLeave={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "fontFamily": "kb",
+                    "fontSize": 11,
+                    "fontStyle": "normal",
+                    "fontVariant": "normal",
+                    "fontWeight": "normal",
+                    "lineHeight": 1,
+                    "speak": "none",
+                    "textTransform": "none",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                
+              </span>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "display": "flex",
+                "flexDirection": "column",
+                "marginBottom": 15,
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "marginBottom": 0,
+                  "marginTop": 16,
+                }
+              }
+            >
+              <style>
+                ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
+              </style>
+              <span
+                className="glamor-5"
+                onClick={undefined}
+                title={undefined}
+              />
+              <input
+                autoFocus={true}
+                className={undefined}
+                onBlur={[Function]}
+                onChange={[Function]}
+                onClick={undefined}
+                onCompositionEnd={[Function]}
+                onCompositionStart={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                placeholder="Passphrase"
+                readOnly={undefined}
+                style={
+                  Object {
+                    "WebkitFontSmoothing": "antialiased",
+                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "border": "none",
+                    "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
+                    "color": "rgba(0, 0, 0, 0.75)",
+                    "flex": 1,
+                    "fontFamily": "OpenSans",
+                    "fontSize": 16,
+                    "fontWeight": 600,
+                    "height": 28,
+                    "lineHeight": "20px",
+                    "maxWidth": 460,
+                    "minWidth": 333,
+                    "outlineWidth": 0,
+                    "textAlign": "center",
+                    "textRendering": "optimizeLegibility",
+                  }
+                }
+                type="password"
+                value=""
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "marginTop": 7,
+                  "position": "relative",
+                }
+              }
+            >
+              <div
+                onClick={[Function]}
+                style={
+                  Object {
+                    "alignItems": "flex-start",
+                    "cursor": "pointer",
+                    "display": "flex",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "backgroundColor": "inherit",
+                      "border": "solid 1px rgba(0, 0, 0, 0.20)",
+                      "borderRadius": 2,
+                      "height": 13,
+                      "marginRight": 8,
+                      "marginTop": 2,
+                      "opacity": 1,
+                      "position": "relative",
+                      "transition": "background 0.1s ease-out",
+                      "width": 13,
+                    }
+                  }
+                >
+                  <div>
+                    <span
+                      className="glamor-6"
+                      onClick={null}
+                      onMouseEnter={undefined}
+                      onMouseLeave={undefined}
+                      style={
+                        Object {
+                          "WebkitFontSmoothing": "antialiased",
+                          "fontFamily": "kb",
+                          "fontSize": 9,
+                          "fontStyle": "normal",
+                          "fontVariant": "normal",
+                          "fontWeight": "normal",
+                          "left": 1,
+                          "lineHeight": 1,
+                          "opacity": 0,
+                          "position": "absolute",
+                          "speak": "none",
+                          "textTransform": "none",
+                          "top": 1,
+                          "transition": "opacity 0.1s ease-out",
+                          "userSelect": "none",
+                        }
+                      }
+                    >
+                      
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="glamor-7"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Show typing
+                </span>
+              </div>
+            </div>
+          </div>
+          <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            onMouseUp={[Function]}
+            style={
+              Object {
+                "alignItems": "center",
+                "alignSelf": "center",
+                "backgroundColor": "#4C8EFF",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
+                "justifyContent": "center",
+                "lineHeight": "inherit",
+                "marginTop": 0,
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "justifyContent": "center",
+                  "position": "relative",
+                }
+              }
+            >
+              <span
+                className="glamor-8"
+                onClick={undefined}
+                title={undefined}
+              >
+                Log in
+              </span>
+            </div>
+          </div>
+          <span
+            className="glamor-9"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Forgot passphrase?
+          </span>
+        </div>
+      </div>
+      <span
+        className="glamor-10"
+        onClick={[Function]}
+        title={undefined}
+      >
+        Create an account
+      </span>
+    </div>
   </div>
 </div>
 `;

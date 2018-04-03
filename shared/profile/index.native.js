@@ -18,10 +18,10 @@ import {
   PopupMenu,
   NativeSectionList,
   Text,
-  UserActions,
   UserBio,
   UserProofs,
 } from '../common-adapters/index.native'
+import UserActions from './user-actions'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
