@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 
 export class RPCError extends Error {
   code: number // Consult type StatusCode in rpc-gen.js for what this means
@@ -79,4 +80,8 @@ export function convertToRPCError(
   method?: ?string
 ): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
+}
+
+export function logError(error: any) {
+  logger.info(`logError: ${JSON.stringify(error)}`)
 }
