@@ -56,7 +56,6 @@ export default compose(
         if (state._conversationIDKey === props.conversationIDKey) {
           if (state._lastOrdinalTime + 1000 > Date.now()) {
             // ignore a load if its too recent for the same ordinal
-            console.log('aaa skipping too quick load old')
             return
           }
         }
