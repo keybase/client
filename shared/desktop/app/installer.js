@@ -10,6 +10,7 @@ import {
   ExitCodeAuthCanceledError,
 } from '../../constants/favorite'
 import UserData from './user-data'
+import fs from 'fs'
 
 import type {InstallResult} from '../../constants/types/rpc-gen'
 
@@ -59,6 +60,8 @@ export default (callback: (err: any) => void): void => {
       hasFUSEError: false,
       hasKBNMError: false,
     }
+    let stdoutResult = stdout
+    let stderrResult = stderr
     if (err) {
       errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
     } else if (stdout !== '') {
@@ -77,6 +80,7 @@ export default (callback: (err: any) => void): void => {
     }
 
     if (errorsResult.errors.length > 0) {
+      fs.appendFileSync('/tmp/kbfs-install-error.txt', `Install errors: stdout=${stdoutResult}, stderr=${stderrResult}\n`)
       showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
       return
     }
