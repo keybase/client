@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -33,9 +32,6 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 func TestCreateWallet(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
-
-	srv := newTestServer(tcs[0].G)
-	_ = srv
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -192,20 +188,4 @@ func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
 		panic(err)
 	}
 	return stellar1.AccountID(full.Address()), stellar1.SecretKey(full.Seed())
-}
-
-type nullSecretUI struct{}
-
-func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, nil
-}
-
-type testUISource struct{}
-
-func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
-	return nullSecretUI{}
-}
-
-func newTestServer(g *libkb.GlobalContext) *Server {
-	return New(g, &testUISource{})
 }
