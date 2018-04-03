@@ -508,6 +508,34 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         })
       )
     }
+    case Chat2Gen.pendingConversationErrored: {
+      const {reason} = action.payload
+      const conversationIDKey = Types.stringToConversationIDKey('')
+      const ordinalMap = state.pendingOutboxToOrdinal.get(conversationIDKey)
+      if (!ordinalMap) {
+        logger.warn('Got pendingConversationErrored with no pending outboxes')
+        return state
+      }
+      const ordinals = ordinalMap.toIndexedSeq().toArray()
+      return state.set(
+        'messageMap',
+        state.messageMap.withMutations(mm => {
+          ordinals.forEach(ordinal =>
+            mm.updateIn([conversationIDKey, ordinal], message => {
+              if (message) {
+                if (message.type === 'text') {
+                  return message.set('errorReason', reason).set('submitState', null)
+                }
+                if (message.type === 'attachment') {
+                  return message.set('errorReason', reason).set('submitState', null)
+                }
+              }
+              return message
+            })
+          )
+        })
+      )
+    }
     case Chat2Gen.clearPendingConversation: {
       return state.withMutations(s => {
         const conversationIDKey = Types.stringToConversationIDKey('')

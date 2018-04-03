@@ -989,24 +989,12 @@ const sendToPendingConversationSuccess = (
   ])
 }
 
-const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPendingConversationPayload) => {
-  console.log('DANNYDEBUG', e, action)
-  return Saga.sequentially([
-    // Clear the search
-    Saga.put(Chat2Gen.createExitSearch({canceled: true})),
-    // Clear the pending conversation from the inbox
-    Saga.put(Chat2Gen.createClearPendingConversation()),
-    // navigate to inbox
-    Saga.put(Chat2Gen.createNavigateToInbox()),
-    // show error message
-    Saga.put(
-      ConfigGen.createGlobalError({
-        globalError: new Error('There was a problem starting this conversation. Please send a log.'),
-      })
-    ),
-  ])
-}
-
+const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPendingConversationPayload) =>
+  Saga.put(
+    Chat2Gen.createPendingConversationErrored({
+      reason: e.message,
+    })
+  )
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
   return Saga.call(RPCChatTypes.localRetryPostRpcPromise, {

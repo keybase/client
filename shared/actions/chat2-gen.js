@@ -61,6 +61,7 @@ export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
+export const pendingConversationErrored = 'chat2:pendingConversationErrored'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const selectConversation = 'chat2:selectConversation'
@@ -330,6 +331,7 @@ export const createNotificationSettingsUpdated = (
   |}>
 ) => ({error: false, payload, type: notificationSettingsUpdated})
 export const createOpenFolder = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: openFolder})
+export const createPendingConversationErrored = (payload: $ReadOnly<{|reason: string|}>) => ({error: false, payload, type: pendingConversationErrored})
 export const createResetChatWithoutThem = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (
   payload: $ReadOnly<{|
@@ -444,6 +446,7 @@ export type NavigateToInboxPayload = More.ReturnType<typeof createNavigateToInbo
 export type NavigateToThreadPayload = More.ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
+export type PendingConversationErroredPayload = More.ReturnType<typeof createPendingConversationErrored>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
@@ -515,6 +518,7 @@ export type Actions =
   | More.ReturnType<typeof createNavigateToThread>
   | More.ReturnType<typeof createNotificationSettingsUpdated>
   | More.ReturnType<typeof createOpenFolder>
+  | More.ReturnType<typeof createPendingConversationErrored>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createSelectConversation>

@@ -128,6 +128,9 @@
       "reason": "string",
       "outboxID": "Types.OutboxID",
     },
+    "pendingConversationErrored": {
+      "reason": "string"
+    },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
       "conversationIDKey": "Types.ConversationIDKey",
