@@ -257,3 +257,28 @@ func Balances(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Ac
 
 	return res.Balances, nil
 }
+
+type submitResult struct {
+	Status        libkb.AppStatus        `json:"status"`
+	PaymentResult stellar1.PaymentResult `json:"payment_result"`
+}
+
+func (s *submitResult) GetAppStatus() *libkb.AppStatus {
+	return &s.Status
+}
+
+func SubmitTransaction(ctx context.Context, g *libkb.GlobalContext, payload libkb.JSONPayload) (stellar1.PaymentResult, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/submitpayment",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+
+	var res submitResult
+	if err := g.API.PostDecode(apiArg, &res); err != nil {
+		return stellar1.PaymentResult{}, err
+	}
+
+	return res.PaymentResult, nil
+}
