@@ -4862,6 +4862,53 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   width: 100%;
 }
 
+.glamor-21,
+[data-glamor-21] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  padding-right: 7px;
+}
+
+.glamor-22,
+[data-glamor-22] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  background-color: #4C8EFF;
+}
+
+.glamor-25,
+[data-glamor-25] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  white-space: nowrap;
+  display: block;
+  min-height: 15px;
+  overflow: hidden;
+  padding-right: 30px;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
 <div
   style={
     Object {
@@ -4909,6 +4956,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5113,6 +5162,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5354,6 +5405,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5540,6 +5593,212 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                     title={undefined}
                   >
                     I don	 know that I would want.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#4C8EFF",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          style={
+            Object {
+              "backgroundColor": "#4C8EFF",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexShrink": 0,
+              "height": 56,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexShrink": 0,
+                "justifyContent": "flex-start",
+                "marginLeft": 8,
+                "marginRight": 8,
+                "maxWidth": 40,
+                "minWidth": 40,
+                "position": "relative",
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 40,
+                  "maxWidth": 40,
+                  "minHeight": 40,
+                  "minWidth": 40,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="glamor-0"
+              />
+              <div
+                className="glamor-1"
+              />
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "backgroundColor": "#4C8EFF",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "height": "100%",
+                "justifyContent": "center",
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexGrow": 1,
+                  "height": 17,
+                  "maxHeight": 17,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <span
+                    className="glamor-21"
+                    onClick={undefined}
+                    title="atracks"
+                  >
+                    atracks
+                  </span>
+                </div>
+              </div>
+              <span
+                className="glamor-22"
+                onClick={undefined}
+                title={undefined}
+              >
+                5:13 pm
+              </span>
+            </div>
+            <div
+              style={
+                Object {
+                  "backgroundColor": undefined,
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexGrow": 1,
+                  "height": 17,
+                  "maxHeight": 17,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <span
+                    className="glamor-25"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    <span
+                      className="glamor-4"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      <span
+                        className="glamor-4"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        jork: what article?
+                      </span>
+                    </span>
                   </span>
                 </div>
               </div>

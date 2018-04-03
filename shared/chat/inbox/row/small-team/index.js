@@ -11,6 +11,7 @@ type Props = {
   hasBadge: boolean,
   hasResetUsers: boolean,
   hasUnread: boolean,
+  iconHoverColor: string,
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -69,6 +70,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
               backgroundColor={props.backgroundColor}
               hasUnread={props.hasUnread}
               hasBadge={props.hasBadge}
+              iconHoverColor={props.iconHoverColor}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               showGear={this.state.showGear}

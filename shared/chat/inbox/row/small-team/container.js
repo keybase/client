@@ -58,6 +58,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     hasBadge: stateProps.hasBadge,
     hasResetUsers: !stateProps._meta.resetParticipants.isEmpty(),
     hasUnread,
+    iconHoverColor: styles.iconHoverColor,
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,

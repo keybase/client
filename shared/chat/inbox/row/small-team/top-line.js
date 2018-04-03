@@ -6,6 +6,7 @@ import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../
 
 type Props = {
   hasUnread: boolean,
+  iconHoverColor: string,
   participants: Array<string>,
   showBold: boolean,
   showGear: boolean,
@@ -91,7 +92,7 @@ class SimpleTopLine extends React.Component<Props> {
           <Icon
             type="iconfont-gear"
             onClick={this.props.onClickGear}
-            style={{fontSize: 14, color: this.props.subColor}}
+            style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
           />
         )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
