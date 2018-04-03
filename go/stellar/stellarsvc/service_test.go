@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -107,14 +108,20 @@ func TestImport(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
+	srv := newTestServer(tcs[0].G)
+
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
 	a1, s1 := randomStellarKeypair()
-	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s1, false)
+	argS1 := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s1,
+		MakePrimary: false,
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
 	require.NoError(t, err)
 
-	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s1, false)
+	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
 	require.Error(t, err)
 
 	u0, err := tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
@@ -123,11 +130,15 @@ func TestImport(t *testing.T) {
 	require.False(t, a1.Eq(*addr))
 
 	a2, s2 := randomStellarKeypair()
-	own, err := stellar.OwnAccount(context.Background(), tcs[0].G, a2)
+	own, err := srv.OwnAccountLocal(context.Background(), a2)
 	require.NoError(t, err)
 	require.False(t, own)
 
-	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s2, true)
+	argS2 := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   s2,
+		MakePrimary: true,
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
 	require.NoError(t, err)
 
 	u0, err = tcs[1].G.LoadUserByUID(tcs[0].G.ActiveDevice.UID())
@@ -135,13 +146,13 @@ func TestImport(t *testing.T) {
 	addr = u0.StellarWalletAddress()
 	require.False(t, a1.Eq(*addr))
 
-	err = stellar.ImportSecretKey(context.Background(), tcs[0].G, s2, true)
+	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
 	require.Error(t, err)
 
-	own, err = stellar.OwnAccount(context.Background(), tcs[0].G, a1)
+	own, err = srv.OwnAccountLocal(context.Background(), a1)
 	require.NoError(t, err)
 	require.True(t, own)
-	own, err = stellar.OwnAccount(context.Background(), tcs[0].G, a2)
+	own, err = srv.OwnAccountLocal(context.Background(), a2)
 	require.NoError(t, err)
 	require.True(t, own)
 
@@ -188,4 +199,20 @@ func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
 		panic(err)
 	}
 	return stellar1.AccountID(full.Address()), stellar1.SecretKey(full.Seed())
+}
+
+type nullSecretUI struct{}
+
+func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, nil
+}
+
+type testUISource struct{}
+
+func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
+	return nullSecretUI{}
+}
+
+func newTestServer(g *libkb.GlobalContext) *Server {
+	return New(g, &testUISource{})
 }
