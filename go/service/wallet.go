@@ -6,29 +6,36 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"golang.org/x/net/context"
 )
 
 type walletHandler struct {
 	libkb.Contextified
 	*BaseHandler
+	*stellarsvc.Server
 }
 
 var _ stellar1.LocalInterface = (*walletHandler)(nil)
 
 func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext) *walletHandler {
-	return &walletHandler{
+	h := &walletHandler{
 		Contextified: libkb.NewContextified(g),
 		BaseHandler:  NewBaseHandler(g, xp),
 	}
+
+	h.Server = stellarsvc.New(g, h)
+
+	return h
 }
 
+func (h *walletHandler) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
+	return h.BaseHandler.getSecretUI(sessionID, g)
+}
+
+/*
 func (h *walletHandler) assertLoggedIn(ctx context.Context) error {
 	loggedIn := h.G().ActiveDevice.Valid()
 	if !loggedIn {
@@ -132,3 +139,4 @@ func (h *walletHandler) ImportSecretKeyLocal(ctx context.Context, arg stellar1.I
 	err = stellarsvc.ImportSecretKey(ctx, h.G(), arg.SecretKey, arg.MakePrimary)
 	return err
 }
+*/
