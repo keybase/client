@@ -167,12 +167,12 @@ const (
 	KeybaseKIDV1     = 1 // Uses SHA-256
 	OneYearInSeconds = 24 * 60 * 60 * 365
 
-	SigExpireIn            = OneYearInSeconds * 16 // 16 years
-	NaclEdDSAExpireIn      = OneYearInSeconds * 16 // 16 years
-	NaclDHExpireIn         = OneYearInSeconds * 16 // 16 years
-	NaclPerUserKeyExpireIn = OneYearInSeconds * 16 // 16 years
-	KeyExpireIn            = OneYearInSeconds * 16 // 16 years
-	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
+	SigExpireIn            = OneYearInSeconds * 64 // 64 years
+	NaclEdDSAExpireIn      = OneYearInSeconds * 64 // 64 years
+	NaclDHExpireIn         = OneYearInSeconds * 64 // 64 years
+	NaclPerUserKeyExpireIn = OneYearInSeconds * 64 // 64 years
+	KeyExpireIn            = OneYearInSeconds * 64 // 64 years
+	SubkeyExpireIn         = OneYearInSeconds * 64 // 64 years
 	AuthExpireIn           = OneYearInSeconds      // 1 year
 
 	PaperKeyMemoryTimeout = time.Hour
