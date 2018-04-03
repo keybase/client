@@ -20,6 +20,7 @@ export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
 export const markTLFCreated = 'favorite:markTLFCreated'
+export const requestFSSyncStatus = 'favorite:requestFSSyncStatus'
 export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
 
 // Action Creators
@@ -35,6 +36,7 @@ export const createFavoriteSwitchTab = (payload: $ReadOnly<{|showingPrivate: boo
 export const createFavoriteToggleIgnored = (payload: $ReadOnly<{|isPrivate: boolean|}>) => ({error: false, payload, type: favoriteToggleIgnored})
 export const createKbfsStatusUpdated = (payload: $ReadOnly<{|status: Types.KBFSStatus|}>) => ({error: false, payload, type: kbfsStatusUpdated})
 export const createMarkTLFCreated = (payload: $ReadOnly<{|folder: Folders.Folder|}>) => ({error: false, payload, type: markTLFCreated})
+export const createRequestFSSyncStatus = () => ({error: false, payload: undefined, type: requestFSSyncStatus})
 export const createSetupKBFSChangedHandler = () => ({error: false, payload: undefined, type: setupKBFSChangedHandler})
 
 // Action Payloads
@@ -48,6 +50,7 @@ export type FavoriteSwitchTabPayload = More.ReturnType<typeof createFavoriteSwit
 export type FavoriteToggleIgnoredPayload = More.ReturnType<typeof createFavoriteToggleIgnored>
 export type KbfsStatusUpdatedPayload = More.ReturnType<typeof createKbfsStatusUpdated>
 export type MarkTLFCreatedPayload = More.ReturnType<typeof createMarkTLFCreated>
+export type RequestFSSyncStatusPayload = More.ReturnType<typeof createRequestFSSyncStatus>
 export type SetupKBFSChangedHandlerPayload = More.ReturnType<typeof createSetupKBFSChangedHandler>
 
 // All Actions
@@ -65,5 +68,6 @@ export type Actions =
   | More.ReturnType<typeof createFavoriteToggleIgnored>
   | More.ReturnType<typeof createKbfsStatusUpdated>
   | More.ReturnType<typeof createMarkTLFCreated>
+  | More.ReturnType<typeof createRequestFSSyncStatus>
   | More.ReturnType<typeof createSetupKBFSChangedHandler>
   | {type: 'common:resetStore', payload: void}

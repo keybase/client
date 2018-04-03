@@ -237,42 +237,53 @@ function _notify(state: Types.FolderState): void {
   previousNotifyState = newNotifyState
 }
 
-// Don't send duplicates else we get high cpu usage
-let _kbfsUploadingState = false
-function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
-  yield Saga.put((dispatch: Dispatch) => {
-    const debouncedKBFSStopped = debounce(() => {
-      if (_kbfsUploadingState === true) {
-        _kbfsUploadingState = false
-        const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})
-        dispatch(badgeAction)
-        dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: false}}))
-      }
-    }, 2000)
+function _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
+  if (isMobile) {
+    return
+  }
 
-    if (!isMobile) {
-      engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
-        // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
-        // ie. we don't get the syncingBytes or ops correctly (always zero)
-        if (_kbfsUploadingState === false) {
-          _kbfsUploadingState = true
-          const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})
-          dispatch(badgeAction)
-          dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: true}}))
+  let _kbfsUploading = false // Don't send duplicates else we get high cpu usage.
+  return Saga.put((dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncStatusResponse', ({status}) => {
+      if ((status: RPCTypes.FSSyncStatus).totalSyncingBytes <= 0) { // not syncing
+        if (_kbfsUploading) {
+          _kbfsUploading = false
+          dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+          dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: false}}))
         }
-        // We have to debounce while the events are still happening no matter what
-        debouncedKBFSStopped()
-      })
-    }
-  })
+        return
+      }
 
-  yield Saga.call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {req: {requestID: 0}})
+      // syncing
+
+      if (!_kbfsUploading) {
+        _kbfsUploading = true
+        dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+        dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: true}}))
+      }
+
+      // Since we are still syncing, so request status update again after 2
+      // seconds.
+      debounce(dispatch, 2000)(FavoriteGen.createRequestFSSyncStatus())
+    })
+
+    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
+      // Something's going on in KBFS. Request status update and let
+      // FSSyncStatusResponse code above handle the actual update.
+      dispatch(FavoriteGen.createRequestFSSyncStatus())
+    })
+  })
+}
+
+function requestFSSyncStatus() {
+  return Saga.call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {req: {requestID: 0}})
 }
 
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(FavoriteGen.favoriteList, _listSaga)
   yield Saga.safeTakeEvery([FavoriteGen.favoriteAdd, FavoriteGen.favoriteIgnore], _addOrIgnoreSaga)
-  yield Saga.safeTakeEvery(FavoriteGen.setupKBFSChangedHandler, _setupKBFSChangedHandler)
+  yield Saga.safeTakeEveryPure(FavoriteGen.requestFSSyncStatus, requestFSSyncStatus)
+  yield Saga.safeTakeEveryPure(FavoriteGen.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
 export default favoriteSaga

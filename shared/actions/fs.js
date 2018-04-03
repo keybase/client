@@ -36,8 +36,7 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     lastModifiedTimestamp: dirent.time,
     size: dirent.size,
     progress: 'loaded',
-    // FIXME currently lastWriter is not provided by simplefs.
-    // the GUI supports it when added here.
+    lastWriter: dirent.lastWriterUnverified,
   })
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }

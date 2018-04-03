@@ -36,6 +36,7 @@
     "markTLFCreated": {
       "folder": "Folders.Folder"
     },
-    "setupKBFSChangedHandler": {}
+    "setupKBFSChangedHandler": {},
+    "requestFSSyncStatus": {}
   }
 }
