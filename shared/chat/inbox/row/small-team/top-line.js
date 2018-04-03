@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
-import {Text, PlaintextUsernames, Box} from '../../../../common-adapters'
+import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../styles'
 
 type Props = {
@@ -72,19 +72,28 @@ class SimpleTopLine extends React.Component<Props> {
             />
           </Box>
         </Box>
-        <Text
-          key="0"
-          type="BodySmall"
-          style={platformStyles({
-            common: {
-              ...boldOverride,
-              backgroundColor: this.props.backgroundColor,
-              color: this.props.subColor,
-            },
-          })}
-        >
-          {this.props.timestamp}
-        </Text>
+        {!this.props.showGear && (
+          <Text
+            key="0"
+            type="BodySmall"
+            style={platformStyles({
+              common: {
+                ...boldOverride,
+                backgroundColor: this.props.backgroundColor,
+                color: this.props.subColor,
+              },
+            })}
+          >
+            {this.props.timestamp}
+          </Text>
+        )}
+        {this.props.showGear && (
+          <Icon
+            type="iconfont-gear"
+            onClick={this.props.onClickGear}
+            style={{fontSize: 14, color: this.props.subColor}}
+          />
+        )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
       </Box>
     )

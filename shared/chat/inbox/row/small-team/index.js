@@ -28,12 +28,27 @@ type Props = {
   youNeedToRekey: boolean,
 }
 
-class SmallTeam extends React.PureComponent<Props> {
+type State = {showGear: boolean}
+
+class SmallTeam extends React.PureComponent<Props, State> {
+  state = {showGear: false}
+
+  _setShowGear = (showGear: boolean) => {
+    if (!isMobile && !!this.props.teamname) {
+      this.setState({showGear})
+    }
+  }
+
   render() {
     const props = this.props
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
-        <Box style={props.isSelected ? rowContainerStyleSelected : rowContainerStyle}>
+        <Box
+          // don't move these to the ClickableBox (DESKTOP-6397)
+          onMouseEnter={() => this._setShowGear(true)}
+          onMouseLeave={() => this._setShowGear(false)}
+          style={props.isSelected ? rowContainerStyleSelected : rowContainerStyle}
+        >
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -56,7 +71,7 @@ class SmallTeam extends React.PureComponent<Props> {
               hasBadge={props.hasBadge}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
-              showGear={!!props.teamname}
+              showGear={this.state.showGear}
               onClickGear={props.onClickGear}
               subColor={props.subColor}
               timestamp={props.timestamp}
