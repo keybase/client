@@ -18,7 +18,6 @@ import {
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
-import {chatTab} from '../../constants/tabs'
 import {
   getCanPerform,
   getConvIdsFromTeamName,
@@ -95,15 +94,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       dispatch(
         Chat2Gen.createSelectConversation({conversationIDKey, reason: preview ? 'preview' : 'manageView'})
       )
-      dispatch(
-        navigateTo([
-          chatTab,
-          {
-            selected: ChatTypes.conversationIDKeyToString(conversationIDKey),
-            props: {},
-          },
-        ])
-      )
+      dispatch(navigateUp())
     },
   }
 }
