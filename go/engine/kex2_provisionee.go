@@ -668,7 +668,8 @@ func (e *Kex2Provisionee) storeEKs(ctx context.Context, deviceEKStatement keybas
 	ekLib := e.G().GetEKLib()
 	if ekLib == nil || !ekLib.ShouldRun(ctx) {
 		return nil
-	} else if userEKBox == nil {
+	}
+	if userEKBox == nil {
 		e.G().Log.CWarningf(ctx, "userEKBox nil, no ephemeral keys to store")
 		return nil
 	}
