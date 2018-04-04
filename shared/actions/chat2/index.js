@@ -1015,6 +1015,72 @@ const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPending
     ),
   ])
 
+const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPayload) =>
+  Saga.sequentially([
+    // clear the search
+    Saga.put(Chat2Gen.createExitSearch({canceled: true})),
+    // clear out pending conv data
+    Saga.put(Chat2Gen.createClearPendingConversation()),
+    // Reset pending flags
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
+  ])
+
+const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
+  if (!state.chat2.pendingSelected) {
+    logger.warn("retryPendingConversation: pending conversation isn't selected; aborting")
+    return
+  }
+  if (!state.chat2.pendingStatus === 'failed') {
+    logger.warn("retryPendingConversation: pending status != 'failed'; aborting")
+    return
+  }
+  const pendingMessages = state.chat2.messageMap.get(Types.stringToConversationIDKey(''))
+  if (!(pendingMessages && !pendingMessages.isEmpty())) {
+    logger.warn('retryPendingConversation: found no pending messages; aborting')
+    return
+  }
+  const pendingUsers = state.chat2.pendingConversationUsers
+  if (pendingUsers.isEmpty()) {
+    logger.warn('retryPendingConversation: found no pending conv users; aborting')
+    return
+  }
+
+  if (pendingMessages) {
+    if (pendingMessages.size > 1) {
+      logger.warn('retryPendingConversation: found more than one pending message; only resending the first')
+    }
+    // $FlowIssue thinks message can be null
+    const message: Types.Message = pendingMessages.first()
+    const you = state.config.username
+    if (!you) {
+      logger.warn('retryPendingConversation: found no currently logged in username; aborting')
+      return
+    }
+    let retryAction: ?(Chat2Gen.MessageSendPayload | Chat2Gen.AttachmentUploadPayload)
+    if (message.type === 'text') {
+      retryAction = Chat2Gen.createMessageSend({
+        conversationIDKey: message.conversationIDKey,
+        text: message.text,
+      })
+    } else if (message.type === 'attachment') {
+      retryAction = Chat2Gen.createAttachmentUpload({
+        conversationIDKey: message.conversationIDKey,
+        path: message.devicePreviewPath,
+        title: message.title,
+      })
+    }
+    if (retryAction) {
+      return Saga.put(
+        Chat2Gen.createSendToPendingConversation({
+          users: pendingUsers.concat([you]).toArray(),
+          sendingAction: retryAction,
+        })
+      )
+    }
+  }
+}
+
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
   return Saga.call(RPCChatTypes.localRetryPostRpcPromise, {
@@ -1456,6 +1522,8 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const {conversationIDKey, path, title} = action.payload
   const state: TypedState = yield Saga.select()
 
+  const outboxID = Constants.generateOutboxID()
+
   // Sending to pending
   if (!conversationIDKey) {
     if (state.chat2.pendingConversationUsers.isEmpty()) {
@@ -1468,12 +1536,29 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       return
     }
 
-    yield Saga.put(
-      Chat2Gen.createSendToPendingConversation({
-        sendingAction: action,
-        users: state.chat2.pendingConversationUsers.concat([you]).toArray(),
-      })
-    )
+    yield Saga.sequentially([
+      Saga.put(
+        Chat2Gen.createMessagesAdd({
+          context: {type: 'sent'},
+          messages: [
+            Constants.makePendingAttachmentMessage(
+              state,
+              conversationIDKey,
+              Constants.pathToAttachmentType(path),
+              title,
+              path, // store path here for retry
+              Types.stringToOutboxID(outboxID.toString('hex') || '')
+            ),
+          ],
+        })
+      ),
+      Saga.put(
+        Chat2Gen.createSendToPendingConversation({
+          sendingAction: action,
+          users: state.chat2.pendingConversationUsers.concat([you]).toArray(),
+        })
+      ),
+    ])
     return
   }
 
@@ -1493,8 +1578,6 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   }
 
   const attachmentType = Constants.pathToAttachmentType(path)
-
-  const outboxID = Constants.generateOutboxID()
   const message = Constants.makePendingAttachmentMessage(
     state,
     conversationIDKey,
@@ -1933,6 +2016,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     sendToPendingConversationSuccess,
     sendToPendingConversationError
   )
+  yield Saga.safeTakeEveryPure(Chat2Gen.cancelPendingConversation, cancelPendingConversation)
+  yield Saga.safeTakeEveryPure(Chat2Gen.retryPendingConversation, retryPendingConversation)
 
   // We've scrolled some new attachment rows into view, queue them up
   yield Saga.safeTakeEveryPure(Chat2Gen.attachmentNeedsUpdating, queueAttachmentToRequest)
