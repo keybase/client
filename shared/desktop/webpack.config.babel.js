@@ -30,7 +30,7 @@ const config = (_, {mode}) => {
         cacheDirectory: true,
         extends: path.join(__dirname, '..', '.babelrc'),
         plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.7.5'}}]],
+        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.8.4'}}]],
       },
     }
 
