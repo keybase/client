@@ -79,7 +79,7 @@ const FilesLoadingHoc = compose(
     loadFolderList,
   })),
   lifecycle({
-    componentWillMount() {
+    componentDidMount() {
       this.props.loadFolderList(this.props.path)
     },
     componentWillReceiveProps(nextProps) {

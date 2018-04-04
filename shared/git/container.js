@@ -59,7 +59,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props._loadGit()
     },
   })

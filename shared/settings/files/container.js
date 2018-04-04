@@ -25,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props.getFuseStatus()
     },
   })

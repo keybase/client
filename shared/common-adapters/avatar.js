@@ -247,7 +247,7 @@ const realConnector = compose(
   }),
   // $FlowIssue
   lifecycle({
-    componentWillMount() {
+    componentDidMount() {
       const _timeoutID = setTimeout(() => {
         if (this.props._name === this.props._stateName) {
           this.props._maybeLoadUserData()

@@ -75,7 +75,7 @@ const PopupWrapped = props => (
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props.onLoad()
     },
   }),

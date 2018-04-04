@@ -63,7 +63,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
       this.props._loadTeams()

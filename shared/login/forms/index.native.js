@@ -28,7 +28,7 @@ const Splash = HOCTimers(
       showFeedback: false,
     }
 
-    componentWillMount() {
+    componentDidMount() {
       this.props.clearTimeout(this.timeoutId)
       this.timeoutId = this.props.setTimeout(() => {
         this.setState({

@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 class Switcher extends React.PureComponent<Props> {
-  componentWillMount() {
+  componentDidMount() {
     if (!this.props._loaded) {
       this.props._loadOperations(this.props.name)
     }

@@ -105,7 +105,7 @@ export default compose(
     })),
     // Go through the permission flow on mount
     lifecycle({
-      componentWillMount() {
+      componentDidMount() {
         // TODO test this permission flow on a real build
         getContacts().then(
           val => {

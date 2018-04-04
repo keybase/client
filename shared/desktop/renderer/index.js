@@ -145,13 +145,16 @@ const FontLoader = () => (
 
 function render(store, MainComponent) {
   ReactDOM.render(
-    <Root store={store}>
-      <div style={{display: 'flex', flex: 1}}>
-        <RemoteProxies />
-        <FontLoader />
-        <MainComponent />
-      </div>
-    </Root>,
+    // $FlowIssue doesn't understand about StrictMode
+    <React.StrictMode>
+      <Root store={store}>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteProxies />
+          <FontLoader />
+          <MainComponent />
+        </div>
+      </Root>
+    </React.StrictMode>,
     // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )

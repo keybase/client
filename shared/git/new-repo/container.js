@@ -35,7 +35,7 @@ export default compose(
     teams: props._teams.toArray().sort(),
   })),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._loadTeams()
     },
   })

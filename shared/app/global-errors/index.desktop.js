@@ -30,7 +30,7 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._resetError(!!this.props.error)
   }
 

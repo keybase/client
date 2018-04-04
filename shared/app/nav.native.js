@@ -170,7 +170,7 @@ class MainNavStack extends Component<any, any> {
     verticalOffset: 0,
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._listener = addSizeListener(this.statusBarListener)
   }
 
@@ -294,7 +294,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   _keyboardShowListener = null
   _keyboardHideListener = null
 
-  componentWillMount() {
+  componentDidMount() {
     this._keyboardShowListener = NativeKeyboard.addListener(
       isIOS ? 'keyboardWillShow' : 'keyboardDidShow',
       () => this.setState({keyboardShowing: true})

@@ -105,7 +105,7 @@ const EditChannel: React.ComponentType<Props> = compose(
     }
   ),
   lifecycle({
-    componentWillReceiveProps: function(nextProps: Props) {
+    componentWillReceiveProps(nextProps: Props) {
       if (nextProps.channelName !== this.props.channelName) {
         this.props.onChangeChannelName(nextProps.channelName)
       }

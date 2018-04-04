@@ -14,7 +14,7 @@ type Props = {
 }
 
 class FileAttachment extends React.PureComponent<Props> {
-  componentWillMount() {
+  componentdidMount() {
     if (this.props.loadPreview) {
       this.props.loadPreview()
     }

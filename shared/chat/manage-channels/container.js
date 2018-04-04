@@ -151,12 +151,12 @@ export default compose(
     },
   }),
   lifecycle({
-    componentWillReceiveProps: function(nextProps) {
+    componentWillReceiveProps(nextProps) {
       if (!isEqual(this.props.oldChannelState, nextProps.oldChannelState)) {
         nextProps.setNextChannelState(nextProps.oldChannelState)
       }
     },
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._loadChannels()
       if (!this.props._hasOperations) {
         this.props._loadOperations()
