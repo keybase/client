@@ -18,6 +18,10 @@ type Source interface {
 
 func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
 	typ := g.Env.GetAvatarSource()
+	if libkb.GetPlatformString() == "windows" {
+		// Force Windows to use the simpler source
+		typ = "simple"
+	}
 	switch typ {
 	case "simple":
 		s = NewSimpleSource(g)
