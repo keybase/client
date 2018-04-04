@@ -200,6 +200,6 @@ const rowTextStyles = memoize(color =>
 
 const styleBadge = {
   position: 'absolute',
-  left: 46,
-  top: 4,
+  left: 24,
+  top: -1,
 }

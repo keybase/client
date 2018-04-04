@@ -9,7 +9,7 @@ import {isWindows} from '../platform'
 export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
-export type ProgressType = 'pending' | 'loaded'
+export type ProgressType = 'favorite' | 'pending' | 'loaded'
 
 export type Device = {
   type: Devices.DeviceType,
@@ -32,7 +32,6 @@ export type FavoriteMetadata = {
 }
 
 export type _FavoriteItem = {
-  name: string,
   badgeCount: number,
   tlfMeta?: FavoriteMetadata,
 }
@@ -45,11 +44,13 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   size: number,
   progress: ProgressType,
+  badgeCount: number,
+  tlfMeta?: FavoriteMetadata,
 }
 
 export type _FolderPathItem = {
   type: 'folder',
-  children: I.List<string>,
+  children: I.Set<string>,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
@@ -149,6 +150,13 @@ export const pathToString = (p: Path): string => (!p ? '' : p)
 // export const stringToLocalPath = (s: string): LocalPath => s
 // export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
+export const getPathParent = (p: Path): Path =>
+  !p
+    ? ''
+    : p
+        .split('/')
+        .slice(0, -1)
+        .join('/')
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null

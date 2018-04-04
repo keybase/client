@@ -115,7 +115,6 @@ function _folderToPathItems(
         // value
         Constants.makeFavoriteItem({
           badgeCount: 0,
-          name: name,
           tlfMeta: {
             folderType,
             isIgnored,
@@ -133,7 +132,6 @@ function _folderToPathItems(
     favoriteFolders.push([
       badgePath,
       Constants.makeFavoriteItem({
-        name: Types.getPathName(badgePath),
         badgeCount: badges[badgeKey],
       }),
     ])
@@ -225,7 +223,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
           lastWriter,
           size,
           name: Types.getPathName(rootPath),
-          children: I.List(entries.map(d => d.name)),
+          children: I.Set(entries.map(d => d.name)),
           progress: 'loaded',
         }),
       ],

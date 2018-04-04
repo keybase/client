@@ -17,16 +17,18 @@ export const ExitCodeFuseKextPermissionError = 5
 export const ExitCodeAuthCanceledError = 6
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
+  badgeCount: 0,
   name: 'unknown',
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
-  children: I.List(),
+  children: I.Set(),
   type: 'folder',
 })
 
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
+  badgeCount: 0,
   name: 'unknown',
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
@@ -36,6 +38,7 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
+  badgeCount: 0,
   name: 'unknown',
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
@@ -46,7 +49,6 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 
 export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
   badgeCount: 0,
-  name: 'unknown',
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({

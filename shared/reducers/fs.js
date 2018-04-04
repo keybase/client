@@ -20,7 +20,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           return true
         }
         const original = state.pathItems.get(path)
-        if (original && original.progress === 'loaded' && item.progress === 'pending') {
+        if (original && original.progress === 'loaded' && item.progress !== 'pending') {
           // Don't override a loaded item into pending. This is specifically
           // for the case where user goes back out of a folder where we could
           // override the folder into an empty one. With this, next user
@@ -39,7 +39,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.favoritesLoad:
       return state
     case FsGen.favoritesLoaded:
-      return state.mergeIn(['favoriteItems'], action.payload.folders)
+      const toMerge = action.payload.folders.mapEntries(([path, item]) => {
+        const original = state.pathItems.get(path) || Constants.makeFolder()
+        // TODO: add to children of parent
+        // TODO: Make sure children won't be overwritten by `folderListLoaded` action.
+        return [path, original.set('badgeCount', item.badgeCount).set('tlfMeta', item.tlfMeta)]
+      })
+      return state.mergeIn(['pathItems'], toMerge)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
