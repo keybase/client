@@ -89,6 +89,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
       )
       dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
+      dispatch(navigateUp())
     },
     _onView: (conversationIDKey: ChatTypes.ConversationIDKey, preview: boolean) => {
       dispatch(
