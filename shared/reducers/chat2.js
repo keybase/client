@@ -498,10 +498,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         state.messageMap.updateIn([conversationIDKey, ordinal], message => {
           if (message) {
             if (message.type === 'text') {
-              return message.set('errorReason', reason).set('submitState', null)
+              return message.set('errorReason', reason).set('submitState', 'failed')
             }
             if (message.type === 'attachment') {
-              return message.set('errorReason', reason).set('submitState', null)
+              return message.set('errorReason', reason).set('submitState', 'failed')
             }
           }
           return message
@@ -510,6 +510,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     }
     case Chat2Gen.pendingConversationErrored: {
       const {reason} = action.payload
+      logger.warn(`Got pending conversation failure with reason: ${reason}`)
       const conversationIDKey = Types.stringToConversationIDKey('')
       const ordinalMap = state.pendingOutboxToOrdinal.get(conversationIDKey)
       if (!ordinalMap) {
@@ -524,10 +525,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             mm.updateIn([conversationIDKey, ordinal], message => {
               if (message) {
                 if (message.type === 'text') {
-                  return message.set('errorReason', reason).set('submitState', null)
+                  return message.set('errorReason', null).set('submitState', 'failed')
                 }
                 if (message.type === 'attachment') {
-                  return message.set('errorReason', reason).set('submitState', null)
+                  return message.set('errorReason', null).set('submitState', 'failed')
                 }
               }
               return message
