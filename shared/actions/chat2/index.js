@@ -320,7 +320,7 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
 
   // We want to select a different convo if its cause we ignored/blocked/reported. Otherwise sometimes we get that a convo
   // is empty which we don't want to select something else as sometimes we're in the middle of making it!
-  const selectSomethingElse = isADelete && !conv.isEmpty
+  const selectSomethingElse = conv ? !conv.isEmpty : false
   return meta
     ? [
         isADelete
