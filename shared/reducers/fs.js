@@ -43,6 +43,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         const original = state.pathItems.get(path) || Constants.makeFolder()
         // TODO: add to children of parent
         // TODO: Make sure children won't be overwritten by `folderListLoaded` action.
+        // TODO: Make sure badgeCount/tlfMeta aren't overwritten by `folderListLoaded` action.
         return [path, original.set('badgeCount', item.badgeCount).set('tlfMeta', item.tlfMeta)]
       })
       return state.mergeIn(['pathItems'], toMerge)
