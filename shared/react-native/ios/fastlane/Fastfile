@@ -26,9 +26,7 @@ platform :ios do
   desc "This will also make sure the profile is up to date"
   lane :beta do
   version = get_version_number
-    increment_build_number({
-      build_number: latest_testflight_build_number(version: version) + 6
-    })
+    increment_build_number
 
     # match(type: "appstore") # more information: https://codesigning.guide
     gym(scheme: "Keybase") # Build your app - more options available
