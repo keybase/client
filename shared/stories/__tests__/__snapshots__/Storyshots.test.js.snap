@@ -4703,6 +4703,21 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
 `;
 
 exports[`Storyshots Chat/Inbox Simple 1`] = `
+.glamor-8 .small-team-gear,
+[data-glamor-8] .small-team-gear {
+  display: none;
+}
+
+.glamor-8:hover .small-team-gear,
+[data-glamor-8]:hover .small-team-gear {
+  display: unset;
+}
+
+.glamor-8:hover .small-team-timestamp,
+[data-glamor-8]:hover .small-team-timestamp {
+  display: none;
+}
+
 .glamor-0,
 [data-glamor-0] {
   bottom: 1px;
@@ -4759,8 +4774,18 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   background-color: #ffffff;
 }
 
-.glamor-6,
-[data-glamor-6] {
+.glamor-4,
+[data-glamor-4] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.glamor-4:hover,
+[data-glamor-4]:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.glamor-7,
+[data-glamor-7] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -4777,8 +4802,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   width: 100%;
 }
 
-.glamor-4,
-[data-glamor-4] {
+.glamor-5,
+[data-glamor-5] {
   font-size: 11px;
   line-height: 15px;
   color: inherit;
@@ -4788,8 +4813,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   font-weight: inherit;
 }
 
-.glamor-7,
-[data-glamor-7] {
+.glamor-9,
+[data-glamor-9] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -4799,8 +4824,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   border-radius: 50%;
 }
 
-.glamor-8,
-[data-glamor-8] {
+.glamor-10,
+[data-glamor-10] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -4815,8 +4840,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   opacity: 1;
 }
 
-.glamor-9,
-[data-glamor-9] {
+.glamor-11,
+[data-glamor-11] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
@@ -4832,8 +4857,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   padding-right: 7px;
 }
 
-.glamor-10,
-[data-glamor-10] {
+.glamor-12,
+[data-glamor-12] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.75);
@@ -4844,8 +4869,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   background-color: #ffffff;
 }
 
-.glamor-13,
-[data-glamor-13] {
+.glamor-15,
+[data-glamor-15] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.75);
@@ -4862,8 +4887,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   width: 100%;
 }
 
-.glamor-21,
-[data-glamor-21] {
+.glamor-25,
+[data-glamor-25] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -4879,8 +4904,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   padding-right: 7px;
 }
 
-.glamor-22,
-[data-glamor-22] {
+.glamor-26,
+[data-glamor-26] {
   font-size: 11px;
   line-height: 15px;
   color: #ffffff;
@@ -4891,8 +4916,18 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   background-color: #4C8EFF;
 }
 
-.glamor-25,
-[data-glamor-25] {
+.glamor-27,
+[data-glamor-27] {
+  color: #ffffff;
+}
+
+.glamor-27:hover,
+[data-glamor-27]:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.glamor-30,
+[data-glamor-30] {
   font-size: 11px;
   line-height: 15px;
   color: #ffffff;
@@ -4956,8 +4991,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          className="glamor-8"
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5067,12 +5101,37 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="glamor-3"
+                className="glamor-3 small-team-timestamp"
                 onClick={undefined}
                 title={undefined}
               >
                 Tue
               </span>
+              <div>
+                <span
+                  className="glamor-4 small-team-gear"
+                  onClick={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
+                  style={
+                    Object {
+                      "WebkitFontSmoothing": "antialiased",
+                      "cursor": "pointer",
+                      "fontFamily": "kb",
+                      "fontSize": 14,
+                      "fontStyle": "normal",
+                      "fontVariant": "normal",
+                      "fontWeight": "normal",
+                      "lineHeight": 1,
+                      "speak": "none",
+                      "textTransform": "none",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  
+                </span>
+              </div>
             </div>
             <div
               style={
@@ -5113,17 +5172,17 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="glamor-6"
+                    className="glamor-7"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-4"
+                      className="glamor-5"
                       onClick={undefined}
                       title={undefined}
                     >
                       <span
-                        className="glamor-4"
+                        className="glamor-5"
                         onClick={undefined}
                         title={undefined}
                       >
@@ -5162,8 +5221,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          className="glamor-8"
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5229,10 +5287,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <div
-                    className="glamor-7"
+                    className="glamor-9"
                   />
                   <div
-                    className="glamor-8"
+                    className="glamor-10"
                   />
                 </div>
               </div>
@@ -5290,7 +5348,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="glamor-9"
+                    className="glamor-11"
                     onClick={undefined}
                     title="chris"
                   >
@@ -5299,7 +5357,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="glamor-10"
+                className="glamor-12"
                 onClick={undefined}
                 title={undefined}
               >
@@ -5356,17 +5414,17 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="glamor-13"
+                    className="glamor-15"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-4"
+                      className="glamor-5"
                       onClick={undefined}
                       title={undefined}
                     >
                       <span
-                        className="glamor-4"
+                        className="glamor-5"
                         onClick={undefined}
                         title={undefined}
                       >
@@ -5405,8 +5463,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          className="glamor-8"
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5472,10 +5529,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <div
-                    className="glamor-7"
+                    className="glamor-9"
                   />
                   <div
-                    className="glamor-8"
+                    className="glamor-10"
                   />
                 </div>
               </div>
@@ -5588,7 +5645,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="glamor-6"
+                    className="glamor-7"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -5625,8 +5682,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
-          onMouseEnter={[Function]}
-          onMouseLeave={[Function]}
+          className="glamor-8"
           style={
             Object {
               "backgroundColor": "#4C8EFF",
@@ -5727,7 +5783,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="glamor-21"
+                    className="glamor-25"
                     onClick={undefined}
                     title="atracks"
                   >
@@ -5736,12 +5792,37 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="glamor-22"
+                className="glamor-26 small-team-timestamp"
                 onClick={undefined}
                 title={undefined}
               >
                 5:13 pm
               </span>
+              <div>
+                <span
+                  className="glamor-27 small-team-gear"
+                  onClick={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
+                  style={
+                    Object {
+                      "WebkitFontSmoothing": "antialiased",
+                      "cursor": "pointer",
+                      "fontFamily": "kb",
+                      "fontSize": 14,
+                      "fontStyle": "normal",
+                      "fontVariant": "normal",
+                      "fontWeight": "normal",
+                      "lineHeight": 1,
+                      "speak": "none",
+                      "textTransform": "none",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  
+                </span>
+              </div>
             </div>
             <div
               style={
@@ -5782,17 +5863,17 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="glamor-25"
+                    className="glamor-30"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="glamor-4"
+                      className="glamor-5"
                       onClick={undefined}
                       title={undefined}
                     >
                       <span
-                        className="glamor-4"
+                        className="glamor-5"
                         onClick={undefined}
                         title={undefined}
                       >
