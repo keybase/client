@@ -3,13 +3,27 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import {NativeModules} from 'react-native'
+import {NativeModules, YellowBox} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import noop from 'lodash/noop'
 // import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
+YellowBox.ignoreWarnings([
+  // Turn off the react warnings, we'll fix those up soon
+  'Warning: componentWillMount is deprecated',
+  'Warning: componentWillReceiveProps is deprecated',
+  'Warning: componentWillUpdate is deprecated',
+  // Warning about module loading and the main queue. A bunch of these are deps so we can't really do anything about this right now
+  // and loading from the main queue is fine (maybe slower but /shrug)
+  'Module MessageUIManager requires',
+  'Module KeybaseEngine requires',
+  'Module Storybook requires',
+  'Module RNFetchBlob requires',
+  'Module RCTCameraManager requires',
+  'Module RCTImageLoader requires',
+])
 // Uncomment this to disable yellowboxes
 // console.disableYellowBox = true
 
