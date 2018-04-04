@@ -6,6 +6,10 @@ import {type SelectorMap} from './storybook'
 import {Text, Box} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 
+const unexpected = (name: string) => () => {
+  throw new Error(`unexpected ${name}`)
+}
+
 /**
  * Creates a provider using a faux store of closures that compute derived viewProps
  * @param {SelectorMap} map an object of the form {DisplayName: Function(ownProps)} with
@@ -68,4 +72,4 @@ class StorybookErrorBoundary extends React.Component<
     return this.props.children
   }
 }
-export {createPropProvider, StorybookErrorBoundary}
+export {unexpected, createPropProvider, StorybookErrorBoundary}
