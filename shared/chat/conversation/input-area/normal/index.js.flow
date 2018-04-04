@@ -24,6 +24,7 @@ export type PreMentionHocProps = {
   onSubmit: (text: string) => void,
   onStoreInputText: (text: string) => void,
   onUpdateTyping: (typing: boolean) => void,
+  pendingWaiting: boolean,
   setText: (text: string) => void,
   text: string,
   typing: I.Set<string>,

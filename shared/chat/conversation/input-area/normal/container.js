@@ -35,12 +35,14 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const _you = state.config.username || ''
+  const pendingWaiting = state.chat2.pendingStatus === 'waiting'
 
   return {
     _editingMessage,
     _meta: Constants.getMeta(state, conversationIDKey),
     _you,
     conversationIDKey,
+    pendingWaiting,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -104,6 +106,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  pendingWaiting: stateProps.pendingWaiting,
   sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
   typing: stateProps.typing,
 })

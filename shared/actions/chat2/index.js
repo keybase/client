@@ -1067,6 +1067,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
     ? [
         Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'existingSearch'})),
         Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+        Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
       ]
     : []
 
@@ -1207,6 +1208,9 @@ const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => 
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
+    // We may have some failed pending messages sitting around, clear out that data
+    Saga.put(Chat2Gen.createClearPendingConversation()),
     ...(action.payload.canceled || !conversationIDKey
       ? []
       : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
