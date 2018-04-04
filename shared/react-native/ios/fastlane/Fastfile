@@ -29,7 +29,7 @@ platform :ios do
     increment_build_number({
       build_number: latest_testflight_build_number(version: version) + 2
     })
-
+    changelog_from_git_commits
     # match(type: "appstore") # more information: https://codesigning.guide
     gym(scheme: "Keybase") # Build your app - more options available
     pilot
