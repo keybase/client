@@ -80,7 +80,10 @@ export default (callback: (err: any) => void): void => {
     }
 
     if (errorsResult.errors.length > 0) {
-      fs.appendFileSync('/tmp/kbfs-install-error.txt', `Install errors: stdout=${stdoutResult}, stderr=${stderrResult}\n`)
+      fs.appendFileSync(
+          '/tmp/kbfs-install-error.txt',
+          `Install errors: stdout=${stdoutResult}, stderr=${stderrResult}\n`
+      )
       showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
       return
     }
