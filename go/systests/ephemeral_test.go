@@ -49,12 +49,12 @@ func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotif
 	}
 }
 
-func TestTeamTransactionWithTeamEK(t *testing.T) {
-	runTeamTransaction(t, true /* createTeamEK*/)
+func TestAddMemberWithTeamEK(t *testing.T) {
+	runAddMember(t, true /* createTeamEK*/)
 }
 
-func TestTeamTransactionNoTeamEK(t *testing.T) {
-	runTeamTransaction(t, false /* createTeamEK*/)
+func TestAddMemberNoTeamEK(t *testing.T) {
+	runAddMember(t, false /* createTeamEK*/)
 }
 
 func getTeamEK(g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
@@ -62,7 +62,7 @@ func getTeamEK(g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybas
 	return storage.Get(context.Background(), teamID, generation)
 }
 
-func runTeamTransaction(t *testing.T, createTeamEK bool) {
+func runAddMember(t *testing.T, createTeamEK bool) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -95,7 +95,7 @@ func runTeamTransaction(t *testing.T, createTeamEK bool) {
 		expectedGeneration = 1
 	}
 
-	ann.addTeamMember(team, bob, keybase1.TeamRole_WRITER)
+	ann.addWriter(team, bob)
 
 	annTeamEK, annErr := getTeamEK(annG, teamID, expectedGeneration)
 	bobTeamEK, bobErr := getTeamEK(bobG, teamID, expectedGeneration)
@@ -108,4 +108,50 @@ func runTeamTransaction(t *testing.T, createTeamEK bool) {
 	}
 	require.Equal(t, bobTeamEK.Metadata, expectedMetadata)
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
+}
+
+func TestRotateWithTeamEK(t *testing.T) {
+	runAddMember(t, true /* createTeamEK*/)
+}
+
+func TestRotateNoTeamEK(t *testing.T) {
+	runAddMember(t, false /* createTeamEK*/)
+}
+
+func runRotate(t *testing.T, createTeamEK bool) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUserWithPaper("bob")
+
+	annG := ann.tc.G
+	ephemeral.ServiceInit(annG)
+	bobG := bob.tc.G
+	ephemeral.ServiceInit(bobG)
+
+	teamID, teamName := ann.createTeam2()
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
+
+	// After rotate, we should have rolled the teamEK if one existed.
+	var expectedGeneration keybase1.EkGeneration
+	if createTeamEK {
+		ekLib := annG.GetEKLib()
+		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+		require.NoError(t, err)
+		expectedGeneration = teamEK.Metadata.Generation + 1
+	} else {
+		expectedGeneration = 1
+	}
+
+	bob.revokePaperKey()
+	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
+
+	annStorage := annG.GetTeamEKBoxStorage()
+	_, annErr := annStorage.Get(context.Background(), teamID, expectedGeneration)
+	if createTeamEK {
+		require.NoError(t, annErr)
+	} else {
+		require.Error(t, annErr)
+	}
 }

@@ -32,10 +32,10 @@ func (s *TeamEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonTeamEKEncryption)
 }
 
-func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string, boxes []keybase1.TeamEkBoxMetadata) (err error) {
+func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string, boxes *[]keybase1.TeamEkBoxMetadata) (err error) {
 	defer g.CTrace(ctx, "postNewTeamEK", func() error { return err })()
 
-	boxesJSON, err := json.Marshal(boxes)
+	boxesJSON, err := json.Marshal(*boxes)
 	if err != nil {
 		return err
 	}
@@ -53,38 +53,24 @@ func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 	return err
 }
 
-func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
-	defer g.CTrace(ctx, "publishNewTeamEK", func() error { return err })()
+func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, signingKey libkb.NaclSigningKeyPair, membersMetadata map[keybase1.UID]keybase1.UserEkMetadata, merkleRoot libkb.MerkleRoot) (sig string, boxes *[]keybase1.TeamEkBoxMetadata, metadata keybase1.TeamEkMetadata, myBox *keybase1.TeamEkBoxed, err error) {
+	defer g.CTrace(ctx, "prepareNewTeamEK", func() error { return err })()
 
 	seed, err := newTeamEphemeralSeed()
 	if err != nil {
-		return metadata, err
+		return "", nil, metadata, nil, err
 	}
 
-	statement, err := fetchTeamEKStatement(ctx, g, teamID)
+	prevStatement, err := fetchTeamEKStatement(ctx, g, teamID)
 	if err != nil {
-		return metadata, err
+		return "", nil, metadata, nil, err
 	}
 	var generation keybase1.EkGeneration
-	if statement == nil {
+	if prevStatement == nil {
 		generation = 1 // start at generation 1
 	} else {
-		generation = statement.CurrentTeamEkMetadata.Generation + 1
+		generation = prevStatement.CurrentTeamEkMetadata.Generation + 1
 	}
-
-	metadata, myTeamEKBoxed, err := signAndPublishTeamEK(ctx, g, teamID, generation, seed, merkleRoot, statement)
-
-	if myTeamEKBoxed == nil {
-		g.Log.CWarningf(ctx, "No box made for own teamEK")
-	} else {
-		storage := g.GetTeamEKBoxStorage()
-		err = storage.Put(ctx, teamID, generation, *myTeamEKBoxed)
-	}
-	return metadata, err
-}
-
-func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, seed TeamEKSeed, merkleRoot libkb.MerkleRoot, prevStatement *keybase1.TeamEkStatement) (metadata keybase1.TeamEkMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
-	defer g.CTrace(ctx, "signAndPublishTeamEK", func() error { return err })()
 
 	dhKeypair := seed.DeriveDHKey()
 
@@ -98,12 +84,12 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
 
-	// Get the list of existing userEKs to form the full statement. Make sure
+	// Get the list of existing teamEKs to form the full statement. Make sure
 	// that if it's nil, we replace it with an empty slice. Although those are
 	// practically the same in Go, they get serialized to different JSON.
 	existingActiveMetadata, err := filterStaleTeamEKStatement(ctx, g, prevStatement, merkleRoot)
 	if err != nil {
-		return metadata, nil, err
+		return "", nil, metadata, nil, err
 	}
 	if existingActiveMetadata == nil {
 		existingActiveMetadata = []keybase1.TeamEkMetadata{}
@@ -115,54 +101,76 @@ func signAndPublishTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	}
 	statementJSON, err := json.Marshal(statement)
 	if err != nil {
-		return metadata, nil, err
+		return "", nil, metadata, nil, err
 	}
 
-	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
-		ID: teamID,
-	})
+	sig, _, err = signingKey.SignToString(statementJSON)
 	if err != nil {
-		return metadata, nil, err
-	}
-	teamSigningKey, err := team.SigningKey()
-	if err != nil {
-		return metadata, nil, err
+		return "", nil, metadata, nil, err
 	}
 
-	signedPacket, _, err := teamSigningKey.SignToString(statementJSON)
-	if err != nil {
-		return metadata, nil, err
-	}
-
-	statementMap, err := fetchTeamMemberStatements(ctx, g, teamID)
-	if err != nil {
-		return metadata, nil, err
-	}
-	membersMetadata, err := activeUserEKMetadata(ctx, g, statementMap, merkleRoot)
-	if err != nil {
-		return metadata, nil, err
-	}
 	teamEK := keybase1.TeamEk{
 		Seed:     keybase1.Bytes32(seed),
 		Metadata: metadata,
 	}
 	boxes, myTeamEKBoxed, err := boxTeamEKForUsers(ctx, g, membersMetadata, teamEK)
 	if err != nil {
-		return metadata, nil, err
+		return "", nil, metadata, nil, err
 	}
-
-	err = postNewTeamEK(ctx, g, teamID, signedPacket, boxes)
-	if err != nil {
-		return metadata, nil, err
-	}
-
-	return metadata, myTeamEKBoxed, nil
+	return sig, boxes, metadata, myTeamEKBoxed, nil
 }
 
-func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata, teamEK keybase1.TeamEk) (boxes []keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
+func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
+	defer g.CTrace(ctx, "publishNewTeamEK", func() error { return err })()
+
+	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	if err != nil {
+		return metadata, err
+	}
+	signingKey, err := team.SigningKey()
+	if err != nil {
+		return metadata, err
+	}
+
+	statementMap, err := fetchTeamMemberStatements(ctx, g, teamID)
+	if err != nil {
+		return metadata, err
+	}
+	membersMetadata, err := activeUserEKMetadata(ctx, g, statementMap, merkleRoot)
+	if err != nil {
+		return metadata, err
+	}
+
+	sig, boxes, metadata, myBox, err := prepareNewTeamEK(ctx, g, teamID, signingKey, membersMetadata, merkleRoot)
+	if err != nil {
+		return metadata, err
+	}
+
+	err = postNewTeamEK(ctx, g, teamID, sig, boxes)
+	if err != nil {
+		return metadata, err
+	}
+
+	if myBox == nil {
+		g.Log.CWarningf(ctx, "No box made for own teamEK")
+	} else {
+		storage := g.GetTeamEKBoxStorage()
+		err = storage.Put(ctx, teamID, metadata.Generation, *myBox)
+		if err != nil {
+			return metadata, err
+		}
+	}
+	return metadata, nil
+}
+
+func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata, teamEK keybase1.TeamEk) (teamBoxes *[]keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
 	defer g.CTrace(ctx, "boxTeamEKForUsers", func() error { return err })()
 
 	myUID := g.Env.GetUID()
+	i := 0
+	boxes := make([]keybase1.TeamEkBoxMetadata, len(usersMetadata))
 	for uid, metadata := range usersMetadata {
 		recipientKey, err := libkb.ImportKeypairFromKID(metadata.Kid)
 		if err != nil {
@@ -178,7 +186,8 @@ func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadat
 			RecipientGeneration: metadata.Generation,
 			Box:                 box,
 		}
-		boxes = append(boxes, boxMetadata)
+		boxes[i] = boxMetadata
+		i++
 
 		if uid == myUID {
 			myTeamEKBoxed = &keybase1.TeamEkBoxed{
@@ -188,7 +197,7 @@ func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadat
 			}
 		}
 	}
-	return boxes, myTeamEKBoxed, err
+	return &boxes, myTeamEKBoxed, err
 }
 
 type teamEKStatementResponse struct {

@@ -1354,6 +1354,7 @@ type sigPayloadArgs struct {
 	prePayload         libkb.JSONPayload
 	legacyTLFUpgrade   *keybase1.TeamGetLegacyTLFUpgrade
 	teamEKBoxes        *[]keybase1.TeamEkBoxMetadata
+	teamEKSig          string
 }
 
 func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
@@ -1376,9 +1377,17 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 		payload["legacy_tlf_upgrade"] = args.legacyTLFUpgrade
 	}
 	if args.teamEKBoxes != nil && len(*args.teamEKBoxes) > 0 {
-		payload["team_ek_rebox"] = libkb.JSONPayload{
-			"boxes":   args.teamEKBoxes,
-			"team_id": t.ID,
+		if args.teamEKSig == "" { // We are reboxing the current teamEK
+			payload["team_ek_rebox"] = libkb.JSONPayload{
+				"boxes":   args.teamEKBoxes,
+				"team_id": t.ID,
+			}
+		} else { // We make a new teamEK
+			payload["team_ek"] = libkb.JSONPayload{
+				"sig":     args.teamEKSig,
+				"boxes":   args.teamEKBoxes,
+				"team_id": t.ID,
+			}
 		}
 	}
 

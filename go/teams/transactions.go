@@ -628,7 +628,6 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		return err
 	}
 
-	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
 	if perTeamKeySection != nil {
 		// We have a new per team key, find first TeamChangeReq
 		// section that removes users and add it there.
@@ -643,17 +642,28 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		if !found {
 			return fmt.Errorf("AddMemberTx.Post got a PerTeamKey but couldn't find a link with None to attach it")
 		}
-	} else { // If we didn't rotate the PTK, let's rebox the existing PTK for any of the new members
-		ekLib := g.GetEKLib()
-		if ekLib != nil {
-			// Only box up for the latest members
-			memSet.removeExistingMembers(ctx, team)
-			i := 0
-			uids := make([]keybase1.UID, len(memSet.recipients))
-			for uv := range memSet.recipients {
-				uids[i] = uv.Uid
-				i++
+	}
+
+	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
+	var teamEKSig string
+	var myBox *keybase1.TeamEkBoxed
+	var newTeamEKMetadata keybase1.TeamEkMetadata
+	ekLib := g.GetEKLib()
+	if ekLib != nil && ekLib.ShouldRun(ctx) && len(memSet.recipients) > 0 {
+		i := 0
+		uids := make([]keybase1.UID, len(memSet.recipients))
+		for uv := range memSet.recipients {
+			uids[i] = uv.Uid
+			i++
+		}
+
+		if team.rotated {
+			sigKey, err := team.SigningKey()
+			if err != nil {
+				return err
 			}
+			teamEKSig, teamEKBoxes, newTeamEKMetadata, myBox, err = ekLib.PrepareNewTeamEK(ctx, team.ID, sigKey, uids)
+		} else {
 			teamEKBoxes, err = ekLib.BoxLatestTeamEK(ctx, team.ID, uids)
 			if err != nil {
 				return err
@@ -701,6 +711,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		lease:              lease,
 		implicitAdminBoxes: implicitAdminBoxes,
 		teamEKBoxes:        teamEKBoxes,
+		teamEKSig:          teamEKSig,
 	})
 
 	if err := team.postMulti(payload); err != nil {
@@ -708,6 +719,13 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	}
 
 	team.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
+
+	// Add the new teamEK box to local storage, if it was created above.
+	if myBox != nil {
+		if err = g.GetTeamEKBoxStorage().Put(ctx, team.ID, newTeamEKMetadata.Generation, *myBox); err != nil {
+			g.Log.CErrorf(ctx, "error while saving teamEK box: %s", err)
+		}
+	}
 
 	return nil
 }
