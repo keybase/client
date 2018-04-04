@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,8 +19,12 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
-	prevStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	prevStatements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
+	prevStatement, ok := prevStatements[uid]
+	require.True(t, ok)
 	prevExisting := prevStatement.ExistingUserEkMetadata
 	prevExisting = append(prevExisting, prevStatement.CurrentUserEkMetadata)
 
@@ -31,10 +36,11 @@ func TestNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
-	statementPtr, err := fetchUserEKStatement(context.Background(), tc.G)
+	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
-	require.NotNil(t, statementPtr)
-	statement := *statementPtr
+	statement, ok := statements[uid]
+	require.True(t, ok)
+	require.NotNil(t, statement)
 	currentMetadata := statement.CurrentUserEkMetadata
 	require.Equal(t, currentMetadata, publishedMetadata)
 	require.Equal(t, statement.ExistingUserEkMetadata, prevExisting)
@@ -71,7 +77,12 @@ func TestDeviceRevokeNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Confirm that the user has a userEK.
-	firstStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	require.NoError(t, err)
+	firstStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
 
 	// Load the full user so that we can grab their devices.
@@ -92,8 +103,10 @@ func TestDeviceRevokeNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Finally, confirm that the revocation above rolled a new userEK.
-	secondStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
+	secondStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after revoke, should have userEK gen 2")
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
 	require.NoError(t, err)
@@ -114,7 +127,12 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Confirm that the user has a userEK.
-	firstStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
+	require.NoError(t, err)
+	firstStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
 
 	// Do a PUK roll.
@@ -127,8 +145,10 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.NoError(t, err)
 
 	// Finally, confirm that the roll above also rolled a new userEK.
-	secondStatement, err := fetchUserEKStatement(context.Background(), tc.G)
+	statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
+	secondStatement, ok := statements[uid]
+	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
 	require.NoError(t, err)

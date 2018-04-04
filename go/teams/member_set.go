@@ -13,6 +13,8 @@ type member struct {
 	perUserKey keybase1.PerUserKey
 }
 
+type MemberMap map[keybase1.UserVersion]keybase1.PerUserKey
+
 type memberSet struct {
 	Owners  []member
 	Admins  []member
@@ -21,11 +23,11 @@ type memberSet struct {
 	None    []member
 
 	// the per-user-keys of everyone in the lists above
-	recipients map[keybase1.UserVersion]keybase1.PerUserKey
+	recipients MemberMap
 }
 
 func newMemberSet() *memberSet {
-	return &memberSet{recipients: make(map[keybase1.UserVersion]keybase1.PerUserKey)}
+	return &memberSet{recipients: make(MemberMap)}
 }
 
 func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
@@ -55,8 +57,8 @@ func (m *memberSet) nonAdmins() []member {
 	return ret
 }
 
-func (m *memberSet) adminAndOwnerRecipients() map[keybase1.UserVersion]keybase1.PerUserKey {
-	ret := map[keybase1.UserVersion]keybase1.PerUserKey{}
+func (m *memberSet) adminAndOwnerRecipients() MemberMap {
+	ret := MemberMap{}
 	for _, owner := range m.Owners {
 		ret[owner.version] = owner.perUserKey
 	}
