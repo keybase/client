@@ -13,12 +13,8 @@ import (
 )
 
 type shouldCreateRes struct {
-	Status       libkb.AppStatus `json:"status"`
-	ShouldCreate bool            `json:"shouldcreate"`
-}
-
-func (r *shouldCreateRes) GetAppStatus() *libkb.AppStatus {
-	return &r.Status
+	libkb.AppStatusEmbed
+	ShouldCreate bool `json:"shouldcreate"`
 }
 
 // ShouldCreate asks the server whether to create this user's initial wallet.
@@ -154,13 +150,9 @@ func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.
 }
 
 type fetchRes struct {
-	Status       libkb.AppStatus `json:"status"`
-	EncryptedB64 string          `json:"encrypted"`
-	VisibleB64   string          `json:"visible"`
-}
-
-func (r *fetchRes) GetAppStatus() *libkb.AppStatus {
-	return &r.Status
+	libkb.AppStatusEmbed
+	EncryptedB64 string `json:"encrypted"`
+	VisibleB64   string `json:"visible"`
 }
 
 // Fetch and unbox the latest bundle from the server.
@@ -291,14 +283,9 @@ func SubmitTransaction(ctx context.Context, g *libkb.GlobalContext, payload libk
 	return res.PaymentResult, nil
 }
 
-// TODO make status mixin
 type recentPaymentsResult struct {
-	Status libkb.AppStatus           `json:"status"`
+	libkb.AppStatusEmbed
 	Result []stellar1.PaymentSummary `json:"res"`
-}
-
-func (s *recentPaymentsResult) GetAppStatus() *libkb.AppStatus {
-	return &s.Status
 }
 
 func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
