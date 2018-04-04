@@ -186,10 +186,12 @@ class MainNavStack extends Component<any, any> {
     this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
   }
 
-  componentWillReceiveProps() {
-    const {routeSelected, routeStack} = this.props
+  static getDerivedStateFromProps(nextProps, prevState) {
+    const {routeSelected, routeStack} = nextProps
     if (tabIsCached.hasOwnProperty(routeSelected)) {
-      this.setState(({stackCache}) => ({stackCache: stackCache.set(routeSelected, routeStack)}))
+      return {
+        stackCache: prevState.stackCache.set(routeSelected, routeStack),
+      }
     }
   }
 
@@ -259,12 +261,12 @@ class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
     }
   }
 
-  componentWillReceiveProps(nextProps: AnimatedTabBarProps) {
-    if (!isIOS) return
-    if (this.props.show !== nextProps.show) {
+  componentDidUpdate(prevProps: AnimatedTabBarProps) {
+    if (!isIOS) return null
+    if (this.props.show !== prevProps.show) {
       NativeAnimated.timing(this.state.offset, {
         duration: 200,
-        toValue: nextProps.show ? tabBarHeight : 0,
+        toValue: this.props.show ? tabBarHeight : 0,
       }).start()
     }
   }
@@ -313,8 +315,8 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     this._keyboardHideListener = null
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const nextRS = nextProps.routeStack
+  componentDidUpdate(prevProps: Props) {
+    const nextRS = this.props.routeStack
     const nextLastPath = nextRS ? nextRS.last() : null
     const nextPath = nextLastPath ? nextLastPath.path : I.List()
     const RS = this.props.routeStack

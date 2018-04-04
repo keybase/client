@@ -47,8 +47,8 @@ class Main extends Component<any> {
     this.props.persistRouteState()
   }, 200)
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.routeState !== nextProps.routeState) {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.routeState !== prevProps.routeState) {
       this._persistRoute()
     }
   }
