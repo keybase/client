@@ -157,8 +157,8 @@ goto:eof
 EXIT /B 1
 
 :check_ci 
-for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short HEAD') do set clientCommit=%%i
-for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set kbfsCommit=%%i
+for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse=8 --short HEAD') do set clientCommit=%%i
+for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse=8 --short HEAD') do set kbfsCommit=%%i
 echo [%clientCommit%] [%kbfsCommit%]
 :: need GITHUB_TOKEN
 pushd %GOPATH%\src\github.com\keybase\release
