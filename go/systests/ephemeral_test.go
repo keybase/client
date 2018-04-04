@@ -111,11 +111,11 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 }
 
 func TestRotateWithTeamEK(t *testing.T) {
-	runAddMember(t, true /* createTeamEK*/)
+	runRotate(t, true /* createTeamEK*/)
 }
 
 func TestRotateNoTeamEK(t *testing.T) {
-	runAddMember(t, false /* createTeamEK*/)
+	runRotate(t, false /* createTeamEK*/)
 }
 
 func runRotate(t *testing.T, createTeamEK bool) {
@@ -131,7 +131,6 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	ephemeral.ServiceInit(bobG)
 
 	teamID, teamName := ann.createTeam2()
-	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
 
 	// After rotate, we should have rolled the teamEK if one existed.
 	var expectedGeneration keybase1.EkGeneration
@@ -144,13 +143,18 @@ func runRotate(t *testing.T, createTeamEK bool) {
 		expectedGeneration = 1
 	}
 
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
+
 	bob.revokePaperKey()
 	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
 
 	annStorage := annG.GetTeamEKBoxStorage()
-	_, annErr := annStorage.Get(context.Background(), teamID, expectedGeneration)
+	teamEK, annErr := annStorage.Get(context.Background(), teamID, expectedGeneration)
 	if createTeamEK {
 		require.NoError(t, annErr)
+		maxGeneration, err := annStorage.MaxGeneration(context.Background(), teamID)
+		require.NoError(t, err)
+		require.Equal(t, maxGeneration, teamEK.Metadata.Generation)
 	} else {
 		require.Error(t, annErr)
 	}

@@ -38,6 +38,14 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	return set, nil
 }
 
+func (m *memberSet) recipientUids() []keybase1.UID {
+	uids := make([]keybase1.UID, 0, len(m.recipients))
+	for uv := range m.recipients {
+		uids = append(uids, uv.Uid)
+	}
+	return uids
+}
+
 func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.Owners = append(m.Owners, other.Owners...)
 	m.Admins = append(m.Admins, other.Admins...)

@@ -169,8 +169,7 @@ func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadat
 	defer g.CTrace(ctx, "boxTeamEKForUsers", func() error { return err })()
 
 	myUID := g.Env.GetUID()
-	i := 0
-	boxes := make([]keybase1.TeamEkBoxMetadata, len(usersMetadata))
+	boxes := make([]keybase1.TeamEkBoxMetadata, 0, len(usersMetadata))
 	for uid, metadata := range usersMetadata {
 		recipientKey, err := libkb.ImportKeypairFromKID(metadata.Kid)
 		if err != nil {
@@ -186,8 +185,7 @@ func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadat
 			RecipientGeneration: metadata.Generation,
 			Box:                 box,
 		}
-		boxes[i] = boxMetadata
-		i++
+		boxes = append(boxes, boxMetadata)
 
 		if uid == myUID {
 			myTeamEKBoxed = &keybase1.TeamEkBoxed{
