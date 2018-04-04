@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
 import type {Props} from './input'
 
@@ -23,10 +23,6 @@ class Input extends React.PureComponent<Props, State> {
       focused: false,
       value: props.value || '',
     }
-  }
-
-  setNativeProps(props: Object) {
-    throw new Error('Only implemented on RN')
   }
 
   componentDidMount() {
@@ -315,29 +311,31 @@ class Input extends React.PureComponent<Props, State> {
 
     const singlelineProps = {
       ...commonProps,
-      style: {...inputStyle, ...this.props.inputStyle},
+      style: collapseStyles([inputStyle, this.props.inputStyle]),
       type: this._propTypeToSingleLineType(),
     }
 
     const multilineProps = {
       ...commonProps,
       rows: this.props.rowsMin || defaultRowsToShow,
-      style: {...textareaStyle, ...this.props.inputStyle},
+      style: collapseStyles([textareaStyle, this.props.inputStyle]),
     }
 
-    const smallLabelStyle = {
-      ...globalStyles.fontSemibold,
-      fontSize: _bodySmallTextStyle.fontSize,
-      lineHeight: `${_lineHeight}px`,
-      marginRight: 8,
-      color: globalColors.blue,
-      ...this.props.smallLabelStyle,
-    }
+    const smallLabelStyle = collapseStyles([
+      globalStyles.fontSemibold,
+      {
+        fontSize: _bodySmallTextStyle.fontSize,
+        lineHeight: `${_lineHeight}px`,
+        marginRight: 8,
+        color: globalColors.blue,
+      },
+      this.props.smallLabelStyle,
+    ])
 
     const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }`
 
     return (
-      <Box style={{...containerStyle, ...this.props.style}}>
+      <Box style={collapseStyles([containerStyle, this.props.style])}>
         <style>{inputRealCSS}</style>
         {!this.props.small && (
           <Text type="BodySmallSemibold" style={_floatingStyle}>
@@ -353,7 +351,7 @@ class Input extends React.PureComponent<Props, State> {
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorText &&
           !this.props.small && (
-            <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
+            <Text type="BodyError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>
               {this.props.errorText}
             </Text>
           )}

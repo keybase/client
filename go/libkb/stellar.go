@@ -58,3 +58,45 @@ func ParseStellarSecretKey(secStr string) (stellar1.SecretKey, stellar1.AccountI
 		return "", "", fmt.Errorf("invalid stellar secret key")
 	}
 }
+
+// ParseStellarAccountID parses an account ID and returns it.
+// Returns helpful error messages than can be shown to users.
+func ParseStellarAccountID(idStr string) (stellar1.AccountID, error) {
+	idStr = strings.ToUpper(idStr)
+	if len(idStr) != 56 {
+		return "", fmt.Errorf("stellar account ID must be 56 chars long: was %v", len(idStr))
+	}
+	_, err := base32.StdEncoding.DecodeString(idStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid characters in stellar secret key")
+	}
+	kp, err := keypair.Parse(idStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid stellar account ID key: %v", err)
+	}
+	switch kp := kp.(type) {
+	case *keypair.FromAddress:
+		return stellar1.AccountID(kp.Address()), nil
+	case *keypair.Full:
+		return "", errors.New("unexpected stellar secret key, expected account ID")
+	default:
+		return "", fmt.Errorf("invalid stellar secret key")
+	}
+}
+
+// SimplifyAmount
+// Amount must be a decimal amount like "1.0" or "50"
+// Strip trailing zeros after a "."
+// Example: "1.0010000" -> "1.001"
+// Example: "1.0000000" -> "1"
+func StellarSimplifyAmount(amount string) string {
+	sides := strings.Split(amount, ".")
+	if len(sides) != 2 {
+		return amount
+	}
+	simpleRight := strings.TrimRight(sides[1], "0")
+	if len(simpleRight) == 0 {
+		return sides[0]
+	}
+	return sides[0] + "." + simpleRight
+}

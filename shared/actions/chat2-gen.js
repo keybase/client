@@ -281,7 +281,12 @@ export const createMessagesWereDeleted = (
     ordinals?: Array<Types.Ordinal>,
   |}>
 ) => ({error: false, payload, type: messagesWereDeleted})
-export const createMetaDelete = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: metaDelete})
+export const createMetaDelete = (
+  payload: $ReadOnly<{|
+    conversationIDKey: Types.ConversationIDKey,
+    selectSomethingElse: boolean,
+  |}>
+) => ({error: false, payload, type: metaDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (
   payload: $ReadOnly<{|
@@ -306,8 +311,7 @@ export const createMetaRequestingTrusted = (payload: $ReadOnly<{|conversationIDK
 export const createMetaUpdatePagination = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
-    paginationKey: Types.PaginationKey,
-    paginationMoreToLoad: boolean,
+    paginationKey: ?Types.PaginationKey,
   |}>
 ) => ({error: false, payload, type: metaUpdatePagination})
 export const createMetasReceived = (

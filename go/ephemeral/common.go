@@ -41,7 +41,7 @@ func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingT
 }
 
 func (e *EKUnboxErr) Error() string {
-	return fmt.Sprintf("Error unboxing [%s]@generation%v missing [%s]@generation%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
+	return fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
 }
 
 func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {

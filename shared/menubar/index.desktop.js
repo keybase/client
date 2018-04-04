@@ -135,7 +135,6 @@ class MenubarRender extends Component<Props, State> {
     const mergedProps = {
       ...this.props.folderProps,
       onClick: this.props.onFolderClick,
-      showComingSoon: false,
       smallMode: true,
       private: newPrivate,
       public: newPublic,

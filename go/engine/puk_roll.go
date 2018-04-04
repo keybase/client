@@ -152,6 +152,32 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 		len(pukBoxes), pukPrev != nil, gen)
 	libkb.AddPerUserKeyServerArg(payload, gen, pukBoxes, pukPrev)
 
+	ekLib := e.G().GetEKLib()
+	var myUserEKBox *keybase1.UserEkBoxed
+	var newUserEKMetadata *keybase1.UserEkMetadata
+	if ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
+		merkleRoot, err := e.G().GetMerkleClient().FetchRootFromServer(ctx.NetContext, libkb.EphemeralKeyMerkleFreshness)
+		if err != nil {
+			return err
+		}
+		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(ctx.NetContext, *merkleRoot, pukSeed)
+		if err != nil {
+			return err
+		}
+		// If there are no active deviceEKs, we can't publish this key. This
+		// should mostly only come up in tests.
+		if len(boxes) > 0 {
+			myUserEKBox = myBox
+			newUserEKMetadata = &newMetadata
+			userEKSection := make(libkb.JSONPayload)
+			userEKSection["sig"] = sig
+			userEKSection["boxes"] = boxes
+			payload["user_ek"] = userEKSection
+		} else {
+			e.G().Log.CWarningf(ctx.NetContext, "skipping userEK publishing, because there are no valid deviceEKs")
+		}
+	}
+
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll post")
 	_, err = e.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
@@ -167,6 +193,14 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 	err = pukring.AddKey(ctx.GetNetContext(), gen, pukSeqno, pukSeed)
 	if err != nil {
 		return err
+	}
+
+	// Add the new userEK box to local storage, if it was created above.
+	if myUserEKBox != nil {
+		err = e.G().GetUserEKBoxStorage().Put(ctx.NetContext, newUserEKMetadata.Generation, *myUserEKBox)
+		if err != nil {
+			e.G().Log.CErrorf(ctx.NetContext, "error while saving userEK box: %s", err)
+		}
 	}
 
 	e.G().UserChanged(uid)

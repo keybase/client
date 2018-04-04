@@ -600,7 +600,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{})
 	return t.postMulti(payload)
 }
 
@@ -986,12 +986,13 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
-	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
+	sigMulti := []libkb.SigMultiItem{sigMultiItem}
+	err = t.precheckLinksToPost(ctx, sigMulti)
 	if err != nil {
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	payload := t.sigPayload(sigMulti, sigPayloadArgs{})
 	err = t.postMulti(payload)
 	if err != nil {
 		return err
@@ -1113,13 +1114,14 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 		return err
 	}
 
-	err = t.precheckLinksToPost(ctx, []libkb.SigMultiItem{sigMultiItem})
+	sigMulti := []libkb.SigMultiItem{sigMultiItem}
+	err = t.precheckLinksToPost(ctx, sigMulti)
 	if err != nil {
 		return err
 	}
 
 	// make the payload
-	payload := t.sigPayload(sigMultiItem, sigPayloadArgs)
+	payload := t.sigPayload(sigMulti, sigPayloadArgs)
 
 	// send it to the server
 	return t.postMulti(payload)
@@ -1351,15 +1353,16 @@ type sigPayloadArgs struct {
 	lease              *libkb.Lease
 	prePayload         libkb.JSONPayload
 	legacyTLFUpgrade   *keybase1.TeamGetLegacyTLFUpgrade
+	teamEKBoxes        *[]keybase1.TeamEkBoxMetadata
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
+func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
 	payload := libkb.JSONPayload{}
 	// copy the prepayload so we don't mutate it
 	for k, v := range args.prePayload {
 		payload[k] = v
 	}
-	payload["sigs"] = []interface{}{sigMultiItem}
+	payload["sigs"] = sigMulti
 	if args.secretBoxes != nil {
 		payload["per_team_key"] = args.secretBoxes
 	}
@@ -1371,6 +1374,12 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) 
 	}
 	if args.legacyTLFUpgrade != nil {
 		payload["legacy_tlf_upgrade"] = args.legacyTLFUpgrade
+	}
+	if args.teamEKBoxes != nil && len(*args.teamEKBoxes) > 0 {
+		payload["team_ek_rebox"] = libkb.JSONPayload{
+			"boxes":   args.teamEKBoxes,
+			"team_id": t.ID,
+		}
 	}
 
 	if t.G().VDL.DumpPayload() {
@@ -1662,7 +1671,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{
+	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{
 		legacyTLFUpgrade: &keybase1.TeamGetLegacyTLFUpgrade{
 			EncryptedKeyset:  encStr,
 			LegacyGeneration: cryptKeys[len(cryptKeys)-1].Generation(),
@@ -1700,7 +1709,7 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{})
 	return t.postMulti(payload)
 }
 
