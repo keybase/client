@@ -96,11 +96,6 @@ func PerUserKeyUpgradeBackgroundRound(g *libkb.GlobalContext, ectx *Context) err
 		return nil
 	}
 
-	if !g.ActiveDevice.Valid() {
-		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUgradeBackgroundRound not logged in")
-		return nil
-	}
-
 	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "PerUserKeyUpgradeBackgroundRound") {
 		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground yielding to guard")
 		return nil
