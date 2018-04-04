@@ -74,6 +74,7 @@ export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingSelected = 'chat2:setPendingSelected'
+export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
@@ -85,6 +86,10 @@ export const updateTypers = 'chat2:updateTypers'
  * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
  */
 export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+/**
+ * Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.
+ */
+export const createSetPendingStatus = (payload: $ReadOnly<{|pendingStatus: Types.PendingStatus|}>) => ({error: false, payload, type: setPendingStatus})
 /**
  * Sets the retention policy for a conversation. Valid operation for big team channels only.
  */
@@ -459,6 +464,7 @@ export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
+export type SetPendingStatusPayload = More.ReturnType<typeof createSetPendingStatus>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
@@ -531,6 +537,7 @@ export type Actions =
   | More.ReturnType<typeof createSetPendingConversationUsers>
   | More.ReturnType<typeof createSetPendingMode>
   | More.ReturnType<typeof createSetPendingSelected>
+  | More.ReturnType<typeof createSetPendingStatus>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createUpdateConvRetentionPolicy>

@@ -510,14 +510,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     }
     case Chat2Gen.pendingConversationErrored: {
       const {reason} = action.payload
-      logger.warn(`Got pending conversation failure with reason: ${reason}`)
+      logger.warn(`Got pendingConversationErrored with reason: ${reason}`)
       const conversationIDKey = Types.stringToConversationIDKey('')
       const ordinalMap = state.pendingOutboxToOrdinal.get(conversationIDKey)
       if (!ordinalMap) {
-        logger.warn('Got pendingConversationErrored with no pending outboxes')
+        logger.warn('Got pendingConversationErrored with no pending messages')
         return state
       }
       const ordinals = ordinalMap.toIndexedSeq().toArray()
+      // Mark all messages in the pending conv messageMap as failed
       return state.set(
         'messageMap',
         state.messageMap.withMutations(mm => {
@@ -525,10 +526,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             mm.updateIn([conversationIDKey, ordinal], message => {
               if (message) {
                 if (message.type === 'text') {
-                  return message.set('errorReason', null).set('submitState', 'failed')
+                  return message.set('submitState', 'failed')
                 }
                 if (message.type === 'attachment') {
-                  return message.set('errorReason', null).set('submitState', 'failed')
+                  return message.set('submitState', 'failed')
                 }
               }
               return message
@@ -536,6 +537,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           )
         })
       )
+    }
+    case Chat2Gen.setPendingStatus: {
+      const {pendingStatus} = action.payload
+      return state.set('pendingStatus', pendingStatus)
     }
     case Chat2Gen.clearPendingConversation: {
       return state.withMutations(s => {

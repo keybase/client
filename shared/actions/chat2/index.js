@@ -945,13 +945,18 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
     ? RPCChatTypes.commonConversationMembersType.impteamnative
     : RPCChatTypes.commonConversationMembersType.kbfs
 
-  return Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    membersType,
-    tlfName,
-    tlfVisibility: RPCTypes.commonTLFVisibility.private,
-    topicType: RPCChatTypes.commonTopicType.chat,
-  })
+  return Saga.sequentially([
+    // Disable sending more into a pending conversation
+    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'waiting'})),
+    // Try to make the conversation
+    Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType,
+      tlfName,
+      tlfVisibility: RPCTypes.commonTLFVisibility.private,
+      topicType: RPCChatTypes.commonTopicType.chat,
+    }),
+  ])
 }
 
 // Now actually send
@@ -991,17 +996,24 @@ const sendToPendingConversationSuccess = (
     Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
     // Select it
     Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'})),
+    // Clear the pendingStatus
+    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
     // Post it
     Saga.put(updatedSendingAction),
   ])
 }
 
 const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPendingConversationPayload) =>
-  Saga.put(
-    Chat2Gen.createPendingConversationErrored({
-      reason: e.message,
-    })
-  )
+  Saga.sequentially([
+    // Enable controls for the user to retry / cancel
+    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'})),
+    // Set the submitState of the pending messages
+    Saga.put(
+      Chat2Gen.createPendingConversationErrored({
+        reason: e.message,
+      })
+    ),
+  ])
 
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
