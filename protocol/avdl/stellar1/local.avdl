@@ -3,7 +3,25 @@ protocol local {
   import idl "common.avdl";
 
   array<Balance> balancesLocal(AccountID accountID);
+
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
+
+  record RecentPaymentCLILocal {
+    TransactionID stellarTxID;
+    TimeMs time;
+    string status;
+    string statusDetail;
+    string amount;
+    Asset asset;
+    union { null, string } displayAmount;
+    union { null, string } displayCurrency;
+
+    AccountID fromStellar;
+    AccountID toStellar;
+    union { null, string } fromUsername;
+    union { null, string } toUsername;
+  }
+  array<RecentPaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
   void walletInitLocal();
 

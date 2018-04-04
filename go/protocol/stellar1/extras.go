@@ -37,12 +37,30 @@ func ToTimeMs(t time.Time) TimeMs {
 	return TimeMs(t.UnixNano() / 1000000)
 }
 
+func FromTimeMs(t TimeMs) time.Time {
+	if t == 0 {
+		return time.Time{}
+	}
+	return time.Unix(0, int64(t)*1000000)
+}
+
+func (t TimeMs) Time() time.Time {
+	return FromTimeMs(t)
+}
+
 func (a AccountID) String() string {
 	return string(a)
 }
 
 func (a AccountID) Eq(b AccountID) bool {
 	return a == b
+}
+
+func (a AccountID) LossyAbbreviation() string {
+	if len(a) != 56 {
+		return "[invalid account id]"
+	}
+	return fmt.Sprintf("%v...%v", a[:2], a[len(a)-5:len(a)-1])
 }
 
 func (s SecretKey) String() string {
@@ -88,6 +106,10 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 		}
 	}
 	return BundleEntry{}, errors.New("primary stellar account not found")
+}
+
+func (a *Asset) IsNativeXLM() bool {
+	return a.Type == "native"
 }
 
 func AssetNative() Asset {
