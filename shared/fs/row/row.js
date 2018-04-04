@@ -73,7 +73,7 @@ export const Row = (props: RowProps) => (
       <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
           <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
-          <RowMeta {...props} />
+          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} />
           <Box style={folderBoxStyle}>
             <Text
               type={props.itemStyles.textType}

@@ -37,7 +37,7 @@ export type PathItemMetadata = {
   lastWriter: RPCTypes.User,
   size: number,
   progress: ProgressType,
-  badgeCount: number,
+  badgeCount?: number,
   tlfMeta?: TLFMetadata,
 }
 
@@ -299,5 +299,5 @@ export type FolderRPCWithMeta = {
 export type FavoriteFolder = {
   name: string,
   tlfMeta?: TLFMetadata,
-  badgeCount?: number,
+  badgeCount: number,
 }

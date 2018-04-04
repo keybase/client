@@ -78,7 +78,11 @@ const _fillMetadataInFavoritesResult = (
   return [...favoritesResult.favorites, ...favoritesResult.ignored, ...favoritesResult.new]
 }
 
-function _folderToPathItems(txt: string = '', username: string, loggedIn: boolean) {
+function _folderToPathItems(
+  txt: string = '',
+  username: string,
+  loggedIn: boolean
+): I.Map<Types.Path, Types.FavoriteFolder> {
   let favoritesResult
   let badges = {
     '/keybase/private': 0,
@@ -99,38 +103,41 @@ function _folderToPathItems(txt: string = '', username: string, loggedIn: boolea
   const favoriteFolders = folders.map(
     ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
       const folderTypeString = FolderTypeToString(folderType)
-      if (isNew) {
+      // TODO: remove this since it's for testing.
+      var isAlsoNew = isNew
+      if (name === 'jzila' && 'folderType' === 1) isAlsoNew = true
+      if (isAlsoNew) {
         badges['/keybase/' + folderTypeString] += 1
       }
       return [
         // key
         Types.stringToPath(`/keybase/${folderTypeString}/${name}`),
         // value
-        {
+        I.fromJS({
           name,
           tlfMeta: {
             folderType,
             isIgnored,
-            isNew,
+            isNew: isAlsoNew,
             needsRekey,
             waitingForParticipantUnlock,
             youCanUnlock,
           },
-        },
+          badgeCount: 0,
+        }),
       ]
     }
   )
-  Object.keys(badges).forEach(badgeKey => {
+  for (const badgeKey of Object.keys(badges)) {
     const badgePath = Types.stringToPath(badgeKey)
     favoriteFolders.push([
       badgePath,
-      {
+      I.fromJS({
         name: Types.getPathName(badgePath),
         badgeCount: badges[badgeKey],
-      }
+      }),
     ])
-  })
-
+  }
   return I.Map(favoriteFolders)
 }
 

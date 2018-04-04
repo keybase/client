@@ -22,7 +22,6 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
-  badgeCount: 0,
   children: I.List(),
   type: 'folder',
 })
@@ -33,7 +32,6 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
-  badgeCount: 0,
   type: 'file',
 })
 
@@ -43,7 +41,6 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
-  badgeCount: 0,
   type: 'unknown',
 })
 
@@ -124,7 +121,9 @@ export const sortPathItems = (
   items: I.List<Types.PathItem>,
   sortSetting: Types.SortSetting,
   username?: string
-): I.List<Types.PathItem> => items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
+): I.List<Types.PathItem> => {
+  return items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
+}
 
 const privateIconColor = globalColors.darkBlue2
 const privateTextColor = globalColors.darkBlue
