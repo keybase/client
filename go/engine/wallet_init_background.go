@@ -94,6 +94,11 @@ func WalletInitBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
 		return nil
 	}
 
+	if !g.ActiveDevice.Valid() {
+		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound not logged in")
+		return nil
+	}
+
 	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "WalletInitBackgroundRound") {
 		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound yielding to guard")
 		return nil
