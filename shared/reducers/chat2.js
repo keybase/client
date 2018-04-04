@@ -672,6 +672,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageAttachmentNativeSave:
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
+    case Chat2Gen.cancelPendingConversation:
+    case Chat2Gen.retryPendingConversation:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

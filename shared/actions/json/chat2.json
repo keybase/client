@@ -129,7 +129,14 @@
       "outboxID": "Types.OutboxID",
     },
     "pendingConversationErrored": {
+      "_description": "Sets pending messages in the store to a failed state and logs the reason",
       "reason": "string"
+    },
+    "cancelPendingConversation": {
+      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
+    },
+    "retryPendingConversation": {
+      "_description": "Retries sending the pending message that is currently stored in the metaMap"
     },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
