@@ -69,6 +69,18 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   }
 }
 
+const createSaveChannelMembership = (
+  teamname: string,
+  oldChannelState: ChannelMembershipState,
+  nextChannelState: ChannelMembershipState
+) => {
+  const channelsToChange = pickBy(
+    nextChannelState,
+    (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
+  )
+  return TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange})
+}
+
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
@@ -84,16 +96,19 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState
     ) => {
-      const channelsToChange = pickBy(
-        nextChannelState,
-        (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
-      )
-      dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
+      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
       dispatch(navigateUp())
     },
-    _onView: (conversationIDKey: ChatTypes.ConversationIDKey, preview: boolean) => {
+    _onView: (
+      oldChannelState: ChannelMembershipState,
+      nextChannelState: ChannelMembershipState,
+      channel: string,
+      conversationIDKey: ChatTypes.ConversationIDKey
+    ) => {
+      const selected = nextChannelState[channel]
+      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
       dispatch(
-        Chat2Gen.createSelectConversation({conversationIDKey, reason: preview ? 'preview' : 'manageView'})
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: selected ? 'manageView' : 'preview'})
       )
       dispatch(navigateUp())
     },
@@ -124,13 +139,13 @@ export default compose(
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
-    onClickChannel: ({channels, _onView}) => (conversationIDKey: string) => {
-      const channel = channels.find(c => c.convID === conversationIDKey)
+    onClickChannel: props => (conversationIDKey: string) => {
+      const channel = props.channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
         logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
         return
       }
-      _onView(conversationIDKey, !channel.selected)
+      props._onView(props.oldChannelState, props.nextChannelState, channel, conversationIDKey)
     },
   }),
   lifecycle({
