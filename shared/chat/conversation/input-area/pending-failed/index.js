@@ -20,7 +20,7 @@ export default (props: Props) => {
   return (
     <Box style={collapseStyles([styleContainer, {backgroundColor}])}>
       <Text type="BodySemibold" backgroundMode={backgroundMode}>
-        'Error creating conversation'
+        Error creating conversation
       </Text>
       <Box style={globalStyles.flexBoxRow}>
         <Text type="BodySemiboldLink" backgroundMode={backgroundMode} onClick={props.onRetry}>

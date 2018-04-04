@@ -35,7 +35,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const _you = state.config.username || ''
-  const pendingWaiting = state.chat2.pendingStatus === 'waiting'
+  const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
   return {
     _editingMessage,
