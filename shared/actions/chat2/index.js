@@ -1017,6 +1017,8 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
     // Reset pending flags
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
     Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
+    // Navigate to the inbox
+    Saga.put(Chat2Gen.createNavigateToInbox()),
   ])
 
 const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
