@@ -317,14 +317,20 @@ const chatActivityToMetasAction = (payload: ?{+conv?: ?RPCChatTypes.InboxUIItem}
       RPCChatTypes.commonConversationStatus.reported,
     ].includes(conv.status) ||
       conv.isEmpty)
+
+  // We want to select a different convo if its cause we ignored/blocked/reported. Otherwise sometimes we get that a convo
+  // is empty which we don't want to select something else as sometimes we're in the middle of making it!
+  const selectSomethingElse = conv ? !conv.isEmpty : false
   return meta
     ? [
         isADelete
-          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey})
+          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey, selectSomethingElse})
           : Chat2Gen.createMetasReceived({metas: [meta]}),
         UsersGen.createUpdateFullnames({usernameToFullname}),
       ]
-    : conversationIDKey && isADelete ? [Chat2Gen.createMetaDelete({conversationIDKey})] : []
+    : conversationIDKey && isADelete
+      ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+      : []
 }
 
 // We got errors from the service
@@ -1146,6 +1152,9 @@ const selectTheNewestConversation = (
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.metaDelete) {
+    if (!action.payload.selectSomethingElse) {
+      return
+    }
     // only do this if we blocked the current conversation
     if (Constants.getSelectedConversation(state) !== action.payload.conversationIDKey) {
       return

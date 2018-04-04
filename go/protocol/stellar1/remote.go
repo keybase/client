@@ -280,12 +280,6 @@ type BalancesArg struct {
 	AccountID AccountID    `codec:"accountID" json:"accountID"`
 }
 
-type RecentTransactionsArg struct {
-	Uid       keybase1.UID `codec:"uid" json:"uid"`
-	AccountID AccountID    `codec:"accountID" json:"accountID"`
-	Count     int          `codec:"count" json:"count"`
-}
-
 type RecentPaymentsArg struct {
 	Uid       keybase1.UID `codec:"uid" json:"uid"`
 	AccountID AccountID    `codec:"accountID" json:"accountID"`
@@ -309,7 +303,6 @@ type SubmitPaymentArg struct {
 
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
-	RecentTransactions(context.Context, RecentTransactionsArg) ([]TransactionSummary, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
 	Transaction(context.Context, TransactionArg) (TransactionDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
@@ -332,22 +325,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.Balances(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"recentTransactions": {
-				MakeArg: func() interface{} {
-					ret := make([]RecentTransactionsArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]RecentTransactionsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]RecentTransactionsArg)(nil), args)
-						return
-					}
-					ret, err = i.RecentTransactions(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -426,11 +403,6 @@ type RemoteClient struct {
 
 func (c RemoteClient) Balances(ctx context.Context, __arg BalancesArg) (res []Balance, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.balances", []interface{}{__arg}, &res)
-	return
-}
-
-func (c RemoteClient) RecentTransactions(ctx context.Context, __arg RecentTransactionsArg) (res []TransactionSummary, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.recentTransactions", []interface{}{__arg}, &res)
 	return
 }
 

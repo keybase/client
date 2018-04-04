@@ -295,7 +295,9 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 // of busting. Will return true if the cached value was up-to-date, and false
 // otherwise.
 func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uv keybase1.UserVersion) (isCurrent bool, err error) {
-	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("InformOfEldestSeqno(%s)", uv), func() error { return err })()
+
+	// No entry/exit tracing, or common-case tracing, in this function since otherwise
+	// the spam is overwhelming.
 
 	u.Lock()
 	defer u.Unlock()
@@ -318,7 +320,6 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 			// never have a case that the memory state is newer than the disk
 			// state. And hopefully this is the common case!
 			updateDisk = false
-			g.GetLog().CDebugf(ctx, "No change for %s", uv)
 		}
 	}
 
