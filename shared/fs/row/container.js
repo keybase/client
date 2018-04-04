@@ -15,6 +15,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
     path,
     kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
     pathItem,
+    favoriteItem: state.fs.favoriteItems.get(path) || Constants.makeFavoriteItem(),
   }
 }
 
@@ -66,8 +67,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   name: stateProps.pathItem.name,
   type: stateProps.pathItem.type,
-  tlfMeta: stateProps.pathItem.tlfMeta,
-  badgeCount: stateProps.pathItem.badgeCount || 0,
+  badgeCount: stateProps.favoriteItem.badgeCount,
+  tlfMeta: stateProps.favoriteItem.tlfMeta,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
   lastWriter: stateProps.pathItem.lastWriter.username,
   onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),

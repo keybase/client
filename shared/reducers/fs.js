@@ -30,39 +30,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         }
         return true
       })
-      // We use mergeDeepIn so that we don't override the existing values in
-      // our state for keys that aren't present in the new object.
-      // This is useful when we calculate metadata for favorites:
-      //   e.g. meta: 'new' | 'ignored'
-      //        needsRekey: boolean
-      // I.Record.merge seems to be buggy.
-      return (
-        state
-          .mergeIn(['pathItems'], toMerge)
-          // .update('pathItems', items =>
-          //  items.mergeWith((oldVal, newVal) => (!oldVal ? newVal : oldVal.merge(newVal)), toMerge)
-          // )
-          .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
-      )
+      return state
+        .mergeIn(['pathItems'], toMerge)
+        .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
     case FsGen.favoritesLoad:
       return state
     case FsGen.favoritesLoaded:
-      return state.update('pathItems', items =>
-        // I.Record.merge seems to be buggy, so we are hacking around it.
-        // Also this doesn't work, because this function is only executed when an `oldVal` exists.
-        // TODO: factor out favorite data into its own immutable map.
-        items.mergeWith(
-          (oldVal, newVal) =>
-            !oldVal
-              ? Constants.makeFolder(newVal)
-              : !newVal ? oldVal : oldVal.set('tlfMeta', newVal.tlfMeta).set('badgeCount', newVal.badgeCount)
-          ,
-          action.payload.folders
-        )
-      )
+      return state.mergeIn(['favoriteItems'], action.payload.folders)
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)

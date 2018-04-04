@@ -44,6 +44,11 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
   type: 'unknown',
 })
 
+export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
+  badgeCount: 0,
+  name: 'unknown',
+})
+
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
   sortBy: 'name',
   sortOrder: 'asc',
@@ -88,6 +93,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   fuseStatus: null,
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  favoriteItems: I.Map(),
   loadingPaths: I.Set(),
   transfers: I.Map(),
 })

@@ -14,7 +14,7 @@ type RowProps = {
   lastWriter: string,
   itemStyles: Types.ItemStyles,
   badgeCount: number,
-  tlfMeta?: Types.TLFMetadata,
+  tlfMeta?: Types.FavoriteMetadata,
   onOpen: () => void,
   openInFileUI: () => void,
   onAction: (event: SyntheticEvent<>) => void,

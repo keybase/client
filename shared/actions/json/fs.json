@@ -12,7 +12,7 @@
     },
     "favoritesLoad": {},
     "favoritesLoaded": {
-      "folders": "I.Map<Types.Path, Types.FavoriteFolder>"
+      "folders": "I.Map<Types.Path, Types.FavoriteItem>"
     },
     "filePreviewLoad": {
       "path": "Types.Path"

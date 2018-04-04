@@ -82,7 +82,7 @@ function _folderToPathItems(
   txt: string = '',
   username: string,
   loggedIn: boolean
-): I.Map<Types.Path, Types.FavoriteFolder> {
+): I.Map<Types.Path, Types.FavoriteItem> {
   let favoritesResult
   let badges = {
     '/keybase/private': 0,
@@ -113,8 +113,9 @@ function _folderToPathItems(
         // key
         Types.stringToPath(`/keybase/${folderTypeString}/${name}`),
         // value
-        I.fromJS({
-          name,
+        Constants.makeFavoriteItem({
+          badgeCount: 0,
+          name: name,
           tlfMeta: {
             folderType,
             isIgnored,
@@ -123,7 +124,6 @@ function _folderToPathItems(
             waitingForParticipantUnlock,
             youCanUnlock,
           },
-          badgeCount: 0,
         }),
       ]
     }
@@ -132,7 +132,7 @@ function _folderToPathItems(
     const badgePath = Types.stringToPath(badgeKey)
     favoriteFolders.push([
       badgePath,
-      I.fromJS({
+      Constants.makeFavoriteItem({
         name: Types.getPathName(badgePath),
         badgeCount: badges[badgeKey],
       }),

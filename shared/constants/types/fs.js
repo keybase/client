@@ -22,7 +22,7 @@ export type ParticipantUnlock = {
   devices: string,
 }
 
-export type TLFMetadata = {
+export type FavoriteMetadata = {
   folderType: RPCTypes.FolderType,
   isIgnored: boolean,
   isNew: boolean,
@@ -31,20 +31,21 @@ export type TLFMetadata = {
   youCanUnlock: Array<Device>,
 }
 
+export type _FavoriteItem = {
+  name: string,
+  badgeCount: number,
+  tlfMeta?: FavoriteMetadata,
+}
+
+export type FavoriteItem = I.RecordOf<_FavoriteItem>
+
 export type PathItemMetadata = {
   name: string,
   lastModifiedTimestamp: number,
   lastWriter: RPCTypes.User,
   size: number,
   progress: ProgressType,
-  badgeCount?: number,
-  tlfMeta?: TLFMetadata,
 }
-
-export type _MinimalPathItem = {
-  name: string,
-} & TLFMetadata
-export type MinimalPathItem = I.RecordOf<_MinimalPathItem>
 
 export type _FolderPathItem = {
   type: 'folder',
@@ -132,6 +133,7 @@ export type Flags = I.RecordOf<_Flags>
 
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
+  favoriteItems: I.Map<Path, FavoriteItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, Transfer>,
@@ -295,9 +297,3 @@ export type FolderRPCWithMeta = {
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
 } & RPCTypes.Folder
-
-export type FavoriteFolder = {
-  name: string,
-  tlfMeta?: TLFMetadata,
-  badgeCount: number,
-}
