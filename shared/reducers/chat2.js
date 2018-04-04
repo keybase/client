@@ -508,13 +508,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         })
       )
     }
-    case Chat2Gen.pendingConversationErrored: {
-      const {reason} = action.payload
-      logger.warn(`Got pendingConversationErrored with reason: ${reason}`)
+    case Chat2Gen.setPendingMessageSubmitState: {
+      const {reason, submitState} = action.payload
+      logger.warn(`Got setPendingMessageSubmitState to '${submitState}' with reason: ${reason}`)
       const conversationIDKey = Types.stringToConversationIDKey('')
+      // We don't need to get the ordinals here, but we might as well check our state is kept internally consistent
       const ordinalMap = state.pendingOutboxToOrdinal.get(conversationIDKey)
       if (!ordinalMap) {
-        logger.warn('Got pendingConversationErrored with no pending messages')
+        logger.warn('Got setPendingMessageSubmitState with no pending messages')
         return state
       }
       const ordinals = ordinalMap.toIndexedSeq().toArray()
@@ -526,10 +527,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
             mm.updateIn([conversationIDKey, ordinal], message => {
               if (message) {
                 if (message.type === 'text') {
-                  return message.set('submitState', 'failed')
+                  return message.set('submitState', submitState)
                 }
                 if (message.type === 'attachment') {
-                  return message.set('submitState', 'failed')
+                  return message.set('submitState', submitState)
                 }
               }
               return message

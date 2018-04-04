@@ -62,7 +62,6 @@ export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
-export const pendingConversationErrored = 'chat2:pendingConversationErrored'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const retryPendingConversation = 'chat2:retryPendingConversation'
@@ -74,6 +73,7 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
+export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingSelected = 'chat2:setPendingSelected'
 export const setPendingStatus = 'chat2:setPendingStatus'
@@ -97,9 +97,14 @@ export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCCh
  */
 export const createRetryPendingConversation = () => ({error: false, payload: undefined, type: retryPendingConversation})
 /**
- * Sets pending messages in the store to a failed state and logs the reason
+ * Sets pending messages in the store to the supplied state and logs the reason
  */
-export const createPendingConversationErrored = (payload: $ReadOnly<{|reason: string|}>) => ({error: false, payload, type: pendingConversationErrored})
+export const createSetPendingMessageSubmitState = (
+  payload: $ReadOnly<{|
+    reason: string,
+    submitState: 'failed' | 'pending',
+  |}>
+) => ({error: false, payload, type: setPendingMessageSubmitState})
 /**
  * Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.
  */
@@ -465,7 +470,6 @@ export type NavigateToInboxPayload = More.ReturnType<typeof createNavigateToInbo
 export type NavigateToThreadPayload = More.ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
-export type PendingConversationErroredPayload = More.ReturnType<typeof createPendingConversationErrored>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type RetryPendingConversationPayload = More.ReturnType<typeof createRetryPendingConversation>
@@ -477,6 +481,7 @@ export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConv
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
+export type SetPendingMessageSubmitStatePayload = More.ReturnType<typeof createSetPendingMessageSubmitState>
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
 export type SetPendingStatusPayload = More.ReturnType<typeof createSetPendingStatus>
@@ -540,7 +545,6 @@ export type Actions =
   | More.ReturnType<typeof createNavigateToThread>
   | More.ReturnType<typeof createNotificationSettingsUpdated>
   | More.ReturnType<typeof createOpenFolder>
-  | More.ReturnType<typeof createPendingConversationErrored>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createRetryPendingConversation>
@@ -552,6 +556,7 @@ export type Actions =
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>
+  | More.ReturnType<typeof createSetPendingMessageSubmitState>
   | More.ReturnType<typeof createSetPendingMode>
   | More.ReturnType<typeof createSetPendingSelected>
   | More.ReturnType<typeof createSetPendingStatus>

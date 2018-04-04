@@ -128,9 +128,10 @@
       "reason": "string",
       "outboxID": "Types.OutboxID",
     },
-    "pendingConversationErrored": {
-      "_description": "Sets pending messages in the store to a failed state and logs the reason",
-      "reason": "string"
+    "setPendingMessageSubmitState": {
+      "_description": "Sets pending messages in the store to the supplied state and logs the reason",
+      "reason": "string",
+      "submitState": ["'failed'", "'pending'"]
     },
     "cancelPendingConversation": {
       "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"

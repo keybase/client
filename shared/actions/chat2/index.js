@@ -954,7 +954,7 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
 
 // Now actually send
 const sendToPendingConversationSuccess = (
-  results: RPCChatTypes.NewConversationLocalRes,
+  results: [any, RPCChatTypes.NewConversationLocalRes],
   action: Chat2Gen.SendToPendingConversationPayload
 ) => {
   const conversationIDKey = Types.conversationIDToKey(results[1].conv.info.id)
@@ -1002,8 +1002,9 @@ const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPending
     Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'})),
     // Set the submitState of the pending messages
     Saga.put(
-      Chat2Gen.createPendingConversationErrored({
+      Chat2Gen.createSetPendingMessageSubmitState({
         reason: e.message,
+        submitState: 'failed',
       })
     ),
   ])
@@ -1022,14 +1023,6 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
   ])
 
 const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
-  if (!state.chat2.pendingSelected) {
-    logger.warn("retryPendingConversation: pending conversation isn't selected; aborting")
-    return
-  }
-  if (!state.chat2.pendingStatus === 'failed') {
-    logger.warn("retryPendingConversation: pending status != 'failed'; aborting")
-    return
-  }
   const pendingMessages = state.chat2.messageMap.get(Types.stringToConversationIDKey(''))
   if (!(pendingMessages && !pendingMessages.isEmpty())) {
     logger.warn('retryPendingConversation: found no pending messages; aborting')
@@ -1041,39 +1034,46 @@ const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPaylo
     return
   }
 
-  if (pendingMessages) {
-    if (pendingMessages.size > 1) {
-      logger.warn('retryPendingConversation: found more than one pending message; only resending the first')
-    }
-    // $FlowIssue thinks message can be null
-    const message: Types.Message = pendingMessages.first()
-    const you = state.config.username
-    if (!you) {
-      logger.warn('retryPendingConversation: found no currently logged in username; aborting')
-      return
-    }
-    let retryAction: ?(Chat2Gen.MessageSendPayload | Chat2Gen.AttachmentUploadPayload)
-    if (message.type === 'text') {
-      retryAction = Chat2Gen.createMessageSend({
-        conversationIDKey: message.conversationIDKey,
-        text: message.text,
-      })
-    } else if (message.type === 'attachment') {
-      retryAction = Chat2Gen.createAttachmentUpload({
-        conversationIDKey: message.conversationIDKey,
-        path: message.devicePreviewPath,
-        title: message.title,
-      })
-    }
-    if (retryAction) {
-      return Saga.put(
+  if (pendingMessages.size > 1) {
+    logger.warn('retryPendingConversation: found more than one pending message; only resending the first')
+  }
+  // $FlowIssue thinks message can be null
+  const message: Types.Message = pendingMessages.first()
+  const you = state.config.username
+  if (!you) {
+    logger.warn('retryPendingConversation: found no currently logged in username; aborting')
+    return
+  }
+  let retryAction: ?(Chat2Gen.MessageSendPayload | Chat2Gen.AttachmentUploadPayload)
+  if (message.type === 'text') {
+    retryAction = Chat2Gen.createMessageSend({
+      conversationIDKey: message.conversationIDKey,
+      text: message.text,
+    })
+  } else if (message.type === 'attachment') {
+    retryAction = Chat2Gen.createAttachmentUpload({
+      conversationIDKey: message.conversationIDKey,
+      path: message.devicePreviewPath,
+      title: message.title,
+    })
+  }
+  if (retryAction) {
+    return Saga.sequentially([
+      Saga.put(
         Chat2Gen.createSendToPendingConversation({
           users: pendingUsers.concat([you]).toArray(),
           sendingAction: retryAction,
         })
-      )
-    }
+      ),
+      Saga.put(
+        Chat2Gen.createSetPendingMessageSubmitState({
+          reason: 'Retrying createConversation...',
+          submitState: 'pending',
+        })
+      ),
+    ])
   }
+  logger.warn(`retryPendingConversation: got message of invalid type ${message.type}`)
 }
 
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
