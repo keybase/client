@@ -266,7 +266,7 @@ export const createSetTeamPublicitySettings = (
   |}>
 ) => ({error: false, payload, type: setTeamPublicitySettings})
 export const createSetTeamRequests = (payload: $ReadOnly<{|requests: {[string]: I.Set<Types.RequestInfo>}|}>) => ({error: false, payload, type: setTeamRequests})
-export const createSetTeamResetUsers = (payload: $ReadOnly<{|teamNameToResetUsers: {[Types.Teamname]: Types.ResetUser}|}>) => ({error: false, payload, type: setTeamResetUsers})
+export const createSetTeamResetUsers = (payload: $ReadOnly<{|teamNameToResetUsers: {[Types.Teamname]: I.Set<Types.ResetUser>}|}>) => ({error: false, payload, type: setTeamResetUsers})
 export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
 export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
 export const createSetTeamSettings = (

@@ -15,7 +15,6 @@ import * as RouteTypes from '../constants/types/route-tree'
 import * as RouteConstants from '../constants/route-tree'
 import * as Chat2Gen from './chat2-gen'
 import engine from '../engine'
-import {replaceEntity} from './entities'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {putActionIfOnPath, navigateTo} from './route-tree'
@@ -1028,34 +1027,6 @@ const _getNewTeams = (state: TypedState): I.Set<string> => state.teams.getIn(['n
 const _getNewTeamRequests = (state: TypedState): I.List<string> =>
   state.teams.getIn(['newTeamRequests'], I.List())
 
-const _setChannelInfo = (action: TeamsGen.SetChannelInfoPayload) =>
-  Saga.put(replaceEntity(['teams', 'convIDToChannelInfo'], I.Map(action.payload.convIDToChannelInfo)))
-
-const _setLoaded = (action: TeamsGen.SetLoadedPayload) =>
-  Saga.put(replaceEntity(['teams'], I.Map([['loaded', action.payload.loaded]])))
-
-const _setTeamAccessRequestsPending = (action: TeamsGen.SetTeamAccessRequestsPendingPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams'],
-      I.Map([['teamAccessRequestsPending', I.Set(action.payload.accessRequestsPending)]])
-    )
-  )
-
-const _setNewTeams = (action: TeamsGen.SetNewTeamsPayload) =>
-  Saga.put(replaceEntity(['teams'], I.Map([['newTeams', action.payload.newTeams]])))
-
-const _setNewTeamRequests = (action: TeamsGen.SetNewTeamRequestsPayload) =>
-  Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', action.payload.newTeamRequests]])))
-
-const _setTeamResetUsers = (action: TeamsGen.SetTeamResetUsersPayload) =>
-  Saga.put(replaceEntity(['teams', 'teamNameToResetUsers'], I.Map(action.payload.teamNameToResetUsers)))
-
-const _setTeamSawChatBanner = () => Saga.put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
-
-const _setTeamSawSubteamsBanner = () =>
-  Saga.put(replaceEntity(['teams'], I.Map([['sawSubteamsBanner', true]])))
-
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1082,14 +1053,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
-  yield Saga.safeTakeEveryPure(TeamsGen.setChannelInfo, _setChannelInfo)
-  yield Saga.safeTakeEveryPure(TeamsGen.setLoaded, _setLoaded)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamAccessRequestsPending, _setTeamAccessRequestsPending)
-  yield Saga.safeTakeEveryPure(TeamsGen.setNewTeams, _setNewTeams)
-  yield Saga.safeTakeEveryPure(TeamsGen.setNewTeamRequests, _setNewTeamRequests)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamResetUsers, _setTeamResetUsers)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSawChatBanner, _setTeamSawChatBanner)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSawSubteamsBanner, _setTeamSawSubteamsBanner)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

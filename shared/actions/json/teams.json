@@ -181,7 +181,7 @@
       "newTeamRequests": "I.List<string>",
     },
     "setTeamResetUsers": {
-      "teamNameToResetUsers": "{[Types.Teamname]: Types.ResetUser}",
+      "teamNameToResetUsers": "{[Types.Teamname]: I.Set<Types.ResetUser>}",
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
