@@ -392,7 +392,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }, {})
 
     const infos = []
-    let memberNames = I.Set()
+    let memberNames = []
     const types = ['admins', 'owners', 'readers', 'writers']
     const typeMap = {
       admins: 'admin',
@@ -411,11 +411,11 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
             username,
           })
         )
-        memberNames = memberNames.add(username)
+        memberNames.push(username)
       })
     })
 
-    const invitesMap = map(details.annotatedActiveInvites, invite =>
+    const invites = map(details.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
@@ -428,7 +428,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
-      yield Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
+      yield Saga.put(TeamsGen.createSetTeamRequests({requests: {[teamname]: I.Set()}}))
     }
 
     // Get the subteam map for this team.
@@ -438,18 +438,15 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     const subteams = teamTree.entries.map(team => team.name.parts.join('.')).filter(team => team !== teamname)
 
     yield Saga.all([
-      Saga.put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
-      Saga.put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
-      Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
+      Saga.put(TeamsGen.createSetTeamMembers({teamname, members: infos})),
+      Saga.put(TeamsGen.createSetTeamMemberUsernames({teamname, usernames: memberNames})),
+      Saga.put(TeamsGen.createSetTeamRequests({requests: requestMap})),
       Saga.put(
-        replaceEntity(
-          ['teams', 'teamNameToTeamSettings'],
-          // $FlowIssue read-only prop type issues
-          I.Map({[teamname]: Constants.makeTeamSettings(details.settings)})
-        )
+        // $FlowIssue read-only prop type issues
+        TeamsGen.createSetTeamSettings({teamname, settings: Constants.makeTeamSettings(details.settings)})
       ),
-      Saga.put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
-      Saga.put(replaceEntity(['teams', 'teamNameToSubteams'], I.Map([[teamname, I.Set(subteams)]]))),
+      Saga.put(TeamsGen.createSetTeamInvites({teamname, invites})),
+      Saga.put(TeamsGen.createSetTeamSubteams({teamname, subteams})),
     ])
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
@@ -1053,6 +1050,49 @@ const _setTeamLoadingInvites = (action: TeamsGen.SetTeamLoadingInvitesPayload) =
     )
   )
 
+const _setTeamRequests = (action: TeamsGen.SetTeamRequestsPayload) =>
+  Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(action.payload.requests)))
+
+const _setTeamMembers = (action: TeamsGen.SetTeamMembersPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToMembers'],
+      I.Map([[action.payload.teamname, I.Set(action.payload.members)]])
+    )
+  )
+
+const _setTeamMemberUsernames = (action: TeamsGen.SetTeamMemberUsernamesPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamnameToMemberUsernames'],
+      I.Map([[action.payload.teamname, I.Set(action.payload.usernames)]])
+    )
+  )
+
+const _setTeamSettings = (action: TeamsGen.SetTeamSettingsPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToTeamSettings'],
+      I.Map([[action.payload.teamname, I.Set(action.payload.settings)]])
+    )
+  )
+
+const _setTeamInvites = (action: TeamsGen.SetTeamInvitesPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToInvites'],
+      I.Map([[action.payload.teamname, I.Set(action.payload.invites)]])
+    )
+  )
+
+const _setTeamSubteams = (action: TeamsGen.SetTeamSubteamsPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToSubteams'],
+      I.Map([[action.payload.teamname, I.Set(action.payload.subteams)]])
+    )
+  )
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1086,6 +1126,12 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinSuccess, _setTeamJoinSuccess)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamStoreRetentionPolicy, _setTeamStoreRetentionPolicy)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamLoadingInvites, _setTeamLoadingInvites)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamRequests, _setTeamRequests)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamMembers, _setTeamMembers)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamMemberUsernames, _setTeamMemberUsernames)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSettings, _setTeamSettings)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamInvites, _setTeamInvites)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSubteams, _setTeamSubteams)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

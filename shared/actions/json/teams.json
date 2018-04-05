@@ -121,6 +121,29 @@
       "invitees": "string",
       "loadingInvites": "boolean",
     },
+    "setTeamRequests": {
+      "requests": "{[string]: I.Set<Types.RequestInfo>}",
+    },
+    "setTeamMembers": {
+      "teamname": "string",
+      "members": "Types.MemberInfo[]",
+    },
+    "setTeamMemberUsernames": {
+      "teamname": "string",
+      "usernames": "string[]",
+    },
+    "setTeamSettings": {
+      "teamname": "string",
+      "settings": "Types.TeamSettings",
+    },
+    "setTeamInvites": {
+      "teamname": "string",
+      "invites": "Types.InviteInfo[]",
+    },
+    "setTeamSubteams": {
+      "teamname": "string",
+      "subteams": "Types.Teamname[]",
+    },
     "setupTeamHandlers": {},
     "updateChannelName": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",

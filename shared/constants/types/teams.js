@@ -112,18 +112,7 @@ export type _State = {
   teamCreationPending: boolean,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
   teamNameToID: I.Map<Teamname, string>,
-  teamNameToInvites: I.Map<
-    Teamname,
-    I.Set<
-      I.RecordOf<{
-        email: string,
-        name: string,
-        role: TeamRoleType,
-        username: string,
-        id: string,
-      }>
-    >
-  >,
+  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>,
   teamNameToIsOpen: I.Map<Teamname, boolean>,
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
