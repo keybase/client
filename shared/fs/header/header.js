@@ -37,7 +37,7 @@ const FolderHeader = ({
       ) : (
         <Box style={styleFolderHeaderContainer}>
           <Box style={folderHeaderStyleTree}>
-            {dropdownPath !== '' && (
+            {!!dropdownPath && (
               <Box style={folderBreadcrumbStyle}>
                 <ClickableBox style={styleBreadcrumbDropdownIconBox} onClick={onOpenBreadcrumbDropdown}>
                   <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} />
