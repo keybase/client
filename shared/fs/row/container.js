@@ -8,8 +8,9 @@ import {Row} from './row'
 import {isMobile, isLinux} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
   const _username = state.config.username || undefined
+  if (pathItem.name === 'unknown') console.log(`unknown path: "${path}"`)
   return {
     _username,
     path,

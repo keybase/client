@@ -26,6 +26,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           // placeholder), which then gets updated when we hear back from RPC.
           return original
         }
+        // Since both `folderListLoaded` and `favoritesLoaded` can change
+        // `pathItems`, we need to make sure that neither one clobbers the
+        // other's work.
         return item
           .set('badgeCount', original.badgeCount)
           .set('tlfMeta', original.tlfMeta)
@@ -34,8 +37,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       const s = state
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
-      console.log('Checking new: ')
-      console.log(s.pathItems.get(Types.stringToPath('/keybase/private/akalin,jzila,jzilaakalin@twitter')))
       return s
     }
     case FsGen.folderListLoad:
@@ -44,24 +45,28 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state
     case FsGen.favoritesLoaded:
       const toMerge = action.payload.folders.mapEntries(([path, item]) => {
-        const original = state.pathItems.get(path) || Constants.makeFolder()
+        const original = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
         // This cannot happen, but it's needed to make Flow happy.
         if (original.type !== 'folder') return [path, original]
 
-        // TODO: add to children of parent
-        // TODO: Make sure children won't be overwritten by `folderListLoaded` action.
         return [
           path,
+          // Since both `folderListLoaded` and `favoritesLoaded` can change
+          // `pathItems`, we need to make sure that neither one clobbers the
+          // other's work.
           original
-            .set('name', item.name)
             .set('badgeCount', item.badgeCount)
             .set('tlfMeta', item.tlfMeta)
             .set('favoriteChildren', item.favoriteChildren),
         ]
       })
       const s = state.mergeIn(['pathItems'], toMerge)
-      console.log('Checking new: ')
-      console.log(s.pathItems.get(Types.stringToPath('/keybase/private/akalin,jzila,jzilaakalin@twitter')))
+      console.log('jzila: ')
+      console.log(
+        JSON.stringify(
+          s.pathItems.get(Types.stringToPath('/keybase/private/jzila')).toJS()
+        )
+      )
       return s
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload

@@ -109,11 +109,13 @@ function _folderToPathItems(
     ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
       const folderTypeString = FolderTypeToString(folderType)
       const folderParent = `/keybase/${folderTypeString}`
-      const folderPathString = `${folderParent}/${name}`
+      const preferredName = Constants.tlfToPreferredOrder(name, username)
+      const folderPathString = `${folderParent}/${preferredName}`
       const folderPath = Types.stringToPath(folderPathString)
-      favoriteChildren[folderParent].add(folderPath)
+      favoriteChildren[folderParent].add(preferredName)
+      preferredName === 'jzila' && console.log(`jzila name: ${name}, preferredName: ${preferredName}, isIgnored: ${isIgnored.toString()}`)
       if (isNew) {
-        badges['/keybase/' + folderTypeString] += 1
+        badges[folderParent] += 1
       }
       return [
         // key
@@ -121,7 +123,7 @@ function _folderToPathItems(
         // value
         Constants.makeFavoriteItem({
           badgeCount: 0,
-          name: name,
+          name: preferredName,
           tlfMeta: {
             folderType,
             isIgnored,

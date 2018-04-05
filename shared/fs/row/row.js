@@ -39,29 +39,18 @@ const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
     return <Box />
   }
 
-  const badgeStyleNew = {
-    color: globalColors.white,
-    backgroundColor: globalColors.orange,
-    marginTop: 2,
-  }
-
-  const badgeStyleRekey = {
-    color: globalColors.white,
-    backgroundColor: globalColors.red,
-    marginTop: 16,
-  }
-
-  const badgeStyleCount = {
-    marginLeft: 0,
-    marginRight: 0,
-  }
-
   return (
     <Box style={{width: 0, display: 'flex'}}>
-      <Box style={styleBadge}>
-        {needsRekey && <Meta title="rekey" style={badgeStyleRekey} />}
-        {isNew && <Meta title="new" style={badgeStyleNew} />}
-        {badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
+      {needsRekey && (
+      <Box style={styleBadgeContainerRekey}>
+        <Meta title="rekey" style={badgeStyleRekey} />
+      </Box>)}
+      {isNew && (
+      <Box style={styleBadgeContainerNew}>
+        <Meta title="new" style={badgeStyleNew} />
+      </Box>)}
+      <Box style={styleBadgeContainer}>
+        {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
       </Box>
     </Box>
   )
@@ -198,8 +187,35 @@ const rowTextStyles = memoize(color =>
   })
 )
 
-const styleBadge = {
+const styleBadgeContainer = {
   position: 'absolute',
   left: 24,
   top: -1,
 }
+
+const styleBadgeContainerNew = {
+  ...styleBadgeContainer,
+  left: 16,
+}
+
+const styleBadgeContainerRekey = {
+  ...styleBadgeContainer,
+  top: 24,
+  left: 8,
+}
+
+const badgeStyleNew = {
+  color: globalColors.white,
+  backgroundColor: globalColors.orange,
+}
+
+const badgeStyleRekey = {
+  color: globalColors.white,
+  backgroundColor: globalColors.red,
+}
+
+const badgeStyleCount = {
+  marginLeft: 0,
+  marginRight: 0,
+}
+

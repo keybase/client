@@ -206,20 +206,22 @@ export const getLocalPathName = (p: LocalPath): string => p.split(localSep).pop(
 export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexOf(localSep))
 
 type PathItemComparer = (a: PathItem, b: PathItem) => number
+type PathItemLessThan = (a: PathItem, b: PathItem) => boolean
+
+const _comparerFromLessThan = (lt: PathItemLessThan): PathItemComparer => (a, b) =>
+  lt(a, b) ? -1 : lt(b, a) ? 1 : 0
 
 const _neutralComparer = (a: PathItem, b: PathItem): number => 0
 
-const _getMeFirstComparer = (meUsername: string): PathItemComparer => (a: PathItem, b: PathItem): number =>
-  a.name === meUsername ? -1 : b.name === meUsername ? 1 : 0
+const _getMeFirstComparer = (meUsername: string): PathItemComparer =>
+  _comparerFromLessThan((a: PathItem, b: PathItem): boolean => a.name === meUsername && b.name !== meUsername)
 
-const _folderFirstComparer: PathItemComparer = (a: PathItem, b: PathItem): number => {
-  if (a.type === 'folder' && b.type !== 'folder') {
-    return -1
-  } else if (a.type !== 'folder' && b.type === 'folder') {
-    return 1
-  }
-  return 0
-}
+const _folderFirstComparer: PathItemComparer = _comparerFromLessThan(
+  (a: PathItem, b: PathItem): boolean =>
+    a.type === 'folder'
+      ? b.type !== 'folder' || (!!a.tlfMeta && a.tlfMeta.isNew && !(b.tlfMeta && b.tlfMeta.isNew))
+      : false
+)
 
 export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
   switch (sortBy) {

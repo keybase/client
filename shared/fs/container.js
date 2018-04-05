@@ -21,7 +21,8 @@ const mapStateToProps = (state: TypedState, {path}) => {
   const itemFavoriteChildren =
     itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   return {
-    _itemNames: itemChildren.union(itemFavoriteChildren),
+    _itemChildren: itemChildren,
+    _itemFavoriteChildren: itemFavoriteChildren,
     _username: state.config.username || undefined,
     _pathItems: state.fs.pathItems,
     _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
@@ -36,11 +37,16 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const pathItems = stateProps._itemNames.map(name =>
-    stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
-  )
+  const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
+  const pathItems = itemNames.map(name => {
+    return (
+      stateProps._pathItems.get(Types.pathConcat(stateProps.path, name)) ||
+      Constants.makeUnknownPathItem({name})
+    )
+  })
+  const filteredPathItems = pathItems.filter(item => !(item.tlfMeta && item.tlfMeta.isIgnored)).toList()
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const items = Constants.sortPathItems(pathItems.toList(), stateProps._sortSetting, username)
+  const items = Constants.sortPathItems(filteredPathItems, stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))
     .toArray()
   return {

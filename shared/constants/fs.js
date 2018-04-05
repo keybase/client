@@ -25,6 +25,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   progress: 'pending',
   children: I.Set(),
   favoriteChildren: I.Set(),
+  tlfMeta: undefined,
   type: 'folder',
 })
 
@@ -194,6 +195,21 @@ const splitTlfIntoUsernames = (tlf: string): Array<string> =>
     .split(' ')[0]
     .replace(/#/g, ',')
     .split(',')
+
+export const tlfToPreferredOrder = (tlf: string, me: string): string => {
+  const [userList, extension] = tlf.split(' ', 1)
+  const [writers, readers] = userList.split('#', 2)
+  const writerNames = writers.split(',')
+  const whereAmI = writerNames.indexOf(me)
+  if (whereAmI === -1) return tlf
+  writerNames.splice(whereAmI, 1)
+  const preferredWriters = [me, ...writerNames].join(',')
+  const extensionSuffix = extension ? ` ${extension}` : ''
+  const readerSuffix = readers ? `#${readers}${extensionSuffix}` : extensionSuffix
+  const preferredOrder = `${preferredWriters}${readerSuffix}`
+  preferredOrder === 'jzila' && console.log(`jzila tlf: ${tlf}, userList: ${userList}, extension: ${extension}, writers: ${writers}, readers: ${readers}, preferredWriters: ${preferredWriters}, extensionSuffix: ${extensionSuffix}, readerSuffix: ${readerSuffix}, preferredOrder: ${preferredOrder}`)
+  return preferredOrder
+}
 
 const itemStylesPublicTlf = memoize((tlf: string, me?: string) => ({
   iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
