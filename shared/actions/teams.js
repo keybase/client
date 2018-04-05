@@ -740,10 +740,10 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
 
   const teamSettings = state.teams.getIn(
     ['teamNameToTeamSettings', teamname],
-    I.Record({
+    Constants.makeTeamSettings({
       open: false,
       joinAs: RPCTypes.teamsTeamRole['reader'],
-    })()
+    })
   )
 
   const teamPublicitySettings = state.teams.getIn(['teamNameToPublicitySettings', teamname], {

@@ -28,6 +28,7 @@ export type _PublicitySettings = {
 
 export type _TeamSettings = {open: boolean, joinAs: RPCTypes.TeamRole}
 export type TeamSettings = I.RecordOf<_TeamSettings>
+
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
 // `days` should be left as 0 unless `type` is expire
@@ -39,15 +40,14 @@ export type _ChannelInfo = {
   description: ?string,
   participants: I.Set<string>,
 }
-
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
+
 export type _MemberInfo = {
   active: boolean,
   fullName: string,
   type: ?TeamRoleType,
   username: string,
 }
-
 export type MemberInfo = I.RecordOf<_MemberInfo>
 
 export type _InviteInfo = {
@@ -57,13 +57,13 @@ export type _InviteInfo = {
   username: string,
   id: string,
 }
-
 export type InviteInfo = I.RecordOf<_InviteInfo>
+
 export type _RequestInfo = {
   username: string,
 }
-
 export type RequestInfo = I.RecordOf<_RequestInfo>
+
 export type TabKey = 'members' | 'requests' | 'pending'
 
 export type _SubteamInfo = {

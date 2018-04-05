@@ -55,7 +55,7 @@ export const typeToLabel: Types.TypeMap = {
 
 export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
   open: false,
-  joinAs: 1,
+  joinAs: RPCTypes.teamsTeamRole['reader'],
 })
 
 export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Record({
