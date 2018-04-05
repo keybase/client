@@ -17,32 +17,22 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
   const meta = Constants.getMeta(state, message.conversationIDKey)
-  const hasOlderResetConversation = previous ? false : !!meta.supersedes
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
-  const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
   const messageSent = !message.submitState
-  const messageFailed = !!message.errorReason
-
-  let loadMoreType = null
-  if (!previous) {
-    loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
-  }
+  const messageFailed = message.submitState === 'failed'
 
   return {
-    hasOlderResetConversation,
     innerClass,
     isBroken,
     isEditing,
     isFollowing,
     isSelected,
     isYou,
-    loadMoreType,
     message,
     messageFailed,
     messageSent,
     orangeLineAbove,
     previous,
-    showTeamOffer,
   }
 }
 
@@ -102,7 +92,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     author: message.author,
     failureDescription,
-    hasOlderResetConversation: stateProps.hasOlderResetConversation,
     includeHeader,
     innerClass: stateProps.innerClass,
     isBroken: stateProps.isBroken,
@@ -112,7 +101,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     isRevoked: !!message.deviceRevokedAt,
     isSelected: stateProps.isSelected,
     isYou: stateProps.isYou,
-    loadMoreType: stateProps.loadMoreType,
     message,
     messageFailed: stateProps.messageFailed,
     messageSent: stateProps.messageSent,
@@ -126,7 +114,6 @@ const mergeProps = (stateProps, dispatchProps) => {
       : null,
     onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     orangeLineAbove: stateProps.orangeLineAbove,
-    showTeamOffer: stateProps.showTeamOffer,
     timestamp,
   }
 }

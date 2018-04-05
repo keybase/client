@@ -22,10 +22,7 @@ function _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload) {
     }[nextAppState] || RPCTypes.appStateAppState.foreground
   logger.info(`setting app state on service to: ${state}`)
 
-  return Saga.sequentially([
-    Saga.put(AppGen.createChangedFocus({appFocused})),
-    Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {state}),
-  ])
+  return Saga.put(AppGen.createChangedFocus({appFocused}))
 }
 
 function _onShowMain() {

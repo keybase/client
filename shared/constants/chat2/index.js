@@ -18,6 +18,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   pendingSelected: false,
+  pendingStatus: 'none',
   selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),
   unreadMap: I.Map(),

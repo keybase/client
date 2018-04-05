@@ -1,13 +1,16 @@
 // @flow
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
-import {Text, PlaintextUsernames, Box} from '../../../../common-adapters'
+import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../styles'
 
 type Props = {
   hasUnread: boolean,
+  iconHoverColor: string,
   participants: Array<string>,
   showBold: boolean,
+  showGear: boolean,
+  onClickGear: (SyntheticEvent<Element>) => void,
   backgroundColor: ?string,
   subColor: string,
   timestamp: ?string,
@@ -73,6 +76,7 @@ class SimpleTopLine extends React.Component<Props> {
         <Text
           key="0"
           type="BodySmall"
+          className={this.props.showGear ? 'small-team-timestamp' : undefined}
           style={platformStyles({
             common: {
               ...boldOverride,
@@ -83,6 +87,14 @@ class SimpleTopLine extends React.Component<Props> {
         >
           {this.props.timestamp}
         </Text>
+        {this.props.showGear && (
+          <Icon
+            type="iconfont-gear"
+            className="small-team-gear"
+            onClick={this.props.onClickGear}
+            style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
+          />
+        )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
       </Box>
     )
