@@ -1065,7 +1065,7 @@ type MessageClientHeader struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	IsEphemeral       bool                     `codec:"isEphemeral" json:"isEphemeral"`
-	Lifetime          int                      `codec:"lifetime" json:"lifetime"`
+	Lifetime          gregor1.DurationMsec     `codec:"lifetime" json:"lifetime"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1135,7 +1135,7 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			return &tmp
 		})(o.OutboxInfo),
 		IsEphemeral: o.IsEphemeral,
-		Lifetime:    o.Lifetime,
+		Lifetime:    o.Lifetime.DeepCopy(),
 	}
 }
 
@@ -1152,7 +1152,7 @@ type MessageClientHeaderVerified struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	IsEphemeral       bool                     `codec:"isEphemeral" json:"isEphemeral"`
-	Lifetime          int                      `codec:"lifetime" json:"lifetime"`
+	Lifetime          gregor1.DurationMsec     `codec:"lifetime" json:"lifetime"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1203,7 +1203,7 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			return &tmp
 		})(o.OutboxInfo),
 		IsEphemeral: o.IsEphemeral,
-		Lifetime:    o.Lifetime,
+		Lifetime:    o.Lifetime.DeepCopy(),
 	}
 }
 

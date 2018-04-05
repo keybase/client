@@ -870,7 +870,7 @@
           "name": "isEphemeral"
         },
         {
-          "type": "int",
+          "type": "gregor1.DurationMsec",
           "name": "lifetime"
         }
       ]
@@ -943,7 +943,7 @@
           "name": "isEphemeral"
         },
         {
-          "type": "int",
+          "type": "gregor1.DurationMsec",
           "name": "lifetime"
         }
       ]
