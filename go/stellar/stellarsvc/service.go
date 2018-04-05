@@ -50,12 +50,22 @@ func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID
 		return nil, err
 	}
 
+	defaultCurrency, err := remote.GetAccountDefaultCurrency(ctx, s.G(), accountID)
+	if err != nil {
+		s.G().Log.Warning("Could not get default currency for account %q: %s", accountID, err)
+		err = nil
+	}
+
 	var exchangeRateAvailable bool
-	rate, err := remote.ExchangeRate(ctx, s.G(), "USD")
-	if err == nil {
-		exchangeRateAvailable = true
-	} else {
-		s.G().Log.Warning("Could not obtain exchange rate: %s", err)
+	var rate remote.XLMExchangeRate
+	if defaultCurrency != "" {
+		rate, err = remote.ExchangeRate(ctx, s.G(), "USD")
+		if err == nil {
+			exchangeRateAvailable = true
+		} else {
+			s.G().Log.Warning("Could not obtain exchange rate: %s", err)
+			err = nil
+		}
 	}
 
 	for _, b := range balances {

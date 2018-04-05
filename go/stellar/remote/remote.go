@@ -335,19 +335,40 @@ func (b *XLMExchangeRate) ConvertXLM(XLMAmount string) (localAmount string, err 
 }
 
 func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (XLMExchangeRate, error) {
-	payload := make(libkb.JSONPayload)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/ticker",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"currency": libkb.S{Val: currency},
 		},
-		JSONPayload: payload,
-		NetContext:  ctx,
+		NetContext: ctx,
 	}
 	var apiRes tickerResult
 	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
 		return XLMExchangeRate{}, err
 	}
 	return XLMExchangeRate{Price: apiRes.Price, Currency: apiRes.Currency}, nil
+}
+
+type accountCurrencyResult struct {
+	Status                    libkb.AppStatus `json:"status"`
+	CurrencyDisplayPreference string          `json:"currency_display_preference"`
+}
+
+func (b *accountCurrencyResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+func GetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (string, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountcurrency",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+		},
+		NetContext: ctx,
+	}
+	var apiRes accountCurrencyResult
+	err := g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.CurrencyDisplayPreference, err
 }
