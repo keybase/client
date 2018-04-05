@@ -9,6 +9,35 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
   switch (action.type) {
     case TeamsGen.resetStore:
       return initialState
+
+    case TeamsGen.setChannelCreationError:
+    case TeamsGen.setTeamCreationError:
+    case TeamsGen.setTeamCreationPending:
+    case TeamsGen.setTeamJoinError:
+    case TeamsGen.setTeamJoinSuccess:
+    case TeamsGen.setTeamStoreRetentionPolicy:
+    case TeamsGen.setTeamLoadingInvites:
+    case TeamsGen.setTeamRequests:
+    case TeamsGen.setTeamMembers:
+    case TeamsGen.setTeamMemberUsernames:
+    case TeamsGen.setTeamSettings:
+    case TeamsGen.setTeamInvites:
+    case TeamsGen.setTeamSubteams:
+    case TeamsGen.setTeamCanPerform:
+    case TeamsGen.setTeamPublicitySettings:
+    case TeamsGen.setTeamConvIDs:
+    case TeamsGen.setChannelInfo:
+    case TeamsGen.setLoaded:
+    case TeamsGen.setTeamInfo:
+    case TeamsGen.setTeamAccessRequestsPending:
+    case TeamsGen.setNewTeams:
+    case TeamsGen.setNewTeamRequests:
+    case TeamsGen.setTeamResetUsers:
+    case TeamsGen.setTeamSawChatBanner:
+    case TeamsGen.setTeamSawSubteamsBanner:
+      throw new Error('implement')
+
+    // Saga-only actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addToTeam:
     case TeamsGen.badgeAppForTeams:
@@ -32,34 +61,9 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.leaveTeam:
     case TeamsGen.removeMemberOrPendingInvite:
     case TeamsGen.saveChannelMembership:
-    case TeamsGen.setChannelCreationError:
-    case TeamsGen.setChannelInfo:
-    case TeamsGen.setLoaded:
     case TeamsGen.setMemberPublicity:
-    case TeamsGen.setNewTeamRequests:
-    case TeamsGen.setNewTeams:
     case TeamsGen.setPublicity:
-    case TeamsGen.setTeamAccessRequestsPending:
-    case TeamsGen.setTeamCanPerform:
-    case TeamsGen.setTeamConvIDs:
-    case TeamsGen.setTeamCreationError:
-    case TeamsGen.setTeamCreationPending:
-    case TeamsGen.setTeamInfo:
-    case TeamsGen.setTeamInvites:
-    case TeamsGen.setTeamJoinError:
-    case TeamsGen.setTeamJoinSuccess:
-    case TeamsGen.setTeamLoadingInvites:
-    case TeamsGen.setTeamMemberUsernames:
-    case TeamsGen.setTeamMembers:
-    case TeamsGen.setTeamPublicitySettings:
-    case TeamsGen.setTeamRequests:
-    case TeamsGen.setTeamResetUsers:
     case TeamsGen.setTeamRetentionPolicy:
-    case TeamsGen.setTeamSawChatBanner:
-    case TeamsGen.setTeamSawSubteamsBanner:
-    case TeamsGen.setTeamSettings:
-    case TeamsGen.setTeamStoreRetentionPolicy:
-    case TeamsGen.setTeamSubteams:
     case TeamsGen.setupTeamHandlers:
     case TeamsGen.updateChannelName:
     case TeamsGen.updateTopic:
