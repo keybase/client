@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import CreateTeamNotice from './system-create-team-notice/container'
 import ProfileResetNotice from './system-profile-reset-notice/container'
+import RetentionNotice from './retention-notice/container'
 import {Text, Box, Icon} from '../../../common-adapters'
 import {connect, type TypedState} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
@@ -30,7 +31,9 @@ class TopMessage extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Box style={containerStyle}>
+      <Box>
+        <RetentionNotice conversationIDKey={this.props.conversationIDKey} />
+        <Box style={spacerStyle} />
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
@@ -53,8 +56,8 @@ class TopMessage extends React.PureComponent<Props> {
   }
 }
 
-const containerStyle = {
-  paddingTop: globalMargins.small,
+const spacerStyle = {
+  height: globalMargins.small,
 }
 
 const secureStyle = {
