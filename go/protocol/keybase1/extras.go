@@ -1177,8 +1177,9 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 		// about the fact that proofs are broken.
 		//
 		// Pages is exempted from broken track errors too since 1) it doesn't
-		// buy user anything, and 2) if user's proof is hosted with Pages,
-		// error here could prevent them from fixing the proof.
+		// buy the user anything, and 2) if the user's proof is hosted with
+		// Pages, in some cases an error here could prevent them from fixing
+		// the proof.
 		return true
 	default:
 		return false
