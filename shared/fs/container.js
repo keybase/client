@@ -16,8 +16,12 @@ import * as Constants from '../constants/fs'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const itemDetail = state.fs.pathItems.get(path)
+  const itemChildren =
+    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.Set()) : I.Set()
+  const itemFavoriteChildren =
+    itemDetail && itemDetail.type === 'folder' ? itemDetail.get('favoriteChildren', I.Set()) : I.Set()
   return {
-    _itemNames: itemDetail && itemDetail.type === 'folder' ? itemDetail.get('children', I.List()) : I.List(),
+    _itemNames: itemChildren.union(itemFavoriteChildren),
     _username: state.config.username || undefined,
     _pathItems: state.fs.pathItems,
     _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
@@ -36,7 +40,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     stateProps._pathItems.get(Types.pathConcat(stateProps.path, name), Constants.makeUnknownPathItem())
   )
   const username = Types.pathIsNonTeamTLFList(stateProps.path) ? stateProps._username : undefined
-  const items = Constants.sortPathItems(pathItems, stateProps._sortSetting, username)
+  const items = Constants.sortPathItems(pathItems.toList(), stateProps._sortSetting, username)
     .map(({name}) => Types.pathConcat(stateProps.path, name))
     .toArray()
   return {

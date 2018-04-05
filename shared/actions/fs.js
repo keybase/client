@@ -89,6 +89,11 @@ function _folderToPathItems(
     '/keybase/public': 0,
     '/keybase/team': 0,
   }
+  let favoriteChildren = {
+    '/keybase/private': new Set(),
+    '/keybase/public': new Set(),
+    '/keybase/team': new Set(),
+  }
   try {
     favoritesResult = JSON.parse(txt)
   } catch (err) {
@@ -103,22 +108,24 @@ function _folderToPathItems(
   const favoriteFolders = folders.map(
     ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
       const folderTypeString = FolderTypeToString(folderType)
-      // TODO: remove this since it's for testing.
-      var isAlsoNew = isNew
-      if (name === 'jzila' && 'folderType' === 1) isAlsoNew = true
-      if (isAlsoNew) {
+      const folderParent = `/keybase/${folderTypeString}`
+      const folderPathString = `${folderParent}/${name}`
+      const folderPath = Types.stringToPath(folderPathString)
+      favoriteChildren[folderParent].add(folderPath)
+      if (isNew) {
         badges['/keybase/' + folderTypeString] += 1
       }
       return [
         // key
-        Types.stringToPath(`/keybase/${folderTypeString}/${name}`),
+        folderPath,
         // value
         Constants.makeFavoriteItem({
           badgeCount: 0,
+          name: name,
           tlfMeta: {
             folderType,
             isIgnored,
-            isNew: isAlsoNew,
+            isNew,
             needsRekey,
             waitingForParticipantUnlock,
             youCanUnlock,
@@ -133,6 +140,8 @@ function _folderToPathItems(
       badgePath,
       Constants.makeFavoriteItem({
         badgeCount: badges[badgeKey],
+        name: Types.getPathName(badgePath),
+        favoriteChildren: I.Set(favoriteChildren[badgeKey]),
       }),
     ])
   }

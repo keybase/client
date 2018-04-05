@@ -24,6 +24,7 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   size: 0,
   progress: 'pending',
   children: I.Set(),
+  favoriteChildren: I.Set(),
   type: 'folder',
 })
 
@@ -48,7 +49,10 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 })
 
 export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
+  name: 'unknown',
   badgeCount: 0,
+  favoriteChildren: I.Set(),
+  tlfMeta: undefined,
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
@@ -95,7 +99,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   fuseStatus: null,
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  favoriteItems: I.Map(),
   loadingPaths: I.Set(),
   transfers: I.Map(),
 })

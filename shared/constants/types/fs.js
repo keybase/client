@@ -33,7 +33,9 @@ export type FavoriteMetadata = {
 
 export type _FavoriteItem = {
   badgeCount: number,
+  name: string,
   tlfMeta?: FavoriteMetadata,
+  favoriteChildren?: I.Set<string>,
 }
 
 export type FavoriteItem = I.RecordOf<_FavoriteItem>
@@ -51,6 +53,7 @@ export type PathItemMetadata = {
 export type _FolderPathItem = {
   type: 'folder',
   children: I.Set<string>,
+  favoriteChildren: I.Set<string>,
 } & PathItemMetadata
 export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
@@ -134,7 +137,6 @@ export type Flags = I.RecordOf<_Flags>
 
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
-  favoriteItems: I.Map<Path, FavoriteItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, Transfer>,

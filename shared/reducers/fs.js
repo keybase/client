@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
@@ -15,24 +14,29 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoaded:
       return state.update('pathItems', metas => metas.set(action.payload.path, action.payload.meta))
     case FsGen.folderListLoaded: {
-      const toMerge = action.payload.pathItems.filter((item, path) => {
-        if (item.type !== 'folder') {
-          return true
-        }
+      const toMerge = action.payload.pathItems.map((item, path) => {
+        if (item.type !== 'folder') return item
         const original = state.pathItems.get(path)
-        if (original && original.progress === 'loaded' && item.progress !== 'pending') {
+        if (!original || original.type !== 'folder') return item
+        if (original.progress === 'loaded' && item.progress !== 'pending') {
           // Don't override a loaded item into pending. This is specifically
           // for the case where user goes back out of a folder where we could
           // override the folder into an empty one. With this, next user
           // navigates into the folder they would see the old list (instead of
           // placeholder), which then gets updated when we hear back from RPC.
-          return false
+          return original
         }
-        return true
+        return item
+          .set('badgeCount', original.badgeCount)
+          .set('tlfMeta', original.tlfMeta)
+          .set('favoriteChildren', original.favoriteChildren)
       })
-      return state
+      const s = state
         .mergeIn(['pathItems'], toMerge)
         .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
+      console.log('Checking new: ')
+      console.log(s.pathItems.get(Types.stringToPath('/keybase/private/akalin,jzila,jzilaakalin@twitter')))
+      return s
     }
     case FsGen.folderListLoad:
       return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
@@ -41,12 +45,24 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.favoritesLoaded:
       const toMerge = action.payload.folders.mapEntries(([path, item]) => {
         const original = state.pathItems.get(path) || Constants.makeFolder()
+        // This cannot happen, but it's needed to make Flow happy.
+        if (original.type !== 'folder') return [path, original]
+
         // TODO: add to children of parent
         // TODO: Make sure children won't be overwritten by `folderListLoaded` action.
-        // TODO: Make sure badgeCount/tlfMeta aren't overwritten by `folderListLoaded` action.
-        return [path, original.set('badgeCount', item.badgeCount).set('tlfMeta', item.tlfMeta)]
+        return [
+          path,
+          original
+            .set('name', item.name)
+            .set('badgeCount', item.badgeCount)
+            .set('tlfMeta', item.tlfMeta)
+            .set('favoriteChildren', item.favoriteChildren),
+        ]
       })
-      return state.mergeIn(['pathItems'], toMerge)
+      const s = state.mergeIn(['pathItems'], toMerge)
+      console.log('Checking new: ')
+      console.log(s.pathItems.get(Types.stringToPath('/keybase/private/akalin,jzila,jzilaakalin@twitter')))
+      return s
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
