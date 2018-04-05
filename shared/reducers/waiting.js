@@ -10,23 +10,17 @@ function reducer(state: Types.State = Constants.initialState, action: Waiting.Ac
     }
     case Waiting.decrementWaiting: {
       const {payload: {key}} = action
-      if (typeof key === 'string') {
-        return state.update(key, 1, n => n - 1)
-      } else {
-        return state.withMutations(st => {
-          key.forEach(k => st.update(k, 1, n => n - 1))
-        })
-      }
+      const keys = typeof key === 'string' ? [key] : key
+      return state.withMutations(st => {
+        keys.forEach(k => st.update(k, 1, n => n - 1))
+      })
     }
     case Waiting.incrementWaiting: {
       const {payload: {key}} = action
-      if (typeof key === 'string') {
-        return state.update(key, 0, n => n + 1)
-      } else {
-        return state.withMutations(st => {
-          key.forEach(k => st.update(k, 0, n => n + 1))
-        })
-      }
+      const keys = typeof key === 'string' ? [key] : key
+      return state.withMutations(st => {
+        keys.forEach(k => st.update(k, 0, n => n + 1))
+      })
     }
     default:
       // eslint-disable-next-line no-unused-expressions
