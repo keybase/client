@@ -22,6 +22,8 @@ func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHan
 	}
 }
 
+var _ keybase1.SimpleFSInterface = (*SimpleFSHandler)(nil)
+
 func (s *SimpleFSHandler) client() (*keybase1.SimpleFSClient, error) {
 	xp := s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
@@ -221,4 +223,13 @@ func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 		return err
 	}
 	return cli.SimpleFSDumpDebuggingInfo(ctx)
+}
+
+// SimpleFSSyncStatus - Get sync status.
+func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FSSyncStatus{}, err
+	}
+	return cli.SimpleFSSyncStatus(ctx)
 }
