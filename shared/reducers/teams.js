@@ -11,6 +11,8 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return initialState
 
     case TeamsGen.setChannelCreationError:
+      return state.set('channelCreationError', action.payload.error)
+
     case TeamsGen.setTeamCreationError:
     case TeamsGen.setTeamCreationPending:
     case TeamsGen.setTeamJoinError:
