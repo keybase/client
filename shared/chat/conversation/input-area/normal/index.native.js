@@ -34,6 +34,13 @@ class ConversationInput extends Component<Props> {
   render() {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
+    let hintText = 'Write a message'
+    if (this.props.isEditing) {
+      hintText = 'Edit your message'
+    } else if (this.props.pendingWaiting) {
+      hintText = 'Creating conversation...'
+    }
+
     return (
       <Box>
         {this.props.mentionPopupOpen && (
@@ -71,8 +78,9 @@ class ConversationInput extends Component<Props> {
             autoCorrect={true}
             autoCapitalize="sentences"
             autoFocus={false}
+            editable={!this.props.pendingWaiting}
             hideUnderline={true}
-            hintText="Write a message"
+            hintText={hintText}
             multiline={true}
             onFocus={this.props.onFocus}
             onChangeText={this.props.onChangeText}

@@ -63,7 +63,7 @@ export type _MessageText = {
   errorReason: ?string,
   hasBeenEdited: boolean,
   id: MessageID,
-  submitState: null | 'deleting' | 'editing' | 'pending',
+  submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
   mentionsAt: MentionsAt,
   mentionsChannel: MentionsChannel,
   mentionsChannelName: MentionsChannelName,
@@ -96,7 +96,7 @@ export type _MessageAttachment = {
   outboxID: ?OutboxID,
   previewHeight: number,
   previewWidth: number,
-  submitState: null | 'deleting' | 'pending',
+  submitState: null | 'deleting' | 'pending' | 'failed',
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
