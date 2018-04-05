@@ -8,12 +8,10 @@ import Popup from './breadcrumb-popup'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const _path = routeProps.get('path')
-  const _pathItems = state.fs.pathItems
   const _username = state.config.username || undefined
 
   return {
     _path,
-    _pathItems,
     _username,
   }
 }
@@ -25,7 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {onHidden, _onOpenBreadcrumb} = dispatchProps
-  const {_path, _pathItems, _username} = stateProps
+  const {_path, _username} = stateProps
 
   const elems = Types.getPathElements(_path)
   let acc = Types.stringToPath('/')
@@ -34,10 +32,9 @@ const mergeProps = (stateProps, dispatchProps) => {
       const currentElems = elems.slice(0, i + 1)
       acc = Types.pathConcat(acc, elem)
       const currentPath = acc
-      const pathItem = _pathItems.get(currentPath) || Constants.makeUnknownPathItem()
       return {
         name: elem,
-        styles: Constants.getItemStyles(currentElems, pathItem.type, _username),
+        styles: Constants.getItemStyles(currentElems, 'folder', _username),
         onOpenBreadcrumb: () => _onOpenBreadcrumb(currentPath),
       }
     })
