@@ -42,7 +42,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       )
 
     case TeamsGen.setTeamRequests:
-      return state.set('teamNameToRequests', I.Map(action.payload.requests))
+      return state.set('teamNameToRequests', action.payload.requests)
 
     case TeamsGen.setTeamDetails:
       return state.withMutations(s => {

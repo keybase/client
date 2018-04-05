@@ -122,7 +122,7 @@
       "loadingInvites": "boolean",
     },
     "setTeamRequests": {
-      "requests": "{[string]: I.Set<Types.RequestInfo>}",
+      "requests": "I.Map<string, I.Set<Types.RequestInfo>>",
     },
     "setTeamDetails": {
       "teamname": "string",

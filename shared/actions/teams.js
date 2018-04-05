@@ -427,7 +427,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
-      yield Saga.put(TeamsGen.createSetTeamRequests({requests: {[teamname]: I.Set()}}))
+      yield Saga.put(TeamsGen.createSetTeamRequests({requests: I.Map({[teamname]: I.Set()})}))
     }
 
     // Get the subteam map for this team.
