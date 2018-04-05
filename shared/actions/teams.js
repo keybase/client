@@ -439,12 +439,12 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
         teamname,
-        members: infos,
-        usernames: memberNames,
-        requests: requestMap,
+        members: I.Set(infos),
+        usernames: I.Set(memberNames),
+        requests: I.Map(requestMap),
         settings: Constants.makeTeamSettings(details.settings),
-        invites,
-        subteams,
+        invites: I.Set(invites),
+        subteams: I.Set(subteams),
       })
     )
   } finally {
