@@ -988,9 +988,11 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   }
 
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-  actions.push(Saga.put(TeamsGen.createSetNewTeams({newTeams})))
-  actions.push(Saga.put(TeamsGen.createSetNewTeamRequests({newTeamRequests})))
-  actions.push(Saga.put(TeamsGen.createSetTeamResetUsers({teamNameToResetUsers: teamsWithResetUsersMap})))
+  actions.push(
+    Saga.put(
+      TeamsGen.createSetNewTeamInfo({newTeams, newTeamRequests, teamNameToResetUsers: teamsWithResetUsersMap})
+    )
+  )
   return Saga.sequentially(actions)
 }
 

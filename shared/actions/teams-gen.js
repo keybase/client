@@ -36,8 +36,7 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setLoaded = 'teams:setLoaded'
 export const setMemberPublicity = 'teams:setMemberPublicity'
-export const setNewTeamRequests = 'teams:setNewTeamRequests'
-export const setNewTeams = 'teams:setNewTeams'
+export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCanPerform = 'teams:setTeamCanPerform'
@@ -51,7 +50,6 @@ export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
 export const setTeamRequests = 'teams:setTeamRequests'
-export const setTeamResetUsers = 'teams:setTeamResetUsers'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
@@ -187,8 +185,13 @@ export const createSetMemberPublicity = (
     showcase: boolean,
   |}>
 ) => ({error: false, payload, type: setMemberPublicity})
-export const createSetNewTeamRequests = (payload: $ReadOnly<{|newTeamRequests: I.List<string>|}>) => ({error: false, payload, type: setNewTeamRequests})
-export const createSetNewTeams = (payload: $ReadOnly<{|newTeams: I.Set<string>|}>) => ({error: false, payload, type: setNewTeams})
+export const createSetNewTeamInfo = (
+  payload: $ReadOnly<{|
+    newTeams: I.Set<string>,
+    newTeamRequests: I.List<string>,
+    teamNameToResetUsers: {[Types.Teamname]: I.Set<Types.ResetUser>},
+  |}>
+) => ({error: false, payload, type: setNewTeamInfo})
 export const createSetPublicity = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -254,7 +257,6 @@ export const createSetTeamPublicitySettings = (
   |}>
 ) => ({error: false, payload, type: setTeamPublicitySettings})
 export const createSetTeamRequests = (payload: $ReadOnly<{|requests: {[string]: I.Set<Types.RequestInfo>}|}>) => ({error: false, payload, type: setTeamRequests})
-export const createSetTeamResetUsers = (payload: $ReadOnly<{|teamNameToResetUsers: {[Types.Teamname]: I.Set<Types.ResetUser>}|}>) => ({error: false, payload, type: setTeamResetUsers})
 export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
 export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
 export const createSetTeamStoreRetentionPolicy = (
@@ -304,8 +306,7 @@ export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChan
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
 export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
-export type SetNewTeamRequestsPayload = More.ReturnType<typeof createSetNewTeamRequests>
-export type SetNewTeamsPayload = More.ReturnType<typeof createSetNewTeams>
+export type SetNewTeamInfoPayload = More.ReturnType<typeof createSetNewTeamInfo>
 export type SetPublicityPayload = More.ReturnType<typeof createSetPublicity>
 export type SetTeamAccessRequestsPendingPayload = More.ReturnType<typeof createSetTeamAccessRequestsPending>
 export type SetTeamCanPerformPayload = More.ReturnType<typeof createSetTeamCanPerform>
@@ -319,7 +320,6 @@ export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoin
 export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
 export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTeamPublicitySettings>
 export type SetTeamRequestsPayload = More.ReturnType<typeof createSetTeamRequests>
-export type SetTeamResetUsersPayload = More.ReturnType<typeof createSetTeamResetUsers>
 export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
 export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
@@ -357,8 +357,7 @@ export type Actions =
   | More.ReturnType<typeof createSetChannelCreationError>
   | More.ReturnType<typeof createSetLoaded>
   | More.ReturnType<typeof createSetMemberPublicity>
-  | More.ReturnType<typeof createSetNewTeamRequests>
-  | More.ReturnType<typeof createSetNewTeams>
+  | More.ReturnType<typeof createSetNewTeamInfo>
   | More.ReturnType<typeof createSetPublicity>
   | More.ReturnType<typeof createSetTeamAccessRequestsPending>
   | More.ReturnType<typeof createSetTeamCanPerform>
@@ -372,7 +371,6 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamLoadingInvites>
   | More.ReturnType<typeof createSetTeamPublicitySettings>
   | More.ReturnType<typeof createSetTeamRequests>
-  | More.ReturnType<typeof createSetTeamResetUsers>
   | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetTeamSawChatBanner>
   | More.ReturnType<typeof createSetTeamSawSubteamsBanner>

@@ -82,14 +82,12 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamAccessRequestsPending:
       return state.set('teamAccessRequestsPending', I.Set(action.payload.accessRequestsPending))
 
-    case TeamsGen.setNewTeams:
-      return state.set('newTeams', action.payload.newTeams)
-
-    case TeamsGen.setNewTeamRequests:
-      return state.set('newTeamRequests', action.payload.newTeamRequests)
-
-    case TeamsGen.setTeamResetUsers:
-      return state.set('teamNameToResetUsers', I.Map(action.payload.teamNameToResetUsers))
+    case TeamsGen.setNewTeamInfo:
+      return state.withMutations(s => {
+        s.set('newTeams', action.payload.newTeams)
+        s.set('newTeamRequests', action.payload.newTeamRequests)
+        s.set('teamNameToResetUsers', I.Map(action.payload.teamNameToResetUsers))
+      })
 
     case TeamsGen.setTeamSawChatBanner:
       return state.set('sawChatBanner', true)
