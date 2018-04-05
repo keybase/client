@@ -122,7 +122,7 @@ export type _State = {
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
-  teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
+  teamNameToCanPerform: I.Map<Teamname, TeamOperations>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamNameToAllowPromote: I.Map<Teamname, boolean>,

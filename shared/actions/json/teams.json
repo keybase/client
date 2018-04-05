@@ -144,6 +144,45 @@
       "teamname": "string",
       "subteams": "Types.Teamname[]",
     },
+    "setTeamCanPerform": {
+      "teamname": "string",
+      "teamOperation": "Types.TeamOperations",
+    },
+    "setTeamPublicitySettings": {
+      "teamname": "string",
+      "publicity": "Types._PublicitySettings",
+    },
+    "setTeamConvIDs": {
+      "teamname": "string",
+      "convIDs": "ChatTypes.ConversationIDKey[]",
+    },
+    "setChannelInfo": {
+      "convIDToChannelInfo": "{[string]: Types.ChannelInfo}",
+    },
+    "setLoaded": {
+      "loaded": "boolean",
+    },
+    "setTeamInfo": {
+      "teamnames": "Types.Teamname[]",
+      "teammembercounts": "{[Types.Teamname]: number}",
+      "teamNameToIsOpen": "{[Types.Teamname]: number}",
+      "teamNameToRole": "{[Types.Teamname]: Types.TeamRoleType}",
+      "teamNameToAllowPromote": "{[Types.Teamname]: boolean}",
+      "teamNameToIsShowcasing": "{[Types.Teamname]: boolean}",
+      "teamNameToID": "{[Types.Teamname]: string}",
+    },
+    "setTeamAccessRequestsPending": {
+      "accessRequestsPending": "Types.Teamname[]",
+    },
+    "setNewTeams": {
+      "newTeams": "I.Set<string>",
+    },
+    "setNewTeamRequests": {
+      "newTeamRequests": "I.List<string>",
+    },
+    "setTeamResetUsers": {
+      "teamNameToResetUsers": "{[Types.Teamname]: Types.ResetUser}",
+    },
     "setupTeamHandlers": {},
     "updateChannelName": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",

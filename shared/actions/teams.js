@@ -463,7 +463,7 @@ const _getTeamOperations = function*(
     const teamOperation = yield Saga.call(RPCTypes.teamsCanUserPerformRpcPromise, {
       name: teamname,
     })
-    yield Saga.put(replaceEntity(['teams', 'teamNameToCanPerform'], I.Map({[teamname]: teamOperation})))
+    yield Saga.put(TeamsGen.createSetTeamCanPerform({teamname, teamOperation}))
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
@@ -493,13 +493,13 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
 
   const publicityMap = {
     anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
-    description: publicity.teamShowcase.description,
+    description: publicity.teamShowcase.description || '',
     ignoreAccessRequests: tarsDisabled,
     member: publicity.isMemberShowcased,
     team: publicity.teamShowcase.isShowcased,
   }
 
-  yield Saga.put(replaceEntity(['teams', 'teamNameToPublicitySettings'], I.Map({[teamname]: publicityMap})))
+  yield Saga.put(TeamsGen.createSetTeamPublicitySettings({teamname, publicity: publicityMap}))
   yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 
@@ -527,7 +527,8 @@ function _afterGetChannels(fromGetChannels: any[]) {
 
   const convs = results.convs || []
   convs.forEach(conv => {
-    convIDs.push(conv.convID)
+    const convID = ChatTypes.stringToConversationIDKey(conv.convID)
+    convIDs.push(convID)
     convIDToChannelInfo[conv.convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
@@ -536,8 +537,8 @@ function _afterGetChannels(fromGetChannels: any[]) {
   })
 
   return Saga.all([
-    Saga.put(replaceEntity(['teams', 'teamNameToConvIDs'], I.Map([[teamname, I.Set(convIDs)]]))),
-    Saga.put(replaceEntity(['teams', 'convIDToChannelInfo'], I.Map(convIDToChannelInfo))),
+    Saga.put(TeamsGen.createSetTeamConvIDs({teamname, convIDs})),
+    Saga.put(TeamsGen.createSetChannelInfo({convIDToChannelInfo})),
     Saga.put(createDecrementWaiting(waitingKey)),
   ])
 }
@@ -549,7 +550,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     logger.warn('getTeams while logged out')
     return
   }
-  yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', false]])))
+  yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListUnverifiedRpcPromise, {
       includeImplicitTeams: false,
@@ -590,18 +591,15 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     )
 
     yield Saga.put(
-      replaceEntity(
-        ['teams'],
-        I.Map({
-          teamnames: teamNameSet,
-          teammembercounts: I.Map(teammembercounts),
-          teamNameToIsOpen: I.Map(teamNameToIsOpen),
-          teamNameToRole: I.Map(teamNameToRole),
-          teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
-          teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
-          teamNameToID: I.Map(teamNameToID),
-        })
-      )
+      TeamsGen.createSetTeamInfo({
+        teamnames,
+        teammembercounts,
+        teamNameToIsOpen,
+        teamNameToRole,
+        teamNameToAllowPromote,
+        teamNameToIsShowcasing,
+        teamNameToID,
+      })
     )
   } catch (err) {
     if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
@@ -610,7 +608,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
       throw err
     }
   } finally {
-    yield Saga.put(replaceEntity(['teams'], I.Map([['loaded', true]])))
+    yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
   }
 }
 
@@ -619,7 +617,7 @@ const _checkRequestedAccess = (action: TeamsGen.CheckRequestedAccessPayload) =>
 
 function _checkRequestedAccessSuccess(result) {
   const teams = (result || []).map(row => row.parts.join('.'))
-  return Saga.put(replaceEntity(['teams'], I.Map([['teamAccessRequestsPending', I.Set(teams)]])))
+  return Saga.put(TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: teams}))
 }
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
@@ -985,11 +983,9 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   }
 
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-  actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeams', newTeams]]))))
-  actions.push(Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', newTeamRequests]]))))
-  actions.push(
-    Saga.put(replaceEntity(['teams'], I.Map([['teamNameToResetUsers', I.Map(teamsWithResetUsersMap)]])))
-  )
+  actions.push(Saga.put(TeamsGen.createSetNewTeams({newTeams})))
+  actions.push(Saga.put(TeamsGen.createSetNewTeamRequests({newTeamRequests})))
+  actions.push(Saga.put(TeamsGen.createSetTeamResetUsers({teamNameToResetUsers: teamsWithResetUsersMap})))
   return Saga.sequentially(actions)
 }
 
@@ -1093,6 +1089,69 @@ const _setTeamSubteams = (action: TeamsGen.SetTeamSubteamsPayload) =>
     )
   )
 
+const _setTeamCanPerform = (action: TeamsGen.SetTeamCanPerformPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToCanPerform'],
+      I.Map([[action.payload.teamname, action.payload.teamOperation]])
+    )
+  )
+
+const _setTeamPublicitySettings = (action: TeamsGen.SetTeamPublicitySettingsPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToPublicitySettings'],
+      I.Map([[action.payload.teamname, action.payload.publicity]])
+    )
+  )
+
+const _setTeamConvIDs = (action: TeamsGen.SetTeamConvIDsPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToConvIDs'],
+      I.Map([[action.payload.teamname, I.Set(action.payload.convIDs)]])
+    )
+  )
+
+const _setChannelInfo = (action: TeamsGen.SetChannelInfoPayload) =>
+  Saga.put(replaceEntity(['teams', 'convIDToChannelInfo'], I.Map(action.payload.convIDToChannelInfo)))
+
+const _setLoaded = (action: TeamsGen.SetLoadedPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map([['loaded', action.payload.loaded]])))
+
+const _setTeamInfo = (action: TeamsGen.SetTeamInfoPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams'],
+      I.Map({
+        teamnames: action.payload.teamnames,
+        teammembercounts: I.Map(action.payload.teammembercounts),
+        teamNameToIsOpen: I.Map(action.payload.teamNameToIsOpen),
+        teamNameToRole: I.Map(action.payload.teamNameToRole),
+        teamNameToAllowPromote: I.Map(action.payload.teamNameToAllowPromote),
+        teamNameToIsShowcasing: I.Map(action.payload.teamNameToIsShowcasing),
+        teamNameToID: I.Map(action.payload.teamNameToID),
+      })
+    )
+  )
+
+const _setTeamAccessRequestsPending = (action: TeamsGen.SetTeamAccessRequestsPendingPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams'],
+      I.Map([['teamAccessRequestsPending', I.Set(action.payload.accessRequestsPending)]])
+    )
+  )
+
+const _setNewTeams = (action: TeamsGen.SetNewTeamsPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map([['newTeams', action.payload.newTeams]])))
+
+const _setNewTeamRequests = (action: TeamsGen.SetNewTeamRequestsPayload) =>
+  Saga.put(replaceEntity(['teams'], I.Map([['newTeamRequests', action.payload.newTeamRequests]])))
+
+const _setTeamResetUsers = (action: TeamsGen.SetTeamResetUsersPayload) =>
+  Saga.put(replaceEntity(['teams', 'teamNameToResetUsers'], I.Map(action.payload.teamNameToResetUsers)))
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1132,6 +1191,16 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamSettings, _setTeamSettings)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamInvites, _setTeamInvites)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamSubteams, _setTeamSubteams)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCanPerform, _setTeamCanPerform)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamPublicitySettings, _setTeamPublicitySettings)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamConvIDs, _setTeamConvIDs)
+  yield Saga.safeTakeEveryPure(TeamsGen.setChannelInfo, _setChannelInfo)
+  yield Saga.safeTakeEveryPure(TeamsGen.setLoaded, _setLoaded)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamInfo, _setTeamInfo)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamAccessRequestsPending, _setTeamAccessRequestsPending)
+  yield Saga.safeTakeEveryPure(TeamsGen.setNewTeams, _setNewTeams)
+  yield Saga.safeTakeEveryPure(TeamsGen.setNewTeamRequests, _setNewTeamRequests)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamResetUsers, _setTeamResetUsers)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(
