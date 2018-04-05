@@ -274,6 +274,8 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	})
 	tt.users = append(tt.users, ann)
 
+	ann.tc.G.Env.Test.SkipSendingSystemChatMessages = true
+
 	bee := tt.addUser("bee")
 	dan := tt.addUser("dan")
 	mel := tt.addUser("mel")
