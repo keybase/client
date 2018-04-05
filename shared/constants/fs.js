@@ -86,6 +86,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   fuseInstalling: false,
   kextPermissionError: false,
   showBanner: false,
+  syncing: false,
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({

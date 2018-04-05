@@ -71,13 +71,6 @@ export default function(
         },
       }
 
-    case FavoriteGen.kbfsStatusUpdated:
-      const {status} = action.payload
-      return {
-        ...state,
-        kbfsStatus: status,
-      }
-
     case KBFSGen.fuseStatus:
       return {
         ...state,
@@ -135,8 +128,6 @@ export default function(
     case FavoriteGen.favoriteIgnore:
     case FavoriteGen.favoriteIgnored:
     case FavoriteGen.favoriteList:
-    case FavoriteGen.setupKBFSChangedHandler:
-    case FavoriteGen.requestFSSyncStatus:
     case KBFSGen.installKBFSResult:
     case KBFSGen.list:
     case KBFSGen.listed:

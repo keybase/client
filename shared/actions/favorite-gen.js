@@ -18,10 +18,7 @@ export const favoriteList = 'favorite:favoriteList'
 export const favoriteListed = 'favorite:favoriteListed'
 export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
-export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
 export const markTLFCreated = 'favorite:markTLFCreated'
-export const requestFSSyncStatus = 'favorite:requestFSSyncStatus'
-export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
 
 // Action Creators
 export const createFavoriteAdd = (payload: $ReadOnly<{|path: string|}>) => ({error: false, payload, type: favoriteAdd})
@@ -34,10 +31,7 @@ export const createFavoriteList = () => ({error: false, payload: undefined, type
 export const createFavoriteListed = (payload: $ReadOnly<{|folders: Types.FolderState|}>) => ({error: false, payload, type: favoriteListed})
 export const createFavoriteSwitchTab = (payload: $ReadOnly<{|showingPrivate: boolean|}>) => ({error: false, payload, type: favoriteSwitchTab})
 export const createFavoriteToggleIgnored = (payload: $ReadOnly<{|isPrivate: boolean|}>) => ({error: false, payload, type: favoriteToggleIgnored})
-export const createKbfsStatusUpdated = (payload: $ReadOnly<{|status: Types.KBFSStatus|}>) => ({error: false, payload, type: kbfsStatusUpdated})
 export const createMarkTLFCreated = (payload: $ReadOnly<{|folder: Folders.Folder|}>) => ({error: false, payload, type: markTLFCreated})
-export const createRequestFSSyncStatus = () => ({error: false, payload: undefined, type: requestFSSyncStatus})
-export const createSetupKBFSChangedHandler = () => ({error: false, payload: undefined, type: setupKBFSChangedHandler})
 
 // Action Payloads
 export type FavoriteAddPayload = More.ReturnType<typeof createFavoriteAdd>
@@ -48,10 +42,7 @@ export type FavoriteListPayload = More.ReturnType<typeof createFavoriteList>
 export type FavoriteListedPayload = More.ReturnType<typeof createFavoriteListed>
 export type FavoriteSwitchTabPayload = More.ReturnType<typeof createFavoriteSwitchTab>
 export type FavoriteToggleIgnoredPayload = More.ReturnType<typeof createFavoriteToggleIgnored>
-export type KbfsStatusUpdatedPayload = More.ReturnType<typeof createKbfsStatusUpdated>
 export type MarkTLFCreatedPayload = More.ReturnType<typeof createMarkTLFCreated>
-export type RequestFSSyncStatusPayload = More.ReturnType<typeof createRequestFSSyncStatus>
-export type SetupKBFSChangedHandlerPayload = More.ReturnType<typeof createSetupKBFSChangedHandler>
 
 // All Actions
 // prettier-ignore
@@ -66,8 +57,5 @@ export type Actions =
   | More.ReturnType<typeof createFavoriteListed>
   | More.ReturnType<typeof createFavoriteSwitchTab>
   | More.ReturnType<typeof createFavoriteToggleIgnored>
-  | More.ReturnType<typeof createKbfsStatusUpdated>
   | More.ReturnType<typeof createMarkTLFCreated>
-  | More.ReturnType<typeof createRequestFSSyncStatus>
-  | More.ReturnType<typeof createSetupKBFSChangedHandler>
   | {type: 'common:resetStore', payload: void}

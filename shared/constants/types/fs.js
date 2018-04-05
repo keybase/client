@@ -103,6 +103,7 @@ export type _State = {
   fuseInstalling: boolean,
   kextPermissionError: boolean,
   showBanner: boolean,
+  syncing: boolean,
 }
 export type State = I.RecordOf<_State>
 

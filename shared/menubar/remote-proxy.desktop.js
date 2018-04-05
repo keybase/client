@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
   folderProps: state.favorite.folderState,
-  isAsyncWriteHappening: state.favorite.kbfsStatus && state.favorite.kbfsStatus.isAsyncWriteHappening,
+  isAsyncWriteHappening: state.fs.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
 })
