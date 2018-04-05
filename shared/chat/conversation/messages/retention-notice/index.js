@@ -1,9 +1,14 @@
 // @flow
 import * as React from 'react'
+import type {RetentionPolicy} from '../../../../constants/types/teams'
 import {Box, Icon} from '../../../../common-adapters/'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
-export type Props = {}
+export type Props = {
+  policy: RetentionPolicy,
+  teamPolicy: RetentionPolicy,
+  teamType: 'small' | 'big' | 'adhoc',
+}
 
 const iconType = isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
 
