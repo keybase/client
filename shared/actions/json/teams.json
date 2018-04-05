@@ -112,6 +112,10 @@
       "success": "boolean",
       "teamname": "?string"
     },
+    "setTeamStoreRetentionPolicy": {
+      "teamname": "string",
+      "retentionPolicy": "Types.RetentionPolicy",
+    },
     "setupTeamHandlers": {},
     "updateChannelName": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
