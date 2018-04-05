@@ -441,7 +441,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       Saga.put(TeamsGen.createSetTeamMemberUsernames({teamname, usernames: memberNames})),
       Saga.put(TeamsGen.createSetTeamRequests({requests: requestMap})),
       Saga.put(
-        // $FlowIssue read-only prop type issues
         TeamsGen.createSetTeamSettings({teamname, settings: Constants.makeTeamSettings(details.settings)})
       ),
       Saga.put(TeamsGen.createSetTeamInvites({teamname, invites})),

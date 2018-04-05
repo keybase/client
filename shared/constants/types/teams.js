@@ -26,7 +26,7 @@ export type _PublicitySettings = {
   team: boolean,
 }
 
-export type _TeamSettings = RPCTypes.TeamSettings
+export type _TeamSettings = {open: boolean, joinAs: RPCTypes.TeamRole}
 export type TeamSettings = I.RecordOf<_TeamSettings>
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
