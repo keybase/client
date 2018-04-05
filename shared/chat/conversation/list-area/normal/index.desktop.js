@@ -14,7 +14,15 @@ import type {Props} from '.'
 
 const lockedToBottomSlop = 20
 
-class Thread extends React.Component<Props> {
+type State = {
+  isLockedToBottom: boolean, // MUST be in state else virtualized will re-render itself and will jump down w/o us re-rendering
+}
+
+class Thread extends React.Component<Props, State> {
+  state = {
+    isLockedToBottom: true,
+  }
+
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
     keyMapper: (index: number) => {
@@ -31,8 +39,6 @@ class Thread extends React.Component<Props> {
   })
 
   _list: any
-  // If we should stick to the bottom
-  _isLockedToBottom: boolean = true
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
@@ -58,7 +64,7 @@ class Thread extends React.Component<Props> {
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
       this._cellCache.clearAll()
-      this._isLockedToBottom = true
+      this.setState({isLockedToBottom: true})
     }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
@@ -70,12 +76,14 @@ class Thread extends React.Component<Props> {
     }
   }
 
-  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  _updateBottomLock = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      this._isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+      this.setState({
+        isLockedToBottom: scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop,
+      })
     }
-  }
+  }, 500)
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
@@ -153,7 +161,7 @@ class Thread extends React.Component<Props> {
 
   render() {
     const rowCount = this._getItemCount()
-    const scrollToIndex = this._isLockedToBottom ? rowCount - 1 : undefined
+    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
 
     return (
       <ErrorBoundary>
