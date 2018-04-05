@@ -104,12 +104,12 @@
     // We got a status update saying it was blocked or ignored
     "metaDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
+      "selectSomethingElse": "boolean",
     },
     // We updated our view of a thread
     "metaUpdatePagination": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "Types.PaginationKey",
-      "paginationMoreToLoad": "boolean",
+      "paginationKey": "?Types.PaginationKey",
     },
     // Add a new message
     "messagesAdd": {
@@ -128,6 +128,17 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
       "outboxID": "Types.OutboxID",
+    },
+    "setPendingMessageSubmitState": {
+      "_description": "Sets pending messages in the store to the supplied state and logs the reason",
+      "reason": "string",
+      "submitState": ["'failed'", "'pending'"]
+    },
+    "cancelPendingConversation": {
+      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
+    },
+    "retryPendingConversation": {
+      "_description": "Retries sending the pending message that is currently stored in the metaMap"
     },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
@@ -174,6 +185,10 @@
     // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
     "setPendingMode": {
       "pendingMode": "Types.PendingMode"
+    },
+    "setPendingStatus": {
+      "_description": "Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.",
+      "pendingStatus": "Types.PendingStatus"
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {

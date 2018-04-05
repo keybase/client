@@ -1,6 +1,7 @@
 // @flow
 
-export class RPCError extends Error {
+export class RPCError {
+  message: string
   code: number // Consult type StatusCode in rpc-gen.js for what this means
   fields: any
   desc: string
@@ -8,7 +9,7 @@ export class RPCError extends Error {
   details: string // Details w/ error code & method if it's present
 
   constructor(message: string, code: number, fields: any, name: ?string, method: ?string) {
-    super(paramsToErrorMsg(message, code, fields, name, method))
+    this.message = paramsToErrorMsg(message, code, fields, name, method)
     this.code = code // Consult type StatusCode in rpc-gen.js for what this means
     this.fields = fields
     this.desc = message
@@ -46,29 +47,18 @@ const paramsToErrorMsg = (
   return msg
 }
 
-export class RPCTimeoutError extends Error {
-  ttl: ?number
-  rpcName: string
-
-  constructor(rpcName: string, ttl: ?number) {
-    super(`RPC timeout error on ${rpcName}. Had a ttl of: ${ttl || 'Undefined ttl'}`)
-    this.ttl = ttl
-    this.rpcName = rpcName
-  }
-}
-
-export class ValidationError extends Error {}
-
-export class SearchError extends Error {}
-
 // convertToError converts an RPC error object (or any object) into an Error
 export function convertToError(err: Object, method?: string): Error {
   if (err instanceof Error) {
     return err
   }
 
+  if (err instanceof RPCError) {
+    return new Error(err.message)
+  }
+
   if (err.hasOwnProperty('desc') && err.hasOwnProperty('code')) {
-    return convertToRPCError(err, method)
+    return new Error(convertToRPCError(err, method).message)
   }
 
   return new Error(`Unknown error: ${JSON.stringify(err)}`)

@@ -130,11 +130,6 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           logger.error('Push chat notification payload missing conversation ID')
           return
         }
-        // Short term hack: this just ensures that the service definitely knows we are now in the
-        // foreground for the GetThreadLocal call coming from selectConversation.
-        yield Saga.call(RPCTypes.appStateUpdateAppStateRpcPromise, {
-          state: RPCTypes.appStateAppState.foreground,
-        })
         if (handledPushThisSession) {
           return
         }

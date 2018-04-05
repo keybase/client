@@ -55,8 +55,8 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	u.clock = clock
 	u.Run()
-	attempt := func() {
-		clock.BlockUntil(1)
+	attempt := func(attempt int) {
+		clock.BlockUntil(attempt)
 		clock.Advance(time.Hour)
 		select {
 		case tlfID := <-upgradeCh:
@@ -65,9 +65,9 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 			require.Fail(t, "no upgrade")
 		}
 	}
-	attempt()
+	attempt(1)
 	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
 	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
-	attempt()
+	attempt(2)
 	u.Shutdown()
 }

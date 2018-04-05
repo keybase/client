@@ -63,6 +63,12 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 
 func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team string,
 	category keybase1.TeamInviteCategory, inviter, invitee keybase1.UID) (res bool) {
+
+	if !g.Env.SendSystemChatMessages() {
+		g.Log.CDebugf(ctx, "Skipping SentChatInviteWelcomeMessage via environment flag")
+		return false
+	}
+
 	inviterName, err := g.GetUPAKLoader().LookupUsername(ctx, inviter)
 	if err != nil {
 		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to lookup inviter username: %s", err)
@@ -95,6 +101,12 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 
 func SendTeamChatCreateMessage(ctx context.Context, g *libkb.GlobalContext, team, creator string) bool {
 	var err error
+
+	if !g.Env.SendSystemChatMessages() {
+		g.Log.CDebugf(ctx, "Skipping SendTeamChatCreateMessage via environment flag")
+		return false
+	}
+
 	defer func() {
 		if err != nil {
 			g.Log.CWarningf(ctx, "failed to send team create message: %s", err.Error())

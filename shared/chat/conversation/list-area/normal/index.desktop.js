@@ -3,52 +3,61 @@
 import * as Virtualized from 'react-virtualized'
 import * as React from 'react'
 import Message from '../../messages'
+import SpecialTopMessage from '../../messages/special-top-message'
+import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
-type State = {
-  isLockedToBottom: boolean,
-  listRerender: number,
-}
-
 const lockedToBottomSlop = 20
 
+type State = {
+  isLockedToBottom: boolean, // MUST be in state else virtualized will re-render itself and will jump down w/o us re-rendering
+}
+
 class Thread extends React.Component<Props, State> {
+  state = {
+    isLockedToBottom: true,
+  }
+
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
-    keyMapper: (rowIndex: number) => this.props.messageOrdinals.get(rowIndex),
+    keyMapper: (index: number) => {
+      const itemCountIncludingSpecial = this._getItemCount()
+      if (index === itemCountIncludingSpecial - 1) {
+        return 'specialBottom'
+      } else if (index === 0) {
+        return 'specialTop'
+      } else {
+        const ordinalIndex = index - 1
+        return this.props.messageOrdinals.get(ordinalIndex)
+      }
+    },
   })
 
   _list: any
-  _keepIdxVisible: number = -1
-  _lastRowIdx: number = -1
-  // ScrolltoRow sometimes triggers load more. This'll all go away when we ditch react-virtualized. for now this fixes
-  // if you edit your last message that'l cause a load more sometimes due to scrolltop being 0 incorrectly
-  _ignoreScrollUpTill: number = 0
 
-  state = {
-    isLockedToBottom: true,
-    listRerender: 0,
-    selectedMessageKey: null,
-  }
-
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
-    if (this._keepIdxVisible !== -1) {
-      this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
-      this._keepIdxVisible = -1
-    }
-    this._lastRowIdx = -1 // always reset this to be safe
-
+  componentDidUpdate(prevProps: Props) {
     if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
       const idx = this.props.messageOrdinals.indexOf(this.props.editingOrdinal)
       if (idx !== -1) {
-        this._ignoreScrollUpTill = Date.now() + 1000
-        this._list && this._list.scrollToRow(idx)
+        this._list && this._list.scrollToRow(idx + 1)
+      }
+    } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size && this._list) {
+      // try and maintain scroll position, doens't work great
+      if (prevProps.messageOrdinals.size > 1) {
+        const toFind = prevProps.messageOrdinals.first()
+        if (toFind === this.props.lastLoadMoreOrdinal) {
+          const idx = toFind ? this.props.messageOrdinals.indexOf(toFind) : -1
+          if (idx !== -1) {
+            const scrollToIdx = idx + 1
+            this._list.scrollToRow(scrollToIdx)
+          }
+        }
       }
     }
   }
@@ -60,10 +69,6 @@ class Thread extends React.Component<Props, State> {
     }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
-      if (this.props.messageOrdinals.size > 1 && this._lastRowIdx !== -1) {
-        const toFind = this.props.messageOrdinals.get(this._lastRowIdx)
-        this._keepIdxVisible = toFind ? nextProps.messageOrdinals.indexOf(toFind) : -1
-      }
       // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
       // another cache from row -> style which is out of sync
@@ -72,25 +77,19 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
-  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  _updateBottomLock = throttle((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
-      if (this.state.isLockedToBottom !== isLockedToBottom) {
-        this.setState({isLockedToBottom})
-      }
+      this.setState(prevState => {
+        const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+        return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
+      })
     }
-  }
+  }, 500)
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
-      const now = Date.now()
-      if (!this._ignoreScrollUpTill || this._ignoreScrollUpTill < now) {
-        this._ignoreScrollUpTill = 0
-        this.props.loadMoreMessages()
-      } else {
-        console.log('skipping due to ignoreScrollUpTill')
-      }
+      this.props.loadMoreMessages(this.props.messageOrdinals.first())
     }
   }, 500)
 
@@ -105,9 +104,9 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
+  _getItemCount = () => this.props.messageOrdinals.size + 2
+
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
-    const ordinal = this.props.messageOrdinals.get(index)
-    const prevOrdinal = index > 0 ? this.props.messageOrdinals.get(index - 1) : null
     return (
       <Virtualized.CellMeasurer
         cache={this._cellCache}
@@ -116,16 +115,32 @@ class Thread extends React.Component<Props, State> {
         parent={parent}
         rowIndex={index}
       >
-        {({measure}) => (
-          <div style={style}>
-            <Message
-              ordinal={ordinal}
-              previous={prevOrdinal}
-              measure={measure}
-              conversationIDKey={this.props.conversationIDKey}
-            />
-          </div>
-        )}
+        {({measure}) => {
+          const itemCountIncludingSpecial = this._getItemCount()
+          let content = <div />
+          if (index === itemCountIncludingSpecial - 1) {
+            content = (
+              <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+            )
+          } else if (index === 0) {
+            content = <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+          } else {
+            const ordinalIndex = index - 1
+            const ordinal = this.props.messageOrdinals.get(ordinalIndex)
+            if (ordinal) {
+              const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
+              content = (
+                <Message
+                  ordinal={ordinal}
+                  previous={prevOrdinal}
+                  measure={measure}
+                  conversationIDKey={this.props.conversationIDKey}
+                />
+              )
+            }
+          }
+          return <div style={style}>{content}</div>
+        }}
       </Virtualized.CellMeasurer>
     )
   }
@@ -142,17 +157,13 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
-  _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
-    this._lastRowIdx = stopIndex
-  }
-
   _setListRef = (r: any) => {
     this._list = r
   }
 
   render() {
-    const rowCount = this.props.messageOrdinals.size + (this.props.hasExtraRow ? 1 : 0)
-    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
+    const rowCount = this._getItemCount()
+    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
 
     return (
       <ErrorBoundary>
@@ -162,17 +173,15 @@ class Thread extends React.Component<Props, State> {
             {({height, width}) => (
               <Virtualized.List
                 conversationIDKey={this.props.conversationIDKey}
-                listRerender={this.state.listRerender}
                 columnWidth={width}
                 deferredMeasurementCache={this._cellCache}
                 height={height}
                 onScroll={this._onScroll}
-                onRowsRendered={this._onRowsRendered}
                 ref={this._setListRef}
                 rowCount={rowCount}
                 rowHeight={this._cellCache.rowHeight}
                 rowRenderer={this._rowRenderer}
-                scrollToAlignment="end"
+                scrollToAlignment="start"
                 scrollToIndex={scrollToIndex}
                 style={listStyle}
                 width={width}

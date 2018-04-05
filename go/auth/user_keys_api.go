@@ -47,6 +47,7 @@ type userKeyRes struct {
 	Status     libkb.AppStatus       `json:"status"`
 	Username   string                `json:"username"`
 	PublicKeys userKeysResPublicKeys `json:"public_keys"`
+	Deleted    bool                  `json:"deleted"`
 }
 
 func (k *userKeyRes) GetAppStatus() *libkb.AppStatus {
@@ -61,7 +62,7 @@ type userKeyAPI struct {
 }
 
 func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error) {
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
 	u.log.Debug("+ GetUser")
 	defer func() {
 		u.log.Debug("- GetUser -> %v", err)
@@ -70,15 +71,16 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
 	err = u.api.GetDecode(libkb.APIArg{
 		Endpoint: "user/keys",
 		Args: libkb.HTTPArgs{
-			"uid": libkb.S{Val: uid.String()},
+			"uid":          libkb.S{Val: uid.String()},
+			"load_deleted": libkb.B{Val: true},
 		},
 		NetContext: ctx,
 	}, &ukr)
 	if err != nil {
-		return "", nil, nil, err
+		return "", nil, nil, false, err
 	}
 	un = libkb.NewNormalizedUsername(ukr.Username)
-	return un, ukr.PublicKeys.Sibkeys, ukr.PublicKeys.Subkeys, nil
+	return un, ukr.PublicKeys.Sibkeys, ukr.PublicKeys.Subkeys, ukr.Deleted, nil
 }
 
 func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, err error) {

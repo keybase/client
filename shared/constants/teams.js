@@ -16,6 +16,7 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 // Add granularity as necessary
 export const teamWaitingKey = (teamname: string) => `team:${teamname}`
 export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
+export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,
@@ -124,7 +125,7 @@ const policyWeek = makeRetentionPolicy({type: 'expire', days: 7})
 const policyMonth = makeRetentionPolicy({type: 'expire', days: 30})
 const policyThreeMonths = makeRetentionPolicy({type: 'expire', days: 90})
 const policyYear = makeRetentionPolicy({type: 'expire', days: 365})
-const teamRetentionPolicies = [
+const baseRetentionPolicies = [
   policyDay,
   policyWeek,
   policyMonth,
@@ -141,8 +142,6 @@ const retentionPolicies = {
   policyThreeMonths,
   policyYear,
 }
-
-const convRetentionPolicies = [policyInherit, ...teamRetentionPolicies]
 
 const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
   service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
@@ -272,7 +271,6 @@ export {
   isSubteam,
   serviceRetentionPolicyToRetentionPolicy,
   retentionPolicyToServiceRetentionPolicy,
-  teamRetentionPolicies,
-  convRetentionPolicies,
+  baseRetentionPolicies,
   retentionPolicies,
 }

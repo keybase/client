@@ -88,4 +88,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Row'))(Row)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('FileRow'))(
+  Row
+)

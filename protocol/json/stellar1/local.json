@@ -6,7 +6,74 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "RecentPaymentCLILocal",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarTxID"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "string",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayCurrency"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromStellar"
+        },
+        {
+          "type": "AccountID",
+          "name": "toStellar"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "toUsername"
+        }
+      ]
+    }
+  ],
   "messages": {
     "balancesLocal": {
       "request": [
@@ -40,6 +107,21 @@
         }
       ],
       "response": "PaymentResult"
+    },
+    "recentPaymentsCLILocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "RecentPaymentCLILocal"
+      }
     },
     "walletInitLocal": {
       "request": [],

@@ -9,6 +9,8 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) 
 
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
+const NullComponent = () => null
+
 export {connect} from 'react-redux'
 export {
   branch,
@@ -32,6 +34,7 @@ export {
   createSelector,
   createSelectorCreator,
   defaultMemoize,
+  NullComponent,
 }
 export {Dispatch} from '../constants/types/flux'
 export {isMobile} from '../constants/platform'

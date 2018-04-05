@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -41,6 +42,7 @@ func (a *AppState) NextUpdate(lastState *keybase1.AppState) chan keybase1.AppSta
 func (a *AppState) Update(state keybase1.AppState) {
 	a.Lock()
 	defer a.Unlock()
+	defer a.G().Trace(fmt.Sprintf("AppState.Update(%v)", state), func() error { return nil })()
 	a.state = state
 	for _, ch := range a.updateChs {
 		ch <- state

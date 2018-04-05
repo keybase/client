@@ -660,7 +660,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceUser(ctx context.Context, q HTT
 }
 
 func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(ctx context.Context, q HTTPArgs, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
-	apiRes, err := mc.lookupPathAndSkipSequenceHelper(ctx, q, nil, lastRoot, true)
+	apiRes, err := mc.lookupPathAndSkipSequenceHelper(ctx, q, nil, lastRoot, false)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -686,8 +686,10 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 	w := 10 * int(CITimeMultiplier(mc.G()))
 
 	q.Add("poll", I{w})
-	q.Add("load_deleted", B{true})
-	q.Add("load_reset_chain", B{true})
+	if isUser {
+		q.Add("load_deleted", B{true})
+		q.Add("load_reset_chain", B{true})
+	}
 
 	// Add the local db sigHints version
 	if sigHints != nil {
@@ -1556,7 +1558,7 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
 
-	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupUser(%v)", teamID)
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
 	var path *VerificationPath
 	var ss SkipSequence
@@ -1588,7 +1590,7 @@ func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) 
 		return nil, err
 	}
 
-	mc.G().VDL.CLogf(ctx, VLog0, "- MerkleClient.LookupUser(%v) -> OK", teamID)
+	mc.G().VDL.CLogf(ctx, VLog0, "- MerkleClient.LookupTeam(%v) -> OK", teamID)
 	return leaf, nil
 }
 

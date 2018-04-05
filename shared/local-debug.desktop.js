@@ -56,23 +56,18 @@ if (!__STORYBOOK__) {
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
-  // $FlowIssue doens't like messing w/ console
-  console._log = console.log
-  // $FlowIssue doens't like messing w/ console
-  console._warn = console.warn
-  // $FlowIssue doens't like messing w/ console
-  console._error = console.error
-  // $FlowIssue doens't like messing w/ console
-  console._info = console.info
+  // Flow (correctly) doesn't like assigning to console
+  const c: any = console
 
-  // $FlowIssue doens't like messing w/ console
-  console.log = noop
-  // $FlowIssue doens't like messing w/ console
-  console.warn = noop
-  // $FlowIssue doens't like messing w/ console
-  console.error = noop
-  // $FlowIssue doens't like messing w/ console
-  console.info = noop
+  c._log = console.log
+  c._warn = console.warn
+  c._error = console.error
+  c._info = console.info
+
+  c.log = noop
+  c.warn = noop
+  c.error = noop
+  c.info = noop
 
   config.enableActionLogging = false
   config.enableStoreLogging = false

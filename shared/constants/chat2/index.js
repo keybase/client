@@ -18,6 +18,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   pendingSelected: false,
+  pendingStatus: 'none',
   selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),
   unreadMap: I.Map(),
@@ -37,14 +38,6 @@ export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-export const getExistingConversationWithUsers = (
-  users: I.Set<string>,
-  you: string,
-  metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
-) => {
-  const toFind = I.Set(users.concat([you]))
-  return metaMap.findKey(meta => meta.participants.toSet().equals(toFind)) || ''
-}
 export const isUserActivelyLookingAtThisThread = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey

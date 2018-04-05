@@ -183,7 +183,12 @@
                 Name="Keybase"
                 Description="Start GUI"
                 Target="[GuiDir]Keybase.exe"
-                WorkingDirectory="GuiDir"/>
+                WorkingDirectory="GuiDir">
+        <!-- Windows needs this for notifications to show on certain versions
+           https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
+           https://support.microsoft.com/en-us/help/2745126/warning-1946-message-when-you-install-a-windows-installer-package-in-w -->
+        <ShortcutProperty Key="{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}, 5" Value="Keybase.Keybase.GUI" />
+      </Shortcut>
       <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"/>
     </Component>
   </Fragment>

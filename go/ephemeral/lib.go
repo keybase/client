@@ -48,15 +48,30 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 		return err
 	}
 	if !pukring.HasAnyKeys() {
-		return fmt.Errorf("A PUK is needed to generate ephmeral keys. Aborting.")
+		return fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
 	}
 	return nil
+}
+
+// We should wrap any entry points to the library with this before we're ready
+// to fully release it.
+func (e *EKLib) ShouldRun(ctx context.Context) bool {
+	g := e.G()
+	willRun := g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+	if !willRun {
+		e.G().Log.CDebugf(ctx, "EKLib skipping run")
+	}
+	return willRun
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	e.Lock()
 	defer e.Unlock()
 
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(ctx) {
+		return nil
+	}
 	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return err
 	}
@@ -103,7 +118,7 @@ func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context) (err error) {
 }
 
 func (e *EKLib) cleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
-	defer e.G().CTrace(ctx, "CleanupStaleUserAndDeviceEKs", func() error { return err })()
+	defer e.G().CTrace(ctx, "cleanupStaleUserAndDeviceEKs", func() error { return err })()
 
 	epick := libkb.FirstErrorPicker{}
 
@@ -163,12 +178,14 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	defer e.G().CTrace(ctx, "newUserEKNeeded", func() error { return err })()
 
 	// Let's see what the latest server statement is.
-	statement, err := fetchUserEKStatement(ctx, e.G())
+	myUID := e.G().Env.GetUID()
+	statements, err := fetchUserEKStatements(ctx, e.G(), []keybase1.UID{myUID})
 	if err != nil {
 		return false, err
 	}
+	statement, ok := statements[myUID]
 	// No statement, so we need a userEK
-	if statement == nil {
+	if !ok || statement == nil {
 		return true, nil
 	}
 	// Can we access this generation? If not, let's regenerate.
@@ -203,6 +220,8 @@ func (e *EKLib) NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (ne
 }
 
 func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot, statement *keybase1.TeamEkStatement) (needed bool, err error) {
+	defer e.G().CTrace(ctx, "newTeamEKNeeded", func() error { return err })()
+
 	// Let's see what the latest server statement is.
 	// No statement, so we need a teamEK
 	if statement == nil {
@@ -248,7 +267,8 @@ func (e *EKLib) isEntryValid(val interface{}) (*teamEKGenCacheEntry, bool) {
 	return cacheEntry, (keybase1.TimeFromSeconds(time.Now().Unix()) - cacheEntry.Ctime) < keybase1.TimeFromSeconds(cacheEntryLifetimeSecs)
 }
 
-func (e *EKLib) PurgeTeamEKGenCache(context context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+
 	key := e.cacheKey(teamID)
 	val, ok := e.teamEKGenCache.Get(teamID)
 	if ok {
@@ -259,6 +279,8 @@ func (e *EKLib) PurgeTeamEKGenCache(context context.Context, teamID keybase1.Tea
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
+
 	e.Lock()
 	defer e.Unlock()
 
@@ -304,24 +326,163 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 		publishedMetadata = statement.CurrentTeamEkMetadata
 	}
 
-	_, err = teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
-	if err != nil {
-		return teamEK, err
-	}
 	teamEK, err = teamEKBoxStorage.Get(ctx, teamID, publishedMetadata.Generation)
 	if err != nil {
 		return teamEK, err
 	}
 	// Cache the latest generation
 	e.teamEKGenCache.Add(key, e.newCacheEntry(publishedMetadata.Generation))
+	_, err = teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
+	if err != nil {
+		return teamEK, err
+	}
 	return teamEK, nil
 }
 
+func (e *EKLib) NewEphemeralSeed() (seed keybase1.Bytes32, err error) {
+	return makeNewRandomSeed()
+}
+
+func (e *EKLib) DeriveDeviceDHKey(seed keybase1.Bytes32) *libkb.NaclDHKeyPair {
+	deviceEKSeed := DeviceEKSeed(seed)
+	return deviceEKSeed.DeriveDHKey()
+}
+
+func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey libkb.GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (statement keybase1.DeviceEkStatement, signedStatement string, err error) {
+	defer e.G().CTrace(ctx, "SignedDeviceEKStatementFromSeed", func() error { return err })()
+
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return statement, signedStatement, err
+	}
+	dhKeypair := e.DeriveDeviceDHKey(seed)
+	return signDeviceEKStatement(generation, dhKeypair, signingKey, existingMetadata, *merkleRootPtr)
+}
+
+// For device provisioning
+func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
+	defer e.G().CTrace(ctx, "BoxLatestUserEK", func() error { return err })()
+
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(ctx) {
+		return nil, nil
+	}
+
+	// Let's make sure we are up to date with keys first and we have the latest userEK cached.
+	if err = e.KeygenIfNeeded(ctx); err != nil {
+		return nil, err
+	}
+
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	maxGeneration, err := userEKBoxStorage.MaxGeneration(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if maxGeneration < 0 {
+		e.G().Log.CWarningf(ctx, "No userEK found")
+		return nil, nil
+	}
+	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration)
+	if err != nil {
+		return nil, err
+	}
+	box, err := receiverKey.EncryptToString(userEK.Seed[:], nil)
+	if err != nil {
+		return nil, err
+	}
+	return &keybase1.UserEkBoxed{
+		Box:                box,
+		DeviceEkGeneration: deviceEKGeneration,
+		Metadata:           userEK.Metadata,
+	}, nil
+}
+
+func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoot, pukSeed libkb.PerUserKeySeed) (sig string, boxes []keybase1.UserEkBoxMetadata, newMetadata keybase1.UserEkMetadata, myBox *keybase1.UserEkBoxed, err error) {
+	signingKey, err := pukSeed.DeriveSigningKey()
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	return prepareNewUserEK(ctx, e.G(), merkleRoot, signingKey)
+}
+
+func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, recipients []keybase1.UID) (teamEKBoxes *[]keybase1.TeamEkBoxMetadata, err error) {
+	defer e.G().CTrace(ctx, "BoxLatestTeamEK", func() error { return err })()
+
+	// If we need a new teamEK let's just create it when needed, the new
+	// members will be part of the team and will have access to it via the
+	// normal mechanisms.
+	if teamEKNeeded, err := e.NewTeamEKNeeded(ctx, teamID); err != nil {
+		return nil, err
+	} else if teamEKNeeded {
+		return nil, nil
+	}
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return nil, err
+	}
+	statementMap, err := fetchUserEKStatements(ctx, e.G(), recipients)
+	if err != nil {
+		return nil, err
+	}
+	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), statementMap, *merkleRootPtr)
+	if err != nil {
+		return nil, err
+	}
+
+	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
+	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
+	if err != nil {
+		return nil, err
+	}
+	teamEK, err := teamEKBoxStorage.Get(ctx, teamID, maxGeneration)
+	if err != nil {
+		return nil, err
+	}
+	boxes, _, err := boxTeamEKForUsers(ctx, e.G(), usersMetadata, teamEK)
+	return boxes, err
+}
+
+func (e *EKLib) PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey libkb.NaclSigningKeyPair, recipients []keybase1.UID) (sig string, boxes *[]keybase1.TeamEkBoxMetadata, newMetadata keybase1.TeamEkMetadata, myBox *keybase1.TeamEkBoxed, err error) {
+
+	// If we need a new teamEK let's just create it when needed, the new
+	// members will be part of the team and will have access to it via the
+	// normal mechanisms.
+	if teamEKNeeded, err := e.NewTeamEKNeeded(ctx, teamID); err != nil {
+		return "", nil, newMetadata, nil, err
+	} else if teamEKNeeded {
+		return "", nil, newMetadata, nil, nil
+	}
+
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	merkleRoot := *merkleRootPtr
+
+	statementMap, err := fetchUserEKStatements(ctx, e.G(), recipients)
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), statementMap, merkleRoot)
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	return prepareNewTeamEK(ctx, e.G(), teamID, signingKey, usersMetadata, merkleRoot)
+}
+
 func (e *EKLib) OnLogin() error {
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(context.Background()) {
+		return nil
+	}
 	return e.KeygenIfNeeded(context.Background())
 }
 
 func (e *EKLib) OnLogout() error {
+	// TODO remove this when we want to release in the wild.
+	if !e.ShouldRun(context.Background()) {
+		return nil
+	}
 	deviceEKStorage := e.G().GetDeviceEKStorage()
 	if deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()

@@ -6,10 +6,10 @@ import * as Types from '../../../../constants/types/chat2'
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   messageOrdinals: I.List<Types.Ordinal>,
-  hasExtraRow: boolean, // render one more item that's special
   onFocusInput: () => void,
-  loadMoreMessages: () => void,
+  loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
   editingOrdinal: ?Types.Ordinal,
+  lastLoadMoreOrdinal: ?Types.Ordinal,
 |}
 
 export default class ConversationList extends React.Component<Props> {}

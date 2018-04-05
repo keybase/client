@@ -273,6 +273,33 @@ func Version() string {
 	return libkb.VersionString()
 }
 
+func SetAppStateForeground() {
+	kbCtx.AppState.Update(keybase1.AppState_FOREGROUND)
+}
+func SetAppStateBackground() {
+	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+}
+func SetAppStateInactive() {
+	kbCtx.AppState.Update(keybase1.AppState_INACTIVE)
+}
+func SetAppStateBackgroundActive() {
+	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
+}
+
+// AppWillExit is called reliably on iOS when the app is about to terminate
+// not as reliably on android
+func AppWillExit() {
+	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDFINAL)
+}
+
+// AppDidEnterBackground notifies the service that the app is in the background
+// [iOS] returning true will request about ~3mins from iOS to continue execution
+func AppDidEnterBackground() (requestExecTime bool) {
+	SetAppStateBackground()
+	requestExecTime = false
+	return
+}
+
 func startTrace(logFile string) {
 	if os.Getenv("KEYBASE_TRACE_MOBILE") != "1" {
 		return

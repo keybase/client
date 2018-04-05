@@ -4,7 +4,7 @@ import {Map} from 'immutable'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
 import {followStateHelper} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
-import {connect, type TypedState} from '../../util/container'
+import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
 
 type OwnProps = {
   disableIfInTeamName: ?string,
@@ -39,4 +39,4 @@ const mapStateToProps = (
   }
 }
 
-export default connect(mapStateToProps)(SearchResultRow)
+export default compose(connect(mapStateToProps), setDisplayName('SearchResultRow'))(SearchResultRow)

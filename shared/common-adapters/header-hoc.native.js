@@ -4,7 +4,7 @@ import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 
 import type {Props} from './header-hoc'
 
@@ -13,13 +13,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
     const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
     return (
       <Box style={_containerStyle}>
-        <Box
-          style={{
-            ..._headerStyle,
-            ..._headerStyleThemed[theme],
-            ...headerStyle,
-          }}
-        >
+        <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
           {customComponent}
           {!!title && (
             <Box style={_titleStyle}>

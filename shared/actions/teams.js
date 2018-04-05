@@ -146,9 +146,17 @@ const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicy
     throw err
   }
   return Saga.sequentially([
-    Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+    Saga.put(
+      createIncrementWaiting({
+        key: [Constants.teamWaitingKey(teamname), Constants.retentionWaitingKey(teamname)],
+      })
+    ),
     Saga.call(RPCChatTypes.localSetTeamRetentionLocalRpcPromise, {teamID, policy: servicePolicy}),
-    Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
+    Saga.put(
+      createDecrementWaiting({
+        key: [Constants.teamWaitingKey(teamname), Constants.retentionWaitingKey(teamname)],
+      })
+    ),
   ])
 }
 

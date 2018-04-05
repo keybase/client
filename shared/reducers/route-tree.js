@@ -5,7 +5,6 @@ import * as CommonConstants from '../constants/common'
 import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
 import {
-  InvalidRouteError,
   getPath,
   pathToString,
   routeSetProps,
@@ -182,7 +181,7 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
       action
     )
   } catch (err) {
-    if (action.type === Constants.refreshRouteDef && err instanceof InvalidRouteError) {
+    if (action.type === Constants.refreshRouteDef && err && err.messsage.startsWith('RT:')) {
       logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
       logger.error(

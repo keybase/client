@@ -184,6 +184,7 @@ export const appStateAppState = {
   background: 1,
   inactive: 2,
   backgroundactive: 3,
+  backgroundfinal: 4,
 }
 
 export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, request: AppStateUpdateAppStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
@@ -1964,6 +1965,7 @@ export type AppState =
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
+  | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2450,7 +2452,7 @@ export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
 export type HashMeta = Bytes
 
-export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes}>
+export type Hello2Res = $ReadOnly<{encryptionKey: KID, sigPayload: HelloRes, deviceEkKID: KID}>
 
 export type HelloRes = String
 
@@ -2638,7 +2640,7 @@ export type KbfsMountGetCurrentMountDirRpcParam = ?$ReadOnly<{incomingCallMap?: 
 
 export type KbfsMountSetCurrentMountDirRpcParam = $ReadOnly<{dir: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type Kex2Provisionee2DidCounterSign2RpcParam = $ReadOnly<{sig: Bytes, ppsEncrypted: String, pukBox?: ?PerUserKeyBox, userEkBox?: ?UserEkBoxed, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type Kex2Provisionee2Hello2RpcParam = $ReadOnly<{uid: UID, token: SessionToken, csrf: CsrfToken, sigBody: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3675,6 +3677,8 @@ export type TeamDetails = $ReadOnly<{members: TeamMembersDetails, keyGeneration:
 
 export type TeamEk = $ReadOnly<{seed: Bytes32, metadata: TeamEkMetadata}>
 
+export type TeamEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientUID: UID}>
+
 export type TeamEkBoxed = $ReadOnly<{box: String, userEkGeneration: EkGeneration, metadata: TeamEkMetadata}>
 
 export type TeamEkMetadata = $ReadOnly<{kid: KID, hashMeta: HashMeta, generation: EkGeneration, ctime: Time}>
@@ -3963,6 +3967,8 @@ export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
+
+export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
 

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
+import {Input} from '../../../../common-adapters'
 import logger from '../../../../logger'
 
 type MentionHocState = {
@@ -25,7 +26,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       mentionPopupOpen: false,
       channelMentionPopupOpen: false,
     }
-    _inputRef: ?any
+    _inputRef: ?Input
 
     _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
       this.setState({mentionPopupOpen})
@@ -43,7 +44,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this.setState({channelMentionFilter})
     }
 
-    inputSetRef = (input: any) => {
+    inputSetRef = (input: Input) => {
       this.props._inputSetRef(input)
       this._inputRef = input
     }
@@ -157,7 +158,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
       // Get the word typed so far
       if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen || e.key === 'Backspace') {
-        const wordSoFar = this._getWordAtCursor(false)
+        const wordSoFar = this._getWordAtCursor()
         if (wordSoFar && wordSoFar[0] === '@') {
           !this.state.mentionPopupOpen && this._setMentionPopupOpen(true)
           this._setMentionFilter(wordSoFar.substring(1))
@@ -171,22 +172,13 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    _getWordAtCursor(includeWordAfterCursor: boolean): string {
+    _getWordAtCursor(): string {
       const text = this._inputRef && this._inputRef.getValue()
       const selections = this._inputRef && this._inputRef.selections()
       if (text && selections && selections.selectionStart === selections.selectionEnd) {
         const upToCursor = text.substring(0, selections.selectionStart)
         const words = upToCursor.split(/ |\n/)
-        const lastWord = words[words.length - 1]
-        if (includeWordAfterCursor) {
-          const afterCursor = text.substring(selections.selectionStart)
-          const endOfWordMatchIdx = afterCursor.search(/\s/)
-          return (
-            lastWord + (endOfWordMatchIdx !== -1 ? afterCursor.substring(0, endOfWordMatchIdx) : afterCursor)
-          )
-        } else {
-          return lastWord
-        }
+        return words[words.length - 1]
       }
 
       return ''
@@ -194,12 +186,12 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
     _replaceWordAtCursor(newWord: string): void {
       const selections = this._inputRef && this._inputRef.selections()
-      const word = this._getWordAtCursor(false)
+      const word = this._getWordAtCursor()
 
-      if (word && selections && selections.selectionStart === selections.selectionEnd) {
+      if (selections && selections.selectionStart === selections.selectionEnd) {
         const startOfWordIdx = selections.selectionStart - word.length
         if (startOfWordIdx >= 0) {
-          // Put the selection to the end of newWord.
+          // Put the cursor at the end of newWord.
           const newSelectionIndex = startOfWordIdx + newWord.length
           this._inputRef &&
             this._inputRef.replaceText(

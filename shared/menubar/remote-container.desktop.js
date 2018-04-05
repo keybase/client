@@ -40,7 +40,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     tab && dispatch(switchTo([tab]))
   },
   quit: () => {
-    executeActionsForContext('quitButton')
+    closeWindow()
+    dispatch(AppGen.createDumpLogs({reason: 'quitting through menu'}))
+    // In case dump log doens't exit for us
+    setTimeout(() => {
+      executeActionsForContext('quitButton')
+    }, 2000)
   },
   refresh: () => {
     dispatch(FavoriteGen.createFavoriteList())

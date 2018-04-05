@@ -1,6 +1,5 @@
 // @flow
 import IntroMap from './forms/dumb'
-import LoginMap from './login/dumb'
 import LoginError from './error.render'
 import {Map} from 'immutable'
 
@@ -11,6 +10,5 @@ const loginErrorMocks = {
 
 export default {
   ...IntroMap,
-  ...LoginMap,
   'Login: Generic Error': {component: LoginError, mocks: loginErrorMocks},
 }
