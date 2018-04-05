@@ -32,12 +32,13 @@ type CredentialAuthority struct {
 
 // checkArgs are sent over the checkCh to the core loop of a CredentialAuthority
 type checkArg struct {
-	uid      keybase1.UID
-	username *libkb.NormalizedUsername
-	kid      *keybase1.KID
-	sibkeys  []keybase1.KID
-	subkeys  []keybase1.KID
-	retCh    chan error
+	uid         keybase1.UID
+	username    *libkb.NormalizedUsername
+	kid         *keybase1.KID
+	sibkeys     []keybase1.KID
+	subkeys     []keybase1.KID
+	loadDeleted bool
+	retCh       chan error
 }
 
 // String implements the Stringer interface for checkArg.
@@ -77,21 +78,22 @@ func (ci cleanItem) String() string {
 // method that runs its own goRoutine, so many items, aside from the two channels,
 // are off-limits to the main thread.
 type user struct {
-	uid      keybase1.UID
-	username libkb.NormalizedUsername
-	sibkeys  map[keybase1.KID]struct{}
-	subkeys  map[keybase1.KID]struct{}
-	isOK     bool
-	ctime    time.Time
-	ca       *CredentialAuthority
-	checkCh  chan checkArg
-	stopCh   chan struct{}
+	uid       keybase1.UID
+	username  libkb.NormalizedUsername
+	sibkeys   map[keybase1.KID]struct{}
+	subkeys   map[keybase1.KID]struct{}
+	isOK      bool
+	isDeleted bool
+	ctime     time.Time
+	ca        *CredentialAuthority
+	checkCh   chan checkArg
+	stopCh    chan struct{}
 }
 
 // String implements the stringer interface for user.
 func (u user) String() string {
-	return fmt.Sprintf("{uid: %s, username: %s, sibkeys: %v, subkeys: %v, isOK: %v, ctime: %s}",
-		u.uid, u.username, u.sibkeys, u.subkeys, u.isOK, u.ctime)
+	return fmt.Sprintf("{uid: %s, username: %s, sibkeys: %v, subkeys: %v, isOK: %v, ctime: %s, isDeleted: %v}",
+		u.uid, u.username, u.sibkeys, u.subkeys, u.isOK, u.ctime, u.isDeleted)
 }
 
 // newUser makes a new user with the given UID for use in the given
@@ -116,8 +118,9 @@ func newUser(uid keybase1.UID, ca *CredentialAuthority) *user {
 // server authority.
 type UserKeyAPIer interface {
 	// GetUser looks up the username and KIDS active for the given user.
+	// Deleted users are loaded by default.
 	GetUser(context.Context, keybase1.UID) (
-		un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error)
+		un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error)
 	// PollForChanges returns the UIDs that have recently changed on the server
 	// side. It will be called in a poll loop. This call should function as
 	// a *long poll*, meaning, it should not return unless there is a change
@@ -355,7 +358,7 @@ func (u *user) repopulate() error {
 		u.ca.cleanItemCh <- cleanItem{uid: u.uid, ctime: ctime}
 	}()
 
-	un, sibkeys, subkeys, err := u.ca.getUserFromServer(u.uid)
+	un, sibkeys, subkeys, isDeleted, err := u.ca.getUserFromServer(u.uid)
 	if err != nil {
 		u.isOK = false
 		return err
@@ -369,6 +372,7 @@ func (u *user) repopulate() error {
 	}
 	u.isOK = true
 	u.ctime = ctime
+	u.isDeleted = isDeleted
 	u.ca.log.Debug("Repopulated info for %s", u)
 	return nil
 }
@@ -390,6 +394,11 @@ func (u *user) check(ca checkArg) {
 	}()
 
 	if err = u.repopulate(); err != nil {
+		return
+	}
+
+	if !ca.loadDeleted && u.isDeleted {
+		err = ErrUserDeleted
 		return
 	}
 
@@ -421,13 +430,13 @@ func (u *user) check(ca checkArg) {
 // getUserFromServer runs the UserKeyAPIer GetUser() API call while paying
 // attention to any shutdown events that might interrupt it.
 func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, err error) {
+	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error) {
 	err = v.runWithCancel(func(ctx context.Context) error {
 		var err error
-		un, sibkeys, subkeys, err = v.api.GetUser(ctx, uid)
+		un, sibkeys, subkeys, deleted, err = v.api.GetUser(ctx, uid)
 		return err
 	})
-	return un, sibkeys, subkeys, err
+	return un, sibkeys, subkeys, deleted, err
 }
 
 // checkUsername checks that a username is a match for this user.
@@ -452,11 +461,11 @@ func (u *user) compareSubkeys(subkeys []keybase1.KID) error {
 // Helper method for the two above.
 func compareKeys(keys []keybase1.KID, expected map[keybase1.KID]struct{}) error {
 	if len(keys) != len(expected) {
-		return KeysNotEqualError{}
+		return ErrKeysNotEqual
 	}
 	for _, kid := range keys {
 		if _, ok := expected[kid]; !ok {
-			return KeysNotEqualError{}
+			return ErrKeysNotEqual
 		}
 	}
 	return nil
@@ -478,10 +487,10 @@ func (u *user) checkKey(kid keybase1.KID) error {
 // extracted from a signed authentication statement. It returns an error if the
 // check fails, and nil otherwise. If username or kid are nil they aren't checked.
 func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID,
-	username *libkb.NormalizedUsername, kid *keybase1.KID) (err error) {
+	username *libkb.NormalizedUsername, kid *keybase1.KID, loadDeleted bool) (err error) {
 	v.log.Debug("CheckUserKey uid %s, kid %s", uid, kid)
 	retCh := make(chan error, 1) // buffered in case the ctx is canceled
-	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}
+	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, loadDeleted: loadDeleted, retCh: retCh}
 	select {
 	case <-ctx.Done():
 		err = ctx.Err()
@@ -496,7 +505,7 @@ func (v *CredentialAuthority) CheckUsers(ctx context.Context, users []keybase1.U
 		if uid == keybase1.PUBLIC_UID {
 			continue
 		}
-		if err = v.CheckUserKey(ctx, uid, nil, nil); err != nil {
+		if err = v.CheckUserKey(ctx, uid, nil, nil, false); err != nil {
 			break
 		}
 	}
