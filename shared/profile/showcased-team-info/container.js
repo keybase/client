@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
     _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
-      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
+      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
     onHidden: () => dispatch(navigateUp()),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: username => {

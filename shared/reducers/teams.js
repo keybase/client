@@ -23,6 +23,11 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.set('teamJoinError', action.payload.error)
 
     case TeamsGen.setTeamJoinSuccess:
+      return state.withMutations(s => {
+        s.set('teamJoinSuccess', action.payload.success)
+        s.set('teamJoinSuccessTeamName', action.payload.teamname)
+      })
+
     case TeamsGen.setTeamStoreRetentionPolicy:
     case TeamsGen.setTeamLoadingInvites:
     case TeamsGen.setTeamRequests:

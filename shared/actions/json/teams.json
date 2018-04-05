@@ -110,7 +110,7 @@
     },
     "setTeamJoinSuccess": {
       "success": "boolean",
-      "teamname": "?string"
+      "teamname": "string"
     },
     "setTeamStoreRetentionPolicy": {
       "teamname": "string",

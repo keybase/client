@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   _onRetry: (username: string) => dispatch(TrackerGen.createGetProfile({ignoreCache: true, username})),
   _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
   _onSetTeamJoinSuccess: (success: boolean) =>
-    dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
+    dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   _onUserClick: (username: string) =>
     dispatch(TrackerGen.createGetProfile({username, ignoreCache: true, forceDisplay: true})),

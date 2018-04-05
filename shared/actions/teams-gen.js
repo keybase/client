@@ -237,7 +237,7 @@ export const createSetTeamJoinError = (payload: $ReadOnly<{|error: string|}>) =>
 export const createSetTeamJoinSuccess = (
   payload: $ReadOnly<{|
     success: boolean,
-    teamname: ?string,
+    teamname: string,
   |}>
 ) => ({error: false, payload, type: setTeamJoinSuccess})
 export const createSetTeamLoadingInvites = (
