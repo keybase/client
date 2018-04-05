@@ -255,6 +255,9 @@ func (e *Env) GetMountDir() (string, error) {
 					"%s (%s)", runmodeName, user.Username))
 			case "linux":
 				return filepath.Join(e.GetRuntimeDir(), "kbfs")
+			// kbfsdokan depends on an empty default
+			case "windows":
+				return ""
 			default:
 				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			}

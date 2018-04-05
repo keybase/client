@@ -172,7 +172,7 @@ func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
 	strippedKey.Subkeys = nil
 	for _, subkey := range oldSubkeys {
 		// Skip revoked subkeys
-		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding {
+		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding && subkey.Revocation == nil {
 			strippedKey.Subkeys = append(strippedKey.Subkeys, subkey)
 		}
 	}

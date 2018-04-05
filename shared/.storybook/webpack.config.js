@@ -1,3 +1,4 @@
+// @noflow
 const webpack = require('webpack')
 const path = require('path')
 // you can use this file to add your custom webpack plugins, loaders and anything you like.
@@ -21,7 +22,11 @@ module.exports = (storybookBaseConfig, configType) => {
       __STORYBOOK__: true,
       __SCREENSHOT__: true,
       'process.platform': JSON.stringify('darwin'),
-    })
+    }),
+    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.js'),
+    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
+    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
+    new webpack.NormalModuleReplacementPlugin(/route-tree/, __dirname + '/../__mocks__/empty.js')
   )
 
   // Override default ignoring node_modules

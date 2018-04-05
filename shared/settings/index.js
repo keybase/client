@@ -4,40 +4,28 @@ import SettingsContainer from './render'
 import {connect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
 import {type RouteProps} from '../route-tree/render-route'
-import {type Tab} from '../constants/types/settings'
 
-const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
+type OwnProps = RouteProps<{}, {}>
 
-type StateProps = {
-  badgeNotifications: boolean,
-  badgeNumbers: {[key: Tab]: number},
-  isModal: boolean,
-  selectedTab: Tab,
-}
+const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: OwnProps) => ({
+  _badgeNumbers: state.notifications.get('navBadges'),
+  badgeNotifications: !state.push.hasPermissions,
+  isModal: routeLeafTags.modal,
+  // TODO: Is there a way to validate that routeSelected is a Tab?
+  selectedTab: (routeSelected: any),
+})
 
-const mapStateToProps = (
-  state: TypedState,
-  {routeLeafTags, routeSelected}: RouteProps<{}, {}>
-): StateProps => {
-  // $FlowIssue
-  const badgeNumbers: {[key: Tab]: number} = getNavBadges(state).toObject()
-  return {
-    badgeNotifications: !state.push.hasPermissions,
-    badgeNumbers,
-    isModal: routeLeafTags.modal,
-    // TODO: Is there a way to validate that routeSelected is a Tab?
-    selectedTab: (routeSelected: any),
-  }
-}
-
-type DispatchProps = {
-  onLogout: () => void,
-  onTabChange: (tab: Tab) => void,
-}
-
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}: OwnProps) => ({
   onLogout: () => dispatch(LoginGen.createLogout()),
   onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SettingsContainer)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeNotifications: stateProps.badgeNotifications,
+  badgeNumbers: stateProps._badgeNumbers.toObject(),
+  isModal: stateProps.isModal,
+  selectedTab: stateProps.selectedTab,
+  ...dispatchProps,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)

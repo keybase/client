@@ -24,6 +24,7 @@ export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
+export const cancelPendingConversation = 'chat2:cancelPendingConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
@@ -63,6 +64,7 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const retryPendingConversation = 'chat2:retryPendingConversation'
 export const selectConversation = 'chat2:selectConversation'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
@@ -71,8 +73,10 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
+export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingSelected = 'chat2:setPendingSelected'
+export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
@@ -81,9 +85,30 @@ export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
 /**
+ * Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox
+ */
+export const createCancelPendingConversation = () => ({error: false, payload: undefined, type: cancelPendingConversation})
+/**
  * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
  */
 export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+/**
+ * Retries sending the pending message that is currently stored in the metaMap
+ */
+export const createRetryPendingConversation = () => ({error: false, payload: undefined, type: retryPendingConversation})
+/**
+ * Sets pending messages in the store to the supplied state and logs the reason
+ */
+export const createSetPendingMessageSubmitState = (
+  payload: $ReadOnly<{|
+    reason: string,
+    submitState: 'failed' | 'pending',
+  |}>
+) => ({error: false, payload, type: setPendingMessageSubmitState})
+/**
+ * Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.
+ */
+export const createSetPendingStatus = (payload: $ReadOnly<{|pendingStatus: Types.PendingStatus|}>) => ({error: false, payload, type: setPendingStatus})
 /**
  * Sets the retention policy for a conversation. Valid operation for big team channels only.
  */
@@ -281,7 +306,12 @@ export const createMessagesWereDeleted = (
     ordinals?: Array<Types.Ordinal>,
   |}>
 ) => ({error: false, payload, type: messagesWereDeleted})
-export const createMetaDelete = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: metaDelete})
+export const createMetaDelete = (
+  payload: $ReadOnly<{|
+    conversationIDKey: Types.ConversationIDKey,
+    selectSomethingElse: boolean,
+  |}>
+) => ({error: false, payload, type: metaDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (
   payload: $ReadOnly<{|
@@ -407,6 +437,7 @@ export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentU
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
+export type CancelPendingConversationPayload = More.ReturnType<typeof createCancelPendingConversation>
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
@@ -446,6 +477,7 @@ export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNo
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
+export type RetryPendingConversationPayload = More.ReturnType<typeof createRetryPendingConversation>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SendTypingPayload = More.ReturnType<typeof createSendTyping>
@@ -454,8 +486,10 @@ export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConv
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
+export type SetPendingMessageSubmitStatePayload = More.ReturnType<typeof createSetPendingMessageSubmitState>
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
+export type SetPendingStatusPayload = More.ReturnType<typeof createSetPendingStatus>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
@@ -478,6 +512,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentUploading>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createBlockConversation>
+  | More.ReturnType<typeof createCancelPendingConversation>
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
@@ -517,6 +552,7 @@ export type Actions =
   | More.ReturnType<typeof createOpenFolder>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
+  | More.ReturnType<typeof createRetryPendingConversation>
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSendTyping>
@@ -525,8 +561,10 @@ export type Actions =
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>
+  | More.ReturnType<typeof createSetPendingMessageSubmitState>
   | More.ReturnType<typeof createSetPendingMode>
   | More.ReturnType<typeof createSetPendingSelected>
+  | More.ReturnType<typeof createSetPendingStatus>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createUpdateConvRetentionPolicy>

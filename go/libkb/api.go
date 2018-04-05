@@ -40,6 +40,14 @@ type ExternalAPIEngine struct {
 	BaseAPIEngine
 }
 
+type AppStatusEmbed struct {
+	Status AppStatus `json:"status"`
+}
+
+func (s *AppStatusEmbed) GetAppStatus() *AppStatus {
+	return &s.Status
+}
+
 // Internal and External APIs both implement these methods,
 // allowing us to share the request-making code below in doRequest
 type Requester interface {

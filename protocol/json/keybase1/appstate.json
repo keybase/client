@@ -9,7 +9,8 @@
         "FOREGROUND_0",
         "BACKGROUND_1",
         "INACTIVE_2",
-        "BACKGROUNDACTIVE_3"
+        "BACKGROUNDACTIVE_3",
+        "BACKGROUNDFINAL_4"
       ]
     }
   ],

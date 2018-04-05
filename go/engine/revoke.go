@@ -102,6 +102,19 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 	}
 }
 
+func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.DeviceID {
+	if e.mode == RevokeDevice {
+		return e.deviceID
+	}
+	for deviceID, device := range me.GetComputedKeyInfos().Devices {
+		if device.Kid.Equal(e.kid) {
+			return deviceID
+		}
+	}
+	// If we're revoking a PGP key, it won't match any device.
+	return ""
+}
+
 func (e *RevokeEngine) Run(ctx *Context) error {
 	e.G().Log.CDebugf(ctx.NetContext, "RevokeEngine#Run (mode:%v)", e.mode)
 
@@ -244,6 +257,37 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		libkb.AddPerUserKeyServerArg(payload, newPukGeneration, pukBoxes, pukPrev)
 	}
 
+	ekLib := e.G().GetEKLib()
+	var myUserEKBox *keybase1.UserEkBoxed
+	var newUserEKMetadata *keybase1.UserEkMetadata
+	if addingNewPUK && ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
+		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(ctx.NetContext, *merkleRoot, *newPukSeed)
+		if err != nil {
+			return err
+		}
+		// The assembled set of boxes includes one for the device we're in the
+		// middle of revoking. Filter it out.
+		filteredBoxes := []keybase1.UserEkBoxMetadata{}
+		deviceIDToFilter := e.explicitOrImplicitDeviceID(me)
+		for _, boxMetadata := range boxes {
+			if !boxMetadata.RecipientDeviceID.Eq(deviceIDToFilter) {
+				filteredBoxes = append(filteredBoxes, boxMetadata)
+			}
+		}
+		// If there are no active deviceEKs, we can't publish this key. This
+		// should mostly only come up in tests.
+		if len(filteredBoxes) > 0 {
+			myUserEKBox = myBox
+			newUserEKMetadata = &newMetadata
+			userEKSection := make(libkb.JSONPayload)
+			userEKSection["sig"] = sig
+			userEKSection["boxes"] = filteredBoxes
+			payload["user_ek"] = userEKSection
+		} else {
+			e.G().Log.CWarningf(ctx.NetContext, "skipping userEK publishing, because there are no valid deviceEKs")
+		}
+	}
+
 	_, err = e.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -257,6 +301,14 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		err = pukring.AddKey(ctx.NetContext, newPukGeneration, newPukSeqno, *newPukSeed)
 		if err != nil {
 			return err
+		}
+	}
+
+	// Add the new userEK box to local storage, if it was created above.
+	if myUserEKBox != nil {
+		err = e.G().GetUserEKBoxStorage().Put(ctx.NetContext, newUserEKMetadata.Generation, *myUserEKBox)
+		if err != nil {
+			e.G().Log.CErrorf(ctx.NetContext, "error while saving userEK box: %s", err)
 		}
 	}
 

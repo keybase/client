@@ -24,9 +24,9 @@ if (typeof __SCREENSHOT__ === 'undefined') {
 
 // Native String.startswith() sometimes incorrectly returns false on Android!
 // See https://github.com/facebook/react-native/issues/11370 for a report.
-// $FlowIssue redefining startsWith
-String.prototype.startsWith = function(searchString, position) {
-  position = position || 0
+// $ForceType redefining startsWith
+String.prototype.startsWith = function(searchString, _position) {
+  const position = _position || 0
   return this.substr(position, searchString.length) === searchString
 }
 
