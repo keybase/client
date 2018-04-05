@@ -575,7 +575,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = _getResetUsers(state)
+    const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
     const teamNameSet = I.Set(teamnames)
     const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
       if (!teamNameSet.has(key)) {
@@ -736,8 +736,23 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
 const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: TypedState) {
   const {teamname, settings} = action.payload
   const waitingKey = {key: Constants.settingsWaitingKey(teamname)}
-  const teamSettings = _getTeamSettings(state, teamname)
-  const teamPublicitySettings = _getTeamPublicitySettings(state, teamname)
+
+  const teamSettings = state.teams.getIn(
+    ['teamNameToTeamSettings', teamname],
+    I.Record({
+      open: false,
+      joinAs: RPCTypes.teamsTeamRole['reader'],
+    })()
+  )
+
+  const teamPublicitySettings = state.teams.getIn(['teamNameToPublicitySettings', teamname], {
+    anyMemberShowcase: false,
+    description: '',
+    ignoreAccessRequests: false,
+    member: false,
+    team: false,
+  })
+
   const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
   const openTeam = teamSettings.open
   const openTeamRole = Constants.teamRoleByEnum[teamSettings.joinAs]
@@ -1000,27 +1015,6 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
     ])
   }
 }
-
-const _getResetUsers = (state: TypedState): I.Map<Types.Teamname, I.Set<Types.ResetUser>> =>
-  state.teams.getIn(['teamNameToResetUsers'], I.Map())
-
-const _getTeamSettings = (state: TypedState, teamname: string): Types.TeamSettings =>
-  state.teams.getIn(
-    ['teamNameToTeamSettings', teamname],
-    I.Record({
-      open: false,
-      joinAs: RPCTypes.teamsTeamRole['reader'],
-    })()
-  )
-
-const _getTeamPublicitySettings = (state: TypedState, teamname: string): Types._PublicitySettings =>
-  state.teams.getIn(['teamNameToPublicitySettings', teamname], {
-    anyMemberShowcase: false,
-    description: '',
-    ignoreAccessRequests: false,
-    member: false,
-    team: false,
-  })
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
