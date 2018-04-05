@@ -113,7 +113,6 @@ function _folderToPathItems(
       const folderPathString = `${folderParent}/${preferredName}`
       const folderPath = Types.stringToPath(folderPathString)
       favoriteChildren[folderParent].add(preferredName)
-      preferredName === 'jzila' && console.log(`jzila name: ${name}, preferredName: ${preferredName}, isIgnored: ${isIgnored.toString()}`)
       if (isNew) {
         badges[folderParent] += 1
       }

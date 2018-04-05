@@ -207,7 +207,6 @@ export const tlfToPreferredOrder = (tlf: string, me: string): string => {
   const extensionSuffix = extension ? ` ${extension}` : ''
   const readerSuffix = readers ? `#${readers}${extensionSuffix}` : extensionSuffix
   const preferredOrder = `${preferredWriters}${readerSuffix}`
-  preferredOrder === 'jzila' && console.log(`jzila tlf: ${tlf}, userList: ${userList}, extension: ${extension}, writers: ${writers}, readers: ${readers}, preferredWriters: ${preferredWriters}, extensionSuffix: ${extensionSuffix}, readerSuffix: ${readerSuffix}, preferredOrder: ${preferredOrder}`)
   return preferredOrder
 }
 
