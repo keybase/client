@@ -208,8 +208,8 @@ export const createSetTeamCanPerform = (
 export const createSetTeamChannels = (
   payload: $ReadOnly<{|
     teamname: string,
-    convIDs: ChatTypes.ConversationIDKey[],
-    channelInfos: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo},
+    convIDs: I.Set<ChatTypes.ConversationIDKey>,
+    channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>,
   |}>
 ) => ({error: false, payload, type: setTeamChannels})
 export const createSetTeamCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamCreationError})

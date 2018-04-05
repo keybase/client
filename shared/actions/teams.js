@@ -536,7 +536,9 @@ function _afterGetChannels(fromGetChannels: any[]) {
   })
 
   return Saga.all([
-    Saga.put(TeamsGen.createSetTeamChannels({teamname, convIDs, channelInfos})),
+    Saga.put(
+      TeamsGen.createSetTeamChannels({teamname, convIDs: I.Set(convIDs), channelInfos: I.Map(channelInfos)})
+    ),
     Saga.put(createDecrementWaiting(waitingKey)),
   ])
 }
