@@ -1028,15 +1028,6 @@ const _getNewTeams = (state: TypedState): I.Set<string> => state.teams.getIn(['n
 const _getNewTeamRequests = (state: TypedState): I.List<string> =>
   state.teams.getIn(['newTeamRequests'], I.List())
 
-const _setTeamCreationError = (action: TeamsGen.SetTeamCreationErrorPayload) =>
-  Saga.put(replaceEntity(['teams'], I.Map({teamCreationError: action.payload.error})))
-
-const _setTeamCreationPending = (action: TeamsGen.SetTeamCreationPendingPayload) =>
-  Saga.put(replaceEntity(['teams'], I.Map({teamCreationPending: action.payload.pending})))
-
-const _setTeamJoinError = (action: TeamsGen.SetTeamJoinErrorPayload) =>
-  Saga.put(replaceEntity(['teams'], I.Map({teamJoinError: action.payload.error})))
-
 const _setTeamJoinSuccess = (action: TeamsGen.SetTeamJoinSuccessPayload) =>
   Saga.put(
     replaceEntity(
@@ -1198,9 +1189,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationError, _setTeamCreationError)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationPending, _setTeamCreationPending)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinError, _setTeamJoinError)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinSuccess, _setTeamJoinSuccess)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamStoreRetentionPolicy, _setTeamStoreRetentionPolicy)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamLoadingInvites, _setTeamLoadingInvites)
