@@ -34,7 +34,6 @@ export const leaveTeam = 'teams:leaveTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setChannelCreationError = 'teams:setChannelCreationError'
-export const setChannelInfo = 'teams:setChannelInfo'
 export const setLoaded = 'teams:setLoaded'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setNewTeamRequests = 'teams:setNewTeamRequests'
@@ -42,7 +41,7 @@ export const setNewTeams = 'teams:setNewTeams'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCanPerform = 'teams:setTeamCanPerform'
-export const setTeamConvIDs = 'teams:setTeamConvIDs'
+export const setTeamChannels = 'teams:setTeamChannels'
 export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
 export const setTeamDetails = 'teams:setTeamDetails'
@@ -181,7 +180,6 @@ export const createSaveChannelMembership = (
   |}>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
-export const createSetChannelInfo = (payload: $ReadOnly<{|convIDToChannelInfo: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo}|}>) => ({error: false, payload, type: setChannelInfo})
 export const createSetLoaded = (payload: $ReadOnly<{|loaded: boolean|}>) => ({error: false, payload, type: setLoaded})
 export const createSetMemberPublicity = (
   payload: $ReadOnly<{|
@@ -204,12 +202,13 @@ export const createSetTeamCanPerform = (
     teamOperation: Types.TeamOperations,
   |}>
 ) => ({error: false, payload, type: setTeamCanPerform})
-export const createSetTeamConvIDs = (
+export const createSetTeamChannels = (
   payload: $ReadOnly<{|
     teamname: string,
     convIDs: ChatTypes.ConversationIDKey[],
+    channelInfos: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo},
   |}>
-) => ({error: false, payload, type: setTeamConvIDs})
+) => ({error: false, payload, type: setTeamChannels})
 export const createSetTeamCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamCreationError})
 export const createSetTeamCreationPending = (payload: $ReadOnly<{|pending: boolean|}>) => ({error: false, payload, type: setTeamCreationPending})
 export const createSetTeamDetails = (
@@ -303,7 +302,6 @@ export type LeaveTeamPayload = More.ReturnType<typeof createLeaveTeam>
 export type RemoveMemberOrPendingInvitePayload = More.ReturnType<typeof createRemoveMemberOrPendingInvite>
 export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChannelMembership>
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
-export type SetChannelInfoPayload = More.ReturnType<typeof createSetChannelInfo>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
 export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
 export type SetNewTeamRequestsPayload = More.ReturnType<typeof createSetNewTeamRequests>
@@ -311,7 +309,7 @@ export type SetNewTeamsPayload = More.ReturnType<typeof createSetNewTeams>
 export type SetPublicityPayload = More.ReturnType<typeof createSetPublicity>
 export type SetTeamAccessRequestsPendingPayload = More.ReturnType<typeof createSetTeamAccessRequestsPending>
 export type SetTeamCanPerformPayload = More.ReturnType<typeof createSetTeamCanPerform>
-export type SetTeamConvIDsPayload = More.ReturnType<typeof createSetTeamConvIDs>
+export type SetTeamChannelsPayload = More.ReturnType<typeof createSetTeamChannels>
 export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCreationError>
 export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
 export type SetTeamDetailsPayload = More.ReturnType<typeof createSetTeamDetails>
@@ -357,7 +355,6 @@ export type Actions =
   | More.ReturnType<typeof createRemoveMemberOrPendingInvite>
   | More.ReturnType<typeof createSaveChannelMembership>
   | More.ReturnType<typeof createSetChannelCreationError>
-  | More.ReturnType<typeof createSetChannelInfo>
   | More.ReturnType<typeof createSetLoaded>
   | More.ReturnType<typeof createSetMemberPublicity>
   | More.ReturnType<typeof createSetNewTeamRequests>
@@ -365,7 +362,7 @@ export type Actions =
   | More.ReturnType<typeof createSetPublicity>
   | More.ReturnType<typeof createSetTeamAccessRequestsPending>
   | More.ReturnType<typeof createSetTeamCanPerform>
-  | More.ReturnType<typeof createSetTeamConvIDs>
+  | More.ReturnType<typeof createSetTeamChannels>
   | More.ReturnType<typeof createSetTeamCreationError>
   | More.ReturnType<typeof createSetTeamCreationPending>
   | More.ReturnType<typeof createSetTeamDetails>

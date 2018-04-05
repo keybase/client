@@ -522,13 +522,13 @@ function _afterGetChannels(fromGetChannels: any[]) {
   const teamname: string = fromGetChannels[1]
   const waitingKey: {|key: string|} = fromGetChannels[2]
   const convIDs = []
-  const convIDToChannelInfo: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
+  const channelInfos: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
 
   const convs = results.convs || []
   convs.forEach(conv => {
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
     convIDs.push(convID)
-    convIDToChannelInfo[convID] = Constants.makeChannelInfo({
+    channelInfos[convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
       participants: I.Set(conv.participants || []),
@@ -536,8 +536,7 @@ function _afterGetChannels(fromGetChannels: any[]) {
   })
 
   return Saga.all([
-    Saga.put(TeamsGen.createSetTeamConvIDs({teamname, convIDs})),
-    Saga.put(TeamsGen.createSetChannelInfo({convIDToChannelInfo})),
+    Saga.put(TeamsGen.createSetTeamChannels({teamname, convIDs, channelInfos})),
     Saga.put(createDecrementWaiting(waitingKey)),
   ])
 }

@@ -59,11 +59,11 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamPublicitySettings:
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
 
-    case TeamsGen.setTeamConvIDs:
-      return state.setIn(['teamNameToConvIDs', action.payload.teamname], I.Set(action.payload.convIDs))
-
-    case TeamsGen.setChannelInfo:
-      return state.set('convIDToChannelInfo', I.Map(action.payload.convIDToChannelInfo))
+    case TeamsGen.setTeamChannels:
+      return state.withMutations(s => {
+        s.setIn(['teamNameToConvIDs', action.payload.teamname], I.Set(action.payload.convIDs))
+        s.mergeIn(['convIDToChannelInfo'], I.Map(action.payload.channelInfos))
+      })
 
     case TeamsGen.setLoaded:
       return state.set('loaded', action.payload.loaded)

@@ -141,12 +141,10 @@
       "teamname": "string",
       "publicity": "Types._PublicitySettings",
     },
-    "setTeamConvIDs": {
+    "setTeamChannels": {
       "teamname": "string",
       "convIDs": "ChatTypes.ConversationIDKey[]",
-    },
-    "setChannelInfo": {
-      "convIDToChannelInfo": "{[ChatTypes.ConversationIDKey]: Types.ChannelInfo}",
+      "channelInfos": "{[ChatTypes.ConversationIDKey]: Types.ChannelInfo}",
     },
     "setLoaded": {
       "loaded": "boolean",
