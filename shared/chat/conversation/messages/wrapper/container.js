@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
   const orangeLineAbove = !!previous && meta.orangeLineOrdinal === previous.ordinal
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
   const messageSent = !message.submitState
-  const messageFailed = !!message.errorReason
+  const messageFailed = message.submitState === 'failed'
 
   let loadMoreType = null
   if (!previous) {

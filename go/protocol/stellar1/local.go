@@ -8,6 +8,62 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type RecentPaymentCLILocal struct {
+	StellarTxID     TransactionID `codec:"stellarTxID" json:"stellarTxID"`
+	Time            TimeMs        `codec:"time" json:"time"`
+	Status          string        `codec:"status" json:"status"`
+	StatusDetail    string        `codec:"statusDetail" json:"statusDetail"`
+	Amount          string        `codec:"amount" json:"amount"`
+	Asset           Asset         `codec:"asset" json:"asset"`
+	DisplayAmount   *string       `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency *string       `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	FromStellar     AccountID     `codec:"fromStellar" json:"fromStellar"`
+	ToStellar       AccountID     `codec:"toStellar" json:"toStellar"`
+	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
+	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+}
+
+func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
+	return RecentPaymentCLILocal{
+		StellarTxID:  o.StellarTxID.DeepCopy(),
+		Time:         o.Time.DeepCopy(),
+		Status:       o.Status,
+		StatusDetail: o.StatusDetail,
+		Amount:       o.Amount,
+		Asset:        o.Asset.DeepCopy(),
+		DisplayAmount: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DisplayAmount),
+		DisplayCurrency: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DisplayCurrency),
+		FromStellar: o.FromStellar.DeepCopy(),
+		ToStellar:   o.ToStellar.DeepCopy(),
+		FromUsername: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FromUsername),
+		ToUsername: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ToUsername),
+	}
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -17,6 +73,10 @@ type SendLocalArg struct {
 	Amount    string `codec:"amount" json:"amount"`
 	Asset     Asset  `codec:"asset" json:"asset"`
 	Note      string `codec:"note" json:"note"`
+}
+
+type RecentPaymentsCLILocalArg struct {
+	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
 }
 
 type WalletInitLocalArg struct {
@@ -37,6 +97,7 @@ type ImportSecretKeyLocalArg struct {
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
+	RecentPaymentsCLILocal(context.Context, *AccountID) ([]RecentPaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
@@ -75,6 +136,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SendLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"recentPaymentsCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]RecentPaymentsCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RecentPaymentsCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RecentPaymentsCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.RecentPaymentsCLILocal(ctx, (*typedArgs)[0].AccountID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -149,6 +226,12 @@ func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (re
 
 func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []RecentPaymentCLILocal, err error) {
+	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
+	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
 	return
 }
 

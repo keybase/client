@@ -4703,8 +4703,23 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
 `;
 
 exports[`Storyshots Chat/Inbox Simple 1`] = `
-.css-0,
-[data-css-0] {
+.css-0 .small-team-gear,
+[data-css-0] .small-team-gear {
+  display: none;
+}
+
+.css-0:hover .small-team-gear,
+[data-css-0]:hover .small-team-gear {
+  display: unset;
+}
+
+.css-0:hover .small-team-timestamp,
+[data-css-0]:hover .small-team-timestamp {
+  display: none;
+}
+
+.css-2,
+[data-css-2] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -4714,8 +4729,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   border-radius: 6px;
 }
 
-.css-1,
-[data-css-1] {
+.css-3,
+[data-css-3] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -4730,8 +4745,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   opacity: 1;
 }
 
-.css-2,
-[data-css-2] {
+.css-4,
+[data-css-4] {
   font-size: 13px;
   line-height: 17px;
   color: #2645A3;
@@ -4747,8 +4762,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   padding-right: 7px;
 }
 
-.css-3,
-[data-css-3] {
+.css-5,
+[data-css-5] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -4759,8 +4774,18 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   background-color: #ffffff;
 }
 
-.css-4,
-[data-css-4] {
+.css-6,
+[data-css-6] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-6:hover,
+[data-css-6]:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.css-8,
+[data-css-8] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
@@ -4777,8 +4802,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   width: 100%;
 }
 
-.css-5,
-[data-css-5] {
+.css-9,
+[data-css-9] {
   font-size: 11px;
   line-height: 15px;
   color: inherit;
@@ -4788,8 +4813,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   font-weight: inherit;
 }
 
-.css-6,
-[data-css-6] {
+.css-10,
+[data-css-10] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -4799,8 +4824,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   border-radius: 50%;
 }
 
-.css-7,
-[data-css-7] {
+.css-11,
+[data-css-11] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -4815,8 +4840,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   opacity: 1;
 }
 
-.css-8,
-[data-css-8] {
+.css-12,
+[data-css-12] {
   font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.75);
@@ -4832,8 +4857,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   padding-right: 7px;
 }
 
-.css-9,
-[data-css-9] {
+.css-13,
+[data-css-13] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.75);
@@ -4844,8 +4869,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   background-color: #ffffff;
 }
 
-.css-10,
-[data-css-10] {
+.css-14,
+[data-css-14] {
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.75);
@@ -4853,6 +4878,63 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
+  white-space: nowrap;
+  display: block;
+  min-height: 15px;
+  overflow: hidden;
+  padding-right: 30px;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.css-15,
+[data-css-15] {
+  font-size: 13px;
+  line-height: 17px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  display: inline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  padding-right: 7px;
+}
+
+.css-16,
+[data-css-16] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  background-color: #4C8EFF;
+}
+
+.css-17,
+[data-css-17] {
+  color: #ffffff;
+}
+
+.css-17:hover,
+[data-css-17]:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.css-19,
+[data-css-19] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
   white-space: nowrap;
   display: block;
   min-height: 15px;
@@ -4909,6 +4991,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
+          className="css-0"
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -4950,10 +5033,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
               }
             >
               <div
-                className="css-0"
+                className="css-2"
               />
               <div
-                className="css-1"
+                className="css-3"
               />
             </div>
           </div>
@@ -5009,7 +5092,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-2"
+                    className="css-4"
                     onClick={undefined}
                     title="fortgreenmoms"
                   >
@@ -5018,12 +5101,37 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="css-3"
+                className="css-5 small-team-timestamp"
                 onClick={undefined}
                 title={undefined}
               >
                 Tue
               </span>
+              <div>
+                <span
+                  className="css-6 small-team-gear"
+                  onClick={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
+                  style={
+                    Object {
+                      "WebkitFontSmoothing": "antialiased",
+                      "cursor": "pointer",
+                      "fontFamily": "kb",
+                      "fontSize": 14,
+                      "fontStyle": "normal",
+                      "fontVariant": "normal",
+                      "fontWeight": "normal",
+                      "lineHeight": 1,
+                      "speak": "none",
+                      "textTransform": "none",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  
+                </span>
+              </div>
             </div>
             <div
               style={
@@ -5064,17 +5172,17 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-4"
+                    className="css-8"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="css-5"
+                      className="css-9"
                       onClick={undefined}
                       title={undefined}
                     >
                       <span
-                        className="css-5"
+                        className="css-9"
                         onClick={undefined}
                         title={undefined}
                       >
@@ -5113,6 +5221,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
+          className="css-0"
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5178,10 +5287,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <div
-                    className="css-6"
+                    className="css-10"
                   />
                   <div
-                    className="css-7"
+                    className="css-11"
                   />
                 </div>
               </div>
@@ -5239,7 +5348,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-8"
+                    className="css-12"
                     onClick={undefined}
                     title="chris"
                   >
@@ -5248,7 +5357,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="css-9"
+                className="css-13"
                 onClick={undefined}
                 title={undefined}
               >
@@ -5305,17 +5414,17 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-10"
+                    className="css-14"
                     onClick={undefined}
                     title={undefined}
                   >
                     <span
-                      className="css-5"
+                      className="css-9"
                       onClick={undefined}
                       title={undefined}
                     >
                       <span
-                        className="css-5"
+                        className="css-9"
                         onClick={undefined}
                         title={undefined}
                       >
@@ -5354,6 +5463,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         }
       >
         <div
+          className="css-0"
           style={
             Object {
               "backgroundColor": "#F7F9FC",
@@ -5419,10 +5529,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <div
-                    className="css-6"
+                    className="css-10"
                   />
                   <div
-                    className="css-7"
+                    className="css-11"
                   />
                 </div>
               </div>
@@ -5480,7 +5590,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-2"
+                    className="css-4"
                     onClick={undefined}
                     title="jzila"
                   >
@@ -5489,7 +5599,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="css-3"
+                className="css-5"
                 onClick={undefined}
                 title={undefined}
               >
@@ -5535,11 +5645,241 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-4"
+                    className="css-8"
                     onClick={undefined}
                     title={undefined}
                   >
                     I don	 know that I would want.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#4C8EFF",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          className="css-0"
+          style={
+            Object {
+              "backgroundColor": "#4C8EFF",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexShrink": 0,
+              "height": 56,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexShrink": 0,
+                "justifyContent": "flex-start",
+                "marginLeft": 8,
+                "marginRight": 8,
+                "maxWidth": 40,
+                "minWidth": 40,
+                "position": "relative",
+              }
+            }
+          >
+            <div
+              onClick={undefined}
+              style={
+                Object {
+                  "height": 40,
+                  "maxWidth": 40,
+                  "minHeight": 40,
+                  "minWidth": 40,
+                  "position": "relative",
+                  "userSelect": "none",
+                }
+              }
+            >
+              <div
+                className="css-2"
+              />
+              <div
+                className="css-3"
+              />
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "backgroundColor": "#4C8EFF",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "height": "100%",
+                "justifyContent": "center",
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexGrow": 1,
+                  "height": 17,
+                  "maxHeight": 17,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <span
+                    className="css-15"
+                    onClick={undefined}
+                    title="atracks"
+                  >
+                    atracks
+                  </span>
+                </div>
+              </div>
+              <span
+                className="css-16 small-team-timestamp"
+                onClick={undefined}
+                title={undefined}
+              >
+                5:13 pm
+              </span>
+              <div>
+                <span
+                  className="css-17 small-team-gear"
+                  onClick={[Function]}
+                  onMouseEnter={undefined}
+                  onMouseLeave={undefined}
+                  style={
+                    Object {
+                      "WebkitFontSmoothing": "antialiased",
+                      "cursor": "pointer",
+                      "fontFamily": "kb",
+                      "fontSize": 14,
+                      "fontStyle": "normal",
+                      "fontVariant": "normal",
+                      "fontWeight": "normal",
+                      "lineHeight": 1,
+                      "speak": "none",
+                      "textTransform": "none",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  
+                </span>
+              </div>
+            </div>
+            <div
+              style={
+                Object {
+                  "backgroundColor": undefined,
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexGrow": 1,
+                  "height": 17,
+                  "maxHeight": 17,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <span
+                    className="css-19"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    <span
+                      className="css-9"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      <span
+                        className="css-9"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        jork: what article?
+                      </span>
+                    </span>
                   </span>
                 </div>
               </div>

@@ -268,3 +268,15 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput,
 	payload["payment"] = post
 	return remote.SubmitTransaction(ctx, g, payload)
 }
+
+func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
+	activeBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return res, err
+	}
+	primary, err := activeBundle.PrimaryAccount()
+	if err != nil {
+		return res, err
+	}
+	return primary.AccountID, nil
+}
