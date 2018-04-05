@@ -8,13 +8,22 @@ import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
 const lockedToBottomSlop = 20
 
-class Thread extends React.Component<Props> {
+type State = {
+  isLockedToBottom: boolean, // MUST be in state else virtualized will re-render itself and will jump down w/o us re-rendering
+}
+
+class Thread extends React.Component<Props, State> {
+  state = {
+    isLockedToBottom: true,
+  }
+
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
     keyMapper: (index: number) => {
@@ -31,8 +40,6 @@ class Thread extends React.Component<Props> {
   })
 
   _list: any
-  // If we should stick to the bottom
-  _isLockedToBottom: boolean = true
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
@@ -58,22 +65,27 @@ class Thread extends React.Component<Props> {
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
       this._cellCache.clearAll()
-      this._isLockedToBottom = true
+      this.setState({isLockedToBottom: true})
     }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
-      // Just the top items can change size
-      this._cellCache.clear(0, 0)
-      this._cellCache.clear(1, 0)
+      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
+      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
+      // another cache from row -> style which is out of sync
+      this._cellCache.clearAll()
+      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
-  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  _updateBottomLock = throttle((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      this._isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+      this.setState(prevState => {
+        const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+        return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
+      })
     }
-  }
+  }, 500)
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
@@ -151,7 +163,7 @@ class Thread extends React.Component<Props> {
 
   render() {
     const rowCount = this._getItemCount()
-    const scrollToIndex = this._isLockedToBottom ? rowCount - 1 : undefined
+    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
 
     return (
       <ErrorBoundary>
