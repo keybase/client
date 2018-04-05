@@ -45,7 +45,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state
     case FsGen.favoritesLoaded:
       const toMerge = action.payload.folders.mapEntries(([path, item]) => {
-        const original = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
+        // We ForceType because Flow keeps thinking this is a _PathItem not a FolderPathItem.
+        const original: $ForceType = state.pathItems.get(path) || Constants.makeFolder({name: item.name})
         // This cannot happen, but it's needed to make Flow happy.
         if (original.type !== 'folder') return [path, original]
 
@@ -61,12 +62,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ]
       })
       const s = state.mergeIn(['pathItems'], toMerge)
-      console.log('jzila: ')
-      console.log(
-        JSON.stringify(
-          s.pathItems.get(Types.stringToPath('/keybase/private/jzila')).toJS()
-        )
-      )
       return s
     case FsGen.sortSetting:
       const {path, sortSetting} = action.payload
