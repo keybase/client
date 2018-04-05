@@ -189,7 +189,7 @@ export const createSetNewTeamInfo = (
   payload: $ReadOnly<{|
     newTeams: I.Set<string>,
     newTeamRequests: I.List<string>,
-    teamNameToResetUsers: {[Types.Teamname]: I.Set<Types.ResetUser>},
+    teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>,
   |}>
 ) => ({error: false, payload, type: setNewTeamInfo})
 export const createSetPublicity = (
@@ -198,7 +198,7 @@ export const createSetPublicity = (
     settings: Types.PublicitySettings,
   |}>
 ) => ({error: false, payload, type: setPublicity})
-export const createSetTeamAccessRequestsPending = (payload: $ReadOnly<{|accessRequestsPending: Types.Teamname[]|}>) => ({error: false, payload, type: setTeamAccessRequestsPending})
+export const createSetTeamAccessRequestsPending = (payload: $ReadOnly<{|accessRequestsPending: I.Set<Types.Teamname>|}>) => ({error: false, payload, type: setTeamAccessRequestsPending})
 export const createSetTeamCanPerform = (
   payload: $ReadOnly<{|
     teamname: string,

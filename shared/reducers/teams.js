@@ -80,7 +80,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       })
 
     case TeamsGen.setTeamAccessRequestsPending:
-      return state.set('teamAccessRequestsPending', I.Set(action.payload.accessRequestsPending))
+      return state.set('teamAccessRequestsPending', action.payload.accessRequestsPending)
 
     case TeamsGen.setNewTeamInfo:
       return state.withMutations(s => {

@@ -159,12 +159,12 @@
       "teamNameToID": "I.Map<Types.Teamname, string>",
     },
     "setTeamAccessRequestsPending": {
-      "accessRequestsPending": "Types.Teamname[]",
+      "accessRequestsPending": "I.Set<Types.Teamname>",
     },
     "setNewTeamInfo": {
       "newTeams": "I.Set<string>",
       "newTeamRequests": "I.List<string>",
-      "teamNameToResetUsers": "{[Types.Teamname]: I.Set<Types.ResetUser>}",
+      "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>",
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},

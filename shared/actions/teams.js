@@ -617,7 +617,7 @@ const _checkRequestedAccess = (action: TeamsGen.CheckRequestedAccessPayload) =>
 
 function _checkRequestedAccessSuccess(result) {
   const teams = (result || []).map(row => row.parts.join('.'))
-  return Saga.put(TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: teams}))
+  return Saga.put(TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)}))
 }
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
@@ -992,7 +992,11 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(
     Saga.put(
-      TeamsGen.createSetNewTeamInfo({newTeams, newTeamRequests, teamNameToResetUsers: teamsWithResetUsersMap})
+      TeamsGen.createSetNewTeamInfo({
+        newTeams,
+        newTeamRequests,
+        teamNameToResetUsers: I.Map(teamsWithResetUsersMap),
+      })
     )
   )
   return Saga.sequentially(actions)
