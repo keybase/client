@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 
 import * as React from 'react'
 import {Box} from '../common-adapters'
@@ -237,7 +237,6 @@ const settingsNavBase = {
 const settingsContainerMap: DumbComponentMap<SettingsContainer> = {
   component: SettingsContainer,
   mocks: {
-    // $FlowIssue
     Normal: settingsNavBase,
   },
 }

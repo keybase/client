@@ -46,11 +46,8 @@ export default function(
     },
   }
 
-  // $FlowIssue doesnt' like spreading exact types
-  const combined: IncomingCallMapType = {
+  return {
     ...fromShared,
     ...handlers,
   }
-
-  return combined
 }

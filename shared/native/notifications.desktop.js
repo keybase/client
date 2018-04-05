@@ -1,5 +1,4 @@
 // @flow
-/* global Notification */ // tell lint this exists
 import debounce from 'lodash/debounce'
 
 const rateLimit: {[key: string]: () => void} = {}
@@ -26,15 +25,13 @@ export function NotifyPopup(
         if (rateLimitPayloads[key]) {
           const {title, opts, onClick} = rateLimitPayloads[key]
           delete rateLimitPayloads[key]
-          // $FlowIssue doens't know about notification
-          const notification: any = new Notification(title, {...opts, silent: true})
+          const notification: any = new window.Notification(title, {...opts, silent: true})
           notification.onclick = onClick
         }
       }, rateLimitSeconds * 1000)
     }
   }
 
-  // $FlowIssue doens't know about notification
-  const notification: any = new Notification(title, {...opts, silent: true})
+  const notification: any = new window.Notification(title, {...opts, silent: true})
   notification.onclick = onClick
 }
