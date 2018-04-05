@@ -11,27 +11,29 @@ export type OwnProps = {
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  isBigTeam: Constants.isBigTeam(state, teamname),
-  ignoreAccessRequests: state.teams.getIn(
-    ['teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
+const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
+  const publicityAnyMember = state.teams.getIn(
+    ['teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
     false
-  ),
-  openTeam: state.teams.getIn(['teamNameToTeamSettings', teamname, 'open'], false),
-  openTeamRole:
-    Constants.teamRoleByEnum[state.teams.getIn(['teamNameToTeamSettings', teamname, 'joinAs'], 1)],
-  // $FlowFixMe sort out the team settings / publicity settings types
-  publicityAnyMember: state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
-    false
-  ),
-  // $FlowFixMe same here
-  publicityMember: state.teams.getIn(['teamNameToPublicitySettings', teamname, 'member'], false),
-  // $FlowFixMe and here
-  publicityTeam: state.teams.getIn(['teamNameToPublicitySettings', teamname, 'team'], false),
-  waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
-  yourOperations: Constants.getCanPerform(state, teamname),
-})
+  )
+  const publicityMember = state.teams.getIn(['teamNameToPublicitySettings', teamname, 'member'], false)
+  const publicityTeam = state.teams.getIn(['teamNameToPublicitySettings', teamname, 'team'], false)
+  return {
+    isBigTeam: Constants.isBigTeam(state, teamname),
+    ignoreAccessRequests: state.teams.getIn(
+      ['teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
+      false
+    ),
+    openTeam: state.teams.getIn(['teamNameToTeamSettings', teamname, 'open'], false),
+    openTeamRole:
+      Constants.teamRoleByEnum[state.teams.getIn(['teamNameToTeamSettings', teamname, 'joinAs'], 1)],
+    publicityAnyMember,
+    publicityMember,
+    publicityTeam,
+    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
+    yourOperations: Constants.getCanPerform(state, teamname),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
