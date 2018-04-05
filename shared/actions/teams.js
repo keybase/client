@@ -1028,89 +1028,6 @@ const _getNewTeams = (state: TypedState): I.Set<string> => state.teams.getIn(['n
 const _getNewTeamRequests = (state: TypedState): I.List<string> =>
   state.teams.getIn(['newTeamRequests'], I.List())
 
-const _setTeamStoreRetentionPolicy = (action: TeamsGen.SetTeamStoreRetentionPolicyPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToRetentionPolicy'],
-      I.Map([[action.payload.teamname, action.payload.retentionPolicy]])
-    )
-  )
-
-const _setTeamLoadingInvites = (action: TeamsGen.SetTeamLoadingInvitesPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToLoadingInvites'],
-      I.Map([[action.payload.teamname, I.Map([[action.payload.invitees, action.payload.loadingInvites]])]])
-    )
-  )
-
-const _setTeamRequests = (action: TeamsGen.SetTeamRequestsPayload) =>
-  Saga.put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(action.payload.requests)))
-
-const _setTeamMembers = (action: TeamsGen.SetTeamMembersPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToMembers'],
-      I.Map([[action.payload.teamname, I.Set(action.payload.members)]])
-    )
-  )
-
-const _setTeamMemberUsernames = (action: TeamsGen.SetTeamMemberUsernamesPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamnameToMemberUsernames'],
-      I.Map([[action.payload.teamname, I.Set(action.payload.usernames)]])
-    )
-  )
-
-const _setTeamSettings = (action: TeamsGen.SetTeamSettingsPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToTeamSettings'],
-      I.Map([[action.payload.teamname, I.Set(action.payload.settings)]])
-    )
-  )
-
-const _setTeamInvites = (action: TeamsGen.SetTeamInvitesPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToInvites'],
-      I.Map([[action.payload.teamname, I.Set(action.payload.invites)]])
-    )
-  )
-
-const _setTeamSubteams = (action: TeamsGen.SetTeamSubteamsPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToSubteams'],
-      I.Map([[action.payload.teamname, I.Set(action.payload.subteams)]])
-    )
-  )
-
-const _setTeamCanPerform = (action: TeamsGen.SetTeamCanPerformPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToCanPerform'],
-      I.Map([[action.payload.teamname, action.payload.teamOperation]])
-    )
-  )
-
-const _setTeamPublicitySettings = (action: TeamsGen.SetTeamPublicitySettingsPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToPublicitySettings'],
-      I.Map([[action.payload.teamname, action.payload.publicity]])
-    )
-  )
-
-const _setTeamConvIDs = (action: TeamsGen.SetTeamConvIDsPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToConvIDs'],
-      I.Map([[action.payload.teamname, I.Set(action.payload.convIDs)]])
-    )
-  )
-
 const _setChannelInfo = (action: TeamsGen.SetChannelInfoPayload) =>
   Saga.put(replaceEntity(['teams', 'convIDToChannelInfo'], I.Map(action.payload.convIDToChannelInfo)))
 
@@ -1181,17 +1098,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamStoreRetentionPolicy, _setTeamStoreRetentionPolicy)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamLoadingInvites, _setTeamLoadingInvites)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamRequests, _setTeamRequests)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamMembers, _setTeamMembers)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamMemberUsernames, _setTeamMemberUsernames)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSettings, _setTeamSettings)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamInvites, _setTeamInvites)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSubteams, _setTeamSubteams)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamCanPerform, _setTeamCanPerform)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamPublicitySettings, _setTeamPublicitySettings)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamConvIDs, _setTeamConvIDs)
   yield Saga.safeTakeEveryPure(TeamsGen.setChannelInfo, _setChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.setLoaded, _setLoaded)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamInfo, _setTeamInfo)

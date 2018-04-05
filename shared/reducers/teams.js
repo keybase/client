@@ -1,6 +1,7 @@
 // @flow
 import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/teams'
+import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 
 const initialState: Types.State = Constants.makeState()
@@ -29,16 +30,47 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       })
 
     case TeamsGen.setTeamStoreRetentionPolicy:
+      return state.setIn(
+        ['teamNameToRetentionPolicy', action.payload.teamname],
+        action.payload.retentionPolicy
+      )
+
     case TeamsGen.setTeamLoadingInvites:
+      return state.setIn(
+        ['teamNameToLoadingInvites', action.payload.teamname, action.payload.invitees],
+        action.payload.loadingInvites
+      )
+
     case TeamsGen.setTeamRequests:
+      return state.set('teamNameToRequests', I.Map(action.payload.requests))
+
     case TeamsGen.setTeamMembers:
+      return state.setIn(['teamNameToMembers', action.payload.teamname], I.Set(action.payload.members))
+
     case TeamsGen.setTeamMemberUsernames:
+      return state.setIn(
+        ['teamNameToMemberUsernames', action.payload.teamname],
+        I.Set(action.payload.usernames)
+      )
+
     case TeamsGen.setTeamSettings:
+      return state.setIn(['teamNameToTeamSettings', action.payload.teamname], action.payload.settings)
+
     case TeamsGen.setTeamInvites:
+      return state.setIn(['teamNameToInvites', action.payload.teamname], I.Set(action.payload.invites))
+
     case TeamsGen.setTeamSubteams:
+      return state.setIn(['teamNameToSubteams', action.payload.teamname], I.Set(action.payload.subteams))
+
     case TeamsGen.setTeamCanPerform:
+      return state.setIn(['teamNameToCanPerform', action.payload.teamname], action.payload.teamOperation)
+
     case TeamsGen.setTeamPublicitySettings:
+      return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
+
     case TeamsGen.setTeamConvIDs:
+      return state.setIn(['teamNameToConvIDs', action.payload.teamname], I.Set(action.payload.convIDs))
+
     case TeamsGen.setChannelInfo:
     case TeamsGen.setLoaded:
     case TeamsGen.setTeamInfo:
