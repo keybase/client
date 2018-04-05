@@ -39,20 +39,23 @@ export default function(
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      logger
-        .dump()
-        .then(fromRender =>
-          remote
-            .getGlobal('globalLogger')
-            .dump()
-            .then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
-        )
-        .then(() => response.result())
+      dumpLogs().then(() => response.result())
     },
   }
+
+  // Also do a quick log send dump to capture any startup failures
+  setTimeout(() => dumpLogs(), 5000)
 
   return {
     ...fromShared,
     ...handlers,
   }
 }
+
+const dumpLogs = () =>
+  logger.dump().then(fromRender =>
+    remote
+      .getGlobal('globalLogger')
+      .dump()
+      .then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
+  )
