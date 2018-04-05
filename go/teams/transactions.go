@@ -623,12 +623,11 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}()
 	}
 
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, err := team.recipientBoxes(ctx, memSet)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet)
 	if err != nil {
 		return err
 	}
 
-	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
 	if perTeamKeySection != nil {
 		// We have a new per team key, find first TeamChangeReq
 		// section that removes users and add it there.
@@ -643,17 +642,13 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		if !found {
 			return fmt.Errorf("AddMemberTx.Post got a PerTeamKey but couldn't find a link with None to attach it")
 		}
-	} else { // If we didn't rotate the PTK, let's rebox the existing PTK for any of the new members
+	}
+
+	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
+	if teamEKPayload == nil {
 		ekLib := g.GetEKLib()
-		if ekLib != nil {
-			// Only box up for the latest members
-			memSet.removeExistingMembers(ctx, team)
-			i := 0
-			uids := make([]keybase1.UID, len(memSet.recipients))
-			for uv := range memSet.recipients {
-				uids[i] = uv.Uid
-				i++
-			}
+		if ekLib != nil && ekLib.ShouldRun(ctx) && len(memSet.recipients) > 0 {
+			uids := memSet.recipientUids()
 			teamEKBoxes, err = ekLib.BoxLatestTeamEK(ctx, team.ID, uids)
 			if err != nil {
 				return err
@@ -696,12 +691,14 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		return err
 	}
 
-	payload := team.sigPayload(readySigs, sigPayloadArgs{
+	payloadArgs := sigPayloadArgs{
 		secretBoxes:        secretBoxes,
 		lease:              lease,
 		implicitAdminBoxes: implicitAdminBoxes,
+		teamEKPayload:      teamEKPayload,
 		teamEKBoxes:        teamEKBoxes,
-	})
+	}
+	payload := team.sigPayload(readySigs, payloadArgs)
 
 	if err := team.postMulti(payload); err != nil {
 		return err
@@ -709,5 +706,6 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 
 	team.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
 
+	team.storeTeamEKPayload(ctx, teamEKPayload)
 	return nil
 }

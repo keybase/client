@@ -408,11 +408,6 @@ func (e *EKLib) PrepareNewUserEK(ctx context.Context, merkleRoot libkb.MerkleRoo
 func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, recipients []keybase1.UID) (teamEKBoxes *[]keybase1.TeamEkBoxMetadata, err error) {
 	defer e.G().CTrace(ctx, "BoxLatestTeamEK", func() error { return err })()
 
-	// TODO remove this when we want to release in the wild.
-	if !e.ShouldRun(ctx) {
-		return nil, nil
-	}
-
 	// If we need a new teamEK let's just create it when needed, the new
 	// members will be part of the team and will have access to it via the
 	// normal mechanisms.
@@ -430,6 +425,9 @@ func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, rec
 		return nil, err
 	}
 	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), statementMap, *merkleRootPtr)
+	if err != nil {
+		return nil, err
+	}
 
 	teamEKBoxStorage := e.G().GetTeamEKBoxStorage()
 	maxGeneration, err := teamEKBoxStorage.MaxGeneration(ctx, teamID)
@@ -441,7 +439,35 @@ func (e *EKLib) BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, rec
 		return nil, err
 	}
 	boxes, _, err := boxTeamEKForUsers(ctx, e.G(), usersMetadata, teamEK)
-	return &boxes, nil
+	return boxes, err
+}
+
+func (e *EKLib) PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey libkb.NaclSigningKeyPair, recipients []keybase1.UID) (sig string, boxes *[]keybase1.TeamEkBoxMetadata, newMetadata keybase1.TeamEkMetadata, myBox *keybase1.TeamEkBoxed, err error) {
+
+	// If we need a new teamEK let's just create it when needed, the new
+	// members will be part of the team and will have access to it via the
+	// normal mechanisms.
+	if teamEKNeeded, err := e.NewTeamEKNeeded(ctx, teamID); err != nil {
+		return "", nil, newMetadata, nil, err
+	} else if teamEKNeeded {
+		return "", nil, newMetadata, nil, nil
+	}
+
+	merkleRootPtr, err := e.G().GetMerkleClient().FetchRootFromServer(ctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	merkleRoot := *merkleRootPtr
+
+	statementMap, err := fetchUserEKStatements(ctx, e.G(), recipients)
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	usersMetadata, err := activeUserEKMetadata(ctx, e.G(), statementMap, merkleRoot)
+	if err != nil {
+		return "", nil, newMetadata, nil, err
+	}
+	return prepareNewTeamEK(ctx, e.G(), teamID, signingKey, usersMetadata, merkleRoot)
 }
 
 func (e *EKLib) OnLogin() error {

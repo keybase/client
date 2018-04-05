@@ -111,11 +111,6 @@ func TestDeviceRevokeNewUserEK(t *testing.T) {
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
 	require.NoError(t, err)
 	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
-	// Repeat those checks after clearing the cache, to test unboxing.
-	tc.G.GetUserEKBoxStorage().ClearCache()
-	userEK, err = tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
-	require.NoError(t, err)
-	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
 }
 
 func TestPukRollNewUserEK(t *testing.T) {
@@ -151,11 +146,6 @@ func TestPukRollNewUserEK(t *testing.T) {
 	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
 	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
-	require.NoError(t, err)
-	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
-	// Repeat those checks after clearing the cache, to test unboxing.
-	tc.G.GetUserEKBoxStorage().ClearCache()
-	userEK, err = tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
 	require.NoError(t, err)
 	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
 }

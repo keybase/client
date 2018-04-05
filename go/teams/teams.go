@@ -365,18 +365,23 @@ func (t *Team) Rotate(ctx context.Context) error {
 	}
 
 	// rotate the team key for all current members
-	secretBoxes, perTeamKeySection, err := t.rotateBoxes(ctx, memSet)
+	secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
 	if err != nil {
 		return err
 	}
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, nil, sigPayloadArgs{secretBoxes: secretBoxes}); err != nil {
+	payloadArgs := sigPayloadArgs{
+		secretBoxes:   secretBoxes,
+		teamEKPayload: teamEKPayload,
+	}
+	if err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, nil, payloadArgs); err != nil {
 		return err
 	}
 
 	t.notify(ctx, keybase1.TeamChangeSet{KeyRotated: true})
+	t.storeTeamEKPayload(ctx, teamEKPayload)
 
 	return nil
 }
@@ -430,7 +435,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 	}
 
 	// create the change membership section + secretBoxes
-	section, secretBoxes, implicitAdminBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
+	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -468,6 +473,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		secretBoxes:        secretBoxes,
 		implicitAdminBoxes: implicitAdminBoxes,
 		lease:              lease,
+		teamEKPayload:      teamEKPayload,
 	}
 
 	if permanent {
@@ -1053,25 +1059,25 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	return &ret, nil
 }
 
-func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *memberSet, error) {
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, error) {
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
-		return SCTeamSection{}, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 
 	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
-		return SCTeamSection{}, nil, nil, nil, NewSubteamOwnersError()
+		return SCTeamSection{}, nil, nil, nil, nil, NewSubteamOwnersError()
 	}
 
 	// load the member set specified in req
 	memSet, err := newMemberSetChange(ctx, t.G(), req)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 
 	section := SCTeamSection{
@@ -1083,13 +1089,13 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 
 	section.Members, err = memSet.Section()
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 
 	// create secret boxes for recipients, possibly rotating the key
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, err := t.recipientBoxes(ctx, memSet)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := t.recipientBoxes(ctx, memSet)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 	section.PerTeamKey = perTeamKeySection
 
@@ -1104,7 +1110,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		section.Members = &SCTeamMembers{}
 	}
 
-	return section, secretBoxes, implicitAdminBoxes, memSet, nil
+	return section, secretBoxes, implicitAdminBoxes, teamEKPayload, memSet, nil
 }
 
 func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) error {
@@ -1259,12 +1265,12 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 	return sigMultiItem, keybase1.LinkID(newLinkID.String()), nil
 }
 
-func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
+func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
 
 	// get device key
 	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	// First create all the subteam per-team-key boxes for new implicit admins.
@@ -1276,12 +1282,12 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		implicitAdminBoxes = map[keybase1.TeamID]*PerTeamSharedSecretBoxes{}
 		subteams, err := t.loadAllTransitiveSubteams(ctx, true /*forceRepoll*/)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
 		}
 		for _, subteam := range subteams {
 			subteamBoxes, err := subteam.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, adminAndOwnerRecipients)
 			if err != nil {
-				return nil, nil, nil, err
+				return nil, nil, nil, nil, err
 			}
 			implicitAdminBoxes[subteam.ID] = subteamBoxes
 		}
@@ -1295,56 +1301,105 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		// of the team after the removal (and including any new members in this
 		// change)
 		t.G().Log.Debug("team change request contains removal, rotating team key")
-		boxes, perTeamKey, err := t.rotateBoxes(ctx, memSet)
-		return boxes, implicitAdminBoxes, perTeamKey, err
+		boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+		return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
 	}
 
 	// don't need keys for existing members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
-		return nil, implicitAdminBoxes, nil, nil
+		return nil, implicitAdminBoxes, nil, nil, nil
 	}
 
 	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
-	// No SCPerTeamKey section when the key isn't rotated
-	return boxes, implicitAdminBoxes, nil, err
+	// No SCPerTeamKey section or teamEKPayload when the key isn't rotated
+	return boxes, implicitAdminBoxes, nil, nil, err
 }
 
-func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
+func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
 	// get device key
 	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// rotate the team key for all current members
 	existing, err := t.Members()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
+
+	// Without adding extra admins, get get the recipients for the new teamEK
+	recipients := memSet.recipientUids()
 
 	if t.IsSubteam() {
 		// rotate needs to be keyed for all admins above it
 		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		_, err = memSet.loadGroup(ctx, t.G(), allParentAdmins, true, true)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
 	t.rotated = true
 
-	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
+	boxes, key, err := t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Once we have the new PTK, let's make the new teamEK
+	teamEKPayload, err := t.teamEKPayload(ctx, recipients)
+	return boxes, key, teamEKPayload, err
+}
+
+type teamEKPayload struct {
+	sig      string
+	boxes    *[]keybase1.TeamEkBoxMetadata
+	metadata keybase1.TeamEkMetadata
+	box      *keybase1.TeamEkBoxed
+}
+
+func (t *Team) teamEKPayload(ctx context.Context, recipients []keybase1.UID) (*teamEKPayload, error) {
+	ekLib := t.G().GetEKLib()
+	if !(ekLib != nil && ekLib.ShouldRun(ctx) && len(recipients) > 0) {
+		return nil, nil
+	}
+
+	sigKey, err := t.SigningKey()
+	if err != nil {
+		return nil, err
+	}
+	sig, boxes, metadata, box, err := ekLib.PrepareNewTeamEK(ctx, t.ID, sigKey, recipients)
+	if err != nil {
+		return nil, err
+	}
+
+	return &teamEKPayload{
+		sig:      sig,
+		boxes:    boxes,
+		metadata: metadata,
+		box:      box,
+	}, nil
+}
+
+func (t *Team) storeTeamEKPayload(ctx context.Context, teamEKPayload *teamEKPayload) {
+	// Add the new teamEK box to local storage, if it was created above.
+	if teamEKPayload != nil && teamEKPayload.box != nil {
+		if err := t.G().GetTeamEKBoxStorage().Put(ctx, t.ID, teamEKPayload.metadata.Generation, *teamEKPayload.box); err != nil {
+			t.G().Log.CErrorf(ctx, "error while saving teamEK box: %s", err)
+		}
+	}
 }
 
 type sigPayloadArgs struct {
@@ -1354,6 +1409,7 @@ type sigPayloadArgs struct {
 	prePayload         libkb.JSONPayload
 	legacyTLFUpgrade   *keybase1.TeamGetLegacyTLFUpgrade
 	teamEKBoxes        *[]keybase1.TeamEkBoxMetadata
+	teamEKPayload      *teamEKPayload
 }
 
 func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
@@ -1379,6 +1435,14 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 		payload["team_ek_rebox"] = libkb.JSONPayload{
 			"boxes":   args.teamEKBoxes,
 			"team_id": t.ID,
+		}
+	} else if args.teamEKPayload != nil {
+		if args.teamEKPayload.boxes != nil && len(*args.teamEKPayload.boxes) > 0 {
+			payload["team_ek"] = libkb.JSONPayload{
+				"sig":     args.teamEKPayload.sig,
+				"boxes":   args.teamEKPayload.boxes,
+				"team_id": t.ID,
+			}
 		}
 	}
 
