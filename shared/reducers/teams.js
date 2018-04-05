@@ -41,8 +41,8 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         action.payload.loadingInvites
       )
 
-    case TeamsGen.setTeamRequests:
-      return state.set('teamNameToRequests', action.payload.requests)
+    case TeamsGen.clearTeamRequests:
+      return state.setIn(['teamNameToRequests', action.payload.teamname], I.Set())
 
     case TeamsGen.setTeamDetails:
       return state.withMutations(s => {
@@ -51,6 +51,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         s.setIn(['teamNameToTeamSettings', action.payload.teamname], action.payload.settings)
         s.setIn(['teamNameToInvites', action.payload.teamname], action.payload.invites)
         s.setIn(['teamNameToSubteams', action.payload.teamname], action.payload.subteams)
+        s.mergeIn(['teamNameToRequests'], action.payload.requests)
       })
 
     case TeamsGen.setTeamCanPerform:

@@ -427,7 +427,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
-      yield Saga.put(TeamsGen.createSetTeamRequests({requests: I.Map({[teamname]: I.Set()})}))
+      yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
     }
 
     // Get the subteam map for this team.
@@ -441,10 +441,10 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
         teamname,
         members: I.Set(infos),
         usernames: I.Set(memberNames),
-        requests: I.Map(requestMap),
         settings: Constants.makeTeamSettings(details.settings),
         invites: I.Set(invites),
         subteams: I.Set(subteams),
+        requests: I.Map(requestMap),
       })
     )
   } finally {

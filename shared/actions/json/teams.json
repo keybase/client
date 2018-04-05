@@ -121,17 +121,17 @@
       "invitees": "string",
       "loadingInvites": "boolean",
     },
-    "setTeamRequests": {
-      "requests": "I.Map<string, I.Set<Types.RequestInfo>>",
+    "clearTeamRequests": {
+      "teamname": "string",
     },
     "setTeamDetails": {
       "teamname": "string",
       "members": "I.Set<Types.MemberInfo>",
       "usernames": "I.Set<string>",
-      "requests": "I.Map<string, I.Set<Types.RequestInfo>>",
       "settings": "Types.TeamSettings",
       "invites": "I.Set<Types.InviteInfo>",
       "subteams": "I.Set<Types.Teamname>",
+      "requests": "I.Map<string, I.Set<Types.RequestInfo>>",
     },
     "setTeamCanPerform": {
       "teamname": "string",

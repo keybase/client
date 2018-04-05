@@ -14,6 +14,7 @@ export const addPeopleToTeam = 'teams:addPeopleToTeam'
 export const addToTeam = 'teams:addToTeam'
 export const badgeAppForTeams = 'teams:badgeAppForTeams'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
+export const clearTeamRequests = 'teams:clearTeamRequests'
 export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
@@ -49,7 +50,6 @@ export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
-export const setTeamRequests = 'teams:setTeamRequests'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
@@ -96,6 +96,7 @@ export const createBadgeAppForTeams = (
   |}>
 ) => ({error: false, payload, type: badgeAppForTeams})
 export const createCheckRequestedAccess = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: checkRequestedAccess})
+export const createClearTeamRequests = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: clearTeamRequests})
 export const createCreateChannel = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -219,10 +220,10 @@ export const createSetTeamDetails = (
     teamname: string,
     members: I.Set<Types.MemberInfo>,
     usernames: I.Set<string>,
-    requests: I.Map<string, I.Set<Types.RequestInfo>>,
     settings: Types.TeamSettings,
     invites: I.Set<Types.InviteInfo>,
     subteams: I.Set<Types.Teamname>,
+    requests: I.Map<string, I.Set<Types.RequestInfo>>,
   |}>
 ) => ({error: false, payload, type: setTeamDetails})
 export const createSetTeamInfo = (
@@ -256,7 +257,6 @@ export const createSetTeamPublicitySettings = (
     publicity: Types._PublicitySettings,
   |}>
 ) => ({error: false, payload, type: setTeamPublicitySettings})
-export const createSetTeamRequests = (payload: $ReadOnly<{|requests: I.Map<string, I.Set<Types.RequestInfo>>|}>) => ({error: false, payload, type: setTeamRequests})
 export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
 export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
 export const createSetTeamStoreRetentionPolicy = (
@@ -284,6 +284,7 @@ export type AddPeopleToTeamPayload = More.ReturnType<typeof createAddPeopleToTea
 export type AddToTeamPayload = More.ReturnType<typeof createAddToTeam>
 export type BadgeAppForTeamsPayload = More.ReturnType<typeof createBadgeAppForTeams>
 export type CheckRequestedAccessPayload = More.ReturnType<typeof createCheckRequestedAccess>
+export type ClearTeamRequestsPayload = More.ReturnType<typeof createClearTeamRequests>
 export type CreateChannelPayload = More.ReturnType<typeof createCreateChannel>
 export type CreateNewTeamFromConversationPayload = More.ReturnType<typeof createCreateNewTeamFromConversation>
 export type CreateNewTeamPayload = More.ReturnType<typeof createCreateNewTeam>
@@ -319,7 +320,6 @@ export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinEr
 export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
 export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
 export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTeamPublicitySettings>
-export type SetTeamRequestsPayload = More.ReturnType<typeof createSetTeamRequests>
 export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
 export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
@@ -335,6 +335,7 @@ export type Actions =
   | More.ReturnType<typeof createAddToTeam>
   | More.ReturnType<typeof createBadgeAppForTeams>
   | More.ReturnType<typeof createCheckRequestedAccess>
+  | More.ReturnType<typeof createClearTeamRequests>
   | More.ReturnType<typeof createCreateChannel>
   | More.ReturnType<typeof createCreateNewTeam>
   | More.ReturnType<typeof createCreateNewTeamFromConversation>
@@ -370,7 +371,6 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamJoinSuccess>
   | More.ReturnType<typeof createSetTeamLoadingInvites>
   | More.ReturnType<typeof createSetTeamPublicitySettings>
-  | More.ReturnType<typeof createSetTeamRequests>
   | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetTeamSawChatBanner>
   | More.ReturnType<typeof createSetTeamSawSubteamsBanner>
