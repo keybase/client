@@ -55,6 +55,8 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamRequests:
     case TeamsGen.setTeamResetUsers:
     case TeamsGen.setTeamRetentionPolicy:
+    case TeamsGen.setTeamSawChatBanner:
+    case TeamsGen.setTeamSawSubteamsBanner:
     case TeamsGen.setTeamSettings:
     case TeamsGen.setTeamStoreRetentionPolicy:
     case TeamsGen.setTeamSubteams:

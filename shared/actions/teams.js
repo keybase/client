@@ -1170,6 +1170,11 @@ const _setNewTeamRequests = (action: TeamsGen.SetNewTeamRequestsPayload) =>
 const _setTeamResetUsers = (action: TeamsGen.SetTeamResetUsersPayload) =>
   Saga.put(replaceEntity(['teams', 'teamNameToResetUsers'], I.Map(action.payload.teamNameToResetUsers)))
 
+const _setTeamSawChatBanner = () => Saga.put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
+
+const _setTeamSawSubteamsBanner = () =>
+  Saga.put(replaceEntity(['teams'], I.Map([['sawSubteamsBanner', true]])))
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1219,6 +1224,8 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.setNewTeams, _setNewTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.setNewTeamRequests, _setNewTeamRequests)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamResetUsers, _setTeamResetUsers)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSawChatBanner, _setTeamSawChatBanner)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamSawSubteamsBanner, _setTeamSawSubteamsBanner)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

@@ -56,6 +56,8 @@ export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
 export const setTeamRequests = 'teams:setTeamRequests'
 export const setTeamResetUsers = 'teams:setTeamResetUsers'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
+export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
+export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamSettings = 'teams:setTeamSettings'
 export const setTeamStoreRetentionPolicy = 'teams:setTeamStoreRetentionPolicy'
 export const setTeamSubteams = 'teams:setTeamSubteams'
@@ -265,6 +267,8 @@ export const createSetTeamPublicitySettings = (
 ) => ({error: false, payload, type: setTeamPublicitySettings})
 export const createSetTeamRequests = (payload: $ReadOnly<{|requests: {[string]: I.Set<Types.RequestInfo>}|}>) => ({error: false, payload, type: setTeamRequests})
 export const createSetTeamResetUsers = (payload: $ReadOnly<{|teamNameToResetUsers: {[Types.Teamname]: Types.ResetUser}|}>) => ({error: false, payload, type: setTeamResetUsers})
+export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
+export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
 export const createSetTeamSettings = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -344,6 +348,8 @@ export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTe
 export type SetTeamRequestsPayload = More.ReturnType<typeof createSetTeamRequests>
 export type SetTeamResetUsersPayload = More.ReturnType<typeof createSetTeamResetUsers>
 export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
+export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
+export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
 export type SetTeamSettingsPayload = More.ReturnType<typeof createSetTeamSettings>
 export type SetTeamStoreRetentionPolicyPayload = More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
 export type SetTeamSubteamsPayload = More.ReturnType<typeof createSetTeamSubteams>
@@ -400,6 +406,8 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamRequests>
   | More.ReturnType<typeof createSetTeamResetUsers>
   | More.ReturnType<typeof createSetTeamRetentionPolicy>
+  | More.ReturnType<typeof createSetTeamSawChatBanner>
+  | More.ReturnType<typeof createSetTeamSawSubteamsBanner>
   | More.ReturnType<typeof createSetTeamSettings>
   | More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
   | More.ReturnType<typeof createSetTeamSubteams>

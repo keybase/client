@@ -5,13 +5,12 @@ import * as Types from '../constants/types/gregor'
 import * as FavoriteGen from './favorite-gen'
 import * as GitGen from './git-gen'
 import * as GregorGen from './gregor-gen'
-import * as I from 'immutable'
+import * as TeamsGen from './teams-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import engine from '../engine'
 import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
-import {replaceEntity} from './entities'
 import {type Dispatch} from '../constants/types/flux'
 import {type State as GregorState, type OutOfBandMessage} from '../constants/types/rpc-gregor-gen'
 import {type TypedState} from '../constants/reducer'
@@ -122,12 +121,10 @@ function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): Saga.SagaGe
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawChatBanner) {
-    // TODO move this to teams eventually
-    yield Saga.put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
+    yield Saga.put(TeamsGen.createSetTeamSawChatBanner())
   }
   if (sawSubteamsBanner) {
-    // TODO move this to teams eventually
-    yield Saga.put(replaceEntity(['teams'], I.Map([['sawSubteamsBanner', true]])))
+    yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 }
 

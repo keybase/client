@@ -183,6 +183,8 @@
     "setTeamResetUsers": {
       "teamNameToResetUsers": "{[Types.Teamname]: Types.ResetUser}",
     },
+    "setTeamSawChatBanner": {},
+    "setTeamSawSubteamsBanner": {},
     "setupTeamHandlers": {},
     "updateChannelName": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
