@@ -78,6 +78,5 @@ export default compose(
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,
-  SyncProps,
-  renderNothing
+  SyncProps
 )(NullComponent)

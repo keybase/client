@@ -7,7 +7,7 @@ import * as React from 'react'
 import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, mapProps, type TypedState, compose, renderNothing} from '../util/container'
+import {NullComponent, connect, mapProps, type TypedState, compose} from '../util/container'
 
 const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
   cancelLabel: data.cancelLabel,
@@ -26,7 +26,7 @@ const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
 }))
 
 // Actions are handled by remote-container
-const RemotePinentry = compose(dataToProps, SyncBrowserWindow, SyncProps, renderNothing)(NullComponent)
+const RemotePinentry = compose(dataToProps, SyncBrowserWindow, SyncProps)(NullComponent)
 
 type Props = {
   sessionIDToPinentry: I.Map<number, Types.PinentryState>,

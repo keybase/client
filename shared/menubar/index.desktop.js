@@ -3,6 +3,7 @@ import Folders, {type FolderType, type Props as FolderProps} from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
+import type {IconType} from '../common-adapters/icon'
 import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -243,21 +244,13 @@ const BadgeIcon = ({
     return null
   }
 
-  let iconType
-  switch (tab) {
-    case peopleTab:
-      iconType = 'iconfont-nav-people'
-      break
-    case folderTab:
-      iconType = 'iconfont-nav-folders'
-      break
-    case chatTab:
-      iconType = 'iconfont-nav-chat'
-      break
-    case devicesTab:
-      iconType = 'iconfont-nav-devices'
-      break
+  const iconMap: {[key: Tab]: IconType} = {
+    [chatTab]: 'iconfont-nav-chat',
+    [devicesTab]: 'iconfont-nav-devices',
+    [folderTab]: 'iconfont-nav-folders',
+    [peopleTab]: 'iconfont-nav-people',
   }
+  const iconType: ?IconType = iconMap[tab]
 
   if (!iconType) {
     return null
