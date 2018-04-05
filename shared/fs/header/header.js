@@ -7,7 +7,7 @@ import ConnectedFilesBanner from '../banner/container'
 
 export type FolderHeaderProps = {
   breadcrumbItems: Array<Types.PathBreadcrumbItem>,
-  dropdownItems: Array<Types.PathBreadcrumbItem>,
+  dropdownPath: string,
   isTeamPath: boolean,
   path: Types.Path,
   onBack: () => void,
@@ -16,7 +16,7 @@ export type FolderHeaderProps = {
 }
 
 const FolderHeader = ({
-  dropdownItems,
+  dropdownPath,
   breadcrumbItems,
   isTeamPath,
   path,
@@ -37,7 +37,7 @@ const FolderHeader = ({
       ) : (
         <Box style={styleFolderHeaderContainer}>
           <Box style={folderHeaderStyleTree}>
-            {dropdownItems.length > 0 && (
+            {dropdownPath !== '' && (
               <Box style={folderBreadcrumbStyle}>
                 <ClickableBox style={styleBreadcrumbDropdownIconBox} onClick={onOpenBreadcrumbDropdown}>
                   <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} />
