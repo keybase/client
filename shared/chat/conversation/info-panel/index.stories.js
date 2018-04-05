@@ -23,8 +23,15 @@ const notificationProps = {
 
 const retentionPickerPropSelector = props => ({
   _loadTeamPolicy: action('_loadTeamPolicy'),
+  _loadTeamOperations: unexpected('_loadTeamOperations'),
+  _onShowDropdown: action('onShowDropdownRetentionPicker'),
+  _onShowWarning: action('onShowWarningRetentionPicker'),
+  _parentPath: 'mockedParentPath',
+  _permissionsLoaded: true,
+  canSetPolicy: true,
   containerStyle: props.containerStyle,
   dropdownStyle: props.dropdownStyle,
+  entityType: props.entityType,
   policy: retentionPolicies.policyThreeMonths,
   teamPolicy: retentionPolicies.policyMonth,
   loading: false,
@@ -33,8 +40,6 @@ const retentionPickerPropSelector = props => ({
   isSmallTeam: props.isSmallTeam,
   setRetentinPolicy: action('setRetentionPolicy'),
   onSelect: action('onSelectRetentionPolicy'),
-  onShowDropdown: action('onShowDropdownRetentionPicker'),
-  onShowWarning: action('onShowWarningRetentionPicker'),
 })
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {

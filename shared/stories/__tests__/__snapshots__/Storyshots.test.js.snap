@@ -861,11 +861,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (mute
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       />
@@ -1563,11 +1563,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (save
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       >
@@ -2281,11 +2281,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       >
@@ -2981,11 +2981,11 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsa
       <div
         style={
           Object {
+            "alignItems": "center",
             "display": "flex",
             "flexDirection": "row",
-            "height": 40,
+            "height": 24,
             "justifyContent": "center",
-            "paddingTop": 16,
           }
         }
       />
@@ -52304,7 +52304,7 @@ exports[`Storyshots Teams TeamList 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Automatic show warning / set 1`] = `
+exports[`Storyshots Teams/Retention Adhoc 1`] = `
 .css-0,
 [data-css-0] {
   font-size: 11px;
@@ -52381,7 +52381,197 @@ exports[`Storyshots Teams/Retention Automatic show warning / set 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="css-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "borderColor": "#e6e6e6",
+              "borderRadius": 100,
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": 220,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+              "width": 220,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "justifyContent": "center",
+                "minHeight": 32,
+                "width": "100%",
+              }
+            }
+          >
+            <span
+              className="css-2"
+              onClick={undefined}
+              title={undefined}
+            >
+              [mocked]
+            </span>
+          </div>
+          <div>
+            <span
+              className="css-3"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 7,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Automatically show warning / set policy 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-1,
+[data-css-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-2,
+[data-css-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-3,
+[data-css-3] {
+  color: inherit;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 8,
             }
           }
         >
@@ -52496,7 +52686,7 @@ exports[`Storyshots Teams/Retention Automatic show warning / set 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Channel 1`] = `
+exports[`Storyshots Teams/Retention Big team 1`] = `
 .css-0,
 [data-css-0] {
   font-size: 11px;
@@ -52527,6 +52717,18 @@ exports[`Storyshots Teams/Retention Channel 1`] = `
 .css-3,
 [data-css-3] {
   color: inherit;
+}
+
+.css-4,
+[data-css-4] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  margin-top: 4px;
 }
 
 <div
@@ -52573,7 +52775,6 @@ exports[`Storyshots Teams/Retention Channel 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -52654,7 +52855,205 @@ exports[`Storyshots Teams/Retention Channel 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              Keep forever
+              [mocked]
+            </span>
+          </div>
+          <div>
+            <span
+              className="css-3"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 7,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="css-4"
+          onClick={undefined}
+          title={undefined}
+        >
+          Individual channels can override this.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Channel 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-1,
+[data-css-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-2,
+[data-css-2] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-3,
+[data-css-3] {
+  color: inherit;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 8,
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="css-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "borderColor": "#e6e6e6",
+              "borderRadius": 100,
+              "borderStyle": "solid",
+              "borderWidth": 1,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": 220,
+              "paddingRight": 16,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+              "width": 220,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "justifyContent": "center",
+                "minHeight": 32,
+                "width": "100%",
+              }
+            }
+          >
+            <span
+              className="css-2"
+              onClick={undefined}
+              title={undefined}
+            >
+              [mocked]
             </span>
           </div>
           <div>
@@ -52940,7 +53339,7 @@ exports[`Storyshots Teams/Retention Channel dropdown 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Channel inheriting from team 1`] = `
+exports[`Storyshots Teams/Retention Channel inheriting 1`] = `
 .css-0,
 [data-css-0] {
   font-size: 11px;
@@ -53017,7 +53416,6 @@ exports[`Storyshots Teams/Retention Channel inheriting from team 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -53132,7 +53530,491 @@ exports[`Storyshots Teams/Retention Channel inheriting from team 1`] = `
 </div>
 `;
 
-exports[`Storyshots Teams/Retention Team-wide 1`] = `
+exports[`Storyshots Teams/Retention Non-admin channel 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-1,
+[data-css-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-2,
+[data-css-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="css-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="css-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Admins have set this channel to auto-delete messages after [mocked]
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Non-admin channel inherit 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-1,
+[data-css-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-2,
+[data-css-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="css-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="css-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Messages in this channel will expire after [mocked], which is the team default.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Non-admin small team 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-1,
+[data-css-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-2,
+[data-css-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="css-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="css-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Admins have set this chat to auto-delete messages after [mocked]
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Non-admin team-wide 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-1,
+[data-css-1] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-2,
+[data-css-2] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "center",
+          "bottom": 0,
+          "display": "flex",
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "display": "flex",
+            "flexDirection": "column",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginBottom": 2,
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Message deletion
+          </span>
+          <div>
+            <span
+              className="css-1"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginLeft": 4,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
+        <span
+          className="css-2"
+          onClick={undefined}
+          title={undefined}
+        >
+          Admins have set this team to auto-delete messages after [mocked]
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Teams/Retention Small team 1`] = `
 .css-0,
 [data-css-0] {
   font-size: 11px;
@@ -53163,18 +54045,6 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
 .css-3,
 [data-css-3] {
   color: inherit;
-}
-
-.css-4,
-[data-css-4] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-  margin-top: 4px;
 }
 
 <div
@@ -53221,7 +54091,6 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
               "display": "flex",
               "flexDirection": "row",
               "marginBottom": 8,
-              "marginTop": 16,
             }
           }
         >
@@ -53302,7 +54171,7 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              [mocked]
+              Keep forever
             </span>
           </div>
           <div>
@@ -53330,13 +54199,6 @@ exports[`Storyshots Teams/Retention Team-wide 1`] = `
             </span>
           </div>
         </div>
-        <span
-          className="css-4"
-          onClick={undefined}
-          title={undefined}
-        >
-          Individual channels can override this.
-        </span>
       </div>
     </div>
   </div>

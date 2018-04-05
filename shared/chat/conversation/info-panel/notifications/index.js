@@ -17,7 +17,7 @@ export type Props = {
   toggleChannelWide: () => void,
 }
 
-const SaveStateComponent = ({saveState}) => {
+export const SaveStateComponent = ({saveState}: {saveState: SaveStateType}) => {
   switch (saveState) {
     case 'same':
       return null
@@ -164,7 +164,7 @@ const styleRadioButton = {
 
 const styleSaveState = {
   ...globalStyles.flexBoxRow,
-  height: globalMargins.large,
+  height: globalMargins.medium,
   justifyContent: 'center',
-  paddingTop: globalMargins.small,
+  alignItems: 'center',
 }
