@@ -39,8 +39,7 @@ const searchResultMapSelector = createSelector(
   searchResults => searchResults
 )
 
-const teamMembersSelector = (state, {teamname}) =>
-  state.entities.getIn(['teams', 'teamNameToMembers', teamname], Set())
+const teamMembersSelector = (state, {teamname}) => state.teams.getIn(['teamNameToMembers', teamname], Set())
 const teamMemberRecordSelector = createSelector(
   [usernameSelector, teamMembersSelector],
   (username, members) => members.find(member => member.username === username)
