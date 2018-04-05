@@ -746,6 +746,13 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "explodedByUID"
         }
       ]
     },
@@ -857,6 +864,14 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral"
+        },
+        {
+          "type": "int",
+          "name": "lifetime"
         }
       ]
     },
@@ -922,6 +937,14 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral"
+        },
+        {
+          "type": "int",
+          "name": "lifetime"
         }
       ]
     },
