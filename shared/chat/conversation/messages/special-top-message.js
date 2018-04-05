@@ -12,6 +12,7 @@ import {globalStyles, globalMargins, isMobile} from '../../../styles'
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
   hasOlderResetConversation: boolean,
+  showRetentionNotice: boolean,
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
   showTeamOffer: boolean,
   measure: ?() => void,
@@ -32,16 +33,20 @@ class TopMessage extends React.PureComponent<Props> {
   render() {
     return (
       <Box>
-        <RetentionNotice conversationIDKey={this.props.conversationIDKey} />
+        {this.props.loadMoreType === 'noMoreToLoad' &&
+          this.props.showRetentionNotice && (
+            <RetentionNotice conversationIDKey={this.props.conversationIDKey} />
+          )}
         <Box style={spacerStyle} />
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
-        {this.props.loadMoreType === 'noMoreToLoad' && (
-          <Box style={secureStyle}>
-            <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-          </Box>
-        )}
+        {this.props.loadMoreType === 'noMoreToLoad' &&
+          !this.props.showRetentionNotice && (
+            <Box style={secureStyle}>
+              <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
+            </Box>
+          )}
         {this.props.showTeamOffer && (
           <Box style={moreStyle}>
             <CreateTeamNotice />
@@ -81,9 +86,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
   const hasOlderResetConversation = !!meta.supersedes
+  // don't show default header in the case of the retention notice being visible
+  const showRetentionNotice =
+    meta.retentionPolicy.type !== 'retain' &&
+    (meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type !== 'retain')
   return {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
+    showRetentionNotice,
     loadMoreType,
     showTeamOffer,
   }

@@ -31,6 +31,7 @@ export default (props: Props) => {
       explanation = `are destroyed after ${props.policy.days} days.`
       break
     case 'inherit':
+      explanation = `are destroyed after ${props.teamPolicy.days} days`
       explanation += props.teamType === 'small' ? '.' : ', the team default.'
       break
   }
