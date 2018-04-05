@@ -47,10 +47,12 @@ class TopMessage extends React.PureComponent<Props> {
             <CreateTeamNotice />
           </Box>
         )}
-        <Box style={this.props.loadMoreType === 'moreToLoad' ? moreStyle : noneStyle}>
-          <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
-          <Text type="BodySmallSemibold">Digging ancient messages...</Text>
-        </Box>
+        {this.props.loadMoreType === 'moreToLoad' && (
+          <Box style={moreStyle}>
+            <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
+            <Text type="BodySmallSemibold">Digging ancient messages...</Text>
+          </Box>
+        )}
       </Box>
     )
   }
@@ -68,11 +70,6 @@ const secureStyle = {
 const moreStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-}
-
-const noneStyle = {
-  ...moreStyle,
-  opacity: 0,
 }
 
 type OwnProps = {
