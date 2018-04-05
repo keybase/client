@@ -576,7 +576,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map())
+    const teamResetUsers = _getResetUsers(state)
     const teamNameSet = I.Set(teamnames)
     const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
       if (!teamNameSet.has(key)) {
@@ -737,16 +737,8 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
 const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: TypedState) {
   const {teamname, settings} = action.payload
   const waitingKey = {key: Constants.settingsWaitingKey(teamname)}
-  const teamSettings = state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname], {
-    open: false,
-    joinAs: RPCTypes.teamsTeamRole['reader'],
-  })
-  const teamPublicitySettings = state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
-    anyMemberShowcase: false,
-    ignoreAccessRequests: false,
-    member: false,
-    team: false,
-  })
+  const teamSettings = _getTeamSettings(state, teamname)
+  const teamPublicitySettings = _getTeamPublicitySettings(state, teamname)
   const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
   const openTeam = teamSettings.open
   const openTeamRole = Constants.teamRoleByEnum[teamSettings.joinAs]
@@ -965,8 +957,8 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
-    const existingNewTeams = state.entities.getIn(['teams', 'newTeams'], I.Set())
-    const existingNewTeamRequests = state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+    const existingNewTeams = _getNewTeams(state)
+    const existingNewTeamRequests = _getNewTeamRequests(state)
     if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
       // We have been added to a new team & we need to refresh the list
       actions.push(Saga.put(TeamsGen.createGetTeams()))
@@ -1009,6 +1001,33 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
     ])
   }
 }
+
+const _getResetUsers = (state: TypedState): I.Map<Types.Teamname, I.Set<Types.ResetUser>> =>
+  state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map())
+
+const _getTeamSettings = (state: TypedState, teamname: string): Types.TeamSettings =>
+  state.entities.getIn(
+    ['teams', 'teamNameToTeamSettings', teamname],
+    I.Record({
+      open: false,
+      joinAs: RPCTypes.teamsTeamRole['reader'],
+    })()
+  )
+
+const _getTeamPublicitySettings = (state: TypedState, teamname: string): Types._PublicitySettings =>
+  state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+    anyMemberShowcase: false,
+    description: '',
+    ignoreAccessRequests: false,
+    member: false,
+    team: false,
+  })
+
+const _getNewTeams = (state: TypedState): I.Set<string> =>
+  state.entities.getIn(['teams', 'newTeams'], I.Set())
+
+const _getNewTeamRequests = (state: TypedState): I.List<string> =>
+  state.entities.getIn(['teams', 'newTeamRequests'], I.List())
 
 const _setChannelCreationError = (action: TeamsGen.SetChannelCreationErrorPayload) =>
   Saga.put(replaceEntity(['teams'], I.Map({channelCreationError: action.payload.error})))
