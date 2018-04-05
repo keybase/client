@@ -26,6 +26,7 @@ import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor'
+import dumpLogs from '../../logger/dump-log-fs'
 
 let _store
 function setupStore() {
@@ -80,6 +81,11 @@ function setupApp(store) {
       ipcRenderer.send('kb-service-check')
     }
   }, 3 * 1000)
+
+  // After a delay dump logs in case some startup stuff happened
+  setTimeout(() => {
+    dumpLogs()
+  }, 5 * 1000)
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {

@@ -3,9 +3,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {remote} from 'electron'
-import {writeLogLinesToFile} from '../util/forward-logs'
-import logger from '../logger'
 import {isWindows} from '../constants/platform'
+import dumpLogs from '../logger/dump-log-fs'
 
 // TODO(mm) Move these to their own actions
 export default function(
@@ -43,19 +42,8 @@ export default function(
     },
   }
 
-  // Also do a quick log send dump to capture any startup failures
-  setTimeout(() => dumpLogs(), 5000)
-
   return {
     ...fromShared,
     ...handlers,
   }
 }
-
-const dumpLogs = () =>
-  logger.dump().then(fromRender =>
-    remote
-      .getGlobal('globalLogger')
-      .dump()
-      .then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
-  )
