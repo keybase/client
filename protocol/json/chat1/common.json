@@ -871,7 +871,7 @@
         },
         {
           "type": "gregor1.DurationMsec",
-          "name": "lifetime"
+          "name": "ephemeralLifetime"
         }
       ]
     },
@@ -944,7 +944,7 @@
         },
         {
           "type": "gregor1.DurationMsec",
-          "name": "lifetime"
+          "name": "ephemeralLifetime"
         }
       ]
     },

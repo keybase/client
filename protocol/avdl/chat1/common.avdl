@@ -336,7 +336,7 @@
     union { null, OutboxInfo } outboxInfo;
 
     boolean isEphemeral;
-    gregor1.DurationMsec lifetime; // used to computed etime
+    gregor1.DurationMsec ephemeralLifetime; // used to computed etime
   }
 
   record MessageClientHeaderVerified {
@@ -362,7 +362,7 @@
     union { null, OutboxInfo } outboxInfo;
 
     boolean isEphemeral;
-    gregor1.DurationMsec lifetime; // used to computed etime
+    gregor1.DurationMsec ephemeralLifetime; // used to computed etime
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
