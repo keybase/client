@@ -38,4 +38,6 @@ protocol local {
   boolean ownAccountLocal(AccountID accountID);
 
   void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
+
+  void setDisplayCurrency(AccountID accountID, string currency);
 }

@@ -170,6 +170,19 @@
         }
       ],
       "response": null
+    },
+    "setDisplayCurrency": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "stellar.1"
