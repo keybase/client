@@ -6,6 +6,7 @@ import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../s
 
 export type Props = {
   canChange: boolean,
+  onChange: () => void,
   policy: RetentionPolicy,
   teamPolicy: RetentionPolicy,
   teamType: 'small' | 'big' | 'adhoc',
@@ -40,6 +41,11 @@ export default (props: Props) => {
     <Box style={containerStyle}>
       <Icon type={iconType} style={iconStyle} />
       <Text type="BodySmallSemibold">{notice}</Text>
+      {props.canChange && (
+        <Text type="BodySmallPrimaryLink" onClick={props.onChange}>
+          Change this
+        </Text>
+      )}
     </Box>
   )
 }
