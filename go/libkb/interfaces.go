@@ -604,6 +604,7 @@ type TeamLoader interface {
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
+	CanUserPerform(context.Context, string) (keybase1.TeamOperation, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
 	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is

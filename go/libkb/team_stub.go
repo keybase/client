@@ -52,6 +52,9 @@ func (n nullTeamLoader) Delete(context.Context, keybase1.TeamID) error {
 func (n *nullTeamLoader) HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error {
 	return nil
 }
+func (n *nullTeamLoader) CanUserPerform(context.Context, string) (keybase1.TeamOperation, error) {
+	return keybase1.TeamOperation{}, nil
+}
 
 func (n nullTeamLoader) OnLogout() {}
 
