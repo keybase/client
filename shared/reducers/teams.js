@@ -70,13 +70,13 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
 
     case TeamsGen.setTeamInfo:
       return state.withMutations(s => {
-        s.set('teamnames', I.Set(action.payload.teamnames))
-        s.set('teammembercounts', I.Map(action.payload.teammembercounts))
-        s.set('teamNameToIsOpen', I.Map(action.payload.teamNameToIsOpen))
-        s.set('teamNameToRole', I.Map(action.payload.teamNameToRole))
-        s.set('teamNameToAllowPromote', I.Map(action.payload.teamNameToAllowPromote))
-        s.set('teamNameToIsShowcasing', I.Map(action.payload.teamNameToIsShowcasing))
-        s.set('teamNameToID', I.Map(action.payload.teamNameToID))
+        s.set('teamnames', action.payload.teamnames)
+        s.set('teammembercounts', action.payload.teammembercounts)
+        s.set('teamNameToIsOpen', action.payload.teamNameToIsOpen)
+        s.set('teamNameToRole', action.payload.teamNameToRole)
+        s.set('teamNameToAllowPromote', action.payload.teamNameToAllowPromote)
+        s.set('teamNameToIsShowcasing', action.payload.teamNameToIsShowcasing)
+        s.set('teamNameToID', action.payload.teamNameToID)
       })
 
     case TeamsGen.setTeamAccessRequestsPending:

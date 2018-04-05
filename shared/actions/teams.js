@@ -592,13 +592,13 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
 
     yield Saga.put(
       TeamsGen.createSetTeamInfo({
-        teamnames,
-        teammembercounts,
-        teamNameToIsOpen,
-        teamNameToRole,
-        teamNameToAllowPromote,
-        teamNameToIsShowcasing,
-        teamNameToID,
+        teamnames: teamNameSet,
+        teammembercounts: I.Map(teammembercounts),
+        teamNameToIsOpen: I.Map(teamNameToIsOpen),
+        teamNameToRole: I.Map(teamNameToRole),
+        teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
+        teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
+        teamNameToID: I.Map(teamNameToID),
       })
     )
   } catch (err) {

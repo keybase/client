@@ -227,13 +227,13 @@ export const createSetTeamDetails = (
 ) => ({error: false, payload, type: setTeamDetails})
 export const createSetTeamInfo = (
   payload: $ReadOnly<{|
-    teamnames: Types.Teamname[],
-    teammembercounts: {[Types.Teamname]: number},
-    teamNameToIsOpen: {[Types.Teamname]: boolean},
-    teamNameToRole: {[Types.Teamname]: Types.TeamRoleType},
-    teamNameToAllowPromote: {[Types.Teamname]: boolean},
-    teamNameToIsShowcasing: {[Types.Teamname]: boolean},
-    teamNameToID: {[Types.Teamname]: string},
+    teamnames: I.Set<Types.Teamname>,
+    teammembercounts: I.Map<Types.Teamname, number>,
+    teamNameToIsOpen: I.Map<Types.Teamname, boolean>,
+    teamNameToRole: I.Map<Types.Teamname, Types.TeamRoleType>,
+    teamNameToAllowPromote: I.Map<Types.Teamname, boolean>,
+    teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>,
+    teamNameToID: I.Map<Types.Teamname, string>,
   |}>
 ) => ({error: false, payload, type: setTeamInfo})
 export const createSetTeamJoinError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamJoinError})
