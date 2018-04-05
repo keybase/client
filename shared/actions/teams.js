@@ -956,8 +956,8 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
-    const existingNewTeams = _getNewTeams(state)
-    const existingNewTeamRequests = _getNewTeamRequests(state)
+    const existingNewTeams = state.teams.getIn(['newTeams'], I.Set())
+    const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
     if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
       // We have been added to a new team & we need to refresh the list
       actions.push(Saga.put(TeamsGen.createGetTeams()))
@@ -1021,11 +1021,6 @@ const _getTeamPublicitySettings = (state: TypedState, teamname: string): Types._
     member: false,
     team: false,
   })
-
-const _getNewTeams = (state: TypedState): I.Set<string> => state.teams.getIn(['newTeams'], I.Set())
-
-const _getNewTeamRequests = (state: TypedState): I.List<string> =>
-  state.teams.getIn(['newTeamRequests'], I.List())
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
