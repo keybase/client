@@ -436,16 +436,17 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     })
     const subteams = teamTree.entries.map(team => team.name.parts.join('.')).filter(team => team !== teamname)
 
-    yield Saga.all([
-      Saga.put(TeamsGen.createSetTeamMembers({teamname, members: infos})),
-      Saga.put(TeamsGen.createSetTeamMemberUsernames({teamname, usernames: memberNames})),
-      Saga.put(TeamsGen.createSetTeamRequests({requests: requestMap})),
-      Saga.put(
-        TeamsGen.createSetTeamSettings({teamname, settings: Constants.makeTeamSettings(details.settings)})
-      ),
-      Saga.put(TeamsGen.createSetTeamInvites({teamname, invites})),
-      Saga.put(TeamsGen.createSetTeamSubteams({teamname, subteams})),
-    ])
+    yield Saga.put(
+      TeamsGen.createSetTeamDetails({
+        teamname,
+        members: infos,
+        usernames: memberNames,
+        requests: requestMap,
+        settings: Constants.makeTeamSettings(details.settings),
+        invites,
+        subteams,
+      })
+    )
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }

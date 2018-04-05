@@ -44,23 +44,14 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamRequests:
       return state.set('teamNameToRequests', I.Map(action.payload.requests))
 
-    case TeamsGen.setTeamMembers:
-      return state.setIn(['teamNameToMembers', action.payload.teamname], I.Set(action.payload.members))
-
-    case TeamsGen.setTeamMemberUsernames:
-      return state.setIn(
-        ['teamNameToMemberUsernames', action.payload.teamname],
-        I.Set(action.payload.usernames)
-      )
-
-    case TeamsGen.setTeamSettings:
-      return state.setIn(['teamNameToTeamSettings', action.payload.teamname], action.payload.settings)
-
-    case TeamsGen.setTeamInvites:
-      return state.setIn(['teamNameToInvites', action.payload.teamname], I.Set(action.payload.invites))
-
-    case TeamsGen.setTeamSubteams:
-      return state.setIn(['teamNameToSubteams', action.payload.teamname], I.Set(action.payload.subteams))
+    case TeamsGen.setTeamDetails:
+      return state.withMutations(s => {
+        s.setIn(['teamNameToMembers', action.payload.teamname], I.Set(action.payload.members))
+        s.setIn(['teamNameToMemberUsernames', action.payload.teamname], I.Set(action.payload.usernames))
+        s.setIn(['teamNameToTeamSettings', action.payload.teamname], action.payload.settings)
+        s.setIn(['teamNameToInvites', action.payload.teamname], I.Set(action.payload.invites))
+        s.setIn(['teamNameToSubteams', action.payload.teamname], I.Set(action.payload.subteams))
+      })
 
     case TeamsGen.setTeamCanPerform:
       return state.setIn(['teamNameToCanPerform', action.payload.teamname], action.payload.teamOperation)

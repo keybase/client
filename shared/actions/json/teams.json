@@ -124,24 +124,13 @@
     "setTeamRequests": {
       "requests": "{[string]: I.Set<Types.RequestInfo>}",
     },
-    "setTeamMembers": {
+    "setTeamDetails": {
       "teamname": "string",
       "members": "Types.MemberInfo[]",
-    },
-    "setTeamMemberUsernames": {
-      "teamname": "string",
       "usernames": "string[]",
-    },
-    "setTeamSettings": {
-      "teamname": "string",
+      "requests": "{[string]: I.Set<Types.RequestInfo>}",
       "settings": "Types.TeamSettings",
-    },
-    "setTeamInvites": {
-      "teamname": "string",
       "invites": "Types.InviteInfo[]",
-    },
-    "setTeamSubteams": {
-      "teamname": "string",
       "subteams": "Types.Teamname[]",
     },
     "setTeamCanPerform": {
