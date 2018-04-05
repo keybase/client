@@ -148,14 +148,18 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	bob.revokePaperKey()
 	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
 
-	annStorage := annG.GetTeamEKBoxStorage()
-	teamEK, annErr := annStorage.Get(context.Background(), teamID, expectedGeneration)
+	storage := annG.GetTeamEKBoxStorage()
+	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration)
+	var expectedMaxGeneration keybase1.EkGeneration
 	if createTeamEK {
-		require.NoError(t, annErr)
-		maxGeneration, err := annStorage.MaxGeneration(context.Background(), teamID)
 		require.NoError(t, err)
-		require.Equal(t, maxGeneration, teamEK.Metadata.Generation)
+		expectedMaxGeneration = teamEK.Metadata.Generation
 	} else {
-		require.Error(t, annErr)
+		require.Error(t, err)
+		require.Equal(t, teamEK, keybase1.TeamEk{})
+		expectedMaxGeneration = -1
 	}
+	maxGeneration, err := storage.MaxGeneration(context.Background(), teamID)
+	require.NoError(t, err)
+	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
