@@ -197,21 +197,30 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 }
 
 // AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None.
-func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) error {
+func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) (err error) {
+
+	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", func() error { return err })()
+
 	// make a map of the None members
 	noneMap := make(map[keybase1.UserVersion]bool)
 	for _, n := range m.None {
 		noneMap[n.version] = true
 	}
 
-	for _, uv := range existing.AllUserVersions() {
+	auv := existing.AllUserVersions()
+	forceUserPoll := true
+	if len(auv) > 50 {
+		forceUserPoll = false
+	}
+
+	for _, uv := range auv {
 		if noneMap[uv] {
 			continue
 		}
 		if _, ok := m.recipients[uv]; ok {
 			continue
 		}
-		if _, err := m.loadMember(ctx, g, uv, true, true); err != nil {
+		if _, err := m.loadMember(ctx, g, uv, true, forceUserPoll); err != nil {
 			if _, reset := err.(libkb.AccountResetError); reset {
 				g.Log.CDebugf(ctx, "Skipping user was who reset: %s", uv.String())
 				continue
