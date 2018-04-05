@@ -42,13 +42,15 @@ const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
   return (
     <Box style={{width: 0, display: 'flex'}}>
       {needsRekey && (
-      <Box style={styleBadgeContainerRekey}>
-        <Meta title="rekey" style={badgeStyleRekey} />
-      </Box>)}
+        <Box style={styleBadgeContainerRekey}>
+          <Meta title="rekey" style={badgeStyleRekey} />
+        </Box>
+      )}
       {isNew && (
-      <Box style={styleBadgeContainerNew}>
-        <Meta title="new" style={badgeStyleNew} />
-      </Box>)}
+        <Box style={styleBadgeContainerNew}>
+          <Meta title="new" style={badgeStyleNew} />
+        </Box>
+      )}
       <Box style={styleBadgeContainer}>
         {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
       </Box>
@@ -218,4 +220,3 @@ const badgeStyleCount = {
   marginLeft: 0,
   marginRight: 0,
 }
-
