@@ -116,6 +116,11 @@
       "teamname": "string",
       "retentionPolicy": "Types.RetentionPolicy",
     },
+    "setTeamLoadingInvites": {
+      "teamname": "string",
+      "invitees": "string",
+      "loadingInvites": "boolean",
+    },
     "setupTeamHandlers": {},
     "updateChannelName": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",

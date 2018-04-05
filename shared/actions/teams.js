@@ -180,9 +180,7 @@ const _updateTeamRetentionPolicy = function(
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   const {invitees, role, teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-  yield Saga.put(
-    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[invitees, true]])]]))
-  )
+  yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: true}))
   try {
     const res: RPCTypes.BulkRes = yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
       name: teamname,
@@ -195,7 +193,7 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   } finally {
     // TODO handle error
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-    yield Saga.put(replaceEntity(['teams', 'teamNameToLoadingInvites', teamname], I.Map([[invitees, false]])))
+    yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
 }
 
@@ -248,12 +246,8 @@ const _editMembership = function*(action: TeamsGen.EditMembershipPayload) {
 const _removeMemberOrPendingInvite = function*(action: TeamsGen.RemoveMemberOrPendingInvitePayload) {
   const {teamname, username, email, inviteID} = action.payload
 
-  yield Saga.put(
-    replaceEntity(
-      ['teams', 'teamNameToLoadingInvites'],
-      I.Map([[teamname, I.Map([[username || email || inviteID, true]])]])
-    )
-  )
+  const invitees = username || email || inviteID
+  yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: true}))
 
   // disallow call with any pair of username, email, and ID to avoid black-bar errors
   if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
@@ -267,12 +261,7 @@ const _removeMemberOrPendingInvite = function*(action: TeamsGen.RemoveMemberOrPe
     yield Saga.call(RPCTypes.teamsTeamRemoveMemberRpcPromise, {email, name: teamname, username, inviteID})
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-    yield Saga.put(
-      replaceEntity(
-        ['teams', 'teamNameToLoadingInvites'],
-        I.Map([[teamname, I.Map([[username || email || inviteID, false]])]])
-      )
-    )
+    yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
 }
 
@@ -1056,6 +1045,14 @@ const _setTeamStoreRetentionPolicy = (action: TeamsGen.SetTeamStoreRetentionPoli
     )
   )
 
+const _setTeamLoadingInvites = (action: TeamsGen.SetTeamLoadingInvitesPayload) =>
+  Saga.put(
+    replaceEntity(
+      ['teams', 'teamNameToLoadingInvites'],
+      I.Map([[action.payload.teamname, I.Map([[action.payload.invitees, action.payload.loadingInvites]])]])
+    )
+  )
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1088,6 +1085,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinError, _setTeamJoinError)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamJoinSuccess, _setTeamJoinSuccess)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamStoreRetentionPolicy, _setTeamStoreRetentionPolicy)
+  yield Saga.safeTakeEveryPure(TeamsGen.setTeamLoadingInvites, _setTeamLoadingInvites)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(

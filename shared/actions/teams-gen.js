@@ -40,6 +40,7 @@ export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
+export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamStoreRetentionPolicy = 'teams:setTeamStoreRetentionPolicy'
 export const setupTeamHandlers = 'teams:setupTeamHandlers'
@@ -187,6 +188,13 @@ export const createSetTeamJoinSuccess = (
     teamname: ?string,
   |}>
 ) => ({error: false, payload, type: setTeamJoinSuccess})
+export const createSetTeamLoadingInvites = (
+  payload: $ReadOnly<{|
+    teamname: string,
+    invitees: string,
+    loadingInvites: boolean,
+  |}>
+) => ({error: false, payload, type: setTeamLoadingInvites})
 export const createSetTeamStoreRetentionPolicy = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -238,6 +246,7 @@ export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCr
 export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
 export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinError>
 export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
+export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
 export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamStoreRetentionPolicyPayload = More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
 export type SetupTeamHandlersPayload = More.ReturnType<typeof createSetupTeamHandlers>
@@ -277,6 +286,7 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamCreationPending>
   | More.ReturnType<typeof createSetTeamJoinError>
   | More.ReturnType<typeof createSetTeamJoinSuccess>
+  | More.ReturnType<typeof createSetTeamLoadingInvites>
   | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
   | More.ReturnType<typeof createSetupTeamHandlers>
