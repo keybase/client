@@ -80,8 +80,9 @@ class Thread extends React.Component<Props, State> {
   _updateBottomLock = throttle((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      this.setState({
-        isLockedToBottom: scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop,
+      this.setState(prevState => {
+        const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+        return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
       })
     }
   }, 500)
