@@ -62,9 +62,11 @@ class Thread extends React.Component<Props> {
     }
 
     if (this.props.messageOrdinals.size !== nextProps.messageOrdinals.size) {
-      // Just the top items can change size
-      this._cellCache.clear(0, 0)
-      this._cellCache.clear(1, 0)
+      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
+      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
+      // another cache from row -> style which is out of sync
+      this._cellCache.clearAll()
+      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
