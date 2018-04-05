@@ -168,7 +168,7 @@ const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.Te
   state.teams.getIn(['teamNameToCanPerform', teamname], initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.entities.hasIn(['teams', 'teamNameToCanPerform', teamname])
+  state.teams.hasIn(['teamNameToCanPerform', teamname])
 
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.getIn(['teammembercounts', teamname], 0)
