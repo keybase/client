@@ -26,7 +26,8 @@ export type _PublicitySettings = {
   team: boolean,
 }
 
-export type _TeamSettings = {open: boolean, joinAs: RPCTypes.TeamRole}
+// Record types don't play well with $ReadOnly types.
+export type _TeamSettings = {...RPCTypes.TeamSettings}
 export type TeamSettings = I.RecordOf<_TeamSettings>
 
 export type ChannelMembershipState = {[channelname: string]: boolean}
