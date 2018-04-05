@@ -4,6 +4,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as AppGen from './app-gen'
 import {showMainWindow} from './platform-specific'
+import {quit} from '../util/quit-helper'
+import dumpLogs from '../logger/dump-log-fs'
 
 function _onMobileAppStateChanged(action: AppGen.MobileAppStatePayload) {
   const nextAppState = action.payload.nextAppState
@@ -29,9 +31,19 @@ function _onShowMain() {
   showMainWindow()
 }
 
+function _dumpLogs(action: AppGen.DumpLogsPayload) {
+  dumpLogs().then(() => {
+    // quit as soon as possible
+    if (action.payload.reason === 'quitting through menu') {
+      quit('quitButton')
+    }
+  })
+}
+
 function* appStateSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(AppGen.showMain, _onShowMain)
   yield Saga.safeTakeEveryPure(AppGen.mobileAppState, _onMobileAppStateChanged)
+  yield Saga.safeTakeEveryPure(AppGen.dumpLogs, _dumpLogs)
 }
 
 export default appStateSaga
