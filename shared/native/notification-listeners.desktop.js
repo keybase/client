@@ -41,7 +41,12 @@ export default function(
     'keybase.1.logsend.prepareLogsend': (_, response) => {
       logger
         .dump()
-        .then(writeLogLinesToFile)
+        .then(fromRender =>
+          remote
+            .getGlobal('globalLogger')
+            .dump()
+            .then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
+        )
         .then(() => response.result())
     },
   }
