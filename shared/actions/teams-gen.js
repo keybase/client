@@ -185,7 +185,7 @@ export const createSaveChannelMembership = (
   |}>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
-export const createSetChannelInfo = (payload: $ReadOnly<{|convIDToChannelInfo: {[string]: Types.ChannelInfo}|}>) => ({error: false, payload, type: setChannelInfo})
+export const createSetChannelInfo = (payload: $ReadOnly<{|convIDToChannelInfo: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo}|}>) => ({error: false, payload, type: setChannelInfo})
 export const createSetLoaded = (payload: $ReadOnly<{|loaded: boolean|}>) => ({error: false, payload, type: setLoaded})
 export const createSetMemberPublicity = (
   payload: $ReadOnly<{|
@@ -220,7 +220,7 @@ export const createSetTeamInfo = (
   payload: $ReadOnly<{|
     teamnames: Types.Teamname[],
     teammembercounts: {[Types.Teamname]: number},
-    teamNameToIsOpen: {[Types.Teamname]: number},
+    teamNameToIsOpen: {[Types.Teamname]: boolean},
     teamNameToRole: {[Types.Teamname]: Types.TeamRoleType},
     teamNameToAllowPromote: {[Types.Teamname]: boolean},
     teamNameToIsShowcasing: {[Types.Teamname]: boolean},

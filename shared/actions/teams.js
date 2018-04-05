@@ -523,13 +523,13 @@ function _afterGetChannels(fromGetChannels: any[]) {
   const teamname: string = fromGetChannels[1]
   const waitingKey: {|key: string|} = fromGetChannels[2]
   const convIDs = []
-  const convIDToChannelInfo = {}
+  const convIDToChannelInfo: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
 
   const convs = results.convs || []
   convs.forEach(conv => {
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
     convIDs.push(convID)
-    convIDToChannelInfo[conv.convID] = Constants.makeChannelInfo({
+    convIDToChannelInfo[convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
       participants: I.Set(conv.participants || []),
@@ -1034,22 +1034,6 @@ const _setChannelInfo = (action: TeamsGen.SetChannelInfoPayload) =>
 const _setLoaded = (action: TeamsGen.SetLoadedPayload) =>
   Saga.put(replaceEntity(['teams'], I.Map([['loaded', action.payload.loaded]])))
 
-const _setTeamInfo = (action: TeamsGen.SetTeamInfoPayload) =>
-  Saga.put(
-    replaceEntity(
-      ['teams'],
-      I.Map({
-        teamnames: action.payload.teamnames,
-        teammembercounts: I.Map(action.payload.teammembercounts),
-        teamNameToIsOpen: I.Map(action.payload.teamNameToIsOpen),
-        teamNameToRole: I.Map(action.payload.teamNameToRole),
-        teamNameToAllowPromote: I.Map(action.payload.teamNameToAllowPromote),
-        teamNameToIsShowcasing: I.Map(action.payload.teamNameToIsShowcasing),
-        teamNameToID: I.Map(action.payload.teamNameToID),
-      })
-    )
-  )
-
 const _setTeamAccessRequestsPending = (action: TeamsGen.SetTeamAccessRequestsPendingPayload) =>
   Saga.put(
     replaceEntity(
@@ -1100,7 +1084,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEveryPure(TeamsGen.setChannelInfo, _setChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.setLoaded, _setLoaded)
-  yield Saga.safeTakeEveryPure(TeamsGen.setTeamInfo, _setTeamInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamAccessRequestsPending, _setTeamAccessRequestsPending)
   yield Saga.safeTakeEveryPure(TeamsGen.setNewTeams, _setNewTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.setNewTeamRequests, _setNewTeamRequests)

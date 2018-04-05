@@ -72,8 +72,22 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.setIn(['teamNameToConvIDs', action.payload.teamname], I.Set(action.payload.convIDs))
 
     case TeamsGen.setChannelInfo:
+      return state.set('convIDToChannelInfo', I.Map(action.payload.convIDToChannelInfo))
+
     case TeamsGen.setLoaded:
+      return state.set('loaded', action.payload.loaded)
+
     case TeamsGen.setTeamInfo:
+      return state.withMutations(s => {
+        s.set('teamnames', I.Set(action.payload.teamnames))
+        s.set('teammembercounts', I.Map(action.payload.teammembercounts))
+        s.set('teamNameToIsOpen', I.Map(action.payload.teamNameToIsOpen))
+        s.set('teamNameToRole', I.Map(action.payload.teamNameToRole))
+        s.set('teamNameToAllowPromote', I.Map(action.payload.teamNameToAllowPromote))
+        s.set('teamNameToIsShowcasing', I.Map(action.payload.teamNameToIsShowcasing))
+        s.set('teamNameToID', I.Map(action.payload.teamNameToID))
+      })
+
     case TeamsGen.setTeamAccessRequestsPending:
     case TeamsGen.setNewTeams:
     case TeamsGen.setNewTeamRequests:

@@ -157,7 +157,7 @@
       "convIDs": "ChatTypes.ConversationIDKey[]",
     },
     "setChannelInfo": {
-      "convIDToChannelInfo": "{[string]: Types.ChannelInfo}",
+      "convIDToChannelInfo": "{[ChatTypes.ConversationIDKey]: Types.ChannelInfo}",
     },
     "setLoaded": {
       "loaded": "boolean",
@@ -165,7 +165,7 @@
     "setTeamInfo": {
       "teamnames": "Types.Teamname[]",
       "teammembercounts": "{[Types.Teamname]: number}",
-      "teamNameToIsOpen": "{[Types.Teamname]: number}",
+      "teamNameToIsOpen": "{[Types.Teamname]: boolean}",
       "teamNameToRole": "{[Types.Teamname]: Types.TeamRoleType}",
       "teamNameToAllowPromote": "{[Types.Teamname]: boolean}",
       "teamNameToIsShowcasing": "{[Types.Teamname]: boolean}",
