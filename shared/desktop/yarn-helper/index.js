@@ -5,7 +5,6 @@ import electronComands from './electron'
 import fontCommands from './font'
 import fs from 'fs'
 import path from 'path'
-import visdiff from './visdiff'
 import {execSync} from 'child_process'
 import padEnd from 'lodash/padEnd'
 
@@ -15,7 +14,6 @@ const commands = {
   ...buildCommands,
   ...fontCommands,
   ...electronComands,
-  ...visdiff,
   help: {
     code: () => {
       const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1)

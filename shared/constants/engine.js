@@ -9,7 +9,6 @@ import * as SagaTypes from './types/saga'
 import type {Channel} from 'redux-saga'
 import {getEngine, EngineChannel} from '../engine'
 import mapValues from 'lodash/mapValues'
-import {RPCTimeoutError} from '../util/errors'
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
@@ -169,7 +168,9 @@ class EngineRpcCall {
 
         if (incoming.timeout) {
           yield Saga.call([this, this._cleanup], subSagaTasks)
-          throw new RPCTimeoutError(this._rpcNameKey, timeout)
+          throw new Error(
+            `RPC timeout error on ${this._rpcNameKey}. Had a ttl of: ${timeout || 'Undefined ttl'}`
+          )
         }
 
         if (incoming.finished) {

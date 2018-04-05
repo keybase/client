@@ -1,5 +1,8 @@
 // @flow
 import {hot} from 'react-hot-loader'
+// Uncomment to get more info on hot loading
+// import { setConfig } from 'react-hot-loader'
+// setConfig({ logLevel: 'debug' })
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import {connect, type TypedState} from '../util/container'

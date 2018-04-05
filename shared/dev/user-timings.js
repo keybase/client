@@ -1,7 +1,7 @@
 // @noflow
 /*
  * This file injects performance marks using the performance api (see the chrome timeline view). It:
- * 1. Monkeypatches redux connect to time mapStateToProps, mapDispatchToProps, mergeProps helpers
+ * --- We don't do this anymore -- 1. Monkeypatches redux connect to time mapStateToProps, mapDispatchToProps, mergeProps helpers
  * 2. Exports a saga monitor to time effect durations
  * 3. Exports a redux combine reducers alternative which times each sub reducer
  * 4. Exports a generic measuring function (measureStart, measureStop) to help add your own for debugging sessions
@@ -36,16 +36,17 @@ const measureStop = allowTiming
     }
   : noop
 
-const timingWrap = (name, call) => {
-  return (...args) => {
-    measureStart(name)
-    const ret = call(...args)
-    measureStop(name)
-    return ret
-  }
-}
+// const timingWrap = (name, call) => {
+// return (...args) => {
+// measureStart(name)
+// const ret = call(...args)
+// measureStop(name)
+// return ret
+// }
+// }
 
-const _infect = allowTiming
+// TODO maybe bring this back after webpack 4. Haven't really used this too much
+const _infect = /* allowTiming
   ? () => {
       console.log(
         '\n\n\n-=============================== Running user timings!!! ===============================-'
@@ -65,7 +66,7 @@ const _infect = allowTiming
       }
       redux.connect = wrappedConnect
     }
-  : noop
+  : */ noop
 
 const _endSaga = effectId => {
   const markName = `${markPrefix} saga:${effectId}`
