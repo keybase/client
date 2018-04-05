@@ -21,13 +21,17 @@ import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {navigateTo, pathSelector} from '../../../../actions/route-tree'
 import {type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
+import type {StylesCrossPlatform} from '../../../../styles'
 import RetentionPicker from './'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
+  containerStyle?: StylesCrossPlatform,
+  dropdownStyle?: StylesCrossPlatform,
   entityType: RetentionEntityType,
+  showSaveState?: boolean,
   teamname?: string,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,

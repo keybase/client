@@ -277,6 +277,7 @@ export class Settings extends React.Component<Props, State> {
         {this.props.yourOperations.chat && (
           <RetentionPicker
             type="simple"
+            containerStyle={{marginTop: globalMargins.small}}
             onSelect={this._onSelectRetentionPolicy}
             teamname={this.props.teamname}
             entityType="big team"
