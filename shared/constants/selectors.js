@@ -21,18 +21,14 @@ const amIFollowing = (state: TypedState, otherUser: string) => state.config.foll
 const amIBeingFollowed = (state: TypedState, otherUser: string) => state.config.followers.has(otherUser)
 
 const userIsInTeam = (
-  {entities: {teams: {teamNameToMemberUsernames}}}: TypedState,
+  {teams: {teamNameToMemberUsernames}}: TypedState,
   teamname: string,
   username: string
 ) => {
   return teamNameToMemberUsernames.getIn([teamname, username])
 }
 
-const userIsActiveInTeam = (
-  {entities: {teams: {teamNameToMembers}}}: TypedState,
-  teamname: string,
-  username: string
-) => {
+const userIsActiveInTeam = ({teams: {teamNameToMembers}}: TypedState, teamname: string, username: string) => {
   const members = teamNameToMembers.get(teamname, Set())
   const member = members.find(mem => mem.username === username)
   return member && member.active

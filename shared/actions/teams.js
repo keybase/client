@@ -1003,11 +1003,11 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
 }
 
 const _getResetUsers = (state: TypedState): I.Map<Types.Teamname, I.Set<Types.ResetUser>> =>
-  state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map())
+  state.teams.getIn(['teamNameToResetUsers'], I.Map())
 
 const _getTeamSettings = (state: TypedState, teamname: string): Types.TeamSettings =>
-  state.entities.getIn(
-    ['teams', 'teamNameToTeamSettings', teamname],
+  state.teams.getIn(
+    ['teamNameToTeamSettings', teamname],
     I.Record({
       open: false,
       joinAs: RPCTypes.teamsTeamRole['reader'],
@@ -1015,7 +1015,7 @@ const _getTeamSettings = (state: TypedState, teamname: string): Types.TeamSettin
   )
 
 const _getTeamPublicitySettings = (state: TypedState, teamname: string): Types._PublicitySettings =>
-  state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname], {
+  state.teams.getIn(['teamNameToPublicitySettings', teamname], {
     anyMemberShowcase: false,
     description: '',
     ignoreAccessRequests: false,
@@ -1023,11 +1023,10 @@ const _getTeamPublicitySettings = (state: TypedState, teamname: string): Types._
     team: false,
   })
 
-const _getNewTeams = (state: TypedState): I.Set<string> =>
-  state.entities.getIn(['teams', 'newTeams'], I.Set())
+const _getNewTeams = (state: TypedState): I.Set<string> => state.teams.getIn(['newTeams'], I.Set())
 
 const _getNewTeamRequests = (state: TypedState): I.List<string> =>
-  state.entities.getIn(['teams', 'newTeamRequests'], I.List())
+  state.teams.getIn(['newTeamRequests'], I.List())
 
 const _setChannelCreationError = (action: TeamsGen.SetChannelCreationErrorPayload) =>
   Saga.put(replaceEntity(['teams'], I.Map({channelCreationError: action.payload.error})))

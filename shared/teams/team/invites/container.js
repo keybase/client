@@ -8,8 +8,8 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
-  _requests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()),
+  _invites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()),
+  _requests: state.teams.getIn(['teamNameToRequests', teamname], I.Set()),
 })
 
 const mergeProps = (stateProps, dispatchProps, {teamname}: OwnProps) => {

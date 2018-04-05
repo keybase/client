@@ -11,10 +11,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   if (!teamname) {
     throw new Error('There was a problem loading the description page, please report this error.')
   }
-  const origDescription = state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'description'],
-    ''
-  )
+  const origDescription = state.teams.getIn(['teamNameToPublicitySettings', teamname, 'description'], '')
   return {
     origDescription,
     teamname,

@@ -16,7 +16,7 @@ type Props = RenderProps & {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
-  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', name], null)
+  const canPerform = state.teams.getIn(['teamNameToCanPerform', name], null)
   const _canLeaveTeam = (canPerform && canPerform.leaveTeam) || false
   return {
     _canLeaveTeam,

@@ -32,10 +32,8 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   return {
     name: teamname,
-    _pendingInvites: teamname ? state.entities.getIn(['teams', 'teamNameToInvites', teamname], Set()) : Set(),
-    loadingInvites: teamname
-      ? state.entities.getIn(['teams', 'teamNameToLoadingInvites', teamname], Map())
-      : Map(),
+    _pendingInvites: teamname ? state.teams.getIn(['teamNameToInvites', teamname], Set()) : Set(),
+    loadingInvites: teamname ? state.teams.getIn(['teamNameToLoadingInvites', teamname], Map()) : Map(),
   }
 }
 

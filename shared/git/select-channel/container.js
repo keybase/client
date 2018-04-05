@@ -24,8 +24,8 @@ export type SelectChannelProps = {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
-  const _convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', teamname], I.Set())
-  const _channelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map())
+  const _convIDs = state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
+  const _channelInfo = state.teams.getIn(['convIDToChannelInfo'], I.Map())
   return {
     _channelInfo,
     _convIDs,

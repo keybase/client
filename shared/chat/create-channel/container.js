@@ -14,7 +14,7 @@ import {upperFirst} from 'lodash-es'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    errorText: upperFirst(state.entities.teams.channelCreationError),
+    errorText: upperFirst(state.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
   }
 }

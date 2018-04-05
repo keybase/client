@@ -36,7 +36,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
     yourOperations: getCanPerform(state, teamname),
     _username: username,
     _you: state.config.username,
-    _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
   }
 }
 

@@ -13,24 +13,22 @@ export type OwnProps = {
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   isBigTeam: Constants.isBigTeam(state, teamname),
-  ignoreAccessRequests: state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
+  ignoreAccessRequests: state.teams.getIn(
+    ['teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
     false
   ),
-  openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
+  openTeam: state.teams.getIn(['teamNameToTeamSettings', teamname, 'open'], false),
   openTeamRole:
-    Constants.teamRoleByEnum[
-      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 1)
-    ],
+    Constants.teamRoleByEnum[state.teams.getIn(['teamNameToTeamSettings', teamname, 'joinAs'], 1)],
   // $FlowFixMe sort out the team settings / publicity settings types
   publicityAnyMember: state.entities.getIn(
     ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
     false
   ),
   // $FlowFixMe same here
-  publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'member'], false),
+  publicityMember: state.teams.getIn(['teamNameToPublicitySettings', teamname, 'member'], false),
   // $FlowFixMe and here
-  publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
+  publicityTeam: state.teams.getIn(['teamNameToPublicitySettings', teamname, 'team'], false),
   waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
   yourOperations: Constants.getCanPerform(state, teamname),
 })

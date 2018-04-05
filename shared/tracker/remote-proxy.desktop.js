@@ -35,16 +35,16 @@ const trackerMapStateToProps = (state: TypedState, {name}) => {
     description: showTeam && showTeam.description,
     following: state.config.following,
     loggedIn: state.config.loggedIn,
-    teamJoinError: state.entities.teams.teamJoinError,
-    teamJoinSuccess: state.entities.teams.teamJoinSuccess,
+    teamJoinError: state.teams.teamJoinError,
+    teamJoinSuccess: state.teams.teamJoinSuccess,
     memberCount: showTeam && showTeam.numMembers,
     openTeam: showTeam && showTeam.open,
     publicAdmins,
     publicAdminsOthers,
     showTeam: showTeam || '',
     teamname,
-    youAreInTeam: !!state.entities.getIn(['teams', 'teamnames', teamname], false),
-    youHaveRequestedAccess: !!state.entities.getIn(['teams', 'teamAccessRequestsPending', teamname], false),
+    youAreInTeam: !!state.teams.getIn(['teamnames', teamname], false),
+    youHaveRequestedAccess: !!state.teams.getIn(['teamAccessRequestsPending', teamname], false),
   }
 }
 

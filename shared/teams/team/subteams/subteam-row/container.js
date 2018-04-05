@@ -12,9 +12,9 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
-  _teamNameToIsOpen: state.entities.getIn(['teams', 'teamNameToIsOpen'], I.Map()),
-  members: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
+  _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
+  _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
+  members: state.teams.getIn(['teammembercounts', teamname], 0),
   yourRole: Constants.getRole(state, teamname),
 })
 

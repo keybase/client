@@ -11,14 +11,14 @@ import {sortTeamnames} from '../util/teams'
 import {type Teamname} from '../constants/types/teams'
 
 const mapStateToProps = (state: TypedState) => ({
-  _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
-  _newTeams: state.entities.getIn(['teams', 'newTeams'], I.Set()),
-  _teamNameToIsOpen: state.entities.getIn(['teams', 'teamNameToIsOpen'], I.Map()),
-  _teammembercounts: state.entities.getIn(['teams', 'teammembercounts'], I.Map()),
-  _teamnames: state.entities.getIn(['teams', 'teamnames'], I.Set()),
-  _teamresetusers: state.entities.getIn(['teams', 'teamNameToResetUsers'], I.Map()),
-  loaded: state.entities.getIn(['teams', 'loaded'], false),
-  sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
+  _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
+  _newTeams: state.teams.getIn(['newTeams'], I.Set()),
+  _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
+  _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
+  _teamnames: state.teams.getIn(['teamnames'], I.Set()),
+  _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
+  loaded: state.teams.getIn(['loaded'], false),
+  sawChatBanner: state.teams.getIn(['sawChatBanner'], false),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

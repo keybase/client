@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
   }
-  const youAreInTeams = state.entities.getIn(['teams', 'teamnames'], I.Set()).count() > 0
+  const youAreInTeams = state.teams.getIn(['teamnames'], I.Set()).count() > 0
 
   return {
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),

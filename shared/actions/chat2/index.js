@@ -1780,7 +1780,7 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   if (!teamname) {
     return
   }
-  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], null)
+  const canPerform = state.teams.getIn(['teamNameToCanPerform', teamname], null)
   if (!canPerform) {
     return Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   }

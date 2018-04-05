@@ -9,7 +9,7 @@ import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  _teams: state.entities.getIn(['teams', 'teamnames'], I.Set()),
+  _teams: state.teams.getIn(['teamnames'], I.Set()),
   error: Constants.getError(state),
   isTeam: routeProps.get('isTeam'),
   loading: Constants.getLoading(state),

@@ -23,8 +23,8 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
-  _invites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()),
-  _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+  _invites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()),
+  _members: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
   following: amIFollowing(state, username || ''),
   you: state.config.username,
 })
