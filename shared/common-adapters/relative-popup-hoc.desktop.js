@@ -209,9 +209,9 @@ function ModalPositionRelative<PP>(
       this.setState({style})
     }
 
-    componentWillReceiveProps(nextProps: ModalPositionRelativeProps<PP>) {
-      if (nextProps.targetRect && this.props.targetRect !== nextProps.targetRect) {
-        this._computeStyle(nextProps.targetRect)
+    componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>) {
+      if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
+        this._computeStyle(this.props.targetRect)
       }
     }
 

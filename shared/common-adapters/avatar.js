@@ -245,7 +245,7 @@ const realConnector = compose(
       }
     },
   }),
-  // $FlowIssue
+  // $FlowIssue : todo just have one connector for avatar and pass a flag to include the follow or not
   lifecycle({
     componentDidMount() {
       const _timeoutID = setTimeout(() => {
@@ -255,8 +255,8 @@ const realConnector = compose(
       }, 200)
       this.props.setMounted(this.props._name, _timeoutID)
     },
-    componentWillReceiveProps(nextProps) {
-      if (this.props._name !== nextProps._name) {
+    componentDidUpdate(prevProps) {
+      if (this.props._name !== prevProps._name) {
         this.props._maybeLoadUserData()
       }
     },

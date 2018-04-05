@@ -84,9 +84,9 @@ class Inbox extends React.PureComponent<Props, State> {
     )
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.rows !== nextProps.rows) {
-      this._dividerIndex = nextProps.rows.findIndex(r => r.type === 'divider')
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.rows !== prevProps.rows) {
+      this._dividerIndex = this.props.rows.findIndex(r => r.type === 'divider')
     }
   }
 

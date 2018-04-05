@@ -99,9 +99,9 @@ export default compose(
     componentDidMount() {
       this.props._loadTeam(this.props.teamname)
     },
-    componentWillReceiveProps(nextProps) {
-      if (this.props.teamname !== nextProps.teamname) {
-        this.props._loadTeam(nextProps.teamname)
+    componentDidUpdate(prevProps) {
+      if (this.props.teamname !== prevProps.teamname) {
+        this.props._loadTeam(this.props.teamname)
         this.props.setSelectedTab('members')
       }
     },

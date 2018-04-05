@@ -151,9 +151,9 @@ export default compose(
     },
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
-      if (!isEqual(this.props.oldChannelState, nextProps.oldChannelState)) {
-        nextProps.setNextChannelState(nextProps.oldChannelState)
+    componentDidUpdate(prevProps) {
+      if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
+        this.props.setNextChannelState(this.props.oldChannelState)
       }
     },
     componentDidMount() {

@@ -29,10 +29,11 @@ class Input extends React.PureComponent<Props, State> {
     this._autoResize()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (nextProps.hasOwnProperty('value')) {
-      this.setState({value: nextProps.value || ''})
+      return {value: nextProps.value || ''}
     }
+    return null
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
