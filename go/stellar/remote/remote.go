@@ -305,3 +305,49 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 	err = g.API.GetDecode(apiArg, &apiRes)
 	return apiRes.Result, err
 }
+
+type tickerResult struct {
+	Status     libkb.AppStatus `json:"status"`
+	Price      float64         `json:"price"`
+	PriceInBTC float64         `json:"xlm_btc"`
+	CachedAt   keybase1.Time   `json:"cached_at"`
+	URL        string          `json:"url"`
+	Currency   string          `json:"currency"`
+}
+
+func (b *tickerResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+type XLMExchangeRate struct {
+	Price    float64
+	Currency string
+}
+
+func (b *XLMExchangeRate) ConvertXLM(XLMAmount string) (localAmount string, err error) {
+	local, err := strconv.ParseFloat(XLMAmount, 64)
+	if err != nil {
+		return "", err
+	}
+
+	localAmount = strconv.FormatFloat(b.Price*local, 'f', 2, 64)
+	return localAmount, nil
+}
+
+func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (XLMExchangeRate, error) {
+	payload := make(libkb.JSONPayload)
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/ticker",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"currency": libkb.S{Val: currency},
+		},
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var apiRes tickerResult
+	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return XLMExchangeRate{}, err
+	}
+	return XLMExchangeRate{Price: apiRes.Price, Currency: apiRes.Currency}, nil
+}

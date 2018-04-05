@@ -8,6 +8,20 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type LocalBalance struct {
+	Balance  Balance `codec:"balance" json:"balance"`
+	Currency string  `codec:"currency" json:"currency"`
+	Value    string  `codec:"value" json:"value"`
+}
+
+func (o LocalBalance) DeepCopy() LocalBalance {
+	return LocalBalance{
+		Balance:  o.Balance.DeepCopy(),
+		Currency: o.Currency,
+		Value:    o.Value,
+	}
+}
+
 type RecentPaymentCLILocal struct {
 	StellarTxID     TransactionID `codec:"stellarTxID" json:"stellarTxID"`
 	Time            TimeMs        `codec:"time" json:"time"`
@@ -95,7 +109,7 @@ type ImportSecretKeyLocalArg struct {
 }
 
 type LocalInterface interface {
-	BalancesLocal(context.Context, AccountID) ([]Balance, error)
+	BalancesLocal(context.Context, AccountID) ([]LocalBalance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]RecentPaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
@@ -218,7 +232,7 @@ type LocalClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
+func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []LocalBalance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
 	return

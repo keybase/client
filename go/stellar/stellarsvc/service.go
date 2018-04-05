@@ -38,15 +38,41 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
-func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	var err error
+func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.LocalBalance, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
 
-	return remote.Balances(ctx, s.G(), accountID)
+	balances, err := remote.Balances(ctx, s.G(), accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	var exchangeRateAvailable bool
+	rate, err := remote.ExchangeRate(ctx, s.G(), "USD")
+	if err == nil {
+		exchangeRateAvailable = true
+	} else {
+		s.G().Log.Warning("Could not obtain exchange rate: %s", err)
+	}
+
+	for _, b := range balances {
+		local := stellar1.LocalBalance{Balance: b}
+		if exchangeRateAvailable && local.Balance.Asset.Type == "native" {
+			converted, err := rate.ConvertXLM(local.Balance.Amount)
+			if err == nil {
+				local.Currency = rate.Currency
+				local.Value = converted
+			} else {
+				s.G().Log.Warning("Could not convert XLM balance to local currency: %s", err)
+			}
+
+		}
+		ret = append(ret, local)
+	}
+	return ret, err
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
