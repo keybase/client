@@ -11,6 +11,7 @@ import * as Selectors from '../constants/selectors'
 import isEqual from 'lodash/isEqual'
 import keyBy from 'lodash/keyBy'
 import trim from 'lodash/trim'
+import {SearchError} from '../util/errors'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24} from '../util/platforms'
 
@@ -91,7 +92,7 @@ function _parseKeybaseRawResult(result: RawResult): Types.SearchResult {
     }
   }
 
-  throw new Error(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
+  throw new SearchError(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
 }
 
 function _parseThirdPartyRawResult(result: RawResult): Types.SearchResult {
@@ -125,7 +126,9 @@ function _parseThirdPartyRawResult(result: RawResult): Types.SearchResult {
     }
   }
 
-  throw new Error(`Invalid raw result for service search. Missing result.service ${JSON.stringify(result)}`)
+  throw new SearchError(
+    `Invalid raw result for service search. Missing result.service ${JSON.stringify(result)}`
+  )
 }
 
 function _parseRawResultToRow(result: RawResult, service: Types.Service) {

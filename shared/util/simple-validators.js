@@ -1,5 +1,6 @@
 // @flow
 import trim from 'lodash/trim'
+import {ValidationError} from './errors'
 
 function isBlank(s: string): boolean {
   return trim(s).length === 0
@@ -26,8 +27,8 @@ function isEmptyOrBlank(thing: ?string): boolean {
 
 // Returns an error string if not valid
 function isValidCommon(thing: ?string): ?Error {
-  if (isEmptyOrBlank(thing)) return new Error('Cannot be blank')
-  if (thing && hasSpaces(thing)) return new Error('No spaces allowed')
+  if (isEmptyOrBlank(thing)) return new ValidationError('Cannot be blank')
+  if (thing && hasSpaces(thing)) return new ValidationError('No spaces allowed')
 }
 
 // Returns an error string if not valid
@@ -37,7 +38,7 @@ function isValidUsername(username: ?string): ?Error {
     return commonError
   }
   if (username && hasPeriod(username)) {
-    return new Error("Usernames can't contain periods.")
+    return new ValidationError("Usernames can't contain periods.")
   }
 }
 
@@ -49,13 +50,13 @@ function isValidEmail(email: ?string): ?Error {
   }
 
   if (email && !hasAtSign(email)) {
-    return new Error('Invalid email address.')
+    return new ValidationError('Invalid email address.')
   }
 }
 
 // Returns an error string if not valid
 function isValidName(name: ?string): ?Error {
-  if (isEmptyOrBlank(name)) return new Error('Please provide your name.')
+  if (isEmptyOrBlank(name)) return new ValidationError('Please provide your name.')
 }
 
 export {isValidUsername, isValidEmail, isValidName}
