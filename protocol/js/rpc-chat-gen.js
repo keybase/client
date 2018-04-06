@@ -753,6 +753,8 @@ export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type EphemeralMetadata = $ReadOnly<{ephemeralLifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
 
+export type EphemeralPurgePayload = $ReadOnly<{Action: String, convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
+
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
 export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>

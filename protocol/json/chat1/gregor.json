@@ -261,6 +261,28 @@
     },
     {
       "type": "record",
+      "name": "EphemeralPurgePayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action",
+          "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdate",
       "fields": [
         {
