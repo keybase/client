@@ -63,7 +63,7 @@ func TestPrevGood(t *testing.T) {
 		},
 	})
 
-	unpreved, err := CheckPrevPointersAndGetUnpreved(&thread)
+	unpreved, _, err := CheckPrevPointersAndGetUnpreved(&thread)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestPrevDuplicateID(t *testing.T) {
 		},
 	})
 
-	_, err := CheckPrevPointersAndGetUnpreved(&thread)
+	_, _, err := CheckPrevPointersAndGetUnpreved(&thread)
 	expectCode(t, err, DuplicateID)
 }
 
@@ -117,7 +117,7 @@ func TestPrevInconsistentHash(t *testing.T) {
 		},
 	})
 
-	_, err := CheckPrevPointersAndGetUnpreved(&thread)
+	_, _, err := CheckPrevPointersAndGetUnpreved(&thread)
 	expectCode(t, err, InconsistentHash)
 }
 
@@ -140,7 +140,7 @@ func TestPrevOutOfOrder(t *testing.T) {
 		},
 	})
 
-	_, err := CheckPrevPointersAndGetUnpreved(&thread)
+	_, _, err := CheckPrevPointersAndGetUnpreved(&thread)
 	expectCode(t, err, OutOfOrderID)
 }
 
@@ -158,7 +158,7 @@ func TestPrevOutOfOrderEq(t *testing.T) {
 		},
 	})
 
-	_, err := CheckPrevPointersAndGetUnpreved(&thread)
+	_, _, err := CheckPrevPointersAndGetUnpreved(&thread)
 	expectCode(t, err, OutOfOrderID)
 }
 
@@ -180,6 +180,6 @@ func TestPrevIncorrectHash(t *testing.T) {
 		},
 	})
 
-	_, err := CheckPrevPointersAndGetUnpreved(&thread)
+	_, _, err := CheckPrevPointersAndGetUnpreved(&thread)
 	expectCode(t, err, IncorrectHash)
 }

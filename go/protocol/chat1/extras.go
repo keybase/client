@@ -340,6 +340,10 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
+func (m MessageUnboxedValid) IsExploding() bool {
+	return m.ClientHeader.EphemeralMetadata != nil
+}
+
 func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }

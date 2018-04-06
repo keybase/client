@@ -100,7 +100,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	if len(res.Messages) == 0 {
 		s.Debug(ctx, "no local messages found for prev pointers")
 	}
-	prevs, err = CheckPrevPointersAndGetUnpreved(&res)
+	prevs, _, err = CheckPrevPointersAndGetUnpreved(&res)
 	if err != nil {
 		return chat1.MessagePlaintext{}, err
 	}
