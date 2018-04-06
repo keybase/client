@@ -62,10 +62,8 @@ func TestAvatarsFullCaching(t *testing.T) {
 	getFile := func(path string) string {
 		if runtime.GOOS == "windows" {
 			path = strings.Replace(path, `/`, `\`, -1)
-			t.Logf(path)
 			path = path[8:]
 		}
-		t.Logf(path)
 		file, err := os.Open(path)
 		require.NoError(t, err)
 		dat, err := ioutil.ReadAll(file)
