@@ -29,10 +29,6 @@ export class RPCTimeoutError extends Error {
   }
 }
 
-export class ValidationError extends Error {}
-
-export class SearchError extends Error {}
-
 const paramsToErrorDetails = (code: number, name: ?string, method: ?string) => {
   let res = `Error code ${code}`
   if (name) {
