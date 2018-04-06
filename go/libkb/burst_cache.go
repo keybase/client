@@ -16,7 +16,7 @@ type BurstCache struct {
 	locktab   LockTable
 	lru       *lru.Cache
 	cacheLife time.Duration
-	name      string
+	cacheName string
 }
 
 // BurstCacheKey is a key for a burst cache resource. Needs to implement the one
@@ -26,17 +26,19 @@ type BurstCacheKey interface {
 }
 
 // NewBurstCache makes a new burst cache with the given size and cacheLife.
-// name is for debugging purposes.
-func NewBurstCache(g *GlobalContext, sz int, dur time.Duration, name string) *BurstCache {
-	lru, err := lru.New(sz)
+// The cache will be at most cacheSize items long, and items will live in there for
+// at most cacheLife duration. For debug logging purposes, this cache will be known
+// as cacheName.
+func NewBurstCache(g *GlobalContext, cacheSize int, cacheLife time.Duration, cacheName string) *BurstCache {
+	lru, err := lru.New(cacheSize)
 	if err != nil {
 		g.Log.Fatalf("Bad LRU Constructor: %s", err.Error())
 	}
 	return &BurstCache{
 		Contextified: NewContextified(g),
 		lru:          lru,
-		cacheLife:    dur,
-		name:         name,
+		cacheLife:    cacheLife,
+		cacheName:    cacheName,
 	}
 }
 
@@ -57,7 +59,7 @@ type BurstCacheLoader func() (obj interface{}, err error)
 func (b *BurstCache) Load(ctx context.Context, key BurstCacheKey, loader BurstCacheLoader) (ret interface{}, err error) {
 	ctx = WithLogTag(ctx, "BC")
 
-	defer b.G().CVTrace(ctx, VLog0, fmt.Sprintf("BurstCache(%s)#Load(%s)", b.name, key.String()), func() error { return err })()
+	defer b.G().CVTrace(ctx, VLog0, fmt.Sprintf("BurstCache(%s)#Load(%s)", b.cacheName, key.String()), func() error { return err })()
 
 	lock := b.locktab.AcquireOnName(ctx, b.G(), key.String())
 	defer lock.Release(ctx)

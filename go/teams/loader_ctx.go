@@ -132,34 +132,6 @@ func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID
 	return upak.Current.EldestSeqno, nil
 }
 
-// Resolve a team name to a team ID.
-// Will always hit the server for subteams. The server can lie in this return value.
-func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, g *libkb.GlobalContext, teamName keybase1.TeamName,
-	public bool) (id keybase1.TeamID, err error) {
-	// For root team names, just hash.
-	if teamName.IsRootTeam() {
-		return teamName.ToTeamID(public), nil
-	}
-
-	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	arg.Args = libkb.HTTPArgs{
-		"name":        libkb.S{Val: teamName.String()},
-		"lookup_only": libkb.B{Val: true},
-		"public":      libkb.B{Val: public},
-	}
-
-	var rt rawTeam
-	if err := l.G().API.GetDecode(arg, &rt); err != nil {
-		return id, err
-	}
-	id = rt.ID
-	if !id.Exists() {
-		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
-	}
-	return id, nil
-}
-
 func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
 	kr, err := l.G().GetPerUserKeyring()
 	if err != nil {
