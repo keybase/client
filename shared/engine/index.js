@@ -405,6 +405,7 @@ class Engine {
     this._incomingActionCreators[method] = actionCreator
   }
 
+  // DEPRECATED - use setIncomingActionCreator instead
   setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
       rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})
