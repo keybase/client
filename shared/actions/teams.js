@@ -391,7 +391,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }, {})
 
     const infos = []
-    let memberNames = []
+    let memberNames = I.Set()
     const types = ['admins', 'owners', 'readers', 'writers']
     const typeMap = {
       admins: 'admin',
@@ -410,7 +410,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
             username,
           })
         )
-        memberNames.push(username)
+        memberNames = memberNames.add(username)
       })
     })
 
@@ -440,7 +440,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       TeamsGen.createSetTeamDetails({
         teamname,
         members: I.Set(infos),
-        usernames: I.Set(memberNames),
+        usernames: memberNames,
         settings: Constants.makeTeamSettings(details.settings),
         invites: I.Set(invites),
         subteams: I.Set(subteams),
