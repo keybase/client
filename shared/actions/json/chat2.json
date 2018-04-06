@@ -374,13 +374,17 @@
       "offline": "boolean",
     },
     "setConvRetentionPolicy": {
-      "_description": "Sets the retention policy for a conversation. Valid operation for big team channels only.",
+      "_description": "Sets the retention policy for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
       "policy": "RetentionPolicy",
     },
     "updateConvRetentionPolicy": {
       "_description": "Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap",
       "conv": "RPCChatTypes.InboxUIItem",
+    },
+    "updateTeamRetentionPolicy": {
+      "_description": "Consume a service notification that a team retention policy was updated, and update all the associated conversations in the metaMap",
+      "convs": "Array<RPCChatTypes.InboxUIItem>",
     },
   }
 }

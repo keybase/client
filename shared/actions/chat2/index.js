@@ -564,6 +564,9 @@ const setupChatHandlers = () => {
     if (update.conv) {
       return [Chat2Gen.createUpdateConvRetentionPolicy({conv: update.conv})]
     }
+    logger.warn(
+      'ChatHandler: got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.'
+    )
     // force to get the new retention policy
     return [
       Chat2Gen.createMetaRequestTrusted({
@@ -571,6 +574,14 @@ const setupChatHandlers = () => {
         force: true,
       }),
     ]
+  })
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetTeamRetention', update => {
+    if (update.convs) {
+      return [Chat2Gen.createUpdateTeamRetentionPolicy({convs: update.convs})]
+    }
+    logger.warn(
+      'ChatHandler: got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+    )
   })
 }
 
