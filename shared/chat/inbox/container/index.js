@@ -4,6 +4,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
+import debounce from 'lodash/debounce'
 import {connect, compose, lifecycle, withStateHandlers, withProps, isMobile} from '../../../util/container'
 import type {TypedState, Dispatch} from '../../../util/container'
 import normalRowData from './normal'
@@ -82,6 +83,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   neverLoaded: stateProps.neverLoaded,
   onNewChat: dispatchProps.onNewChat,
   onSelect: (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
+  onSelectDebounced: debounce(
+    (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
+    400,
+    {maxWait: 600}
+  ),
   onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
   onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
   onSetFilter: dispatchProps.onSetFilter,
@@ -134,7 +140,7 @@ export default compose(
         if (nextProps.filter && this.props.filter !== nextProps.filter && nextProps.rows.length > 0) {
           const row = nextProps.rows[0]
           if (row.conversationIDKey) {
-            this.props.onSelect(row.conversationIDKey)
+            this.props.onSelectDebounced(row.conversationIDKey)
           }
         }
       }
