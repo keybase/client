@@ -42,7 +42,7 @@ export default (props: Props) => {
       <Icon type={iconType} style={iconStyle} />
       <Text type="BodySmallSemibold">{notice}</Text>
       {props.canChange && (
-        <Text type="BodySmallPrimaryLink" onClick={props.onChange}>
+        <Text type="BodySmallSemibold" style={{color: globalColors.blue}} onClick={props.onChange}>
           Change this
         </Text>
       )}
