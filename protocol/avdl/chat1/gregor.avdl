@@ -78,6 +78,13 @@ protocol gregor {
         union { null, UnreadUpdate } unreadUpdate;
     }
 
+    record EphemeralPurgePayload {
+        @lint("ignore")
+        string Action;
+        array<ConversationID> convIDs;
+        InboxVers inboxVers;
+    }
+
     record UnreadUpdate {
         ConversationID convID;
         // The count of unread messages to display
