@@ -79,11 +79,25 @@ const resetHandledPush = () => {
 function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.SagaGenerator<any, any> {
   logger.info('Push notification:', notification)
   const payload = notification.payload.notification
-  if (payload) {
-    // Handle types that are not from user interaction
-    if (payload.type === 'chat.newmessageSilent_2') {
-      logger.info('Push notification: silent notification received')
+  if (!payload) {
+    return
+  }
+
+  switch (payload.type) {
+    case 'chat.readmessage':
       try {
+        logger.info('Push notification: read message notification received')
+        const b = typeof payload.b === 'string' ? parseInt(payload.b) : payload.b
+        if (b === 0) {
+          clearAllNotifications()
+        }
+      } catch (err) {
+        logger.error('failed to handle readmessage push', err)
+      }
+      break
+    case 'chat.newmessageSilent_2':
+      try {
+        logger.info('Push notification: silent notification received')
         const membersType: RPCChatTypes.ConversationMembersType =
           // $ForceType
           typeof payload.t === 'string' ? parseInt(payload.t) : payload.t
@@ -98,40 +112,26 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
           const ageMS = Date.now() - num * 1000
           if (ageMS > 15000) {
             logger.info('Push notification: silent notification is stale:', ageMS)
-            return
+            break
           }
         }
         if (unboxRes) {
           yield Saga.call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
         }
       } catch (err) {
-        logger.info('failed to unbox silent notification', err)
+        logger.error('failed to unbox silent notification', err)
       }
-      return
-    } else if (payload.type === 'chat.readmessage') {
-      logger.info('Push notification: read message notification received')
-      const b = typeof payload.b === 'string' ? parseInt(payload.b) : payload.b
-      if (b === 0) {
-        clearAllNotifications()
-      }
-    }
-
-    // Handle types from user interaction
-    if (payload.userInteraction) {
-      // There can be a race where the notification that our app is foregrounded is very late compared to the push
-      // which makes our handling incorrect. Instead we can only ever handle this if we're in the foreground so lets
-      // just tell the app that's so
-      yield Saga.put(AppGen.createMobileAppState({nextAppState: 'active'}))
-
-      if (payload.type === 'chat.newmessage') {
+      break
+    case 'chat.newmessage':
+      try {
         const {convID} = payload
         // Check for conversation ID so we know where to navigate to
         if (!convID) {
           logger.error('Push chat notification payload missing conversation ID')
-          return
+          break
         }
         if (handledPushThisSession) {
-          return
+          break
         }
         handledPushThisSession = true
         const conversationIDKey = ChatTypes.stringToConversationIDKey(convID)
@@ -143,18 +143,25 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
         )
         yield Saga.put(Chat2Gen.createSetLoading({key: `pushLoad:${conversationIDKey}`, loading: true}))
         yield Saga.put(switchTo([chatTab, 'conversation']))
-      } else if (payload.type === 'follow') {
+      } catch (err) {
+        logger.error('failed to handle new message push', err)
+      }
+      break
+    case 'follow':
+      try {
         const {username} = payload
         if (!username) {
           logger.error('Follow notification payload missing username', JSON.stringify(payload))
-          return
+          break
         }
         logger.info('Push notification: follow received, follower= ', username)
         yield Saga.put(createShowUserProfile({username}))
-      } else {
-        logger.error('Push notification payload missing or unknown type')
+      } catch (err) {
+        logger.error('failed to handle follow push', err)
       }
-    }
+      break
+    default:
+      logger.error('Push notification payload missing or unknown type')
   }
 }
 
