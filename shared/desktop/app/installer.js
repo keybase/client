@@ -17,7 +17,8 @@ type State = {
   promptedForCLI: boolean,
 }
 class InstallerData extends UserData<State> {}
-const installerState = new InstallerData('installer.json', {promptedForCLI: false})
+// prevent error spewage on windows
+const installerState = isWindows ? null : new InstallerData('installer.json', {promptedForCLI: false})
 
 type CheckErrorsResult = {
   errors: Array<string>,
