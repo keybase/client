@@ -1174,6 +1174,9 @@ const startConversationAfterFindExisting = (
   results: RPCChatTypes.FindConversationsLocalRes,
   action: Chat2Gen.StartConversationPayload
 ) => {
+  if (results.conversations && results.conversations.length > 0) {
+    const conversationIDKey = Types.keyToConversationID(results.conversations[0].info.id)
+  }
   console.log('aaa', results)
 
   // There is an existing conversation, select it
