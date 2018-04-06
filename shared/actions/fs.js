@@ -21,133 +21,6 @@ import {
 import {isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
-import {FolderTypeToString} from '../constants/rpc'
-import {findKey} from 'lodash'
-
-// Take the parsed JSON from kbfs/favorite/list, and populate an array of
-// Types.FolderRPCWithMeta with the appropriate metadata:
-//
-// 1) Is this favorite ignored or new?
-// 2) Does it need a rekey?
-//
-const _fillMetadataInFavoritesResult = (
-  favoritesResult: Object,
-  myKID: any
-): Array<Types.FolderRPCWithMeta> => {
-  const fillFolder = toMerge => folder => {
-    folder.waitingForParticipantUnlock = []
-    folder.youCanUnlock = []
-    Object.keys(toMerge).forEach(key => {
-      folder[key] = toMerge[key]
-    })
-
-    if (!folder.problem_set) {
-      return
-    }
-
-    const solutions = folder.problem_set.solution_kids || {}
-    if (Object.keys(solutions).length) {
-      folder.needsRekey = true
-    }
-
-    if (folder.problem_set.can_self_help) {
-      const mySolutions = solutions[myKID] || []
-      folder.youCanUnlock = mySolutions.map(kid => {
-        const device = favoritesResult.devices[kid]
-        return {...device, deviceID: kid}
-      })
-    } else {
-      folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
-        const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
-        const numDevices = devices.length
-        const last = numDevices > 1 ? devices.pop() : null
-
-        return {
-          name: favoritesResult.users[userID],
-          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
-            last ? ` or ${last}` : ''
-          }.`,
-        }
-      })
-    }
-  }
-
-  favoritesResult.favorites.forEach(fillFolder({isIgnored: false, isNew: false}))
-  favoritesResult.ignored.forEach(fillFolder({isIgnored: true, isNew: false}))
-  favoritesResult.new.forEach(fillFolder({isIgnored: false, isNew: true}))
-  return [...favoritesResult.favorites, ...favoritesResult.ignored, ...favoritesResult.new]
-}
-
-function _folderToPathItems(
-  txt: string = '',
-  username: string,
-  loggedIn: boolean
-): I.Map<Types.Path, Types.FavoriteItem> {
-  let favoritesResult
-  let badges = {
-    '/keybase/private': 0,
-    '/keybase/public': 0,
-    '/keybase/team': 0,
-  }
-  let favoriteChildren = {
-    '/keybase/private': new Set(),
-    '/keybase/public': new Set(),
-    '/keybase/team': new Set(),
-  }
-  try {
-    favoritesResult = JSON.parse(txt)
-  } catch (err) {
-    logger.warn('Invalid json from getFavorites: ', err)
-    return I.Map()
-  }
-
-  const myKID = findKey(favoritesResult.users, name => name === username)
-
-  // figure out who can solve the rekey
-  const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
-  const favoriteFolders = folders.map(
-    ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
-      const folderTypeString = FolderTypeToString(folderType)
-      const folderParent = `/keybase/${folderTypeString}`
-      const preferredName = Constants.tlfToPreferredOrder(name, username)
-      const folderPathString = `${folderParent}/${preferredName}`
-      const folderPath = Types.stringToPath(folderPathString)
-      favoriteChildren[folderParent].add(preferredName)
-      if (isNew) {
-        badges[folderParent] += 1
-      }
-      return [
-        // key
-        folderPath,
-        // value
-        Constants.makeFavoriteItem({
-          badgeCount: 0,
-          name: preferredName,
-          tlfMeta: {
-            folderType,
-            isIgnored,
-            isNew,
-            needsRekey,
-            waitingForParticipantUnlock,
-            youCanUnlock,
-          },
-        }),
-      ]
-    }
-  )
-  for (const badgeKey of Object.keys(badges)) {
-    const badgePath = Types.stringToPath(badgeKey)
-    favoriteFolders.push([
-      badgePath,
-      Constants.makeFavoriteItem({
-        badgeCount: badges[badgeKey],
-        name: Types.getPathName(badgePath),
-        favoriteChildren: I.Set(favoriteChildren[badgeKey]),
-      }),
-    ])
-  }
-  return I.Map(favoriteFolders)
-}
 
 function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
@@ -158,7 +31,7 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
     })
     const username = state.config.username || ''
     const loggedIn = state.config.loggedIn
-    const folders = _folderToPathItems(results && results.body, username, loggedIn)
+    const folders = Constants.folderToPathItems(results && results.body, username, loggedIn)
 
     yield Saga.put(FsGen.createFavoritesLoaded({folders}))
   } catch (e) {
