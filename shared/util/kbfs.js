@@ -58,4 +58,3 @@ export const tlfToPreferredOrder = (tlf: string, me: string): string => {
   const readerSuffix = readerNames.length ? `#${readerNames.join(',')}${extensionSuffix}` : extensionSuffix
   return `${writerNames.join(',')}${readerSuffix}`
 }
-

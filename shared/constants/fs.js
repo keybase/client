@@ -420,4 +420,3 @@ export const folderToPathItems = (
   }
   return I.Map(favoriteFolders)
 }
-
