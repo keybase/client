@@ -43,9 +43,14 @@ func (a *AppState) Update(state keybase1.AppState) {
 	a.Lock()
 	defer a.Unlock()
 	defer a.G().Trace(fmt.Sprintf("AppState.Update(%v)", state), func() error { return nil })()
-	a.state = state
-	for _, ch := range a.updateChs {
-		ch <- state
+	if a.state != state {
+		a.state = state
+		for _, ch := range a.updateChs {
+			ch <- state
+		}
+	} else {
+		a.G().Log.Debug("AppState.Update: ignoring update: %v, we are currently in state: %v",
+			state, a.state)
 	}
 	a.updateChs = nil
 }
