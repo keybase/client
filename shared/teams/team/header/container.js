@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
     canManageMembers: yourOperations.manageMembers,
     description: Constants.getTeamPublicitySettings(state, teamname).description,
     memberCount: Constants.getTeamMemberCount(state, teamname),
-    openTeam: state.teams.getIn(['teamNameToSettings', teamname, 'open'], false),
+    openTeam: Constants.getTeamSettings(state, teamname).open,
     role: Constants.getRole(state, teamname),
   }
 }

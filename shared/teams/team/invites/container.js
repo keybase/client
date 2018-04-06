@@ -1,7 +1,6 @@
 // @flow
-import * as I from 'immutable'
 import {type TypedState, connect} from '../../../util/container'
-import {getTeamInvites} from '../../../constants/teams'
+import {getTeamInvites, getTeamRequests} from '../../../constants/teams'
 import {RequestsAndInvites} from '.'
 
 export type OwnProps = {
@@ -10,7 +9,7 @@ export type OwnProps = {
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   _invites: getTeamInvites(state, teamname),
-  _requests: state.teams.getIn(['teamNameToRequests', teamname], I.Set()),
+  _requests: getTeamRequests(state, teamname),
 })
 
 const mergeProps = (stateProps, dispatchProps, {teamname}: OwnProps) => {

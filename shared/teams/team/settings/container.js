@@ -16,12 +16,12 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   const publicityAnyMember = publicitySettings.anyMemberShowcase
   const publicityMember = publicitySettings.member
   const publicityTeam = publicitySettings.team
+  const settings = Constants.getTeamSettings(state, teamname)
   return {
     isBigTeam: Constants.isBigTeam(state, teamname),
     ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
-    openTeam: state.teams.getIn(['teamNameToSettings', teamname, 'open'], false),
-    openTeamRole:
-      Constants.teamRoleByEnum[state.teams.getIn(['teamNameToSettings', teamname, 'joinAs'], 1)],
+    openTeam: settings.open,
+    openTeamRole: Constants.teamRoleByEnum[settings.joinAs],
     publicityAnyMember,
     publicityMember,
     publicityTeam,

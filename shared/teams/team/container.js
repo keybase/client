@@ -34,10 +34,10 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     memberCount: Constants.getTeamMemberCount(state, teamname),
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
     numInvites: Constants.getTeamInvites(state, teamname).size,
-    numRequests: state.teams.getIn(['teamNameToRequests', teamname], I.Set()).size,
-    numSubteams: state.teams.getIn(['teamNameToSubteams', teamname], I.Set()).size,
+    numRequests: Constants.getTeamRequests(state, teamname).size,
+    numSubteams: Constants.getTeamSubteams(state, teamname).size,
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-    resetUserCount: state.teams.getIn(['teamNameToResetUsers', teamname], I.Set()).size,
+    resetUserCount: Constants.getTeamResetUsers(state, teamname),
     selectedTab: routeState.get('selectedTab') || 'members',
     yourOperations,
   }
