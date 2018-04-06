@@ -8,7 +8,6 @@ import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
@@ -77,7 +76,7 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
-  _updateBottomLock = throttle((clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
       this.setState(prevState => {
@@ -85,7 +84,7 @@ class Thread extends React.Component<Props, State> {
         return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
       })
     }
-  }, 500)
+  }
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
