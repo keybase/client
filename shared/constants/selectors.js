@@ -20,12 +20,6 @@ const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState,
 const amIFollowing = (state: TypedState, otherUser: string) => state.config.following.has(otherUser)
 const amIBeingFollowed = (state: TypedState, otherUser: string) => state.config.followers.has(otherUser)
 
-const userIsActiveInTeam = ({teams: {teamNameToMembers}}: TypedState, teamname: string, username: string) => {
-  const members = teamNameToMembers.get(teamname, Set())
-  const member = members.find(mem => mem.username === username)
-  return member && member.active
-}
-
 const searchResultMapSelector = createSelector(
   ({entities: {search: {searchResults}}}: TypedState) => searchResults,
   searchResults => searchResults
@@ -45,6 +39,5 @@ export {
   searchResultMapSelector,
   searchResultSelector,
   teamMemberRecordSelector,
-  userIsActiveInTeam,
   usernameSelector,
 }

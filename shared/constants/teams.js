@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
-import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import {invert} from 'lodash-es'
@@ -143,8 +142,24 @@ const retentionPolicies = {
   policyYear,
 }
 
-const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
-  service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
+const userIsActiveInTeamHelper = (
+  state: TypedState,
+  username: string,
+  service: Service,
+  teamname: string
+) => {
+  if (service !== 'Keybase') {
+    return false
+  }
+
+  const members = state.teams.teamNameToMembers.get(teamname)
+  if (!members) {
+    return false
+  }
+
+  const member = members.get(username)
+  return member && member.active
+}
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
   state.teams.teamNameToConvIDs.get(teamname, I.Set())
