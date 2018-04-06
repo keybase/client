@@ -9,6 +9,24 @@
   "types": [
     {
       "type": "record",
+      "name": "LocalBalance",
+      "fields": [
+        {
+          "type": "Balance",
+          "name": "balance"
+        },
+        {
+          "type": "string",
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RecentPaymentCLILocal",
       "fields": [
         {
@@ -84,7 +102,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "Balance"
+        "items": "LocalBalance"
       }
     },
     "sendLocal": {
@@ -149,6 +167,19 @@
         {
           "name": "makePrimary",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "setDisplayCurrency": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "currency",
+          "type": "string"
         }
       ],
       "response": null

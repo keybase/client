@@ -155,6 +155,8 @@ class Conversation extends React.PureComponent<Props, State> {
         {this.props.showLoader && <LoadingLine />}
         <ListArea
           listScrollDownCounter={this.props.listScrollDownCounter}
+          // TODO DESKTOP-6256 get rid of this
+          onToggleInfoPanel={this._onToggleInfoPanel}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
