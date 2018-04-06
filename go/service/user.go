@@ -41,7 +41,7 @@ func (h *UserHandler) ListTrackers(_ context.Context, arg keybase1.ListTrackersA
 // ListTrackersByName gets the list of trackers for a user by
 // username.
 func (h *UserHandler) ListTrackersByName(_ context.Context, arg keybase1.ListTrackersByNameArg) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackersByName(arg.Username)
+	eng := engine.NewListTrackersByName(arg.Username, h.G())
 	return h.listTrackers(arg.SessionID, eng)
 }
 

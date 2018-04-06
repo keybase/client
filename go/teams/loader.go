@@ -44,15 +44,21 @@ type TeamLoader struct {
 	// Single-flight locks per team ID.
 	// (Private and public loads of the same ID will block each other, should be fine)
 	locktab libkb.LockTable
+
+	// CanUserPerformLoader is a specialized loader for handling CanUserPerform queries.
+	// We'd like to serialize them and also hit a short-lived (5sec?) cache if possible, since
+	// we tend to get ~6 of them at a time.
+	canUserPerformLoader *canUserPerformLoader
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
 
 func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *Storage) *TeamLoader {
 	return &TeamLoader{
-		Contextified: libkb.NewContextified(g),
-		world:        world,
-		storage:      storage,
+		Contextified:         libkb.NewContextified(g),
+		world:                world,
+		storage:              storage,
+		canUserPerformLoader: newCanUserPerformLoader(g),
 	}
 }
 

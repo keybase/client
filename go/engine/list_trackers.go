@@ -27,8 +27,8 @@ func NewListTrackers(uid keybase1.UID, g *libkb.GlobalContext) *ListTrackersEngi
 
 // NewListTrackersByName creates a TrackerList engine that will
 // do a lookup by username.
-func NewListTrackersByName(username string) *ListTrackersEngine {
-	return &ListTrackersEngine{username: username}
+func NewListTrackersByName(username string, g *libkb.GlobalContext) *ListTrackersEngine {
+	return &ListTrackersEngine{username: username, Contextified : libkb.NewContextified(g) }
 }
 
 func NewListTrackersSelf() *ListTrackersEngine {
