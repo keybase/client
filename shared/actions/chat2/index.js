@@ -810,7 +810,10 @@ const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: Typed
   ) {
     logger.info('Sending Chat notification')
     return Saga.put((dispatch: Dispatch) => {
-      const title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+      let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+      if (meta.teamType === 'big') {
+        title += `#${meta.channelname}`
+      }
       NotifyPopup(title, {body}, -1, author, () => {
         dispatch(
           Chat2Gen.createSelectConversation({
