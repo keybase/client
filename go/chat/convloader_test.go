@@ -152,8 +152,8 @@ func TestConvLoaderAppState(t *testing.T) {
 	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
 	select {
 	case <-appStateCh:
-	case <-time.After(failDuration):
 		require.Fail(t, "no app state")
+	default:
 	}
 	select {
 	case <-listener.bgConvLoads:

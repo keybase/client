@@ -93,8 +93,10 @@ func (b *BackgroundConvLoader) monitorAppState() {
 			}
 		case keybase1.AppState_BACKGROUND:
 			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
-			b.Suspend(ctx)
-			suspended = true
+			if !suspended {
+				b.Suspend(ctx)
+				suspended = true
+			}
 		}
 		if b.appStateCh != nil {
 			b.appStateCh <- struct{}{}
