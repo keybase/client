@@ -10,7 +10,7 @@ import {getRole, isOwner} from '../../constants/teams'
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
-  _memberInfo: I.Set<Types.MemberInfo>,
+  _memberInfo: I.Map<string, Types.MemberInfo>,
   you: ?string,
   username: string,
   teamname: string,
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   const teamname = routeProps.get('teamname')
   const username = routeProps.get('username')
   return {
-    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
+    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
     teamname,
     username,
     you: state.config.username,

@@ -19,7 +19,7 @@ type StateProps = {
   follower: boolean,
   _you: ?string,
   _username: string,
-  _memberInfo: I.Set<Types.MemberInfo>,
+  _memberInfo: I.Map<string, Types.MemberInfo>,
   yourOperations: RPCTypes.TeamOperation,
   loading: boolean,
 }
@@ -36,7 +36,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
     yourOperations: getCanPerform(state, teamname),
     _username: username,
     _you: state.config.username,
-    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
+    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
   }
 }
 

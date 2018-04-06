@@ -19,12 +19,12 @@ type StateProps = {
   following: boolean,
   you: ?string,
   _invites: I.Set<Types.InviteInfo>,
-  _members: I.Set<Types.MemberInfo>,
+  _members: I.Map<string, Types.MemberInfo>,
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
   _invites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()),
-  _members: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
+  _members: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
   following: amIFollowing(state, username || ''),
   you: state.config.username,
 })

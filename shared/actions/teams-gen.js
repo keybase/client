@@ -218,8 +218,7 @@ export const createSetTeamCreationPending = (payload: $ReadOnly<{|pending: boole
 export const createSetTeamDetails = (
   payload: $ReadOnly<{|
     teamname: string,
-    members: I.Set<Types.MemberInfo>,
-    usernames: I.Set<string>,
+    members: I.Map<string, Types.MemberInfo>,
     settings: Types.TeamSettings,
     invites: I.Set<Types.InviteInfo>,
     subteams: I.Set<Types.Teamname>,

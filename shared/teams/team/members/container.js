@@ -13,57 +13,58 @@ export type OwnProps = {
 const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
 const getOrderedMemberArray = (
-  memberInfo: I.Set<Types.MemberInfo>,
+  memberInfo: I.Map<string, Types.MemberInfo>,
   you: ?string,
   yourOperations: RPCTypes.TeamOperation
 ): Array<Types.MemberInfo> => {
-  let info = memberInfo
-  let returnArray = info.toArray().sort((a, b) => {
-    // List inactive users first if admin
-    if (yourOperations.manageMembers) {
-      if (!a.active) {
-        if (!b.active) {
-          // both are inactive, compare usernames
+  let returnArray = I.Set(memberInfo.values())
+    .toArray()
+    .sort((a, b) => {
+      // List inactive users first if admin
+      if (yourOperations.manageMembers) {
+        if (!a.active) {
+          if (!b.active) {
+            // both are inactive, compare usernames
+            return a.username.localeCompare(b.username)
+          }
+          // b is active, should go later
+          return -1
+        } else if (!b.active) {
+          // b is inactive, should come first
+          return 1
+        }
+      }
+      if (yourOperations.listFirst && you) {
+        if (a.username === you) {
+          return -1
+        } else if (b.username === you) {
+          return 1
+        }
+      }
+      if (!a.type) {
+        if (!b.type) {
+          // both have no type, compare usernames
           return a.username.localeCompare(b.username)
         }
-        // b is active, should go later
-        return -1
-      } else if (!b.active) {
-        // b is inactive, should come first
+        // b has a type, should go first
         return 1
-      }
-    }
-    if (yourOperations.listFirst && you) {
-      if (a.username === you) {
+      } else if (!b.type) {
+        // a has a type, should go first
         return -1
-      } else if (b.username === you) {
-        return 1
-      }
-    }
-    if (!a.type) {
-      if (!b.type) {
-        // both have no type, compare usernames
+      } else if (a.type === b.type) {
+        // they have equal types, compare usernames
         return a.username.localeCompare(b.username)
       }
-      // b has a type, should go first
-      return 1
-    } else if (!b.type) {
-      // a has a type, should go first
-      return -1
-    } else if (a.type === b.type) {
-      // they have equal types, compare usernames
-      return a.username.localeCompare(b.username)
-    }
-    // they have different types, higher goes first
-    return order[a.type] - order[b.type]
-  })
+      // they have different types, higher goes first
+      return order[a.type] - order[b.type]
+    })
 
   return returnArray
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   // Assume teamname exists here because parent throws an error if not.
-  _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
+  _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
   you: state.config.username,
   yourOperations: Constants.getCanPerform(state, teamname),
 })

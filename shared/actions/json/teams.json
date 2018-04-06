@@ -126,8 +126,7 @@
     },
     "setTeamDetails": {
       "teamname": "string",
-      "members": "I.Set<Types.MemberInfo>",
-      "usernames": "I.Set<string>",
+      "members": "I.Map<string, Types.MemberInfo>",
       "settings": "Types.TeamSettings",
       "invites": "I.Set<Types.InviteInfo>",
       "subteams": "I.Set<Types.Teamname>",
