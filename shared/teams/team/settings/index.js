@@ -9,6 +9,7 @@ import RetentionPicker from './retention/container'
 
 // initial settings (except retention policy)
 type Props = {
+  isBigTeam: boolean,
   ignoreAccessRequests: boolean,
   publicityAnyMember: boolean,
   publicityMember: boolean,
@@ -280,7 +281,7 @@ export class Settings extends React.Component<Props, State> {
             containerStyle={{marginTop: globalMargins.small}}
             onSelect={this._onSelectRetentionPolicy}
             teamname={this.props.teamname}
-            entityType="big team"
+            entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
         <Box
