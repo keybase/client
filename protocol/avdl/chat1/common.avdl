@@ -303,8 +303,11 @@
     gregor1.Time composeTime;
   }
 
+  @mpackkey("em") @jsonkey("em")
   record EphemeralMetadata {
+    @mpackkey("life") @jsonkey("life")
     gregor1.DurationSec ephemeralLifetime; // used to computed etime
+    @mpackkey("gen") @jsonkey("gen")
     keybase1.EkGeneration generation;
   }
 
@@ -340,6 +343,7 @@
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
 
+    @mpackkey("em") @jsonkey("em")
     union { null, EphemeralMetadata } ephemeralMetadata;
   }
 
@@ -365,6 +369,7 @@
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
 
+    @mpackkey("em") @jsonkey("em")
     union { null, EphemeralMetadata } ephemeralMetadata;
   }
 

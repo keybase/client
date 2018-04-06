@@ -790,13 +790,19 @@
       "fields": [
         {
           "type": "gregor1.DurationSec",
-          "name": "ephemeralLifetime"
+          "name": "ephemeralLifetime",
+          "mpackkey": "life",
+          "jsonkey": "life"
         },
         {
           "type": "keybase1.EkGeneration",
-          "name": "generation"
+          "name": "generation",
+          "mpackkey": "gen",
+          "jsonkey": "gen"
         }
-      ]
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
     },
     {
       "type": "record",
@@ -884,7 +890,9 @@
             null,
             "EphemeralMetadata"
           ],
-          "name": "ephemeralMetadata"
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
@@ -956,7 +964,9 @@
             null,
             "EphemeralMetadata"
           ],
-          "name": "ephemeralMetadata"
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
