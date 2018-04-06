@@ -802,15 +802,16 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
-  const metaMap = state.chat2.metaMap
+  const meta = Constants.getMeta(state, conversationIDKey)
 
   if (
     !Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) &&
-    !metaMap.getIn([conversationIDKey, 'isMuted']) // ignore muted convos
+    !meta.isMuted // ignore muted convos
   ) {
     logger.info('Sending Chat notification')
     return Saga.put((dispatch: Dispatch) => {
-      NotifyPopup(author, {body}, -1, author, () => {
+      const title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+      NotifyPopup(title, {body}, -1, author, () => {
         dispatch(
           Chat2Gen.createSelectConversation({
             conversationIDKey,
