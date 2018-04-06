@@ -303,6 +303,11 @@
     gregor1.Time composeTime;
   }
 
+  record EphemeralMetadata {
+    gregor1.DurationSec ephemeralLifetime; // used to computed etime
+    keybase1.EkGeneration generation;
+  }
+
   // The Boxer's compareHeaders* functions checks each of these fields.
   // If we add a field here, that method needs to be updated.
   record MessageClientHeader {
@@ -335,8 +340,7 @@
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
 
-    boolean isEphemeral;
-    gregor1.DurationSec ephemeralLifetime; // used to computed etime
+    union { null, EphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageClientHeaderVerified {
@@ -361,8 +365,7 @@
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
 
-    boolean isEphemeral;
-    gregor1.DurationSec ephemeralLifetime; // used to computed etime
+    union { null, EphemeralMetadata } ephemeralMetadata;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)

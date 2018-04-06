@@ -786,6 +786,20 @@
     },
     {
       "type": "record",
+      "name": "EphemeralMetadata",
+      "fields": [
+        {
+          "type": "gregor1.DurationSec",
+          "name": "ephemeralLifetime"
+        },
+        {
+          "type": "keybase1.EkGeneration",
+          "name": "generation"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageClientHeader",
       "fields": [
         {
@@ -866,12 +880,11 @@
           "name": "outboxInfo"
         },
         {
-          "type": "boolean",
-          "name": "isEphemeral"
-        },
-        {
-          "type": "gregor1.DurationSec",
-          "name": "ephemeralLifetime"
+          "type": [
+            null,
+            "EphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata"
         }
       ]
     },
@@ -939,12 +952,11 @@
           "name": "outboxInfo"
         },
         {
-          "type": "boolean",
-          "name": "isEphemeral"
-        },
-        {
-          "type": "gregor1.DurationSec",
-          "name": "ephemeralLifetime"
+          "type": [
+            null,
+            "EphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata"
         }
       ]
     },
