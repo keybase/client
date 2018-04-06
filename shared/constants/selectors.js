@@ -1,6 +1,5 @@
 // @flow
 // Not use util/container as we have import loops otherwise
-import {Set} from 'immutable'
 import {createSelector} from 'reselect'
 import {type TypedState} from './reducer'
 import {type SearchQuery} from './types/search'
@@ -25,12 +24,6 @@ const searchResultMapSelector = createSelector(
   searchResults => searchResults
 )
 
-const teamMembersSelector = (state, {teamname}) => state.teams.getIn(['teamNameToMembers', teamname], Set())
-const teamMemberRecordSelector = createSelector(
-  [usernameSelector, teamMembersSelector],
-  (username, members) => members.find(member => member.username === username)
-)
-
 export {
   amIBeingFollowed,
   amIFollowing,
@@ -38,6 +31,5 @@ export {
   loggedInSelector,
   searchResultMapSelector,
   searchResultSelector,
-  teamMemberRecordSelector,
   usernameSelector,
 }
