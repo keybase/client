@@ -144,7 +144,7 @@ func (l *TeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keyb
 	if err != nil {
 		return keybase1.TeamID(""), err
 	}
-	if idPointer, ok := idVoidPointer.(*keybase1.TeamID); ok {
+	if idPointer, ok := idVoidPointer.(*keybase1.TeamID); ok && idPointer != nil {
 		id = *idPointer
 	} else {
 		return keybase1.TeamID(""), errors.New("bad cast out of nameLookupBurstCache")
