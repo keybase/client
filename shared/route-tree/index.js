@@ -206,7 +206,7 @@ function _routeSet(
     // $FlowIssue
     const childDef = routeDef.getChild(childName)
     if (!childDef) {
-      throw new Error(`RT: Invalid route child: ${childName}`)
+      throw new Error(`Invalid route child: ${childName}`)
     }
 
     newRouteState = newRouteState.updateChild(childName, childState => {
@@ -267,7 +267,7 @@ export function routeSetState(
   // $FlowIssue
   return routeState.updateChild(name, childState => {
     if (!childState) {
-      throw new Error(`RT: Missing state child: ${name || 'undefined'}`)
+      throw new Error(`Missing state child: ${name || 'undefined'}`)
     }
     return routeSetState(routeDef, childState, pathSeq.skip(1), partialState)
   })

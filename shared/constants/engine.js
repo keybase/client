@@ -169,7 +169,7 @@ class EngineRpcCall {
         if (incoming.timeout) {
           yield Saga.call([this, this._cleanup], subSagaTasks)
           throw new Error(
-            `RPC timeout error on ${this._rpcNameKey}. Had a ttl of: ${timeout || 'Undefined ttl'}`
+            `RPC timeout error on ${this._rpcNameKey}. Had a ttl of: ${timeout || 'Undefined timeout'}`
           )
         }
 
