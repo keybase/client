@@ -64,7 +64,7 @@ const getOrderedMemberArray = (
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
   // Assume teamname exists here because parent throws an error if not.
-  _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
+  _memberInfo: Constants.getTeamMembers(state, teamname),
   you: state.config.username,
   yourOperations: Constants.getCanPerform(state, teamname),
 })

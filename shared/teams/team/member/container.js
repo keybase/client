@@ -9,7 +9,7 @@ import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
-import {getCanPerform, teamWaitingKey} from '../../../constants/teams'
+import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
@@ -36,7 +36,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
     yourOperations: getCanPerform(state, teamname),
     _username: username,
     _you: state.config.username,
-    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
+    _memberInfo: getTeamMembers(state, teamname),
   }
 }
 

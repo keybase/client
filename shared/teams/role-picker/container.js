@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/teams'
 import {connect} from 'react-redux'
 import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
-import {getRole, isOwner} from '../../constants/teams'
+import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   const teamname = routeProps.get('teamname')
   const username = routeProps.get('username')
   return {
-    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Map()),
+    _memberInfo: getTeamMembers(state, teamname),
     teamname,
     username,
     you: state.config.username,

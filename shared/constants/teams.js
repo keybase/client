@@ -199,6 +199,9 @@ const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'smal
 const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
+const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
+  state.teams.getIn(['teamNameToMembers', teamname], I.Map())
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -285,6 +288,7 @@ export {
   getChannelNameFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
+  getTeamMembers,
   getTopicFromConvID,
   getTeamType,
   isAdmin,
