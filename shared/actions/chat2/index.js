@@ -1170,40 +1170,80 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   ])
 }
 
+const startConversationAfterFindExisting = (
+  results: RPCChatTypes.FindConversationsLocalRes,
+  action: Chat2Gen.StartConversationPayload
+) => {
+  console.log('aaa', results)
+
+  // There is an existing conversation, select it
+  // if (conversationIDKey) {
+  // return Saga.sequentially([
+  // Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
+  // Saga.put(Chat2Gen.createNavigateToThread()),
+  // ])
+  // }
+
+  // return Saga.sequentially([
+  // // its a fixed set of users so it's not a search (aka you can't add people to it)
+  // Saga.put(
+  // Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
+  // ),
+  // Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
+  // Saga.put(Chat2Gen.createNavigateToThread()),
+  // ])
+}
+
 // Start a conversation, or select an existing one
-const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
-  const {participants, tlf, fromAReset} = action.payload
+const startConversationFindExisting = (
+  action: Chat2Gen.StartConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
+  state: TypedState
+) => {
+  let participants
+  let tlf
+  if (action.type === Chat2Gen.startConversation) {
+    participants = action.payload.participants
+    tlf = action.payload.tlf
+  } else if (action.type === Chat2Gen.setPendingConversationUsers) {
+    participants = action.payload.users
+  }
   const you = state.config.username || ''
 
-  let users: Array<string> = []
-  let conversationIDKey
+  const commonParams = {
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    membersTypes: RPCChatTypes.commonConversationMembersType.impteamnative,
+    oneChatPerTLF: true,
+    topicName: '',
+    topicType: RPCChatTypes.commonTopicType.chat,
+    visibility: RPCTypes.commonTLFVisibility.private,
+  }
 
   // we handled participants or tlfs
   if (participants) {
-    users = participants
+    const toFind = I.Set(participants).concat([you])
+    return Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+      ...commonParams,
+      tlfName: toFind.join(','),
+    })
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
       const [, , type, names] = parts
       if (type === 'private' || type === 'public') {
         // allow talking to yourself
-        users =
-          names === you
-            ? [you]
-            : parseFolderNameToUsers('', names)
-                .map(u => u.username)
-                .filter(u => u !== you)
-        conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
+        const toFind = I.Set(
+          names === you ? [] : parseFolderNameToUsers('', names).map(u => u.username)
+        ).concat([you])
+        return Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+          ...commonParams,
+          tlfName: toFind.join(','),
+        })
       } else if (type === 'team') {
-        // Actually a team, find general channel
-        const meta = state.chat2.metaMap.find(
-          meta => meta.teamname === names && meta.channelname === 'general'
-        )
-        if (meta) {
-          conversationIDKey = meta.conversationIDKey
-        } else {
-          throw new Error('Start conversation called w/ bad team tlf')
-        }
+        return Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+          ...commonParams,
+          tlfName: names,
+          topicName: 'general',
+        })
       } else {
         throw new Error('Start conversation called w/ bad tlf type')
       }
@@ -1213,23 +1253,6 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   } else {
     throw new Error('Start conversation called w/ no participants or tlf')
   }
-
-  // There is an existing conversation, select it
-  if (conversationIDKey) {
-    return Saga.sequentially([
-      Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
-      Saga.put(Chat2Gen.createNavigateToThread()),
-    ])
-  }
-
-  return Saga.sequentially([
-    // its a fixed set of users so it's not a search (aka you can't add people to it)
-    Saga.put(
-      Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
-    ),
-    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
-    Saga.put(Chat2Gen.createNavigateToThread()),
-  ])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
@@ -1997,7 +2020,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
-  yield Saga.safeTakeEveryPure(Chat2Gen.startConversation, startConversation)
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.startConversation, Chat2Gen.setPendingConversationUsers],
+    startConversationFindExisting,
+    startConversationAfterFindExisting
+  )
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 
   // On bootstrap lets load the untrusted inbox. This helps make some flows easier
