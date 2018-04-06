@@ -2,6 +2,7 @@
 import {compose, connect, lifecycle, type TypedState} from '../../../../util/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import {getMeta} from '../../../../constants/chat2'
+import {makeRetentionNotice} from '../../../../util/teams'
 import {getCanPerform, hasCanPerform} from '../../../../constants/teams'
 import {createGetTeamOperations} from '../../../../actions/teams-gen'
 import RetentionNotice from '.'
@@ -26,11 +27,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
   return {
     _permissionsNeedLoad,
+    _policy: meta.retentionPolicy,
     _teamname,
+    _teamPolicy: meta.teamRetentionPolicy,
+    _teamType: meta.teamType,
     canChange,
-    policy: meta.retentionPolicy,
-    teamPolicy: meta.teamRetentionPolicy,
-    teamType: meta.teamType,
   }
 }
 
@@ -40,8 +41,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onChange: ownProps.onToggleInfoPanel,
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const explanation = makeRetentionNotice(stateProps._policy, stateProps._teamPolicy, stateProps._teamType)
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    explanation,
+  }
+}
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount() {
       this.props._permissionsNeedLoad && this.props._loadPermissions()
@@ -49,8 +59,8 @@ export default compose(
     componentDidUpdate(prevProps) {
       if (
         this.props.canChange !== prevProps.canChange ||
-        this.props.policy !== prevProps.policy ||
-        this.props.teamPolicy !== prevProps.teamPolicy
+        this.props._policy !== prevProps._policy ||
+        this.props._teamPolicy !== prevProps._teamPolicy
       ) {
         this.props.measure && this.props.measure()
       }

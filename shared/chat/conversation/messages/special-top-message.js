@@ -97,8 +97,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const hasOlderResetConversation = !!meta.supersedes
   // don't show default header in the case of the retention notice being visible
   const showRetentionNotice =
-    meta.retentionPolicy.type !== 'retain' ||
-    (meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type !== 'retain')
+    meta.retentionPolicy.type !== 'retain' &&
+    !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
   return {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
