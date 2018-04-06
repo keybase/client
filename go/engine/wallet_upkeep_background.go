@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/stellar"
 )
 
 var WalletUpkeepBackgroundSettings = BackgroundTaskSettings{
@@ -104,6 +103,5 @@ func WalletUpkeepBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
 		return nil
 	}
 
-	err := stellar.Upkeep(ectx.GetNetContext(), g)
-	return err
+	return g.GetStellar().Upkeep(ectx.GetNetContext())
 }

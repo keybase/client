@@ -613,6 +613,13 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type Stellar interface {
+	CreateWalletGated(context.Context) (bool, error)
+	CreateWalletSoft(context.Context)
+	Upkeep(context.Context) error
+	OnLogout()
+}
+
 type DeviceEKStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
 	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)

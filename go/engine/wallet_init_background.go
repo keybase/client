@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/stellar"
+	context "golang.org/x/net/context"
 )
 
 var WalletInitBackgroundSettings = BackgroundTaskSettings{
@@ -104,6 +104,6 @@ func WalletInitBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
 		return nil
 	}
 
-	_, err := stellar.CreateWalletGated(ectx.GetNetContext(), g)
+	_, err := g.GetStellar().CreateWalletGated(context.Background())
 	return err
 }
