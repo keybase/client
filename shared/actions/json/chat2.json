@@ -379,11 +379,11 @@
       "policy": "RetentionPolicy",
     },
     "updateConvRetentionPolicy": {
-      "_description": "Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap",
+      "_description": "Consume a service notification that a conversation's retention policy has been updated",
       "conv": "RPCChatTypes.InboxUIItem",
     },
     "updateTeamRetentionPolicy": {
-      "_description": "Consume a service notification that a team retention policy was updated, and update all the associated conversations in the metaMap",
+      "_description": "Consume a service notification that a team retention policy was updated",
       "convs": "Array<RPCChatTypes.InboxUIItem>",
     },
   }

@@ -90,11 +90,11 @@ export const updateTypers = 'chat2:updateTypers'
  */
 export const createCancelPendingConversation = () => ({error: false, payload: undefined, type: cancelPendingConversation})
 /**
- * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
+ * Consume a service notification that a conversation's retention policy has been updated
  */
 export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>) => ({error: false, payload, type: updateConvRetentionPolicy})
 /**
- * Consume a service notification that a team retention policy was updated, and update all the associated conversations in the metaMap
+ * Consume a service notification that a team retention policy was updated
  */
 export const createUpdateTeamRetentionPolicy = (payload: $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>) => ({error: false, payload, type: updateTeamRetentionPolicy})
 /**
@@ -115,7 +115,7 @@ export const createSetPendingMessageSubmitState = (
  */
 export const createSetPendingStatus = (payload: $ReadOnly<{|pendingStatus: Types.PendingStatus|}>) => ({error: false, payload, type: setPendingStatus})
 /**
- * Sets the retention policy for a conversation. Valid operation for big team channels only.
+ * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (
   payload: $ReadOnly<{|

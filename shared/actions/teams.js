@@ -172,20 +172,7 @@ const _updateTeamRetentionPolicy = function(
   const {teamRetention, name} = convs[0]
   try {
     const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(teamRetention)
-    // increment / decrement waiting here to signify we got an update in case we didn't do it
-    return Saga.sequentially([
-      Saga.put(
-        createIncrementWaiting({
-          key: [Constants.teamWaitingKey(name), Constants.retentionWaitingKey(name)],
-        })
-      ),
-      Saga.put(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[name, newPolicy]]))),
-      Saga.put(
-        createDecrementWaiting({
-          key: [Constants.teamWaitingKey(name), Constants.retentionWaitingKey(name)],
-        })
-      ),
-    ])
+    return Saga.put(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[name, newPolicy]])))
   } catch (err) {
     logger.error(err.message)
     throw err

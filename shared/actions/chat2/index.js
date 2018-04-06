@@ -579,7 +579,8 @@ const setupChatHandlers = () => {
     if (update.convs) {
       return [Chat2Gen.createUpdateTeamRetentionPolicy({convs: update.convs})]
     }
-    logger.warn(
+    // this is a more serious problem, but we don't need to bug the user about it
+    logger.error(
       'ChatHandler: got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
     )
   })
