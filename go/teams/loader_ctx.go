@@ -23,7 +23,6 @@ type LoaderContext interface {
 	getMe(context.Context) (keybase1.UserVersion, error)
 	// Lookup the eldest seqno of a user. Can use the cache.
 	lookupEldestSeqno(context.Context, keybase1.UID) (keybase1.Seqno, error)
-	resolveNameToIDUntrusted(context.Context, keybase1.TeamName, bool) (keybase1.TeamID, error)
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
@@ -135,7 +134,7 @@ func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID
 
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
-func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName,
+func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, g *libkb.GlobalContext, teamName keybase1.TeamName,
 	public bool) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
 	if teamName.IsRootTeam() {

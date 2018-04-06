@@ -2683,7 +2683,7 @@ export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: 
 
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
-export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean}>
+export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean, allowNameLookupBurstCache: Boolean}>
 
 export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
 
