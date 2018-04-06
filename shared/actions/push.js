@@ -123,6 +123,10 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       }
       break
     case 'chat.newmessage':
+      if (!payload.userInteraction) {
+        // ignore it
+        break
+      }
       try {
         const {convID} = payload
         // Check for conversation ID so we know where to navigate to
@@ -148,6 +152,10 @@ function* pushNotificationSaga(notification: PushGen.NotificationPayload): Saga.
       }
       break
     case 'follow':
+      if (!payload.userInteraction) {
+        // ignore it
+        break
+      }
       try {
         const {username} = payload
         if (!username) {
