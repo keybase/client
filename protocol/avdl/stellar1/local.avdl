@@ -2,7 +2,14 @@
 protocol local {
   import idl "common.avdl";
 
-  array<Balance> balancesLocal(AccountID accountID);
+  // Account balance and its current value in selected currency.
+  record LocalBalance {
+    Balance balance;
+    string currency;
+    string value;
+  }
+
+  array<LocalBalance> balancesLocal(AccountID accountID);
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
@@ -31,4 +38,6 @@ protocol local {
   boolean ownAccountLocal(AccountID accountID);
 
   void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
+
+  void setDisplayCurrency(AccountID accountID, string currency);
 }

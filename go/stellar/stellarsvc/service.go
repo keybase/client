@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -38,15 +39,51 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
-func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	var err error
+func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.LocalBalance, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
 
-	return remote.Balances(ctx, s.G(), accountID)
+	balances, err := remote.Balances(ctx, s.G(), accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), accountID)
+	if err != nil {
+		s.G().Log.Warning("Could not get default currency for account %q: %s", accountID, err)
+		err = nil
+	}
+
+	var exchangeRateAvailable bool
+	var rate remote.XLMExchangeRate
+	if displayCurrency != "" {
+		rate, err = remote.ExchangeRate(ctx, s.G(), displayCurrency)
+		if err == nil {
+			exchangeRateAvailable = true
+		} else {
+			s.G().Log.Warning("Could not obtain exchange rate: %s", err)
+			err = nil
+		}
+	}
+
+	for _, b := range balances {
+		local := stellar1.LocalBalance{Balance: b}
+		if exchangeRateAvailable && local.Balance.Asset.Type == "native" {
+			converted, err := rate.ConvertXLM(local.Balance.Amount)
+			if err == nil {
+				local.Currency = rate.Currency
+				local.Value = converted
+			} else {
+				s.G().Log.Warning("Could not convert XLM balance to local currency: %s", err)
+			}
+
+		}
+		ret = append(ret, local)
+	}
+	return ret, err
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
@@ -205,4 +242,15 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	}
 	_, err = stellar.CreateWallet(ctx, s.G())
 	return err
+}
+
+func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplayCurrencyArg) (err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("SetDisplayCurrency(%s, %s)", arg.AccountID, arg.Currency),
+		func() error { return err })()
+
+	if err := s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
 }

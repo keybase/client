@@ -8,6 +8,20 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type LocalBalance struct {
+	Balance  Balance `codec:"balance" json:"balance"`
+	Currency string  `codec:"currency" json:"currency"`
+	Value    string  `codec:"value" json:"value"`
+}
+
+func (o LocalBalance) DeepCopy() LocalBalance {
+	return LocalBalance{
+		Balance:  o.Balance.DeepCopy(),
+		Currency: o.Currency,
+		Value:    o.Value,
+	}
+}
+
 type RecentPaymentCLILocal struct {
 	StellarTxID     TransactionID `codec:"stellarTxID" json:"stellarTxID"`
 	Time            TimeMs        `codec:"time" json:"time"`
@@ -94,14 +108,20 @@ type ImportSecretKeyLocalArg struct {
 	MakePrimary bool      `codec:"makePrimary" json:"makePrimary"`
 }
 
+type SetDisplayCurrencyArg struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Currency  string    `codec:"currency" json:"currency"`
+}
+
 type LocalInterface interface {
-	BalancesLocal(context.Context, AccountID) ([]Balance, error)
+	BalancesLocal(context.Context, AccountID) ([]LocalBalance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]RecentPaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
+	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -210,6 +230,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setDisplayCurrency": {
+				MakeArg: func() interface{} {
+					ret := make([]SetDisplayCurrencyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetDisplayCurrencyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetDisplayCurrencyArg)(nil), args)
+						return
+					}
+					err = i.SetDisplayCurrency(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -218,7 +254,7 @@ type LocalClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
+func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []LocalBalance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
 	return
@@ -253,5 +289,10 @@ func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (
 
 func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecretKeyLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCurrencyArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil)
 	return
 }
