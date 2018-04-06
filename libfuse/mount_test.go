@@ -3932,7 +3932,7 @@ func TestInodes(t *testing.T) {
 
 	inode2 := getInode(p2)
 	if inode != inode2 {
-		t.Fatal("Inode changed after rename: %d vs %d", inode, inode2)
+		t.Fatalf("Inode changed after rename: %d vs %d", inode, inode2)
 	}
 
 	t.Log("A new file with the previous name should get a new inode")
