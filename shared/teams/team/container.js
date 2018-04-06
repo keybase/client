@@ -33,7 +33,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     admin: yourOperations.manageMembers,
     memberCount: Constants.getTeamMemberCount(state, teamname),
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-    numInvites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()).size,
+    numInvites: Constants.getTeamInvites(state, teamname).size,
     numRequests: state.teams.getIn(['teamNameToRequests', teamname], I.Set()).size,
     numSubteams: state.teams.getIn(['teamNameToSubteams', teamname], I.Set()).size,
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
