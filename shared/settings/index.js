@@ -23,6 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}: OwnProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNotifications: stateProps.badgeNotifications,
   badgeNumbers: stateProps._badgeNumbers.toObject(),
+  children: ownProps.children,
   isModal: stateProps.isModal,
   selectedTab: stateProps.selectedTab,
   ...dispatchProps,
