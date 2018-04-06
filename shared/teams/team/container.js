@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   return {
     teamname,
     admin: yourOperations.manageMembers,
-    memberCount: state.teams.getIn(['teammembercounts', teamname], 0),
+    memberCount: Constants.getTeamMemberCount(state, teamname),
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
     numInvites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()).size,
     numRequests: state.teams.getIn(['teamNameToRequests', teamname], I.Set()).size,
