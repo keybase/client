@@ -56,26 +56,12 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  _getError(err: null | Error | RPCError): ?Error {
-    if (err === null) {
-      return null
-    }
-
-    if (err instanceof RPCError) {
-      return err.err
-    }
-
-    return err
-  }
-
   _summaryForError(err: null | Error | RPCError): ?string {
-    const error = this._getError(err)
-    return error ? error.message : null
+    return err ? err.message : null
   }
 
   _detailsForError(err: null | Error | RPCError): ?string {
-    const error = this._getError(err)
-    return error ? error.stack : null
+    return err ? err.stack : null
   }
 
   componentWillReceiveProps(nextProps: Props) {

@@ -1,8 +1,12 @@
 // @flow
 
 export class RPCError {
-  err: Error
+  // Fields to make RPCError 'look' like Error, since we don't want to
+  // inherit from Error.
   message: string
+  name: string
+  stack: string
+
   code: number // Consult type StatusCode in rpc-gen.js for what this means
   fields: any
   desc: string
@@ -10,7 +14,11 @@ export class RPCError {
   details: string // Details w/ error code & method if it's present
 
   constructor(message: string, code: number, fields: any, name: ?string, method: ?string) {
-    this.err = new Error(paramsToErrorMsg(message, code, fields, name, method))
+    const err = new Error(paramsToErrorMsg(message, code, fields, name, method))
+    this.message = err.message
+    this.name = 'RPCError'
+    this.stack = err.stack
+
     this.code = code // Consult type StatusCode in rpc-gen.js for what this means
     this.fields = fields
     this.desc = message
