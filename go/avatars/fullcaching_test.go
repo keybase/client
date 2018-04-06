@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -59,7 +60,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 
 	t.Log("cache hit")
 	getFile := func(path string) string {
-		if strings.Contains(path, ":") {
+		if runtime.GOOS == "windows" {
 			path = strings.Replace(path, `/`, `\`, -1)
 			t.Logf(path)
 			path = path[8:]
