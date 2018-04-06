@@ -14,6 +14,8 @@ type Props = {
   onFocusInput: () => void,
   onShowTracker: (user: string) => void,
   showSearchResults: boolean,
+  // TODO DESKTOP-6256 get rid of this
+  onToggleInfoPanel: () => void,
 }
 
 class ListArea extends React.PureComponent<Props> {
@@ -31,6 +33,7 @@ class ListArea extends React.PureComponent<Props> {
         <Normal
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
       )
