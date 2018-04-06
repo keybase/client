@@ -146,11 +146,11 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams Pl
 	return fs
 }
 
-func (fs *FS) assignInode() uint64 {
-	fs.inodeLock.Lock()
-	defer fs.inodeLock.Unlock()
-	next := fs.nextInode
-	fs.nextInode++
+func (f *FS) assignInode() uint64 {
+	f.inodeLock.Lock()
+	defer f.inodeLock.Unlock()
+	next := f.nextInode
+	f.nextInode++
 	return next
 }
 
