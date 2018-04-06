@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   PopupDialog,
+  ProgressIndicator,
   ScrollView,
   Checkbox,
   Icon,
@@ -93,55 +94,65 @@ const _rowBox = {
   paddingTop: globalMargins.xtiny,
 }
 
-const ManageChannels = (props: Props) => (
-  <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
-    <Box style={_boxStyle}>
-      <Avatar isTeam={true} teamname={props.teamname} size={24} />
-      <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
-        {props.teamname}
-      </Text>
+const ManageChannels = (props: Props) => {
+  let channelDisplay
+  if (props.channels.length === 0) {
+    channelDisplay = <ProgressIndicator style={{width: 48}} />
+  } else {
+    channelDisplay = (
       <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
         {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
       </Text>
-      <ScrollView style={{alignSelf: 'flex-start', width: '100%', paddingBottom: globalMargins.xlarge}}>
-        {props.channels.map(c => (
-          <Row
-            key={c.name}
-            canEditChannels={props.canEditChannels}
-            description={c.description}
-            name={c.name}
-            selected={props.nextChannelState[c.name]}
-            onToggle={() => props.onToggle(c.name)}
-            showEdit={!props.unsavedSubscriptions}
-            onEdit={() => props.onEdit(c.convID)}
-            onClickChannel={() => props.onClickChannel(c.convID)}
-          />
-        ))}
-      </ScrollView>
-      {props.canCreateChannels && (
-        <Box style={_createStyle}>
-          <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-          <Text type="BodyBigLink" onClick={props.onCreate}>
-            New chat channel
-          </Text>
+    )
+  }
+  return (
+    <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+      <Box style={_boxStyle}>
+        <Avatar isTeam={true} teamname={props.teamname} size={24} />
+        <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
+          {props.teamname}
+        </Text>
+        {channelDisplay}
+        <ScrollView style={{alignSelf: 'flex-start', width: '100%', paddingBottom: globalMargins.xlarge}}>
+          {props.channels.map(c => (
+            <Row
+              key={c.name}
+              canEditChannels={props.canEditChannels}
+              description={c.description}
+              name={c.name}
+              selected={props.nextChannelState[c.name]}
+              onToggle={() => props.onToggle(c.name)}
+              showEdit={!props.unsavedSubscriptions}
+              onEdit={() => props.onEdit(c.convID)}
+              onClickChannel={() => props.onClickChannel(c.convID)}
+            />
+          ))}
+        </ScrollView>
+        {props.canCreateChannels && (
+          <Box style={_createStyle}>
+            <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
+            <Text type="BodyBigLink" onClick={props.onCreate}>
+              New chat channel
+            </Text>
+          </Box>
+        )}
+        <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
+          <ButtonBar>
+            <Button type="Secondary" label="Cancel" onClick={props.onClose} />
+            <Button
+              type="Primary"
+              label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+              waiting={props.waitingForSave}
+              disabled={!props.unsavedSubscriptions}
+              onClick={props.onSaveSubscriptions}
+              style={{marginLeft: globalMargins.tiny}}
+            />
+          </ButtonBar>
         </Box>
-      )}
-      <Box style={{flex: 2, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'}}>
-        <ButtonBar>
-          <Button type="Secondary" label="Cancel" onClick={props.onClose} />
-          <Button
-            type="Primary"
-            label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
-            waiting={props.waitingForSave}
-            disabled={!props.unsavedSubscriptions}
-            onClick={props.onSaveSubscriptions}
-            style={{marginLeft: globalMargins.tiny}}
-          />
-        </ButtonBar>
       </Box>
-    </Box>
-  </PopupDialog>
-)
+    </PopupDialog>
+  )
+}
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
