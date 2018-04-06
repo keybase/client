@@ -217,6 +217,15 @@ const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
 const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
   state.teams.getIn(['teamNameToMembers', teamname], I.Map())
 
+const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): Types._PublicitySettings =>
+  state.teams.getIn(['teamNameToPublicitySettings', teamname], {
+    anyMemberShowcase: false,
+    description: '',
+    ignoreAccessRequests: false,
+    member: false,
+    team: false,
+  })
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -304,6 +313,7 @@ export {
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
+  getTeamPublicitySettings,
   getTopicFromConvID,
   getTeamType,
   isAdmin,
