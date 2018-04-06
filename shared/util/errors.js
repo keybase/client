@@ -59,7 +59,7 @@ const paramsToErrorMsg = (
 // convertToError converts an RPC error object (or any object) into an
 // Error or RPCError.
 export function convertToError(err: Object, method?: string): Error | RPCError {
-  if (err instanceof Error) {
+  if (err instanceof Error || err instanceof RPCError) {
     return err
   }
 
