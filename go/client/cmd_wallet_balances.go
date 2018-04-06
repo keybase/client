@@ -39,66 +39,79 @@ func (c *cmdWalletBalances) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletBalances) Run() error {
-	cli, err := GetWalletClient(c.G())
+func (c *cmdWalletBalances) runForAccountID(cli stellar1.LocalClient) error {
+	accountID := stellar1.AccountID(c.address)
+
+	dui := c.G().UI.GetDumbOutputUI()
+	balances, err := cli.BalancesLocal(context.Background(), accountID)
 	if err != nil {
 		return err
 	}
 
-	var accounts []stellar1.BundleEntry
-	if c.address != "" {
-		accounts = append(accounts, stellar1.BundleEntry{
-			AccountID: stellar1.AccountID(c.address),
-		})
-	} else {
-		accounts, err = cli.WalletGetPublicKeys(context.Background())
-		if err != nil {
-			return err
+	for _, balance := range balances {
+		kind := balance.Asset.Type
+		if balance.Asset.Type == "native" {
+			kind = "XLM"
 		}
+		dui.Printf("%s\t%s\n", kind, balance.Amount)
+	}
+	return nil
+}
+
+func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
+	accounts, err := cli.WalletGetLocalAccounts(context.Background())
+	if err != nil {
+		return err
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	for i, bundle := range accounts {
-		balances, err := cli.BalancesLocal(context.Background(), bundle.AccountID)
-		if err != nil {
-			return err
+	for i, acc := range accounts {
+		var accountName string
+		if acc.Name != "" {
+			accountName = fmt.Sprintf("%s (%s)", acc.Name, acc.AccountID.String())
+		} else {
+			accountName = acc.AccountID.String()
+			if acc.IsPrimary {
+				accountName += " (Primary)"
+			}
 		}
+		dui.Printf("Balances for account %s:\n", accountName)
 
-		if c.address == "" {
-			// Only print headers when dealing with multiple accounts when
-			// specific address is not supplied. Otherwise default to just
-			// printing balances.
-			var accountName string
-			if bundle.Name != "" {
-				accountName = fmt.Sprintf("%s (%s)", bundle.Name, bundle.AccountID.String())
-			} else {
-				accountName = bundle.AccountID.String()
-				if bundle.IsPrimary {
-					accountName += " (Primary)"
+		for _, balance := range acc.Balance {
+			localAmountStr := ""
+			kind := balance.Asset.Type
+			if balance.Asset.Type == "native" {
+				kind = "XLM"
+
+				if acc.LocalCurrency != "" {
+					localAmount, err := acc.LocalExchangeRate.ConvertXLM(balance.Amount)
+					if err == nil {
+						localAmountStr = fmt.Sprintf(" (%s %s)", localAmount, string(acc.LocalCurrency))
+					} else {
+						c.G().Log.Warning("Unable to convert to local currency: %s", err)
+					}
 				}
 			}
-			dui.Printf("Balances for account %s:\n", accountName)
-		}
-
-		for _, localBalance := range balances {
-			asset := localBalance.Balance.Asset
-			kind := asset.Type
-			if asset.Type == "native" {
-				kind = "XLM"
-			}
-			localValue := ""
-			if localBalance.Currency != "" && localBalance.Value != "" {
-				localValue = fmt.Sprintf(" (%s %s)", localBalance.Value, localBalance.Currency)
-			}
-			dui.Printf("%s\t%s%s\n", kind, localBalance.Balance.Amount, localValue)
+			dui.Printf("%s\t%s%s\n", kind, balance.Amount, ColorString(c.G(), "green", localAmountStr))
 		}
 
 		if i != len(accounts)-1 {
 			dui.Printf("\n")
 		}
 	}
-
 	return nil
+}
+
+func (c *cmdWalletBalances) Run() error {
+	cli, err := GetWalletClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	if c.address == "" {
+		return c.runForUser(cli)
+	}
+	return c.runForAccountID(cli)
 }
 
 func (c *cmdWalletBalances) GetUsage() libkb.Usage {
