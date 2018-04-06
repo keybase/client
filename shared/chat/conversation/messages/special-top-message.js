@@ -16,6 +16,7 @@ type Props = {
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
   onToggleInfoPanel: () => void,
   showTeamOffer: boolean,
+  // $FlowIssue "null or undefined is incompatible with null or undefined"
   measure: ?() => void,
 }
 
@@ -39,6 +40,7 @@ class TopMessage extends React.PureComponent<Props> {
             <RetentionNotice
               onToggleInfoPanel={this.props.onToggleInfoPanel}
               conversationIDKey={this.props.conversationIDKey}
+              measure={this.props.measure}
             />
           )}
         <Box style={spacerStyle} />
@@ -85,6 +87,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   // TODO DESKTOP-6256 get rid of this
   onToggleInfoPanel: () => void,
+  measure: ?() => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -106,6 +109,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
-const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  measure: ownProps.measure,
+})
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TopMessage)

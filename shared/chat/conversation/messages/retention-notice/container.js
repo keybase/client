@@ -6,7 +6,11 @@ import {getCanPerform, hasCanPerform} from '../../../../constants/teams'
 import {createGetTeamOperations} from '../../../../actions/teams-gen'
 import RetentionNotice from '.'
 
-type OwnProps = {conversationIDKey: ChatTypes.ConversationIDKey}
+type OwnProps = {
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  onToggleInfoPanel: () => void,
+  measure: ?() => void,
+}
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const meta = getMeta(state, ownProps.conversationIDKey)
@@ -30,8 +34,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   _loadPermissions: (teamname: string) => dispatch(createGetTeamOperations({teamname})),
+  // TODO DESKTOP-6256 have this do a navigateAppend
+  onChange: ownProps.onToggleInfoPanel,
 })
 
 export default compose(
@@ -39,6 +45,15 @@ export default compose(
   lifecycle({
     componentDidMount() {
       this.props._permissionsNeedLoad && this.props._loadPermissions()
+    },
+    componentDidUpdate(prevProps) {
+      if (
+        this.props.canChange !== prevProps.canChange ||
+        this.props.policy !== prevProps.policy ||
+        this.props.teamPolicy !== prevProps.teamPolicy
+      ) {
+        this.props.measure && this.props.measure()
+      }
     },
   })
 )(RetentionNotice)
