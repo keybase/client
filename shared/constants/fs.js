@@ -387,7 +387,6 @@ export const folderToPathItems = (
       if (isNew) {
         badges[folderParent] += 1
       }
-      if (isIgnored) console.log(`Ignored folder: ${folderPathString}`)
       return [
         // key
         folderPath,
