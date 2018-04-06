@@ -75,8 +75,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   // Gather contextual team membership info
-  const yourInfo = stateProps._memberInfo.find(member => member.username === stateProps._you)
-  const userInfo = stateProps._memberInfo.find(member => member.username === stateProps._username)
+  const yourInfo = stateProps._you && stateProps._memberInfo.get(stateProps._you)
+  const userInfo = stateProps._memberInfo.get(stateProps._username)
   const you = {
     username: stateProps._you,
     type: yourInfo && yourInfo.type,

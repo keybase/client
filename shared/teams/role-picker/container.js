@@ -58,7 +58,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
-  const user = stateProps._memberInfo.find(member => member.username === stateProps.username)
+  const user = stateProps._memberInfo.get(stateProps.username)
   const onComplete = (role: Types.TeamRoleType, sendNotification?: boolean) => {
     if (user) {
       dispatchProps._onEditMember(stateProps.teamname, stateProps.username, role)
