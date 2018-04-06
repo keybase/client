@@ -53,6 +53,10 @@ func (n *nullTeamLoader) HintLatestSeqno(ctx context.Context, id keybase1.TeamID
 	return nil
 }
 
+func (n *nullTeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error) {
+	return id, fmt.Errorf("null team loader")
+}
+
 func (n nullTeamLoader) OnLogout() {}
 
 func (n nullTeamLoader) ClearMem() {}
