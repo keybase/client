@@ -6,6 +6,7 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as More from '../constants/types/more'
 import * as Types from '../constants/types/config'
+import {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer
@@ -60,7 +61,7 @@ export const createDaemonError = (payload: $ReadOnly<{|daemonError: ?Error|}>) =
 export const createDebugDump = (payload: $ReadOnly<{|items: Array<string>|}>) => ({error: false, payload, type: debugDump})
 export const createExtendedConfigLoaded = (payload: $ReadOnly<{|extendedConfig: RPCTypes.ExtendedStatus|}>) => ({error: false, payload, type: extendedConfigLoaded})
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
-export const createGlobalError = (payload: $ReadOnly<{|globalError: ?Error|}>) => ({error: false, payload, type: globalError})
+export const createGlobalError = (payload: $ReadOnly<{|globalError: null | Error | RPCError|}>) => ({error: false, payload, type: globalError})
 export const createLoadAvatars = (payload: $ReadOnly<{|usernames: Array<string>|}>) => ({error: false, payload, type: loadAvatars})
 export const createLoadTeamAvatars = (payload: $ReadOnly<{|teamnames: Array<string>|}>) => ({error: false, payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>) => ({error: false, payload, type: loadedAvatars})

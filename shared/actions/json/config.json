@@ -1,6 +1,7 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/config'"
+    "import * as Types from '../constants/types/config'",
+    "import {RPCError} from '../util/errors'"
   ],
   "actions": {
     "loadAvatars": {
@@ -44,7 +45,7 @@
     },
     "getExtendedStatus": {},
     "globalError": {
-      "globalError": "?Error"
+      "globalError": "null | Error | RPCError"
     },
     "updateFollowing": {
       "username": "string",
