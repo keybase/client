@@ -3,7 +3,7 @@ import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import {parsePublicAdmins} from '../../util/teams'
-import {isInTeam} from '../../constants/teams'
+import {isInTeam, isAccessRequestPending} from '../../constants/teams'
 
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const openTeam = team.open
   const teamname = team.fqName
   const youAreInTeam = isInTeam(state, teamname)
-  const youHaveRequestedAccess = !!state.teams.getIn(['teamAccessRequestsPending', teamname], false)
+  const youHaveRequestedAccess = isAccessRequestPending(state, teamname)
 
   // If the current user's in the list of public admins, pull them out to the
   // front.
