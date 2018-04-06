@@ -14,28 +14,6 @@
   "types": [
     {
       "type": "record",
-      "name": "EncryptedNote",
-      "fields": [
-        {
-          "type": "int",
-          "name": "v"
-        },
-        {
-          "type": "bytes",
-          "name": "e"
-        },
-        {
-          "type": "bytes",
-          "name": "n"
-        },
-        {
-          "type": "keybase1.KID",
-          "name": "KID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "Members",
       "fields": [
         {
@@ -89,8 +67,8 @@
           "name": "errMsg"
         },
         {
-          "type": "EncryptedNote",
-          "name": "note"
+          "type": "string",
+          "name": "noteB64"
         },
         {
           "type": "Asset",
@@ -193,8 +171,8 @@
           "name": "members"
         },
         {
-          "type": "EncryptedNote",
-          "name": "note"
+          "type": "string",
+          "name": "noteB64"
         },
         {
           "type": {
@@ -237,8 +215,8 @@
           "name": "displayCurrency"
         },
         {
-          "type": "EncryptedNote",
-          "name": "note"
+          "type": "string",
+          "name": "noteB64"
         },
         {
           "type": "string",
@@ -338,6 +316,10 @@
             "string"
           ],
           "name": "displayCurrency"
+        },
+        {
+          "type": "string",
+          "name": "noteB64"
         }
       ]
     },

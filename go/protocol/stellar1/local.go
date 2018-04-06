@@ -21,6 +21,8 @@ type RecentPaymentCLILocal struct {
 	ToStellar       AccountID     `codec:"toStellar" json:"toStellar"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	Note            string        `codec:"note" json:"note"`
+	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 }
 
 func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
@@ -61,6 +63,8 @@ func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToUsername),
+		Note:    o.Note,
+		NoteErr: o.NoteErr,
 	}
 }
 

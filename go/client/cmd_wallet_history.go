@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -94,14 +95,20 @@ func (c *cmdWalletHistory) Run() (err error) {
 			to = *p.ToUsername
 		}
 		showedAbbreviation := true
-		if p.FromUsername != nil || p.ToUsername != nil {
+		if p.FromUsername != nil && p.ToUsername != nil {
 			showedAbbreviation = false
 		}
 		line("%v -> %v", from, to)
 		// If an abbreviation was shown, show the full addresses
 		if showedAbbreviation || c.verbose {
 			line("From: %v", p.FromStellar.String())
-			line("To  : %v", p.ToStellar.String())
+			line("To:   %v", p.ToStellar.String())
+		}
+		if len(p.Note) > 0 {
+			line("Note: %v", c.filterNote(p.Note))
+		}
+		if len(p.NoteErr) > 0 {
+			line("Note Error: %v", p.NoteErr)
 		}
 		if c.verbose {
 			line("Transaction Hash: %v", p.StellarTxID)
@@ -118,6 +125,17 @@ func (c *cmdWalletHistory) Run() (err error) {
 		line("No recent activity")
 	}
 	return err
+}
+
+// Pare down the note so that it's less likely to contain tricks.
+// Such as newlines and fake transactions.
+// Shows only the first line.
+func (c *cmdWalletHistory) filterNote(note string) string {
+	lines := strings.Split(strings.TrimSpace(note), "\n")
+	if len(lines) < 1 {
+		return ""
+	}
+	return strings.TrimSpace(lines[0])
 }
 
 func (c *cmdWalletHistory) GetUsage() libkb.Usage {
