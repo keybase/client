@@ -468,6 +468,7 @@ export const remoteMessageBoxedVersion = {
   vnone: 0,
   v1: 1,
   v2: 2,
+  v3: 3,
 }
 
 export const remoteNewConversationRemote2RpcChannelMap = (configKeys: Array<string>, request: RemoteNewConversationRemote2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote2', request)
@@ -994,6 +995,7 @@ export type MessageBoxedVersion =
   | 0 // VNONE_0
   | 1 // V1_1
   | 2 // V2_2
+  | 3 // V3_3
 
 export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 

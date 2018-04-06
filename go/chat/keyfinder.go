@@ -20,6 +20,10 @@ type KeyFinder interface {
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (*types.NameInfo, error)
+	EphemeralKeyForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+	EphemeralKeyForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 	Reset()
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
@@ -179,6 +183,16 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 		res.CryptKeys[membersType] = append(res.CryptKeys[membersType], publicCryptKey)
 	}
 	return res, nil
+}
+
+func (k *KeyFinderImpl) EphemeralKeyForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (ek keybase1.TeamEk, err error) {
+	return k.createNameInfoSource(ctx, membersType).EphemeralEncryptionKey(ctx, tlfName, tlfID, membersType, public)
+}
+
+func (k *KeyFinderImpl) EphemeralKeyForDecryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	return k.createNameInfoSource(ctx, membersType).EphemeralDecryptionKey(ctx, tlfName, tlfID, membersType, public, generation)
 }
 
 func (k *KeyFinderImpl) SetNameInfoSourceOverride(ni types.NameInfoSource) {

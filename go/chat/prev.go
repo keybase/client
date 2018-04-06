@@ -10,13 +10,24 @@ import "github.com/keybase/client/go/protocol/chat1"
 // 3. All prev pointers to a message agree on that message's header hash.
 // 4. For all messages we have locally, the hashes pointing to them are actually correct.
 // TODO: All of this should happen in the cache instead of here all at once.
-func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessagePreviousPointer, ChatThreadConsistencyError) {
+func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) (newPrevsForRegular, newPrevsForExploding []chat1.MessagePreviousPointer, err ChatThreadConsistencyError) {
 	// Filter out the messages that gave unboxing errors, and index the rest by
 	// ID. Enforce that there are no duplicate IDs or absurd prev pointers.
 	// TODO: What should we really be doing with unboxing errors? Do we worry
 	//       about an evil server causing them intentionally?
 	knownMessages := make(map[chat1.MessageID]chat1.MessageUnboxedValid)
-	unprevedIDs := make(map[chat1.MessageID]struct{})
+
+	// As part of checking consistency, build up the set of IDs that have never
+	// been preved. There are two views of this set. The regular messages' view
+	// "does not see" exploding messages. (This is an important part of making
+	// them fully repudiable for small teams.) So exploding message IDs will
+	// never show up in the regular unpreved set, and a message is still
+	// considered unpreved in this view if all the prev pointers pointing to it
+	// are exploding. On the other hand, the exploding messages' view sees
+	// everything and treats all messages the same.
+	unprevedIDsForRegular := make(map[chat1.MessageID]struct{})
+	unprevedIDsForExploding := make(map[chat1.MessageID]struct{})
+
 	for _, messageOrError := range thread.Messages {
 		if messageOrError.IsValid() {
 			msg := messageOrError.Valid()
@@ -26,7 +37,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			// sequentially by the server, so this should really never happen.
 			_, alreadyExists := knownMessages[id]
 			if alreadyExists {
-				return nil, NewChatThreadConsistencyError(
+				return nil, nil, NewChatThreadConsistencyError(
 					DuplicateID,
 					"MessageID %d is duplicated",
 					id)
@@ -36,7 +47,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			// message itself.
 			for _, prev := range msg.ClientHeader.Prev {
 				if prev.Id >= id {
-					return nil, NewChatThreadConsistencyError(
+					return nil, nil, NewChatThreadConsistencyError(
 						OutOfOrderID,
 						"MessageID %d thinks that message %d is previous.",
 						id,
@@ -45,7 +56,11 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			}
 
 			knownMessages[id] = msg
-			unprevedIDs[id] = struct{}{}
+			unprevedIDsForExploding[id] = struct{}{}
+			// The regular prev view only sees regular messages.
+			if !msg.IsExploding() {
+				unprevedIDsForRegular[id] = struct{}{}
+			}
 		}
 	}
 
@@ -62,7 +77,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			if seenHash != nil {
 				// We have seen it before! It's an error if it's different now.
 				if !seenHash.Eq(prev.Hash) {
-					return nil, NewChatThreadConsistencyError(
+					return nil, nil, NewChatThreadConsistencyError(
 						InconsistentHash,
 						"MessageID %d has an inconsistent hash for ID %d (%s and %s)",
 						id, prev.Id, prev.Hash.String(), seenHash.String())
@@ -76,25 +91,37 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 				// time; we're not taking anyone's word for it.)
 				prevMessage, weHaveIt := knownMessages[prev.Id]
 				if weHaveIt && !prevMessage.HeaderHash.Eq(prev.Hash) {
-					return nil, NewChatThreadConsistencyError(
+					return nil, nil, NewChatThreadConsistencyError(
 						IncorrectHash,
 						"Message ID %d thinks message ID %d should have hash %s, but it has %s.",
 						id, prev.Id, prev.Hash.String(), prevMessage.HeaderHash.String())
 				}
 				// Also remove this message from the set of "never been pointed
 				// to".
-				delete(unprevedIDs, prev.Id)
+				delete(unprevedIDsForExploding, prev.Id)
+				// The regular prev view doesn't respect exploding prevs.
+				if !msg.IsExploding() {
+					delete(unprevedIDsForRegular, prev.Id)
+				}
 			}
 		}
 	}
 
-	newPrevs := []chat1.MessagePreviousPointer{}
-	for id := range unprevedIDs {
-		newPrevs = append(newPrevs, chat1.MessagePreviousPointer{
+	newPrevsForRegular = []chat1.MessagePreviousPointer{}
+	for id := range unprevedIDsForRegular {
+		newPrevsForRegular = append(newPrevsForRegular, chat1.MessagePreviousPointer{
 			Id:   id,
 			Hash: knownMessages[id].HeaderHash,
 		})
 	}
 
-	return newPrevs, nil
+	newPrevsForExploding = []chat1.MessagePreviousPointer{}
+	for id := range unprevedIDsForExploding {
+		newPrevsForExploding = append(newPrevsForExploding, chat1.MessagePreviousPointer{
+			Id:   id,
+			Hash: knownMessages[id].HeaderHash,
+		})
+	}
+
+	return newPrevsForRegular, newPrevsForExploding, nil
 }
