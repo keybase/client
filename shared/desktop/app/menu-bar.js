@@ -91,7 +91,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
 
     mb.on('show', () => {
       // Account for different taskbar positions on Windows
-      if (isWindows) {
+      if (isWindows && mb.window && mb.tray) {
         const cursorPoint = electronScreen.getCursorScreenPoint()
         const screenSize = electronScreen.getDisplayNearestPoint(cursorPoint).workArea
         let menuBounds = mb.window.getBounds()
