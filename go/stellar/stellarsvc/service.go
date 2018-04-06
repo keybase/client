@@ -254,3 +254,21 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 	}
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
 }
+
+func (s *Server) WalletGetPublicKeys(ctx context.Context) (ret []stellar1.BundleEntry, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "WalletGetPublicKeys", func() error { return err })()
+
+	dump, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range dump.Accounts {
+		// Clear private part of BundleEntry before returning to the
+		// caller.
+		entry.Signers = []stellar1.SecretKey{}
+		ret = append(ret, entry)
+	}
+	return ret, nil
+}

@@ -99,6 +99,9 @@ type WalletInitLocalArg struct {
 type WalletDumpLocalArg struct {
 }
 
+type WalletGetPublicKeysArg struct {
+}
+
 type OwnAccountLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -119,6 +122,7 @@ type LocalInterface interface {
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]RecentPaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
+	WalletGetPublicKeys(context.Context) ([]BundleEntry, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
@@ -194,6 +198,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.WalletDumpLocal(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"walletGetPublicKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]WalletGetPublicKeysArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.WalletGetPublicKeys(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -278,6 +293,11 @@ func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
 
 func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res)
+	return
+}
+
+func (c LocalClient) WalletGetPublicKeys(ctx context.Context) (res []BundleEntry, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletGetPublicKeys", []interface{}{WalletGetPublicKeysArg{}}, &res)
 	return
 }
 

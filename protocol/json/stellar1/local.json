@@ -149,6 +149,13 @@
       "request": [],
       "response": "Bundle"
     },
+    "walletGetPublicKeys": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "BundleEntry"
+      }
+    },
     "ownAccountLocal": {
       "request": [
         {
