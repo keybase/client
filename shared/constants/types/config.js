@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
 import {type Config, type DeviceID, type ExtendedStatus} from './rpc-gen'
+import {RPCError} from '../../util/errors'
 
 export type InitialState = {|
   conversation?: ConversationIDKey,
@@ -33,7 +34,7 @@ export type _State = {
   extendedConfig: ?ExtendedStatus,
   followers: I.Set<string>,
   following: I.Set<string>,
-  globalError: ?Error,
+  globalError: null | Error | RPCError,
   initialState: ?InitialState,
   kbfsPath: string,
   loggedIn: boolean,

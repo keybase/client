@@ -12,6 +12,7 @@ import {
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
+import {RPCError} from '../../util/errors'
 
 import type {Props as _Props} from './index'
 
@@ -63,11 +64,11 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  _summaryForError(err: ?Error): ?string {
-    return err ? err.message && err.message.substring(0, 40) : null
+  _summaryForError(err: null | Error | RPCError): ?string {
+    return err ? err.message : null
   }
 
-  _detailsForError(err: ?Error): ?string {
+  _detailsForError(err: null | Error | RPCError): ?string {
     return err ? err.stack : null
   }
 

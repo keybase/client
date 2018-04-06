@@ -1060,16 +1060,6 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 	return LoadUser(arg)
 }
 
-func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, error) {
-	q := NewHTTPArgs()
-	q.Add("uid", UIDArg(uid))
-	leaf, err := g.MerkleClient.LookupUser(g.NetContext, q, nil)
-	if err != nil {
-		return NormalizedUsername(""), err
-	}
-	return NewNormalizedUsername(leaf.username), nil
-}
-
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(g.NetContext, u)
 	g.GetFullSelfer().HandleUserChanged(u)

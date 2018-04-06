@@ -137,7 +137,6 @@ export const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise
 export const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
   Saga.sequentially([
     Saga.call(waitForMount, 0),
-    // $FlowFixMe @jzila please fix
     Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
   ])
 

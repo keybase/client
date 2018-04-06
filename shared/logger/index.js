@@ -115,7 +115,7 @@ const devLoggers = () => ({
   action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
   debug: new ConsoleLogger('log', 'DEBUG:'),
   error: new ConsoleLogger('error'),
-  info: new ConsoleLogger('log'),
+  info: new TeeLogger(new RingLogger(10000), new ConsoleLogger('log')),
   warn: new ConsoleLogger('warn'),
 })
 
@@ -138,4 +138,11 @@ const prodLoggers = () => ({
 // Settings
 const logSetup = __DEV__ || __STORYBOOK__ ? devLoggers() : prodLoggers()
 
-export default new AggregateLoggerImpl(logSetup)
+const theOnlyLogger = new AggregateLoggerImpl(logSetup)
+
+if (!isMobile && typeof global !== 'undefined') {
+  // So we can easily grab this from the main renderer
+  global.globalLogger = theOnlyLogger
+}
+
+export default theOnlyLogger

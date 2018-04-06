@@ -48,7 +48,7 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 		return err
 	}
 	if !pukring.HasAnyKeys() {
-		return fmt.Errorf("A PUK is needed to generate ephmeral keys. Aborting.")
+		return fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
 	}
 	return nil
 }
@@ -59,7 +59,7 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
 	willRun := g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
-		e.G().Log.CWarningf(ctx, "EKLib skipping run, set KEYBASE_FEATURES=ephemeral to enable this feature during development")
+		e.G().Log.CDebugf(ctx, "EKLib skipping run")
 	}
 	return willRun
 }

@@ -1004,9 +1004,10 @@ func (o MessageSummary) DeepCopy() MessageSummary {
 }
 
 type MessageServerHeader struct {
-	MessageID    MessageID    `codec:"messageID" json:"messageID"`
-	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
-	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
+	MessageID     MessageID    `codec:"messageID" json:"messageID"`
+	SupersededBy  MessageID    `codec:"supersededBy" json:"supersededBy"`
+	Ctime         gregor1.Time `codec:"ctime" json:"ctime"`
+	ExplodedByUID *gregor1.UID `codec:"explodedByUID,omitempty" json:"explodedByUID,omitempty"`
 }
 
 func (o MessageServerHeader) DeepCopy() MessageServerHeader {
@@ -1014,6 +1015,13 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 		MessageID:    o.MessageID.DeepCopy(),
 		SupersededBy: o.SupersededBy.DeepCopy(),
 		Ctime:        o.Ctime.DeepCopy(),
+		ExplodedByUID: (func(x *gregor1.UID) *gregor1.UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ExplodedByUID),
 	}
 }
 
@@ -1056,6 +1064,8 @@ type MessageClientHeader struct {
 	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	IsEphemeral       bool                     `codec:"isEphemeral" json:"isEphemeral"`
+	EphemeralLifetime gregor1.DurationSec      `codec:"ephemeralLifetime" json:"ephemeralLifetime"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1124,6 +1134,8 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.OutboxInfo),
+		IsEphemeral:       o.IsEphemeral,
+		EphemeralLifetime: o.EphemeralLifetime.DeepCopy(),
 	}
 }
 
@@ -1139,6 +1151,8 @@ type MessageClientHeaderVerified struct {
 	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	IsEphemeral       bool                     `codec:"isEphemeral" json:"isEphemeral"`
+	EphemeralLifetime gregor1.DurationSec      `codec:"ephemeralLifetime" json:"ephemeralLifetime"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1188,6 +1202,8 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.OutboxInfo),
+		IsEphemeral:       o.IsEphemeral,
+		EphemeralLifetime: o.EphemeralLifetime.DeepCopy(),
 	}
 }
 

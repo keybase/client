@@ -290,6 +290,7 @@
     MessageID messageID;
     MessageID supersededBy;
     gregor1.Time ctime;
+    union { null, gregor1.UID } explodedByUID;
   }
 
   record MessagePreviousPointer {
@@ -333,6 +334,9 @@
 
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
+
+    boolean isEphemeral;
+    gregor1.DurationSec ephemeralLifetime; // used to computed etime
   }
 
   record MessageClientHeaderVerified {
@@ -356,6 +360,9 @@
     union { null, MerkleRoot } merkleRoot;
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
+
+    boolean isEphemeral;
+    gregor1.DurationSec ephemeralLifetime; // used to computed etime
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
