@@ -439,14 +439,20 @@ type DirInterface interface {
 type Dir struct {
 	folder *Folder
 	node   libkbfs.Node
+	inode  uint64
 }
 
-func newDir(folder *Folder, node libkbfs.Node) *Dir {
+func newDirWithInode(folder *Folder, node libkbfs.Node, inode uint64) *Dir {
 	d := &Dir{
 		folder: folder,
 		node:   node,
+		inode:  inode,
 	}
 	return d
+}
+
+func newDir(folder *Folder, node libkbfs.Node) *Dir {
+	return newDirWithInode(folder, node, folder.fs.assignInode())
 }
 
 var _ DirInterface = (*Dir)(nil)
@@ -494,6 +500,7 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	}
 
 	a.Mode |= os.ModeDir | 0500
+	a.Inode = d.inode
 	return nil
 }
 
@@ -562,6 +569,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		child := &File{
 			folder: d.folder,
 			node:   newNode,
+			inode:  d.folder.fs.assignInode(),
 		}
 		d.folder.nodes[newNode.GetID()] = child
 		return child, nil
@@ -572,11 +580,15 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return child, nil
 
 	case libkbfs.Sym:
+		// Give each symlink instance a unique inode.  We don't get
+		// enough information about remote renames of syminks to be
+		// able to attach a constant inode to a given symlink.
 		child := &Symlink{
 			parent: d,
 			name:   req.Name,
+			inode:  d.folder.fs.assignInode(),
 		}
-		// a Symlink is never included in Folder.nodes, as it doesn't
+		// A Symlink is never included in Folder.nodes, as it doesn't
 		// have a libkbfs.Node to keep track of renames.
 		return child, nil
 	}
@@ -613,6 +625,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	child := &File{
 		folder: d.folder,
 		node:   newNode,
+		inode:  d.folder.fs.assignInode(),
 	}
 
 	// Create is normally followed an Attr call. Fuse uses the same context for
@@ -688,6 +701,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	child := &Symlink{
 		parent: d,
 		name:   req.NewName,
+		inode:  d.folder.fs.assignInode(),
 	}
 	return child, nil
 }
@@ -794,6 +808,12 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	for name, ei := range children {
 		fde := fuse.Dirent{
 			Name: name,
+			// Technically we should be setting the inode here, but
+			// since we don't have a proper node for each of these
+			// entries yet we can't generate one, because we don't
+			// have anywhere to save it.  So bazil.org/fuse will
+			// generate a random one for each entry, but doesn't store
+			// it anywhere, so it's safe.
 		}
 		switch ei.Type {
 		case libkbfs.File, libkbfs.Exec:

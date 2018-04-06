@@ -57,6 +57,7 @@ func (c *eiCacheHolder) set(reqID string, ei libkbfs.EntryInfo) {
 type File struct {
 	folder *Folder
 	node   libkbfs.Node
+	inode  uint64
 
 	eiCache eiCacheHolder
 }
@@ -73,6 +74,8 @@ func (f *File) fillAttrWithMode(
 	if ei.Type == libkbfs.Exec {
 		a.Mode |= 0100
 	}
+
+	a.Inode = f.inode
 	return nil
 }
 

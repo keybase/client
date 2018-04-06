@@ -28,6 +28,7 @@ type FolderList struct {
 	fs *FS
 	// only accept public folders
 	tlfType tlf.Type
+	inode   uint64
 
 	mu      sync.Mutex
 	folders map[string]*TLF
@@ -60,9 +61,10 @@ func (*FolderList) Access(ctx context.Context, r *fuse.AccessRequest) error {
 var _ fs.Node = (*FolderList)(nil)
 
 // Attr implements the fs.Node interface.
-func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
+func (fl *FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeDir | 0500
 	a.Uid = uint32(os.Getuid())
+	a.Inode = fl.inode
 	return nil
 }
 
@@ -199,6 +201,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		// Non-canonical name.
 		n := &Alias{
 			realPath: e.NameToTry,
+			inode:    0,
 		}
 		return n, nil
 

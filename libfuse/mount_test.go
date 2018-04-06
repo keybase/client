@@ -3893,3 +3893,57 @@ func TestDirSyncAll(t *testing.T) {
 		t.Fatalf("Expected=%v, got=%v", data, gotData)
 	}
 }
+
+// Regression test for KBFS-2853.
+func TestInodes(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	mnt, _, cancelFn := makeFS(t, ctx, config)
+	defer mnt.Close()
+	defer cancelFn()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	if err := ioutil.WriteFile(p, []byte("fake binary"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	syncFilename(t, p)
+
+	getInode := func(p string) uint64 {
+		fi, err := ioutil.Lstat(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stat, ok := fi.Sys().(*syscall.Stat_t)
+		if !ok {
+			t.Fatalf("Not a syscall.Stat_t")
+		}
+		return stat.Ino
+	}
+	inode := getInode(p)
+
+	t.Log("Rename file and make sure inode hasn't changed.")
+	p2 := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile2")
+	if err := ioutil.Rename(p, p2); err != nil {
+		t.Fatal(err)
+	}
+	syncFilename(t, p2)
+
+	inode2 := getInode(p2)
+	if inode != inode2 {
+		t.Fatal("Inode changed after rename: %d vs %d", inode, inode2)
+	}
+
+	t.Log("A new file with the previous name should get a new inode")
+
+	if err := ioutil.WriteFile(p, []byte("more fake data"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	syncFilename(t, p)
+
+	inode3 := getInode(p)
+	if inode == inode3 {
+		t.Fatal("New and old files have the same inode")
+	}
+}

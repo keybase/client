@@ -22,6 +22,7 @@ import (
 // Dir.
 type TLF struct {
 	folder *Folder
+	inode  uint64
 
 	dirLock sync.RWMutex
 	dir     *Dir
@@ -32,6 +33,7 @@ func newTLF(fl *FolderList, h *libkbfs.TlfHandle,
 	folder := newFolder(fl, h, name)
 	tlf := &TLF{
 		folder: folder,
+		inode:  fl.fs.assignInode(),
 	}
 	return tlf
 }
@@ -109,7 +111,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 	}
 
 	tlf.folder.nodes[rootNode.GetID()] = tlf
-	tlf.dir = newDir(tlf.folder, rootNode)
+	tlf.dir = newDirWithInode(tlf.folder, rootNode, tlf.inode)
 
 	return tlf.dir, false, nil
 }
@@ -136,6 +138,7 @@ func (tlf *TLF) Access(ctx context.Context, r *fuse.AccessRequest) error {
 // Attr implements the fs.Node interface for TLF.
 func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
+	a.Inode = tlf.inode
 	if dir == nil {
 		tlf.log().CDebugf(
 			ctx, "Faking Attr for TLF %s", tlf.folder.name())

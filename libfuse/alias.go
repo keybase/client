@@ -18,6 +18,7 @@ type Alias struct {
 	// The real path this alias points to. In case of TLF alias, this is the
 	// canonical name for the folder.
 	realPath string
+	inode    uint64
 }
 
 var _ fs.Node = (*Alias)(nil)
@@ -25,6 +26,7 @@ var _ fs.Node = (*Alias)(nil)
 // Attr implements the fs.Node interface for Alias.
 func (*Alias) Attr(ctx context.Context, a *fuse.Attr) error {
 	a.Mode = os.ModeSymlink | 0777
+	// Aliases can't be moved, so let bazil generate an inode.
 	return nil
 }
 
