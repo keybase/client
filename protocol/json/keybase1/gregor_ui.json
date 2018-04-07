@@ -30,7 +30,8 @@
           "type": "PushReason"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "pushOutOfBandMessages": {
       "request": [
@@ -42,7 +43,8 @@
           }
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

@@ -9,6 +9,6 @@ protocol gregorUI {
     NEW_DATA_2
   }
 
-  void pushState(gregor1.State state, PushReason reason);
-  void pushOutOfBandMessages(array<gregor1.OutOfBandMessage> oobm);
+  void pushState(gregor1.State state, PushReason reason) oneway;
+  void pushOutOfBandMessages(array<gregor1.OutOfBandMessage> oobm) oneway;
 }
