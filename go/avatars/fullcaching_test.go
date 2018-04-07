@@ -60,9 +60,10 @@ func TestAvatarsFullCaching(t *testing.T) {
 
 	t.Log("cache hit")
 	getFile := func(path string) string {
+		path = strings.TrimPrefix(path, "file://")
 		if runtime.GOOS == "windows" {
 			path = strings.Replace(path, `/`, `\`, -1)
-			path = path[8:]
+			path = path[1:]
 		}
 		file, err := os.Open(path)
 		require.NoError(t, err)
