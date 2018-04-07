@@ -623,7 +623,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}()
 	}
 
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, err := team.recipientBoxes(ctx, memSet)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet)
 	if err != nil {
 		return err
 	}
@@ -641,6 +641,18 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}
 		if !found {
 			return fmt.Errorf("AddMemberTx.Post got a PerTeamKey but couldn't find a link with None to attach it")
+		}
+	}
+
+	var teamEKBoxes *[]keybase1.TeamEkBoxMetadata
+	if teamEKPayload == nil {
+		ekLib := g.GetEKLib()
+		if ekLib != nil && ekLib.ShouldRun(ctx) && len(memSet.recipients) > 0 {
+			uids := memSet.recipientUids()
+			teamEKBoxes, err = ekLib.BoxLatestTeamEK(ctx, team.ID, uids)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -679,17 +691,14 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		return err
 	}
 
-	payload := libkb.JSONPayload{}
-	payload["sigs"] = readySigs
-	if lease != nil {
-		payload["downgrade_lease_id"] = lease.LeaseID
+	payloadArgs := sigPayloadArgs{
+		secretBoxes:        secretBoxes,
+		lease:              lease,
+		implicitAdminBoxes: implicitAdminBoxes,
+		teamEKPayload:      teamEKPayload,
+		teamEKBoxes:        teamEKBoxes,
 	}
-	if len(implicitAdminBoxes) != 0 {
-		payload["implicit_team_keys"] = implicitAdminBoxes
-	}
-	if secretBoxes != nil {
-		payload["per_team_key"] = secretBoxes
-	}
+	payload := team.sigPayload(readySigs, payloadArgs)
 
 	if err := team.postMulti(payload); err != nil {
 		return err
@@ -697,5 +706,6 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 
 	team.notify(ctx, keybase1.TeamChangeSet{MembershipChanged: true})
 
+	team.storeTeamEKPayload(ctx, teamEKPayload)
 	return nil
 }

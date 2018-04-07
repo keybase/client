@@ -13,12 +13,12 @@ import {
   Text,
 } from '../../../../../common-adapters'
 import {globalMargins, globalStyles, isMobile, platformStyles} from '../../../../../styles'
+import type {RetentionEntityType} from '../container'
 
 type Props = {
   days: number,
   enabled: boolean,
-  isBigTeam: boolean,
-  isChannel: boolean,
+  entityType: RetentionEntityType,
   setEnabled: boolean => void,
   onConfirm: () => void,
   onBack: () => void,
@@ -35,7 +35,11 @@ const Wrapper = ({children, onBack}) =>
 
 const RetentionWarning = (props: Props) => {
   const policyString = daysToLabel(props.days)
-  const convType = props.isChannel ? 'channel' : "team's chats"
+  let showChannelWarnings = false
+  if (props.entityType === 'big team') {
+    showChannelWarnings = true
+  }
+  let convType: string = getConvType(props.entityType)
   return (
     <Wrapper onBack={props.onBack}>
       <Box style={containerStyle}>
@@ -46,7 +50,7 @@ const RetentionWarning = (props: Props) => {
         <Text type="Body" style={bodyStyle}>
           You are about to set the message deletion policy in this {convType} to{' '}
           <Text type="BodySemibold">{policyString}.</Text>{' '}
-          {!props.isChannel &&
+          {showChannelWarnings &&
             "This will affect all the team's channels, except the ones you've set manually."}
         </Text>
         <Checkbox
@@ -59,7 +63,7 @@ const RetentionWarning = (props: Props) => {
               <Text type="Body">
                 I understand that messages older than {policyString} will be deleted for everyone.
               </Text>
-              {!props.isChannel && (
+              {showChannelWarnings && (
                 <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
               )}
             </Box>
@@ -77,6 +81,28 @@ const RetentionWarning = (props: Props) => {
       </Box>
     </Wrapper>
   )
+}
+
+const getConvType = (entityType: RetentionEntityType) => {
+  let convType = ''
+  switch (entityType) {
+    case 'small team':
+      convType = "team's chat"
+      break
+    case 'big team':
+      convType = "team's chat"
+      break
+    case 'channel':
+      convType = 'channel'
+      break
+    case 'adhoc':
+      convType = 'conversation'
+      break
+  }
+  if (convType === '') {
+    throw new Error(`RetentionWarning: impossible entityType encountered: ${entityType}`)
+  }
+  return convType
 }
 
 const containerStyle = platformStyles({

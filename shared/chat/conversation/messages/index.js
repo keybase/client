@@ -3,8 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as RouteTree from '../../../route-tree'
 import * as Types from '../../../constants/types/chat2'
-import OldProfileReset from './system-old-profile-reset-notice/container'
-import ResetUser from './reset-user/container'
 import SystemAddedToTeam from './system-added-to-team/container'
 import SystemGitPush from './system-git-push/container'
 import SystemInviteAccepted from './system-invite-accepted/container'
@@ -23,22 +21,13 @@ type Props = {
   previous: ?Types.Message,
   isEditing: boolean,
   isSelected: boolean,
-  showResetParticipants: ?Types.ConversationIDKey,
-  showSuperseded: ?Types.ConversationIDKey,
 }
 
 class MessageFactory extends React.PureComponent<Props> {
   render() {
-    if (this.props.showResetParticipants) {
-      return <ResetUser conversationIDKey={this.props.showResetParticipants} />
-    }
-    if (this.props.showSuperseded) {
-      return <OldProfileReset conversationIDKey={this.props.showSuperseded} />
-    }
     if (!this.props.message) {
       return null
     }
-
     switch (this.props.message.type) {
       case 'text':
         return (
@@ -89,13 +78,6 @@ class MessageFactory extends React.PureComponent<Props> {
 const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}) => {
   const messageMap = Constants.getMessageMap(state, conversationIDKey)
   const message = messageMap.get(ordinal)
-  let showResetParticipants = null
-  let showSuperseded = null
-  if (!message) {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    showResetParticipants = meta && !meta.resetParticipants.isEmpty() ? conversationIDKey : null
-    showSuperseded = meta && (meta.wasFinalizedBy || meta.supersededBy) ? conversationIDKey : null
-  }
   return {
     isEditing:
       message &&
@@ -104,8 +86,6 @@ const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKe
     isSelected: messageActionMessage(state, conversationIDKey) === message,
     message,
     previous: previous ? messageMap.get(previous) : null,
-    showResetParticipants,
-    showSuperseded,
   }
 }
 
@@ -127,8 +107,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isSelected: stateProps.isSelected,
   message: stateProps.message,
   previous: stateProps.previous,
-  showResetParticipants: stateProps.showResetParticipants,
-  showSuperseded: stateProps.showSuperseded,
 })
 
 export default compose(

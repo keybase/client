@@ -1,6 +1,9 @@
 {
   "prelude": [],
   "actions": {
+    "dumpLogs": {
+      "reason": ["'quitting through menu'"]
+    },
     "changedFocus": {
       "appFocused": "boolean"
     },

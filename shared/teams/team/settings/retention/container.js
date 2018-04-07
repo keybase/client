@@ -10,47 +10,132 @@ import {
   withHandlers,
   type TypedState,
 } from '../../../../util/container'
-import {getTeamRetentionPolicy} from '../../../../constants/teams'
+import {
+  getTeamRetentionPolicy,
+  retentionPolicies,
+  getCanPerform,
+  hasCanPerform,
+} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {navigateTo, pathSelector} from '../../../../actions/route-tree'
 import {type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
+import type {StylesCrossPlatform} from '../../../../styles'
 import RetentionPicker from './'
 
-// if you supply an onSelect callback, this won't trigger any popup on its own
-// if you don't, the selection will immediately be applied / warning shown on selection
+export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
+
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey,
-  teamname: string,
-  isTeamWide: boolean,
-  isSmallTeam?: boolean,
+  containerStyle?: StylesCrossPlatform,
+  dropdownStyle?: StylesCrossPlatform,
+  entityType: RetentionEntityType,
+  showSaveState?: boolean,
+  teamname?: string,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const teamPolicy = getTeamRetentionPolicy(state, ownProps.teamname)
-  const loading = !teamPolicy
-  const policy =
-    !!ownProps.conversationIDKey && getConversationRetentionPolicy(state, ownProps.conversationIDKey)
-  if (!ownProps.isTeamWide && !policy) {
-    throw new Error('Conv retpolicy not present in metaMap')
+  let policy: RetentionPolicy = retentionPolicies.policyRetain
+  let teamPolicy: ?RetentionPolicy
+  let showInheritOption = false
+  let showOverrideNotice = false
+  let loading = false
+  let entityType = ownProps.entityType
+  let canSetPolicy = true
+  let yourOperations
+  let _permissionsLoaded = true
+  switch (entityType) {
+    case 'adhoc':
+      if (ownProps.conversationIDKey) {
+        policy = getConversationRetentionPolicy(state, ownProps.conversationIDKey)
+        showInheritOption = false
+        showOverrideNotice = false
+        break
+      }
+      throw new Error('RetentionPicker needs a conversationIDKey to set adhoc retention policies')
+    case 'channel':
+      if (ownProps.conversationIDKey && ownProps.teamname) {
+        const teamname = ownProps.teamname
+        const conversationIDKey = ownProps.conversationIDKey
+        policy = getConversationRetentionPolicy(state, conversationIDKey)
+        teamPolicy = getTeamRetentionPolicy(state, teamname)
+        loading = !teamPolicy
+        yourOperations = getCanPerform(state, teamname)
+        _permissionsLoaded = hasCanPerform(state, teamname)
+        canSetPolicy = yourOperations.setRetentionPolicy
+        showInheritOption = true
+        showOverrideNotice = false
+        break
+      }
+      throw new Error(
+        'RetentionPicker needs a conversationIDKey AND teamname to set channel retention policies'
+      )
+    case 'small team':
+      if (ownProps.teamname) {
+        const teamname = ownProps.teamname
+        yourOperations = getCanPerform(state, teamname)
+        _permissionsLoaded = hasCanPerform(state, teamname)
+        canSetPolicy = yourOperations.setRetentionPolicy
+        const tempPolicy = getTeamRetentionPolicy(state, teamname)
+        loading = !(tempPolicy && _permissionsLoaded)
+        if (tempPolicy) {
+          policy = tempPolicy
+        }
+        showInheritOption = false
+        showOverrideNotice = false
+        break
+      }
+      throw new Error('RetentionPicker needs a teamname to set small team retention policies')
+    case 'big team':
+      if (ownProps.teamname) {
+        const teamname = ownProps.teamname
+        yourOperations = getCanPerform(state, teamname)
+        _permissionsLoaded = hasCanPerform(state, teamname)
+        canSetPolicy = yourOperations.setRetentionPolicy
+        const tempPolicy = getTeamRetentionPolicy(state, teamname)
+        loading = !(tempPolicy && _permissionsLoaded)
+        if (tempPolicy) {
+          policy = tempPolicy
+        }
+        showInheritOption = false
+        showOverrideNotice = true
+        break
+      }
+      throw new Error('RetentionPicker needs a teamname to set big team retention policies')
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(entityType: empty)
+    // Issue with flow here: https://github.com/facebook/flow/issues/6068
+    // throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
+
+  if (!['adhoc', 'channel', 'small team', 'big team'].includes(entityType)) {
+    throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
+  }
+
   const _path = pathSelector(state)
   return {
     _path,
-    policy: ownProps.isTeamWide ? teamPolicy : policy,
+    _permissionsLoaded,
+    canSetPolicy,
+    entityType, // used only to display policy to non-admins
     loading,
-    teamPolicy: ownProps.isTeamWide ? undefined : teamPolicy,
+    policy,
+    showInheritOption,
+    showOverrideNotice,
+    teamPolicy,
   }
 }
 
 const mapDispatchToProps = (
   dispatch: Dispatch,
-  {conversationIDKey, teamname, onSelect, type, isTeamWide}: OwnProps
+  {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
-  _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
+  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
+  _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _onShowDropdown: (items, target, parentPath: Path) =>
     dispatch(
       navigateTo(
@@ -69,7 +154,7 @@ const mapDispatchToProps = (
         [
           {
             selected: 'retentionWarning',
-            props: {days, onCancel, onConfirm, isChannel: !isTeamWide},
+            props: {days, onCancel, onConfirm, entityType},
           },
         ],
         parentPath
@@ -77,13 +162,14 @@ const mapDispatchToProps = (
     )
   },
   setRetentionPolicy: (policy: RetentionPolicy) => {
-    if (isTeamWide) {
-      dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+    if (['small team', 'big team'].includes(entityType)) {
+      // we couldn't get here without throwing an error for !teamname
+      teamname && dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+    } else if (['adhoc', 'channel'].includes(entityType)) {
+      // we couldn't get here without throwing an error for !conversationIDKey
+      conversationIDKey && dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
     } else {
-      if (!conversationIDKey) {
-        throw new Error('Tried to set conv retention policy with no ConversationIDKey')
-      }
-      dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
+      throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
     }
   },
 })
@@ -98,6 +184,7 @@ export default compose(
     },
     componentDidMount: function() {
       this.props._loadTeamPolicy()
+      !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },
   }),
   withHandlers({

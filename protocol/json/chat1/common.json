@@ -746,6 +746,13 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "explodedByUID"
         }
       ]
     },
@@ -776,6 +783,26 @@
           "name": "composeTime"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EphemeralMetadata",
+      "fields": [
+        {
+          "type": "gregor1.DurationSec",
+          "name": "ephemeralLifetime",
+          "mpackkey": "life",
+          "jsonkey": "life"
+        },
+        {
+          "type": "keybase1.EkGeneration",
+          "name": "generation",
+          "mpackkey": "gen",
+          "jsonkey": "gen"
+        }
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
     },
     {
       "type": "record",
@@ -857,6 +884,15 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": [
+            null,
+            "EphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
@@ -922,6 +958,15 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": [
+            null,
+            "EphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },

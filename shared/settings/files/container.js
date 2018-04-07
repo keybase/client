@@ -8,8 +8,8 @@ const mapStateToProps = (state: TypedState) => {
   const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
   return {
     kbfsEnabled,
-    inProgress: state.fs.fuseInstalling || state.fs.kbfsInstalling || state.fs.kbfsOpening,
-    showSecurityPrefs: !kbfsEnabled && state.fs.kextPermissionError,
+    inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
+    showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
   }
 }
 

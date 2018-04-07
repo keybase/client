@@ -81,7 +81,7 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 }
 
 type UserEKBoxedResponse struct {
-	Result struct {
+	Result *struct {
 		Box                string                `json:"box"`
 		DeviceEKGeneration keybase1.EkGeneration `json:"device_ek_generation"`
 		Sig                string                `json:"sig"`
@@ -110,6 +110,10 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	err = res.Body.UnmarshalAgain(&result)
 	if err != nil {
 		return userEK, err
+	}
+
+	if result.Result == nil {
+		return userEK, fmt.Errorf("server didn't return a box for userEK generation %d", generation)
 	}
 
 	// Before we store anything, let's verify that the server returned

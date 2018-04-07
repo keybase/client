@@ -64,15 +64,19 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    [Constants.devMenuTab]: {
-      component: DevMenu,
-      children: {
-        dumbSheet: {
-          component: DumbSheet,
-          tags: makeLeafTags({modal: true}),
-        },
-      },
-    },
+    ...(__DEV__
+      ? {
+          [Constants.devMenuTab]: {
+            component: DevMenu,
+            children: {
+              dumbSheet: {
+                component: DumbSheet,
+                tags: makeLeafTags({modal: true}),
+              },
+            },
+          },
+        }
+      : {}),
     [Constants.advancedTab]: {
       component: AdvancedContainer,
       children: {

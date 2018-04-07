@@ -77,6 +77,29 @@ const load = () => {
         />
       </Box>
     ))
+    .add('ManageChannels - no channels', () => (
+      <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
+        <ManageChannels
+          teamname="stripe.usa"
+          numChannels={23}
+          canEditChannels={true}
+          canCreateChannels={true}
+          channels={[]}
+          onClose={action('onClose')}
+          onToggle={action('onToggle')}
+          onEdit={action('onEdit')}
+          onCreate={action('onCreate')}
+          unsavedSubscriptions={false}
+          onSaveSubscriptions={action('onSaveSubscriptions')}
+          onClickChannel={action('onClickChannel')}
+          waitingForSave={false}
+          nextChannelState={channels.reduce((acc, c) => {
+            acc[c.name] = c.selected
+            return acc
+          }, {})}
+        />
+      </Box>
+    ))
     .add('ManageChannels - Unsaved Subscription', () => (
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels

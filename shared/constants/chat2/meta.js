@@ -208,15 +208,18 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
-  let retentionPolicy
-  if (isTeam) {
-    // default for team channels is 'inherit'
-    retentionPolicy = i.convRetention
-      ? serviceRetentionPolicyToRetentionPolicy(i.convRetention)
-      : makeRetentionPolicy({type: 'inherit'})
-  } else {
-    // default for ad-hoc is 'retain'
-    retentionPolicy = makeRetentionPolicy()
+  // default inherit for teams, retain for ad-hoc
+  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
+  let retentionPolicy = isTeam ? makeRetentionPolicy({type: 'inherit'}) : makeRetentionPolicy()
+  if (i.convRetention) {
+    // it has been set for this conversation
+    retentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+  }
+
+  // default for team-wide policy is 'retain'
+  let teamRetentionPolicy = makeRetentionPolicy()
+  if (i.teamRetention) {
+    teamRetentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
   }
 
   return makeConversationMeta({
@@ -237,6 +240,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
+    teamRetentionPolicy,
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
@@ -266,6 +270,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   supersedes: null,
   teamType: 'adhoc',
   teamname: '',
+  teamRetentionPolicy: makeRetentionPolicy(),
   timestamp: 0,
   tlfname: '',
   trustedState: 'untrusted',
@@ -285,9 +290,11 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     ? globalColors.red
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
+  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 
   return {
     backgroundColor,
+    iconHoverColor,
     showBold,
     subColor,
     usernameColor,

@@ -1,8 +1,9 @@
 // @flow
 import {Component} from 'react'
+import {RPCError} from '../../util/errors'
 
 export type Props = {
-  error: ?Error,
+  error: null | Error | RPCError,
   daemonError: ?Error,
   onDismiss: () => void,
   debugDump: Array<string>,

@@ -22,9 +22,13 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	tctx := setupTest(t, pre)
 	var u userPlusDevice
 
-	u.suppressTeamChatAnnounce = opts.suppressTeamChatAnnounce
-
 	g := tctx.G
+
+	if opts.suppressTeamChatAnnounce {
+		u.suppressTeamChatAnnounce = opts.suppressTeamChatAnnounce
+		g.Env.Test.SkipSendingSystemChatMessages = true
+	}
+
 	if opts.disableGregor {
 		// Some tests may want to disable gregor loop completely to
 		// simulate user that stays offline when not doing anything.

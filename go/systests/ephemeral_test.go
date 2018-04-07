@@ -48,3 +48,118 @@ func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotif
 		}
 	}
 }
+
+func TestAddMemberWithTeamEK(t *testing.T) {
+	runAddMember(t, true /* createTeamEK*/)
+}
+
+func TestAddMemberNoTeamEK(t *testing.T) {
+	runAddMember(t, false /* createTeamEK*/)
+}
+
+func getTeamEK(g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	storage := g.GetTeamEKBoxStorage()
+	return storage.Get(context.Background(), teamID, generation)
+}
+
+func runAddMember(t *testing.T, createTeamEK bool) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+
+	annG := ann.getPrimaryGlobalContext()
+	ephemeral.ServiceInit(annG)
+	bobG := bob.getPrimaryGlobalContext()
+	ephemeral.ServiceInit(bobG)
+
+	team := ann.createTeam([]*smuUser{})
+	teamName, err := keybase1.TeamNameFromString(team.name)
+	require.NoError(t, err)
+	teamID := teamName.ToPrivateTeamID()
+
+	var expectedMetadata keybase1.TeamEkMetadata
+	var expectedGeneration keybase1.EkGeneration
+	if createTeamEK {
+		ekLib := annG.GetEKLib()
+		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+		require.NoError(t, err)
+
+		expectedMetadata = teamEK.Metadata
+		expectedGeneration = expectedMetadata.Generation
+	} else {
+		expectedMetadata = keybase1.TeamEkMetadata{}
+		expectedGeneration = 1
+	}
+
+	ann.addWriter(team, bob)
+
+	annTeamEK, annErr := getTeamEK(annG, teamID, expectedGeneration)
+	bobTeamEK, bobErr := getTeamEK(bobG, teamID, expectedGeneration)
+	if createTeamEK {
+		require.NoError(t, annErr)
+		require.NoError(t, bobErr)
+	} else {
+		require.Error(t, annErr)
+		require.Error(t, bobErr)
+	}
+	require.Equal(t, bobTeamEK.Metadata, expectedMetadata)
+	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
+}
+
+func TestRotateWithTeamEK(t *testing.T) {
+	runRotate(t, true /* createTeamEK*/)
+}
+
+func TestRotateNoTeamEK(t *testing.T) {
+	runRotate(t, false /* createTeamEK*/)
+}
+
+func runRotate(t *testing.T, createTeamEK bool) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUserWithPaper("bob")
+
+	annG := ann.tc.G
+	ephemeral.ServiceInit(annG)
+	bobG := bob.tc.G
+	ephemeral.ServiceInit(bobG)
+
+	teamID, teamName := ann.createTeam2()
+
+	// After rotate, we should have rolled the teamEK if one existed.
+	var expectedGeneration keybase1.EkGeneration
+	if createTeamEK {
+		ekLib := annG.GetEKLib()
+		teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+		require.NoError(t, err)
+		expectedGeneration = teamEK.Metadata.Generation + 1
+	} else {
+		expectedGeneration = 1
+	}
+
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_WRITER)
+
+	bob.revokePaperKey()
+	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
+
+	storage := annG.GetTeamEKBoxStorage()
+	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration)
+	var expectedMaxGeneration keybase1.EkGeneration
+	if createTeamEK {
+		require.NoError(t, err)
+		expectedMaxGeneration = teamEK.Metadata.Generation
+	} else {
+		require.Error(t, err)
+		require.Equal(t, teamEK, keybase1.TeamEk{})
+		expectedMaxGeneration = -1
+	}
+	maxGeneration, err := storage.MaxGeneration(context.Background(), teamID)
+	require.NoError(t, err)
+	require.Equal(t, maxGeneration, expectedMaxGeneration)
+}

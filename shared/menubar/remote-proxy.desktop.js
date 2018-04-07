@@ -4,7 +4,7 @@ import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
-import {connect, type TypedState, compose, renderNothing, branch} from '../util/container'
+import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import {remote, BrowserWindow} from 'electron'
 
 const windowOpts = {}
@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
   folderProps: state.favorite.folderState,
-  isAsyncWriteHappening: state.fs.syncing,
+  isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
 })
@@ -78,7 +78,5 @@ export default compose(
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,
-  SyncProps,
-  // $FlowIssue gets confused
-  renderNothing
-)(null)
+  SyncProps
+)(NullComponent)

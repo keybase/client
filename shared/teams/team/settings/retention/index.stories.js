@@ -10,12 +10,18 @@ import {RetentionDropdownView} from './dropdown'
 const policyRetain = makeRetentionPolicy({type: 'retain'})
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
+const policy7Days = makeRetentionPolicy({type: 'expire', days: 7})
 
 const actions = {
   setRetentionPolicy: action('setRetentionPolicy'),
   onSelect: action('onSelectPolicy'),
   onShowDropdown: action('onShowDropdown'),
   onShowWarning: action('onShowWarning'),
+}
+
+const commonProps = {
+  loading: false,
+  showSaveState: false,
 }
 
 const onClick = action('onClick')
@@ -29,7 +35,6 @@ const teamWideItems = [
   {title: 'Keep forever', onClick},
 ]
 const channelItems = [{title: 'Use team default (30 days)', onClick}, ...teamWideItems]
-
 const load = () => {
   storiesOf('Teams/Retention', module)
     .addDecorator(story => (
@@ -37,34 +42,126 @@ const load = () => {
     ))
     .add('Channel', () => (
       <RetentionPicker
-        loading={false}
-        isTeamWide={false}
+        entityType="channel"
+        canSetPolicy={true}
+        policy={policy30Days}
+        teamPolicy={policyRetain}
+        showInheritOption={true}
+        showOverrideNotice={false}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Big team', () => (
+      <RetentionPicker
+        entityType="big team"
+        canSetPolicy={true}
+        policy={policy30Days}
+        showInheritOption={false}
+        showOverrideNotice={true}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Small team', () => (
+      <RetentionPicker
+        entityType="small team"
+        canSetPolicy={true}
         policy={policyRetain}
-        teamPolicy={policy30Days}
+        showInheritOption={false}
+        showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
-    .add('Team-wide', () => (
-      <RetentionPicker loading={false} isTeamWide={true} policy={policy30Days} type="simple" {...actions} />
-    ))
-    .add('Channel inheriting from team', () => (
+    .add('Adhoc', () => (
       <RetentionPicker
-        loading={false}
-        isTeamWide={false}
-        policy={policyInherit}
-        teamPolicy={policy30Days}
+        entityType="adhoc"
+        canSetPolicy={true}
+        policy={policy30Days}
+        showInheritOption={false}
+        showOverrideNotice={false}
         type="simple"
+        {...commonProps}
         {...actions}
       />
     ))
-    .add('Automatic show warning / set', () => (
+    .add('Channel inheriting', () => (
       <RetentionPicker
-        loading={false}
-        isTeamWide={false}
+        entityType="channel"
+        canSetPolicy={true}
         policy={policyInherit}
         teamPolicy={policy30Days}
+        showInheritOption={true}
+        showOverrideNotice={false}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Automatically show warning / set policy', () => (
+      <RetentionPicker
+        entityType="channel"
+        canSetPolicy={true}
+        policy={policyInherit}
+        teamPolicy={policy30Days}
+        showInheritOption={true}
+        showOverrideNotice={false}
         type="auto"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Non-admin team-wide', () => (
+      <RetentionPicker
+        entityType="big team"
+        canSetPolicy={false}
+        policy={policy30Days}
+        showInheritOption={false}
+        showOverrideNotice={true}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Non-admin channel', () => (
+      <RetentionPicker
+        entityType="channel"
+        canSetPolicy={false}
+        policy={policy30Days}
+        teamPolicy={policyRetain}
+        showInheritOption={true}
+        showOverrideNotice={false}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Non-admin channel inherit', () => (
+      <RetentionPicker
+        entityType="channel"
+        canSetPolicy={false}
+        policy={policyInherit}
+        teamPolicy={policy7Days}
+        showInheritOption={true}
+        showOverrideNotice={false}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Non-admin small team', () => (
+      <RetentionPicker
+        entityType="small team"
+        canSetPolicy={false}
+        policy={policy7Days}
+        showInheritOption={false}
+        showOverrideNotice={false}
+        type="simple"
+        {...commonProps}
         {...actions}
       />
     ))

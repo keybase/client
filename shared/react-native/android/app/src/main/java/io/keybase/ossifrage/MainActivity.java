@@ -124,6 +124,24 @@ public class MainActivity extends ReactActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    @Override
+    protected void onPause() {
+        Keybase.setAppStateBackground();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        Keybase.setAppStateForeground();
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Keybase.appWillExit();
+        super.onDestroy();
+    }
+
     /**
      * Returns the name of the main component registered from JavaScript.
      * This is used to schedule rendering of the component.

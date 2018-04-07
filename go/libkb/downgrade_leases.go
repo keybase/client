@@ -4,9 +4,10 @@
 package libkb
 
 import (
+	"strings"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"strings"
 )
 
 func kidsToString(kids []keybase1.KID) string {
@@ -25,12 +26,12 @@ func sigIDsToString(sigIDs []keybase1.SigID) string {
 	return strings.Join(tmp, ",")
 }
 
-func uidsToString(uids []keybase1.UID) string {
-	var tmp []string
-	for _, u := range uids {
-		tmp = append(tmp, string(u))
+func UidsToString(uids []keybase1.UID) string {
+	s := make([]string, len(uids))
+	for i, uid := range uids {
+		s[i] = string(uid)
 	}
-	return strings.Join(tmp, ",")
+	return strings.Join(s, ",")
 }
 
 type Lease struct {
@@ -100,7 +101,7 @@ func RequestDowngradeLeaseByTeam(ctx context.Context, g *GlobalContext, teamID k
 		NetContext:  ctx,
 		Args: HTTPArgs{
 			"team_id":     S{string(teamID)},
-			"member_uids": S{uidsToString(uids)},
+			"member_uids": S{UidsToString(uids)},
 		},
 	}, &res)
 	if err != nil {

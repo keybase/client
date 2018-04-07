@@ -49,6 +49,7 @@ func NewSyncer(g *globals.Context) *Syncer {
 	}
 
 	go s.sendNotificationLoop()
+	go s.monitorAppState()
 	return s
 }
 
@@ -59,6 +60,20 @@ func (s *Syncer) SetClock(clock clockwork.Clock) {
 func (s *Syncer) Shutdown() {
 	s.Debug(context.Background(), "shutting down")
 	close(s.shutdownCh)
+}
+
+func (s *Syncer) monitorAppState() {
+	ctx := context.Background()
+	s.Debug(ctx, "monitorAppState: starting up")
+	state := keybase1.AppState_FOREGROUND
+	for {
+		state = <-s.G().AppState.NextUpdate(&state)
+		switch state {
+		case keybase1.AppState_FOREGROUND:
+			s.Debug(ctx, "monitorAppState: foregrounded, flushing")
+			s.flushCh <- struct{}{}
+		}
+	}
 }
 
 func (s *Syncer) dedupUpdates(updates []chat1.ConversationStaleUpdate) (res []chat1.ConversationStaleUpdate) {
@@ -126,15 +141,8 @@ func (s *Syncer) sendNotificationLoop() {
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
-		case state := <-s.G().AppState.NextUpdate(nil):
-			// If we receive an update that app state has moved to the foreground, then trigger
-			// flushing these notifications
-			if state == keybase1.AppState_FOREGROUND {
-				s.sendNotificationsOnce()
-			}
 		}
 	}
-
 }
 
 func (s *Syncer) getUpdates(convs []chat1.Conversation) (res []chat1.ConversationStaleUpdate) {

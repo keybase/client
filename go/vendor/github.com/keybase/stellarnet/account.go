@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/pkg/errors"
 	samount "github.com/stellar/go/amount"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -40,12 +41,7 @@ func NewAccount(address AddressStr) *Account {
 func (a *Account) load() error {
 	internal, err := client.LoadAccount(a.address.String())
 	if err != nil {
-		if herr, ok := err.(*horizon.Error); ok {
-			if herr.Problem.Status == 404 {
-				return ErrAccountNotFound
-			}
-		}
-		return err
+		return errMap(err)
 	}
 
 	a.internal = &internal
@@ -69,6 +65,15 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 	}
 
 	return a.internal.Balances, nil
+}
+
+// AccountSeqno returns the account sequence number.
+func AccountSeqno(address AddressStr) (uint64, error) {
+	seqno, err := client.SequenceForAccount(address.String())
+	if err != nil {
+		return 0, errMap(err)
+	}
+	return uint64(seqno), nil
 }
 
 // RecentPayments returns the account's recent payments.
@@ -143,7 +148,7 @@ func (a *Account) loadOperations(tx Transaction) ([]Operation, error) {
 	return page.Embedded.Records, nil
 }
 
-func (a *Account) isOpNoDestination(inErr error) bool {
+func isOpNoDestination(inErr error) bool {
 	herr, ok := inErr.(*horizon.Error)
 	if !ok {
 		return false
@@ -174,7 +179,7 @@ func (a *Account) SendXLM(from SeedStr, to AddressStr, amount string) (ledger in
 	ledger, txid, err = a.paymentXLM(from, to, amount)
 
 	if err != nil {
-		if !a.isOpNoDestination(err) {
+		if err != ErrAccountNotFound {
 			return 0, "", err
 		}
 
@@ -188,7 +193,7 @@ func (a *Account) SendXLM(from SeedStr, to AddressStr, amount string) (ledger in
 
 // paymentXLM creates a payment transaction from 'from' to 'to' for 'amount' lumens.
 func (a *Account) paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	_, signed, err := a.PaymentXLMTransaction(from, to, amount)
+	_, signed, err := a.PaymentXLMTransaction(from, to, amount, client)
 	if err != nil {
 		return 0, "", err
 	}
@@ -196,11 +201,12 @@ func (a *Account) paymentXLM(from SeedStr, to AddressStr, amount string) (ledger
 	return Submit(signed)
 }
 
-func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount string) (seqno uint64, signed string, err error) {
+// PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
+func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount string, seqnoProvider build.SequenceProvider) (seqno uint64, signed string, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		network,
-		build.AutoSequence{SequenceProvider: client},
+		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.Payment(
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
@@ -216,7 +222,7 @@ func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount stri
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
 func (a *Account) createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	_, signed, err := a.CreateAccountXLMTransaction(from, to, amount)
+	_, signed, err := a.CreateAccountXLMTransaction(from, to, amount, client)
 	if err != nil {
 		return 0, "", err
 	}
@@ -226,11 +232,11 @@ func (a *Account) createAccountXLM(from SeedStr, to AddressStr, amount string) (
 
 // CreateAccountXLMTransaction creates a signed transaction to fund an new account 'to' from 'from'
 // with a starting balance of 'amount'.
-func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string) (seqno uint64, signed string, err error) {
+func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string, seqnoProvider build.SequenceProvider) (seqno uint64, signed string, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		network,
-		build.AutoSequence{SequenceProvider: client},
+		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: to.String()},
 			build.NativeAmount{Amount: amount},
@@ -260,7 +266,7 @@ func (a *Account) sign(from SeedStr, tx *build.TransactionBuilder) (seqno uint64
 func Submit(signed string) (ledger int32, txid string, err error) {
 	resp, err := client.SubmitTransaction(signed)
 	if err != nil {
-		return 0, "", err
+		return 0, "", errMap(err)
 	}
 
 	return resp.Ledger, resp.Hash, nil
@@ -295,4 +301,26 @@ func (a *Account) linkHref(link horizon.Link) string {
 	}
 	return link.Href
 
+}
+
+// errMap maps some horizon errors to stellarnet errors.
+func errMap(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	// the error might be wrapped, so get the unwrapped error
+	xerr := errors.Cause(err)
+
+	if isOpNoDestination(xerr) {
+		return ErrAccountNotFound
+	}
+
+	if herr, ok := xerr.(*horizon.Error); ok {
+		if herr.Problem.Status == 404 {
+			return ErrAccountNotFound
+		}
+	}
+
+	return err
 }

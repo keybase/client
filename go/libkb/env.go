@@ -165,6 +165,9 @@ type TestParameters struct {
 	// whether LogoutIfRevoked check should be skipped to avoid races
 	// during resets.
 	SkipLogoutIfRevokedCheck bool
+
+	// On if, in test, we want to skip sending system chat messages
+	SkipSendingSystemChatMessages bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -255,6 +258,9 @@ func (e *Env) GetMountDir() (string, error) {
 					"%s (%s)", runmodeName, user.Username))
 			case "linux":
 				return filepath.Join(e.GetRuntimeDir(), "kbfs")
+			// kbfsdokan depends on an empty default
+			case "windows":
+				return ""
 			default:
 				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			}
@@ -297,6 +303,10 @@ func (e *Env) GetCacheDir() string        { return e.HomeFinder.CacheDir() }
 func (e *Env) GetSandboxCacheDir() string { return e.HomeFinder.SandboxCacheDir() }
 func (e *Env) GetDataDir() string         { return e.HomeFinder.DataDir() }
 func (e *Env) GetLogDir() string          { return e.HomeFinder.LogDir() }
+
+func (e *Env) SendSystemChatMessages() bool {
+	return !e.Test.SkipSendingSystemChatMessages
+}
 
 func (e *Env) GetRuntimeDir() string {
 	return e.GetString(

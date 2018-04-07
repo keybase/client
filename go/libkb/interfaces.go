@@ -608,6 +608,7 @@ type TeamLoader interface {
 	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
+	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
@@ -641,11 +642,14 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
-	PurgeTeamEKGenCache(context context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (keybase1.DeviceEkStatement, string, error)
 	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
+	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
+	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
+	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
 	ShouldRun(ctx context.Context) bool
 }
 

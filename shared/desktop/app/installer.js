@@ -4,6 +4,7 @@ import exec from './exec'
 import {keybaseBinPath} from './paths'
 import {quit} from './ctl'
 import {isWindows} from '../../constants/platform'
+import logger from '../../logger'
 import {
   ExitCodeFuseKextError,
   ExitCodeFuseKextPermissionError,
@@ -17,7 +18,16 @@ type State = {
   promptedForCLI: boolean,
 }
 class InstallerData extends UserData<State> {}
-const installerState = new InstallerData('installer.json', {promptedForCLI: false})
+// prevent error spewage on windows by not instantiating
+// InstallerData. Flow seems to require this fake stub.
+const installerState = isWindows
+  ? {
+      save: () => {},
+      state: {
+        promptedForCLI: false,
+      },
+    }
+  : new InstallerData('installer.json', {promptedForCLI: false})
 
 type CheckErrorsResult = {
   errors: Array<string>,
@@ -34,8 +44,9 @@ type CheckErrorsResult = {
 //
 // Reminder: hot-server doesn't reload code in here (/desktop)
 export default (callback: (err: any) => void): void => {
+  logger.info('Installer check starting now')
   if (isWindows) {
-    console.log('Skipping installer on win32')
+    logger.info('Skipping installer on win32')
     callback(null)
     return
   }
@@ -77,6 +88,8 @@ export default (callback: (err: any) => void): void => {
     }
 
     if (errorsResult.errors.length > 0) {
+      logger.info(errorsResult.errors.join('\n'))
+      logger.info(`Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
       showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
       return
     }

@@ -188,6 +188,7 @@ export const appStateAppState = {
   background: 1,
   inactive: 2,
   backgroundactive: 3,
+  backgroundfinal: 4,
 }
 
 export const appStateUpdateAppStateRpcChannelMap = (configKeys: Array<string>, request: AppStateUpdateAppStateRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.appState.updateAppState', request)
@@ -1968,6 +1969,7 @@ export type AppState =
   | 1 // BACKGROUND_1
   | 2 // INACTIVE_2
   | 3 // BACKGROUNDACTIVE_3
+  | 4 // BACKGROUNDFINAL_4
 
 export type AppStateUpdateAppStateRpcParam = $ReadOnly<{state: AppState, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -2685,7 +2687,7 @@ export type LoadAvatarsRes = $ReadOnly<{picmap: {[key: string]: {[key: string]: 
 
 export type LoadDeviceErr = $ReadOnly<{where: String, desc: String}>
 
-export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean}>
+export type LoadTeamArg = $ReadOnly<{ID: TeamID, name: String, public: Boolean, needAdmin: Boolean, refreshUIDMapper: Boolean, refreshers: TeamRefreshers, forceFullReload: Boolean, forceRepoll: Boolean, staleOK: Boolean, allowNameLookupBurstCache: Boolean}>
 
 export type LockContext = $ReadOnly<{requireLockID: LockID, releaseAfterSuccess: Boolean}>
 

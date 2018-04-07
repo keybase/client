@@ -274,12 +274,13 @@ export class Settings extends React.Component<Props, State> {
             <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
           </React.Fragment>
         )}
-        {this.props.yourOperations.setRetentionPolicy && (
+        {this.props.yourOperations.chat && (
           <RetentionPicker
             type="simple"
+            containerStyle={{marginTop: globalMargins.small}}
             onSelect={this._onSelectRetentionPolicy}
             teamname={this.props.teamname}
-            isTeamWide={true}
+            entityType="big team"
           />
         )}
         <Box

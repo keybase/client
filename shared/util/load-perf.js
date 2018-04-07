@@ -2,8 +2,7 @@
 import fetchKeys from 'lodash/keys'
 import Perf from './react-perf'
 
-function print(...rest) {
-  // $FlowIssue
+function print(rest) {
   console.log(`%c⏱ React perf: ${rest}`, 'font-size: x-large')
 }
 

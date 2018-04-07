@@ -1,27 +1,17 @@
 {
-  // React native doesn't support env so by default we use react-native and in electron we specify it
-  // See: https://github.com/facebook/react-native/issues/8723
-  "presets": [
-    "babel-preset-react-native"
-  ],
-  "plugins": [
-    [
-      "babel-plugin-transform-builtin-extend",
-      {
-        "globals": [
-          "Error"
-        ]
-      }
-    ]
-  ],
   "env": {
+    // Only used by react-native
+    "production": {
+      "presets": ["babel-preset-react-native"]
+    },
+    // Only used by react-native
+    "development": {
+      "presets": ["babel-preset-react-native"]
+    },
     // Used by node for our own scripts
     "yarn": {
-      "presets": [
-        "babel-preset-es2015",
-        "babel-preset-stage-1"
-      ],
-      "plugins": []
+      "presets": ['@babel/preset-env', '@babel/preset-react'],
+      "plugins": ['@babel/plugin-proposal-object-rest-spread', '@babel/transform-flow-strip-types', '@babel/plugin-proposal-class-properties']
     }
   }
 }

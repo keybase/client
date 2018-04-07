@@ -16,9 +16,8 @@ import {
   withStateHandlers,
   withPropsOnChange,
 } from '../../util/container'
-import {navigateTo, navigateAppend, pathSelector, switchTo} from '../../actions/route-tree'
+import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
-import {chatTab} from '../../constants/tabs'
 import {
   getCanPerform,
   getConvIdsFromTeamName,
@@ -60,8 +59,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const currentPath = pathSelector(state)
-
   return {
     _hasOperations,
     canCreateChannels,
@@ -69,8 +66,19 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     channels,
     teamname: routeProps.get('teamname'),
     waitingForSave,
-    currentPath,
   }
+}
+
+const createSaveChannelMembership = (
+  teamname: string,
+  oldChannelState: ChannelMembershipState,
+  nextChannelState: ChannelMembershipState
+) => {
+  const channelsToChange = pickBy(
+    nextChannelState,
+    (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
+  )
+  return TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange})
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
@@ -88,27 +96,21 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState
     ) => {
-      const channelsToChange = pickBy(
-        nextChannelState,
-        (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
-      )
-      dispatch(TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange}))
+      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
+      dispatch(navigateUp())
     },
-    _onPreview: (conversationIDKey: ChatTypes.ConversationIDKey, previousPath?: string[]) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'preview'}))
+    _onView: (
+      oldChannelState: ChannelMembershipState,
+      nextChannelState: ChannelMembershipState,
+      channel: string,
+      conversationIDKey: ChatTypes.ConversationIDKey
+    ) => {
+      const selected = nextChannelState[channel]
+      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
       dispatch(
-        navigateTo([
-          chatTab,
-          {
-            selected: ChatTypes.conversationIDKeyToString(conversationIDKey),
-            props: {previousPath: previousPath || null},
-          },
-        ])
+        Chat2Gen.createSelectConversation({conversationIDKey, reason: selected ? 'manageView' : 'preview'})
       )
-    },
-    _onView: (conversationIDKey: ChatTypes.ConversationIDKey) => {
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'manageView'}))
-      dispatch(switchTo([chatTab]))
+      dispatch(navigateUp())
     },
   }
 }
@@ -137,17 +139,13 @@ export default compose(
       }),
     onSaveSubscriptions: props => () =>
       props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
-    onClickChannel: ({channels, currentPath, _onPreview, _onView}) => (conversationIDKey: string) => {
-      const channel = channels.find(c => c.convID === conversationIDKey)
+    onClickChannel: props => (conversationIDKey: string) => {
+      const channel = props.channels.find(c => c.convID === conversationIDKey)
       if (!channel) {
         logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
         return
       }
-      if (channel.selected) {
-        _onView(conversationIDKey)
-      } else {
-        _onPreview(conversationIDKey, currentPath)
-      }
+      props._onView(props.oldChannelState, props.nextChannelState, channel, conversationIDKey)
     },
   }),
   lifecycle({
