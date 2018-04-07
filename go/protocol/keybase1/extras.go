@@ -1158,6 +1158,7 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_PAGES,
 		TLFIdentifyBehavior_SALTPACK:
 		return true
 	default:
@@ -1169,10 +1170,16 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_PAGES:
 		// The chat GUI (in non-strict mode) is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
+		//
+		// Pages is exempted from broken track errors too since 1) it doesn't
+		// buy the user anything, and 2) if the user's proof is hosted with
+		// Pages, in some cases an error here could prevent them from fixing
+		// the proof.
 		return true
 	default:
 		return false
@@ -1187,6 +1194,7 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
+		TLFIdentifyBehavior_PAGES,
 		TLFIdentifyBehavior_SALTPACK:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
