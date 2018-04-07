@@ -164,9 +164,9 @@ const itemStylesPrivateUnknown = {
   textType: fileTextType,
 }
 const itemStylesKeybase = {
-  iconSpec: makeBasicPathItemIconSpec('icon-keybase-logo-32', unknownTextColor),
-  textColor: privateTextColor,
-  textType: fileTextType,
+  iconSpec: makeBasicPathItemIconSpec('iconfont-folder-private', unknownTextColor),
+  textColor: unknownTextColor,
+  textType: folderTextType,
 }
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
