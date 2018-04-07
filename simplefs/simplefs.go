@@ -1299,6 +1299,7 @@ func (k *SimpleFS) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 
 // SimpleFSSyncStatus - Get sync status.
 func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+	ctx = k.makeContext(ctx)
 	jServer, err := libkbfs.GetJournalServer(k.config)
 	if err != nil {
 		k.log.CDebugf(ctx, "No journal server, sending empty response")
