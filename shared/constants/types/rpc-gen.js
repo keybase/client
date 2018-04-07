@@ -131,6 +131,10 @@ export const SimpleFSSimpleFSStatRpcChannelMap = (configKeys: Array<string>, req
 
 export const SimpleFSSimpleFSStatRpcPromise = (request: SimpleFSSimpleFSStatRpcParam): Promise<SimpleFSSimpleFSStatResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSStat', request, (error: RPCError, result: SimpleFSSimpleFSStatResult) => (error ? reject(error) : resolve(result))))
 
+export const SimpleFSSimpleFSSyncStatusRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSSyncStatusRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSSyncStatus', request)
+
+export const SimpleFSSimpleFSSyncStatusRpcPromise = (request: SimpleFSSimpleFSSyncStatusRpcParam): Promise<SimpleFSSimpleFSSyncStatusResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSSyncStatus', request, (error: RPCError, result: SimpleFSSimpleFSSyncStatusResult) => (error ? reject(error) : resolve(result))))
+
 export const SimpleFSSimpleFSWaitRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSWaitRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSWait', request)
 
 export const SimpleFSSimpleFSWaitRpcPromise = (request: SimpleFSSimpleFSWaitRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSWait', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -3432,6 +3436,8 @@ export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: Diren
 
 export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type SimpleFSSimpleFSSyncStatusRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSWriteRpcParam = $ReadOnly<{opID: OpID, offset: Long, content: Bytes, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4191,6 +4197,7 @@ type SimpleFSSimpleFSMakeOpidResult = OpID
 type SimpleFSSimpleFSReadListResult = SimpleFSListResult
 type SimpleFSSimpleFSReadResult = FileContent
 type SimpleFSSimpleFSStatResult = Dirent
+type SimpleFSSimpleFSSyncStatusResult = FSSyncStatus
 type StreamUiReadResult = Bytes
 type StreamUiWriteResult = Int
 type TeamsCanUserPerformResult = TeamOperation

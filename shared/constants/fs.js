@@ -81,6 +81,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   fuseInstalling: false,
   kextPermissionError: false,
   showBanner: false,
+  syncing: false,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({

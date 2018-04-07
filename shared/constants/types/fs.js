@@ -98,6 +98,7 @@ export type _Flags = {
   fuseInstalling: boolean,
   kextPermissionError: boolean,
   showBanner: boolean,
+  syncing: boolean,
 }
 
 export type Flags = I.RecordOf<_Flags>
