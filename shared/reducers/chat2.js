@@ -370,6 +370,28 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
         return editingMap
       })
+    case Chat2Gen.messageSetQuoting:
+      return state.update('quotingMap', quotingMap => {
+        const {conversationIDKey, ordinal} = action.payload
+
+        // clearing
+        if (!ordinal) {
+          return quotingMap.delete(conversationIDKey)
+        }
+
+        const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+
+        // editing a specific message
+        if (ordinal) {
+          const message = messageMap.get(ordinal)
+          if (message && message.type === 'text') {
+            return quotingMap.set(conversationIDKey, ordinal)
+          } else {
+            return quotingMap
+          }
+        }
+        return quotingMap
+      })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
 

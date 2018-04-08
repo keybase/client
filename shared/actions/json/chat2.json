@@ -146,6 +146,11 @@
       "ordinal": "?Types.Ordinal",
       "editLastUser?": "string"
     },
+    // Start quoting a message / or clear quoting
+    "messageSetQuoting": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "?Types.Ordinal",
+    },
     // Submit an edit to the daemon
     "messageEdit": {
       "conversationIDKey": "Types.ConversationIDKey",

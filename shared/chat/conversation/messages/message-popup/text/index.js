@@ -12,6 +12,8 @@ type Props = {
   onDeleteMessageHistory: null | (() => void),
   onEdit: null | (() => void),
   onHidden: () => void,
+  onQuote: null | (() => void),
+  onReplyPrivately: null | (() => void),
   showDivider: boolean,
   style?: Object,
   yourMessage: boolean,
@@ -22,6 +24,8 @@ const TextPopupMenu = (props: Props) => {
     ? [
         ...(props.showDivider ? ['Divider'] : []),
         {onClick: props.onCopy, title: 'Copy Text'},
+        {onClick: props.onQuote, title: 'Quote'},
+        {onClick: props.onReplyPrivately, title: 'Reply Privately'},
         {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
         {
           danger: true,
@@ -41,7 +45,11 @@ const TextPopupMenu = (props: Props) => {
             ]
           : []),
       ]
-    : [{onClick: props.onCopy, title: 'Copy Text'}]
+    : [
+        {onClick: props.onCopy, title: 'Copy Text'},
+        {onClick: props.onQuote, title: 'Quote'},
+        {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+      ]
 
   const header = {
     title: 'header',

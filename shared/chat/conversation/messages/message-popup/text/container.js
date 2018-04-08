@@ -52,6 +52,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       })
     )
   },
+  _onQuote: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createMessageSetQuoting({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  },
+  _onReplyPrivately: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createMessageSetQuoting({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -66,6 +82,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onClosePopup(),
+    onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message) : null,
+    onReplyPrivately: message.type === 'text' ? () => dispatchProps._onQuote(message) : null,
     showDivider: !message.deviceRevokedAt,
     yourMessage,
   }

@@ -46,6 +46,7 @@ export const messageErrored = 'chat2:messageErrored'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
+export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -287,6 +288,12 @@ export const createMessageSetEditing = (
     editLastUser?: string,
   |}>
 ) => ({error: false, payload, type: messageSetEditing})
+export const createMessageSetQuoting = (
+  payload: $ReadOnly<{|
+    conversationIDKey: Types.ConversationIDKey,
+    ordinal: ?Types.Ordinal,
+  |}>
+) => ({error: false, payload, type: messageSetQuoting})
 export const createMessageWasEdited = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -464,6 +471,7 @@ export type MessageErroredPayload = More.ReturnType<typeof createMessageErrored>
 export type MessageRetryPayload = More.ReturnType<typeof createMessageRetry>
 export type MessageSendPayload = More.ReturnType<typeof createMessageSend>
 export type MessageSetEditingPayload = More.ReturnType<typeof createMessageSetEditing>
+export type MessageSetQuotingPayload = More.ReturnType<typeof createMessageSetQuoting>
 export type MessageWasEditedPayload = More.ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = More.ReturnType<typeof createMessagesAdd>
 export type MessagesWereDeletedPayload = More.ReturnType<typeof createMessagesWereDeleted>
@@ -540,6 +548,7 @@ export type Actions =
   | More.ReturnType<typeof createMessageRetry>
   | More.ReturnType<typeof createMessageSend>
   | More.ReturnType<typeof createMessageSetEditing>
+  | More.ReturnType<typeof createMessageSetQuoting>
   | More.ReturnType<typeof createMessageWasEdited>
   | More.ReturnType<typeof createMessagesAdd>
   | More.ReturnType<typeof createMessagesWereDeleted>

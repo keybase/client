@@ -5,6 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
+import {formatTextForQuoting} from '../../../../util/chat'
 import Input from '.'
 import {
   compose,
@@ -34,12 +35,19 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
+  const quotingOrdinal = Constants.getQuotingOrdinal(state, conversationIDKey)
+  console.warn({quotingOrdinal})
+  const _quotingMessage = quotingOrdinal
+    ? Constants.getMessageMap(state, conversationIDKey).get(quotingOrdinal)
+    : null
+  console.warn({_quotingMessage})
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
   return {
     _editingMessage,
     _meta: Constants.getMeta(state, conversationIDKey),
+    _quotingMessage,
     _you,
     conversationIDKey,
     pendingWaiting,
@@ -54,6 +62,8 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     ),
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
+  _onCancelQuoting: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createMessageSetQuoting({conversationIDKey, ordinal: null})),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -97,6 +107,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     }
     ownProps.onScrollDown()
   },
+  _quotingMessage: stateProps._quotingMessage,
   channelName: stateProps._meta.channelname,
   clearInboxFilter: dispatchProps.clearInboxFilter,
   conversationIDKey: stateProps.conversationIDKey,
@@ -105,6 +116,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   isLoading: false,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   pendingWaiting: stateProps.pendingWaiting,
   sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
@@ -151,6 +163,7 @@ export default compose(
       },
       inputBlur: props => () => input && input.blur(),
       inputFocus: props => () => input && input.focus(),
+      inputMoveToEnd: props => () => input && input.moveCursorToEnd(),
       inputGetRef: props => () => input,
       inputSelections: props => () => (input && input.selections()) || {},
     }
@@ -170,14 +183,21 @@ export default compose(
             : ''
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
+        !isMobile && this.props.inputMoveToEnd()
+      } else if (this.props._quotingMessage !== nextProps._quotingMessage) {
+        const text =
+          nextProps._quotingMessage && nextProps._quotingMessage.type === 'text'
+            ? nextProps._quotingMessage.text.stringValue()
+            : ''
 
-        if (!isMobile) {
-          const i = this.props.inputGetRef()
-          if (i) {
-            setImmediate(() => {
-              i.moveCursorToEnd()
-            })
-          }
+        const newText = text && formatTextForQuoting(text)
+        if (text) {
+          this.props.setText('') // blow away any unset stuff if we go into a quote, else you edit / cancel / switch tabs and come back and you see the unsent value
+          this.props.setText(newText, true)
+          // clear out the quoting ordinal too
+          this.props.onCancelQuoting(nextProps.conversationIDKey)
+          !isMobile && this.props.inputMoveToEnd()
+          this.props.inputFocus()
         }
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
