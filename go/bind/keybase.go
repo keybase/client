@@ -274,30 +274,35 @@ func Version() string {
 }
 
 func SetAppStateForeground() {
+	defer kbCtx.Trace("SetAppStateForeground", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_FOREGROUND)
 }
 func SetAppStateBackground() {
+	defer kbCtx.Trace("SetAppStateBackground", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
 }
 func SetAppStateInactive() {
+	defer kbCtx.Trace("SetAppStateInactive", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_INACTIVE)
 }
 func SetAppStateBackgroundActive() {
+	defer kbCtx.Trace("SetAppStateBackgroundActive", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 }
 
 // AppWillExit is called reliably on iOS when the app is about to terminate
 // not as reliably on android
 func AppWillExit() {
+	defer kbCtx.Trace("AppWillExit", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDFINAL)
 }
 
 // AppDidEnterBackground notifies the service that the app is in the background
 // [iOS] returning true will request about ~3mins from iOS to continue execution
-func AppDidEnterBackground() (requestExecTime bool) {
+func AppDidEnterBackground() bool {
+	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
 	SetAppStateBackground()
-	requestExecTime = false
-	return
+	return false
 }
 
 func startTrace(logFile string) {
