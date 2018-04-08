@@ -175,7 +175,7 @@ export default compose(
       }
     },
     componentWillReceiveProps(nextProps) {
-      // Fill in the input with an edit or unsent text
+      // Fill in the input with an edit, quote, or unsent text
       if (this.props._editingMessage !== nextProps._editingMessage) {
         const text =
           nextProps._editingMessage && nextProps._editingMessage.type === 'text'

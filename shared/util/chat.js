@@ -7,7 +7,6 @@ function formatTextForQuoting(text) {
   for (const line of lines) {
     res.push(`> ${line}`)
   }
-  res.push('\n')
   return res.join('\n')
 }
 
