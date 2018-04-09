@@ -53643,7 +53643,7 @@ exports[`Storyshots Teams/Retention Non-admin channel 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          Admins have set this channel to auto-delete messages after [mocked]
+          Admins have set this channel to auto-delete messages after [mocked].
         </span>
       </div>
     </div>
@@ -53885,7 +53885,7 @@ exports[`Storyshots Teams/Retention Non-admin small team 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          Admins have set this chat to auto-delete messages after [mocked]
+          Admins have set this chat to auto-delete messages after [mocked].
         </span>
       </div>
     </div>
@@ -54006,7 +54006,7 @@ exports[`Storyshots Teams/Retention Non-admin team-wide 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          Admins have set this team to auto-delete messages after [mocked]
+          Admins have set this team to auto-delete messages after [mocked].
         </span>
       </div>
     </div>
