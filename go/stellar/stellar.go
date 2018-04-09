@@ -224,7 +224,7 @@ func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID ste
 	return post, nil
 }
 
-func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput, amount string) (stellar1.PaymentResult, error) {
+func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string) (stellar1.PaymentResult, error) {
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(ctx, g)
 	if err != nil {
@@ -251,7 +251,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput,
 		return stellar1.PaymentResult{}, err
 	}
 
-	sp := NewSeqnoProvider(ctx, g)
+	sp := NewSeqnoProvider(ctx, g, remoter)
 
 	// check if recipient account exists
 	_, err = BalanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
@@ -274,7 +274,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput,
 	// submit the transaction
 	payload := make(libkb.JSONPayload)
 	payload["payment"] = post
-	return remote.SubmitTransaction(ctx, g, payload)
+	return remoter.SubmitTransaction(ctx, payload)
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {
