@@ -492,6 +492,18 @@
     },
     {
       "type": "record",
+      "name": "ConversationEphemeralMetadata",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "last"
+        }
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
+    },
+    {
+      "type": "record",
       "name": "ConversationMetadata",
       "fields": [
         {
@@ -702,6 +714,15 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "ConversationEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
@@ -786,7 +807,7 @@
     },
     {
       "type": "record",
-      "name": "EphemeralMetadata",
+      "name": "MessageEphemeralMetadata",
       "fields": [
         {
           "type": "gregor1.DurationSec",
@@ -888,7 +909,7 @@
         {
           "type": [
             null,
-            "EphemeralMetadata"
+            "MessageEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",
@@ -962,7 +983,7 @@
         {
           "type": [
             null,
-            "EphemeralMetadata"
+            "MessageEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",

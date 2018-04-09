@@ -667,11 +667,13 @@ export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCa
 
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, ephemeralMetadata?: ?ConversationEphemeralMetadata}>
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 
 export type ConversationCreatorInfoLocal = $ReadOnly<{ctime: Gregor1.Time, username: String}>
+
+export type ConversationEphemeralMetadata = $ReadOnly<{last: MessageID}>
 
 export type ConversationErrorLocal = $ReadOnly<{typ: ConversationErrorType, message: String, remoteConv: Conversation, unverifiedTLFName: String, rekeyInfo?: ?ConversationErrorRekey}>
 
@@ -750,8 +752,6 @@ export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-
-export type EphemeralMetadata = $ReadOnly<{ephemeralLifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
 
 export type EphemeralPurgePayload = $ReadOnly<{Action: String, convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
 
@@ -997,9 +997,9 @@ export type MessageBoxedVersion =
   | 1 // V1_1
   | 2 // V2_2
 
-export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?EphemeralMetadata}>
+export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MessageEphemeralMetadata}>
 
-export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?EphemeralMetadata}>
+export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MessageEphemeralMetadata}>
 
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
 
@@ -1008,6 +1008,8 @@ export type MessageDelete = $ReadOnly<{messageIDs?: ?Array<MessageID>}>
 export type MessageDeleteHistory = $ReadOnly<{upto: MessageID}>
 
 export type MessageEdit = $ReadOnly<{messageID: MessageID, body: String}>
+
+export type MessageEphemeralMetadata = $ReadOnly<{ephemeralLifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
 
 export type MessageHeadline = $ReadOnly<{headline: String}>
 

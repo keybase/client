@@ -743,6 +743,16 @@ func (o Expunge) DeepCopy() Expunge {
 	}
 }
 
+type ConversationEphemeralMetadata struct {
+	Last MessageID `codec:"last" json:"last"`
+}
+
+func (o ConversationEphemeralMetadata) DeepCopy() ConversationEphemeralMetadata {
+	return ConversationEphemeralMetadata{
+		Last: o.Last.DeepCopy(),
+	}
+}
+
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
@@ -910,15 +920,16 @@ func (o ConversationCreatorInfoLocal) DeepCopy() ConversationCreatorInfoLocal {
 }
 
 type Conversation struct {
-	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
-	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
-	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
-	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
-	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	Metadata          ConversationMetadata           `codec:"metadata" json:"metadata"`
+	ReaderInfo        *ConversationReaderInfo        `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	Notifications     *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	MaxMsgs           []MessageBoxed                 `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries   []MessageSummary               `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+	CreatorInfo       *ConversationCreatorInfo       `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Expunge           Expunge                        `codec:"expunge" json:"expunge"`
+	ConvRetention     *RetentionPolicy               `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention     *RetentionPolicy               `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
+	EphemeralMetadata *ConversationEphemeralMetadata `codec:"em,omitempty" json:"em,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -982,6 +993,13 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
+		EphemeralMetadata: (func(x *ConversationEphemeralMetadata) *ConversationEphemeralMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralMetadata),
 	}
 }
 
@@ -1049,34 +1067,34 @@ func (o OutboxInfo) DeepCopy() OutboxInfo {
 	}
 }
 
-type EphemeralMetadata struct {
+type MessageEphemeralMetadata struct {
 	EphemeralLifetime gregor1.DurationSec   `codec:"life" json:"life"`
 	Generation        keybase1.EkGeneration `codec:"gen" json:"gen"`
 }
 
-func (o EphemeralMetadata) DeepCopy() EphemeralMetadata {
-	return EphemeralMetadata{
+func (o MessageEphemeralMetadata) DeepCopy() MessageEphemeralMetadata {
+	return MessageEphemeralMetadata{
 		EphemeralLifetime: o.EphemeralLifetime.DeepCopy(),
 		Generation:        o.Generation.DeepCopy(),
 	}
 }
 
 type MessageClientHeader struct {
-	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName           string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType       MessageType              `codec:"messageType" json:"messageType"`
-	Supersedes        MessageID                `codec:"supersedes" json:"supersedes"`
-	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
-	Deletes           []MessageID              `codec:"deletes" json:"deletes"`
-	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
-	DeleteHistory     *MessageDeleteHistory    `codec:"deleteHistory,omitempty" json:"deleteHistory,omitempty"`
-	Sender            gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
-	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
-	EphemeralMetadata *EphemeralMetadata       `codec:"em,omitempty" json:"em,omitempty"`
+	Conv              ConversationIDTriple      `codec:"conv" json:"conv"`
+	TlfName           string                    `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                      `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType               `codec:"messageType" json:"messageType"`
+	Supersedes        MessageID                 `codec:"supersedes" json:"supersedes"`
+	KbfsCryptKeysUsed *bool                     `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	Deletes           []MessageID               `codec:"deletes" json:"deletes"`
+	Prev              []MessagePreviousPointer  `codec:"prev" json:"prev"`
+	DeleteHistory     *MessageDeleteHistory     `codec:"deleteHistory,omitempty" json:"deleteHistory,omitempty"`
+	Sender            gregor1.UID               `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID          `codec:"senderDevice" json:"senderDevice"`
+	MerkleRoot        *MerkleRoot               `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	OutboxID          *OutboxID                 `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo        *OutboxInfo               `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	EphemeralMetadata *MessageEphemeralMetadata `codec:"em,omitempty" json:"em,omitempty"`
 }
 
 func (o MessageClientHeader) DeepCopy() MessageClientHeader {
@@ -1145,7 +1163,7 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.OutboxInfo),
-		EphemeralMetadata: (func(x *EphemeralMetadata) *EphemeralMetadata {
+		EphemeralMetadata: (func(x *MessageEphemeralMetadata) *MessageEphemeralMetadata {
 			if x == nil {
 				return nil
 			}
@@ -1156,18 +1174,18 @@ func (o MessageClientHeader) DeepCopy() MessageClientHeader {
 }
 
 type MessageClientHeaderVerified struct {
-	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName           string                   `codec:"tlfName" json:"tlfName"`
-	TlfPublic         bool                     `codec:"tlfPublic" json:"tlfPublic"`
-	MessageType       MessageType              `codec:"messageType" json:"messageType"`
-	Prev              []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender            gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice      gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	KbfsCryptKeysUsed *bool                    `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
-	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
-	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
-	EphemeralMetadata *EphemeralMetadata       `codec:"em,omitempty" json:"em,omitempty"`
+	Conv              ConversationIDTriple      `codec:"conv" json:"conv"`
+	TlfName           string                    `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                      `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType       MessageType               `codec:"messageType" json:"messageType"`
+	Prev              []MessagePreviousPointer  `codec:"prev" json:"prev"`
+	Sender            gregor1.UID               `codec:"sender" json:"sender"`
+	SenderDevice      gregor1.DeviceID          `codec:"senderDevice" json:"senderDevice"`
+	KbfsCryptKeysUsed *bool                     `codec:"kbfsCryptKeysUsed,omitempty" json:"kbfsCryptKeysUsed,omitempty"`
+	MerkleRoot        *MerkleRoot               `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	OutboxID          *OutboxID                 `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo        *OutboxInfo               `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	EphemeralMetadata *MessageEphemeralMetadata `codec:"em,omitempty" json:"em,omitempty"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1217,7 +1235,7 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.OutboxInfo),
-		EphemeralMetadata: (func(x *EphemeralMetadata) *EphemeralMetadata {
+		EphemeralMetadata: (func(x *MessageEphemeralMetadata) *MessageEphemeralMetadata {
 			if x == nil {
 				return nil
 			}
