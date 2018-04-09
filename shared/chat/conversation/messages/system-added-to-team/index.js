@@ -12,6 +12,7 @@ type Props = {
   onClickUserAvatar: (username: string) => void,
   onManageChannels: () => void,
   onViewTeam: () => void,
+  teamname: string,
   you: string,
 }
 
@@ -24,25 +25,22 @@ const connectedUsernamesProps = {
 }
 
 const ManageComponent = (props: Props) => {
+  const textType = props.message.addee === props.you ? 'BodySmallSemiboldInlineLink' : 'BodySmall'
   if (props.message.addee === props.you) {
     return (
-      <Text
-        onClick={props.onManageChannels}
-        type="BodySmallSemiboldInlineLink"
-        style={{color: globalColors.blue}}
-      >
+      <Text onClick={props.onManageChannels} type={textType} style={{color: globalColors.blue}}>
         Manage your channel subscriptions
       </Text>
     )
   } else if (props.message.isAdmin) {
     return (
-      <Text onClick={props.onViewTeam} type="BodySmallSemiboldInlineLink" style={{color: globalColors.blue}}>
+      <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
         Manage members
       </Text>
     )
   } else {
     return (
-      <Text onClick={props.onViewTeam} type="BodySmallSemiboldInlineLink" style={{color: globalColors.blue}}>
+      <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
         See all members
       </Text>
     )
@@ -66,8 +64,8 @@ const AddedToTeam = (props: Props) => {
       onAvatarClicked={() => props.onClickUserAvatar(props.message.addee)}
       topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[props.message.addee]} />}
       bottomLine={
-        <Text type="BodySmall">
-          Was added by <YouOrUsername username={props.message.adder} you={props.you} capitalize={false} />.{' '}
+        <Text type="BodySmall" title={formatTimeForMessages(props.message.timestamp)}>
+          was added by <YouOrUsername username={props.message.adder} you={props.you} capitalize={false} />.{' '}
           <ManageComponent {...props} />
         </Text>
       }
@@ -77,8 +75,8 @@ const AddedToTeam = (props: Props) => {
 
 class YouAddedToTeam extends React.PureComponent<Props> {
   render() {
-    const {adder, addee, team, timestamp} = this.props.message
-    const {you, onViewTeam} = this.props
+    const {adder, addee, timestamp} = this.props.message
+    const {teamname, you, onViewTeam} = this.props
 
     const adderComponent =
       adder === you ? 'You' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />
@@ -90,7 +88,7 @@ class YouAddedToTeam extends React.PureComponent<Props> {
       <UserNotice
         style={{marginTop: globalMargins.small}}
         username={you !== addee ? addee : undefined}
-        teamname={you === addee ? team : undefined}
+        teamname={you === addee ? teamname : undefined}
         bgColor={globalColors.blue4}
         onClickAvatar={you !== addee ? () => this.props.onClickUserAvatar(addee) : onViewTeam}
       >
@@ -112,7 +110,7 @@ class YouAddedToTeam extends React.PureComponent<Props> {
               style={{color: globalColors.black_60}}
               type="BodySmallSemiboldInlineLink"
             >
-              {team}
+              {teamname}
             </Text>
             .{' '}
             {you === addee && (
