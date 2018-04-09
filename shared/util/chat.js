@@ -8,14 +8,11 @@ to:
   > foo
   > bar
 */
-function formatTextForQuoting(text: string) {
-  const lines = text.split('\n')
-  const res = []
-
-  for (const line of lines) {
-    res.push(`> ${line}`)
-  }
-  return res.join('\n').concat('\n')
-}
+const formatTextForQuoting = (text: string) =>
+  text
+    .split('\n')
+    .map(line => `> ${line}`)
+    .join('\n')
+    .concat('\n')
 
 export {formatTextForQuoting}
