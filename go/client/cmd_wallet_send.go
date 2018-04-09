@@ -51,6 +51,9 @@ func (c *cmdWalletSend) ParseArgv(ctx *cli.Context) error {
 	c.amount = ctx.Args()[1]
 	if len(ctx.Args()) == 3 {
 		c.localCurrency = strings.ToUpper(ctx.Args()[2])
+		if len(c.localCurrency) != 3 {
+			return errors.New("Invalid currency code")
+		}
 	}
 	c.note = ctx.String("message")
 	return nil
