@@ -135,7 +135,7 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
-		s.G().Log.CWarningf(ctx, "It looks like you revoked a team key without generating new ephemeral keys. Are you running an old version?")
+		s.G().Log.CDebugf(ctx, "It looks like you revoked a team key without generating new ephemeral keys. Are you running an old version?")
 		return teamEK, nil
 	}
 	if err != nil {
@@ -143,7 +143,7 @@ func (s *TeamEKBoxStorage) fetchAndPut(ctx context.Context, teamID keybase1.Team
 	}
 
 	if teamEKStatement == nil { // shouldn't happen
-		s.G().Log.CWarningf(ctx, "No error but got nil teamEKMetadata")
+		s.G().Log.CDebugf(ctx, "No error but got nil teamEKMetadata")
 		return teamEK, err
 	}
 
@@ -177,7 +177,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 	userEKBoxStorage := s.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(ctx, teamEKBoxed.UserEkGeneration)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "%v", err)
 		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 
@@ -186,7 +186,7 @@ func (s *TeamEKBoxStorage) unbox(ctx context.Context, teamEKGeneration keybase1.
 
 	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "%v", err)
 		return teamEK, newEKUnboxErr(TeamEKStr, teamEKGeneration, UserEKStr, teamEKBoxed.UserEkGeneration)
 	}
 

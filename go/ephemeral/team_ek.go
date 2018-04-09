@@ -154,7 +154,7 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	}
 
 	if myBox == nil {
-		g.Log.CWarningf(ctx, "No box made for own teamEK")
+		g.Log.CDebugf(ctx, "No box made for own teamEK")
 	} else {
 		storage := g.GetTeamEKBoxStorage()
 		err = storage.Put(ctx, teamID, metadata.Generation, *myBox)
@@ -241,7 +241,7 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
-		g.Log.CWarningf(ctx, "It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
+		g.Log.CDebugf(ctx, "It looks like someone rolled the PTK without generating new ephemeral keys. They might be on an old version.")
 		return nil, nil
 	}
 	if err != nil {
@@ -378,7 +378,7 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 		// is still returned in this case. TODO: Turn this warning into an error
 		// after EK support is sufficiently widespread.
 		if wrongKID {
-			g.Log.CWarningf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
+			g.Log.CDebugf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
 			return nil, nil
 		}
 		if err != nil {
