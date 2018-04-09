@@ -54,11 +54,11 @@ function makeRetentionNotice(
   let explanation = ''
   switch (policy.type) {
     case 'expire':
-      explanation = `are destroyed after ${policy.days} days.`
+      explanation = `are destroyed after ${policy.days} day${policy.days !== 1 ? 's' : ''}.`
       break
     case 'inherit':
       // teamPolicy can't be retain
-      explanation = `are destroyed after ${teamPolicy.days} days`
+      explanation = `are destroyed after ${teamPolicy.days} day${teamPolicy.days !== 1 ? 's' : ''}`
       explanation += teamType === 'small' ? '.' : ', the team default.'
       break
   }

@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "kbfs_common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -630,6 +634,11 @@
       "request": [],
       "response": null,
       "doc": "Instructs KBFS to dump debugging info into its logs."
+    },
+    "simpleFSSyncStatus": {
+      "request": [],
+      "response": "FSSyncStatus",
+      "doc": "Get sync status."
     }
   },
   "namespace": "keybase.1"

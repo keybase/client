@@ -71,6 +71,12 @@
     "uninstallKBFSConfirm": {
       "onSuccess": "() => void"
     },
-    "uninstallKBFS": {}
+    "uninstallKBFS": {},
+    "fsActivity": {},
+    "syncingStatus": {
+      "isSyncing": "boolean"
+    },
+
+    "setupFSHandlers": {}
   }
 }

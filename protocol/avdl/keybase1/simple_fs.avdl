@@ -3,6 +3,7 @@
 protocol SimpleFS {
 
   import idl "common.avdl";
+  import idl "kbfs_common.avdl";
 
 /*
   File manipulation interface
@@ -262,4 +263,9 @@ protocol SimpleFS {
    Instructs KBFS to dump debugging info into its logs.
    */
   void simpleFSDumpDebuggingInfo();
+
+  /**
+   Get sync status.
+   */
+  FSSyncStatus simpleFSSyncStatus();
 }

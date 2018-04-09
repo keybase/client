@@ -86,12 +86,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['flags'], action.payload)
     case FsGen.installKBFS:
       return state.mergeIn(['flags'], {kbfsInstalling: true})
+    case FsGen.syncingStatus:
+      return state.mergeIn(['flags'], {syncing: action.payload.isSyncing})
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.uninstallKBFS:
+    case FsGen.fsActivity:
+    case FsGen.setupFSHandlers:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

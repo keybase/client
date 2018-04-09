@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -59,7 +60,12 @@ func TestAvatarsFullCaching(t *testing.T) {
 
 	t.Log("cache hit")
 	getFile := func(path string) string {
-		file, err := os.Open(strings.TrimPrefix(path, "file://"))
+		path = strings.TrimPrefix(path, "file://")
+		if runtime.GOOS == "windows" {
+			path = strings.Replace(path, `/`, `\`, -1)
+			path = path[1:]
+		}
+		file, err := os.Open(path)
 		require.NoError(t, err)
 		dat, err := ioutil.ReadAll(file)
 		require.NoError(t, err)

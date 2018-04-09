@@ -81,6 +81,7 @@ export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
@@ -89,9 +90,13 @@ export const updateTypers = 'chat2:updateTypers'
  */
 export const createCancelPendingConversation = () => ({error: false, payload: undefined, type: cancelPendingConversation})
 /**
- * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
+ * Consume a service notification that a conversation's retention policy has been updated
  */
 export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+/**
+ * Consume a service notification that a team retention policy was updated
+ */
+export const createUpdateTeamRetentionPolicy = (payload: $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>) => ({error: false, payload, type: updateTeamRetentionPolicy})
 /**
  * Retries sending the pending message that is currently stored in the metaMap
  */
@@ -110,7 +115,7 @@ export const createSetPendingMessageSubmitState = (
  */
 export const createSetPendingStatus = (payload: $ReadOnly<{|pendingStatus: Types.PendingStatus|}>) => ({error: false, payload, type: setPendingStatus})
 /**
- * Sets the retention policy for a conversation. Valid operation for big team channels only.
+ * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (
   payload: $ReadOnly<{|
@@ -494,6 +499,7 @@ export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHan
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateNotificationSettingsPayload = More.ReturnType<typeof createUpdateNotificationSettings>
+export type UpdateTeamRetentionPolicyPayload = More.ReturnType<typeof createUpdateTeamRetentionPolicy>
 export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 
 // All Actions
@@ -569,5 +575,6 @@ export type Actions =
   | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createUpdateConvRetentionPolicy>
   | More.ReturnType<typeof createUpdateNotificationSettings>
+  | More.ReturnType<typeof createUpdateTeamRetentionPolicy>
   | More.ReturnType<typeof createUpdateTypers>
   | {type: 'common:resetStore', payload: void}

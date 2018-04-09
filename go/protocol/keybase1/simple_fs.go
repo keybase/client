@@ -757,6 +757,9 @@ type SimpleFSWaitArg struct {
 type SimpleFSDumpDebuggingInfoArg struct {
 }
 
+type SimpleFSSyncStatusArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path
 	// Retrieve results with readList()
@@ -808,6 +811,8 @@ type SimpleFSInterface interface {
 	SimpleFSWait(context.Context, OpID) error
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
+	// Get sync status.
+	SimpleFSSyncStatus(context.Context) (FSSyncStatus, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1119,6 +1124,17 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSSyncStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSSyncStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSSyncStatus(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1260,5 +1276,11 @@ func (c SimpleFSClient) SimpleFSWait(ctx context.Context, opID OpID) (err error)
 // Instructs KBFS to dump debugging info into its logs.
 func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDumpDebuggingInfo", []interface{}{SimpleFSDumpDebuggingInfoArg{}}, nil)
+	return
+}
+
+// Get sync status.
+func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{SimpleFSSyncStatusArg{}}, &res)
 	return
 }

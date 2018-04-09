@@ -16,19 +16,14 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}]))
     evt && evt.stopPropagation()
   },
-  _onOpenBreadcrumbDropdown: (
-    dropdownItems: Array<Types.PathBreadcrumbItem>,
-    isTeamPath: boolean,
-    evt?: SyntheticEvent<>
-  ) =>
+  _onOpenBreadcrumbDropdown: (parentPath: Types.Path, evt?: SyntheticEvent<>) =>
     dispatch(
       navigateAppend([
         {
           props: {
             targetRect: !isMobile && evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null,
             position: !isMobile ? 'top right' : null,
-            isTeamPath,
-            items: dropdownItems,
+            path: parentPath,
             onHidden: () => dispatch(navigateUp()),
           },
           selected: 'breadcrumbAction',
@@ -73,18 +68,17 @@ const mergeProps = (
     }
   })
   let breadcrumbItems = items || []
-  let dropdownItems = []
+  let dropdownPath = Types.stringToPath('')
   if (items.length > 3) {
-    dropdownItems = items.slice(0, items.length - 2).reverse()
+    dropdownPath = Types.getPathDir(path)
     breadcrumbItems = items.slice(items.length - 2)
   }
   const isTeamPath = elems.length >= 2 && elems[1] === 'team'
   return {
     onBack,
-    onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) =>
-      _onOpenBreadcrumbDropdown(dropdownItems, isTeamPath, evt),
+    onOpenBreadcrumbDropdown: (evt?: SyntheticEvent<>) => _onOpenBreadcrumbDropdown(dropdownPath, evt),
+    dropdownPath,
     breadcrumbItems,
-    dropdownItems,
     path,
     isTeamPath,
     openInFileUI: kbfsEnabled ? () => _openInFileUI(path) : _openFinderPopup,

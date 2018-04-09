@@ -30,12 +30,8 @@
     "favoriteToggleIgnored": {
       "isPrivate": "boolean"
     },
-    "kbfsStatusUpdated": {
-      "status": "Types.KBFSStatus"
-    },
     "markTLFCreated": {
       "folder": "Folders.Folder"
-    },
-    "setupKBFSChangedHandler": {}
+    }
   }
 }
