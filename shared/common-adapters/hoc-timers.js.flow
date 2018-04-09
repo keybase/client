@@ -10,6 +10,7 @@ export type TimerProps = {
 
 type UnaryFn<A, R> = (a: A) => R
 type Component<A> = React$ComponentType<A>
+// $FlowIssue we need to re-type this correctly
 type HOC<Base, Enhanced> = UnaryFn<Component<Base>, Component<Enhanced>>
 
 declare export default function HOCTimers<Base, Enhanced>(a: Component<Base>): HOC<Base, Enhanced>

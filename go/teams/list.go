@@ -73,32 +73,53 @@ func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRo
 	return memberUV, nil
 }
 
-// getTeamForMember tries to load team in a recent enough state to
+type localLoadedTeams struct {
+	libkb.Contextified
+	teams map[keybase1.TeamID]*Team
+}
+
+func newLocalLoadedTeams(g *libkb.GlobalContext) localLoadedTeams {
+	return localLoadedTeams{
+		Contextified: libkb.NewContextified(g),
+		teams:        make(map[keybase1.TeamID]*Team),
+	}
+}
+
+// getTeamForMember tries to return *Team in a recent enough state to
 // contain member with correct role as set in MemberInfo. It might
 // trigger a reload with ForceRepoll if cached state does not match.
-func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybase1.MemberInfo, needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
-	team, err = Load(ctx, g, keybase1.LoadTeamArg{
-		ID:               member.TeamID,
-		NeedAdmin:        needAdmin,
-		Public:           member.TeamID.IsPublic(),
-		ForceRepoll:      false,
-		RefreshUIDMapper: true,
-	})
-	if err != nil {
-		return nil, uv, err
+func (l *localLoadedTeams) getTeamForMember(ctx context.Context, member keybase1.MemberInfo, needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
+	teamID := member.TeamID
+	team = l.teams[teamID]
+	if team == nil {
+		// Team was not there in local cache - this is the first time
+		// localLoadedTeams is asked for this team. Try with no
+		// forceRepoll first.
+		team, err = Load(ctx, l.G(), keybase1.LoadTeamArg{
+			ID:               teamID,
+			NeedAdmin:        needAdmin,
+			Public:           teamID.IsPublic(),
+			ForceRepoll:      false,
+			RefreshUIDMapper: true,
+		})
+		if err != nil {
+			return nil, uv, err
+		}
+		l.teams[teamID] = team
 	}
 
 	memberUV, err := verifyMemberRoleInTeam(ctx, member.UserID, member.Role, team)
 	if err != nil {
-		team, err = Load(ctx, g, keybase1.LoadTeamArg{
-			ID:          member.TeamID,
+		team, err = Load(ctx, l.G(), keybase1.LoadTeamArg{
+			ID:          teamID,
 			NeedAdmin:   needAdmin,
-			Public:      member.TeamID.IsPublic(),
+			Public:      teamID.IsPublic(),
 			ForceRepoll: true,
 		})
 		if err != nil {
 			return nil, uv, err
 		}
+		l.teams[teamID] = team
 
 		memberUV, err = verifyMemberRoleInTeam(ctx, member.UserID, member.Role, team)
 		if err != nil {
@@ -168,11 +189,12 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 
 	tracer.Stage("Loads")
 
+	loadedTeams := newLocalLoadedTeams(g)
 	expectEmptyList := true
 
 	for _, memberInfo := range teams {
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
-		team, _, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+		team, _, err := loadedTeams.getTeamForMember(ctx, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
 			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.
@@ -192,17 +214,19 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 		}
 
 		anMemberInfo := &keybase1.AnnotatedMemberInfo{
-			TeamID:         team.ID,
-			FqName:         team.Name().String(),
-			UserID:         memberInfo.UserID,
-			Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
-			IsImplicitTeam: team.IsImplicit(),
-			IsOpenTeam:     team.IsOpen(),
-			Implicit:       memberInfo.Implicit, // This part is still server trust
-			Username:       queryUsername.String(),
-			FullName:       queryFullName,
-			MemberCount:    0,
-			Active:         true,
+			TeamID:              team.ID,
+			FqName:              team.Name().String(),
+			UserID:              memberInfo.UserID,
+			Role:                memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+			IsImplicitTeam:      team.IsImplicit(),
+			IsOpenTeam:          team.IsOpen(),
+			Implicit:            memberInfo.Implicit, // This part is still server trust
+			Username:            queryUsername.String(),
+			FullName:            queryFullName,
+			MemberCount:         0,
+			Active:              true,
+			AllowProfilePromote: memberInfo.AllowProfilePromote,
+			IsMemberShowcased:   memberInfo.IsMemberShowcased,
 		}
 
 		members, err := team.Members()
@@ -273,11 +297,12 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 
 	tracer.Stage("Loads")
 
+	loadedTeams := newLocalLoadedTeams(g)
 	expectEmptyList := true
 
 	for _, memberInfo := range teams {
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
-		team, memberUV, err := getTeamForMember(ctx, g, memberInfo, serverSaysNeedAdmin)
+		team, memberUV, err := loadedTeams.getTeamForMember(ctx, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
 			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.

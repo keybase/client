@@ -528,9 +528,10 @@ protocol teams {
 
     TeamRefreshers refreshers;
 
-    boolean forceFullReload;      // Ignore local data and fetch from the server.
-    boolean forceRepoll;          // Force a sync with merkle.
-    boolean staleOK;              // If a very stale cache hit is OK.
+    boolean forceFullReload;           // Ignore local data and fetch from the server.
+    boolean forceRepoll;               // Force a sync with merkle.
+    boolean staleOK;                   // If a very stale cache hit is OK.
+    boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
   }
 
   record ImplicitRole {
@@ -553,6 +554,10 @@ protocol teams {
     union{null, ImplicitRole} implicit;
     @jsonkey("member_count")
     int memberCount;
+    @jsonkey("allow_profile_promote")
+    boolean allowProfilePromote;
+    @jsonkey("is_member_showcased")
+    boolean isMemberShowcased;
   }
 
   record TeamList {
@@ -582,6 +587,10 @@ protocol teams {
     @jsonkey("member_eldest_seqno")
     Seqno eldestSeqno;
     boolean active;
+    @jsonkey("allow_profile_promote")
+    boolean allowProfilePromote;
+    @jsonkey("is_member_showcased")
+    boolean isMemberShowcased;
   }
 
   record AnnotatedTeamList {
@@ -788,6 +797,7 @@ protocol teams {
     boolean editChannelDescription;
     boolean setTeamShowcase;
     boolean setMemberShowcase;
+    boolean setRetentionPolicy;
     boolean changeOpenTeam;
     boolean leaveTeam;
     boolean joinTeam;

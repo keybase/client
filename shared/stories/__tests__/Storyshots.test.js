@@ -3,4 +3,6 @@
 // eslint-disable-next-line
 import initStoryshots from '@storybook/addon-storyshots'
 jest.mock('../../util/timestamp')
-initStoryshots()
+initStoryshots({
+  configPath: '.storybook',
+})

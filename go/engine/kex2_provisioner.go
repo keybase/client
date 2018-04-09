@@ -272,12 +272,30 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
-	output.PukBox, err = e.makePukBox(key)
+	// Sync the PUK, if the pukring is nil, we don't have a PUK and have
+	// nothing to box. We also can't make a userEKBox which is signed by the
+	// PUK.
+	pukring, err := e.syncPUK()
+	if err != nil || pukring == nil {
+		return output, err
+	}
+
+	output.PukBox, err = e.makePukBox(pukring, key)
 	if err != nil {
 		return output, err
 	}
 
-	return output, err
+	userEKBoxStorage := e.G().GetUserEKBoxStorage()
+	if len(string(input.DeviceEkKID)) != 0 && userEKBoxStorage != nil {
+		output.UserEkBox, err = e.makeUserEKBox(input.DeviceEkKID)
+		if err != nil {
+			return output, err
+		}
+	} else {
+		e.G().Log.CDebugf(e.ctx.NetContext, "Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
+	}
+
+	return output, nil
 }
 
 // sessionForY gets session tokens that Y can use to interact with
@@ -389,23 +407,25 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	return nil
 }
 
-// Returns nil box if there are no per-user-keys.
-func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
-	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
-	if !ok {
-		return nil, fmt.Errorf("Unexpected receiver key type")
-	}
-
+// Returns nil if there are no per-user-keys.
+func (e *Kex2Provisioner) syncPUK() (*libkb.PerUserKeyring, error) {
 	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
 		return nil, err
 	}
-	err = pukring.Sync(e.ctx.NetContext)
-	if err != nil {
+	if err = pukring.Sync(e.ctx.NetContext); err != nil {
 		return nil, err
 	}
 	if !pukring.HasAnyKeys() {
 		return nil, nil
+	}
+	return pukring, nil
+}
+
+func (e *Kex2Provisioner) makePukBox(pukring *libkb.PerUserKeyring, receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
+	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("Unexpected receiver key type")
 	}
 
 	pukBox, err := pukring.PrepareBoxForNewDevice(e.ctx.NetContext,
@@ -414,11 +434,24 @@ func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keyb
 	return &pukBox, err
 }
 
+// Returns nil box if there are no userEKs.
+func (e *Kex2Provisioner) makeUserEKBox(KID keybase1.KID) (*keybase1.UserEkBoxed, error) {
+	ekPair, err := libkb.ImportKeypairFromKID(KID)
+	if err != nil {
+		return nil, err
+	}
+	receiverKey, ok := ekPair.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("Unexpected receiver key type")
+	}
+	ekLib := e.G().GetEKLib()
+	// This is hardcoded to 1 since we're provisioning a new device.
+	deviceEKGeneration := keybase1.EkGeneration(1)
+	return ekLib.BoxLatestUserEK(e.ctx.NetContext, receiverKey, deviceEKGeneration)
+}
+
 func (e *Kex2Provisioner) loadMe() error {
 	var err error
 	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

@@ -72,6 +72,7 @@ type GlobalContext struct {
 	LinkCache        *LinkCache       // cache of ChainLinks
 	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader       // Play back teams for id/name properties
+	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
@@ -220,6 +221,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
+	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
@@ -274,6 +276,21 @@ func (g *GlobalContext) LoginState() *LoginState {
 	return g.loginState
 }
 
+// resetFullSelferWithLoginStateLock is used to clear the fullSelfer
+// when a loginStateMu is held. This is trickier than it ought to be because
+// of deadlock potential. If we try to reach inside our existing CachedFullSelf
+// and grab the mutex that protects the me object (to clear it), we chance calling
+// into LoadUser, which can attemp to grab the login state, which would deadlock.
+// So just do the stupid thing, which is to throw away the existing CachedFullSelf
+// and swap in a new one.
+func (g *GlobalContext) resetFullSelferWithLoginStateLock() {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	if g.fullSelfer != nil {
+		g.fullSelfer = g.fullSelfer.New()
+	}
+}
+
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
@@ -300,11 +317,16 @@ func (g *GlobalContext) Logout() error {
 		g.CardCache.Shutdown()
 	}
 
-	g.GetFullSelfer().OnLogout()
+	g.resetFullSelferWithLoginStateLock()
 
 	tl := g.teamLoader
 	if tl != nil {
 		tl.OnLogout()
+	}
+
+	st := g.stellar
+	if st != nil {
+		st.OnLogout()
 	}
 
 	g.TrackCache = NewTrackCache()
@@ -493,6 +515,12 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamLoader
+}
+
+func (g *GlobalContext) GetStellar() Stellar {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.stellar
 }
 
 func (g *GlobalContext) GetDeviceEKStorage() DeviceEKStorage {
@@ -1022,6 +1050,12 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.teamLoader = l
 }
 
+func (g *GlobalContext) SetStellar(s Stellar) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.stellar = s
+}
+
 func (g *GlobalContext) SetDeviceEKStorage(s DeviceEKStorage) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
@@ -1043,16 +1077,6 @@ func (g *GlobalContext) SetTeamEKBoxStorage(s TeamEKBoxStorage) {
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 	arg := NewLoadUserByUIDArg(nil, g, uid).WithPublicKeyOptional()
 	return LoadUser(arg)
-}
-
-func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, error) {
-	q := NewHTTPArgs()
-	q.Add("uid", UIDArg(uid))
-	leaf, err := g.MerkleClient.LookupUser(g.NetContext, q, nil)
-	if err != nil {
-		return NormalizedUsername(""), err
-	}
-	return NewNormalizedUsername(leaf.username), nil
 }
 
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {

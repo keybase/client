@@ -144,6 +144,10 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// check to make sure local files stored correctly
 	e.verifyLocalStorage()
 
+	// initialize a stellar wallet for the user if they don't already have one.
+	e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "loginProvision")
+	e.G().GetStellar().CreateWalletSoft(context.Background())
+
 	return nil
 }
 

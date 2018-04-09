@@ -116,7 +116,8 @@ func TestChatKBFSUpgradeBadteam(t *testing.T) {
 	}, keybase1.TeamApplication_CHAT))
 
 	// Should fail because the name of the imp team doesn't match the conversation name
-	_, err = LoadTeam(context.TODO(), tc0.Context().ExternalG(), chat1.TLFID(tlfID.ToBytes()), conv.TlfName,
+	loader := NewTeamLoader(tc0.Context().ExternalG())
+	_, err = loader.loadTeam(context.TODO(), chat1.TLFID(tlfID.ToBytes()), conv.TlfName,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE, false, nil)
 	require.Error(t, err)
 	require.IsType(t, ImpteamUpgradeBadteamError{}, err)

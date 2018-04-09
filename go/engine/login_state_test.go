@@ -16,64 +16,6 @@ import (
 // TODO: These tests should really be in libkb/. However, any test
 // that creates new users have to remain in engine/ for now. Fix this.
 
-// Test that LoginState and Session are in sync regarding whether a
-// user is logged in.
-func TestLoginLogout(t *testing.T) {
-	tc := SetupEngineTest(t, "login logout")
-	defer tc.Cleanup()
-
-	if err := AssertLoggedOut(tc); err != nil {
-		t.Error("Unexpectedly logged in (Session)")
-	}
-
-	if LoggedIn(tc) {
-		t.Error("Unexpectedly logged in (LoginState)")
-	}
-
-	// Logging out when not logged in should still work.
-	Logout(tc)
-
-	fu := CreateAndSignupFakeUser(tc, "login")
-
-	if err := AssertLoggedIn(tc); err != nil {
-		t.Error("Unexpectedly logged out (Session)")
-	}
-
-	Logout(tc)
-
-	if err := AssertLoggedOut(tc); err != nil {
-		t.Error("Unexpectedly logged in (Session)")
-	}
-
-	if LoggedIn(tc) {
-		t.Error("Unexpectedly logged in (LoginState)")
-	}
-
-	// Logging out twice should still work.
-	Logout(tc)
-
-	if err := AssertLoggedOut(tc); err != nil {
-		t.Error("Unexpectedly logged in (Session)")
-	}
-
-	if LoggedIn(tc) {
-		t.Error("Unexpectedly logged in (LoginState)")
-	}
-
-	secretUI := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := AssertLoggedIn(tc); err != nil {
-		t.Error("Unexpectedly logged out (Session)")
-	}
-
-	if !LoggedIn(tc) {
-		t.Error("Unexpectedly logged out (LoginState)")
-	}
-}
-
 // This mock (and the similar ones below) may be used from a goroutine
 // different from the main one, so don't mess with testing.T (which
 // isn't safe to use from a non-main goroutine) directly, and instead

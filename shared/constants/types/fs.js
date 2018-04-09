@@ -92,17 +92,24 @@ export type PathBreadcrumbItem = {
   onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
 }
 
+export type _Flags = {
+  kbfsOpening: boolean,
+  kbfsInstalling: boolean,
+  fuseInstalling: boolean,
+  kextPermissionError: boolean,
+  showBanner: boolean,
+  syncing: boolean,
+}
+
+export type Flags = I.RecordOf<_Flags>
+
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
-  kbfsOpening: boolean,
-  kbfsInstalling: boolean,
-  fuseInstalling: boolean,
-  kextPermissionError: boolean,
-  showBanner: boolean,
+  flags: Flags,
 }
 export type State = I.RecordOf<_State>
 
@@ -152,6 +159,7 @@ export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'
 }
+export const getPathDir = (p: Path): Path => pathToString(p).slice(0, pathToString(p).lastIndexOf('/'))
 
 const localSep = isWindows ? '\\' : '/'
 

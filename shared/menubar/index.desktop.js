@@ -3,6 +3,7 @@ import Folders, {type FolderType, type Props as FolderProps} from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
+import type {IconType} from '../common-adapters/icon'
 import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
@@ -135,7 +136,6 @@ class MenubarRender extends Component<Props, State> {
     const mergedProps = {
       ...this.props.folderProps,
       onClick: this.props.onFolderClick,
-      showComingSoon: false,
       smallMode: true,
       private: newPrivate,
       public: newPublic,
@@ -244,13 +244,17 @@ const BadgeIcon = ({
     return null
   }
 
-  const iconType = {
-    [peopleTab]: 'iconfont-nav-people',
-    [folderTab]: 'iconfont-nav-folders',
+  const iconMap: {[key: Tab]: IconType} = {
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
-    // $FlowIssue TODO
-  }[tab]
+    [folderTab]: 'iconfont-nav-folders',
+    [peopleTab]: 'iconfont-nav-people',
+  }
+  const iconType: ?IconType = iconMap[tab]
+
+  if (!iconType) {
+    return null
+  }
 
   return (
     <Box

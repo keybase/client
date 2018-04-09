@@ -34,4 +34,7 @@ In stories with connected children, a `<Provider />` will need to wrap the top l
 ### Display names
 Making a prop factory requires knowing the display name of the connected component(s), which is generally the variable name of the component. Sometimes the display name fails to get piped through to the connector, in which case a `setDisplayName(n)` will need to be chained _immediately after_ the relevant connect call via recompose. Then the prop factory can be defined under `n`.
 
+### Mocks
+Mocks are handled a couple of ways. How storybook and storyshots work is slightly different. Jest has some overrides in the package.json file in the 'jest' section. Storybook has some overrides with webpack in the .storybook/webpack.config.js file. React native storybook was also ignoring some mocks (unclear why) so react-redux is being injected manually in mock-react-redux.js
+
 [1]: https://github.com/storybooks/storybook/tree/master/addons/storyshots

@@ -31,10 +31,6 @@ export type ViewState = Exact<{
   privateIgnoredOpen: boolean,
 }>
 
-export type KBFSStatus = {
-  isAsyncWriteHappening: boolean,
-}
-
 export type State = Exact<{
   folderState: FolderState,
   fuseInstalling: boolean,
@@ -42,7 +38,6 @@ export type State = Exact<{
   fuseStatusLoading: boolean,
   kbfsInstalling: boolean,
   kbfsOpening: boolean,
-  kbfsStatus: KBFSStatus,
   kextPermissionError: boolean,
   viewState: ViewState,
 }>

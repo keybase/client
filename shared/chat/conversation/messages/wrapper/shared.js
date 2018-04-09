@@ -9,9 +9,7 @@ import {
   styleSheetCreate,
   collapseStyles,
 } from '../../../../styles'
-import ProfileResetNotice from '../system-profile-reset-notice/container'
 import Timestamp from './timestamp'
-import LoadMore from './load-more'
 import SendIndicator from './chat-send'
 
 import type {Props} from '.'
@@ -94,12 +92,6 @@ class MessageWrapper extends React.PureComponent<Props> {
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
-        {props.hasOlderResetConversation && (
-          <ProfileResetNotice conversationIDKey={props.message.conversationIDKey} />
-        )}
-        {props.loadMoreType && (
-          <LoadMore type={props.loadMoreType} showTeamOffer={this.props.showTeamOffer} />
-        )}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <Box style={collapseStyles([styles.flexOneRow, props.isSelected && styles.selected])}>
           <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>

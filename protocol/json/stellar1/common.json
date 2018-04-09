@@ -10,6 +10,12 @@
     },
     {
       "type": "record",
+      "name": "SecretKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TransactionID",
       "fields": [],
       "typedef": "string"
@@ -25,6 +31,12 @@
       "name": "TimeMs",
       "fields": [],
       "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "Hash",
+      "fields": [],
+      "typedef": "bytes"
     },
     {
       "type": "record",
@@ -71,6 +83,24 @@
         "SUCCESS_2",
         "ERROR_TRANSIENT_3",
         "ERROR_PERMANENT_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "int",
+          "name": "Ledger"
+        }
       ]
     }
   ],

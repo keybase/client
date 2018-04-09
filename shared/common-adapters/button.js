@@ -4,7 +4,7 @@ import ClickableBox from './clickable-box'
 import ProgressIndicator from './progress-indicator'
 import * as React from 'react'
 import Text from './text'
-import {globalColors, globalStyles, globalMargins, isMobile} from '../styles'
+import {type StylesCrossPlatform, globalColors, globalStyles, globalMargins, isMobile} from '../styles'
 
 export type Props = {
   children?: React.Node,
@@ -13,8 +13,8 @@ export type Props = {
   onMouseEnter?: Function,
   onMouseLeave?: Function,
   label: ?string,
-  style?: ?Object,
-  labelStyle?: ?Object,
+  style?: StylesCrossPlatform,
+  labelStyle?: StylesCrossPlatform,
   type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'PrimaryGreen' | 'PrimaryGreenActive',
   disabled?: ?boolean,
   waiting?: ?boolean,
@@ -24,9 +24,9 @@ export type Props = {
   className?: string,
 }
 
-const Progress = ({small}) => (
+const Progress = ({small, white}) => (
   <Box style={progress}>
-    <ProgressIndicator style={progressStyle(small)} white={true} />
+    <ProgressIndicator style={progressStyle(small)} white={white} />
   </Box>
 )
 
@@ -81,6 +81,8 @@ class Button extends React.Component<Props> {
 
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
+    const whiteSpinner = this.props.type !== 'PrimaryGreenActive'
+
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
         <Box
@@ -100,7 +102,7 @@ class Button extends React.Component<Props> {
               {this.props.label}
             </Text>
           )}
-          {this.props.waiting && <Progress small={this.props.small} />}
+          {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
     )

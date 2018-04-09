@@ -62,3 +62,10 @@ export function setupExecuteActionsListener() {
     _executeActions(actions)
   })
 }
+
+const crossplatformQuit = (reason: string) => {
+  // $FlowIssue don't want to really expose this correctly
+  executeActionsForContext(reason)
+}
+
+export {crossplatformQuit as quit}

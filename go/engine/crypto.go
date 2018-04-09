@@ -124,7 +124,7 @@ func UnboxBytes32Any(ctx context.Context, g *libkb.GlobalContext, getSecretUI fu
 	defer g.CTrace(ctx, "UnboxBytes32Any", func() error { return err })()
 
 	// find a matching secret key for a bundle in arg.Bundles
-	key, index, err := getMatchingSecretKey(g, getSecretUI, arg)
+	key, index, err := getMatchingSecretKey(ctx, g, getSecretUI, arg)
 	if err != nil {
 		return res, err
 	}
@@ -170,7 +170,7 @@ func unboxBytes32(encryptionKey libkb.GenericKey, ciphertext keybase1.EncryptedB
 
 }
 
-func getMatchingSecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
+func getMatchingSecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
 	// first check cached keys
 	key, index, err = matchingCachedKey(g, arg)
 	if err != nil {
@@ -180,13 +180,13 @@ func getMatchingSecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.Secre
 		return key, index, nil
 	}
 
-	g.Log.Debug("getMatchingSecretKey: acquiring lock")
+	g.Log.CDebugf(ctx, "getMatchingSecretKey: acquiring lock")
 	getKeyMu.Lock()
 	defer func() {
 		getKeyMu.Unlock()
-		g.Log.Debug("getMatchingSecretKey: lock released")
+		g.Log.CDebugf(ctx, "getMatchingSecretKey: lock released")
 	}()
-	g.Log.Debug("getMatchingSecretKey: lock acquired")
+	g.Log.CDebugf(ctx, "getMatchingSecretKey: lock acquired")
 
 	// check cache after acquiring lock
 	key, index, err = matchingCachedKey(g, arg)
@@ -196,7 +196,7 @@ func getMatchingSecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.Secre
 	if key != nil {
 		return key, index, nil
 	}
-	g.Log.Debug("getMatchingSecretKey: no matching cached device key found")
+	g.Log.CDebugf(ctx, "getMatchingSecretKey: no matching cached device key found")
 
 	// load the user
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
@@ -215,10 +215,10 @@ func getMatchingSecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.Secre
 	if key != nil {
 		return key, index, nil
 	}
-	g.Log.Debug("getMatchingSecretKey: no matching device key found")
+	g.Log.CDebugf(ctx, "getMatchingSecretKey: no matching device key found")
 
 	if !arg.PromptPaper {
-		g.Log.Debug("UnboxBytes32Any/getMatchingSecretKey: not checking paper keys (promptPaper == false)")
+		g.Log.CDebugf(ctx, "UnboxBytes32Any/getMatchingSecretKey: not checking paper keys (promptPaper == false)")
 		return nil, 0, libkb.NoSecretKeyError{}
 	}
 

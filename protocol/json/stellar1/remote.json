@@ -248,19 +248,110 @@
     },
     {
       "type": "record",
-      "name": "PaymentResult",
+      "name": "PaymentSummary",
       "fields": [
         {
-          "type": "TransactionID",
-          "name": "stellarID"
+          "type": [
+            null,
+            "PaymentSummaryStellar"
+          ],
+          "name": "stellar"
         },
+        {
+          "type": [
+            null,
+            "PaymentSummaryKeybase"
+          ],
+          "name": "keybase"
+        },
+        {
+          "type": "TransactionID",
+          "name": "stellarTxID"
+        },
+        {
+          "type": "AccountID",
+          "name": "from"
+        },
+        {
+          "type": "AccountID",
+          "name": "to"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "Asset",
+          "name": "asset"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentSummaryKeybase",
+      "fields": [
         {
           "type": "KeybaseTransactionID",
-          "name": "keybaseID"
+          "name": "kbTxID"
         },
         {
-          "type": "int",
-          "name": "Ledger"
+          "type": "TransactionStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "submitErrMsg"
+        },
+        {
+          "type": "TimeMs",
+          "name": "ctime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "rtime"
+        },
+        {
+          "type": "keybase1.UID",
+          "name": "fromUID"
+        },
+        {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.UID"
+          ],
+          "name": "toUID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayCurrency"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentSummaryStellar",
+      "fields": [
+        {
+          "type": "uint64",
+          "name": "operationID"
+        },
+        {
+          "type": "TimeMs",
+          "name": "ctime"
         }
       ]
     }
@@ -282,7 +373,7 @@
         "items": "Balance"
       }
     },
-    "recentTransactions": {
+    "recentPayments": {
       "request": [
         {
           "name": "uid",
@@ -293,13 +384,13 @@
           "type": "AccountID"
         },
         {
-          "name": "count",
+          "name": "limit",
           "type": "int"
         }
       ],
       "response": {
         "type": "array",
-        "items": "TransactionSummary"
+        "items": "PaymentSummary"
       }
     },
     "transaction": {
@@ -314,6 +405,19 @@
         }
       ],
       "response": "TransactionDetails"
+    },
+    "accountSeqno": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "string"
     },
     "submitPayment": {
       "request": [

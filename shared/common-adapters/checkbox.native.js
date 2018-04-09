@@ -4,7 +4,7 @@ import type {Props} from './checkbox'
 import {NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing} from './native-wrappers.native'
 import Box from './box'
 import Text from './text'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {collapseStyles, globalStyles, globalColors, globalMargins} from '../styles'
 
 const checkedOffset = 20
 
@@ -69,13 +69,16 @@ class Checkbox extends Component<Props, State> {
         onPress={e => (e.defaultPrevented ? undefined : onClick && onClick())}
         delayPressIn={0}
       >
-        <Box style={{...styleContainer, ...containerStyle, ...this.props.style}}>
+        <Box style={collapseStyles([styleContainer, containerStyle, this.props.style])}>
           <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
             <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </NativeAnimated.View>
-          <Text type="Body" style={styleText}>
-            {this.props.labelComponent || this.props.label}
-          </Text>
+          {this.props.labelComponent}
+          {!this.props.labelComponent && (
+            <Text type="Body" style={styleText}>
+              {this.props.label}
+            </Text>
+          )}
         </Box>
       </NativeTouchableWithoutFeedback>
     )

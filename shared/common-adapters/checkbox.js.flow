@@ -2,13 +2,14 @@
 
 import React, {Component, type Node} from 'react'
 import type {TextType} from './text'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   label?: string,
   labelComponent?: Node,
   onCheck: ?(newCheckedValue: boolean) => void,
   checked: boolean,
-  style?: Object,
+  style?: StylesCrossPlatform,
   disabled?: boolean,
 }
 

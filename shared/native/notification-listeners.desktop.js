@@ -3,9 +3,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {remote} from 'electron'
-import {writeLogLinesToFile} from '../util/forward-logs'
-import logger from '../logger'
 import {isWindows} from '../constants/platform'
+import dumpLogs from '../logger/dump-log-fs'
 
 // TODO(mm) Move these to their own actions
 export default function(
@@ -39,18 +38,12 @@ export default function(
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      logger
-        .dump()
-        .then(writeLogLinesToFile)
-        .then(() => response.result())
+      dumpLogs().then(() => response.result())
     },
   }
 
-  // $FlowIssue doesnt' like spreading exact types
-  const combined: IncomingCallMapType = {
+  return {
     ...fromShared,
     ...handlers,
   }
-
-  return combined
 }

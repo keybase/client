@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
+import {Input} from '../../../../common-adapters'
 
 type MentionHocState = {
   pickSelectedCounter: number,
@@ -15,7 +16,7 @@ type MentionHocState = {
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
   class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {
     state: MentionHocState
-    _inputRef: ?any
+    _inputRef: ?Input
     constructor() {
       super()
       this.state = {
@@ -28,7 +29,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    inputSetRef = (input: any) => {
+    inputSetRef = (input: Input) => {
       this.props._inputSetRef(input)
       this._inputRef = input
     }
@@ -118,24 +119,32 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this._replaceWordAtCursor(`#${c} `)
     }
 
-    _replaceWordAtCursor = (w: string) => {
+    _replaceWordAtCursor = (newWord: string) => {
+      const selections = this.state._selection
       const word = this._getWordAtCursor(this.props.text)
-      const ss = this.state._selection.selectionStart
 
-      // can't use inputRef.replaceText because android custom input
-      // doesn't support it ootb
-      const existingText = this.props.text
-      const nextText = existingText.slice(0, ss - word.length) + w + existingText.slice(ss)
-      this.props.setText(nextText)
+      if (selections && selections.selectionStart === selections.selectionEnd) {
+        const startOfWordIdx = selections.selectionStart - word.length
+        if (startOfWordIdx >= 0) {
+          // Put the cursor at the end of newWord.
+          // NOTE: This doesn't work yet; see comments in input.native.js.
+          const newSelectionIndex = startOfWordIdx + newWord.length
+          this._inputRef &&
+            this._inputRef.replaceText(
+              newWord,
+              startOfWordIdx,
+              selections.selectionStart,
+              newSelectionIndex,
+              newSelectionIndex
+            )
+        }
+      }
     }
 
-    onSelectionChange = (event: any) =>
+    onSelectionChange = (selection: {selectionStart: number, selectionEnd: number}) =>
       this.setState(
         {
-          _selection: {
-            selectionStart: event.nativeEvent.selection.start,
-            selectionEnd: event.nativeEvent.selection.end,
-          },
+          _selection: selection,
         },
         () => this.onChangeText(this.props.text)
       )

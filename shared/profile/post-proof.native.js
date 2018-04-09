@@ -2,7 +2,8 @@
 import * as shared from './post-proof.shared'
 import CopyableText from '../common-adapters/copyable-text'
 import * as React from 'react'
-import {Button, LinkWithIcon, PlatformIcon, StandardScreen, Text} from '../common-adapters'
+import {Button, PlatformIcon, StandardScreen, Text} from '../common-adapters'
+import LinkWithIcon from './link-with-icon'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './post-proof'

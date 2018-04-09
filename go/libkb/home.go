@@ -138,7 +138,6 @@ func (d Darwin) SandboxCacheDir() string {
 func (d Darwin) ConfigDir() string                { return d.appDir(d.Home(false), "Library", "Application Support") }
 func (d Darwin) DataDir() string                  { return d.ConfigDir() }
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
-func (d Darwin) InfoDir() string                  { return d.appDir(os.TempDir()) }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
 func (d Darwin) LogDir() string {
 	appName := toUpper(d.appName)
@@ -148,6 +147,16 @@ func (d Darwin) LogDir() string {
 		dirs = append(dirs, appName+toUpper(string(runMode)))
 	}
 	return filepath.Join(dirs...)
+}
+
+func (d Darwin) InfoDir() string {
+	// If the user is explicitly passing in a HomeDirectory, make the PID file directory
+	// local to that HomeDir. This way it's possible to have multiple keybases in parallel
+	// running for a given run mode, without having to explicitly specify a PID file.
+	if d.getHome != nil && d.getHome() != "" {
+		return d.CacheDir()
+	}
+	return d.appDir(os.TempDir())
 }
 
 func (d Darwin) Home(emptyOk bool) string {

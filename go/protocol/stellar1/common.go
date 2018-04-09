@@ -13,6 +13,12 @@ func (o AccountID) DeepCopy() AccountID {
 	return o
 }
 
+type SecretKey string
+
+func (o SecretKey) DeepCopy() SecretKey {
+	return o
+}
+
 type TransactionID string
 
 func (o TransactionID) DeepCopy() TransactionID {
@@ -29,6 +35,17 @@ type TimeMs int64
 
 func (o TimeMs) DeepCopy() TimeMs {
 	return o
+}
+
+type Hash []byte
+
+func (o Hash) DeepCopy() Hash {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
 }
 
 type Asset struct {
@@ -92,6 +109,20 @@ func (e TransactionStatus) String() string {
 		return v
 	}
 	return ""
+}
+
+type PaymentResult struct {
+	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
+	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
+	Ledger    int                  `codec:"Ledger" json:"Ledger"`
+}
+
+func (o PaymentResult) DeepCopy() PaymentResult {
+	return PaymentResult{
+		StellarID: o.StellarID.DeepCopy(),
+		KeybaseID: o.KeybaseID.DeepCopy(),
+		Ledger:    o.Ledger,
+	}
 }
 
 type CommonInterface interface {

@@ -59,7 +59,9 @@
     "setFlags": {
       "kbfsOpening?": "boolean",
       "kbfsInstalling?": "boolean",
-      "fuseInstalling?": "boolean"
+      "fuseInstalling?": "boolean",
+      "kextPermissionError?": "boolean",
+      "showBanner?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {
@@ -69,6 +71,12 @@
     "uninstallKBFSConfirm": {
       "onSuccess": "() => void"
     },
-    "uninstallKBFS": {}
+    "uninstallKBFS": {},
+    "fsActivity": {},
+    "syncingStatus": {
+      "isSyncing": "boolean"
+    },
+
+    "setupFSHandlers": {}
   }
 }

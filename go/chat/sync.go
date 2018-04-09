@@ -31,6 +31,7 @@ type Syncer struct {
 	flushCh           chan struct{}
 	notificationQueue map[string][]chat1.ConversationStaleUpdate
 	fullReload        map[string]bool
+	lastLoadedConv    chat1.ConversationID
 }
 
 func NewSyncer(g *globals.Context) *Syncer {
@@ -48,6 +49,7 @@ func NewSyncer(g *globals.Context) *Syncer {
 	}
 
 	go s.sendNotificationLoop()
+	go s.monitorAppState()
 	return s
 }
 
@@ -58,6 +60,20 @@ func (s *Syncer) SetClock(clock clockwork.Clock) {
 func (s *Syncer) Shutdown() {
 	s.Debug(context.Background(), "shutting down")
 	close(s.shutdownCh)
+}
+
+func (s *Syncer) monitorAppState() {
+	ctx := context.Background()
+	s.Debug(ctx, "monitorAppState: starting up")
+	state := keybase1.AppState_FOREGROUND
+	for {
+		state = <-s.G().AppState.NextUpdate(&state)
+		switch state {
+		case keybase1.AppState_FOREGROUND:
+			s.Debug(ctx, "monitorAppState: foregrounded, flushing")
+			s.flushCh <- struct{}{}
+		}
+	}
 }
 
 func (s *Syncer) dedupUpdates(updates []chat1.ConversationStaleUpdate) (res []chat1.ConversationStaleUpdate) {
@@ -125,15 +141,8 @@ func (s *Syncer) sendNotificationLoop() {
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
-		case state := <-s.G().AppState.NextUpdate(nil):
-			// If we receive an update that app state has moved to the foreground, then trigger
-			// flushing these notifications
-			if state == keybase1.AppState_FOREGROUND {
-				s.sendNotificationsOnce()
-			}
 		}
 	}
-
 }
 
 func (s *Syncer) getUpdates(convs []chat1.Conversation) (res []chat1.ConversationStaleUpdate) {
@@ -266,7 +275,8 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
-			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] {
+			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
+				conv.GetConvID().Eq(s.lastLoadedConv) {
 				include = true
 			}
 		default:
@@ -388,4 +398,11 @@ func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
 	s.Lock()
 	defer s.Unlock()
 	s.offlinables = append(s.offlinables, offlinable)
+}
+
+func (s *Syncer) SelectConversation(ctx context.Context, convID chat1.ConversationID) {
+	s.Lock()
+	defer s.Unlock()
+	s.Debug(ctx, "SelectConversation: setting last loaded conv to: %s", convID)
+	s.lastLoadedConv = convID
 }

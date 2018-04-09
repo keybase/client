@@ -6,7 +6,92 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "LocalBalance",
+      "fields": [
+        {
+          "type": "Balance",
+          "name": "balance"
+        },
+        {
+          "type": "string",
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RecentPaymentCLILocal",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarTxID"
+        },
+        {
+          "type": "TimeMs",
+          "name": "time"
+        },
+        {
+          "type": "string",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayCurrency"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromStellar"
+        },
+        {
+          "type": "AccountID",
+          "name": "toStellar"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "toUsername"
+        }
+      ]
+    }
+  ],
   "messages": {
     "balancesLocal": {
       "request": [
@@ -17,11 +102,86 @@
       ],
       "response": {
         "type": "array",
-        "items": "Balance"
+        "items": "LocalBalance"
       }
     },
-    "walletInit": {
+    "sendLocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": "Asset"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "PaymentResult"
+    },
+    "recentPaymentsCLILocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "RecentPaymentCLILocal"
+      }
+    },
+    "walletInitLocal": {
       "request": [],
+      "response": null
+    },
+    "walletDumpLocal": {
+      "request": [],
+      "response": "Bundle"
+    },
+    "ownAccountLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
+    },
+    "importSecretKeyLocal": {
+      "request": [
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        },
+        {
+          "name": "makePrimary",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "setDisplayCurrency": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "currency",
+          "type": "string"
+        }
+      ],
       "response": null
     }
   },

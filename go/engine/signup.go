@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
+	context "golang.org/x/net/context"
 )
 
 type SignupEngine struct {
@@ -141,6 +142,10 @@ func (s *SignupEngine) Run(ctx *Context) error {
 
 	// For instance, setup gregor and friends...
 	s.G().CallLoginHooks()
+
+	go func() {
+		s.G().GetStellar().CreateWalletSoft(context.Background())
+	}()
 
 	return nil
 

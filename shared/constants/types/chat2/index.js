@@ -5,7 +5,16 @@ import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
 
-export type PendingMode = 'none' | 'searchingForUsers' | 'fixedSetOfUsers'
+export type PendingMode =
+  | 'none' // no pending
+  | 'searchingForUsers' // doing a search
+  | 'fixedSetOfUsers' // selected a set of users externally
+  | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
+
+export type PendingStatus =
+  | 'none' // no pending
+  | 'waiting' // attempting to create conversation
+  | 'failed' // creating conversation failed
 
 export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
@@ -22,6 +31,7 @@ export type _State = {
   pendingConversationUsers: I.Set<string>, // users we're trying to start a conversation with
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingSelected: boolean, // did we select the pending conversation or not
+  pendingStatus: PendingStatus, // where are we at in submitting the conversation
 }
 
 export type State = I.RecordOf<_State>

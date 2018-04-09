@@ -42,6 +42,12 @@ const mapStateToProps = (state: TypedState): * => {
 
   if (state.chat2.pendingSelected) {
     _pendingConversationUsers = state.chat2.pendingConversationUsers
+    if (state.chat2.pendingMode !== 'startingFromAReset') {
+      _conversationIDKey = Constants.findConversationFromParticipants(
+        state,
+        state.chat2.pendingConversationUsers
+      )
+    }
   } else {
     _conversationIDKey = Constants.getSelectedConversation(state)
   }
@@ -50,7 +56,6 @@ const mapStateToProps = (state: TypedState): * => {
     _conversationIDKey,
     _metaMap: state.chat2.metaMap,
     _pendingConversationUsers,
-    _you: state.config.username || '',
   }
 }
 
@@ -69,11 +74,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       type = 'normal'
     }
   } else if (stateProps._pendingConversationUsers) {
-    conversationIDKey = Constants.getExistingConversationWithUsers(
-      stateProps._pendingConversationUsers,
-      stateProps._you,
-      stateProps._metaMap
-    )
     type = 'normal'
   } else {
     type = 'noConvo'

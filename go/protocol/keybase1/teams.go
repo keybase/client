@@ -1520,28 +1520,30 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 }
 
 type LoadTeamArg struct {
-	ID               TeamID         `codec:"ID" json:"ID"`
-	Name             string         `codec:"name" json:"name"`
-	Public           bool           `codec:"public" json:"public"`
-	NeedAdmin        bool           `codec:"needAdmin" json:"needAdmin"`
-	RefreshUIDMapper bool           `codec:"refreshUIDMapper" json:"refreshUIDMapper"`
-	Refreshers       TeamRefreshers `codec:"refreshers" json:"refreshers"`
-	ForceFullReload  bool           `codec:"forceFullReload" json:"forceFullReload"`
-	ForceRepoll      bool           `codec:"forceRepoll" json:"forceRepoll"`
-	StaleOK          bool           `codec:"staleOK" json:"staleOK"`
+	ID                        TeamID         `codec:"ID" json:"ID"`
+	Name                      string         `codec:"name" json:"name"`
+	Public                    bool           `codec:"public" json:"public"`
+	NeedAdmin                 bool           `codec:"needAdmin" json:"needAdmin"`
+	RefreshUIDMapper          bool           `codec:"refreshUIDMapper" json:"refreshUIDMapper"`
+	Refreshers                TeamRefreshers `codec:"refreshers" json:"refreshers"`
+	ForceFullReload           bool           `codec:"forceFullReload" json:"forceFullReload"`
+	ForceRepoll               bool           `codec:"forceRepoll" json:"forceRepoll"`
+	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
+	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	return LoadTeamArg{
-		ID:               o.ID.DeepCopy(),
-		Name:             o.Name,
-		Public:           o.Public,
-		NeedAdmin:        o.NeedAdmin,
-		RefreshUIDMapper: o.RefreshUIDMapper,
-		Refreshers:       o.Refreshers.DeepCopy(),
-		ForceFullReload:  o.ForceFullReload,
-		ForceRepoll:      o.ForceRepoll,
-		StaleOK:          o.StaleOK,
+		ID:                        o.ID.DeepCopy(),
+		Name:                      o.Name,
+		Public:                    o.Public,
+		NeedAdmin:                 o.NeedAdmin,
+		RefreshUIDMapper:          o.RefreshUIDMapper,
+		Refreshers:                o.Refreshers.DeepCopy(),
+		ForceFullReload:           o.ForceFullReload,
+		ForceRepoll:               o.ForceRepoll,
+		StaleOK:                   o.StaleOK,
+		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
 	}
 }
 
@@ -1558,14 +1560,16 @@ func (o ImplicitRole) DeepCopy() ImplicitRole {
 }
 
 type MemberInfo struct {
-	UserID         UID           `codec:"userID" json:"uid"`
-	TeamID         TeamID        `codec:"teamID" json:"team_id"`
-	FqName         string        `codec:"fqName" json:"fq_name"`
-	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
-	Role           TeamRole      `codec:"role" json:"role"`
-	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
-	MemberCount    int           `codec:"memberCount" json:"member_count"`
+	UserID              UID           `codec:"userID" json:"uid"`
+	TeamID              TeamID        `codec:"teamID" json:"team_id"`
+	FqName              string        `codec:"fqName" json:"fq_name"`
+	IsImplicitTeam      bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam          bool          `codec:"isOpenTeam" json:"is_open_team"`
+	Role                TeamRole      `codec:"role" json:"role"`
+	Implicit            *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	MemberCount         int           `codec:"memberCount" json:"member_count"`
+	AllowProfilePromote bool          `codec:"allowProfilePromote" json:"allow_profile_promote"`
+	IsMemberShowcased   bool          `codec:"isMemberShowcased" json:"is_member_showcased"`
 }
 
 func (o MemberInfo) DeepCopy() MemberInfo {
@@ -1583,7 +1587,9 @@ func (o MemberInfo) DeepCopy() MemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
-		MemberCount: o.MemberCount,
+		MemberCount:         o.MemberCount,
+		AllowProfilePromote: o.AllowProfilePromote,
+		IsMemberShowcased:   o.IsMemberShowcased,
 	}
 }
 
@@ -1608,19 +1614,21 @@ func (o TeamList) DeepCopy() TeamList {
 }
 
 type AnnotatedMemberInfo struct {
-	UserID         UID           `codec:"userID" json:"uid"`
-	TeamID         TeamID        `codec:"teamID" json:"team_id"`
-	Username       string        `codec:"username" json:"username"`
-	FullName       string        `codec:"fullName" json:"full_name"`
-	FqName         string        `codec:"fqName" json:"fq_name"`
-	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
-	IsOpenTeam     bool          `codec:"isOpenTeam" json:"is_open_team"`
-	Role           TeamRole      `codec:"role" json:"role"`
-	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
-	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
-	MemberCount    int           `codec:"memberCount" json:"member_count"`
-	EldestSeqno    Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
-	Active         bool          `codec:"active" json:"active"`
+	UserID              UID           `codec:"userID" json:"uid"`
+	TeamID              TeamID        `codec:"teamID" json:"team_id"`
+	Username            string        `codec:"username" json:"username"`
+	FullName            string        `codec:"fullName" json:"full_name"`
+	FqName              string        `codec:"fqName" json:"fq_name"`
+	IsImplicitTeam      bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
+	IsOpenTeam          bool          `codec:"isOpenTeam" json:"is_open_team"`
+	Role                TeamRole      `codec:"role" json:"role"`
+	Implicit            *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	NeedsPUK            bool          `codec:"needsPUK" json:"needsPUK"`
+	MemberCount         int           `codec:"memberCount" json:"member_count"`
+	EldestSeqno         Seqno         `codec:"eldestSeqno" json:"member_eldest_seqno"`
+	Active              bool          `codec:"active" json:"active"`
+	AllowProfilePromote bool          `codec:"allowProfilePromote" json:"allow_profile_promote"`
+	IsMemberShowcased   bool          `codec:"isMemberShowcased" json:"is_member_showcased"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1640,10 +1648,12 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
-		NeedsPUK:    o.NeedsPUK,
-		MemberCount: o.MemberCount,
-		EldestSeqno: o.EldestSeqno.DeepCopy(),
-		Active:      o.Active,
+		NeedsPUK:            o.NeedsPUK,
+		MemberCount:         o.MemberCount,
+		EldestSeqno:         o.EldestSeqno.DeepCopy(),
+		Active:              o.Active,
+		AllowProfilePromote: o.AllowProfilePromote,
+		IsMemberShowcased:   o.IsMemberShowcased,
 	}
 }
 
@@ -1981,6 +1991,7 @@ type TeamOperation struct {
 	EditChannelDescription bool `codec:"editChannelDescription" json:"editChannelDescription"`
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
 	SetMemberShowcase      bool `codec:"setMemberShowcase" json:"setMemberShowcase"`
+	SetRetentionPolicy     bool `codec:"setRetentionPolicy" json:"setRetentionPolicy"`
 	ChangeOpenTeam         bool `codec:"changeOpenTeam" json:"changeOpenTeam"`
 	LeaveTeam              bool `codec:"leaveTeam" json:"leaveTeam"`
 	JoinTeam               bool `codec:"joinTeam" json:"joinTeam"`
@@ -2001,6 +2012,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		EditChannelDescription: o.EditChannelDescription,
 		SetTeamShowcase:        o.SetTeamShowcase,
 		SetMemberShowcase:      o.SetMemberShowcase,
+		SetRetentionPolicy:     o.SetRetentionPolicy,
 		ChangeOpenTeam:         o.ChangeOpenTeam,
 		LeaveTeam:              o.LeaveTeam,
 		JoinTeam:               o.JoinTeam,

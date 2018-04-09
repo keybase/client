@@ -109,6 +109,12 @@ class ConversationInput extends Component<InputProps> {
   }
 
   render() {
+    let hintText = 'Write a message'
+    if (this.props.isEditing) {
+      hintText = 'Edit your message'
+    } else if (this.props.pendingWaiting) {
+      hintText = 'Creating conversation...'
+    }
     return (
       <Box
         style={{
@@ -163,11 +169,12 @@ class ConversationInput extends Component<InputProps> {
             <Input
               className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
               autoFocus={false}
+              editable={!this.props.pendingWaiting}
               onFocus={this._onFocus}
               small={true}
               style={styleInput}
               ref={this.props.inputSetRef}
-              hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
+              hintText={hintText}
               hideUnderline={true}
               onChangeText={this.props.setText}
               value={this.props.text}

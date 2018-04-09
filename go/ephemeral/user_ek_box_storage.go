@@ -41,8 +41,8 @@ func (s *UserEKBoxStorage) dbKey(ctx context.Context) (dbKey libkb.DbKey, err er
 }
 
 func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, err error) {
+	defer s.G().CTrace(ctx, "UserEKBoxStorage#getCache", func() error { return err })()
 	if !s.indexed {
-		defer s.G().CTrace(ctx, "UserEKBoxStorage#indexInner", func() error { return err })()
 
 		key, err := s.dbKey(ctx)
 		if err != nil {
@@ -58,7 +58,7 @@ func (s *UserEKBoxStorage) getCache(ctx context.Context) (cache UserEKBoxMap, er
 }
 
 func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Get", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#Get: generation:%v", generation), func() error { return err })()
 
 	s.Lock()
 
@@ -81,7 +81,7 @@ func (s *UserEKBoxStorage) Get(ctx context.Context, generation keybase1.EkGenera
 }
 
 type UserEKBoxedResponse struct {
-	Result struct {
+	Result *struct {
 		Box                string                `json:"box"`
 		DeviceEKGeneration keybase1.EkGeneration `json:"device_ek_generation"`
 		Sig                string                `json:"sig"`
@@ -89,7 +89,7 @@ type UserEKBoxedResponse struct {
 }
 
 func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.EkGeneration) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#fetchAndPut", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#fetchAndPut: generation: %v", generation), func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "user/user_ek_box",
@@ -112,6 +112,10 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 		return userEK, err
 	}
 
+	if result.Result == nil {
+		return userEK, fmt.Errorf("server didn't return a box for userEK generation %d", generation)
+	}
+
 	// Before we store anything, let's verify that the server returned
 	// signature is valid and the KID it has signed matches the boxed seed.
 	// Otherwise something's fishy..
@@ -121,7 +125,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
-		s.G().Log.CWarningf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
+		s.G().Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 		return userEK, nil
 	}
 	if err != nil {
@@ -129,7 +133,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	}
 
 	if userEKStatement == nil { // shouldn't happen
-		s.G().Log.CWarningf(ctx, "No error but got nil userEKStatement")
+		s.G().Log.CDebugf(ctx, "No error but got nil userEKStatement")
 		return userEK, err
 	}
 
@@ -158,7 +162,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 }
 
 func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#Put", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#Put: generation:%v", generation), func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -180,12 +184,12 @@ func (s *UserEKBoxStorage) Put(ctx context.Context, generation keybase1.EkGenera
 }
 
 func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) (userEK keybase1.UserEk, err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#unbox", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#unbox: generation:%v", userEKGeneration), func() error { return err })()
 
 	deviceEKStorage := s.G().GetDeviceEKStorage()
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "%v", err)
 		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
@@ -194,7 +198,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "%v", err)
 		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
@@ -216,7 +220,7 @@ func (s *UserEKBoxStorage) Delete(ctx context.Context, generation keybase1.EkGen
 }
 
 func (s *UserEKBoxStorage) deleteMany(ctx context.Context, generations []keybase1.EkGeneration) (err error) {
-	defer s.G().CTrace(ctx, "UserEKBoxStorage#delete", func() error { return err })()
+	defer s.G().CTrace(ctx, fmt.Sprintf("UserEKBoxStorage#deleteMany: generations:%v", generations), func() error { return err })()
 
 	cache, err := s.getCache(ctx)
 	if err != nil {

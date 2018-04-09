@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
 import {type PreMentionHocProps, type Props} from '../normal'
+import {Input} from '../../../../common-adapters'
 
 export type PropsFromContainer = {
-  _inputSetRef: any => void,
+  _inputSetRef: Input => void,
   _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 } & PreMentionHocProps
 

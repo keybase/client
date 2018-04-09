@@ -18,6 +18,7 @@ export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
+export const fsActivity = 'fs:fsActivity'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
@@ -25,83 +26,90 @@ export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const openInFileUI = 'fs:openInFileUI'
 export const setFlags = 'fs:setFlags'
+export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
+export const syncingStatus = 'fs:syncingStatus'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 
 // Action Creators
-export const createCancelTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: cancelTransfer})
-export const createDismissTransfer = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: dismissTransfer})
+export const createCancelTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: cancelTransfer})
+export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: dismissTransfer})
 export const createDownload = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     localPath?: string,
     intent: Types.TransferIntent,
-  }>
+  |}>
 ) => ({error: false, payload, type: download})
 export const createDownloadFinished = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     error?: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: downloadFinished})
 export const createDownloadStarted = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     path: Types.Path,
     localPath: Types.LocalPath,
     intent: Types.TransferIntent,
     opID: RPCTypes.OpID,
-  }>
+  |}>
 ) => ({error: false, payload, type: downloadStarted})
-export const createFilePreviewLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: filePreviewLoad})
+export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     meta: Types.PathItem,
-  }>
+  |}>
 ) => ({error: false, payload, type: filePreviewLoaded})
-export const createFolderListLoad = (payload: $ReadOnly<{path: Types.Path}>) => ({error: false, payload, type: folderListLoad})
+export const createFolderListLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: folderListLoad})
 export const createFolderListLoaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     pathItems: I.Map<Types.Path, Types.PathItem>,
-  }>
+  |}>
 ) => ({error: false, payload, type: folderListLoaded})
+export const createFsActivity = () => ({error: false, payload: undefined, type: fsActivity})
 export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
 export const createFuseStatusResult = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     prevStatus: ?RPCTypes.FuseStatus,
     status: RPCTypes.FuseStatus,
-  }>
+  |}>
 ) => ({error: false, payload, type: fuseStatusResult})
 export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
-export const createInstallFuseResult = (payload: $ReadOnly<{kextPermissionError: boolean}>) => ({error: false, payload, type: installFuseResult})
+export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
-export const createOpenInFileUI = (payload: $ReadOnly<{path?: string}>) => ({error: false, payload, type: openInFileUI})
+export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
 export const createSetFlags = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     kbfsOpening?: boolean,
     kbfsInstalling?: boolean,
     fuseInstalling?: boolean,
-  }>
+    kextPermissionError?: boolean,
+    showBanner?: boolean,
+  |}>
 ) => ({error: false, payload, type: setFlags})
+export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
 export const createSortSetting = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     path: Types.Path,
     sortSetting: Types.SortSetting,
-  }>
+  |}>
 ) => ({error: false, payload, type: sortSetting})
+export const createSyncingStatus = (payload: $ReadOnly<{|isSyncing: boolean|}>) => ({error: false, payload, type: syncingStatus})
 export const createTransferProgress = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     completePortion: number,
     endEstimate?: number,
-  }>
+  |}>
 ) => ({error: false, payload, type: transferProgress})
 export const createUninstallKBFS = () => ({error: false, payload: undefined, type: uninstallKBFS})
-export const createUninstallKBFSConfirm = (payload: $ReadOnly<{onSuccess: () => void}>) => ({error: false, payload, type: uninstallKBFSConfirm})
+export const createUninstallKBFSConfirm = (payload: $ReadOnly<{|onSuccess: () => void|}>) => ({error: false, payload, type: uninstallKBFSConfirm})
 
 // Action Payloads
 export type CancelTransferPayload = More.ReturnType<typeof createCancelTransfer>
@@ -113,6 +121,7 @@ export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoa
 export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
 export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
+export type FsActivityPayload = More.ReturnType<typeof createFsActivity>
 export type FuseStatusPayload = More.ReturnType<typeof createFuseStatus>
 export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusResult>
 export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
@@ -120,7 +129,9 @@ export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseR
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
+export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
+export type SyncingStatusPayload = More.ReturnType<typeof createSyncingStatus>
 export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
@@ -137,6 +148,7 @@ export type Actions =
   | More.ReturnType<typeof createFilePreviewLoaded>
   | More.ReturnType<typeof createFolderListLoad>
   | More.ReturnType<typeof createFolderListLoaded>
+  | More.ReturnType<typeof createFsActivity>
   | More.ReturnType<typeof createFuseStatus>
   | More.ReturnType<typeof createFuseStatusResult>
   | More.ReturnType<typeof createInstallFuse>
@@ -144,7 +156,9 @@ export type Actions =
   | More.ReturnType<typeof createInstallKBFS>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createSetFlags>
+  | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>
+  | More.ReturnType<typeof createSyncingStatus>
   | More.ReturnType<typeof createTransferProgress>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSConfirm>

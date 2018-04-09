@@ -39,12 +39,6 @@ func TestNewTeamEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, nilStatement)
 
-	_, err = publishNewDeviceEK(context.Background(), tc.G, merkleRoot)
-	require.NoError(t, err)
-
-	_, err = publishNewUserEK(context.Background(), tc.G, merkleRoot)
-	require.NoError(t, err)
-
 	publishedMetadata, err := publishNewTeamEK(context.Background(), tc.G, teamID, merkleRoot)
 	require.NoError(t, err)
 

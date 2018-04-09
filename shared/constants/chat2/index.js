@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
-import {makeConversationMeta} from './meta'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 
@@ -19,14 +18,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   pendingSelected: false,
+  pendingStatus: 'none',
   selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
 
-const emptyMeta = makeConversationMeta()
-export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.metaMap.get(id, emptyMeta)
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -41,14 +38,6 @@ export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-export const getExistingConversationWithUsers = (
-  users: I.Set<string>,
-  you: string,
-  metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
-) => {
-  const toFind = I.Set(users.concat([you]))
-  return metaMap.findKey(meta => meta.participants.toSet().equals(toFind)) || ''
-}
 export const isUserActivelyLookingAtThisThread = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey
@@ -74,6 +63,7 @@ export const isUserActivelyLookingAtThisThread = (
 export {
   findConversationFromParticipants,
   getConversationIDKeyMetasToLoad,
+  getMeta,
   getRowParticipants,
   getRowStyles,
   inboxUIItemToConversationMeta,

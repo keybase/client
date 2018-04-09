@@ -8,6 +8,7 @@ import * as More from '../constants/types/more'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import HiddenString from '../util/hidden-string'
+import type {RetentionPolicy} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
@@ -23,6 +24,7 @@ export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
+export const cancelPendingConversation = 'chat2:cancelPendingConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
@@ -62,322 +64,370 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const retryPendingConversation = 'chat2:retryPendingConversation'
 export const selectConversation = 'chat2:selectConversation'
 export const sendToPendingConversation = 'chat2:sendToPendingConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
+export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingSelected = 'chat2:setPendingSelected'
+export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
+export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
+/**
+ * Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox
+ */
+export const createCancelPendingConversation = () => ({error: false, payload: undefined, type: cancelPendingConversation})
+/**
+ * Consume a service notification that a conversation's retention policy has been updated
+ */
+export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+/**
+ * Consume a service notification that a team retention policy was updated
+ */
+export const createUpdateTeamRetentionPolicy = (payload: $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>) => ({error: false, payload, type: updateTeamRetentionPolicy})
+/**
+ * Retries sending the pending message that is currently stored in the metaMap
+ */
+export const createRetryPendingConversation = () => ({error: false, payload: undefined, type: retryPendingConversation})
+/**
+ * Sets pending messages in the store to the supplied state and logs the reason
+ */
+export const createSetPendingMessageSubmitState = (
+  payload: $ReadOnly<{|
+    reason: string,
+    submitState: 'failed' | 'pending',
+  |}>
+) => ({error: false, payload, type: setPendingMessageSubmitState})
+/**
+ * Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.
+ */
+export const createSetPendingStatus = (payload: $ReadOnly<{|pendingStatus: Types.PendingStatus|}>) => ({error: false, payload, type: setPendingStatus})
+/**
+ * Sets the retention policy for a conversation.
+ */
+export const createSetConvRetentionPolicy = (
+  payload: $ReadOnly<{|
+    conversationIDKey: Types.ConversationIDKey,
+    policy: RetentionPolicy,
+  |}>
+) => ({error: false, payload, type: setConvRetentionPolicy})
 export const createAttachmentDownload = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     path: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
 export const createAttachmentLoad = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     isPreview: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentLoad})
 export const createAttachmentLoaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     path: string,
     isPreview: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentLoaded})
 export const createAttachmentLoadedError = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     isPreview: boolean,
-  }>
+  |}>
 ) => ({error: true, payload, type: attachmentLoaded})
 export const createAttachmentLoading = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     ratio: number,
     isPreview: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentLoading})
 export const createAttachmentNeedsUpdating = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     isPreview: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentNeedsUpdating})
 export const createAttachmentUpload = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     path: string,
     title: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentUpload})
 export const createAttachmentUploaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentUploaded})
 export const createAttachmentUploading = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     ratio: number,
-  }>
+  |}>
 ) => ({error: false, payload, type: attachmentUploading})
-export const createBadgesUpdated = (payload: $ReadOnly<{conversations: Array<RPCTypes.BadgeConversationInfo>}>) => ({error: false, payload, type: badgesUpdated})
+export const createBadgesUpdated = (payload: $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>) => ({error: false, payload, type: badgesUpdated})
 export const createBlockConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     reportUser: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: blockConversation})
-export const createClearLoading = (payload: $ReadOnly<{key: string}>) => ({error: false, payload, type: clearLoading})
-export const createClearOrdinals = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: clearOrdinals})
+export const createClearLoading = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: clearLoading})
+export const createClearOrdinals = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: clearOrdinals})
 export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDesktopNotification = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     author: string,
     body: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: desktopNotification})
-export const createExitSearch = (payload: $ReadOnly<{canceled: boolean}>) => ({error: false, payload, type: exitSearch})
-export const createInboxRefresh = (payload: $ReadOnly<{reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'}>) => ({error: false, payload, type: inboxRefresh})
-export const createJoinConversation = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: joinConversation})
+export const createExitSearch = (payload: $ReadOnly<{|canceled: boolean|}>) => ({error: false, payload, type: exitSearch})
+export const createInboxRefresh = (payload: $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>) => ({error: false, payload, type: inboxRefresh})
+export const createJoinConversation = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     dontNavigateToInbox?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: leaveConversation})
-export const createLoadOlderMessagesDueToScroll = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: loadOlderMessagesDueToScroll})
-export const createMarkConversationsStale = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: markConversationsStale})
-export const createMarkInitiallyLoadedThreadAsRead = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
+export const createLoadOlderMessagesDueToScroll = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: loadOlderMessagesDueToScroll})
+export const createMarkConversationsStale = (payload: $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>) => ({error: false, payload, type: markConversationsStale})
+export const createMarkInitiallyLoadedThreadAsRead = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: markInitiallyLoadedThreadAsRead})
 export const createMessageAttachmentNativeSave = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageAttachmentNativeSave})
 export const createMessageAttachmentNativeShare = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageAttachmentNativeShare})
 export const createMessageAttachmentUploaded = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     placeholderID: RPCChatTypes.MessageID,
     message: Types.MessageAttachment,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageAttachmentUploaded})
 export const createMessageDelete = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageDelete})
 export const createMessageDeleteHistory = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageDeleteHistory})
 export const createMessageEdit = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
     text: HiddenString,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageEdit})
 export const createMessageErrored = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     reason: string,
     outboxID: Types.OutboxID,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageErrored})
 export const createMessageRetry = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     outboxID: Types.OutboxID,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageRetry})
 export const createMessageSend = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     text: HiddenString,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageSend})
 export const createMessageSetEditing = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: ?Types.Ordinal,
     editLastUser?: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageSetEditing})
 export const createMessageWasEdited = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     messageID: RPCChatTypes.MessageID,
     text: HiddenString,
     mentionsAt: I.Set<string>,
     mentionsChannel: 'none' | 'all' | 'here',
     mentionsChannelName: I.Map<string, Types.ConversationIDKey>,
-  }>
+  |}>
 ) => ({error: false, payload, type: messageWasEdited})
 export const createMessagesAdd = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     context: {type: 'sent'} | {type: 'incoming'} | {type: 'threadLoad', conversationIDKey: Types.ConversationIDKey},
     messages: Array<Types.Message>,
-  }>
+  |}>
 ) => ({error: false, payload, type: messagesAdd})
 export const createMessagesWereDeleted = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     messageIDs?: Array<RPCChatTypes.MessageID>,
     upToMessageID?: RPCChatTypes.MessageID,
     ordinals?: Array<Types.Ordinal>,
-  }>
+  |}>
 ) => ({error: false, payload, type: messagesWereDeleted})
-export const createMetaDelete = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: metaDelete})
+export const createMetaDelete = (
+  payload: $ReadOnly<{|
+    conversationIDKey: Types.ConversationIDKey,
+    selectSomethingElse: boolean,
+  |}>
+) => ({error: false, payload, type: metaDelete})
 export const createMetaHandleQueue = () => ({error: false, payload: undefined, type: metaHandleQueue})
 export const createMetaNeedsUpdating = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKeys: Array<Types.ConversationIDKey>,
     reason: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: metaNeedsUpdating})
 export const createMetaReceivedError = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     error: ?RPCChatTypes.InboxUIItemError,
     username: ?string,
-  }>
+  |}>
 ) => ({error: false, payload, type: metaReceivedError})
 export const createMetaRequestTrusted = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     force?: boolean,
     conversationIDKeys: Array<Types.ConversationIDKey>,
-  }>
+  |}>
 ) => ({error: false, payload, type: metaRequestTrusted})
-export const createMetaRequestingTrusted = (payload: $ReadOnly<{conversationIDKeys: Array<Types.ConversationIDKey>}>) => ({error: false, payload, type: metaRequestingTrusted})
+export const createMetaRequestingTrusted = (payload: $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>) => ({error: false, payload, type: metaRequestingTrusted})
 export const createMetaUpdatePagination = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
-    paginationKey: Types.PaginationKey,
-    paginationMoreToLoad: boolean,
-  }>
+    paginationKey: ?Types.PaginationKey,
+  |}>
 ) => ({error: false, payload, type: metaUpdatePagination})
 export const createMetasReceived = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     metas: Array<Types.ConversationMeta>,
     neverCreate?: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     muted: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: muteConversation})
 export const createNavigateToInbox = () => ({error: false, payload: undefined, type: navigateToInbox})
 export const createNavigateToThread = () => ({error: false, payload: undefined, type: navigateToThread})
 export const createNotificationSettingsUpdated = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     settings: RPCChatTypes.ConversationNotificationInfo,
-  }>
+  |}>
 ) => ({error: false, payload, type: notificationSettingsUpdated})
-export const createOpenFolder = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: openFolder})
-export const createResetChatWithoutThem = (payload: $ReadOnly<{conversationIDKey: Types.ConversationIDKey}>) => ({error: false, payload, type: resetChatWithoutThem})
+export const createOpenFolder = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: openFolder})
+export const createResetChatWithoutThem = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     username: string,
-  }>
+  |}>
 ) => ({error: false, payload, type: resetLetThemIn})
 export const createSelectConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
-  }>
+  |}>
 ) => ({error: false, payload, type: selectConversation})
 export const createSendToPendingConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     users: Array<string>,
     sendingAction: More.ReturnType<typeof createMessageSend> | More.ReturnType<typeof createAttachmentUpload>,
-  }>
+  |}>
 ) => ({error: false, payload, type: sendToPendingConversation})
 export const createSendTyping = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     typing: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: sendTyping})
 export const createSetConversationOffline = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     offline: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setConversationOffline})
-export const createSetInboxFilter = (payload: $ReadOnly<{filter: string}>) => ({error: false, payload, type: setInboxFilter})
+export const createSetInboxFilter = (payload: $ReadOnly<{|filter: string|}>) => ({error: false, payload, type: setInboxFilter})
 export const createSetLoading = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     key: string,
     loading: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setLoading})
 export const createSetPendingConversationUsers = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     users: Array<string>,
     fromSearch: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: setPendingConversationUsers})
-export const createSetPendingMode = (payload: $ReadOnly<{pendingMode: Types.PendingMode}>) => ({error: false, payload, type: setPendingMode})
-export const createSetPendingSelected = (payload: $ReadOnly<{selected: boolean}>) => ({error: false, payload, type: setPendingSelected})
+export const createSetPendingMode = (payload: $ReadOnly<{|pendingMode: Types.PendingMode|}>) => ({error: false, payload, type: setPendingMode})
+export const createSetPendingSelected = (payload: $ReadOnly<{|selected: boolean|}>) => ({error: false, payload, type: setPendingSelected})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createStartConversation = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     participants?: ?Array<string>,
     tlf?: ?string,
-    forceImmediate?: boolean,
-  }>
+    fromAReset?: boolean,
+  |}>
 ) => ({error: false, payload, type: startConversation})
 export const createUpdateNotificationSettings = (
-  payload: $ReadOnly<{
+  payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     notificationsDesktop: Types.NotificationsType,
     notificationsMobile: Types.NotificationsType,
     notificationsGlobalIgnoreMentions: boolean,
-  }>
+  |}>
 ) => ({error: false, payload, type: updateNotificationSettings})
-export const createUpdateTypers = (payload: $ReadOnly<{conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>}>) => ({error: false, payload, type: updateTypers})
+export const createUpdateTypers = (payload: $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>) => ({error: false, payload, type: updateTypers})
 
 // Action Payloads
 export type AttachmentDownloadPayload = More.ReturnType<typeof createAttachmentDownload>
@@ -392,6 +442,7 @@ export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentU
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
 export type BadgesUpdatedPayload = More.ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = More.ReturnType<typeof createBlockConversation>
+export type CancelPendingConversationPayload = More.ReturnType<typeof createCancelPendingConversation>
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
@@ -431,18 +482,24 @@ export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNo
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
+export type RetryPendingConversationPayload = More.ReturnType<typeof createRetryPendingConversation>
 export type SelectConversationPayload = More.ReturnType<typeof createSelectConversation>
 export type SendToPendingConversationPayload = More.ReturnType<typeof createSendToPendingConversation>
 export type SendTypingPayload = More.ReturnType<typeof createSendTyping>
+export type SetConvRetentionPolicyPayload = More.ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConversationOffline>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
+export type SetPendingMessageSubmitStatePayload = More.ReturnType<typeof createSetPendingMessageSubmitState>
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
+export type SetPendingStatusPayload = More.ReturnType<typeof createSetPendingStatus>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
+export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateNotificationSettingsPayload = More.ReturnType<typeof createUpdateNotificationSettings>
+export type UpdateTeamRetentionPolicyPayload = More.ReturnType<typeof createUpdateTeamRetentionPolicy>
 export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 
 // All Actions
@@ -461,6 +518,7 @@ export type Actions =
   | More.ReturnType<typeof createAttachmentUploading>
   | More.ReturnType<typeof createBadgesUpdated>
   | More.ReturnType<typeof createBlockConversation>
+  | More.ReturnType<typeof createCancelPendingConversation>
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
@@ -500,17 +558,23 @@ export type Actions =
   | More.ReturnType<typeof createOpenFolder>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
+  | More.ReturnType<typeof createRetryPendingConversation>
   | More.ReturnType<typeof createSelectConversation>
   | More.ReturnType<typeof createSendToPendingConversation>
   | More.ReturnType<typeof createSendTyping>
+  | More.ReturnType<typeof createSetConvRetentionPolicy>
   | More.ReturnType<typeof createSetConversationOffline>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
   | More.ReturnType<typeof createSetPendingConversationUsers>
+  | More.ReturnType<typeof createSetPendingMessageSubmitState>
   | More.ReturnType<typeof createSetPendingMode>
   | More.ReturnType<typeof createSetPendingSelected>
+  | More.ReturnType<typeof createSetPendingStatus>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>
+  | More.ReturnType<typeof createUpdateConvRetentionPolicy>
   | More.ReturnType<typeof createUpdateNotificationSettings>
+  | More.ReturnType<typeof createUpdateTeamRetentionPolicy>
   | More.ReturnType<typeof createUpdateTypers>
   | {type: 'common:resetStore', payload: void}

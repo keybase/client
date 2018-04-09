@@ -1,6 +1,6 @@
 // @flow
 import globalColors from './colors'
-import * as Platform from '../constants/platform'
+import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 
 export const globalMargins = {
@@ -36,7 +36,7 @@ export const util = ({flexCommon}: {flexCommon?: ?Object}) => ({
 const unifyStyles = s => ({
   ...s,
   ...(s.hasOwnProperty('lineHeight') && typeof s.lineHeight === 'number'
-    ? {lineHeight: Platform.isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
+    ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
     : {}),
 })
 
@@ -48,8 +48,8 @@ export const platformStyles = (options: {|
   isElectron?: _StylesDesktop,
 |}) => ({
   ...(options.common ? unifyStyles(options.common) : {}),
-  ...(Platform.isIOS && options.isIOS ? options.isIOS : {}),
-  ...(Platform.isAndroid && options.isAndroid ? options.isAndroid : {}),
-  ...(Platform.isMobile && options.isMobile ? options.isMobile : {}),
-  ...(Platform.isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
+  ...(isIOS && options.isIOS ? options.isIOS : {}),
+  ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
+  ...(isMobile && options.isMobile ? options.isMobile : {}),
+  ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
 })

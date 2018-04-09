@@ -41,7 +41,7 @@ func newEKUnboxErr(boxType EKType, boxGeneration keybase1.EkGeneration, missingT
 }
 
 func (e *EKUnboxErr) Error() string {
-	return fmt.Sprintf("Error unboxing [%s]@generation%v missing [%s]@generation%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
+	return fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", e.boxType, e.boxGeneration, e.missingType, e.missingGeneration)
 }
 
 func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
@@ -50,12 +50,6 @@ func ctimeIsStale(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool 
 
 func keygenNeeded(ctime keybase1.Time, currentMerkleRoot libkb.MerkleRoot) bool {
 	return currentMerkleRoot.Ctime()-ctime.UnixSeconds() >= KeyGenLifetimeSecs
-}
-
-// We should wrap any entry points to the library with this before we're ready
-// to fully release it.
-func ShouldRun(g *libkb.GlobalContext) bool {
-	return g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 }
 
 func makeNewRandomSeed() (seed keybase1.Bytes32, err error) {

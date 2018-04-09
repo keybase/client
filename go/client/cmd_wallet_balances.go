@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -20,7 +21,8 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name: "balances",
+		Name:        "balances",
+		Description: "Show account balances",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)
 		},
@@ -54,12 +56,17 @@ func (c *cmdWalletBalances) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	for _, balance := range balances {
-		kind := balance.Asset.Type
-		if balance.Asset.Type == "native" {
+	for _, localBalance := range balances {
+		asset := localBalance.Balance.Asset
+		kind := asset.Type
+		if asset.Type == "native" {
 			kind = "XLM"
 		}
-		dui.Printf("%s\t%s\n", kind, balance.Amount)
+		localValue := ""
+		if localBalance.Currency != "" && localBalance.Value != "" {
+			localValue = fmt.Sprintf(" (%s %s)", localBalance.Value, localBalance.Currency)
+		}
+		dui.Printf("%s\t%s%s\n", kind, localBalance.Balance.Amount, localValue)
 	}
 
 	return nil

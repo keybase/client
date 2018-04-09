@@ -6,6 +6,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import {isMobile} from '../constants/platform'
+import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -41,12 +42,7 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metaUpdatePagination:
       return metaMap.update(
         action.payload.conversationIDKey,
-        meta =>
-          meta
-            ? meta
-                .set('paginationKey', action.payload.paginationKey)
-                .set('paginationMoreToLoad', action.payload.paginationMoreToLoad)
-            : meta
+        meta => (meta ? meta.set('paginationKey', action.payload.paginationKey) : meta)
       )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
@@ -126,6 +122,24 @@ const metaMapReducer = (metaMap, action) => {
       return ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
         ? metaMap.clear()
         : metaMap
+    case Chat2Gen.updateConvRetentionPolicy:
+      const {conv} = action.payload
+      const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+      if (!newMeta) {
+        logger.warn('Invalid inboxUIItem received in conv retention policy update')
+        return metaMap
+      }
+      return metaMap.set(newMeta.conversationIDKey, newMeta)
+    case Chat2Gen.updateTeamRetentionPolicy:
+      const {convs} = action.payload
+      const newMetas = convs.reduce((updated, conv) => {
+        const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+        if (newMeta) {
+          updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
+        }
+        return updated
+      }, {})
+      return metaMap.merge(newMetas)
     default:
       return metaMap
   }
@@ -494,15 +508,50 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         state.messageMap.updateIn([conversationIDKey, ordinal], message => {
           if (message) {
             if (message.type === 'text') {
-              return message.set('errorReason', reason).set('submitState', null)
+              return message.set('errorReason', reason).set('submitState', 'failed')
             }
             if (message.type === 'attachment') {
-              return message.set('errorReason', reason).set('submitState', null)
+              return message.set('errorReason', reason).set('submitState', 'failed')
             }
           }
           return message
         })
       )
+    }
+    case Chat2Gen.setPendingMessageSubmitState: {
+      const {reason, submitState} = action.payload
+      logger.warn(`Got setPendingMessageSubmitState to '${submitState}' with reason: ${reason}`)
+      const conversationIDKey = Types.stringToConversationIDKey('')
+      // We don't need to get the ordinals here, but we might as well check our state is kept internally consistent
+      const ordinalMap = state.pendingOutboxToOrdinal.get(conversationIDKey)
+      if (!ordinalMap) {
+        logger.warn('Got setPendingMessageSubmitState with no pending messages')
+        return state
+      }
+      const ordinals = ordinalMap.toIndexedSeq().toArray()
+      // Mark all messages in the pending conv messageMap as failed
+      return state.set(
+        'messageMap',
+        state.messageMap.withMutations(mm => {
+          ordinals.forEach(ordinal =>
+            mm.updateIn([conversationIDKey, ordinal], message => {
+              if (message) {
+                if (message.type === 'text') {
+                  return message.set('submitState', submitState)
+                }
+                if (message.type === 'attachment') {
+                  return message.set('submitState', submitState)
+                }
+              }
+              return message
+            })
+          )
+        })
+      )
+    }
+    case Chat2Gen.setPendingStatus: {
+      const {pendingStatus} = action.payload
+      return state.set('pendingStatus', pendingStatus)
     }
     case Chat2Gen.clearPendingConversation: {
       return state.withMutations(s => {
@@ -596,6 +645,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaDelete:
     case Chat2Gen.metaUpdatePagination:
     case Chat2Gen.setConversationOffline:
+    case Chat2Gen.updateConvRetentionPolicy:
+    case Chat2Gen.updateTeamRetentionPolicy:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -624,6 +675,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.resetLetThemIn:
     case Chat2Gen.sendToPendingConversation:
     case Chat2Gen.sendTyping:
+    case Chat2Gen.setConvRetentionPolicy:
     case Chat2Gen.setupChatHandlers:
     case Chat2Gen.startConversation:
     case Chat2Gen.navigateToInbox:
@@ -632,6 +684,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageAttachmentNativeSave:
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
+    case Chat2Gen.cancelPendingConversation:
+    case Chat2Gen.retryPendingConversation:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

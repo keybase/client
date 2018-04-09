@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/stellar"
+	context "golang.org/x/net/context"
 )
 
 var WalletInitBackgroundSettings = BackgroundTaskSettings{
@@ -94,11 +94,16 @@ func WalletInitBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
 		return nil
 	}
 
+	if !g.ActiveDevice.Valid() {
+		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound not logged in")
+		return nil
+	}
+
 	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "WalletInitBackgroundRound") {
 		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound yielding to guard")
 		return nil
 	}
 
-	_, err := stellar.CreateWalletGated(ectx.GetNetContext(), g)
+	_, err := g.GetStellar().CreateWalletGated(context.Background())
 	return err
 }

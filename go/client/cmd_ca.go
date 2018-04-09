@@ -45,8 +45,8 @@ func (c *CmdCA) runPromptLoop() error {
 			break
 		}
 		v := re.Split(s, -1)
-		if len(v) != 3 {
-			c.G().Log.Errorf("Need a triple: [<uid>,<username>,<kid>]")
+		if len(v) != 4 {
+			c.G().Log.Errorf("Need a quad: [<uid>,<username>,<loadDeleted>,<kid>]")
 			continue
 		}
 
@@ -58,13 +58,22 @@ func (c *CmdCA) runPromptLoop() error {
 
 		un := libkb.NewNormalizedUsername(v[1])
 
-		kid, e2 := keybase1.KIDFromStringChecked(v[2])
+		kid, e2 := keybase1.KIDFromStringChecked(v[3])
 		if e2 != nil {
-			c.G().Log.Errorf("Bad KID %s: %s", v[2], e2)
+			c.G().Log.Errorf("Bad KID %s: %s", v[3], e2)
 			continue
 		}
+		loadDeleted := false
+		switch v[2] {
+		case "1", "true":
+			loadDeleted = true
+		case "0", "false":
+		default:
+			c.G().Log.Errorf("Bad loadDeleted value: %s", v[2])
 
-		if e2 := ca.CheckUserKey(context.TODO(), uid, &un, &kid); e2 != nil {
+		}
+
+		if e2 := ca.CheckUserKey(context.TODO(), uid, &un, &kid, loadDeleted); e2 != nil {
 			c.G().Log.Errorf("Bad check: %s", e2)
 		}
 

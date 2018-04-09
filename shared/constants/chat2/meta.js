@@ -11,6 +11,7 @@ import {globalColors} from '../../styles'
 import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
+import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -99,7 +100,7 @@ const getTeamType = ({teamType, membersType}) => {
   }
 }
 
-// Upgrade a meta, try and keep exising values if possible to reduce render thrashing in components
+// Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
   old: Types.ConversationMeta,
@@ -119,7 +120,6 @@ export const updateMeta = (
   return meta.withMutations(m => {
     m.set('channelname', meta.channelname || old.channelname)
     m.set('paginationKey', old.paginationKey)
-    m.set('paginationMoreToLoad', old.paginationMoreToLoad)
     m.set('orangeLineOrdinal', old.orangeLineOrdinal)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -208,6 +208,20 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
+  // default inherit for teams, retain for ad-hoc
+  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
+  let retentionPolicy = isTeam ? makeRetentionPolicy({type: 'inherit'}) : makeRetentionPolicy()
+  if (i.convRetention) {
+    // it has been set for this conversation
+    retentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+  }
+
+  // default for team-wide policy is 'retain'
+  let teamRetentionPolicy = makeRetentionPolicy()
+  if (i.teamRetention) {
+    teamRetentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+  }
+
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
@@ -220,11 +234,13 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     notificationsMobile,
     participants: I.OrderedSet(i.participants || []),
     resetParticipants,
+    retentionPolicy,
     snippet: i.snippet,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : null,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
+    teamRetentionPolicy,
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
@@ -245,20 +261,25 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   offline: false,
   orangeLineOrdinal: null,
   paginationKey: null,
-  paginationMoreToLoad: false,
   participants: I.OrderedSet(),
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
+  retentionPolicy: makeRetentionPolicy(),
   snippet: '',
   supersededBy: null,
   supersedes: null,
   teamType: 'adhoc',
   teamname: '',
+  teamRetentionPolicy: makeRetentionPolicy(),
   timestamp: 0,
   tlfname: '',
   trustedState: 'untrusted',
   wasFinalizedBy: '',
 })
+
+const emptyMeta = makeConversationMeta()
+export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.metaMap.get(id, emptyMeta)
 
 const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
@@ -269,9 +290,11 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     ? globalColors.red
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
+  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 
   return {
     backgroundColor,
+    iconHoverColor,
     showBold,
     subColor,
     usernameColor,
@@ -307,4 +330,12 @@ export const findConversationFromParticipants = (state: TypedState, participants
       // Ignore the order of participants
       meta.teamType === 'adhoc' && meta.participants.toSet().equals(toFind)
   )
+}
+
+export const getConversationRetentionPolicy = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+) => {
+  const conv = getMeta(state, conversationIDKey)
+  return conv.retentionPolicy
 }

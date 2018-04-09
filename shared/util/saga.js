@@ -5,6 +5,7 @@ import isEqual from 'lodash/isEqual'
 import map from 'lodash/map'
 import forEach from 'lodash/forEach'
 import {buffers, channel, delay} from 'redux-saga'
+import type {Pattern, ForkEffect, Saga as _Saga} from 'redux-saga'
 import {
   actionChannel,
   all,
@@ -35,7 +36,7 @@ function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, (v, k) => {
     const ret = channel(v())
     // to help debug what's going on in dev/user-timings
-    // $FlowIssue doesn't like us setting this on a sealed object
+    // $ForceType
     ret.userTimingName = k
     return ret
   })
@@ -90,10 +91,10 @@ function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {
   }, {})
 }
 
-function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
-  const safeTakeEveryWorker = function* safeTakeEveryWorker(...args) {
+function safeTakeEvery(pattern: Pattern, worker: Function): ForkEffect<null, Function, $ReadOnlyArray<any>> {
+  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: Action): _Saga<void> {
     try {
-      yield call(worker, ...args)
+      yield call(worker, action)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
       yield put(
@@ -108,8 +109,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
     }
   }
 
-  // $FlowIssue confused
-  return takeEvery(pattern, safeTakeEveryWorker, ...args)
+  return takeEvery(pattern, safeTakeEveryWorker)
 }
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order

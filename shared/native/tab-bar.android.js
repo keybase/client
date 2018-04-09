@@ -6,12 +6,6 @@ const tabBarProps = {
   name: 'TabBar',
 }
 
-class TabBarItem extends Component<any> {
-  render() {
-    return this.props.children
-  }
-}
-
 const NativeTabBar = requireNativeComponent('TabBar', tabBarProps, {
   nativeOnly: {
     onSelect: true,
@@ -71,6 +65,3 @@ export default class TabBar extends Component<any, any> {
     )
   }
 }
-
-// $FlowIssue
-TabBar.Item = TabBarItem
