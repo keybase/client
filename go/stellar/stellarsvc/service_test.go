@@ -310,7 +310,7 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 	return nullSecretUI{}
 }
 
-func newTestServer(g *libkb.GlobalContext) (*Server, *remote.RemoteMock) {
-	m := remote.NewRemoteMock(g)
+func newTestServer(g *libkb.GlobalContext) (*Server, *RemoteMock) {
+	m := NewRemoteMock(g)
 	return New(g, &testUISource{}, m), m
 }
