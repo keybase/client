@@ -20,12 +20,15 @@ type Props = {
 }
 
 const TextPopupMenu = (props: Props) => {
+  const commonItems = [
+    {onClick: props.onCopy, title: 'Copy Text'},
+    {onClick: props.onQuote, title: 'Quote'},
+    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+  ]
   const items = props.yourMessage
     ? [
         ...(props.showDivider ? ['Divider'] : []),
-        {onClick: props.onCopy, title: 'Copy Text'},
-        {onClick: props.onQuote, title: 'Quote'},
-        {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+        ...commonItems,
         {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
         {
           danger: true,
@@ -45,11 +48,7 @@ const TextPopupMenu = (props: Props) => {
             ]
           : []),
       ]
-    : [
-        {onClick: props.onCopy, title: 'Copy Text'},
-        {onClick: props.onQuote, title: 'Quote'},
-        {onClick: props.onReplyPrivately, title: 'Reply Privately'},
-      ]
+    : commonItems
 
   const header = {
     title: 'header',
