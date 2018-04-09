@@ -739,7 +739,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   const waitingKey = {key: Constants.settingsWaitingKey(teamname)}
 
   const teamSettings = state.teams.getIn(
-    ['teamNameToTeamSettings', teamname],
+    ['teamNameToSettings', teamname],
     Constants.makeTeamSettings({
       open: false,
       joinAs: RPCTypes.teamsTeamRole['reader'],

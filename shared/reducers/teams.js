@@ -48,7 +48,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.withMutations(s => {
         s.setIn(['teamNameToMembers', action.payload.teamname], action.payload.members)
         s.setIn(['teamNameToMemberUsernames', action.payload.teamname], action.payload.usernames)
-        s.setIn(['teamNameToTeamSettings', action.payload.teamname], action.payload.settings)
+        s.setIn(['teamNameToSettings', action.payload.teamname], action.payload.settings)
         s.setIn(['teamNameToInvites', action.payload.teamname], action.payload.invites)
         s.setIn(['teamNameToSubteams', action.payload.teamname], action.payload.subteams)
         s.mergeIn(['teamNameToRequests'], action.payload.requests)

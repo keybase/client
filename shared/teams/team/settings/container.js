@@ -24,9 +24,8 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
       ['teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
       false
     ),
-    openTeam: state.teams.getIn(['teamNameToTeamSettings', teamname, 'open'], false),
-    openTeamRole:
-      Constants.teamRoleByEnum[state.teams.getIn(['teamNameToTeamSettings', teamname, 'joinAs'], 1)],
+    openTeam: state.teams.getIn(['teamNameToSettings', teamname, 'open'], false),
+    openTeamRole: Constants.teamRoleByEnum[state.teams.getIn(['teamNameToSettings', teamname, 'joinAs'], 1)],
     publicityAnyMember,
     publicityMember,
     publicityTeam,
