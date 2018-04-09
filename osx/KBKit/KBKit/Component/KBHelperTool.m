@@ -46,7 +46,7 @@
   MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
   client.retryMaxAttempts = 4;
   client.retryDelay = 0.5;
-  client.timeout = 10.0;
+  client.timeout = 60.0;
   return client;
 }
 
