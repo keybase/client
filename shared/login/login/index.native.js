@@ -24,7 +24,7 @@ class LoginRender extends Component<Props> {
       onEnterKeyDown: () => this.props.onSubmit(),
       errorText: this.props.error,
       autoFocus: true,
-      // There is a weird but with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
+      // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
       // making this uncontrolled fixes this
       uncontrolled: true,
     }
