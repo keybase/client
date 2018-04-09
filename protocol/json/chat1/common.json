@@ -495,8 +495,8 @@
       "name": "ConvEphemeralMetadata",
       "fields": [
         {
-          "type": "MessageID",
-          "name": "last"
+          "type": "gregor1.Time",
+          "name": "lastKtime"
         }
       ],
       "mpackkey": "em",

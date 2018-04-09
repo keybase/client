@@ -211,8 +211,7 @@
 
   @mpackkey("em") @jsonkey("em")
   record ConvEphemeralMetadata {
-    // Last message that was exploded
-    MessageID last;
+    gregor1.Time lastKtime;
   }
 
   record ConversationMetadata  {

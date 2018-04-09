@@ -665,7 +665,7 @@ export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomi
 
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConvEphemeralMetadata = $ReadOnly<{last: MessageID}>
+export type ConvEphemeralMetadata = $ReadOnly<{lastKtime: Gregor1.Time}>
 
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 

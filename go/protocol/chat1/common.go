@@ -744,12 +744,12 @@ func (o Expunge) DeepCopy() Expunge {
 }
 
 type ConvEphemeralMetadata struct {
-	Last MessageID `codec:"last" json:"last"`
+	LastKtime gregor1.Time `codec:"lastKtime" json:"lastKtime"`
 }
 
 func (o ConvEphemeralMetadata) DeepCopy() ConvEphemeralMetadata {
 	return ConvEphemeralMetadata{
-		Last: o.Last.DeepCopy(),
+		LastKtime: o.LastKtime.DeepCopy(),
 	}
 }
 
