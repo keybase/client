@@ -49,11 +49,11 @@ func (c *cmdWalletBalances) runForAccountID(cli stellar1.LocalClient) error {
 	}
 
 	for _, balance := range balances {
-		kind := balance.Asset.Type
-		if balance.Asset.Type == "native" {
-			kind = "XLM"
+		if balance.Asset.IsNativeXLM() {
+			dui.Printf("%s\t%s\n", "XLM", balance.Amount)
+		} else {
+			dui.Printf("%q\t%s\t(issued by %s)\n", balance.Asset.Code, balance.Amount, balance.Asset.Issuer)
 		}
-		dui.Printf("%s\t%s\n", kind, balance.Amount)
 	}
 	return nil
 }
@@ -68,7 +68,11 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 	for i, acc := range accounts {
 		var accountName string
 		if acc.Name != "" {
-			accountName = fmt.Sprintf("%s (%s)", acc.Name, acc.AccountID.String())
+			var isPrimary string
+			if acc.IsPrimary {
+				isPrimary = ", Primary"
+			}
+			accountName = fmt.Sprintf("%s (%q%s)", acc.Name, acc.AccountID.String(), isPrimary)
 		} else {
 			accountName = acc.AccountID.String()
 			if acc.IsPrimary {
@@ -79,10 +83,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 
 		for _, balance := range acc.Balance {
 			localAmountStr := ""
-			kind := balance.Asset.Type
-			if balance.Asset.Type == "native" {
-				kind = "XLM"
-
+			if balance.Asset.IsNativeXLM() {
 				if acc.LocalCurrency != "" {
 					localAmount, err := acc.LocalExchangeRate.ConvertXLM(balance.Amount)
 					if err == nil {
@@ -91,8 +92,11 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 						c.G().Log.Warning("Unable to convert to local currency: %s", err)
 					}
 				}
+
+				dui.Printf("XLM\t%s%s\n", balance.Amount, ColorString(c.G(), "green", localAmountStr))
+			} else {
+				dui.Printf("%q\t%s\t(issued by %s)\n", balance.Asset.Code, balance.Amount, balance.Asset.Issuer)
 			}
-			dui.Printf("%s\t%s%s\n", kind, balance.Amount, ColorString(c.G(), "green", localAmountStr))
 		}
 
 		if i != len(accounts)-1 {

@@ -220,7 +220,11 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 
 type exchangeRateMap map[string]remote.XLMExchangeRate
 
-func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.LocalOwnAccount, rates exchangeRateMap) error {
+// getLocalCurrencyAndExchangeRate gets display currency setting
+// for accountID and fetches exchange rate is set.
+//
+// Arguments `account` and `exchangeRates` may end up mutated.
+func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.LocalOwnAccount, exchangeRates exchangeRateMap) error {
 	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
 	if err != nil {
 		return err
@@ -230,14 +234,14 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 		return nil
 	}
 
-	rate, ok := rates[displayCurrency]
+	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
 		var err error
 		rate, err = remote.ExchangeRate(ctx, g, displayCurrency)
 		if err != nil {
 			return err
 		}
-		rates[displayCurrency] = rate
+		exchangeRates[displayCurrency] = rate
 	}
 
 	account.LocalCurrency = stellar1.LocalCurrencyCode(rate.Currency)
