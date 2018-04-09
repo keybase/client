@@ -64,13 +64,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ...stateProps,
     ...ownProps,
     savePublicity: (settings, showRetentionWarning: boolean, policy: Types.RetentionPolicy) => {
-      showRetentionWarning &&
-        dispatchProps._showRetentionWarning(
-          policy.days,
-          () => dispatchProps._saveRetentionPolicy(ownProps.teamname, policy),
-          stateProps.isBigTeam ? 'big team' : 'small team'
-        )
-      !showRetentionWarning && dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
+      if (stateProps.yourOperations.setRetentionPolicy) {
+        showRetentionWarning &&
+          dispatchProps._showRetentionWarning(
+            policy.days,
+            () => dispatchProps._saveRetentionPolicy(ownProps.teamname, policy),
+            stateProps.isBigTeam ? 'big team' : 'small team'
+          )
+        !showRetentionWarning && dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
+      }
       dispatchProps._savePublicity(ownProps.teamname, settings)
     },
     setOpenTeamRole: dispatchProps.setOpenTeamRole,
