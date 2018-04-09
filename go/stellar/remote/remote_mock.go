@@ -132,7 +132,7 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 }
 
 func (r *RemoteMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	return RecentPayments(ctx, r.G(), accountID, limit)
+	return nil, errors.New("RecentPayments hasn't been implemented in the RemoteMock yet")
 }
 
 func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
