@@ -262,6 +262,10 @@ class Input extends Component<Props, State> {
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
+    if (this.props.uncontrolled) {
+      delete commonProps['value']
+    }
+
     const singlelineProps = {
       ...commonProps,
       multiline: false,
