@@ -56,12 +56,12 @@ func CreateWalletGated(ctx context.Context, g *libkb.GlobalContext) (created boo
 	return CreateWallet(ctx, g)
 }
 
-// InitWalletSoft creates a user's initial wallet if they don't already have one.
+// CreateWalletSoft creates a user's initial wallet if they don't already have one.
 // Does not get in the way of intentional user actions.
-func InitWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
+func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 	var err error
-	defer g.CTraceTimed(ctx, "InitWalletSoft", func() error { return err })()
-	if !g.LocalSigchainGuard().IsAvailable(ctx, "InitWalletSoft") {
+	defer g.CTraceTimed(ctx, "CreateWalletSoft", func() error { return err })()
+	if !g.LocalSigchainGuard().IsAvailable(ctx, "CreateWalletSoft") {
 		err = fmt.Errorf("yielding to guard")
 		return
 	}

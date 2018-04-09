@@ -379,7 +379,7 @@ func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKey
 		return nil, err
 	}
 	if maxGeneration < 0 {
-		e.G().Log.CWarningf(ctx, "No userEK found")
+		e.G().Log.CDebugf(ctx, "No userEK found")
 		return nil, nil
 	}
 	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration)

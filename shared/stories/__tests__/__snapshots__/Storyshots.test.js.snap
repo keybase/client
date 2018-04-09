@@ -9688,6 +9688,454 @@ exports[`Storyshots Chat/Teams ManageChannels - Unsaved Subscription 1`] = `
 </div>
 `;
 
+exports[`Storyshots Chat/Teams ManageChannels - no channels 1`] = `
+.css-0,
+[data-css-0] {
+  color: #ffffff;
+}
+
+.css-1,
+[data-css-1] {
+  bottom: 1px;
+  left: 1px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
+.css-2,
+[data-css-2] {
+  background-size: cover;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-24.png') 1x, url('icons/icon-team-placeholder-avatar-24@2x.png') 2x);
+  border-radius: 4px;
+  height: 24px;
+  max-width: 24px;
+  min-width: 24px;
+  opacity: 1;
+}
+
+.css-3,
+[data-css-3] {
+  font-size: 11px;
+  line-height: 15px;
+  color: #2645A3;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.css-4,
+[data-css-4] {
+  color: #4C8EFF;
+}
+
+.css-4:hover,
+[data-css-4]:hover {
+  color: #73A6FF;
+}
+
+.css-6,
+[data-css-6] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #4C8EFF;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+}
+
+.css-7,
+[data-css-7] {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+.css-8,
+[data-css-8] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "minWidth": 400,
+          "width": "100%",
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "background": "rgba(0, 0, 0, 0.60)",
+            "backgroundColor": "rgba(0, 0, 0, 0.60)",
+            "bottom": 0,
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "center",
+            "left": 0,
+            "paddingBottom": 16,
+            "paddingLeft": 40,
+            "paddingRight": 40,
+            "paddingTop": 16,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "display": "flex",
+              "flexDirection": "row",
+              "height": 520,
+              "maxHeight": "100%",
+              "maxWidth": "100%",
+              "position": "relative",
+              "width": 620,
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-0"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "position": "absolute",
+                  "right": -22,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div
+            onClick={[Function]}
+            style={
+              Object {
+                "background": "#ffffff",
+                "borderRadius": 4,
+                "boxShadow": "0 2px 5px 0 rgba(0, 0, 0, 0.20)",
+                "display": "flex",
+                "flex": 1,
+                "flexDirection": "column",
+                "maxWidth": "100%",
+                "position": "relative",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flex": 1,
+                  "flexDirection": "column",
+                  "paddingBottom": 24,
+                  "paddingLeft": 40,
+                  "paddingRight": 40,
+                  "paddingTop": 24,
+                }
+              }
+            >
+              <div
+                onClick={undefined}
+                style={
+                  Object {
+                    "height": 24,
+                    "maxWidth": 24,
+                    "minHeight": 24,
+                    "minWidth": 24,
+                    "position": "relative",
+                    "userSelect": "none",
+                  }
+                }
+              >
+                <div
+                  className="css-1"
+                />
+                <div
+                  className="css-2"
+                />
+              </div>
+              <span
+                className="css-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                stripe.usa
+              </span>
+              <img
+                className={undefined}
+                draggable="false"
+                onClick={null}
+                srcSet="icons/icon-progress-grey-static.png 1x, icons/icon-progress-grey-static@2x.png 2x"
+                style={
+                  Object {
+                    "userSelect": "none",
+                    "width": 48,
+                  }
+                }
+                title={undefined}
+              />
+              <div
+                style={
+                  Object {
+                    "alignSelf": "flex-start",
+                    "overflow": "auto",
+                    "paddingBottom": 64,
+                    "width": "100%",
+                  }
+                }
+              >
+                <div
+                  style={undefined}
+                />
+              </div>
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "position": "absolute",
+                    "right": 32,
+                    "top": 32,
+                  }
+                }
+              >
+                <div>
+                  <span
+                    className="css-4"
+                    onClick={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
+                    style={
+                      Object {
+                        "WebkitFontSmoothing": "antialiased",
+                        "cursor": "pointer",
+                        "display": "block",
+                        "fontFamily": "kb",
+                        "fontSize": 16,
+                        "fontStyle": "normal",
+                        "fontVariant": "normal",
+                        "fontWeight": "normal",
+                        "lineHeight": 1,
+                        "marginRight": 4,
+                        "speak": "none",
+                        "textTransform": "none",
+                        "userSelect": "none",
+                      }
+                    }
+                  >
+                    
+                  </span>
+                </div>
+                <span
+                  className="css-6"
+                  onClick={[Function]}
+                  title={undefined}
+                >
+                  New chat channel
+                </span>
+              </div>
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flex": 2,
+                    "flexDirection": "column",
+                    "justifyContent": "flex-end",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "justifyContent": "center",
+                      "minHeight": 64,
+                      "width": "100%",
+                    }
+                  }
+                >
+                  <div
+                    onClick={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
+                    onMouseUp={[Function]}
+                    style={
+                      Object {
+                        "alignItems": "center",
+                        "alignSelf": "center",
+                        "backgroundColor": "#e6e6e6",
+                        "borderRadius": 50,
+                        "cursor": "pointer",
+                        "display": "inline-block",
+                        "flexDirection": "column",
+                        "height": 32,
+                        "justifyContent": "center",
+                        "lineHeight": "inherit",
+                        "minWidth": undefined,
+                        "paddingLeft": 24,
+                        "paddingRight": 24,
+                        "position": "relative",
+                        "textAlign": "left",
+                        "transform": "none",
+                        "transition": "none",
+                      }
+                    }
+                  >
+                    <div
+                      style={
+                        Object {
+                          "alignItems": "center",
+                          "display": "flex",
+                          "flexDirection": "row",
+                          "height": "100%",
+                          "justifyContent": "center",
+                          "position": "relative",
+                        }
+                      }
+                    >
+                      <span
+                        className="css-7"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        Cancel
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    style={
+                      Object {
+                        "height": 8,
+                        "width": 8,
+                      }
+                    }
+                  />
+                  <div
+                    onClick={null}
+                    onMouseDown={[Function]}
+                    onMouseEnter={undefined}
+                    onMouseLeave={undefined}
+                    onMouseUp={[Function]}
+                    style={
+                      Object {
+                        "alignItems": "center",
+                        "alignSelf": "center",
+                        "backgroundColor": "#4C8EFF",
+                        "borderRadius": 50,
+                        "display": "inline-block",
+                        "flexDirection": "column",
+                        "height": 32,
+                        "justifyContent": "center",
+                        "lineHeight": "inherit",
+                        "marginLeft": 8,
+                        "minWidth": undefined,
+                        "opacity": 0.3,
+                        "paddingLeft": 24,
+                        "paddingRight": 24,
+                        "position": "relative",
+                        "textAlign": "left",
+                        "transform": "none",
+                        "transition": "none",
+                      }
+                    }
+                  >
+                    <div
+                      style={
+                        Object {
+                          "alignItems": "center",
+                          "display": "flex",
+                          "flexDirection": "row",
+                          "height": "100%",
+                          "justifyContent": "center",
+                          "position": "relative",
+                        }
+                      }
+                    >
+                      <span
+                        className="css-8"
+                        onClick={undefined}
+                        title={undefined}
+                      >
+                        Saved
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Chat/Teams ManageChannels 1`] = `
 .css-0,
 [data-css-0] {

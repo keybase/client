@@ -7,5 +7,4 @@ import (
 func ServiceInit(g *libkb.GlobalContext) {
 	NewTeamLoaderAndInstall(g)
 	NewImplicitTeamConflictInfoCacheAndInstall(g)
-
 }

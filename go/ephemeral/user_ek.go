@@ -151,7 +151,7 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 
 	// Cache the new box after we see the post succeeded.
 	if myBox == nil {
-		g.Log.CWarningf(ctx, "No box made for own deviceEK")
+		g.Log.CDebugf(ctx, "No box made for own deviceEK")
 	} else {
 		storage := g.GetUserEKBoxStorage()
 		err = storage.Put(ctx, newMetadata.Generation, *myBox)
@@ -234,7 +234,7 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 		// is still returned in this case. TODO: Turn this warning into an error
 		// after EK support is sufficiently widespread.
 		if wrongKID {
-			g.Log.CWarningf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
+			g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 			return nil, nil
 		}
 		if err != nil {

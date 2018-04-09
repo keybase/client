@@ -275,7 +275,7 @@ func (c *FullCachingSource) dispatchPopulateFromRes(ctx context.Context, res key
 }
 
 func (c *FullCachingSource) makeURL(path string) keybase1.AvatarUrl {
-	return keybase1.MakeAvatarURL(fmt.Sprintf("file://%s", path))
+	return keybase1.MakeAvatarURL(fmt.Sprintf("file://%s", fileUrlize(path)))
 }
 
 func (c *FullCachingSource) mergeRes(res *keybase1.LoadAvatarsRes, m keybase1.LoadAvatarsRes) {

@@ -62,6 +62,25 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 	return team, nil
 }
 
+func GetForDisplayByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	// assume private team
+	public := false
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:                      name,
+		Public:                    public,
+		ForceRepoll:               true,
+		AllowNameLookupBurstCache: true,
+	})
+	if err != nil {
+		return nil, fixupTeamGetError(ctx, g, err, name, public)
+	}
+	if team.IsImplicit() {
+		return nil, fmt.Errorf("cannot display implicit team by name")
+	}
+	return team, nil
+}
+
 func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, needAdmin bool) (*Team, error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          id,
@@ -87,10 +106,11 @@ func GetTeamByNameForTest(ctx context.Context, g *libkb.GlobalContext, name stri
 func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (*Team, error) {
 	// Find out our up-to-date role.
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:             name,
-		Public:           public,
-		ForceRepoll:      true,
-		RefreshUIDMapper: true,
+		Name:                      name,
+		Public:                    public,
+		ForceRepoll:               true,
+		RefreshUIDMapper:          true,
+		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {
 		return nil, fixupTeamGetError(ctx, g, err, name, public)
@@ -107,9 +127,10 @@ func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name
 		// Will hit the cache _unless_ we had a cached non-admin team
 		// and are now an admin.
 		team, err = Load(ctx, g, keybase1.LoadTeamArg{
-			Name:      name,
-			Public:    public,
-			NeedAdmin: true,
+			Name:                      name,
+			Public:                    public,
+			NeedAdmin:                 true,
+			AllowNameLookupBurstCache: true,
 		})
 		if err != nil {
 			return nil, err

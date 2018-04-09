@@ -2431,7 +2431,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -2499,7 +2499,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		select {
 		case updates := <-listener.threadsStale:
 			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
+			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -2989,7 +2989,34 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-
+		select {
+		case info := <-listener0.newMessage:
+			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
+			require.True(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message event")
+		}
+		setting := chat1.AppNotificationSettingLocal{
+			DeviceType: keybase1.DeviceType_DESKTOP,
+			Kind:       chat1.NotificationKind_ATMENTION,
+			Enabled:    false,
+		}
+		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
+			chat1.SetAppNotificationSettingsLocalArg{
+				ConvID:   conv.Id,
+				Settings: []chat1.AppNotificationSettingLocal{setting},
+			})
+		require.NoError(t, err)
+		select {
+		case rsettings := <-listener0.appNotificationSettings:
+			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
+			require.Equal(t, 2, len(rsettings.Settings.Settings))
+			require.False(t, rsettings.Settings.ChannelWide)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no app notification received")
+		}
+		mustPostLocalForTest(t, ctc, users[1], conv,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("@%s", users[0].Username)}))
 		select {
 		case info := <-listener0.newMessage:
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
@@ -2998,15 +3025,20 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			require.Fail(t, "no new message event")
 		}
 
-		setting := chat1.AppNotificationSettingLocal{
+		setting = chat1.AppNotificationSettingLocal{
 			DeviceType: keybase1.DeviceType_DESKTOP,
 			Kind:       chat1.NotificationKind_GENERIC,
 			Enabled:    false,
 		}
+		setting2 := chat1.AppNotificationSettingLocal{
+			DeviceType: keybase1.DeviceType_DESKTOP,
+			Kind:       chat1.NotificationKind_ATMENTION,
+			Enabled:    true,
+		}
 		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
 			chat1.SetAppNotificationSettingsLocalArg{
 				ConvID:   conv.Id,
-				Settings: []chat1.AppNotificationSettingLocal{setting},
+				Settings: []chat1.AppNotificationSettingLocal{setting, setting2},
 			})
 		require.NoError(t, err)
 		select {
