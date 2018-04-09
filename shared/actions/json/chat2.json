@@ -148,13 +148,7 @@
     },
     // Start quoting a message / or clear quoting
     "messageSetQuoting": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "?Types.Ordinal"
-    },
-    // Reply privately to a message with quoting
-    "messageReplyPrivately": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "quotedMessage": "?HiddenString"
     },
     // Submit an edit to the daemon
     "messageEdit": {

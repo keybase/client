@@ -43,7 +43,6 @@ export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
-export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
@@ -270,12 +269,6 @@ export const createMessageErrored = (
     outboxID: Types.OutboxID,
   |}>
 ) => ({error: false, payload, type: messageErrored})
-export const createMessageReplyPrivately = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-  |}>
-) => ({error: false, payload, type: messageReplyPrivately})
 export const createMessageRetry = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -295,12 +288,7 @@ export const createMessageSetEditing = (
     editLastUser?: string,
   |}>
 ) => ({error: false, payload, type: messageSetEditing})
-export const createMessageSetQuoting = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: ?Types.Ordinal,
-  |}>
-) => ({error: false, payload, type: messageSetQuoting})
+export const createMessageSetQuoting = (payload: $ReadOnly<{|quotedMessage: ?HiddenString|}>) => ({error: false, payload, type: messageSetQuoting})
 export const createMessageWasEdited = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -475,7 +463,6 @@ export type MessageDeleteHistoryPayload = More.ReturnType<typeof createMessageDe
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
 export type MessageErroredPayload = More.ReturnType<typeof createMessageErrored>
-export type MessageReplyPrivatelyPayload = More.ReturnType<typeof createMessageReplyPrivately>
 export type MessageRetryPayload = More.ReturnType<typeof createMessageRetry>
 export type MessageSendPayload = More.ReturnType<typeof createMessageSend>
 export type MessageSetEditingPayload = More.ReturnType<typeof createMessageSetEditing>
@@ -553,7 +540,6 @@ export type Actions =
   | More.ReturnType<typeof createMessageDeleteHistory>
   | More.ReturnType<typeof createMessageEdit>
   | More.ReturnType<typeof createMessageErrored>
-  | More.ReturnType<typeof createMessageReplyPrivately>
   | More.ReturnType<typeof createMessageRetry>
   | More.ReturnType<typeof createMessageSend>
   | More.ReturnType<typeof createMessageSetEditing>

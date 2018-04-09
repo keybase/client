@@ -6,6 +6,7 @@ import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
 import {copyToClipboard} from '../../../../../util/clipboard'
+import HiddenString from '../../../../../util/hidden-string'
 import flags from '../../../../../util/feature-flags'
 import Text from '.'
 
@@ -52,21 +53,27 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       })
     )
   },
-  _onQuote: (quotedMessage: HiddenString) => {
-    dispatch(
-      Chat2Gen.createMessageSetQuoting({
-        quotedMessage,
-      })
-    )
+  _onQuote: (message: Types.Message) => {
+    if (message.type === 'text') {
+      dispatch(
+        Chat2Gen.createMessageSetQuoting({
+          quotedMessage: message.text,
+        })
+      )
+    }
   },
   _onReplyPrivately: (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageReplyPrivately({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  },
+    if (message.type === 'text' && message.author && message.text) {
+      dispatch(Chat2Gen.createStartConversation({
+        participants: [message.author],
+      }))
+      dispatch(
+        Chat2Gen.createMessageSetQuoting({
+          quotedMessage: message.text,
+        })
+      )
+    }
+  }
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -81,7 +88,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onClosePopup(),
-    onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message.text) : null,
+    onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message) : null,
     onReplyPrivately: message.type === 'text' ? () => dispatchProps._onReplyPrivately(message) : null,
     showDivider: !message.deviceRevokedAt,
     yourMessage,

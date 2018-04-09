@@ -1,6 +1,6 @@
 // @flow
 
-function formatTextForQuoting(text) {
+function formatTextForQuoting(text: string) {
   const lines = text.split('\n')
   const res = []
 
