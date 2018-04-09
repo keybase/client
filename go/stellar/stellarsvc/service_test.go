@@ -174,8 +174,8 @@ func TestBalances(t *testing.T) {
 	}
 
 	require.Len(t, balances, 1)
-	require.Equal(t, balances[0].Balance.Asset.Type, "native")
-	require.Equal(t, balances[0].Balance.Amount, "10000")
+	require.Equal(t, balances[0].Asset.Type, "native")
+	require.Equal(t, balances[0].Amount, "10000")
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
@@ -206,13 +206,13 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Balance.Amount, "9899.9999900")
+	require.Equal(t, balances[0].Amount, "9899.9999900")
 
 	balances, err = srv.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Balance.Amount, "10100.0000000")
+	require.Equal(t, balances[0].Amount, "10100.0000000")
 }
 
 func TestSendLocalKeybase(t *testing.T) {
@@ -249,13 +249,13 @@ func TestSendLocalKeybase(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Balance.Amount, "9899.9999900")
+	require.Equal(t, balances[0].Amount, "9899.9999900")
 
 	balances, err = srvSender.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, balances[0].Balance.Amount, "10100.0000000")
+	require.Equal(t, balances[0].Amount, "10100.0000000")
 }
 
 // Create n TestContexts with logged in users
