@@ -33,6 +33,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/tlfupgrade"
@@ -293,6 +294,7 @@ func (d *Service) Run() (err error) {
 func (d *Service) SetupCriticalSubServices() error {
 	epick := libkb.FirstErrorPicker{}
 	epick.Push(d.setupTeams())
+	epick.Push(d.setupStellar())
 	epick.Push(d.setupPVL())
 	epick.Push(d.setupEphemeralKeys())
 	return epick.Error()
@@ -305,6 +307,11 @@ func (d *Service) setupEphemeralKeys() error {
 
 func (d *Service) setupTeams() error {
 	teams.ServiceInit(d.G())
+	return nil
+}
+
+func (d *Service) setupStellar() error {
+	stellar.ServiceInit(d.G())
 	return nil
 }
 

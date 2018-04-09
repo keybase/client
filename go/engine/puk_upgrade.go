@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/stellar"
 	context "golang.org/x/net/context"
 )
 
@@ -102,7 +101,7 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 
 	if eng.DidNewKey {
 		go func() {
-			stellar.InitWalletSoft(context.Background(), e.G())
+			e.G().GetStellar().CreateWalletSoft(context.Background())
 		}()
 	}
 
