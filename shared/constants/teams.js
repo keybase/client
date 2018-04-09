@@ -179,6 +179,26 @@ const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
   state.entities.getIn(['teams', 'teamNameToRetentionPolicy', teamname], null)
 
+/**
+ * Gets whether the team is big or small for teams you are a member of
+ */
+const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
+  const mm = state.chat2.metaMap
+  const conv = mm.find(c => c.teamname === teamname)
+  if (conv) {
+    if (conv.teamType === 'big' || conv.teamType === 'small') {
+      return conv.teamType
+    }
+  }
+  return null
+}
+
+/**
+ * Returns true if the team is big and you're a member
+ */
+const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
+  getTeamType(state, teamname) === 'big'
+
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
 
@@ -266,7 +286,9 @@ export {
   getTeamID,
   getTeamRetentionPolicy,
   getTopicFromConvID,
+  getTeamType,
   isAdmin,
+  isBigTeam,
   isOwner,
   isSubteam,
   serviceRetentionPolicyToRetentionPolicy,

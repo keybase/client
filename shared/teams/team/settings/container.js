@@ -12,6 +12,7 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
+  isBigTeam: Constants.isBigTeam(state, teamname),
   ignoreAccessRequests: state.entities.getIn(
     ['teams', 'teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
     false
@@ -39,10 +40,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: Types.RetentionPolicy) =>
     dispatch(TeamsGen.createSetTeamRetentionPolicy({teamname, policy})),
-  _showRetentionWarning: (days: number, onConfirm: () => void) =>
-    dispatch(
-      navigateAppend([{selected: 'retentionWarning', props: {days, onConfirm, entityType: 'big team'}}])
-    ),
+  _showRetentionWarning: (days: number, onConfirm: () => void, entityType: 'big team' | 'small team') =>
+    dispatch(navigateAppend([{selected: 'retentionWarning', props: {days, onConfirm, entityType}}])),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([
@@ -65,11 +64,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ...stateProps,
     ...ownProps,
     savePublicity: (settings, showRetentionWarning: boolean, policy: Types.RetentionPolicy) => {
-      showRetentionWarning &&
-        dispatchProps._showRetentionWarning(policy.days, () =>
-          dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
-        )
-      !showRetentionWarning && dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
+      if (stateProps.yourOperations.setRetentionPolicy) {
+        showRetentionWarning &&
+          dispatchProps._showRetentionWarning(
+            policy.days,
+            () => dispatchProps._saveRetentionPolicy(ownProps.teamname, policy),
+            stateProps.isBigTeam ? 'big team' : 'small team'
+          )
+        !showRetentionWarning && dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
+      }
       dispatchProps._savePublicity(ownProps.teamname, settings)
     },
     setOpenTeamRole: dispatchProps.setOpenTeamRole,

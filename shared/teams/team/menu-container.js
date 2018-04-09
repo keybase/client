@@ -10,10 +10,12 @@ import {teamsTab} from '../../constants/tabs'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   const yourOperations = Constants.getCanPerform(state, teamname)
+  const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
     canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
+    isBigTeam,
   }
 }
 
@@ -38,7 +40,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
 const mergeProps = (stateProps, dispatchProps) => {
   const items = []
   if (stateProps.canManageChat) {
-    items.push({onClick: dispatchProps.onManageChat, title: 'Manage chat channels'})
+    items.push({
+      onClick: dispatchProps.onManageChat,
+      title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
+      subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
+    })
   }
   if (stateProps.canLeaveTeam) {
     items.push({onClick: dispatchProps.onLeaveTeam, title: 'Leave team', danger: true})
