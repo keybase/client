@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import UserNotice from '../user-notice'
+import UserNotice, {SmallUserNotice} from '../user-notice'
 import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
 import {EmojiIfExists} from '../../../../common-adapters/markdown.shared'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
@@ -24,7 +24,33 @@ const connectedUsernamesProps = {
   underline: true,
 }
 
-class InviteAddedToTeamNotice extends React.PureComponent<Props> {
+const InviteAddedToTeamNotice = (props: Props) => {
+  if (props.you === props.message.invitee) {
+    return <YouInviteAddedToTeamNotice {...props} />
+  }
+  const {adder, invitee, inviter, timestamp} = props.message
+  return (
+    <SmallUserNotice
+      avatarUsername={invitee}
+      onAvatarClicked={() => props.onClickUserAvatar(invitee)}
+      topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} />}
+      bottomLine={
+        <Text type="BodySmall" title={formatTimeForMessages(timestamp)}>
+          was {adder === inviter ? 'added' : 'invited'} by{' '}
+          <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />.
+          {adder !== inviter && (
+            <React.Fragment>
+              {' '}
+              They were signed in by <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />.
+            </React.Fragment>
+          )}
+        </Text>
+      }
+    />
+  )
+}
+
+class YouInviteAddedToTeamNotice extends React.PureComponent<Props> {
   render() {
     const {inviter, invitee, adder, inviteType, timestamp} = this.props.message
     const {teamname, you} = this.props
