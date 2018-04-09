@@ -210,7 +210,7 @@
   }
 
   @mpackkey("em") @jsonkey("em")
-  record ConversationEphemeralMetadata {
+  record ConvEphemeralMetadata {
     // Last message that was exploded
     MessageID last;
   }
@@ -285,7 +285,7 @@
 
     // The last message id that was exploded.
     @mpackkey("em") @jsonkey("em")
-    union { null, ConversationEphemeralMetadata } ephemeralMetadata;
+    union { null, ConvEphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageSummary {
@@ -314,7 +314,7 @@
   }
 
   @mpackkey("em") @jsonkey("em")
-  record MessageEphemeralMetadata {
+  record MsgEphemeralMetadata {
     @mpackkey("life") @jsonkey("life")
     gregor1.DurationSec ephemeralLifetime; // used to computed etime
     @mpackkey("gen") @jsonkey("gen")
@@ -354,7 +354,7 @@
     union { null, OutboxInfo } outboxInfo;
 
     @mpackkey("em") @jsonkey("em")
-    union { null, MessageEphemeralMetadata } ephemeralMetadata;
+    union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageClientHeaderVerified {
@@ -380,7 +380,7 @@
     union { null, OutboxInfo } outboxInfo;
 
     @mpackkey("em") @jsonkey("em")
-    union { null, MessageEphemeralMetadata } ephemeralMetadata;
+    union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)

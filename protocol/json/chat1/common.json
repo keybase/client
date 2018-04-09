@@ -492,7 +492,7 @@
     },
     {
       "type": "record",
-      "name": "ConversationEphemeralMetadata",
+      "name": "ConvEphemeralMetadata",
       "fields": [
         {
           "type": "MessageID",
@@ -718,7 +718,7 @@
         {
           "type": [
             null,
-            "ConversationEphemeralMetadata"
+            "ConvEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",
@@ -807,7 +807,7 @@
     },
     {
       "type": "record",
-      "name": "MessageEphemeralMetadata",
+      "name": "MsgEphemeralMetadata",
       "fields": [
         {
           "type": "gregor1.DurationSec",
@@ -909,7 +909,7 @@
         {
           "type": [
             null,
-            "MessageEphemeralMetadata"
+            "MsgEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",
@@ -983,7 +983,7 @@
         {
           "type": [
             null,
-            "MessageEphemeralMetadata"
+            "MsgEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",
