@@ -106,8 +106,8 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return remote.Post(ctx, g, nextBundle)
 }
 
-func BalanceXLM(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.Balance, error) {
-	balances, err := remote.Balances(ctx, g, accountID)
+func BalanceXLM(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.Balance, error) {
+	balances, err := remoter.Balances(ctx, accountID)
 	if err != nil {
 		return stellar1.Balance{}, err
 	}
@@ -254,7 +254,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	sp := NewSeqnoProvider(ctx, g, remoter)
 
 	// check if recipient account exists
-	_, err = BalanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
+	_, err = BalanceXLM(ctx, remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
