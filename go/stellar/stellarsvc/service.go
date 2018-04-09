@@ -168,13 +168,13 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 			}
 			y.DisplayAmount = x.Keybase.DisplayAmount
 			y.DisplayCurrency = x.Keybase.DisplayCurrency
-			fromUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, x.Keybase.FromUID)
+			fromUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, x.Keybase.From.Uid)
 			if err == nil {
 				tmp := fromUsername.String()
 				y.FromUsername = &tmp
 			}
-			if x.Keybase.ToUID != nil {
-				toUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, *x.Keybase.ToUID)
+			if x.Keybase.To != nil {
+				toUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, x.Keybase.To.Uid)
 				if err == nil {
 					tmp := toUsername.String()
 					y.ToUsername = &tmp

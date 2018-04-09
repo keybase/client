@@ -197,26 +197,31 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 	return &r, nil
 }
 
-func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *Recipient) stellar1.PaymentPost {
+func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *Recipient) (stellar1.PaymentPost, error) {
+	meUpk, err := loadMeUpk(ctx, g)
+	if err != nil {
+		return stellar1.PaymentPost{}, err
+	}
 	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
+	if !meUpk.Uid.Equal(uid) {
+		return stellar1.PaymentPost{}, fmt.Errorf("mismatched local UIDs")
+	}
 	post := stellar1.PaymentPost{
 		Members: stellar1.Members{
 			FromStellar:  stellar1.AccountID(acctID.String()),
 			FromKeybase:  g.Env.GetUsername().String(),
-			FromUID:      uid,
+			From:         meUpk.ToUserVersion(),
 			FromDeviceID: deviceID,
 		},
 	}
-
 	if recipient != nil {
 		post.Members.ToStellar = stellar1.AccountID(recipient.AccountID.String())
 		if recipient.User != nil {
-			post.Members.ToUID = recipient.User.GetUID()
+			post.Members.To = recipient.User.ToUserVersion()
 			post.Members.ToKeybase = recipient.User.GetName()
 		}
 	}
-
-	return post
+	return post, nil
 }
 
 func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput, amount string) (stellar1.PaymentResult, error) {
@@ -241,7 +246,10 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput,
 		return stellar1.PaymentResult{}, err
 	}
 
-	post := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
+	post, err := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
+	if err != nil {
+		return stellar1.PaymentResult{}, err
+	}
 
 	sp := NewSeqnoProvider(ctx, g)
 
