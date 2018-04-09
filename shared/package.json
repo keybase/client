@@ -51,7 +51,7 @@
       "<rootDir>/desktop/node_modules"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|@storybook).+\\.js"
+      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
     "setupFiles": [
       "raf/polyfill"
