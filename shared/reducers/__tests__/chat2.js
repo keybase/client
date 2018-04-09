@@ -105,7 +105,7 @@ describe('chat2 reducer', () => {
         quotedMessage: new HiddenString('test message'),
       })
       const state1 = reducer(initialState, setAction)
-      expect(state1.quotedMessage.stringValue()).toEqual('test message')
+      expect(state1.quotedMessage && state1.quotedMessage.stringValue()).toEqual('test message')
 
       const clearAction = Chat2Gen.createMessageSetQuoting({
         quotedMessage: null,
