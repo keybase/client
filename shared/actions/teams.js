@@ -118,7 +118,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
     throw err
   } finally {
     yield Saga.sequentially([
-      Saga.put(TeamsGen.createSetTeamStoreRetentionPolicy({teamname, retentionPolicy})),
+      Saga.put(TeamsGen.createSetTeamRetentionPolicy({teamname, retentionPolicy})),
       Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)})),
     ])
   }
@@ -172,7 +172,7 @@ const _updateTeamRetentionPolicy = function(
   const {teamRetention, name} = convs[0]
   try {
     const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(teamRetention)
-    return Saga.put(TeamsGen.createSetTeamStoreRetentionPolicy({teamname: name, retentionPolicy: newPolicy}))
+    return Saga.put(TeamsGen.createSetTeamRetentionPolicy({teamname: name, retentionPolicy: newPolicy}))
   } catch (err) {
     logger.error(err.message)
     throw err

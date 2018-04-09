@@ -51,9 +51,9 @@ export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
+export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
-export const setTeamStoreRetentionPolicy = 'teams:setTeamStoreRetentionPolicy'
 export const setupTeamHandlers = 'teams:setupTeamHandlers'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
@@ -257,14 +257,14 @@ export const createSetTeamPublicitySettings = (
     publicity: Types._PublicitySettings,
   |}>
 ) => ({error: false, payload, type: setTeamPublicitySettings})
-export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
-export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
-export const createSetTeamStoreRetentionPolicy = (
+export const createSetTeamRetentionPolicy = (
   payload: $ReadOnly<{|
     teamname: string,
     retentionPolicy: Types.RetentionPolicy,
   |}>
-) => ({error: false, payload, type: setTeamStoreRetentionPolicy})
+) => ({error: false, payload, type: setTeamRetentionPolicy})
+export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
+export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
 export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
 export const createUpdateChannelName = (
   payload: $ReadOnly<{|
@@ -321,9 +321,9 @@ export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinEr
 export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
 export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
 export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTeamPublicitySettings>
+export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
 export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
-export type SetTeamStoreRetentionPolicyPayload = More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
 export type SetupTeamHandlersPayload = More.ReturnType<typeof createSetupTeamHandlers>
 export type UpdateChannelNamePayload = More.ReturnType<typeof createUpdateChannelName>
 export type UpdateTopicPayload = More.ReturnType<typeof createUpdateTopic>
@@ -372,9 +372,9 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamJoinSuccess>
   | More.ReturnType<typeof createSetTeamLoadingInvites>
   | More.ReturnType<typeof createSetTeamPublicitySettings>
+  | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetTeamSawChatBanner>
   | More.ReturnType<typeof createSetTeamSawSubteamsBanner>
-  | More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
   | More.ReturnType<typeof createSetupTeamHandlers>
   | More.ReturnType<typeof createUpdateChannelName>
   | More.ReturnType<typeof createUpdateTopic>

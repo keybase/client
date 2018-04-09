@@ -29,7 +29,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         s.set('teamJoinSuccessTeamName', action.payload.teamname)
       })
 
-    case TeamsGen.setTeamStoreRetentionPolicy:
+    case TeamsGen.setTeamRetentionPolicy:
       return state.setIn(
         ['teamNameToRetentionPolicy', action.payload.teamname],
         action.payload.retentionPolicy

@@ -112,7 +112,7 @@
       "success": "boolean",
       "teamname": "string"
     },
-    "setTeamStoreRetentionPolicy": {
+    "setTeamRetentionPolicy": {
       "teamname": "string",
       "retentionPolicy": "Types.RetentionPolicy",
     },
