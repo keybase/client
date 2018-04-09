@@ -108,7 +108,7 @@ func TestImport(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	srv := newTestServer(tcs[0].G)
+	srv, _ := newTestServer(tcs[0].G)
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -159,6 +159,23 @@ func TestImport(t *testing.T) {
 	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Len(t, bundle.Accounts, 3)
+}
+
+func TestBalances(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	srv, rm := newTestServer(tcs[0].G)
+	accountID := rm.AddAccount(t)
+
+	balances, err := srv.BalancesLocal(context.Background(), accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	require.Len(t, balances, 1)
+	require.Equal(t, balances[0].Balance.Asset.Type, "native")
+	require.Equal(t, balances[0].Balance.Amount, "10000")
 }
 
 // Create n TestContexts with logged in users
@@ -213,6 +230,7 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 	return nullSecretUI{}
 }
 
-func newTestServer(g *libkb.GlobalContext) *Server {
-	return New(g, &testUISource{})
+func newTestServer(g *libkb.GlobalContext) (*Server, *remote.RemoteMock) {
+	m := remote.NewRemoteMock(g)
+	return New(g, &testUISource{}, m), m
 }
