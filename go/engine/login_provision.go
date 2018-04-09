@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/stellar"
 )
 
 // loginProvision is an engine that will provision the current
@@ -147,7 +146,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 
 	// initialize a stellar wallet for the user if they don't already have one.
 	e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "loginProvision")
-	stellar.InitWalletSoft(context.Background(), e.G())
+	e.G().GetStellar().CreateWalletSoft(context.Background())
 
 	return nil
 }

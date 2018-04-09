@@ -130,6 +130,16 @@ const metaMapReducer = (metaMap, action) => {
         return metaMap
       }
       return metaMap.set(newMeta.conversationIDKey, newMeta)
+    case Chat2Gen.updateTeamRetentionPolicy:
+      const {convs} = action.payload
+      const newMetas = convs.reduce((updated, conv) => {
+        const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+        if (newMeta) {
+          updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
+        }
+        return updated
+      }, {})
+      return metaMap.merge(newMetas)
     default:
       return metaMap
   }
@@ -636,6 +646,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaUpdatePagination:
     case Chat2Gen.setConversationOffline:
     case Chat2Gen.updateConvRetentionPolicy:
+    case Chat2Gen.updateTeamRetentionPolicy:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

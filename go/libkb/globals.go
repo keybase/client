@@ -72,6 +72,7 @@ type GlobalContext struct {
 	LinkCache        *LinkCache       // cache of ChainLinks
 	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader       // Play back teams for id/name properties
+	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
@@ -220,6 +221,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
+	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
@@ -320,6 +322,11 @@ func (g *GlobalContext) Logout() error {
 	tl := g.teamLoader
 	if tl != nil {
 		tl.OnLogout()
+	}
+
+	st := g.stellar
+	if st != nil {
+		st.OnLogout()
 	}
 
 	g.TrackCache = NewTrackCache()
@@ -508,6 +515,12 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamLoader
+}
+
+func (g *GlobalContext) GetStellar() Stellar {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.stellar
 }
 
 func (g *GlobalContext) GetDeviceEKStorage() DeviceEKStorage {
@@ -1035,6 +1048,12 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamLoader = l
+}
+
+func (g *GlobalContext) SetStellar(s Stellar) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.stellar = s
 }
 
 func (g *GlobalContext) SetDeviceEKStorage(s DeviceEKStorage) {

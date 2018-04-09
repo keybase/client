@@ -97,6 +97,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   fuseInstalling: false,
   kextPermissionError: false,
   showBanner: false,
+  syncing: false,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -185,6 +186,11 @@ const itemStylesPrivateUnknown = {
   textColor: privateTextColor,
   textType: fileTextType,
 }
+const itemStylesKeybase = {
+  iconSpec: makeBasicPathItemIconSpec('iconfont-folder-private', unknownTextColor),
+  textColor: unknownTextColor,
+  textType: folderTextType,
+}
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
   if (usernames.length === 1) {
@@ -236,6 +242,9 @@ export const getItemStyles = (
   type: Types.PathType,
   username?: string
 ): Types.ItemStyles => {
+  if (pathElems.length === 1 && pathElems[0] === 'keybase') {
+    return itemStylesKeybase
+  }
   // For /keybase/team, the icon is different from directories inside a TLF.
   if (pathElems.length === 2 && pathElems[1] === 'team') {
     return itemStylesTeamList

@@ -5,6 +5,8 @@ import * as FsGen from './fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
+import engine from '../engine'
+import * as NotificationsGen from './notifications-gen'
 import * as Types from '../constants/types/fs'
 import {
   openInFileUISaga,
@@ -54,8 +56,7 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     lastModifiedTimestamp: dirent.time,
     size: dirent.size,
     progress: 'loaded',
-    // FIXME currently lastWriter is not provided by simplefs.
-    // the GUI supports it when added here.
+    lastWriter: dirent.lastWriterUnverified,
   })
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
@@ -223,6 +224,42 @@ function cancelTransfer({payload: {key}}: FsGen.CancelTransferPayload, state: Ty
   return Saga.call(RPCTypes.SimpleFSSimpleFSCancelRpcPromise, {opID})
 }
 
+let polling = false
+function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
+  if (polling) {
+    return
+  }
+  polling = true
+  try {
+    let status: RPCTypes.FSSyncStatus = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
+    let _kbfsUploading = false // Don't send duplicates else we get high cpu usage.
+    while (status.totalSyncingBytes > 0) {
+      if (!_kbfsUploading) {
+        _kbfsUploading = true
+        yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+        yield Saga.put(FsGen.createSyncingStatus({isSyncing: true}))
+      }
+      yield Saga.delay(2000)
+      status = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
+    }
+    if (_kbfsUploading) {
+      yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+      yield Saga.put(FsGen.createSyncingStatus({isSyncing: false}))
+    }
+  } finally {
+    polling = false
+  }
+}
+
+function _setupFSHandlers() {
+  console.log('SONGGAO-setupfshandler')
+  return Saga.put((dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
+      dispatch(FsGen.createFsActivity())
+    })
+  })
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
   yield Saga.safeTakeEvery(FsGen.download, download)
@@ -240,6 +277,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
+  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+
+  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
 }
 
 export default fsSaga

@@ -355,6 +355,10 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
 		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
+			// Check for generic hit on desktop right off and return true if we hit
+			if conv.Notifications.Settings[apptype][kind] {
+				return true
+			}
 			for _, at := range msg.Valid().AtMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION

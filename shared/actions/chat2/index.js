@@ -564,6 +564,9 @@ const setupChatHandlers = () => {
     if (update.conv) {
       return [Chat2Gen.createUpdateConvRetentionPolicy({conv: update.conv})]
     }
+    logger.warn(
+      'ChatHandler: got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.'
+    )
     // force to get the new retention policy
     return [
       Chat2Gen.createMetaRequestTrusted({
@@ -571,6 +574,15 @@ const setupChatHandlers = () => {
         force: true,
       }),
     ]
+  })
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetTeamRetention', update => {
+    if (update.convs) {
+      return [Chat2Gen.createUpdateTeamRetentionPolicy({convs: update.convs})]
+    }
+    // this is a more serious problem, but we don't need to bug the user about it
+    logger.error(
+      'ChatHandler: got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+    )
   })
 }
 
@@ -802,15 +814,19 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
-  const metaMap = state.chat2.metaMap
+  const meta = Constants.getMeta(state, conversationIDKey)
 
   if (
     !Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) &&
-    !metaMap.getIn([conversationIDKey, 'isMuted']) // ignore muted convos
+    !meta.isMuted // ignore muted convos
   ) {
     logger.info('Sending Chat notification')
     return Saga.put((dispatch: Dispatch) => {
-      NotifyPopup(author, {body}, -1, author, () => {
+      let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+      if (meta.teamType === 'big') {
+        title += `#${meta.channelname}`
+      }
+      NotifyPopup(title, {body}, -1, author, () => {
         dispatch(
           Chat2Gen.createSelectConversation({
             conversationIDKey,

@@ -160,6 +160,25 @@ const _setTeamRetentionPolicy = function(action: TeamsGen.SetTeamRetentionPolicy
   ])
 }
 
+const _updateTeamRetentionPolicy = function(
+  action: Chat2Gen.UpdateTeamRetentionPolicyPayload,
+  state: TypedState
+) {
+  const {convs} = action.payload
+  if (convs.length === 0) {
+    logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
+    return
+  }
+  const {teamRetention, name} = convs[0]
+  try {
+    const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(teamRetention)
+    return Saga.put(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[name, newPolicy]])))
+  } catch (err) {
+    logger.error(err.message)
+    throw err
+  }
+}
+
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
   const {invitees, role, teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
@@ -853,18 +872,6 @@ function _setupTeamHandlers() {
       }
       actions.forEach(dispatch)
     })
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatSetTeamRetention', args => {
-      logger.info('Got setTeamRetention from service')
-      const {convs, teamID} = args
-      if (convs.length === 0) {
-        logger.warn(`Teamhandler: Got setTeamRetention for team with no conversations: ${teamID}`)
-        return
-      }
-      const conv = convs[0]
-      const teamname = conv.name
-      const newPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(conv.teamRetention)
-      dispatch(replaceEntity(['teams', 'teamNameToRetentionPolicy'], I.Map([[teamname, newPolicy]])))
-    })
   })
 }
 
@@ -1083,6 +1090,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEvery(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamRetentionPolicy, _setTeamRetentionPolicy)
+  yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
 }
 
 export default teamsSaga

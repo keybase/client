@@ -252,7 +252,6 @@ const BOOL isDebug = NO;
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
   [self hideCover];
-  KeybaseSetAppStateBackground();
 }
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {

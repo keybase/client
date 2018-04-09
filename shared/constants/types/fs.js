@@ -131,6 +131,7 @@ export type _Flags = {
   fuseInstalling: boolean,
   kextPermissionError: boolean,
   showBanner: boolean,
+  syncing: boolean,
 }
 
 export type Flags = I.RecordOf<_Flags>
@@ -198,6 +199,7 @@ export const pathIsNonTeamTLFList = (p: Path): boolean => {
   const str = pathToString(p)
   return str === '/keybase/private' || str === '/keybase/public'
 }
+export const getPathDir = (p: Path): Path => pathToString(p).slice(0, pathToString(p).lastIndexOf('/'))
 
 const localSep = isWindows ? '\\' : '/'
 

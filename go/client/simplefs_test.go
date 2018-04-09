@@ -158,6 +158,12 @@ func (s SimpleFSMock) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 	return nil
 }
 
+// SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
+// into its logs.
+func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+	return keybase1.FSSyncStatus{}, nil
+}
+
 /*
  file source cases:
  1. file

@@ -617,13 +617,13 @@ func (e *Kex2Provisionee) ephemeralKeygen(ctx context.Context, userEKBox *keybas
 	defer e.G().CTrace(ctx, "ephemeralKeygen", func() error { return err })()
 
 	if userEKBox == nil { // We will create EKs after provisioning in the normal way
-		e.G().Log.CWarningf(ctx, "userEKBox nil, no ephemeral keys created during provisioning")
+		e.G().Log.CDebugf(ctx, "userEKBox nil, no ephemeral keys created during provisioning")
 		return deviceEKStatement, deviceEKStatementSig, nil, nil
 	}
 
 	ekLib := e.G().GetEKLib()
 	if ekLib == nil {
-		e.G().Log.CWarningf(ctx, "ekLib missing from G. Aborting ephemeralKeygen")
+		e.G().Log.CDebugf(ctx, "ekLib missing from G. Aborting ephemeralKeygen")
 		return deviceEKStatement, deviceEKStatementSig, nil, nil
 	}
 
@@ -670,7 +670,7 @@ func (e *Kex2Provisionee) storeEKs(ctx context.Context, deviceEKStatement keybas
 		return nil
 	}
 	if userEKBox == nil {
-		e.G().Log.CWarningf(ctx, "userEKBox nil, no ephemeral keys to store")
+		e.G().Log.CDebugf(ctx, "userEKBox nil, no ephemeral keys to store")
 		return nil
 	}
 
