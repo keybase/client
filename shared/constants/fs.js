@@ -322,42 +322,33 @@ const _fillMetadataInFavoritesResult = (
       }
     }
 
-    let waitingForParticipantUnlock = []
-    let youCanUnlock = []
-    let needsRekey = false
     const solutions = folder.problem_set.solution_kids || {}
+    const canSelfHelp = folder.problem_set.can_self_help
+    const youCanUnlock = canSelfHelp
+      ? (solutions[myKID] || []).map(kid => ({...favoritesResult.devices[kid], deviceID: kid}))
+      : []
 
-    if (Object.keys(solutions).length) {
-      needsRekey = true
-    }
+    const waitingForParticipantUnlock = canSelfHelp
+      ? Object.keys(solutions).map(userID => {
+          const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
+          const numDevices = devices.length
+          const last = numDevices > 1 ? devices.pop() : null
 
-    if (folder.problem_set.can_self_help) {
-      const mySolutions = solutions[myKID] || []
-      youCanUnlock = mySolutions.map(kid => {
-        const device = favoritesResult.devices[kid]
-        return {...device, deviceID: kid}
-      })
-    } else {
-      waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
-        const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
-        const numDevices = devices.length
-        const last = numDevices > 1 ? devices.pop() : null
-
-        return {
-          name: favoritesResult.users[userID],
-          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
-            last ? ` or ${last}` : ''
-          }.`,
-        }
-      })
-    }
+          return {
+            name: favoritesResult.users[userID],
+            devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
+              last ? ` or ${last}` : ''
+            }.`,
+          }
+        })
+      : []
     return {
       ...folder,
-      waitingForParticipantUnlock,
-      youCanUnlock,
-      needsRekey,
       isIgnored,
       isNew,
+      needsRekey: !!Object.keys(solutions).length,
+      waitingForParticipantUnlock,
+      youCanUnlock,
     }
   }
 
