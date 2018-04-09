@@ -229,8 +229,10 @@ const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): 
 const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
   state.teams.getIn(['teamNameToInvites', teamname], I.Set())
 
+// Note that we don't check 'teamnames', since that may contain
+// subteams you're not a member of.
 const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamnames', teamname])
+  state.teams.hasIn(['teamNameToRole', teamname])
 
 const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
