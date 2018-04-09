@@ -231,6 +231,35 @@ func TestCrConflictCreateFile(t *testing.T) {
 	)
 }
 
+// alice writes and removes a file, while bob writes it. Regression
+// test for KBFS-2507.
+func TestCrConflictWriteVsModifiedRemovedFile(t *testing.T) {
+	test(t,
+		skip("dokan", "SetEx is a no-op on Dokan, thus no conflict"),
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a", "goodbye"),
+			rm("a"),
+		),
+		as(bob, noSync(),
+			write("a", "hello world"),
+			reenableUpdates(),
+			lsdir("", m{"a$": "FILE"}),
+			read("a", "hello world"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "FILE"}),
+			read("a", "hello world"),
+		),
+	)
+}
+
 // alice setattr's a file, while bob removes, recreates and writes to
 // a file of the same name. Regression test for KBFS-668.
 func TestCrConflictSetattrVsRecreatedFileInRoot(t *testing.T) {

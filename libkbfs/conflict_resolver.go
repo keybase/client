@@ -867,6 +867,11 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			if err != nil {
 				return path{}, BlockPointer{}, nil, err
 			}
+
+			// Delete any sync/setattr ops on the removed, merged file.
+			if mergedChain, ok := mergedChains.byOriginal[currOriginal]; ok {
+				mergedChains.removeChain(mergedChain.mostRecent)
+			}
 		}
 
 		// If this happens to have been renamed on the unmerged
