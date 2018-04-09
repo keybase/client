@@ -113,7 +113,7 @@ func BalanceXLM(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 	}
 
 	for _, b := range balances {
-		if b.Asset.Type == "native" {
+		if b.Asset.IsNativeXLM() {
 			return b, nil
 		}
 	}

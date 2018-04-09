@@ -39,51 +39,14 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
-func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.LocalBalance, err error) {
+func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
 
-	balances, err := remote.Balances(ctx, s.G(), accountID)
-	if err != nil {
-		return nil, err
-	}
-
-	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), accountID)
-	if err != nil {
-		s.G().Log.Warning("Could not get default currency for account %q: %s", accountID, err)
-		err = nil
-	}
-
-	var exchangeRateAvailable bool
-	var rate remote.XLMExchangeRate
-	if displayCurrency != "" {
-		rate, err = remote.ExchangeRate(ctx, s.G(), displayCurrency)
-		if err == nil {
-			exchangeRateAvailable = true
-		} else {
-			s.G().Log.Warning("Could not obtain exchange rate: %s", err)
-			err = nil
-		}
-	}
-
-	for _, b := range balances {
-		local := stellar1.LocalBalance{Balance: b}
-		if exchangeRateAvailable && local.Balance.Asset.Type == "native" {
-			converted, err := rate.ConvertXLM(local.Balance.Amount)
-			if err == nil {
-				local.Currency = rate.Currency
-				local.Value = converted
-			} else {
-				s.G().Log.Warning("Could not convert XLM balance to local currency: %s", err)
-			}
-
-		}
-		ret = append(ret, local)
-	}
-	return ret, err
+	return remote.Balances(ctx, s.G(), accountID)
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
@@ -253,4 +216,73 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 		return err
 	}
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
+}
+
+type exchangeRateMap map[string]remote.XLMExchangeRate
+
+// getLocalCurrencyAndExchangeRate gets display currency setting
+// for accountID and fetches exchange rate is set.
+//
+// Arguments `account` and `exchangeRates` may end up mutated.
+func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.LocalOwnAccount, exchangeRates exchangeRateMap) error {
+	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
+	if err != nil {
+		return err
+	}
+
+	if displayCurrency == "" {
+		return nil
+	}
+
+	rate, ok := exchangeRates[displayCurrency]
+	if !ok {
+		var err error
+		rate, err = remote.ExchangeRate(ctx, g, displayCurrency)
+		if err != nil {
+			return err
+		}
+		exchangeRates[displayCurrency] = rate
+	}
+
+	account.LocalCurrency = stellar1.LocalCurrencyCode(rate.Currency)
+	account.LocalExchangeRate = stellar1.LocalExchangeRate(rate.Price)
+	return nil
+}
+
+func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.LocalOwnAccount, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "WalletGetLocalAccounts", func() error { return err })()
+
+	dump, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		return nil, err
+	}
+
+	var accountError error
+	exchangeRates := make(exchangeRateMap)
+	for _, account := range dump.Accounts {
+		accID := account.AccountID
+		acc := stellar1.LocalOwnAccount{
+			AccountID: accID,
+			IsPrimary: account.IsPrimary,
+			Name:      account.Name,
+		}
+
+		balances, err := remote.Balances(ctx, s.G(), accID)
+		if err != nil {
+			accountError = err
+			s.G().Log.Warning("Could not load balance for %q", accID)
+			continue
+		}
+
+		acc.Balance = balances
+
+		if err := getLocalCurrencyAndExchangeRate(ctx, s.G(), &acc, exchangeRates); err != nil {
+			s.G().Log.Warning("Could not load local currency exchange rate for %q", accID)
+		}
+
+		ret = append(ret, acc)
+	}
+
+	return ret, accountError
 }
