@@ -898,6 +898,35 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function* messageReplyPrivately(action: Chat2Gen.MessageReplyPrivately) {
+  const {conversationIDKey, ordinal} = action.payload
+  let state: TypedState = yield Saga.select()
+  console.warn('in messageReplyPrivately')
+  let selectedConversation = state.chat2.selectedConversation
+  console.warn('before, selectedConversation is', selectedConversation)
+  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  console.warn('message', message)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
+  }
+  console.warn('got message')
+  yield Saga.put(
+    Chat2Gen.createStartConversation({
+      participants: [message.author],
+    })
+  )
+  console.warn('called createStart')
+  console.warn(state)
+  state = yield Saga.select()
+  console.warn(state)
+  selectedConversation = state.chat2.selectedConversation
+  console.warn('after, selectedConversation is', selectedConversation)
+  if (selectedConversation) {
+    yield Saga.put(Chat2Gen.createMessageSetQuoting({conversationIDKey: selectedConversation, ordinal}))
+  }
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -1184,6 +1213,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 // Start a conversation, or select an existing one
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
+  console.warn('in start conversation')
   const {participants, tlf, fromAReset} = action.payload
   const you = state.config.username || ''
 
@@ -1193,6 +1223,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // we handled participants or tlfs
   if (participants) {
     users = participants
+    conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
@@ -1228,6 +1259,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 
   // There is an existing conversation, select it
   if (conversationIDKey) {
+    console.warn('found a conv')
     return Saga.sequentially([
       Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
       Saga.put(Chat2Gen.createNavigateToThread()),
@@ -2004,6 +2036,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDelete, messageDelete)
   yield Saga.safeTakeEveryPure(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
+  yield Saga.safeTakeEvery(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setupChatHandlers, setupChatHandlers)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, clearInboxFilter)
