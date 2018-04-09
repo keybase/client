@@ -52,11 +52,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       })
     )
   },
-  _onQuote: (message: Types.Message) => {
+  _onQuote: (quotedMessage: HiddenString) => {
     dispatch(
       Chat2Gen.createMessageSetQuoting({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
+        quotedMessage,
       })
     )
   },
@@ -82,7 +81,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
     onHidden: () => ownProps.onClosePopup(),
-    onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message) : null,
+    onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message.text) : null,
     onReplyPrivately: message.type === 'text' ? () => dispatchProps._onReplyPrivately(message) : null,
     showDivider: !message.deviceRevokedAt,
     yourMessage,

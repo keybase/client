@@ -5,6 +5,7 @@ import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
+import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -14,12 +15,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map(),
-  quotingMap: I.Map(),
   pendingConversationUsers: I.Set(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
   pendingSelected: false,
   pendingStatus: 'none',
+  quotedMessage: null,
   selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),
   unreadMap: I.Map(),
@@ -36,8 +37,6 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.editingMap.get(id)
-export const getQuotingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.quotingMap.get(id)
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))

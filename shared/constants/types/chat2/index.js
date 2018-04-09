@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
+import HiddenString from '../../../util/hidden-string'
 
 export type PendingMode =
   | 'none' // no pending
@@ -24,7 +25,7 @@ export type _State = {
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread
-  quotingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being quoted
+  quotedMessage: ?HiddenString, // current message being quoted
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are

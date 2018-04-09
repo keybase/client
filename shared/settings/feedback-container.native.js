@@ -140,7 +140,6 @@ const extraChatLogs = (state: TypedState) => {
         description: 'X',
         snippet: 'X',
       },
-      quotingMap: chat.quotingMap.get(c),
       pendingMode: chat.pendingMode,
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
       pendingSelected: chat.pendingSelected,
