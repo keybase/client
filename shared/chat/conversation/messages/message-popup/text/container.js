@@ -3,6 +3,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Route from '../../../../../actions/route-tree'
+import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
 import {copyToClipboard} from '../../../../../util/clipboard'
@@ -75,6 +76,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       )
     }
   },
+  _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -91,6 +93,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onHidden: () => ownProps.onClosePopup(),
     onQuote: message.type === 'text' ? () => dispatchProps._onQuote(message) : null,
     onReplyPrivately: message.type === 'text' ? () => dispatchProps._onReplyPrivately(message) : null,
+    onViewProfile: message.author ? () => dispatchProps._onViewProfile(message.author) : null,
     showDivider: !message.deviceRevokedAt,
     yourMessage,
   }

@@ -14,6 +14,7 @@ type Props = {
   onHidden: () => void,
   onQuote: null | (() => void),
   onReplyPrivately: null | (() => void),
+  onViewProfile: () => void,
   showDivider: boolean,
   style?: Object,
   yourMessage: boolean,
@@ -24,6 +25,7 @@ const TextPopupMenu = (props: Props) => {
     {onClick: props.onCopy, title: 'Copy Text'},
     {onClick: props.onQuote, title: 'Quote'},
     {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+    {onClick: props.onViewProfile, title: 'View Profile'},
   ]
   const items = props.yourMessage
     ? [

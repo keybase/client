@@ -1,5 +1,13 @@
 // @flow
 
+/*
+Converts:
+  foo
+  bar
+to:
+  > foo
+  > bar
+*/
 function formatTextForQuoting(text: string) {
   const lines = text.split('\n')
   const res = []
