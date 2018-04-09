@@ -7,7 +7,7 @@ import List, {type TeamRows} from './list'
 
 export type Props = {
   teamname: Types.Teamname,
-  admin: Boolean,
+  admin: boolean,
   memberCount: number,
   newTeamRequests: Array<Types.Teamname>,
   numInvites: number,

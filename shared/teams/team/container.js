@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import Team, {CustomComponent} from '.'
+import Team, {CustomComponent, type Props} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
@@ -74,7 +74,7 @@ const mapDispatchToProps = (
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps): Props => {
   const customComponent = (
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
@@ -87,7 +87,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     customComponent,
     newTeamRequests: stateProps._newTeamRequests.toArray(),
   }
