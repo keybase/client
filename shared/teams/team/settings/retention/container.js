@@ -161,7 +161,7 @@ const mapDispatchToProps = (
       )
     )
   },
-  setRetentionPolicy: (policy: RetentionPolicy) => {
+  saveRetentionPolicy: (policy: RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       // we couldn't get here without throwing an error for !teamname
       teamname && dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname}))
