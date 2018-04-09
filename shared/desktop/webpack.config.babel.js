@@ -161,9 +161,7 @@ const config = (_, {mode}) => {
   if (isHot) {
     return getenv.boolish('BEFORE_HOT', false) ? mainThreadConfig : renderThreadConfig
   } else {
-    // TEMP
-    return [renderThreadConfig]
-    // return [mainThreadConfig, renderThreadConfig]
+    return [mainThreadConfig, renderThreadConfig]
   }
 }
 
