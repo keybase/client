@@ -8,6 +8,7 @@ import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../s
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
+  isAdmin: boolean,
   message: Types.MessageSystemAddedToTeam,
   onClickUserAvatar: (username: string) => void,
   onManageChannels: () => void,
@@ -32,7 +33,7 @@ const ManageComponent = (props: Props) => {
         Manage your channel subscriptions
       </Text>
     )
-  } else if (props.message.isAdmin) {
+  } else if (props.isAdmin) {
     return (
       <Text onClick={props.onViewTeam} type={textType} style={{color: globalColors.blue}}>
         Manage members
