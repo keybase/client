@@ -16,6 +16,11 @@
 
 RCT_EXPORT_MODULE(Storybook);
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 - (NSDictionary *)constantsToExport
 {
   // Set this to true to enable storybook mode

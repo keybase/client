@@ -15,4 +15,5 @@
 @end
 
 @interface KeybaseEngine : RCTEventEmitter <RCTBridgeModule>
+  + (BOOL)requiresMainQueueSetup;
 @end
