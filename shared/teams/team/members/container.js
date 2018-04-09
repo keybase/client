@@ -17,7 +17,8 @@ const getOrderedMemberArray = (
   you: ?string,
   yourOperations: RPCTypes.TeamOperation
 ): Array<Types.MemberInfo> => {
-  let returnArray = I.Set(memberInfo.values())
+  let returnArray = memberInfo
+    .valueSeq()
     .toArray()
     .sort((a, b) => {
       // List inactive users first if admin
