@@ -5,7 +5,6 @@ import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
-import HiddenString from '../../util/hidden-string'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),

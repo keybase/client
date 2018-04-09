@@ -179,7 +179,7 @@ export default compose(
         this.props.setText('') // blow away any unset stuff if we go into an edit, else you edit / cancel / switch tabs and come back and you see the unsent value
         this.props.setText(text, true)
         !isMobile && this.props.inputMoveToEnd()
-      } else if (nextProps.quotedMessage && (nextProps.quotedMessage !== this.props.quotedMessage)) {
+      } else if (nextProps.quotedMessage && nextProps.quotedMessage !== this.props.quotedMessage) {
         const text = nextProps.quotedMessage.stringValue()
         const newText = text && formatTextForQuoting(text)
         if (text) {
@@ -188,7 +188,7 @@ export default compose(
           !isMobile && this.props.inputMoveToEnd()
           this.props.inputFocus()
         }
-      } else if ((this.props.conversationIDKey !== nextProps.conversationIDKey) && !nextProps.quotedMessage) {
+      } else if (this.props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.quotedMessage) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
         this.props.setText(text, true)
       }
