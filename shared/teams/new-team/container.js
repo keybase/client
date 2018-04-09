@@ -1,7 +1,7 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import NewTeamDialog from './'
-import upperFirst from 'lodash/upperFirst'
+import {upperFirst} from 'lodash-es'
 import {
   connect,
   compose,

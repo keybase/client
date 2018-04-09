@@ -107,7 +107,14 @@ const config = (_, {mode}) => {
         extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
       },
       stats: {
-        optimizationBailout: true,
+        ...(isDev
+          ? {}
+          : {
+              exclude: undefined,
+              maxModules: Infinity,
+              reasons: true,
+              usedExports: true,
+            }),
       },
       ...(isDev
         ? {}

@@ -13,7 +13,7 @@ import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 
 import type {Props, RowItem} from './'

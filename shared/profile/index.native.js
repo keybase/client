@@ -4,8 +4,7 @@ import * as Constants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
-import orderBy from 'lodash/orderBy'
-import chunk from 'lodash/chunk'
+import {orderBy, chunk} from 'lodash-es'
 import moment from 'moment'
 import {
   Avatar,

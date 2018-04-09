@@ -5,7 +5,7 @@ import uuidv1 from 'uuid/v1'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
-import memoize from 'lodash/memoize'
+import {memoize} from 'lodash-es'
 
 export const defaultPath = '/keybase'
 

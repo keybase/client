@@ -1,6 +1,6 @@
 // @flow
 import {maskStrings} from '../local-debug'
-import repeat from 'lodash/repeat'
+import {repeat} from 'lodash-es'
 
 // HiddenString tries to wrap a string value to prevent it from being easily
 // output as a string to log, file or console

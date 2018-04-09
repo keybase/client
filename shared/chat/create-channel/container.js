@@ -10,7 +10,7 @@ import {
   type TypedState,
 } from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
-import upperFirst from 'lodash/upperFirst'
+import {upperFirst} from 'lodash-es'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
