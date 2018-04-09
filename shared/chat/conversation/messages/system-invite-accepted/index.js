@@ -12,6 +12,7 @@ type Props = {
   message: Types.MessageSystemInviteAccepted,
   onClickUserAvatar: (username: string) => void,
   onViewTeam: (team: string) => void,
+  teamname: string,
   you: string,
 }
 
@@ -25,22 +26,22 @@ const connectedUsernamesProps = {
 
 class InviteAddedToTeamNotice extends React.PureComponent<Props> {
   render() {
-    const {team, inviter, invitee, adder, inviteType, timestamp} = this.props.message
-    const {you} = this.props
+    const {inviter, invitee, adder, inviteType, timestamp} = this.props.message
+    const {teamname, you} = this.props
 
     const copy =
       you === invitee ? (
         <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
           Welcome to{' '}
           <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-            {team}
+            {teamname}
           </Text>
           . Say hi!{' '}
           <EmojiIfExists style={{display: isMobile ? 'flex' : 'inline-block'}} emojiName=":wave:" size={14} />
         </Text>
       ) : (
         <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-          <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {team}.{' '}
+          <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {teamname}.{' '}
           {you === inviter ? 'You invited them' : 'They were invited by '}
           {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
           {inviteType === 'seitan' ? '' : ' via ' + inviteType}
@@ -54,10 +55,12 @@ class InviteAddedToTeamNotice extends React.PureComponent<Props> {
       <UserNotice
         style={{marginTop: globalMargins.small}}
         username={invitee === you ? undefined : invitee}
-        teamname={invitee === you ? team : undefined}
+        teamname={invitee === you ? teamname : undefined}
         bgColor={globalColors.blue4}
         onClickAvatar={
-          invitee === you ? () => this.props.onViewTeam(team) : () => this.props.onClickUserAvatar(invitee)
+          invitee === you
+            ? () => this.props.onViewTeam(teamname)
+            : () => this.props.onClickUserAvatar(invitee)
         }
       >
         {you === invitee && (
