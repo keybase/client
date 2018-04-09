@@ -273,20 +273,6 @@
     },
     {
       "type": "record",
-      "name": "UserVersion",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "Seqno",
-          "name": "eldestSeqno"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "UserVersionPercentForm",
       "fields": [],
       "typedef": "string"

@@ -65,6 +65,11 @@ protocol Common {
   @typedef("bytes")
   record HashMeta {}
 
+  record UserVersion {
+    UID uid;
+    Seqno eldestSeqno;
+  }
+
   enum TeamType {
     NONE_0,
     LEGACY_1,
@@ -317,4 +322,5 @@ protocol Common {
     Seqno eldestSeqno;
     Time cachedAt;
   }
+
 }

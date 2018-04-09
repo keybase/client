@@ -14,11 +14,11 @@ protocol remote {
   record Members {
     AccountID fromStellar;
     string fromKeybase;
-    keybase1.UID fromUID;
+    keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
     AccountID toStellar;
     string toKeybase;
-    keybase1.UID toUID;
+    keybase1.UserVersion to;
   }
 
   record TransactionSummary {
@@ -100,9 +100,9 @@ protocol remote {
     string submitErrMsg;
     TimeMs ctime;
     TimeMs rtime; // time of last status update
-    keybase1.UID fromUID;
+    keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
-    union { null, keybase1.UID } toUID;
+    union { null, keybase1.UserVersion } to;
     // union { null, EncryptedNote }  note; // TODO
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
@@ -113,11 +113,11 @@ protocol remote {
     TimeMs ctime;
   }
 
-  array<Balance> balances(keybase1.UID uid, AccountID accountID);
-  array<PaymentSummary> recentPayments(keybase1.UID uid, AccountID accountID, int limit);
-  TransactionDetails transaction(keybase1.UID uid, TransactionID id);
+  array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
+  array<PaymentSummary> recentPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
+  TransactionDetails transaction(keybase1.UserVersion caller, TransactionID id);
 
   // js can't handle uint64, so returning a string
-  string accountSeqno(keybase1.UID uid, AccountID accountID);
-  PaymentResult submitPayment(keybase1.UID uid, PaymentPost payment);
+  string accountSeqno(keybase1.UserVersion caller, AccountID accountID);
+  PaymentResult submitPayment(keybase1.UserVersion caller, PaymentPost payment);
 }
