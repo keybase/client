@@ -1184,7 +1184,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 // Start a conversation, or select an existing one
 const startConversation = (action: Chat2Gen.StartConversationPayload, state: TypedState) => {
-  console.warn('in start conversation')
   const {participants, tlf, fromAReset} = action.payload
   const you = state.config.username || ''
 
@@ -1230,7 +1229,6 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
 
   // There is an existing conversation, select it
   if (conversationIDKey) {
-    console.warn('found a conv')
     return Saga.sequentially([
       Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
       Saga.put(Chat2Gen.createNavigateToThread()),
