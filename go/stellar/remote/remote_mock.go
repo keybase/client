@@ -28,13 +28,7 @@ func (a *FakeAccount) AddBalance(amt string) error {
 	if err != nil {
 		return err
 	}
-	b, err := amount.ParseInt64(a.balance.Amount)
-	if err != nil {
-		return err
-	}
-	b += n
-	a.balance.Amount = amount.StringFromInt64(b)
-	return nil
+	return a.AdjustBalance(n)
 }
 
 func (a *FakeAccount) SubtractBalance(amt string) error {
@@ -42,15 +36,15 @@ func (a *FakeAccount) SubtractBalance(amt string) error {
 	if err != nil {
 		return err
 	}
-	return a.SubtractBalanceInt(n)
+	return a.AdjustBalance(-n)
 }
 
-func (a *FakeAccount) SubtractBalanceInt(amt int64) error {
+func (a *FakeAccount) AdjustBalance(amt int64) error {
 	b, err := amount.ParseInt64(a.balance.Amount)
 	if err != nil {
 		return err
 	}
-	b -= amt
+	b += amt
 	a.balance.Amount = amount.StringFromInt64(b)
 	return nil
 }
@@ -115,7 +109,7 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 	}
 
 	a.SubtractBalance(amount)
-	a.SubtractBalanceInt(int64(tx.Fee))
+	a.AdjustBalance(-(int64(tx.Fee)))
 
 	destination, err := txOpDestination(tx)
 	if err != nil {
