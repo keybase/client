@@ -252,6 +252,10 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.LocalOwnAccount, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "WalletGetLocalAccounts", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	dump, _, err := remote.Fetch(ctx, s.G())
 	if err != nil {
@@ -285,4 +289,14 @@ func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.Loc
 	}
 
 	return ret, accountError
+}
+
+func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.LocalCurrencyCode) (res stellar1.LocalExchangeRate, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)), func() error { return err })()
+	rate, err := remote.ExchangeRate(ctx, s.G(), string(currency))
+	if err != nil {
+		return res, err
+	}
+	return stellar1.LocalExchangeRate(rate.Price), nil
 }
