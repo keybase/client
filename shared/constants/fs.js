@@ -292,6 +292,14 @@ export const isImage = (name: string): boolean => {
   return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
 }
 
+export type FavoritesListResult = {
+  users: {[string]: string},
+  devices: {[string]: Types.Device},
+  favorites: Array<Types.FavoriteFolder>,
+  new: Array<Types.FavoriteFolder>,
+  ignored: Array<Types.FavoriteFolder>,
+}
+
 // Take the parsed JSON from kbfs/favorite/list, and populate an array of
 // Types.FolderRPCWithMeta with the appropriate metadata:
 //
@@ -299,10 +307,12 @@ export const isImage = (name: string): boolean => {
 // 2) Does it need a rekey?
 //
 const _fillMetadataInFavoritesResult = (
-  favoritesResult: Object,
+  favoritesResult: FavoritesListResult,
   myKID: any
 ): Array<Types.FolderRPCWithMeta> => {
-  const mapFolderWithMeta = ({isIgnored, isNew}) => (folder: Object): Types.FolderRPCWithMeta => {
+  const mapFolderWithMeta = ({isIgnored, isNew}) => (
+    folder: Types.FavoriteFolder
+  ): Types.FolderRPCWithMeta => {
     if (!folder.problem_set) {
       return {
         ...folder,
@@ -358,12 +368,12 @@ const _fillMetadataInFavoritesResult = (
   ]
 }
 
-export const folderToPathItems = (
+export const folderToFavoriteItems = (
   txt: string = '',
   username: string,
   loggedIn: boolean
 ): I.Map<Types.Path, Types.FavoriteItem> => {
-  let favoritesResult
+  let favoritesResult: FavoritesListResult
   let badges = {
     '/keybase/private': 0,
     '/keybase/public': 0,

@@ -33,7 +33,7 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
     })
     const username = state.config.username || ''
     const loggedIn = state.config.loggedIn
-    const folders = Constants.folderToPathItems(results && results.body, username, loggedIn)
+    const folders = Constants.folderToFavoriteItems(results && results.body, username, loggedIn)
 
     yield Saga.put(FsGen.createFavoritesLoaded({folders}))
   } catch (e) {

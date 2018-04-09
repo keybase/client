@@ -27,8 +27,8 @@ export type FavoriteMetadata = {
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
-  waitingForParticipantUnlock: Array<ParticipantUnlock>,
-  youCanUnlock: Array<Device>,
+  waitingForParticipantUnlock?: Array<ParticipantUnlock>,
+  youCanUnlock?: Array<Device>,
 }
 
 export type _FavoriteItem = {
@@ -305,9 +305,22 @@ export type ItemStyles = {
 }
 
 export type FolderRPCWithMeta = {
+  name: string,
+  folderType: RPCTypes.FolderType,
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
-  waitingForParticipantUnlock: Array<ParticipantUnlock>,
-  youCanUnlock: Array<Device>,
-} & RPCTypes.Folder
+  waitingForParticipantUnlock?: Array<ParticipantUnlock>,
+  youCanUnlock?: Array<Device>,
+}
+
+export type FavoriteFolder = {
+  name: string,
+  private: boolean,
+  folderType: RPCTypes.FolderType,
+  problem_set?: {
+    // Map of UID to a list of KIDs, for this folder
+    solution_kids: {[string]: Array<string>},
+    can_self_help: boolean,
+  },
+}
