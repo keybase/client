@@ -10,6 +10,11 @@ static const NSString* tagName = @"KBNativeLogger";
 
 RCT_EXPORT_MODULE(KBNativeLogger);
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 RCT_REMAP_METHOD(log,tagsAndLogs:(NSArray*)tagsAndLogs)
 {
   for (NSArray * tagAndLog in tagsAndLogs) {

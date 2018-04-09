@@ -1674,6 +1674,13 @@ func (u UserVersionPercentForm) String() string {
 	return string(u)
 }
 
+func NewUserVersion(uid UID, eldestSeqno Seqno) UserVersion {
+	return UserVersion{
+		Uid:         uid,
+		EldestSeqno: eldestSeqno,
+	}
+}
+
 func (u UserVersion) PercentForm() UserVersionPercentForm {
 	return UserVersionPercentForm(u.String())
 }

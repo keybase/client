@@ -2,14 +2,7 @@
 protocol local {
   import idl "common.avdl";
 
-  // Account balance and its current value in selected currency.
-  record LocalBalance {
-    Balance balance;
-    string currency;
-    string value;
-  }
-
-  array<LocalBalance> balancesLocal(AccountID accountID);
+  array<Balance> balancesLocal(AccountID accountID);
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
@@ -33,6 +26,21 @@ protocol local {
   void walletInitLocal();
 
   Bundle walletDumpLocal();
+
+  @typedef("string") record LocalCurrencyCode {}
+  @typedef("float") record LocalExchangeRate {}
+
+  // Account balance and its current value in selected currency.
+  record LocalOwnAccount {
+    AccountID accountID;
+    boolean isPrimary;
+    string name;
+    array<Balance> balance;
+    LocalCurrencyCode localCurrency;
+    LocalExchangeRate localExchangeRate;
+  }
+
+  array<LocalOwnAccount> walletGetLocalAccounts();
 
   // Whether this account is one of this user's.
   boolean ownAccountLocal(AccountID accountID);

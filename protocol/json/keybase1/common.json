@@ -132,6 +132,20 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "UserVersion",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "TeamType",
       "symbols": [

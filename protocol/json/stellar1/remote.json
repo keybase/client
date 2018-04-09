@@ -47,8 +47,8 @@
           "name": "fromKeybase"
         },
         {
-          "type": "keybase1.UID",
-          "name": "fromUID"
+          "type": "keybase1.UserVersion",
+          "name": "from"
         },
         {
           "type": "keybase1.DeviceID",
@@ -63,8 +63,8 @@
           "name": "toKeybase"
         },
         {
-          "type": "keybase1.UID",
-          "name": "toUID"
+          "type": "keybase1.UserVersion",
+          "name": "to"
         }
       ]
     },
@@ -311,8 +311,8 @@
           "name": "rtime"
         },
         {
-          "type": "keybase1.UID",
-          "name": "fromUID"
+          "type": "keybase1.UserVersion",
+          "name": "from"
         },
         {
           "type": "keybase1.DeviceID",
@@ -321,9 +321,9 @@
         {
           "type": [
             null,
-            "keybase1.UID"
+            "keybase1.UserVersion"
           ],
-          "name": "toUID"
+          "name": "to"
         },
         {
           "type": [
@@ -360,8 +360,8 @@
     "balances": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "accountID",
@@ -376,8 +376,8 @@
     "recentPayments": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "accountID",
@@ -396,8 +396,8 @@
     "transaction": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "id",
@@ -409,8 +409,8 @@
     "accountSeqno": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "accountID",
@@ -422,8 +422,8 @@
     "submitPayment": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "payment",
