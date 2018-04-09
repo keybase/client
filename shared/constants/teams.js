@@ -229,10 +229,13 @@ const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): 
 const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
   state.teams.getIn(['teamNameToInvites', teamname], I.Set())
 
-// Note that we don't check 'teamnames', since that may contain
-// subteams you're not a member of.
+// Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
+// since that may contain subteams you're not a member of.
+
 const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameToRole', teamname])
+
+const isInSomeTeam = (state: TypedState): boolean => state.teams.teamNameToRole.size > 0
 
 const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
@@ -254,6 +257,25 @@ const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Typ
 
 const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
   state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
+
+// Sorts teamnames canonically.
+function sortTeamnames(a: string, b: string) {
+  const aName = a.toUpperCase()
+  const bName = b.toUpperCase()
+  if (aName < bName) {
+    return -1
+  } else if (aName > bName) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
+const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
+  let teamnames = state.teams.teamnames.toArray()
+  teamnames.sort(sortTeamnames)
+  return teamnames
+}
 
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
@@ -345,6 +367,7 @@ export {
   getTeamPublicitySettings,
   getTeamInvites,
   isInTeam,
+  isInSomeTeam,
   isAccessRequestPending,
   getTeamSubteams,
   getTeamSettings,
@@ -352,6 +375,7 @@ export {
   getTeamLoadingInvites,
   getTeamRequests,
   getTeamConvIDs,
+  getSortedTeamnames,
   getTopicFromConvID,
   getTeamType,
   isAdmin,

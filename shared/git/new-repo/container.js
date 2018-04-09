@@ -2,14 +2,14 @@
 import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as I from 'immutable'
 import NewRepo from '.'
-import {compose, lifecycle, mapProps, connect, type TypedState} from '../../util/container'
+import {compose, lifecycle, connect, type TypedState} from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
+import {getSortedTeamnames} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  _teams: state.teams.getIn(['teamnames'], I.Set()),
+  teams: getSortedTeamnames(state),
   error: Constants.getError(state),
   isTeam: routeProps.get('isTeam'),
   loading: Constants.getLoading(state),
@@ -30,10 +30,6 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  mapProps(props => ({
-    ...props,
-    teams: props._teams.toArray().sort(),
-  })),
   lifecycle({
     componentDidMount() {
       this.props._loadTeams()
