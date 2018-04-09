@@ -112,7 +112,7 @@ const config = (_, {mode}) => {
           : {
               exclude: undefined,
               maxModules: Infinity,
-              reasons: true,
+              providedExports: true,
               usedExports: true,
             }),
       },
@@ -141,6 +141,9 @@ const config = (_, {mode}) => {
     context: path.resolve(__dirname, '..'),
     entry: {main: './desktop/app/index.js'},
     name: 'mainThread',
+    stats: {
+      ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
+    },
     target: 'electron-main',
   })
   const renderThreadConfig = merge(commonConfig, {
@@ -158,7 +161,9 @@ const config = (_, {mode}) => {
   if (isHot) {
     return getenv.boolish('BEFORE_HOT', false) ? mainThreadConfig : renderThreadConfig
   } else {
-    return [mainThreadConfig, renderThreadConfig]
+    // TEMP
+    return [renderThreadConfig]
+    // return [mainThreadConfig, renderThreadConfig]
   }
 }
 
