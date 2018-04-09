@@ -192,7 +192,7 @@
       "_description": "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
       "teamname": "string"
     },
-    "setTeamRetentionPolicy": {
+    "saveTeamRetentionPolicy": {
       "_description": "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
       "policy": "Types.RetentionPolicy"

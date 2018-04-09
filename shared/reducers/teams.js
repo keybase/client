@@ -122,7 +122,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.saveChannelMembership:
     case TeamsGen.setMemberPublicity:
     case TeamsGen.setPublicity:
-    case TeamsGen.setTeamRetentionPolicy:
+    case TeamsGen.saveTeamRetentionPolicy:
     case TeamsGen.setupTeamHandlers:
     case TeamsGen.updateChannelName:
     case TeamsGen.updateTopic:

@@ -34,6 +34,7 @@ export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const saveChannelMembership = 'teams:saveChannelMembership'
+export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setLoaded = 'teams:setLoaded'
 export const setMemberPublicity = 'teams:setMemberPublicity'
@@ -50,7 +51,6 @@ export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
-export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamStoreRetentionPolicy = 'teams:setTeamStoreRetentionPolicy'
@@ -66,12 +66,12 @@ export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{|teamname: stri
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
-export const createSetTeamRetentionPolicy = (
+export const createSaveTeamRetentionPolicy = (
   payload: $ReadOnly<{|
     teamname: string,
     policy: Types.RetentionPolicy,
   |}>
-) => ({error: false, payload, type: setTeamRetentionPolicy})
+) => ({error: false, payload, type: saveTeamRetentionPolicy})
 export const createAddPeopleToTeam = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -304,6 +304,7 @@ export type JoinTeamPayload = More.ReturnType<typeof createJoinTeam>
 export type LeaveTeamPayload = More.ReturnType<typeof createLeaveTeam>
 export type RemoveMemberOrPendingInvitePayload = More.ReturnType<typeof createRemoveMemberOrPendingInvite>
 export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChannelMembership>
+export type SaveTeamRetentionPolicyPayload = More.ReturnType<typeof createSaveTeamRetentionPolicy>
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
 export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
@@ -320,7 +321,6 @@ export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinEr
 export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
 export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
 export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTeamPublicitySettings>
-export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
 export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
 export type SetTeamStoreRetentionPolicyPayload = More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
@@ -355,6 +355,7 @@ export type Actions =
   | More.ReturnType<typeof createLeaveTeam>
   | More.ReturnType<typeof createRemoveMemberOrPendingInvite>
   | More.ReturnType<typeof createSaveChannelMembership>
+  | More.ReturnType<typeof createSaveTeamRetentionPolicy>
   | More.ReturnType<typeof createSetChannelCreationError>
   | More.ReturnType<typeof createSetLoaded>
   | More.ReturnType<typeof createSetMemberPublicity>
@@ -371,7 +372,6 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamJoinSuccess>
   | More.ReturnType<typeof createSetTeamLoadingInvites>
   | More.ReturnType<typeof createSetTeamPublicitySettings>
-  | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetTeamSawChatBanner>
   | More.ReturnType<typeof createSetTeamSawSubteamsBanner>
   | More.ReturnType<typeof createSetTeamStoreRetentionPolicy>
