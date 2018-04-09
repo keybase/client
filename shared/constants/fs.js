@@ -416,16 +416,19 @@ export const folderToFavoriteItems = (
       ]
     }
   )
-  for (const badgeKey of Object.keys(badges)) {
-    const badgePath = Types.stringToPath(badgeKey)
-    favoriteFolders.push([
-      badgePath,
-      makeFavoriteItem({
-        badgeCount: badges[badgeKey],
-        name: Types.getPathName(badgePath),
-        favoriteChildren: I.Set(favoriteChildren[badgeKey]),
-      }),
-    ])
-  }
-  return I.Map(favoriteFolders)
+  return I.Map(
+    favoriteFolders.concat(
+      Object.keys(badges).map(badgeKey => {
+        const badgePath = Types.stringToPath(badgeKey)
+        return [
+          badgePath,
+          makeFavoriteItem({
+            badgeCount: badges[badgeKey],
+            name: Types.getPathName(badgePath),
+            favoriteChildren: I.Set(favoriteChildren[badgeKey]),
+          }),
+        ]
+      })
+    )
+  )
 }
