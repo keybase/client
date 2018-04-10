@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
-import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import {invert} from 'lodash-es'
@@ -143,8 +142,24 @@ const retentionPolicies = {
   policyYear,
 }
 
-const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
-  service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
+const userIsActiveInTeamHelper = (
+  state: TypedState,
+  username: string,
+  service: Service,
+  teamname: string
+) => {
+  if (service !== 'Keybase') {
+    return false
+  }
+
+  const members = state.teams.teamNameToMembers.get(teamname)
+  if (!members) {
+    return false
+  }
+
+  const member = members.get(username)
+  return member && member.active
+}
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
   state.teams.teamNameToConvIDs.get(teamname, I.Set())
@@ -198,6 +213,45 @@ const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'smal
  */
 const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
+
+const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
+  state.teams.getIn(['teamNameToMembers', teamname], I.Map())
+
+const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): Types._PublicitySettings =>
+  state.teams.getIn(['teamNameToPublicitySettings', teamname], {
+    anyMemberShowcase: false,
+    description: '',
+    ignoreAccessRequests: false,
+    member: false,
+    team: false,
+  })
+
+const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
+  state.teams.getIn(['teamNameToInvites', teamname], I.Set())
+
+const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.teams.hasIn(['teamnames', teamname])
+
+const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
+
+const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
+  state.teams.getIn(['teamNameToSubteams', teamname], I.Set())
+
+const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
+  state.teams.getIn(['teamNameToSettings', teamname], makeTeamSettings())
+
+const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
+  state.teams.getIn(['teamNameToResetUsers', teamname], I.Set())
+
+const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
+  state.teams.getIn(['teamNameToLoadingInvites', teamname], I.Map())
+
+const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
+  state.teams.getIn(['teamNameToRequests', teamname], I.Set())
+
+const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
+  state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
 
 const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
 const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
@@ -285,6 +339,17 @@ export {
   getChannelNameFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
+  getTeamMembers,
+  getTeamPublicitySettings,
+  getTeamInvites,
+  isInTeam,
+  isAccessRequestPending,
+  getTeamSubteams,
+  getTeamSettings,
+  getTeamResetUsers,
+  getTeamLoadingInvites,
+  getTeamRequests,
+  getTeamConvIDs,
   getTopicFromConvID,
   getTeamType,
   isAdmin,

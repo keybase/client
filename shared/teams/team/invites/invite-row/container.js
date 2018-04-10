@@ -3,6 +3,7 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
+import {getTeamInvites, getTeamMembers} from '../../../../constants/teams'
 import {amIFollowing} from '../../../../constants/selectors'
 import {TeamInviteRow} from '.'
 import {connect, type TypedState} from '../../../../util/container'
@@ -19,12 +20,12 @@ type StateProps = {
   following: boolean,
   you: ?string,
   _invites: I.Set<Types.InviteInfo>,
-  _members: I.Set<Types.MemberInfo>,
+  _members: I.Map<string, Types.MemberInfo>,
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
-  _invites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()),
-  _members: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
+  _invites: getTeamInvites(state, teamname),
+  _members: getTeamMembers(state, teamname),
   following: amIFollowing(state, username || ''),
   you: state.config.username,
 })

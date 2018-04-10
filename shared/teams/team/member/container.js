@@ -9,7 +9,7 @@ import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
-import {getCanPerform, teamWaitingKey} from '../../../constants/teams'
+import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
@@ -19,7 +19,7 @@ type StateProps = {
   follower: boolean,
   _you: ?string,
   _username: string,
-  _memberInfo: I.Set<Types.MemberInfo>,
+  _memberInfo: I.Map<string, Types.MemberInfo>,
   yourOperations: RPCTypes.TeamOperation,
   loading: boolean,
 }
@@ -36,7 +36,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
     yourOperations: getCanPerform(state, teamname),
     _username: username,
     _you: state.config.username,
-    _memberInfo: state.teams.getIn(['teamNameToMembers', teamname], I.Set()),
+    _memberInfo: getTeamMembers(state, teamname),
   }
 }
 
@@ -75,8 +75,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   // Gather contextual team membership info
-  const yourInfo = stateProps._memberInfo.find(member => member.username === stateProps._you)
-  const userInfo = stateProps._memberInfo.find(member => member.username === stateProps._username)
+  const yourInfo = stateProps._you && stateProps._memberInfo.get(stateProps._you)
+  const userInfo = stateProps._memberInfo.get(stateProps._username)
   const you = {
     username: stateProps._you,
     type: yourInfo && yourInfo.type,

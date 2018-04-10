@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import Team, {CustomComponent} from '.'
+import Team, {CustomComponent, type Props} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
@@ -31,13 +31,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   return {
     teamname,
     admin: yourOperations.manageMembers,
-    memberCount: state.teams.getIn(['teammembercounts', teamname], 0),
+    memberCount: Constants.getTeamMemberCount(state, teamname),
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-    numInvites: state.teams.getIn(['teamNameToInvites', teamname], I.Set()).size,
-    numRequests: state.teams.getIn(['teamNameToRequests', teamname], I.Set()).size,
-    numSubteams: state.teams.getIn(['teamNameToSubteams', teamname], I.Set()).size,
+    numInvites: Constants.getTeamInvites(state, teamname).size,
+    numRequests: Constants.getTeamRequests(state, teamname).size,
+    numSubteams: Constants.getTeamSubteams(state, teamname).size,
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-    resetUserCount: state.teams.getIn(['teamNameToResetUsers', teamname], I.Set()).size,
+    resetUserCount: Constants.getTeamResetUsers(state, teamname).size,
     selectedTab: routeState.get('selectedTab') || 'members',
     yourOperations,
   }
@@ -74,7 +74,7 @@ const mapDispatchToProps = (
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps): Props => {
   const customComponent = (
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
@@ -87,7 +87,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     customComponent,
     newTeamRequests: stateProps._newTeamRequests.toArray(),
   }

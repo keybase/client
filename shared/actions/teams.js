@@ -394,7 +394,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }, {})
 
     const infos = []
-    let memberNames = I.Set()
     const types = ['admins', 'owners', 'readers', 'writers']
     const typeMap = {
       admins: 'admin',
@@ -405,15 +404,15 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     types.forEach(type => {
       const members = details.members[type] || []
       members.forEach(({active, fullName, username}) => {
-        infos.push(
+        infos.push([
+          username,
           Constants.makeMemberInfo({
             active,
             fullName,
             type: typeMap[type],
             username,
-          })
-        )
-        memberNames = memberNames.add(username)
+          }),
+        ])
       })
     })
 
@@ -442,8 +441,7 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
         teamname,
-        members: I.Set(infos),
-        usernames: memberNames,
+        members: I.Map(infos),
         settings: Constants.makeTeamSettings(details.settings),
         invites: I.Set(invites),
         subteams: I.Set(subteams),
@@ -749,13 +747,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
     })
   )
 
-  const teamPublicitySettings = state.teams.getIn(['teamNameToPublicitySettings', teamname], {
-    anyMemberShowcase: false,
-    description: '',
-    ignoreAccessRequests: false,
-    member: false,
-    team: false,
-  })
+  const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
 
   const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
   const openTeam = teamSettings.open

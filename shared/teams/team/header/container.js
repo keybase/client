@@ -19,9 +19,9 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
     canEditDescription: yourOperations.editChannelDescription,
     canJoinTeam: yourOperations.joinTeam,
     canManageMembers: yourOperations.manageMembers,
-    description: state.teams.getIn(['teamNameToPublicitySettings', teamname, 'description'], ''),
-    memberCount: state.teams.getIn(['teammembercounts', teamname], 0),
-    openTeam: state.teams.getIn(['teamNameToSettings', teamname, 'open'], false),
+    description: Constants.getTeamPublicitySettings(state, teamname).description,
+    memberCount: Constants.getTeamMemberCount(state, teamname),
+    openTeam: Constants.getTeamSettings(state, teamname).open,
     role: Constants.getRole(state, teamname),
   }
 }
