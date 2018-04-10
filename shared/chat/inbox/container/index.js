@@ -112,27 +112,27 @@ export default compose(
         this.props.getTeams()
       }
     },
-    componentWillReceiveProps(nextProps) {
-      const loadedForTheFirstTime = this.props.rows.length === 0 && nextProps.rows.length > 0
+    componentDidUpdate(prevProps) {
+      const loadedForTheFirstTime = prevProps.rows.length === 0 && this.props.rows.length > 0
       // See if the first 6 are small, this implies its expanded
-      const smallRowsPlusOne = this.props.rows.slice(0, 6).filter(r => r.type === 'small')
-      const expandedForTheFirstTime = smallRowsPlusOne.length === 5 && nextProps.rows.length > 5
+      const smallRowsPlusOne = prevProps.rows.slice(0, 6).filter(r => r.type === 'small')
+      const expandedForTheFirstTime = smallRowsPlusOne.length === 5 && this.props.rows.length > 5
       if (loadedForTheFirstTime || expandedForTheFirstTime) {
-        const toUnbox = nextProps.rows.slice(0, 20).reduce((arr, row) => {
+        const toUnbox = this.props.rows.slice(0, 20).reduce((arr, row) => {
           if (row.type === 'small' || row.type === 'big') {
             arr.push(row.conversationIDKey)
           }
           return arr
         }, [])
         if (toUnbox.length) {
-          nextProps.onUntrustedInboxVisible(toUnbox)
+          this.props.onUntrustedInboxVisible(toUnbox)
         }
       }
 
       // keep first item selected if filter changes
       if (!isMobile) {
-        if (nextProps.filter && this.props.filter !== nextProps.filter && nextProps.rows.length > 0) {
-          const row = nextProps.rows[0]
+        if (this.props.filter && prevProps.filter !== this.props.filter && this.props.rows.length > 0) {
+          const row = this.props.rows[0]
           if (row.conversationIDKey) {
             this.props.onSelect(row.conversationIDKey)
           }

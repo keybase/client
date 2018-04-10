@@ -49,7 +49,7 @@ class Files extends Component<Props, State> {
     })
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this._checkFolderExistence(nextProps)
   }
 

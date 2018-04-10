@@ -24,12 +24,12 @@ class Checkbox extends Component<Props, State> {
     this.state = {left: new NativeAnimated.Value(this._getOffset(props))}
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.checked !== nextProps.checked) {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.checked !== prevProps.checked) {
       NativeAnimated.timing(this.state.left, {
-        toValue: this._getOffset(nextProps),
         duration: 100,
         easing: NativeEasing.linear,
+        toValue: this._getOffset(this.props),
       }).start()
     }
   }
