@@ -7,13 +7,13 @@ import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
   author: string,
-  description: ?string,
+  channelname: ?string,
   onUsernameClicked: () => void,
   setUsernameBlack: boolean,
   timestamp: number,
 }
 
-const SetDescription = (props: Props) => {
+const SetChannelname = (props: Props) => {
   return (
     <SmallUserNotice
       avatarUsername={props.author}
@@ -30,12 +30,12 @@ const SetDescription = (props: Props) => {
             usernames={[props.author]}
             style={props.setUsernameBlack ? {color: globalColors.black_75} : undefined}
           />{' '}
-          {props.description ? 'set the channel description' : 'cleared the channel description'}
+          set the channel name to <Text type="BodySmallItalic">#{props.channelname}</Text>
         </Text>
       }
-      bottomLine={props.description ? <Text type="BodySmallItalic">{props.description}</Text> : null}
+      bottomLine={null}
     />
   )
 }
 
-export default SetDescription
+export default SetChannelname

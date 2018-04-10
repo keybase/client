@@ -122,6 +122,12 @@ const makeMessageSetDescription: I.RecordFactory<MessageTypes._MessageSetDescrip
   type: 'setDescription',
 })
 
+const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannelname> = I.Record({
+  ...makeMessageMinimum,
+  newChannelname: '',
+  type: 'setChannelname',
+})
+
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
     case RPCChatTypes.remoteChannelMention.all:
@@ -355,13 +361,15 @@ const validUIMessagetoMessage = (
             newDescription: new HiddenString(m.messageBody.headline.headline),
           })
         : null
+    case RPCChatTypes.commonMessageType.metadata:
+      return m.messageBody.metadata
+        ? makeMessageSetChannelname({...minimum, newChannelname: m.messageBody.metadata.conversationTitle})
+        : null
     case RPCChatTypes.commonMessageType.none:
       return null
     case RPCChatTypes.commonMessageType.edit:
       return null
     case RPCChatTypes.commonMessageType.delete:
-      return null
-    case RPCChatTypes.commonMessageType.metadata:
       return null
     case RPCChatTypes.commonMessageType.tlfname:
       return null
