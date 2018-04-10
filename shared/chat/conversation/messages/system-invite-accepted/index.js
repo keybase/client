@@ -38,7 +38,12 @@ const InviteAddedToTeamNotice = (props: Props) => {
       topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} />}
       bottomLine={
         <Text type="BodySmall" title={formatTimeForMessages(timestamp)}>
-          was added by <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />.
+          was added by{' '}
+          {props.you === inviter ? (
+            'you'
+          ) : (
+            <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
+          )}.
         </Text>
       }
     />
@@ -47,46 +52,28 @@ const InviteAddedToTeamNotice = (props: Props) => {
 
 class YouInviteAddedToTeamNotice extends React.PureComponent<Props> {
   render() {
-    const {inviter, invitee, adder, inviteType, timestamp} = this.props.message
-    const {teamname, you} = this.props
+    const {timestamp} = this.props.message
+    const {teamname} = this.props
 
-    const copy =
-      you === invitee ? (
-        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-          Welcome to{' '}
-          <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
-            {teamname}
-          </Text>
-          . Say hi!{' '}
-          <EmojiIfExists style={{display: isMobile ? 'flex' : 'inline-block'}} emojiName=":wave:" size={14} />
+    const copy = (
+      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+        Welcome to{' '}
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          {teamname}
         </Text>
-      ) : (
-        <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
-          <ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} /> just joined {teamname}.{' '}
-          {you === inviter ? 'You invited them' : 'They were invited by '}
-          {you !== inviter && <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />}
-          {inviteType === 'seitan' ? '' : ' via ' + inviteType}
-          , and they were just now auto-added to the team sigchain by{' '}
-          {you === adder ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />}
-          , the first available admin.
-        </Text>
-      )
+        . Say hi!{' '}
+        <EmojiIfExists style={{display: isMobile ? 'flex' : 'inline-block'}} emojiName=":wave:" size={14} />
+      </Text>
+    )
 
     return (
       <UserNotice
         style={{marginTop: globalMargins.small}}
-        username={invitee === you ? undefined : invitee}
-        teamname={invitee === you ? teamname : undefined}
+        teamname={teamname}
         bgColor={globalColors.blue4}
-        onClickAvatar={
-          invitee === you
-            ? () => this.props.onViewTeam(teamname)
-            : () => this.props.onClickUserAvatar(invitee)
-        }
+        onClickAvatar={() => this.props.onViewTeam(teamname)}
       >
-        {you === invitee && (
-          <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />
-        )}
+        <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />
         <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
           {formatTimeForMessages(timestamp)}
         </Text>

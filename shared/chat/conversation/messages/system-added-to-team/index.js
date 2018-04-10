@@ -79,23 +79,14 @@ class YouAddedToTeam extends React.PureComponent<Props> {
     const {adder, addee, timestamp} = this.props.message
     const {teamname, you, onViewTeam} = this.props
 
-    const adderComponent =
-      adder === you ? 'You' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />
-
-    const addeeComponent =
-      addee === you ? 'you' : <ConnectedUsernames {...connectedUsernamesProps} usernames={[addee]} />
-
     return (
       <UserNotice
         style={{marginTop: globalMargins.small}}
-        username={you !== addee ? addee : undefined}
-        teamname={you === addee ? teamname : undefined}
+        teamname={teamname}
         bgColor={globalColors.blue4}
-        onClickAvatar={you !== addee ? () => this.props.onClickUserAvatar(addee) : onViewTeam}
+        onClickAvatar={onViewTeam}
       >
-        {you === addee && (
-          <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />
-        )}
+        <Icon type="icon-team-sparkles-48-40" style={{height: 40, marginTop: -36, width: 48}} />
         <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
           {formatTimeForMessages(timestamp)}
         </Text>
@@ -105,7 +96,8 @@ class YouAddedToTeam extends React.PureComponent<Props> {
             backgroundMode="Announcements"
             style={{color: globalColors.black_40, textAlign: 'center'}}
           >
-            {adderComponent} added {addeeComponent} to{' '}
+            <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
+            <YouOrUsername username={addee} you={you} capitalize={false} /> to{' '}
             <Text
               onClick={onViewTeam}
               style={{color: globalColors.black_60}}
@@ -114,16 +106,14 @@ class YouAddedToTeam extends React.PureComponent<Props> {
               {teamname}
             </Text>
             .{' '}
-            {you === addee && (
-              <Text type="BodySmallSemibold">
-                Say hi!{' '}
-                <EmojiIfExists
-                  style={isMobile ? {display: 'inline-block'} : null}
-                  emojiName=":wave:"
-                  size={14}
-                />
-              </Text>
-            )}
+            <Text type="BodySmallSemibold">
+              Say hi!{' '}
+              <EmojiIfExists
+                style={isMobile ? {display: 'inline-block'} : null}
+                emojiName=":wave:"
+                size={14}
+              />
+            </Text>
           </Text>
           <ManageComponent {...this.props} />
         </Box>
