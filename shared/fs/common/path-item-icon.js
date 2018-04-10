@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {Avatar, Icon} from '../../common-adapters'
-import memoize from 'lodash/memoize'
+import {memoize} from 'lodash-es'
 
 type PathItemIconProps = {
   spec: Types.PathItemIconSpec,

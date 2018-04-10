@@ -6,10 +6,9 @@ import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
-import memoize from 'lodash/memoize'
 import {FolderTypeToString} from '../constants/rpc'
-import findKey from 'lodash/findKey'
 import {tlfToPreferredOrder} from '../util/kbfs'
+import {memoize, findKey} from 'lodash-es'
 
 export const defaultPath = '/keybase'
 

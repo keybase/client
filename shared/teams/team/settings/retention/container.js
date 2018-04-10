@@ -161,10 +161,10 @@ const mapDispatchToProps = (
       )
     )
   },
-  setRetentionPolicy: (policy: RetentionPolicy) => {
+  saveRetentionPolicy: (policy: RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       // we couldn't get here without throwing an error for !teamname
-      teamname && dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+      teamname && dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname}))
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
       conversationIDKey && dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
@@ -179,10 +179,8 @@ export default compose(
   setDisplayName('RetentionPicker'),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props._setParentPath(this.props._path)
-    },
-    componentDidMount: function() {
       this.props._loadTeamPolicy()
       !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },

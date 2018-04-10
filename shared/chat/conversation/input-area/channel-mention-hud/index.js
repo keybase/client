@@ -85,7 +85,7 @@ const MentionHud = compose(
   })),
   setDisplayName('ChannelMentionHud'),
   lifecycle({
-    componentWillReceiveProps: function(nextProps) {
+    componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {
         nextProps.setSelectedIndex(0)
       }

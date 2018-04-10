@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props.onUpdatePGPSettings()
     },
   })

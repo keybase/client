@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {SmallUserNotice} from '../user-notice'
+import {Text, ConnectedUsernames} from '../../../../common-adapters'
+import {globalColors} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -19,23 +20,11 @@ class Left extends React.PureComponent<Props> {
     const {channelname, isBigTeam, teamname, onUsernameClicked, you} = this.props
     const {author, timestamp} = this.props.message
     return (
-      <Box
-        style={{
-          marginTop: 3,
-          marginBottom: 3,
-          marginLeft: globalMargins.tiny,
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-        }}
-      >
-        <Avatar
-          onClick={() => onUsernameClicked(author)}
-          size={24}
-          username={author}
-          style={{marginRight: globalMargins.tiny}}
-        />
-        <Box style={globalStyles.flexBoxColumn}>
+      <SmallUserNotice
+        avatarUsername={author}
+        onAvatarClicked={() => onUsernameClicked(author)}
+        title={formatTimeForMessages(timestamp)}
+        topLine={
           <Text type="BodySmallSemibold">
             {you === author ? (
               <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black_60}}>
@@ -52,11 +41,9 @@ class Left extends React.PureComponent<Props> {
               />
             )}{' '}
           </Text>
-          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
-            left {isBigTeam ? `#${channelname}` : teamname}.
-          </Text>
-        </Box>
-      </Box>
+        }
+        bottomLine={<Text type="BodySmall">left {isBigTeam ? `#${channelname}` : teamname}.</Text>}
+      />
     )
   }
 }

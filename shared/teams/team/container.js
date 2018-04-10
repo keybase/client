@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import Team, {CustomComponent} from '.'
+import Team, {CustomComponent, type Props} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
@@ -31,13 +31,13 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   return {
     teamname,
     admin: yourOperations.manageMembers,
-    memberCount: state.entities.getIn(['teams', 'teammembercounts', teamname], 0),
-    _newTeamRequests: state.entities.getIn(['teams', 'newTeamRequests'], I.List()),
-    numInvites: state.entities.getIn(['teams', 'teamNameToInvites', teamname], I.Set()).size,
-    numRequests: state.entities.getIn(['teams', 'teamNameToRequests', teamname], I.Set()).size,
-    numSubteams: state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()).size,
+    memberCount: Constants.getTeamMemberCount(state, teamname),
+    _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
+    numInvites: Constants.getTeamInvites(state, teamname).size,
+    numRequests: Constants.getTeamRequests(state, teamname).size,
+    numSubteams: Constants.getTeamSubteams(state, teamname).size,
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-    resetUserCount: state.entities.getIn(['teams', 'teamNameToResetUsers', teamname], I.Set()).size,
+    resetUserCount: Constants.getTeamResetUsers(state, teamname).size,
     selectedTab: routeState.get('selectedTab') || 'members',
     yourOperations,
   }
@@ -74,7 +74,7 @@ const mapDispatchToProps = (
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps): Props => {
   const customComponent = (
     <CustomComponent
       onOpenFolder={dispatchProps.onOpenFolder}
@@ -87,7 +87,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     customComponent,
     newTeamRequests: stateProps._newTeamRequests.toArray(),
   }
@@ -96,12 +95,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._loadTeam(this.props.teamname)
     },
-    componentWillReceiveProps: function(nextProps) {
-      if (this.props.teamname !== nextProps.teamname) {
-        this.props._loadTeam(nextProps.teamname)
+    componentDidUpdate(prevProps) {
+      if (this.props.teamname !== prevProps.teamname) {
+        this.props._loadTeam(this.props.teamname)
         this.props.setSelectedTab('members')
       }
     },

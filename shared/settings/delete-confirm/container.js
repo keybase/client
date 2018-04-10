@@ -8,11 +8,8 @@ import {type TimerProps} from '../../common-adapters/hoc-timers'
 import {connect, type TypedState} from '../../util/container'
 
 class DeleteConfirmContainer extends Component<Props & TimerProps> {
-  componentWillMount() {
-    this.props.setAllowDeleteAccount(false)
-  }
-
   componentDidMount() {
+    this.props.setAllowDeleteAccount(false)
     this.props.setTimeout(() => {
       this.props.setAllowDeleteAccount(true)
     }, 2000)

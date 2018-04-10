@@ -52,7 +52,7 @@ function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: Type
   return Saga.put(navigateTo(onlyProfilesPath))
 }
 
-function _onClickAvatar(action: ProfileGen.OnClickFollowersPayload) {
+function _onClickAvatar(action: ProfileGen.OnClickAvatarPayload) {
   if (!action.payload.username) {
     return
   }

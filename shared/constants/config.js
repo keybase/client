@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/config'
-import uniq from 'lodash/uniq'
+import {uniq} from 'lodash-es'
 import {isMobile, runMode} from './platform'
 
 export const maxBootstrapTries = 3

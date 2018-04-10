@@ -22,8 +22,8 @@ class _PaperKey extends Component<Props, {paperKey: string}> {
     paperKey: '',
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.phase === 'success') {
+  componentDidUpdate(prevProps) {
+    if (this.props.phase === 'success') {
       this._onBack()
     }
   }

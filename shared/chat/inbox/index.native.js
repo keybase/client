@@ -13,7 +13,7 @@ import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 
 import type {Props, RowItem} from './'
@@ -84,9 +84,9 @@ class Inbox extends React.PureComponent<Props, State> {
     )
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.rows !== nextProps.rows) {
-      this._dividerIndex = nextProps.rows.findIndex(r => r.type === 'divider')
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.rows !== prevProps.rows) {
+      this._dividerIndex = this.props.rows.findIndex(r => r.type === 'divider')
     }
   }
 

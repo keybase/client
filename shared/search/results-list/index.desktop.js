@@ -28,11 +28,11 @@ class SearchResultsList extends Component<Props> {
   _list = null
   _setRef = r => (this._list = r)
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.selectedId !== nextProps.selectedId) {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.selectedId !== prevProps.selectedId) {
       const list = this._list
-      if (list && nextProps.selectedId) {
-        const idx = nextProps.items.indexOf(nextProps.selectedId)
+      if (list && this.props.selectedId) {
+        const idx = this.props.items.indexOf(this.props.selectedId)
         if (idx !== -1) {
           list.scrollAround(idx)
         }

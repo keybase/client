@@ -2,8 +2,8 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, glamorous, platformStyles} from '../../styles'
-import memoize from 'lodash/memoize'
 import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
+import {memoize} from 'lodash-es'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 

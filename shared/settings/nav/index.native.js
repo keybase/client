@@ -41,6 +41,11 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
           onClick={() => onTabChange(Constants.foldersTab)}
         />
         <SettingsItem
+          text="Files"
+          badgeNumber={badgeNumbers[TabConstants.fsTab]}
+          onClick={() => onTabChange(Constants.fsTab)}
+        />
+        <SettingsItem
           text="Git"
           badgeNumber={badgeNumbers[TabConstants.gitTab]}
           onClick={() => onTabChange(Constants.gitTab)}

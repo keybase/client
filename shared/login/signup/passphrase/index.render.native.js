@@ -17,6 +17,7 @@ class PassphraseRender extends Component<Props> {
             type="password"
             onChangeText={pass1 => this.props.pass1Update(pass1)}
             hintText="Create a passphrase"
+            uncontrolled={true}
             floatingHintTextOverride="Create a passphrase"
             errorText={passphraseError}
           />
@@ -24,6 +25,7 @@ class PassphraseRender extends Component<Props> {
             type="password"
             style={stylesSecond}
             hintText="Confirm passphrase"
+            uncontrolled={true}
             floatingHintTextOverride="Confirm passphrase"
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={pass2 => this.props.pass2Update(pass2)}

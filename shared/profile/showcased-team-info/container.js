@@ -3,6 +3,7 @@ import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import {parsePublicAdmins} from '../../util/teams'
+import {isInTeam, isAccessRequestPending} from '../../constants/teams'
 
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
@@ -18,11 +19,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const memberCount = team.numMembers
   const openTeam = team.open
   const teamname = team.fqName
-  const youAreInTeam = !!state.entities.getIn(['teams', 'teamnames', teamname], false)
-  const youHaveRequestedAccess = !!state.entities.getIn(
-    ['teams', 'teamAccessRequestsPending', teamname],
-    false
-  )
+  const youAreInTeam = isInTeam(state, teamname)
+  const youHaveRequestedAccess = isAccessRequestPending(state, teamname)
 
   // If the current user's in the list of public admins, pull them out to the
   // front.
@@ -31,8 +29,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     description,
     following,
-    teamJoinError: state.entities.teams.teamJoinError,
-    teamJoinSuccess: state.entities.teams.teamJoinSuccess,
+    teamJoinError: state.teams.teamJoinError,
+    teamJoinSuccess: state.teams.teamJoinSuccess,
     memberCount,
     openTeam,
     publicAdmins,
@@ -50,7 +48,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
     _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
-      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
+      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
     onHidden: () => dispatch(navigateUp()),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: username => {
@@ -63,7 +61,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
       this.props._loadTeams()

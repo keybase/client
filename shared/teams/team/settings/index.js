@@ -167,6 +167,7 @@ export class Settings extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
+      // This isn't strictly necessary but flow doesn't understand getDerivedStateFromProps will run
       newIgnoreAccessRequests: this.props.ignoreAccessRequests,
       newPublicityAnyMember: this.props.publicityAnyMember,
       newPublicityMember: this.props.publicityMember,
@@ -180,37 +181,38 @@ export class Settings extends React.Component<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     // We just got new settings for this team, reset any user selections
     // to reflect the actual settings.
-    this.setState(
-      {
-        newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
-        newPublicityAnyMember: nextProps.publicityAnyMember,
-        newPublicityMember: nextProps.publicityMember,
-        newPublicityTeam: nextProps.publicityTeam,
-        newOpenTeam: nextProps.openTeam,
-        newOpenTeamRole: nextProps.openTeamRole,
-      },
-      this.setPublicitySettingsChanged
-    )
+    return {
+      newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
+      newOpenTeam: nextProps.openTeam,
+      newOpenTeamRole: nextProps.openTeamRole,
+      newPublicityAnyMember: nextProps.publicityAnyMember,
+      newPublicityMember: nextProps.publicityMember,
+      newPublicityTeam: nextProps.publicityTeam,
+    }
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    this.setState((prevState: State, props: Props) => {
+      const publicitySettingsChanged = !(
+        prevState.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
+        prevState.newOpenTeam === this.props.openTeam &&
+        prevState.newOpenTeamRole === this.props.openTeamRole &&
+        prevState.newPublicityAnyMember === this.props.publicityAnyMember &&
+        prevState.newPublicityMember === this.props.publicityMember &&
+        prevState.newPublicityTeam === this.props.publicityTeam &&
+        !prevState.retentionPolicyChanged
+      )
+      return publicitySettingsChanged !== prevState.publicitySettingsChanged
+        ? {publicitySettingsChanged}
+        : null
+    })
   }
 
   setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
-    this.setState({[key]: newSetting}, this.setPublicitySettingsChanged)
-  }
-
-  setPublicitySettingsChanged = () => {
-    const publicitySettingsChanged = !(
-      this.state.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
-      this.state.newOpenTeam === this.props.openTeam &&
-      this.state.newOpenTeamRole === this.props.openTeamRole &&
-      this.state.newPublicityAnyMember === this.props.publicityAnyMember &&
-      this.state.newPublicityMember === this.props.publicityMember &&
-      this.state.newPublicityTeam === this.props.publicityTeam &&
-      !this.state.retentionPolicyChanged
-    )
-    this.setState({publicitySettingsChanged})
+    this.setState({[key]: newSetting})
   }
 
   onSaveSettings = () => {
@@ -239,10 +241,7 @@ export class Settings extends React.Component<Props, State> {
     retentionPolicyChanged: boolean,
     retentionPolicyDecreased: boolean
   ) => {
-    this.setState(
-      {newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased},
-      this.setPublicitySettingsChanged
-    )
+    this.setState({newRetentionPolicy, retentionPolicyChanged, retentionPolicyDecreased})
   }
 
   render() {

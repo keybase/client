@@ -12,21 +12,23 @@ import (
 // SeqnoProvider implements build.SequenceProvider.  It is intended as a one-shot
 // wrapper and shouldn't be reused after the transaction is built.
 type SeqnoProvider struct {
-	ctx context.Context
-	g   *libkb.GlobalContext
+	ctx     context.Context
+	g       *libkb.GlobalContext
+	remoter remote.Remoter
 }
 
 // NewSeqnoProvider creates a SeqnoProvider.
-func NewSeqnoProvider(ctx context.Context, g *libkb.GlobalContext) *SeqnoProvider {
+func NewSeqnoProvider(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter) *SeqnoProvider {
 	return &SeqnoProvider{
-		ctx: ctx,
-		g:   g,
+		ctx:     ctx,
+		g:       g,
+		remoter: remoter,
 	}
 }
 
 // SequenceForAccount implements build.SequenceProvider.
 func (s *SeqnoProvider) SequenceForAccount(aid string) (xdr.SequenceNumber, error) {
-	seqno, err := remote.AccountSeqno(s.ctx, s.g, stellar1.AccountID(aid))
+	seqno, err := s.remoter.AccountSeqno(s.ctx, stellar1.AccountID(aid))
 	if err != nil {
 		return 0, err
 	}

@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
+import {hasCanPerform, retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -590,7 +590,6 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   switch (key) {
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
-    case 'headline':
     case 'attachmentuploaded':
       break
     default:
@@ -1781,8 +1780,7 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   if (!teamname) {
     return
   }
-  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], null)
-  if (!canPerform) {
+  if (!hasCanPerform(state, teamname)) {
     return Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   }
 }

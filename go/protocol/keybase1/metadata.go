@@ -271,6 +271,10 @@ type GetMerkleNodeArg struct {
 	Hash string `codec:"hash" json:"hash"`
 }
 
+type SetImplicitTeamModeForTestArg struct {
+	ImplicitTeamMode string `codec:"implicitTeamMode" json:"implicitTeamMode"`
+}
+
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
@@ -296,6 +300,7 @@ type MetadataInterface interface {
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
 	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
 	GetMerkleNode(context.Context, string) ([]byte, error)
+	SetImplicitTeamModeForTest(context.Context, string) error
 }
 
 func MetadataProtocol(i MetadataInterface) rpc.Protocol {
@@ -671,6 +676,22 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setImplicitTeamModeForTest": {
+				MakeArg: func() interface{} {
+					ret := make([]SetImplicitTeamModeForTestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetImplicitTeamModeForTestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetImplicitTeamModeForTestArg)(nil), args)
+						return
+					}
+					err = i.SetImplicitTeamModeForTest(ctx, (*typedArgs)[0].ImplicitTeamMode)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -804,5 +825,11 @@ func (c MetadataClient) GetMerkleRootSince(ctx context.Context, __arg GetMerkleR
 func (c MetadataClient) GetMerkleNode(ctx context.Context, hash string) (res []byte, err error) {
 	__arg := GetMerkleNodeArg{Hash: hash}
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleNode", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) SetImplicitTeamModeForTest(ctx context.Context, implicitTeamMode string) (err error) {
+	__arg := SetImplicitTeamModeForTestArg{ImplicitTeamMode: implicitTeamMode}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.setImplicitTeamModeForTest", []interface{}{__arg}, nil)
 	return
 }
