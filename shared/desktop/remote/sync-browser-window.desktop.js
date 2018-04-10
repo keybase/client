@@ -20,6 +20,7 @@ type Props = {
 }
 
 const defaultWindowOpts = {
+  nodeIntegration: false,
   frame: false,
   fullscreen: false,
   height: 300,
