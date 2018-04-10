@@ -241,7 +241,8 @@ const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Type
 
 const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean => getRole(state, teamname) !== 'none'
 
-const isInSomeTeam = (state: TypedState): boolean => state.teams.teamNameToRole.size > 0
+const isInSomeTeam = (state: TypedState): boolean =>
+  !!state.teams.teamNameToRole.find(role => role !== 'none')
 
 const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
