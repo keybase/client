@@ -3,7 +3,8 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
 
-export type TeamRoleType = 'none' | 'reader' | 'writer' | 'admin' | 'owner'
+export type TeamMemberRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+export type TeamRoleType = 'none' | TeamMemberRoleType
 
 export type TeamOperations = RPCTypes.TeamOperation
 
