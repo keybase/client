@@ -17,7 +17,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../../util/container'
-import throttle from 'lodash/throttle'
+import {throttle} from 'lodash-es'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
 

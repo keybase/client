@@ -3,7 +3,7 @@ import prettier from 'prettier'
 import path from 'path'
 import json5 from 'json5'
 import fs from 'fs'
-import isArray from 'lodash/isArray'
+import {isArray} from 'lodash-es'
 
 type Payload = Object
 type ErrorPayload = {

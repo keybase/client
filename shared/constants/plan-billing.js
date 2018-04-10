@@ -1,5 +1,5 @@
 // @flow
-import capitalize from 'lodash/capitalize'
+import {capitalize} from 'lodash-es'
 import * as Types from './types/plan-billing'
 
 export function parseAvailablePlan({

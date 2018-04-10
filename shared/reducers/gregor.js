@@ -2,7 +2,7 @@
 import * as Types from '../constants/types/gregor'
 import * as Constants from '../constants/gregor'
 import * as GregorGen from '../actions/gregor-gen'
-import keyBy from 'lodash/keyBy'
+import {keyBy} from 'lodash-es'
 
 export default function(state: Types.State = Constants.initialState, action: GregorGen.Actions): Types.State {
   switch (action.type) {

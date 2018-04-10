@@ -1,8 +1,6 @@
 // @flow
 import logger from '../logger'
-import map from 'lodash/map'
-import keyBy from 'lodash/keyBy'
-import last from 'lodash/last'
+import {map, keyBy, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'

@@ -3,7 +3,7 @@ import * as shared from './index.shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships'
 import React, {PureComponent} from 'react'
-import orderBy from 'lodash/orderBy'
+import {orderBy} from 'lodash-es'
 import moment from 'moment'
 import {
   Avatar,

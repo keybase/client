@@ -6,7 +6,7 @@ import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import Progress from '../common/progress'
-import memoize from 'lodash/memoize'
+import {memoize} from 'lodash-es'
 
 type Props = {
   name: string,

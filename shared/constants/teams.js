@@ -5,7 +5,7 @@ import * as Types from './types/teams'
 import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import invert from 'lodash/invert'
+import {invert} from 'lodash-es'
 
 import type {Service} from './types/search'
 import {type TypedState} from './reducer'

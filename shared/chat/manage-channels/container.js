@@ -1,7 +1,6 @@
 // @flow
 import logger from '../../logger'
-import pickBy from 'lodash/pickBy'
-import isEqual from 'lodash/isEqual'
+import {isEqual, pickBy} from 'lodash-es'
 import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'

@@ -6,8 +6,7 @@ import * as Types from '../constants/types/git'
 import * as Constants from '../constants/git'
 import {compose, lifecycle, connect, type TypedState} from '../util/container'
 import {createSelector} from 'reselect'
-import partition from 'lodash/partition'
-import sortBy from 'lodash/sortBy'
+import {sortBy, partition} from 'lodash-es'
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
