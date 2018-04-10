@@ -28,7 +28,9 @@ const InviteAddedToTeamNotice = (props: Props) => {
   if (props.you === props.message.invitee) {
     return <YouInviteAddedToTeamNotice {...props} />
   }
-  const {adder, invitee, inviter, timestamp} = props.message
+  const {invitee, inviter, timestamp} = props.message
+  // There's not a lot of space to explain the adder / inviter situation,
+  // just pretend they were added by the inviter for now.
   return (
     <SmallUserNotice
       avatarUsername={invitee}
@@ -36,14 +38,7 @@ const InviteAddedToTeamNotice = (props: Props) => {
       topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} />}
       bottomLine={
         <Text type="BodySmall" title={formatTimeForMessages(timestamp)}>
-          was {adder === inviter ? 'added' : 'invited'} by{' '}
-          <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />.
-          {adder !== inviter && (
-            <React.Fragment>
-              {' '}
-              They were signed in by <ConnectedUsernames {...connectedUsernamesProps} usernames={[adder]} />.
-            </React.Fragment>
-          )}
+          was added by <ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />.
         </Text>
       }
     />
