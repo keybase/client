@@ -488,11 +488,6 @@ func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSi
 // deleteAssets deletes assets from s3.
 // Logs but does not return errors. Assets may be left undeleted.
 func (s *BlockingSender) deleteAssets(ctx context.Context, convID chat1.ConversationID, assets []chat1.Asset) error {
-	ri := s.getRi()
-	if ri == nil {
-		return fmt.Errorf("deleteAssets(): no remote client found")
-	}
-
 	// get s3 params from server
 	params, err := s.getRi().GetS3Params(ctx, convID)
 	if err != nil {
@@ -515,15 +510,11 @@ func (s *BlockingSender) deleteAssets(ctx context.Context, convID chat1.Conversa
 
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
-	ri := s.getRi()
-	if ri == nil {
-		return nil, fmt.Errorf("Sign(): no remote client found")
-	}
 	arg := chat1.S3SignArg{
 		Payload: payload,
 		Version: 1,
 	}
-	return ri.S3Sign(context.Background(), arg)
+	return s.getRi().S3Sign(context.Background(), arg)
 }
 
 func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
@@ -541,11 +532,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Record that this user is "active in chat", which we use to determine
 	// gregor reconnect backoffs.
 	RecordChatSend(ctx, s.G(), s.DebugLabeler)
-
-	ri := s.getRi()
-	if ri == nil {
-		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
-	}
 
 	// Get conversation metadata first. If we can't find it, we will just attempt to join
 	// the conversation in case that is an option. If it succeeds, then we just keep going,
@@ -635,7 +621,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			ChannelMention: chanMention,
 			TopicNameState: topicNameState,
 		}
-		plres, err = ri.PostRemote(ctx, rarg)
+		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
 			switch err.(type) {
 			case libkb.ChatStalePreviousStateError:
