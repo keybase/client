@@ -121,23 +121,23 @@ func AssetNative() Asset {
 	}
 }
 
-func (b LocalExchangeRate) ConvertXLMToLocal(XLMAmount string) (localAmount string, err error) {
+func (b LocalExchangeRate) ConvertXLMToLocal(XLMAmount string, precision int) (localAmount string, err error) {
 	local, err := strconv.ParseFloat(XLMAmount, 64)
 	if err != nil {
 		return "", err
 	}
 
-	localAmount = strconv.FormatFloat(local*float64(b), 'f', 2, 64)
+	localAmount = strconv.FormatFloat(local*float64(b), 'f', precision, 64)
 	return localAmount, nil
 }
 
-func (b LocalExchangeRate) ConvertLocalToXLM(localAmount string) (XLMAmount string, err error) {
+func (b LocalExchangeRate) ConvertLocalToXLM(localAmount string, precision int) (XLMAmount string, err error) {
 	local, err := strconv.ParseFloat(localAmount, 64)
 	if err != nil {
 		return "", err
 	}
 
-	XLMAmount = strconv.FormatFloat(local/float64(b), 'f', 2, 64)
+	XLMAmount = strconv.FormatFloat(local/float64(b), 'f', precision, 64)
 	return XLMAmount, nil
 }
 

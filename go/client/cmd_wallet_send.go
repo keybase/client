@@ -76,12 +76,12 @@ func (c *cmdWalletSend) Run() error {
 			return fmt.Errorf("Unable to get exchange rate for %q: %s", c.localCurrency, err)
 		}
 
-		amount, err = exchangeRate.ConvertLocalToXLM(c.amount)
+		amount, err = exchangeRate.ConvertLocalToXLM(c.amount, 4)
 		if err != nil {
 			return err
 		}
 
-		ui.Printf("Current exchange rate for XLM%s is: ~%s\n", c.localCurrency, exchangeRate.Format('f', 3))
+		ui.Printf("Current exchange rate for XLM%s is: ~%s\n", c.localCurrency, exchangeRate.Format('f', 4))
 		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.amount, c.localCurrency)
 	}
 

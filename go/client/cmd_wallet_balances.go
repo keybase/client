@@ -85,7 +85,7 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 			localAmountStr := ""
 			if balance.Asset.IsNativeXLM() {
 				if acc.LocalCurrency != "" {
-					localAmount, err := acc.LocalExchangeRate.ConvertXLMToLocal(balance.Amount)
+					localAmount, err := acc.LocalExchangeRate.ConvertXLMToLocal(balance.Amount, 2)
 					if err == nil {
 						localAmountStr = fmt.Sprintf(" (~%s %s)", localAmount, string(acc.LocalCurrency))
 					} else {
