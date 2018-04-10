@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
-import throttle from 'lodash/throttle'
+import {throttle} from 'lodash-es'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {IncomingCallMapType} from '../constants/types/rpc-gen'

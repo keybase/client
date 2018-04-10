@@ -16,7 +16,7 @@ export default compose(
   })),
   connector,
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       NativeBackHandler.addEventListener('hardwareBackPress', () => {
         if (getPath(this.props.routeState).size === 1) {
           return false

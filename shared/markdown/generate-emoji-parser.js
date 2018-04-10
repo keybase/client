@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import peg from 'pegjs'
 import emojiData from 'emoji-datasource'
-import invert from 'lodash/invert'
+import {invert} from 'lodash-es'
 import tlds from 'tlds'
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js

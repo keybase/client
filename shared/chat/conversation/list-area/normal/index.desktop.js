@@ -7,7 +7,7 @@ import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'

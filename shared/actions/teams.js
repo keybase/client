@@ -1,8 +1,6 @@
 // @flow
 import logger from '../logger'
-import map from 'lodash/map'
-import keyBy from 'lodash/keyBy'
-import last from 'lodash/last'
+import {map, keyBy, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
@@ -25,7 +23,7 @@ import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 import {createGlobalError} from '../actions/config-gen'
-import {convertToError} from '../util/errors'
+import {convertToError, logError} from '../util/errors'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -1075,7 +1073,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.updateChannelName, _updateChannelname, last)
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
-  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEveryPure(TeamsGen.setChannelCreationError, _setChannelCreationError)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationError, _setTeamCreationError)
   yield Saga.safeTakeEveryPure(TeamsGen.setTeamCreationPending, _setTeamCreationPending)

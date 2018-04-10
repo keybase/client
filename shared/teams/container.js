@@ -66,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._loadTeams()
     },
   })

@@ -36,24 +36,24 @@ func (o EncryptedNote) DeepCopy() EncryptedNote {
 }
 
 type Members struct {
-	FromStellar  AccountID         `codec:"fromStellar" json:"fromStellar"`
-	FromKeybase  string            `codec:"fromKeybase" json:"fromKeybase"`
-	FromUID      keybase1.UID      `codec:"fromUID" json:"fromUID"`
-	FromDeviceID keybase1.DeviceID `codec:"fromDeviceID" json:"fromDeviceID"`
-	ToStellar    AccountID         `codec:"toStellar" json:"toStellar"`
-	ToKeybase    string            `codec:"toKeybase" json:"toKeybase"`
-	ToUID        keybase1.UID      `codec:"toUID" json:"toUID"`
+	FromStellar  AccountID            `codec:"fromStellar" json:"fromStellar"`
+	FromKeybase  string               `codec:"fromKeybase" json:"fromKeybase"`
+	From         keybase1.UserVersion `codec:"from" json:"from"`
+	FromDeviceID keybase1.DeviceID    `codec:"fromDeviceID" json:"fromDeviceID"`
+	ToStellar    AccountID            `codec:"toStellar" json:"toStellar"`
+	ToKeybase    string               `codec:"toKeybase" json:"toKeybase"`
+	To           keybase1.UserVersion `codec:"to" json:"to"`
 }
 
 func (o Members) DeepCopy() Members {
 	return Members{
 		FromStellar:  o.FromStellar.DeepCopy(),
 		FromKeybase:  o.FromKeybase,
-		FromUID:      o.FromUID.DeepCopy(),
+		From:         o.From.DeepCopy(),
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
 		ToStellar:    o.ToStellar.DeepCopy(),
 		ToKeybase:    o.ToKeybase,
-		ToUID:        o.ToUID.DeepCopy(),
+		To:           o.To.DeepCopy(),
 	}
 }
 
@@ -218,16 +218,16 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryKeybase struct {
-	KbTxID          KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
-	Status          TransactionStatus    `codec:"status" json:"status"`
-	SubmitErrMsg    string               `codec:"submitErrMsg" json:"submitErrMsg"`
-	Ctime           TimeMs               `codec:"ctime" json:"ctime"`
-	Rtime           TimeMs               `codec:"rtime" json:"rtime"`
-	FromUID         keybase1.UID         `codec:"fromUID" json:"fromUID"`
-	FromDeviceID    keybase1.DeviceID    `codec:"fromDeviceID" json:"fromDeviceID"`
-	ToUID           *keybase1.UID        `codec:"toUID,omitempty" json:"toUID,omitempty"`
-	DisplayAmount   *string              `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-	DisplayCurrency *string              `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	KbTxID          KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
+	Status          TransactionStatus     `codec:"status" json:"status"`
+	SubmitErrMsg    string                `codec:"submitErrMsg" json:"submitErrMsg"`
+	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
+	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
+	From            keybase1.UserVersion  `codec:"from" json:"from"`
+	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
 }
 
 func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
@@ -237,15 +237,15 @@ func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
 		SubmitErrMsg: o.SubmitErrMsg,
 		Ctime:        o.Ctime.DeepCopy(),
 		Rtime:        o.Rtime.DeepCopy(),
-		FromUID:      o.FromUID.DeepCopy(),
+		From:         o.From.DeepCopy(),
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
-		ToUID: (func(x *keybase1.UID) *keybase1.UID {
+		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.ToUID),
+		})(o.To),
 		DisplayAmount: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -276,29 +276,29 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 }
 
 type BalancesArg struct {
-	Uid       keybase1.UID `codec:"uid" json:"uid"`
-	AccountID AccountID    `codec:"accountID" json:"accountID"`
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
 
 type RecentPaymentsArg struct {
-	Uid       keybase1.UID `codec:"uid" json:"uid"`
-	AccountID AccountID    `codec:"accountID" json:"accountID"`
-	Limit     int          `codec:"limit" json:"limit"`
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Limit     int                  `codec:"limit" json:"limit"`
 }
 
 type TransactionArg struct {
-	Uid keybase1.UID  `codec:"uid" json:"uid"`
-	Id  TransactionID `codec:"id" json:"id"`
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+	Id     TransactionID        `codec:"id" json:"id"`
 }
 
 type AccountSeqnoArg struct {
-	Uid       keybase1.UID `codec:"uid" json:"uid"`
-	AccountID AccountID    `codec:"accountID" json:"accountID"`
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
 
 type SubmitPaymentArg struct {
-	Uid     keybase1.UID `codec:"uid" json:"uid"`
-	Payment PaymentPost  `codec:"payment" json:"payment"`
+	Caller  keybase1.UserVersion `codec:"caller" json:"caller"`
+	Payment PaymentPost          `codec:"payment" json:"payment"`
 }
 
 type RemoteInterface interface {

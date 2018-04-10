@@ -324,16 +324,6 @@ type XLMExchangeRate struct {
 	Currency string
 }
 
-func (b *XLMExchangeRate) ConvertXLM(XLMAmount string) (localAmount string, err error) {
-	local, err := strconv.ParseFloat(XLMAmount, 64)
-	if err != nil {
-		return "", err
-	}
-
-	localAmount = strconv.FormatFloat(b.Price*local, 'f', 2, 64)
-	return localAmount, nil
-}
-
 func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (XLMExchangeRate, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/ticker",

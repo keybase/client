@@ -106,14 +106,14 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return remote.Post(ctx, g, nextBundle)
 }
 
-func BalanceXLM(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.Balance, error) {
-	balances, err := remote.Balances(ctx, g, accountID)
+func BalanceXLM(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.Balance, error) {
+	balances, err := remoter.Balances(ctx, accountID)
 	if err != nil {
 		return stellar1.Balance{}, err
 	}
 
 	for _, b := range balances {
-		if b.Asset.Type == "native" {
+		if b.Asset.IsNativeXLM() {
 			return b, nil
 		}
 	}
@@ -197,29 +197,34 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 	return &r, nil
 }
 
-func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *Recipient) stellar1.PaymentPost {
+func postFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient *Recipient) (stellar1.PaymentPost, error) {
+	meUpk, err := loadMeUpk(ctx, g)
+	if err != nil {
+		return stellar1.PaymentPost{}, err
+	}
 	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
+	if !meUpk.Uid.Equal(uid) {
+		return stellar1.PaymentPost{}, fmt.Errorf("mismatched local UIDs")
+	}
 	post := stellar1.PaymentPost{
 		Members: stellar1.Members{
 			FromStellar:  stellar1.AccountID(acctID.String()),
 			FromKeybase:  g.Env.GetUsername().String(),
-			FromUID:      uid,
+			From:         meUpk.ToUserVersion(),
 			FromDeviceID: deviceID,
 		},
 	}
-
 	if recipient != nil {
 		post.Members.ToStellar = stellar1.AccountID(recipient.AccountID.String())
 		if recipient.User != nil {
-			post.Members.ToUID = recipient.User.GetUID()
+			post.Members.To = recipient.User.ToUserVersion()
 			post.Members.ToKeybase = recipient.User.GetName()
 		}
 	}
-
-	return post
+	return post, nil
 }
 
-func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput, amount string) (stellar1.PaymentResult, error) {
+func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string) (stellar1.PaymentResult, error) {
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(ctx, g)
 	if err != nil {
@@ -241,12 +246,15 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput,
 		return stellar1.PaymentResult{}, err
 	}
 
-	post := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
+	post, err := postFromCurrentUser(ctx, g, primaryAccountID, recipient)
+	if err != nil {
+		return stellar1.PaymentResult{}, err
+	}
 
-	sp := NewSeqnoProvider(ctx, g)
+	sp := NewSeqnoProvider(ctx, g, remoter)
 
 	// check if recipient account exists
-	_, err = BalanceXLM(ctx, g, stellar1.AccountID(recipient.AccountID.String()))
+	_, err = BalanceXLM(ctx, remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
@@ -266,7 +274,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, to RecipientInput,
 	// submit the transaction
 	payload := make(libkb.JSONPayload)
 	payload["payment"] = post
-	return remote.SubmitTransaction(ctx, g, payload)
+	return remoter.SubmitTransaction(ctx, payload)
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {

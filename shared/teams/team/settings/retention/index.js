@@ -383,7 +383,7 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
       exp = `Admins have set this ${convType} to retain messages indefinitely.`
       break
     case 'expire':
-      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(p.days)}`
+      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(p.days)}.`
       break
     default:
       throw new Error(`Impossible policy type encountered: ${p.type}`)

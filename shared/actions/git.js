@@ -15,6 +15,7 @@ import moment from 'moment'
 import {isMobile} from '../constants/platform'
 import {navigateTo, setRouteState} from './route-tree'
 import type {TypedState} from '../util/container'
+import {logError} from '../util/errors'
 
 // TODO refactor into pure function & reuse _processGitRepo
 function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> {
@@ -268,7 +269,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(GitGen.setError, _setError)
   yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
   yield Saga.safeTakeEveryPure(GitGen.handleIncomingGregor, _handleIncomingGregor)
-  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEveryPure(GitGen.setTeamRepoSettings, _setTeamRepoSettings)
   yield Saga.safeTakeEveryPure(GitGen.loadGitRepo, _loadGitRepo, _processGitRepo)
   yield Saga.safeTakeEveryPure(GitGen.navigateToTeamRepo, _navigateToTeamRepo, _processNavigateToTeamRepo)

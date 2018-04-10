@@ -1,5 +1,5 @@
 // @flow
-import trim from 'lodash/trim'
+import {trim} from 'lodash-es'
 
 function isBlank(s: string): boolean {
   return trim(s).length === 0

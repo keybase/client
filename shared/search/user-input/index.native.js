@@ -1,5 +1,5 @@
 // @flow
-import last from 'lodash/last'
+import {last} from 'lodash-es'
 import React, {Component} from 'react'
 import {TextInput, Animated} from 'react-native'
 import {Box, Text, Icon, ClickableBox} from '../../common-adapters'

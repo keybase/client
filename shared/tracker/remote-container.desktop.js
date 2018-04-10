@@ -65,7 +65,7 @@ export default compose(
   connect(state => state, mapDispatchToProps, mergeProps),
   branch(props => !props.username, renderNothing),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false)
       this.props._loadTeams()

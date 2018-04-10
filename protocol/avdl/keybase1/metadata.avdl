@@ -80,4 +80,7 @@ protocol metadata {
   MerkleRoot getMerkleRootLatest(MerkleTreeID treeID);
   MerkleRoot getMerkleRootSince(MerkleTreeID treeID, Time when);
   bytes getMerkleNode(string hash);
+
+  // For testing.
+  void setImplicitTeamModeForTest(string implicitTeamMode);
 }

@@ -17,6 +17,11 @@
 
 RCT_EXPORT_MODULE(MessageUI);
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 - (NSDictionary *)constantsToExport
 {
   return @{ @"MESSAGE_CANCELLED": @0, @"MESSAGE_SENT": @1, @"MESSAGE_FAILED": @2 };

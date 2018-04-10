@@ -36,6 +36,7 @@ const getIcon = invertColors => {
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
     index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
+    nodeIntegration: false,
     width: 320,
     height: 350,
     resizable: false,
