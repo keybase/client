@@ -18,6 +18,7 @@ export default function() {
   const mainWindow = new Window(
     resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
     {
+      backgroundThrottling: false,
       height: appState.state.height,
       minHeight: windowStyle.minHeight,
       minWidth: windowStyle.minWidth,
