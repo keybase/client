@@ -590,7 +590,6 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   switch (key) {
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
-    case 'headline':
     case 'attachmentuploaded':
       break
     default:
