@@ -189,7 +189,7 @@ export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
       return (a: PathItem, b: PathItem): number => a.name.localeCompare(b.name)
     case 'time':
       return (a: PathItem, b: PathItem): number =>
-        a.lastModifiedTimestamp - b.lastModifiedTimestamp || a.name.localeCompare(b.name)
+        b.lastModifiedTimestamp - a.lastModifiedTimestamp || a.name.localeCompare(b.name)
     default:
       throw new Error('invalid SortBy: ' + sortBy)
   }
