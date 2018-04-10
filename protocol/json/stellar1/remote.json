@@ -413,6 +413,19 @@
         }
       ],
       "response": "PaymentResult"
+    },
+    "isMasterKeyActive": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "stellar.1"
