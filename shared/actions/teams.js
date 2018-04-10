@@ -416,16 +416,28 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
       })
     })
 
-    const invites = map(details.annotatedActiveInvites, invite =>
-      Constants.makeInviteInfo({
+    const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
+      const role = Constants.teamRoleByEnum[invite.role]
+      if (role === 'none') {
+        return null
+      }
+      const username = (() => {
+        const t = invite.type
+        if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
+          return ''
+        }
+        // $ForceType
+        const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
+        return `${invite.name}@${sbs}`
+      })()
+      return Constants.makeInviteInfo({
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
-        role: Constants.teamRoleByEnum[invite.role],
-        username:
-          invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs ? `${invite.name}@${invite.type.sbs}` : '',
+        role,
+        username,
         id: invite.id,
       })
-    )
+    }).filter(Boolean)
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
