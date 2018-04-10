@@ -239,8 +239,7 @@ const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Type
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
-const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameToRole', teamname])
+const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean => getRole(state, teamname) !== 'none'
 
 const isInSomeTeam = (state: TypedState): boolean => state.teams.teamNameToRole.size > 0
 
