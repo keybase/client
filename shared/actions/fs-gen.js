@@ -28,7 +28,6 @@ export const openInFileUI = 'fs:openInFileUI'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
-export const syncingStatus = 'fs:syncingStatus'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
@@ -91,6 +90,7 @@ export const createSetFlags = (
     fuseInstalling?: boolean,
     kextPermissionError?: boolean,
     showBanner?: boolean,
+    syncing?: boolean,
   |}>
 ) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
@@ -100,7 +100,6 @@ export const createSortSetting = (
     sortSetting: Types.SortSetting,
   |}>
 ) => ({error: false, payload, type: sortSetting})
-export const createSyncingStatus = (payload: $ReadOnly<{|isSyncing: boolean|}>) => ({error: false, payload, type: syncingStatus})
 export const createTransferProgress = (
   payload: $ReadOnly<{|
     key: string,
@@ -131,7 +130,6 @@ export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
-export type SyncingStatusPayload = More.ReturnType<typeof createSyncingStatus>
 export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
@@ -158,7 +156,6 @@ export type Actions =
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>
-  | More.ReturnType<typeof createSyncingStatus>
   | More.ReturnType<typeof createTransferProgress>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSConfirm>
