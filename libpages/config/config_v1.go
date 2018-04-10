@@ -5,12 +5,15 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -47,6 +50,13 @@ type V1 struct {
 	// users should be authenticated.
 	Users map[string]string `json:"users"`
 
+	cleartextPasswordCacheLock sync.RWMutex
+	// [username -> password] map. Only available when a user has been
+	// authenticated.
+	cleartextPasswordCache map[string]string
+
+	bcryptLimiter *rate.Limiter
+
 	// ACLs is a path -> AccessControlV1 map that defines ACLs for different
 	// paths.
 	ACLs map[string]AccessControlV1 `json:"acls"`
@@ -75,7 +85,11 @@ func DefaultV1() *V1 {
 	return v1
 }
 
-func (c *V1) initACLChecker() {
+const bcryptRateLimitInterval = time.Second / 2
+
+func (c *V1) init() {
+	c.bcryptLimiter = rate.NewLimiter(rate.Every(bcryptRateLimitInterval), 1)
+	c.cleartextPasswordCache = make(map[string]string)
 	c.aclChecker, c.aclCheckerInitErr = makeACLCheckerV1(c.ACLs, c.Users)
 }
 
@@ -83,7 +97,7 @@ func (c *V1) initACLChecker() {
 // initialization. It is not necessary to call EnsureInit. Methods that need it
 // does it automatically.
 func (c *V1) EnsureInit() error {
-	c.initOnce.Do(c.initACLChecker)
+	c.initOnce.Do(c.init)
 	return c.aclCheckerInitErr
 }
 
@@ -92,13 +106,43 @@ func (c *V1) Version() Version {
 	return Version1
 }
 
+func (c *V1) getCachedCleartextPassword(username string) (cleartext string, ok bool) {
+	c.cleartextPasswordCacheLock.RLock()
+	defer c.cleartextPasswordCacheLock.RUnlock()
+	cleartext, ok = c.cleartextPasswordCache[username]
+	return cleartext, ok
+}
+
+func (c *V1) cacheCleartextPassword(username string, cleartext string) {
+	c.cleartextPasswordCacheLock.Lock()
+	defer c.cleartextPasswordCacheLock.Unlock()
+	c.cleartextPasswordCache[username] = cleartext
+}
+
 // Authenticate implements the Config interface.
-func (c *V1) Authenticate(username, password string) bool {
+func (c *V1) Authenticate(ctx context.Context, username, cleartextPassword string) bool {
+	if c.EnsureInit() != nil {
+		return false
+	}
+
+	if cleartext, ok := c.getCachedCleartextPassword(username); ok {
+		return cleartext == cleartextPassword
+	}
+
 	passwordHash, ok := c.Users[username]
 	if !ok {
 		return false
 	}
-	return bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)) == nil
+
+	c.bcryptLimiter.Wait(ctx)
+
+	match := bcrypt.CompareHashAndPassword(
+		[]byte(passwordHash), []byte(cleartextPassword)) == nil
+	if match {
+		c.cacheCleartextPassword(username, cleartextPassword)
+	}
+
+	return match
 }
 
 // GetPermissions implements the Config interface.

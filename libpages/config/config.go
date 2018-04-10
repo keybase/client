@@ -6,6 +6,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 )
@@ -63,7 +64,7 @@ func parseVersion(s string) (Version, error) {
 // parameters.
 type Config interface {
 	Version() Version
-	Authenticate(username, password string) bool
+	Authenticate(ctx context.Context, username, password string) bool
 	// GetPermissions returns permission info. If username is nil, anonymous
 	// permissions are returned. Otherwise, permissions for *username is
 	// returned. Additionally, "maximum possible permissions" are returned,

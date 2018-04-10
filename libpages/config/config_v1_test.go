@@ -5,6 +5,7 @@
 package config
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -135,7 +136,9 @@ func TestConfigV1Full(t *testing.T) {
 		},
 	}
 
-	authenticated := config.Authenticate("alice", "12345")
+	ctx := context.Background()
+
+	authenticated := config.Authenticate(ctx, "alice", "12345")
 	require.True(t, authenticated)
 
 	read, list, possibleRead, possibleList,

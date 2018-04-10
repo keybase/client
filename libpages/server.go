@@ -458,7 +458,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var username *string
 	user, pass, ok := r.BasicAuth()
-	if ok && cfg.Authenticate(user, pass) {
+	if ok && cfg.Authenticate(r.Context(), user, pass) {
 		sri.Authenticated = true
 		username = &user
 	}
