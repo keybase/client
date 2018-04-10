@@ -451,14 +451,19 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	arg.IdentifyBehavior = ei.behavior
 
 	res, err := k.identifyClient.IdentifyLite(ctx, arg)
-	// Identify2 still returns keybase1.UserPlusKeys data (sans keys),
-	// even if it gives a NoSigChainError, and in KBFS it's fine if
-	// the user doesn't have a full sigchain yet (e.g., it's just like
-	// the sharing before signup case, except the user already has a
-	// UID).
-	if _, ok := err.(libkb.NoSigChainError); ok {
-		k.log.CDebugf(ctx, "Ignoring error (%s) for user %s with no sigchain",
-			err, res.Ul.Name)
+	// IdentifyLite still returns keybase1.UserPlusKeys data (sans
+	// keys), even if it gives a NoSigChainError or a DeletedError,
+	// and in KBFS it's fine if the user doesn't have a full sigchain
+	// (e.g., it's just like the sharing before signup case, except
+	// the user already has a UID).  Both types of users are based
+	// entirely on server trust anyway.
+	_, isNoSigChain := err.(libkb.NoSigChainError)
+	_, isDeleted := err.(libkb.DeletedError)
+	if isNoSigChain || isDeleted {
+		k.log.CDebugf(ctx,
+			"Ignoring error (%s) for user %s with no sigchain; "+
+				"isNoSigChain=%t, isDeleted=%t",
+			err, res.Ul.Name, isNoSigChain, isDeleted)
 	} else if err != nil {
 		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
