@@ -95,13 +95,16 @@ class BioRender extends Component<Props> {
       locationLineClamp = {lineClamp: 1}
     }
 
+    const _onClickAvatar = this.props.onClickAvatar
+    const onClickAvatar = _onClickAvatar ? () => _onClickAvatar(username) : undefined
+
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         <Box style={stylesHeaderBar(avatarSize, trackerStateColors.header.background)} />
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
-            onClick={() => (editFns ? editFns.onEditAvatarClick() : this.props.onClickAvatar(username))}
+            onClick={editFns ? editFns.onEditAvatarClick() : onClickAvatar}
             username={username}
             size={avatarSize}
             following={currentlyFollowing}
@@ -113,7 +116,7 @@ class BioRender extends Component<Props> {
             type="HeaderBig"
             selectable={true}
             style={{...stylesUsername, color: trackerStateColors.username}}
-            onClick={() => this.props.onClickAvatar(username)}
+            onClick={onClickAvatar}
           >
             {username}
           </Text>

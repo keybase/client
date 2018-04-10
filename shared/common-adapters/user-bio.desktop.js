@@ -68,6 +68,9 @@ class BioRender extends Component<Props> {
       bioTweaks = {className: 'hover-underline', onClick: editFns.onBioEdit}
     }
 
+    const _onClickAvatar = this.props.onClickAvatar
+    const onClickAvatar = _onClickAvatar ? () => _onClickAvatar(username) : undefined
+
     return (
       <Box style={{minHeight: 190, ...this.props.style}}>
         {loading && (
@@ -90,8 +93,8 @@ class BioRender extends Component<Props> {
             }}
           >
             <Avatar
-              onClick={() => this.props.onClickAvatar(username)}
-              style={platformStyles({isElectron: desktopStyles.clickable})}
+              onClick={onClickAvatar}
+              style={onClickAvatar ? platformStyles({isElectron: desktopStyles.clickable}) : null}
               username={username}
               size={avatarSize}
               following={currentlyFollowing && !editFns}
@@ -112,7 +115,7 @@ class BioRender extends Component<Props> {
               type="HeaderBig"
               selectable={true}
               style={{...stylesUsername, color: trackerStateColors.username}}
-              onClick={() => this.props.onClickAvatar(username)}
+              onClick={onClickAvatar}
             >
               {username}
             </Text>
