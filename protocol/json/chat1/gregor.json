@@ -270,10 +270,11 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "ConversationID"
+            "type": "map",
+            "values": "ConvEphemeralMetadata",
+            "keys": "string"
           },
-          "name": "convIDs"
+          "name": "convMetadata"
         },
         {
           "type": "InboxVers",

@@ -81,7 +81,8 @@ protocol gregor {
     record EphemeralPurgePayload {
         @lint("ignore")
         string Action;
-        array<ConversationID> convIDs;
+        // ConverstionID
+        map<string, ConvEphemeralMetadata> convMetadata;
         InboxVers inboxVers;
     }
 

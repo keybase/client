@@ -753,7 +753,7 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
-export type EphemeralPurgePayload = $ReadOnly<{Action: String, convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
+export type EphemeralPurgePayload = $ReadOnly<{Action: String, convMetadata: {[key: string]: ConvEphemeralMetadata}, inboxVers: InboxVers}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 

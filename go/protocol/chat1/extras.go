@@ -76,7 +76,7 @@ func (cid ConversationID) DbShortForm() ConvIDShort {
 }
 
 func (cid ConversationID) DbShortFormString() string {
-	return hex.EncodeToString(cid.DbShortForm())
+	return DbShortFormToString(cid.DbShortForm())
 }
 
 func DbShortFormToString(cid ConvIDShort) string {
