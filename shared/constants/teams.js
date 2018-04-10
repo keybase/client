@@ -41,8 +41,8 @@ export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
   username: '',
 })
 
-export const teamRoleByEnum = ((m: {[Types.TeamRoleType]: RPCTypes.TeamRole}) => {
-  const mInv: {[RPCTypes.TeamRole]: Types.TeamRoleType} = {}
+export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
+  const mInv: {[RPCTypes.TeamRole]: Types.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
     // $ForceType
     const role: Types.TeamRoleType = roleStr

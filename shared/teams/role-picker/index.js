@@ -14,16 +14,16 @@ import {
   Checkbox,
 } from '../../common-adapters/index'
 import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
-import {type TeamMemberRoleType, type TeamRoleType} from '../../constants/types/teams'
+import {type TeamRoleType} from '../../constants/types/teams'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
 
 export type RolePickerProps = {
   confirm: boolean,
   controlled?: boolean,
-  currentType: ?TeamMemberRoleType,
+  currentType: ?TeamRoleType,
   username: string,
-  selectedRole: TeamMemberRoleType,
+  selectedRole: TeamRoleType,
   allowAdmin?: boolean,
   allowOwner?: boolean,
   sendNotification: boolean,
@@ -31,7 +31,7 @@ export type RolePickerProps = {
   sendNotificationChecked?: boolean,
   showSendNotification: boolean,
   setConfirm: (confirm: boolean) => void,
-  setSelectedRole: (r: TeamMemberRoleType) => void,
+  setSelectedRole: (r: TeamRoleType) => void,
   setSendNotification: (send: boolean) => void,
   onComplete: (r: TeamRoleType, showNotification: boolean) => void,
   onCancel: () => void,
@@ -39,9 +39,9 @@ export type RolePickerProps = {
 
 // create row in rolepicker screen
 const makeRoleOption = (
-  role: TeamMemberRoleType,
-  selected: TeamMemberRoleType,
-  setSelected: TeamMemberRoleType => void,
+  role: TeamRoleType,
+  selected: TeamRoleType,
+  setSelected: TeamRoleType => void,
   disabled?: boolean = false
 ) => (
   <ClickableBox

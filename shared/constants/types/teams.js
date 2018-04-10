@@ -3,8 +3,8 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
 
-export type TeamMemberRoleType = 'reader' | 'writer' | 'admin' | 'owner'
-export type TeamRoleType = 'none' | TeamMemberRoleType
+export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+export type MaybeTeamRoleType = 'none' | TeamRoleType
 
 export type TeamOperations = RPCTypes.TeamOperation
 
@@ -84,9 +84,9 @@ export type _SubteamInfo = {
 }
 export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
-export type TypeMap = {[TeamRoleType]: string}
+export type TypeMap = {[MaybeTeamRoleType]: string}
 
-export type BoolTypeMap = {[TeamRoleType]: boolean}
+export type BoolTypeMap = {[MaybeTeamRoleType]: boolean}
 
 export type ResetUserBadgeID = Buffer
 export type ResetUserBadgeIDKey = string
