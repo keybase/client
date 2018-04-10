@@ -193,6 +193,7 @@ class MainNavStack extends Component<any, any> {
         stackCache: prevState.stackCache.set(routeSelected, routeStack),
       }
     }
+    return null
   }
 
   _switchTab = tab => {
