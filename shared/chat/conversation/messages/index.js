@@ -65,6 +65,8 @@ class MessageFactory extends React.PureComponent<Props> {
         return <SystemLeft message={this.props.message} />
       // case 'error':
       // return <Error message={this.props.message} />
+      case 'setDescription':
+        return null // TEMP
       case 'deleted':
         return null
       default:

@@ -116,6 +116,12 @@ const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPu
   type: 'systemGitPush',
 })
 
+const makeMessageSetDescription: I.RecordFactory<MessageTypes._MessageSetDescription> = I.Record({
+  ...makeMessageMinimum,
+  newDescription: new HiddenString(''),
+  type: 'setDescription',
+})
+
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
     case RPCChatTypes.remoteChannelMention.all:
@@ -342,6 +348,13 @@ const validUIMessagetoMessage = (
       return makeMessageSystemLeft(minimum)
     case RPCChatTypes.commonMessageType.system:
       return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
+    case RPCChatTypes.commonMessageType.headline:
+      return m.messageBody.headline && m.messageBody.headline.headline
+        ? makeMessageSetDescription({
+            ...minimum,
+            newDescription: new HiddenString(m.messageBody.headline.headline),
+          })
+        : null
     case RPCChatTypes.commonMessageType.none:
       return null
     case RPCChatTypes.commonMessageType.edit:
@@ -351,8 +364,6 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.metadata:
       return null
     case RPCChatTypes.commonMessageType.tlfname:
-      return null
-    case RPCChatTypes.commonMessageType.headline:
       return null
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
