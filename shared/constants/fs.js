@@ -327,7 +327,7 @@ const _fillMetadataInFavoritesResult = (
       ? (solutions[myKID] || []).map(kid => ({...favoritesResult.devices[kid], deviceID: kid}))
       : []
 
-    const waitingForParticipantUnlock = canSelfHelp
+    const waitingForParticipantUnlock = !canSelfHelp
       ? Object.keys(solutions).map(userID => {
           const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
           const numDevices = devices.length
