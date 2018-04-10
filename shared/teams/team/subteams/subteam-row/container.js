@@ -41,7 +41,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     // $FlowIssue
     onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
-    yourRole: stateProps.yourRole,
   }
 }
 

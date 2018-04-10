@@ -183,8 +183,8 @@ const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatType
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
-const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
-  state.teams.getIn(['teamNameToRole', teamname], null)
+const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
+  state.teams.getIn(['teamNameToRole', teamname], 'none')
 
 const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
   state.teams.getIn(['teamNameToCanPerform', teamname], initialCanUserPerform)
@@ -284,8 +284,8 @@ const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
   return teamnames
 }
 
-const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
-const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
+const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
+const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
 
 // TODO make this check for only valid subteam names
 const isSubteam = (maybeTeamname: string) => {

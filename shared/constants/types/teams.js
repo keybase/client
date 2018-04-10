@@ -116,7 +116,7 @@ export type _State = {
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>,
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>,
-  teamNameToRole: I.Map<Teamname, TeamRoleType>,
+  teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>,
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
   teamNameToCanPerform: I.Map<Teamname, TeamOperations>,
   teamNameToSettings: I.Map<Teamname, TeamSettings>,

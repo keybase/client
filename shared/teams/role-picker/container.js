@@ -14,7 +14,7 @@ type StateProps = {
   you: ?string,
   username: string,
   teamname: string,
-  yourRole: ?Types.TeamRoleType,
+  yourRole: Types.MaybeTeamRoleType,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {

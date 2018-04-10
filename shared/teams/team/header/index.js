@@ -14,7 +14,7 @@ export type Props = {
   loading?: boolean,
   memberCount: number,
   openTeam: boolean,
-  role: ?Types.TeamRoleType,
+  role: Types.MaybeTeamRoleType,
   teamname: Types.Teamname,
   onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
