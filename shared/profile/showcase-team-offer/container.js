@@ -9,14 +9,14 @@ import {sortTeamnames} from '../../util/teams'
 
 const mapStateToProps = (state: TypedState) => {
   return {
-    _teamNameToIsOpen: state.entities.getIn(['teams', 'teamNameToIsOpen'], I.Map()),
-    _teammembercounts: state.entities.getIn(['teams', 'teammembercounts'], I.Map()),
-    _teamnames: state.entities.getIn(['teams', 'teamnames'], I.Set()),
-    _teamNameToCanPerform: state.entities.getIn(['teams', 'teamNameToCanPerform'], I.Map()),
-    _teamNameToPublicitySettings: state.entities.getIn(['teams', 'teamNameToPublicitySettings'], I.Map()),
-    _teamNameToAllowPromote: state.entities.getIn(['teams', 'teamNameToAllowPromote'], I.Map()),
-    _teamNameToIsShowcasing: state.entities.getIn(['teams', 'teamNameToIsShowcasing'], I.Map()),
-    _teamNameToRole: state.entities.getIn(['teams', 'teamNameToRole'], I.Map()),
+    _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
+    _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
+    _teamnames: state.teams.getIn(['teamnames'], I.Set()),
+    _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
+    _teamNameToPublicitySettings: state.teams.getIn(['teamNameToPublicitySettings'], I.Map()),
+    _teamNameToAllowPromote: state.teams.getIn(['teamNameToAllowPromote'], I.Map()),
+    _teamNameToIsShowcasing: state.teams.getIn(['teamNameToIsShowcasing'], I.Map()),
+    _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
     _waiting: state.waiting,
   }
 }

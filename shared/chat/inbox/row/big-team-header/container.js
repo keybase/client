@@ -8,7 +8,7 @@ import {BigTeamHeader} from '.'
 import {navigateAppend} from '../../../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, {teamname}) => ({
-  _teammembercounts: state.entities.getIn(['teams', 'teammembercounts'], I.Map()),
+  _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
   teamname,
 })
 

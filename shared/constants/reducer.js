@@ -17,6 +17,7 @@ import type {State as Push} from '../constants/types/push'
 import type {State as RouteTree} from '../constants/types/route-tree'
 import type {State as Settings} from '../constants/types/settings'
 import type {State as Signup} from '../constants/types/signup'
+import type {State as Teams} from '../constants/types/teams'
 import type {State as Tracker} from '../constants/types/tracker'
 import type {State as UnlockFolders} from '../constants/types/unlock-folders'
 import type {State as Users} from '../constants/types/users'
@@ -43,6 +44,7 @@ export type TypedState = $ReadOnly<{|
   routeTree: RouteTree,
   settings: Settings,
   signup: Signup,
+  teams: Teams,
   tracker: Tracker,
   unlockFolders: UnlockFolders,
   users: Users,

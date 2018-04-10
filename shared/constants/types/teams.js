@@ -26,8 +26,15 @@ export type _PublicitySettings = {
   team: boolean,
 }
 
-export type _TeamSettings = RPCTypes.TeamSettings
+// Record types don't play well with $ReadOnly types, which
+// RPCTypes.TeamSettings is, so we want to extract the underlying
+// writeable type. Just spreading doesn't give us what we want, as
+// that makes all keys optional (see
+// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
+// fix that.
+export type _TeamSettings = {...$Exact<RPCTypes.TeamSettings>}
 export type TeamSettings = I.RecordOf<_TeamSettings>
+
 export type ChannelMembershipState = {[channelname: string]: boolean}
 
 // `days` should be left as 0 unless `type` is expire
@@ -39,15 +46,14 @@ export type _ChannelInfo = {
   description: ?string,
   participants: I.Set<string>,
 }
-
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
+
 export type _MemberInfo = {
   active: boolean,
   fullName: string,
   type: ?TeamRoleType,
   username: string,
 }
-
 export type MemberInfo = I.RecordOf<_MemberInfo>
 
 export type _InviteInfo = {
@@ -57,13 +63,13 @@ export type _InviteInfo = {
   username: string,
   id: string,
 }
-
 export type InviteInfo = I.RecordOf<_InviteInfo>
+
 export type _RequestInfo = {
   username: string,
 }
-
 export type RequestInfo = I.RecordOf<_RequestInfo>
+
 export type TabKey = 'members' | 'requests' | 'pending'
 
 export type _SubteamInfo = {
@@ -112,18 +118,7 @@ export type _State = {
   teamCreationPending: boolean,
   teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
   teamNameToID: I.Map<Teamname, string>,
-  teamNameToInvites: I.Map<
-    Teamname,
-    I.Set<
-      I.RecordOf<{
-        email: string,
-        name: string,
-        role: TeamRoleType,
-        username: string,
-        id: string,
-      }>
-    >
-  >,
+  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>,
   teamNameToIsOpen: I.Map<Teamname, boolean>,
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
@@ -133,8 +128,8 @@ export type _State = {
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>,
   teamNameToRole: I.Map<Teamname, TeamRoleType>,
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
-  teamNameToCanPerform: I.Map<Teamname, RPCTypes.TeamOperation>,
-  teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
+  teamNameToCanPerform: I.Map<Teamname, TeamOperations>,
+  teamNameToSettings: I.Map<Teamname, TeamSettings>,
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>,
   teamNameToAllowPromote: I.Map<Teamname, boolean>,
   teamNameToIsShowcasing: I.Map<Teamname, boolean>,

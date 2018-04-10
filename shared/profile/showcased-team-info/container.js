@@ -18,11 +18,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const memberCount = team.numMembers
   const openTeam = team.open
   const teamname = team.fqName
-  const youAreInTeam = !!state.entities.getIn(['teams', 'teamnames', teamname], false)
-  const youHaveRequestedAccess = !!state.entities.getIn(
-    ['teams', 'teamAccessRequestsPending', teamname],
-    false
-  )
+  const youAreInTeam = !!state.teams.getIn(['teamnames', teamname], false)
+  const youHaveRequestedAccess = !!state.teams.getIn(['teamAccessRequestsPending', teamname], false)
 
   // If the current user's in the list of public admins, pull them out to the
   // front.
@@ -31,8 +28,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     description,
     following,
-    teamJoinError: state.entities.teams.teamJoinError,
-    teamJoinSuccess: state.entities.teams.teamJoinSuccess,
+    teamJoinError: state.teams.teamJoinError,
+    teamJoinSuccess: state.teams.teamJoinSuccess,
     memberCount,
     openTeam,
     publicAdmins,
@@ -50,7 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
     _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
-      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: null})),
+      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
     onHidden: () => dispatch(navigateUp()),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: username => {

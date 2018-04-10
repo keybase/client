@@ -13,8 +13,8 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  _subteams: state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()),
-  sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
+  _subteams: state.teams.getIn(['teamNameToSubteams', teamname], I.Set()),
+  sawSubteamsBanner: state.teams.getIn(['sawSubteamsBanner'], false),
   yourOperations: Constants.getCanPerform(state, teamname),
 })
 

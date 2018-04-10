@@ -11,7 +11,7 @@ import {isSubteam} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
-  const members = state.entities.getIn(['teams', 'teamNameToMembers', name], Set())
+  const members = state.teams.getIn(['teamNameToMembers', name], Set())
   const _lastOwner = members.size <= 1 && !isSubteam(name)
   return {
     _lastOwner,
