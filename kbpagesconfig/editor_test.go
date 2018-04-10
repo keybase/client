@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -52,12 +53,14 @@ func TestEditor(t *testing.T) {
 	_, err = os.Stat(kbpConfigPath)
 	require.NoError(t, err)
 
+	ctx := context.Background()
+
 	// add user
 	editor, err = newKBPConfigEditorWithPrompterAndCost(
 		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
 	// It's an empty config now so authentication should fail.
-	ok := editor.kbpConfig.Authenticate("alice", "12345")
+	ok := editor.kbpConfig.Authenticate(ctx, "alice", "12345")
 	require.False(t, ok)
 	// Try adding a user "alice" with password "12345" and "bob" with password
 	// "54321".
@@ -74,9 +77,9 @@ func TestEditor(t *testing.T) {
 	editor, err = newKBPConfigEditorWithPrompterAndCost(
 		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
-	ok = editor.kbpConfig.Authenticate("alice", "12345")
+	ok = editor.kbpConfig.Authenticate(ctx, "alice", "12345")
 	require.True(t, ok)
-	ok = editor.kbpConfig.Authenticate("bob", "54321")
+	ok = editor.kbpConfig.Authenticate(ctx, "bob", "54321")
 	require.True(t, ok)
 
 	// remove "bob"
@@ -93,9 +96,9 @@ func TestEditor(t *testing.T) {
 	editor, err = newKBPConfigEditorWithPrompterAndCost(
 		configDir, prompter, bcrypt.MinCost)
 	require.NoError(t, err)
-	ok = editor.kbpConfig.Authenticate("bob", "54321")
+	ok = editor.kbpConfig.Authenticate(ctx, "bob", "54321")
 	require.False(t, ok)
-	ok = editor.kbpConfig.Authenticate("alice", "12345")
+	ok = editor.kbpConfig.Authenticate(ctx, "alice", "12345")
 	require.True(t, ok)
 
 	// set anonymous permissions
