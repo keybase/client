@@ -10,7 +10,7 @@ export type Props = {
 }
 
 export default lifecycle({
-  componentDidMount: function() {
+  componentDidMount() {
     Mousetrap.bind(
       this.props.hotkeys,
       (e, key) => {
@@ -20,7 +20,7 @@ export default lifecycle({
       'keydown'
     )
   },
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     Mousetrap.unbind(this.props.hotkeys)
   },
 })

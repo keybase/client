@@ -62,7 +62,7 @@ class SendIndicator extends React.Component<Props, State> {
     this._setStatus('sending')
   }
 
-  componentWillMount() {
+  componentDidMount() {
     if (!(this.props.sent || this.props.failed)) {
       // Only show the `encrypting` icon for messages once
       if (!shownEncryptingSet.has(this.props.id)) {

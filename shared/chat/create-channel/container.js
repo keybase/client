@@ -53,7 +53,7 @@ export default compose(
     },
   }),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._onSetChannelCreationError('')
     },
   })

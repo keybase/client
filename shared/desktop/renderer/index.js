@@ -149,6 +149,10 @@ const FontLoader = () => (
 )
 
 function render(store, MainComponent) {
+  const root = document.getElementById('root')
+  if (!root) {
+    throw new Error('No root element?')
+  }
   ReactDOM.render(
     <Root store={store}>
       <div style={{display: 'flex', flex: 1}}>
@@ -157,8 +161,7 @@ function render(store, MainComponent) {
         <MainComponent />
       </div>
     </Root>,
-    // $FlowIssue wants this to be non-null
-    document.getElementById('root')
+    root
   )
 }
 

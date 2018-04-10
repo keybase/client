@@ -43,7 +43,7 @@ export default compose(
     onSubmit: ({name, _onJoinTeam}) => () => _onJoinTeam(name),
   }),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess(false, null)
     },

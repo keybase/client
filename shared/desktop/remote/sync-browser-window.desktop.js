@@ -113,7 +113,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
       }
     }
 
-    componentWillMount() {
+    componentDidMount() {
       const remoteWindow = this._makeBrowserWindow()
 
       // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed

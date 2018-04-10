@@ -54,7 +54,7 @@ export default compose(
     onSubmit: ({joinSubteam, name, _onCreateNewTeam}) => () => _onCreateNewTeam(joinSubteam, name),
   }),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._onSetTeamCreationError('')
     },
   })

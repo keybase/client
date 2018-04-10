@@ -67,7 +67,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       if (!this.props._hasCanPerform) {
         this.props._loadOperations()
       }

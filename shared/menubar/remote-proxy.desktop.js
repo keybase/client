@@ -30,7 +30,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       )
     }
 
-    componentWillMount() {
+    componentDidMount() {
       this._sendLoad()
 
       // Allow reloads

@@ -60,7 +60,7 @@ class RemoteComponentLoader extends Component<Props> {
     }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._window = remote.getCurrentWindow()
     const remoteStore = new RemoteStore({
       gotPropsCallback: this._onGotProps,
