@@ -811,7 +811,7 @@
       "fields": [
         {
           "type": "gregor1.DurationSec",
-          "name": "ephemeralLifetime",
+          "name": "lifetime",
           "mpackkey": "life",
           "jsonkey": "life"
         },

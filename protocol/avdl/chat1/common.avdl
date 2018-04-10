@@ -315,7 +315,7 @@
   @mpackkey("em") @jsonkey("em")
   record MsgEphemeralMetadata {
     @mpackkey("life") @jsonkey("life")
-    gregor1.DurationSec ephemeralLifetime; // used to computed etime
+    gregor1.DurationSec lifetime; // used to computed etime
     @mpackkey("gen") @jsonkey("gen")
     keybase1.EkGeneration generation;
   }
