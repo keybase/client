@@ -1,8 +1,5 @@
 // @flow
 import CommonMap from '../../common-adapters/dumb'
-import DevicePageMap from '../../devices/device-page/dumb'
-import DeviceRevokeMap from '../../devices/device-revoke/dumb'
-import DevicesMap from '../../devices/dumb'
 import EditProfileMap from '../../profile/edit-profile/dumb'
 import FoldersConfirmMap from '../../folders/confirm/dumb'
 import LoginMap from '../../login/dumb'
@@ -18,9 +15,6 @@ import UnlockFoldersMap from '../../unlock-folders/dumb'
 
 const map: any = {
   ...CommonMap,
-  ...DevicePageMap,
-  ...DeviceRevokeMap,
-  ...DevicesMap,
   ...EditProfileMap,
   ...FoldersConfirmMap,
   ...LoginMap,

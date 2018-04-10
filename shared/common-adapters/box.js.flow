@@ -1,5 +1,9 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = any
-declare export default class Box extends Component<Props> {}
+
+declare export class Box extends React.Component<Props> {}
+declare export class VBox extends React.Component<Props> {}
+declare export class HBox extends React.Component<Props> {}
+export default Box
