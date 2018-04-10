@@ -181,6 +181,8 @@ export class Settings extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    // We just got new settings for this team, reset any user selections
+    // to reflect the actual settings.
     return {
       newIgnoreAccessRequests: nextProps.ignoreAccessRequests,
       newOpenTeam: nextProps.openTeam,
@@ -192,8 +194,6 @@ export class Settings extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    // We just got new settings for this team, reset any user selections
-    // to reflect the actual settings.
     this.setState((prevState: State, props: Props) => {
       const publicitySettingsChanged = !(
         prevState.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
