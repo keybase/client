@@ -1118,6 +1118,13 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 	return k.config.MDServer().StartImplicitTeamMigration(ctx, handle.TlfID())
 }
 
+// FinalizeMigration implements keybase1.ImplicitTeamMigrationInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
+	folder keybase1.Folder) (err error) {
+	return nil
+}
+
 // GetTLFCryptKeys implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
