@@ -141,8 +141,8 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, members SCTeamMembers,
 	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
-	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings) error {
-
+	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings) (err error) {
+	defer g.Trace("makeSigAndPostRootTeam", func() error { return err })()
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam get device keys")
 	deviceSigningKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
@@ -247,6 +247,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	payload["per_team_key"] = secretboxes
 
 	_, err = g.API.PostJSON(libkb.APIArg{
+		NetContext:  ctx,
 		Endpoint:    "sig/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
