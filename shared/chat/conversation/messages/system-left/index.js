@@ -23,6 +23,7 @@ class Left extends React.PureComponent<Props> {
       <SmallUserNotice
         avatarUsername={author}
         onAvatarClicked={() => onUsernameClicked(author)}
+        title={formatTimeForMessages(timestamp)}
         topLine={
           <Text type="BodySmallSemibold">
             {you === author ? (
@@ -41,11 +42,7 @@ class Left extends React.PureComponent<Props> {
             )}{' '}
           </Text>
         }
-        bottomLine={
-          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
-            left {isBigTeam ? `#${channelname}` : teamname}.
-          </Text>
-        }
+        bottomLine={<Text type="BodySmall">left {isBigTeam ? `#${channelname}` : teamname}.</Text>}
       />
     )
   }

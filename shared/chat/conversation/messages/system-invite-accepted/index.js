@@ -36,8 +36,9 @@ const InviteAddedToTeamNotice = (props: Props) => {
       avatarUsername={invitee}
       onAvatarClicked={() => props.onClickUserAvatar(invitee)}
       topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[invitee]} />}
+      title={formatTimeForMessages(timestamp)}
       bottomLine={
-        <Text type="BodySmall" title={formatTimeForMessages(timestamp)}>
+        <Text type="BodySmall">
           was added by{' '}
           {props.you === inviter ? (
             'you'

@@ -8,6 +8,7 @@ const mapStateToProps = (state: TypedState, {message}) => ({
   author: message.author,
   description: message.newDescription.stringValue(),
   setUsernameBlack: message.author === state.config.username,
+  timestamp: message.timestamp,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {message}) => ({

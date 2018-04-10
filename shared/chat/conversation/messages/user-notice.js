@@ -29,6 +29,7 @@ export type SmallProps = {
   avatarUsername: string,
   bottomLine: React.Node,
   onAvatarClicked: () => void,
+  title?: string,
   topLine: React.Node,
 }
 
@@ -44,6 +45,7 @@ const SmallUserNotice = (props: SmallProps) => (
       alignItems: 'center',
       justifyContent: 'flex-start',
     }}
+    title={props.title}
   >
     <Avatar
       onClick={props.onAvatarClicked}

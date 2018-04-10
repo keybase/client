@@ -64,8 +64,9 @@ const AddedToTeam = (props: Props) => {
       avatarUsername={props.message.addee}
       onAvatarClicked={() => props.onClickUserAvatar(props.message.addee)}
       topLine={<ConnectedUsernames {...connectedUsernamesProps} usernames={[props.message.addee]} />}
+      title={formatTimeForMessages(props.message.timestamp)}
       bottomLine={
-        <Text type="BodySmall" title={formatTimeForMessages(props.message.timestamp)}>
+        <Text type="BodySmall">
           was added by <YouOrUsername username={props.message.adder} you={props.you} capitalize={false} />.{' '}
           <ManageComponent {...props} />
         </Text>
