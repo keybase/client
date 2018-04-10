@@ -54,7 +54,6 @@ export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
-  none: 'None',
   owner: 'Owner',
   reader: 'Reader',
   writer: 'Writer',

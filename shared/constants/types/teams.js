@@ -84,9 +84,9 @@ export type _SubteamInfo = {
 }
 export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
-export type TypeMap = {[MaybeTeamRoleType]: string}
+export type TypeMap = {[TeamRoleType]: string}
 
-export type BoolTypeMap = {[MaybeTeamRoleType]: boolean}
+export type BoolTypeMap = {[TeamRoleType]: boolean}
 
 export type ResetUserBadgeID = Buffer
 export type ResetUserBadgeIDKey = string

@@ -13,7 +13,6 @@ export const roleDescMap = {
 export const roleIconMap = {
   admin: 'iconfont-crown-admin',
   owner: 'iconfont-crown-owner',
-  none: '',
   reader: '',
   writer: '',
 }
@@ -21,7 +20,6 @@ export const roleIconMap = {
 export const roleIconColorMap = {
   admin: globalColors.black_40,
   owner: globalColors.yellow2,
-  none: '',
   reader: '',
   writer: '',
 }

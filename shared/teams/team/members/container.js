@@ -10,7 +10,7 @@ export type OwnProps = {
   teamname: string,
 }
 
-const order = {owner: 0, admin: 1, writer: 2, reader: 3, none: 4}
+const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
 const getOrderedMemberArray = (
   memberInfo: I.Map<string, Types.MemberInfo>,
