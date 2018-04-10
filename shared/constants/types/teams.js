@@ -26,8 +26,13 @@ export type _PublicitySettings = {
   team: boolean,
 }
 
-// Record types don't play well with $ReadOnly types.
-export type _TeamSettings = {...RPCTypes.TeamSettings}
+// Record types don't play well with $ReadOnly types, which
+// RPCTypes.TeamSettings is, so we want to extract the underlying
+// writeable type. Just spreading doesn't give us what we want, as
+// that makes all keys optional (see
+// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
+// fix that.
+export type _TeamSettings = {...$Exact<RPCTypes.TeamSettings>}
 export type TeamSettings = I.RecordOf<_TeamSettings>
 
 export type ChannelMembershipState = {[channelname: string]: boolean}
