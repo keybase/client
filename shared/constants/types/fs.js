@@ -89,6 +89,7 @@ export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
   name: string,
+  path: Path,
   onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
 }
 
