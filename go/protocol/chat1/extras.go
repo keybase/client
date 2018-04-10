@@ -631,6 +631,10 @@ func (c ConversationLocal) GetExpunge() *Expunge {
 	return &c.Expunge
 }
 
+func (c ConversationLocal) GetEphemeralMetadata() *ConvEphemeralMetadata {
+	return c.EphemeralMetadata
+}
+
 func (c ConversationLocal) IsPublic() bool {
 	return c.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 }
@@ -673,6 +677,10 @@ func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
 
 func (c Conversation) GetExpunge() *Expunge {
 	return &c.Expunge
+}
+
+func (c Conversation) GetEphemeralMetadata() *ConvEphemeralMetadata {
+	return c.EphemeralMetadata
 }
 
 func (c Conversation) IsPublic() bool {

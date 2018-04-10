@@ -159,6 +159,10 @@ func (b *basicUnboxConversationInfo) GetExpunge() *chat1.Expunge {
 	return nil
 }
 
+func (b *basicUnboxConversationInfo) GetEphemeralMetadata() *chat1.ConvEphemeralMetadata {
+	return nil
+}
+
 func (b *basicUnboxConversationInfo) IsPublic() bool {
 	return b.visibility == keybase1.TLFVisibility_PUBLIC
 }
@@ -193,6 +197,10 @@ func (p *extraInboxUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationF
 }
 
 func (p *extraInboxUnboxConversationInfo) GetExpunge() *chat1.Expunge {
+	return nil
+}
+
+func (p *extraInboxUnboxConversationInfo) GetEphemeralMetadata() *chat1.ConvEphemeralMetadata {
 	return nil
 }
 

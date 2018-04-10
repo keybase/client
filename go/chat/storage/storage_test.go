@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -50,6 +51,13 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
+func makeEphemeralEdit(id chat1.MessageID, supersedes chat1.MessageID, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessageUnboxed {
+	msg := makeEdit(id, supersedes)
+	mvalid := msg.Valid()
+	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
+	return chat1.NewMessageUnboxedWithValid(mvalid)
+}
+
 func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []chat1.MessageID) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
@@ -78,6 +86,13 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 		}),
 	}
 	return chat1.NewMessageUnboxedWithValid(msg)
+}
+
+func makeEphemeralText(id chat1.MessageID, text string, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessageUnboxed {
+	msg := makeText(id, text)
+	mvalid := msg.Valid()
+	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
+	return chat1.NewMessageUnboxedWithValid(mvalid)
 }
 
 func makeSystemMessage(id chat1.MessageID) chat1.MessageUnboxed {
@@ -688,6 +703,132 @@ func TestStorageExpunge(t *testing.T) {
 	t.Logf("expunge the rest")
 	setExpected("H", msgH, false, dontCare) // after the cutoff
 	expunge(msgI.GetMessageID()+12, true)
+}
+
+func TestStorageEphemeralPurge(t *testing.T) {
+	// Uses this conversation:
+	// A start                            <not deletable>
+	// B text                             <not ephemeral>
+	// C text <----\        edited by E
+	// D headline  |                      <not deletable>
+	// E edit -----^        edits C
+	// F text <---\         deleted by G
+	// G delete --^    ___  deletes F     <not deletable>
+	// H text           |
+
+	_, storage, uid := setupStorageTest(t, "delh")
+
+	convID := makeConvID()
+	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
+	msgB := makeText(2, "some text")
+	msgC := makeEphemeralText(3, "some text", &chat1.MsgEphemeralMetadata{})
+	msgD := makeHeadlineMessage(4)
+	msgE := makeEphemeralEdit(5, msgC.GetMessageID(), &chat1.MsgEphemeralMetadata{})
+	msgF := makeEphemeralText(6, "some text", &chat1.MsgEphemeralMetadata{})
+	msgG := makeDelete(7, msgF.GetMessageID(), nil)
+	msgH := makeEphemeralText(8, "some text", &chat1.MsgEphemeralMetadata{})
+
+	type expectedM struct {
+		Name         string // letter label
+		MsgID        chat1.MessageID
+		BodyPresent  bool
+		SupersededBy chat1.MessageID
+	}
+	dontCare := chat1.MessageID(12341234)
+
+	var expectedState []expectedM // expectations sorted by ID ascending
+	setExpected := func(name string, msg chat1.MessageUnboxed, bodyPresent bool, supersededBy chat1.MessageID) {
+		xset := expectedM{name, msg.GetMessageID(), bodyPresent, supersededBy}
+		var found bool
+		for i, x := range expectedState {
+			if x.Name == name {
+				found = true
+				expectedState[i] = xset
+			}
+		}
+		if !found {
+			expectedState = append(expectedState, xset)
+		}
+		sort.Slice(expectedState, func(i, j int) bool {
+			return expectedState[i].MsgID < expectedState[j].MsgID
+		})
+	}
+	assertState := func(maxMsgID chat1.MessageID) {
+		var rc ResultCollector
+		res, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc, nil, nil)
+		require.NoError(t, err)
+		if len(res.Messages) != len(expectedState) {
+			t.Logf("wrong number of messages")
+			for _, m := range res.Messages {
+				t.Logf("msgid:%v type:%v", m.GetMessageID(), m.GetMessageType())
+			}
+			require.Equal(t, len(expectedState), len(res.Messages), "wrong number of messages")
+		}
+		for i, x := range expectedState {
+			t.Logf("[%v] checking msgID:%v supersededBy:%v", x.Name, x.MsgID, x.SupersededBy)
+			m := res.Messages[len(res.Messages)-1-i]
+			require.True(t, m.IsValid(), "[%v] message should be valid", x.Name)
+			require.Equal(t, x.MsgID, m.Valid().ServerHeader.MessageID, "[%v] message ID", x.Name)
+			if m.GetMessageType() != chat1.MessageType_TLFNAME {
+				if !x.BodyPresent && x.SupersededBy == 0 {
+					t.Fatalf("You expected the body to be deleted but the message not to be superseded. Are you sure?")
+				}
+			}
+			if x.SupersededBy != dontCare {
+				require.Equal(t, x.SupersededBy, m.Valid().ServerHeader.SupersededBy, "[%v] superseded by", x.Name)
+			}
+			if x.BodyPresent {
+				require.False(t, m.Valid().MessageBody.IsNil(), "[%v] message body should not be deleted", x.Name)
+			} else {
+				require.True(t, m.Valid().MessageBody.IsNil(), "[%v] message body should be deleted", x.Name)
+			}
+		}
+	}
+	ephemeralPurge := func(lastKtime time.Time, expectedMetadata bool) {
+		ephemeralMetadata := &chat1.ConvEphemeralMetadata{LastKtime: gregor1.ToTime(lastKtime)}
+		res, err := storage.EphemeralPurge(context.Background(), convID, uid, ephemeralMetadata)
+		require.NoError(t, err)
+		if expectedMetadata {
+			require.NotNil(t, res.EphemeralMetadata)
+		} else {
+			require.Nil(t, res.EphemeralMetadata)
+		}
+	}
+
+	t.Logf("initial merge")
+	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
+	setExpected("A", msgA, false, 0) // TLFNAME messages have no body
+	setExpected("B", msgB, true, 0)
+	setExpected("C", msgC, true, msgE.GetMessageID())
+	setExpected("D", msgD, true, 0)
+	setExpected("E", msgE, true, 0)
+	setExpected("F", msgF, false, msgG.GetMessageID())
+	setExpected("G", msgG, true, 0)
+	assertState(msgG.GetMessageID())
+
+	t.Logf("purge Ephemeral")
+	// We should purge all of the ephemeral messages that we have C, E, H
+	setExpected("C", msgC, false, dontCare)
+	setExpected("E", msgE, false, dontCare)
+	ephemeralPurge(time.Now(), true)
+	assertState(msgG.GetMessageID())
+
+	// Add another ephemeral message
+	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgH}))
+	setExpected("H", msgH, true, 0)
+	assertState(msgH.GetMessageID())
+
+	setExpected("H", msgH, false, dontCare)
+	lastKtime := time.Now()
+	ephemeralPurge(lastKtime, true)
+	assertState(msgH.GetMessageID())
+
+	t.Logf("purge with no effect")
+	// use the previously used `lastKtime` so we shoud short circuit
+	ephemeralPurge(lastKtime, false)
+
+	t.Logf("another purge with no effect")
+	ephemeralPurge(lastKtime, false)
 }
 
 func TestStorageMiss(t *testing.T) {

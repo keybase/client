@@ -31,10 +31,11 @@ type Storage struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	engine       storageEngine
-	idtracker    *msgIDTracker
-	breakTracker *breakTracker
-	delhTracker  *delhTracker
+	engine           storageEngine
+	idtracker        *msgIDTracker
+	breakTracker     *breakTracker
+	delhTracker      *delhTracker
+	ephemeralTracker *ephemeralTracker
 }
 
 type storageEngine interface {
@@ -48,12 +49,13 @@ type storageEngine interface {
 
 func New(g *globals.Context) *Storage {
 	return &Storage{
-		Contextified: globals.NewContextified(g),
-		engine:       newBlockEngine(g),
-		idtracker:    newMsgIDTracker(g),
-		breakTracker: newBreakTracker(g),
-		delhTracker:  newDelhTracker(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Storage", false),
+		Contextified:     globals.NewContextified(g),
+		engine:           newBlockEngine(g),
+		idtracker:        newMsgIDTracker(g),
+		breakTracker:     newBreakTracker(g),
+		delhTracker:      newDelhTracker(g),
+		ephemeralTracker: newEphemeralTracker(g),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
 }
 
@@ -295,27 +297,35 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 }
 
 type MergeResult struct {
-	Expunged *chat1.Expunge
+	Expunged          *chat1.Expunge
+	EphemeralMetadata *chat1.ConvEphemeralMetadata
 }
 
 // Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Merge")()
-	return s.MergeHelper(ctx, convID, uid, msgs, nil)
+	return s.MergeHelper(ctx, convID, uid, msgs, nil, nil)
 }
 
 func (s *Storage) Expunge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Expunge")()
 	// Merge with no messages, just the expunge.
-	return s.MergeHelper(ctx, convID, uid, nil, &expunge)
+	return s.MergeHelper(ctx, convID, uid, nil, &expunge, nil)
+}
+
+func (s *Storage) EphemeralPurge(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, metadata *chat1.ConvEphemeralMetadata) (res MergeResult, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+	// Merge with no messages, just the ephemeral metadata.
+	return s.MergeHelper(ctx, convID, uid, nil, nil, metadata)
 }
 
 // MergeHelper requires msgs to be sorted by descending message ID
-// expunge is optional
+// expunge, and ephemeralMetadata are optional
 func (s *Storage) MergeHelper(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (MergeResult, Error) {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge, ephemeralMetadata *chat1.ConvEphemeralMetadata) (MergeResult, Error) {
 
 	var res MergeResult
 	var err Error
@@ -358,6 +368,12 @@ func (s *Storage) MergeHelper(ctx context.Context,
 		return res, s.MaybeNuke(false, err, convID, uid)
 	}
 	res.Expunged = expunged
+
+	newMetadata, err := s.handleEphemeralPurge(ctx, convID, uid, ephemeralMetadata)
+	if err != nil {
+		return res, s.MaybeNuke(false, err, convID, uid)
+	}
+	res.EphemeralMetadata = newMetadata
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
@@ -628,6 +644,87 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	return &expunge, nil
+}
+
+func (s *Storage) handleEphemeralPurge(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, metadata *chat1.ConvEphemeralMetadata) (*chat1.ConvEphemeralMetadata, Error) {
+
+	s.Debug(ctx, "handleEphemeralPurge convID: %v, uid: %v, metadata %v)", convID, uid, metadata)
+	// Noop if there is no metadata
+	if metadata == nil {
+		return nil, nil
+	}
+
+	mem, err := s.ephemeralTracker.getMetadata(ctx, convID, uid)
+	switch err.(type) {
+	case nil:
+		if mem.LastKtime >= metadata.LastKtime {
+			// No-op if the effect has already been applied locally
+			return nil, nil
+		}
+		// No shortcuts, fallthrough to apply.
+	case MissError:
+		// We have no memory, assume it needs to be applied
+	default:
+		return nil, err
+	}
+
+	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
+	if err != nil {
+		return nil, err
+	}
+	rc := NewInsatiableResultCollector() // collect all messages
+	err = s.engine.ReadMessages(ctx, rc, convID, uid, maxMsgID)
+	switch err.(type) {
+	case nil:
+		// ok
+	case MissError:
+		s.Debug(ctx, "record-only ephemeralTracker: no local messages")
+		err := s.ephemeralTracker.setMetadata(ctx, convID, uid, metadata)
+		if err != nil {
+			s.Debug(ctx, "failed to store ephemeralTracker %v", err)
+		}
+		return nil, nil
+	default:
+		return nil, err
+	}
+
+	var writeback []chat1.MessageUnboxed
+	for _, msg := range rc.Result() {
+		if !msg.IsValid() {
+			s.Debug(ctx, "skipping invalid msg: %v", msg.GetMessageID())
+			continue
+		}
+		mvalid := msg.Valid()
+		if !mvalid.IsExploding() {
+			continue
+		}
+		if mvalid.MessageBody.IsNil() {
+			s.Debug(ctx, "skipping already deleted msg: %v", msg.GetMessageID())
+			continue
+		}
+		if !mvalid.IsEphemeralExpired() {
+			s.Debug(ctx, "skipping unexpired message: %v", msg.GetMessageID())
+			continue
+		}
+		var emptyBody chat1.MessageBody
+		mvalid.MessageBody = emptyBody
+		writeback = append(writeback, chat1.NewMessageUnboxedWithValid(mvalid))
+	}
+	s.Debug(ctx, "deleting %v messages", len(writeback))
+
+	err = s.engine.WriteMessages(ctx, convID, uid, writeback)
+	if err != nil {
+		s.Debug(ctx, "write messages failed: %v", err)
+		return nil, err
+	}
+
+	err = s.ephemeralTracker.setMetadata(ctx, convID, uid, metadata)
+	if err != nil {
+		s.Debug(ctx, "failed to store delh track: %v", err)
+	}
+
+	return metadata, nil
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,

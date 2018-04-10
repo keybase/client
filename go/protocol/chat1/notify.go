@@ -23,6 +23,7 @@ const (
 	ChatActivityType_SET_APP_NOTIFICATION_SETTINGS ChatActivityType = 7
 	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
 	ChatActivityType_EXPUNGE                       ChatActivityType = 9
+	ChatActivityType_EPHEMERAL_PURGE               ChatActivityType = 10
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -38,19 +39,21 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"SET_APP_NOTIFICATION_SETTINGS": 7,
 	"TEAMTYPE":                      8,
 	"EXPUNGE":                       9,
+	"EPHEMERAL_PURGE":               10,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
-	0: "RESERVED",
-	1: "INCOMING_MESSAGE",
-	2: "READ_MESSAGE",
-	3: "NEW_CONVERSATION",
-	4: "SET_STATUS",
-	5: "FAILED_MESSAGE",
-	6: "MEMBERS_UPDATE",
-	7: "SET_APP_NOTIFICATION_SETTINGS",
-	8: "TEAMTYPE",
-	9: "EXPUNGE",
+	0:  "RESERVED",
+	1:  "INCOMING_MESSAGE",
+	2:  "READ_MESSAGE",
+	3:  "NEW_CONVERSATION",
+	4:  "SET_STATUS",
+	5:  "FAILED_MESSAGE",
+	6:  "MEMBERS_UPDATE",
+	7:  "SET_APP_NOTIFICATION_SETTINGS",
+	8:  "TEAMTYPE",
+	9:  "EXPUNGE",
+	10: "EPHEMERAL_PURGE",
 }
 
 func (e ChatActivityType) String() string {
@@ -218,6 +221,16 @@ func (o ExpungeInfo) DeepCopy() ExpungeInfo {
 	}
 }
 
+type EphemeralPurgeInfo struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o EphemeralPurgeInfo) DeepCopy() EphemeralPurgeInfo {
+	return EphemeralPurgeInfo{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -229,6 +242,7 @@ type ChatActivity struct {
 	SetAppNotificationSettings__ *SetAppNotificationSettingsInfo `codec:"setAppNotificationSettings,omitempty" json:"setAppNotificationSettings,omitempty"`
 	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
 	Expunge__                    *ExpungeInfo                    `codec:"expunge,omitempty" json:"expunge,omitempty"`
+	EphemeralPurge__             *EphemeralPurgeInfo             `codec:"ephemeralPurge,omitempty" json:"ephemeralPurge,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -276,6 +290,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_EXPUNGE:
 		if o.Expunge__ == nil {
 			err = errors.New("unexpected nil value for Expunge__")
+			return ret, err
+		}
+	case ChatActivityType_EPHEMERAL_PURGE:
+		if o.EphemeralPurge__ == nil {
+			err = errors.New("unexpected nil value for EphemeralPurge__")
 			return ret, err
 		}
 	}
@@ -372,6 +391,16 @@ func (o ChatActivity) Expunge() (res ExpungeInfo) {
 	return *o.Expunge__
 }
 
+func (o ChatActivity) EphemeralPurge() (res EphemeralPurgeInfo) {
+	if o.ActivityType__ != ChatActivityType_EPHEMERAL_PURGE {
+		panic("wrong case accessed")
+	}
+	if o.EphemeralPurge__ == nil {
+		return
+	}
+	return *o.EphemeralPurge__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -432,6 +461,13 @@ func NewChatActivityWithExpunge(v ExpungeInfo) ChatActivity {
 	return ChatActivity{
 		ActivityType__: ChatActivityType_EXPUNGE,
 		Expunge__:      &v,
+	}
+}
+
+func NewChatActivityWithEphemeralPurge(v EphemeralPurgeInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__:   ChatActivityType_EPHEMERAL_PURGE,
+		EphemeralPurge__: &v,
 	}
 }
 
@@ -501,6 +537,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Expunge__),
+		EphemeralPurge__: (func(x *EphemeralPurgeInfo) *EphemeralPurgeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralPurge__),
 	}
 }
 

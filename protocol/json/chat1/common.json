@@ -496,7 +496,9 @@
       "fields": [
         {
           "type": "gregor1.Time",
-          "name": "lastKtime"
+          "name": "lastKtime",
+          "mpackkey": "lk",
+          "jsonkey": "lk"
         }
       ],
       "mpackkey": "em",

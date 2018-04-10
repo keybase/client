@@ -744,7 +744,7 @@ func (o Expunge) DeepCopy() Expunge {
 }
 
 type ConvEphemeralMetadata struct {
-	LastKtime gregor1.Time `codec:"lastKtime" json:"lastKtime"`
+	LastKtime gregor1.Time `codec:"lk" json:"lk"`
 }
 
 func (o ConvEphemeralMetadata) DeepCopy() ConvEphemeralMetadata {

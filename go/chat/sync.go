@@ -368,6 +368,12 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 					s.Debug(ctx, "Sync: failed to expunge: %v", err)
 				}
 			}
+			for _, ephemeralPurge := range iboxSyncRes.EphemeralPurges {
+				err := s.G().ConvSource.EphemeralPurge(ctx, ephemeralPurge.ConvID, uid, ephemeralPurge.Metadata)
+				if err != nil {
+					s.Debug(ctx, "Sync: failed to ephemeralPurge: %v", err)
+				}
+			}
 			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we should full clear the inbox (like if the user left a conversation),
 				// then just reload everything

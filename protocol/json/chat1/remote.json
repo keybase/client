@@ -574,6 +574,20 @@
           "name": "expunge"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EphemeralPurgeRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "foundTask"
+        },
+        {
+          "type": "boolean",
+          "name": "deletedMessages"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1104,6 +1118,10 @@
         }
       ],
       "response": "SweepRes"
+    },
+    "ephemeralPurge": {
+      "request": [],
+      "response": "EphemeralPurgeRes"
     },
     "upgradeKBFSToImpteam": {
       "request": [

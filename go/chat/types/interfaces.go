@@ -43,6 +43,7 @@ type UnboxConversationInfo interface {
 	GetMembersType() chat1.ConversationMembersType
 	GetFinalizeInfo() *chat1.ConversationFinalizeInfo
 	GetExpunge() *chat1.Expunge
+	GetEphemeralMetadata() *chat1.ConvEphemeralMetadata
 	IsPublic() bool
 }
 
@@ -63,6 +64,8 @@ type ConversationSource interface {
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
+	EphemeralPurge(ctx context.Context, convID chat1.ConversationID,
+		uid gregor1.UID, metadata *chat1.ConvEphemeralMetadata) error
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -122,6 +125,8 @@ type InboxSource interface {
 	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error)
+	EphemeralPurge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		metadata *chat1.ConvEphemeralMetadata) (*chat1.ConversationLocal, error)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		policy chat1.RetentionPolicy) (*chat1.ConversationLocal, error)
 	SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, teamID keybase1.TeamID,

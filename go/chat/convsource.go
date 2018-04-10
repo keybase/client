@@ -231,6 +231,11 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
+func (s *RemoteConversationSource) EphemeralPurge(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, metadata *chat1.ConvEphemeralMetadata) error {
+	return nil
+}
+
 var errConvLockTabDeadlock = errors.New("timeout reading thread")
 
 type conversationLock struct {
@@ -936,6 +941,33 @@ func (s *HybridConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
+func (s *HybridConversationSource) ephemeralPurgeNotify(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, mergeRes storage.MergeResult) {
+	if mergeRes.EphemeralMetadata != nil {
+		act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeInfo{
+			ConvID: convID,
+		})
+		s.G().NotifyRouter.HandleNewChatActivity(ctx, keybase1.UID(uid.String()), &act)
+	}
+}
+
+// Purge ephemeral messages from storage and maybe notify the gui of staleness
+func (s *HybridConversationSource) EphemeralPurge(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, metadata *chat1.ConvEphemeralMetadata) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+	s.Debug(ctx, "ephemeralPurge: convID: %s uid: %s, metadata: %v", convID, uid, metadata)
+
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
+
+	mergeRes, err := s.storage.EphemeralPurge(ctx, convID, uid, metadata)
+	if err != nil {
+		return err
+	}
+	s.ephemeralPurgeNotify(ctx, uid, convID, mergeRes)
+	return nil
+}
+
 // Merge with storage and maybe notify the gui of staleness
 func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
@@ -945,6 +977,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 		return err
 	}
 	s.expungeNotify(ctx, uid, convID, mergeRes)
+	s.ephemeralPurgeNotify(ctx, uid, convID, mergeRes)
 	return nil
 }
 

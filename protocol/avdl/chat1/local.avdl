@@ -485,6 +485,8 @@ protocol local {
     Expunge expunge; // The latest history deletion. Defaults to zeroes.
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    @mpackkey("em") @jsonkey("em")
+    union { null, ConvEphemeralMetadata } ephemeralMetadata;
   }
 
   record NonblockFetchRes {
