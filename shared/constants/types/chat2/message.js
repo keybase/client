@@ -197,9 +197,33 @@ export type _MessageSystemText = {
 }
 export type MessageSystemText = I.RecordOf<_MessageSystemText>
 
+export type _MessageSetDescription = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  timestamp: number,
+  newDescription: HiddenString,
+  type: 'setDescription',
+}
+export type MessageSetDescription = I.RecordOf<_MessageSetDescription>
+
+export type _MessageSetChannelname = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  timestamp: number,
+  newChannelname: string,
+  type: 'setChannelname',
+}
+export type MessageSetChannelname = I.RecordOf<_MessageSetChannelname>
+
 export type Message =
   | MessageAttachment
   | MessageDeleted
+  | MessageSetChannelname
+  | MessageSetDescription
   | MessageSystemAddedToTeam
   | MessageSystemGitPush
   | MessageSystemInviteAccepted

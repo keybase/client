@@ -28,6 +28,7 @@ class Joined extends React.PureComponent<Props> {
       <SmallUserNotice
         avatarUsername={author}
         onAvatarClicked={() => onUsernameClicked(author)}
+        title={formatTimeForMessages(timestamp)}
         topLine={
           <ConnectedUsernames
             inline={true}
@@ -39,7 +40,7 @@ class Joined extends React.PureComponent<Props> {
           />
         }
         bottomLine={
-          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
+          <Text type="BodySmall">
             joined {isBigTeam ? `#${channelname}` : teamname}
             {'. '}
             {author === you &&
