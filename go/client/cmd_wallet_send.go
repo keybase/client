@@ -82,7 +82,7 @@ func (c *cmdWalletSend) Run() error {
 		}
 
 		ui.Printf("Current exchange rate for XLM%s is: ~%s\n", c.localCurrency, exchangeRate.Format('f', 3))
-		amountDesc = fmt.Sprintf("~%s %s (%s XLM)", c.amount, c.localCurrency, amount)
+		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.amount, c.localCurrency)
 	}
 
 	if err := ui.PromptForConfirmation(fmt.Sprintf("Send %s to %s?", ColorString(c.G(), "green", amountDesc), ColorString(c.G(), "yellow", c.recipient))); err != nil {
