@@ -349,7 +349,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.system:
       return m.messageBody.system ? uiMessageToSystemMessage(minimum, m.messageBody.system) : null
     case RPCChatTypes.commonMessageType.headline:
-      return m.messageBody.headline && m.messageBody.headline.headline
+      return m.messageBody.headline
         ? makeMessageSetDescription({
             ...minimum,
             newDescription: new HiddenString(m.messageBody.headline.headline),

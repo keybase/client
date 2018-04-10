@@ -12,6 +12,7 @@ import SystemSimpleToComplex from './system-simple-to-complex/container'
 import SystemText from './system-text/container'
 import TextMessage from './text/container'
 import Attachment from './attachment/container'
+import SetDescription from './set-description/container'
 import Wrapper from './wrapper/container'
 import {chatTab} from '../../../constants/tabs'
 import {connect, compose, lifecycle, type TypedState, createSelector} from '../../../util/container'
@@ -63,10 +64,10 @@ class MessageFactory extends React.PureComponent<Props> {
         return <SystemText message={this.props.message} />
       case 'systemLeft':
         return <SystemLeft message={this.props.message} />
+      case 'setDescription':
+        return <SetDescription message={this.props.message} />
       // case 'error':
       // return <Error message={this.props.message} />
-      case 'setDescription':
-        return null // TEMP
       case 'deleted':
         return null
       default:
