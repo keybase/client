@@ -48,4 +48,6 @@ protocol local {
   void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
 
   void setDisplayCurrency(AccountID accountID, string currency);
+
+  LocalExchangeRate exchangeRateLocal(LocalCurrencyCode currency);
 }
