@@ -14,10 +14,7 @@ import (
 
 // Create a new user/version pair.
 func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
-	return keybase1.UserVersion{
-		Uid:         uid,
-		EldestSeqno: eldestSeqno,
-	}
+	return keybase1.NewUserVersion(uid, eldestSeqno)
 }
 
 const TeamSigChainPlayerSupportedLinkVersion = 2

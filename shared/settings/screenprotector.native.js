@@ -14,18 +14,15 @@ class Screenprotector extends Component<{}, State> {
   state: State = {secureFlag: false}
   mounted = false
 
-  componentWillMount() {
-    getSecureFlagSetting().then(secureFlag => {
-      this.setState({secureFlag})
-    })
-  }
-
   componentWillUnmount() {
     this.mounted = false
   }
 
   componentDidMount() {
     this.mounted = true
+    getSecureFlagSetting().then(secureFlag => {
+      this.setState({secureFlag})
+    })
   }
 
   _changeSecureFlagOption = (nextValue: boolean) => {

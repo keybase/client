@@ -8,7 +8,7 @@ import * as Types from './types/engine'
 import * as SagaTypes from './types/saga'
 import type {Channel} from 'redux-saga'
 import {getEngine, EngineChannel} from '../engine'
-import mapValues from 'lodash/mapValues'
+import {mapValues} from 'lodash-es'
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}

@@ -100,11 +100,6 @@ protocol teams {
     TeamShowcase showcase;
   }
 
-  record UserVersion {
-    UID uid;
-    Seqno eldestSeqno;
-  }
-
   @typedef("string")
   record UserVersionPercentForm {}
 

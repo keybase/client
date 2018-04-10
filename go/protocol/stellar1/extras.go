@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -118,4 +119,14 @@ func AssetNative() Asset {
 		Code:   "",
 		Issuer: "",
 	}
+}
+
+func (b LocalExchangeRate) ConvertXLM(XLMAmount string) (localAmount string, err error) {
+	local, err := strconv.ParseFloat(XLMAmount, 64)
+	if err != nil {
+		return "", err
+	}
+
+	localAmount = strconv.FormatFloat(float64(b)*local, 'f', 2, 64)
+	return localAmount, nil
 }

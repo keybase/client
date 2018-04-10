@@ -96,12 +96,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._loadTeam(this.props.teamname)
     },
-    componentWillReceiveProps: function(nextProps) {
-      if (this.props.teamname !== nextProps.teamname) {
-        this.props._loadTeam(nextProps.teamname)
+    componentDidUpdate(prevProps) {
+      if (this.props.teamname !== prevProps.teamname) {
+        this.props._loadTeam(this.props.teamname)
         this.props.setSelectedTab('members')
       }
     },

@@ -85,7 +85,7 @@ const ConnectedEditChannel: React.ComponentType<{
 }> = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       if (this.props._needsLoad) {
         this.props._loadChannels()
       }

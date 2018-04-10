@@ -64,8 +64,8 @@ class LoadingWrapper extends React.Component<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.loading && !nextProps.loading) {
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.loading && !this.props.loading) {
       this._doAnimation()
     }
   }

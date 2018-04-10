@@ -16,6 +16,9 @@ type URLCachingSource struct {
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   *SimpleSource
+
+	// testing only
+	staleFetchCh chan struct{}
 }
 
 var _ Source = (*URLCachingSource)(nil)
@@ -149,6 +152,9 @@ func (c *URLCachingSource) loadNames(ctx context.Context, names []string, format
 				c.debug(ctx, "loadNames: failed to load server stale reqs: %s", err)
 			} else {
 				c.commitURLs(ctx, loadRes)
+			}
+			if c.staleFetchCh != nil {
+				c.staleFetchCh <- struct{}{}
 			}
 		}()
 	}

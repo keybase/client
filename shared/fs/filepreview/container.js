@@ -35,7 +35,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('FilePreview'),
   lifecycle({
-    componentWillMount() {
+    componentDidMount() {
       this.props.loadFilePreview(this.props.path)
     },
   })

@@ -72,7 +72,7 @@
         "react/jsx-space-before-closing": "off",
         "react/no-danger": "error",
         "react/no-did-mount-set-state": "error",
-        "react/no-did-update-set-state": "error",
+        "react/no-did-update-set-state": "off",
         "react/no-direct-mutation-state": "error",
         "react/no-is-mounted": "error",
         "react/no-unknown-property": "error",

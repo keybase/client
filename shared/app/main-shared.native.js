@@ -7,7 +7,7 @@ import RenderRoute from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 type Props = {
@@ -47,8 +47,8 @@ class Main extends Component<any> {
     this.props.persistRouteState()
   }, 200)
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.routeState !== nextProps.routeState) {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.routeState !== prevProps.routeState) {
       this._persistRoute()
     }
   }

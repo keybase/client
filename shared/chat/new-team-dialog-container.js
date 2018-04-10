@@ -1,7 +1,7 @@
 // @flow
 import * as TeamsGen from '../actions/teams-gen'
 import NewTeamDialog from '../teams/new-team'
-import upperFirst from 'lodash/upperFirst'
+import {upperFirst} from 'lodash-es'
 import {connect, lifecycle, type TypedState, compose, withStateHandlers} from '../util/container'
 
 const mapStateToProps = (state: TypedState) => ({

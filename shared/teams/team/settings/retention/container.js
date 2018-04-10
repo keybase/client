@@ -179,10 +179,8 @@ export default compose(
   setDisplayName('RetentionPicker'),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props._setParentPath(this.props._path)
-    },
-    componentDidMount: function() {
       this.props._loadTeamPolicy()
       !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },

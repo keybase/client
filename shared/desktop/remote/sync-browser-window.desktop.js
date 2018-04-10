@@ -20,6 +20,7 @@ type Props = {
 }
 
 const defaultWindowOpts = {
+  nodeIntegration: false,
   frame: false,
   fullscreen: false,
   height: 300,
@@ -113,7 +114,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
       }
     }
 
-    componentWillMount() {
+    componentDidMount() {
       const remoteWindow = this._makeBrowserWindow()
 
       // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed

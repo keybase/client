@@ -4,8 +4,7 @@ import * as KBFSGen from '../../actions/kbfs-gen'
 import * as FavoriteGen from '../../actions/favorite-gen'
 import React, {Component} from 'react'
 import Render from './render'
-import get from 'lodash/get'
-import some from 'lodash/some'
+import {some, get} from 'lodash-es'
 import type {Folder} from '../list'
 import {connect} from 'react-redux'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
@@ -49,7 +48,7 @@ class Files extends Component<Props, State> {
     })
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this._checkFolderExistence(nextProps)
   }
 

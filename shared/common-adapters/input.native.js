@@ -43,10 +43,11 @@ class Input extends Component<Props, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  componentWillReceiveProps(nextProps: Props) {
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (nextProps.hasOwnProperty('value')) {
-      this.setState({value: nextProps.value || ''})
+      return {value: nextProps.value || ''}
     }
+    return null
   }
 
   _onContentSizeChange = event => {

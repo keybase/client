@@ -1,5 +1,5 @@
 // @flow
-import capitalize from 'lodash/capitalize'
+import {capitalize} from 'lodash-es'
 import {
   kbfsCommonFSErrorType,
   kbfsCommonFSNotificationType,

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Row from './row'
-import some from 'lodash/some'
+import {some} from 'lodash-es'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
 import {Box, Text, Icon, List} from '../common-adapters'

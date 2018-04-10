@@ -1,5 +1,5 @@
 // @flow
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 
 const rateLimit: {[key: string]: () => void} = {}
 const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}

@@ -68,6 +68,7 @@ func TestAvatarsURLCaching(t *testing.T) {
 	}
 
 	t.Logf("stale")
+	source.staleFetchCh = make(chan struct{}, 5)
 	clock.Advance(2 * time.Hour)
 	tc.G.API = newAvatarMockAPI(makeHandler("url2", cb))
 	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
@@ -77,6 +78,11 @@ func TestAvatarsURLCaching(t *testing.T) {
 	case <-cb:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no API call")
+	}
+	select {
+	case <-source.staleFetchCh:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no stale fetch")
 	}
 	res, err = source.LoadUsers(ctx, []string{"mike"}, []keybase1.AvatarFormat{"square"})
 	require.NoError(t, err)

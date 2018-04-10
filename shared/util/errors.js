@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 
 export class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
@@ -75,4 +76,8 @@ export function convertToRPCError(
   method?: ?string
 ): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
+}
+
+export function logError(error: any) {
+  logger.info(`logError: ${JSON.stringify(error)}`)
 }

@@ -1144,6 +1144,10 @@ export const metadataReleaseLockRpcChannelMap = (configKeys: Array<string>, requ
 
 export const metadataReleaseLockRpcPromise = (request: MetadataReleaseLockRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.releaseLock', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const metadataSetImplicitTeamModeForTestRpcChannelMap = (configKeys: Array<string>, request: MetadataSetImplicitTeamModeForTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.setImplicitTeamModeForTest', request)
+
+export const metadataSetImplicitTeamModeForTestRpcPromise = (request: MetadataSetImplicitTeamModeForTestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.setImplicitTeamModeForTest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const metadataStartImplicitTeamMigrationRpcChannelMap = (configKeys: Array<string>, request: MetadataStartImplicitTeamMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.startImplicitTeamMigration', request)
 
 export const metadataStartImplicitTeamMigrationRpcPromise = (request: MetadataStartImplicitTeamMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.startImplicitTeamMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2814,6 +2818,8 @@ export type MetadataRegisterForUpdatesRpcParam = $ReadOnly<{folderID: String, cu
 export type MetadataReleaseLockRpcParam = $ReadOnly<{folderID: String, lockID: LockID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MetadataResponse = $ReadOnly<{folderID: String, mdBlocks?: ?Array<MDBlock>}>
+
+export type MetadataSetImplicitTeamModeForTestRpcParam = $ReadOnly<{implicitTeamMode: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MetadataStartImplicitTeamMigrationRpcParam = $ReadOnly<{folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

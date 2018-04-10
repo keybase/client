@@ -66,15 +66,12 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.filterFocusCount !== nextProps.filterFocusCount) {
-      this._startEditing()
-    }
-  }
-
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.state.isEditing !== prevState.isEditing && this.state.isEditing) {
       this._input && this._input.focus()
+    }
+    if (this.props.filterFocusCount !== prevProps.filterFocusCount) {
+      this._startEditing()
     }
   }
 
