@@ -30,6 +30,20 @@ class RemoteComponentLoader extends Component<Props> {
   _ComponentClass: any
   _window: ?BrowserWindow
 
+  constructor(props) {
+    super(props)
+    this._window = remote.getCurrentWindow()
+    const remoteStore = new RemoteStore({
+      gotPropsCallback: this._onGotProps,
+      windowComponent: props.windowComponent,
+      windowParam: props.windowParam,
+    })
+    this._store = remoteStore.getStore()
+    this._ComponentClass = this._getComponent(props.windowComponent)
+
+    setupContextMenu(this._window)
+  }
+
   _isMenubar = () => {
     return this.props.windowComponent === 'menubar'
   }
@@ -58,19 +72,6 @@ class RemoteComponentLoader extends Component<Props> {
       default:
         throw new TypeError('Invalid Remote Component passed through')
     }
-  }
-
-  componentDidMount() {
-    this._window = remote.getCurrentWindow()
-    const remoteStore = new RemoteStore({
-      gotPropsCallback: this._onGotProps,
-      windowComponent: this.props.windowComponent,
-      windowParam: this.props.windowParam,
-    })
-    this._store = remoteStore.getStore()
-    this._ComponentClass = this._getComponent(this.props.windowComponent)
-
-    setupContextMenu(this._window)
   }
 
   render() {
