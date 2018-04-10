@@ -35,9 +35,11 @@ export type SmallProps = {
 const SmallUserNotice = (props: SmallProps) => (
   <Box
     style={{
+      flex: 1,
       marginTop: 3,
       marginBottom: 3,
       marginLeft: globalMargins.tiny,
+      marginRight: globalMargins.medium,
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       justifyContent: 'flex-start',
