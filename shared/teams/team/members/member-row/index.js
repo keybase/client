@@ -31,7 +31,7 @@ export type Props = {
 }
 
 const showCrown: BoolTypeMap = {
-  reset: false,
+  none: false,
   admin: true,
   owner: true,
   reader: false,

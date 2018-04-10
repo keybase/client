@@ -4,7 +4,6 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import {invert} from 'lodash-es'
 
 import type {Service} from './types/search'
 import {type TypedState} from './reducer'
@@ -42,7 +41,16 @@ export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
   username: '',
 })
 
-export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
+export const teamRoleByEnum = ((m: {[Types.TeamRoleType]: RPCTypes.TeamRole}) => {
+  const mInv: {[RPCTypes.TeamRole]: Types.TeamRoleType} = {}
+  for (const roleStr in m) {
+    // $ForceType
+    const role: Types.TeamRoleType = roleStr
+    const e = m[role]
+    mInv[e] = role
+  }
+  return mInv
+})(RPCTypes.teamsTeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',

@@ -3,7 +3,7 @@
 import {globalColors} from '../../styles'
 
 export const roleDescMap = {
-  null: '',
+  none: '',
   reader: 'Can write in chats but read only in folders.',
   writer: 'Can create channels, and write and read in chats and folders.',
   admin:
@@ -14,6 +14,7 @@ export const roleDescMap = {
 export const roleIconMap = {
   admin: 'iconfont-crown-admin',
   owner: 'iconfont-crown-owner',
+  none: '',
   reader: '',
   writer: '',
 }
@@ -21,6 +22,7 @@ export const roleIconMap = {
 export const roleIconColorMap = {
   admin: globalColors.black_40,
   owner: globalColors.yellow2,
+  none: '',
   reader: '',
   writer: '',
 }
@@ -47,6 +49,10 @@ export const permissionMap = {
   admin: {
     can: [...rwPermissions['admin'], ...permissions.slice(0, 4)],
     cannot: [permissions[4]],
+  },
+  none: {
+    can: [],
+    cannot: permissions,
   },
   writer: {
     can: [...rwPermissions['writer'], permissions[0]],
