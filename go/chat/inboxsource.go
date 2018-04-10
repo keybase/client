@@ -274,8 +274,9 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
+		includeEphemeral := false
 		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC, includeEphemeral)
 		if err != nil {
 			return nil, info, err
 		}
@@ -324,8 +325,9 @@ func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
 		return nil, nil
 	}
+	includeEphemeral := false
 	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC, includeEphemeral)
 }
 
 type RemoteInboxSource struct {
@@ -1263,9 +1265,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
 	// this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
+		includeEphemeral := false
 		info, err := CtxKeyFinder(ctx, s.G()).Find(ctx,
 			conversationLocal.Info.TLFNameExpanded(), conversationLocal.GetMembersType(),
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, includeEphemeral)
 		if err != nil {
 			errMsg := err.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(

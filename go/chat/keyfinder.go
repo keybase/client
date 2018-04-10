@@ -14,12 +14,12 @@ import (
 
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
-	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
+	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (*types.NameInfo, error)
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (*types.NameInfo, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
-		kbfsEncrypted bool) (*types.NameInfo, error)
+		kbfsEncrypted bool, includeEphemeral bool) (*types.NameInfo, error)
 	Reset()
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
@@ -98,7 +98,7 @@ func (k *KeyFinderImpl) writeKey(key string, v *types.NameInfo) {
 // Find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
 func (k *KeyFinderImpl) Find(ctx context.Context, name string,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 
 	ckey := k.cacheKey(name, membersType, public)
 	existing, ok := k.lookupKey(ckey)
@@ -111,7 +111,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 		}
 	}()
 
-	res, err = k.createNameInfoSource(ctx, membersType).Lookup(ctx, name, public)
+	res, err = k.createNameInfoSource(ctx, membersType).Lookup(ctx, name, public, includeEphemeral)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
 	existing, ok := k.lookupKey(ckey)
@@ -138,7 +138,7 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, t
 	}()
 
 	if res, err = k.createNameInfoSource(ctx, membersType).EncryptionKeys(ctx, tlfName, tlfID,
-		membersType, public); err != nil {
+		membersType, public, includeEphemeral); err != nil {
 		return nil, err
 	}
 	if public {
@@ -151,7 +151,7 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, t
 func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 
 	ckey := k.decCacheKey(tlfName, tlfID, membersType, public, kbfsEncrypted)
 	existing, ok := k.lookupKey(ckey)
@@ -172,7 +172,7 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	}()
 
 	if res, err = k.createNameInfoSource(ctx, membersType).DecryptionKeys(ctx, tlfName, tlfID,
-		membersType, public, keyGeneration, kbfsEncrypted); err != nil {
+		membersType, public, keyGeneration, kbfsEncrypted, includeEphemeral); err != nil {
 		return nil, err
 	}
 	if public {

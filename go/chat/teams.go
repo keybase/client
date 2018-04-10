@@ -187,7 +187,7 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team, public bool) (res *types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	res = types.NewNameInfo()
 	res.ID, err = chat1.TeamIDToTLFID(team.ID)
 	if err != nil {
@@ -197,10 +197,13 @@ func (t *TeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team
 	if res.CryptKeys, err = getTeamKeys(ctx, team, public); err != nil {
 		return res, err
 	}
+
+	// TODO: implement ephemeral key fetching here
+
 	return res, nil
 }
 
-func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
@@ -210,23 +213,23 @@ func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, public bo
 	if err != nil {
 		return res, err
 	}
-	return t.makeNameInfo(ctx, team, public)
+	return t.makeNameInfo(ctx, team, public, includeEphemeral)
 }
 
 func (t *TeamsNameInfoSource) EncryptionKeys(ctx context.Context, name string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, err
 	}
-	return t.makeNameInfo(ctx, team, public)
+	return t.makeNameInfo(ctx, team, public, includeEphemeral)
 }
 
 func (t *TeamsNameInfoSource) DecryptionKeys(ctx context.Context, name string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
 	team, err := loadTeamForDecryption(ctx, t.loader, name, teamID, membersType, public,
@@ -234,7 +237,7 @@ func (t *TeamsNameInfoSource) DecryptionKeys(ctx context.Context, name string, t
 	if err != nil {
 		return res, err
 	}
-	return t.makeNameInfo(ctx, team, public)
+	return t.makeNameInfo(ctx, team, public, includeEphemeral)
 }
 
 type ImplicitTeamsNameInfoSource struct {
@@ -289,7 +292,7 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 }
 
 func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *teams.Team,
-	tlfID chat1.TLFID, impTeamName keybase1.ImplicitTeamDisplayName, public bool) (res *types.NameInfo, err error) {
+	tlfID chat1.TLFID, impTeamName keybase1.ImplicitTeamDisplayName, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	res = types.NewNameInfo()
 	res.ID = tlfID
 	if res.ID.IsNil() {
@@ -299,13 +302,14 @@ func (t *ImplicitTeamsNameInfoSource) makeNameInfo(ctx context.Context, team *te
 	if res.CryptKeys, err = getTeamKeys(ctx, team, public); err != nil {
 		return res, err
 	}
+	// TODO: FETCH EPHEMERAL KEYS
 	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
 		return res, err
 	}
 	return res, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
 		return t.lookupInternalName(ctx, name, public)
@@ -330,11 +334,11 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, p
 			return res, err
 		}
 	}
-	return t.makeNameInfo(ctx, team, tlfID, impTeamName, public)
+	return t.makeNameInfo(ctx, team, tlfID, impTeamName, public, includeEphemeral)
 }
 
 func (t *ImplicitTeamsNameInfoSource) EncryptionKeys(ctx context.Context, name string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 
@@ -346,12 +350,12 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKeys(ctx context.Context, name s
 	if err != nil {
 		return res, err
 	}
-	return t.makeNameInfo(ctx, team, teamID, impTeamName, public)
+	return t.makeNameInfo(ctx, team, teamID, impTeamName, public, includeEphemeral)
 }
 
 func (t *ImplicitTeamsNameInfoSource) DecryptionKeys(ctx context.Context, name string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (res *types.NameInfo, err error) {
+	keyGeneration int, kbfsEncrypted bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
 
@@ -364,7 +368,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKeys(ctx context.Context, name s
 	if err != nil {
 		return res, err
 	}
-	return t.makeNameInfo(ctx, team, teamID, impTeamName, public)
+	return t.makeNameInfo(ctx, team, teamID, impTeamName, public, includeEphemeral)
 }
 
 func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {

@@ -47,8 +47,14 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
+func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public bool, includeEphemeral bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
+
+	if includeEphemeral {
+		// Ephemeral keys / exploding messages are a teams-only feature. Make sure we don't ask for them here, as a sanity check.
+		return nil, fmt.Errorf("KBFSNameInfoSource can't provide ephemeral keys")
+	}
+
 	var lastErr error
 	res = types.NewNameInfo()
 	visibility := keybase1.TLFVisibility_PRIVATE
@@ -90,14 +96,14 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string, public 
 }
 
 func (t *KBFSNameInfoSource) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return t.Lookup(ctx, tlfName, public)
+	membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (*types.NameInfo, error) {
+	return t.Lookup(ctx, tlfName, public, includeEphemeral)
 }
 
 func (t *KBFSNameInfoSource) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return t.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool, includeEphemeral bool) (*types.NameInfo, error) {
+	return t.Lookup(ctx, tlfName, public, includeEphemeral)
 }
 
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {

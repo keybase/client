@@ -30,12 +30,12 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
+	Lookup(ctx context.Context, name string, public bool, includeEphemeral bool) (*NameInfo, error)
 	EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (*NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool, includeEphemeral bool) (*NameInfo, error)
 	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
+		keyGeneration int, kbfsEncrypted bool, includeEphemeral bool) (*NameInfo, error)
 }
 
 type UnboxConversationInfo interface {

@@ -236,7 +236,8 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
-	_, err = CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, chat1.ConversationMembersType_KBFS, false)
+	includeEphemeral := false
+	_, err = CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, chat1.ConversationMembersType_KBFS, false, includeEphemeral)
 	if err != nil {
 		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}

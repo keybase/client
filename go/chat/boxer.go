@@ -243,9 +243,11 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 				boxed.ClientHeader.TlfPublic))), nil
 	}
 	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
+	includeEphemeral := boxed.ClientHeader.EphemeralMetadata != nil
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
+		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS,
+		includeEphemeral)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {
@@ -1067,9 +1069,10 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
+	includeEphemeral := msg.ClientHeader.EphemeralMetadata != nil
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
-		msg.ClientHeader.TlfPublic)
+		msg.ClientHeader.TlfPublic, includeEphemeral)
 
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
@@ -1671,7 +1674,8 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string,
 	conv chat1.Conversation, tlfPublic bool) (bool, error) {
 	get1 := func(tlfName string, tlfPublic bool) (string, error) {
-		nameInfo, err := CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, conv.GetMembersType(), tlfPublic)
+		includeEphemeral := false
+		nameInfo, err := CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, conv.GetMembersType(), tlfPublic, includeEphemeral)
 		if err != nil {
 			return "", err
 		}

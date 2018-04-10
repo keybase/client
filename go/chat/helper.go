@@ -192,8 +192,9 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
 		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
+	includeEphemeral := false
 	ni, err := CtxKeyFinder(ctx, h.G()).FindForEncryption(ctx, tlfName, tlfID,
-		chat1.ConversationMembersType_KBFS, public)
+		chat1.ConversationMembersType_KBFS, public, includeEphemeral)
 	if err != nil {
 		return err
 	}
@@ -262,7 +263,8 @@ func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype
 }
 
 func (s *sendHelper) nameInfo(ctx context.Context) error {
-	nameInfo, err := CtxKeyFinder(ctx, s.G()).Find(ctx, s.name, s.membersType, false)
+	includeEphemeral := false
+	nameInfo, err := CtxKeyFinder(ctx, s.G()).Find(ctx, s.name, s.membersType, false, includeEphemeral)
 	if err != nil {
 		return err
 	}
@@ -509,7 +511,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			// are not any public team chats.
 
 			// Fetch the TLF ID from specified name
-			nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false)
+			includeEphemeral := false
+			nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false, includeEphemeral)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
 				return res, rl, err
@@ -899,7 +902,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
 	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
-	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
+	includeEphemeral := false
+	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic, includeEphemeral)
 	if err != nil {
 		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
 			return res, rl, err
@@ -914,7 +918,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, rl, err
 		}
-		info, err = CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
+		info, err = CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic, includeEphemeral)
 		if err != nil {
 			return res, rl, err
 		}
