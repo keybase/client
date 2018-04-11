@@ -128,7 +128,7 @@ const TeamHeader = (props: Props) => (
   </Box>
 )
 
-const getTeamSubtitle = (memberCount: number, role: ?(Types.TeamRoleType | 'none')): string => {
+const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   let res = `${memberCount} member`
   if (memberCount !== 1) {
     res += 's'
