@@ -457,14 +457,13 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	// (e.g., it's just like the sharing before signup case, except
 	// the user already has a UID).  Both types of users are based
 	// entirely on server trust anyway.
-	_, isNoSigChain := err.(libkb.NoSigChainError)
-	_, isDeleted := err.(libkb.DeletedError)
-	if isNoSigChain || isDeleted {
+	switch err.(type) {
+	case nil:
+	case libkb.NoSigChainError, libkb.DeletedError:
 		k.log.CDebugf(ctx,
 			"Ignoring error (%s) for user %s with no sigchain; "+
-				"isNoSigChain=%t, isDeleted=%t",
-			err, res.Ul.Name, isNoSigChain, isDeleted)
-	} else if err != nil {
+				"error type=%T", err, res.Ul.Name, err)
+	default:
 		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
 	}
