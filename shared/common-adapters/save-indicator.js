@@ -16,6 +16,7 @@ type Props = {
 
 type State = {
   saveState: SaveState,
+  lastStateChangeTime: number,
 }
 
 const containerStyle = {
@@ -26,31 +27,34 @@ const containerStyle = {
 }
 
 class SaveIndicator extends React.Component<Props, State> {
-  saveStartTime: ?number
-
   constructor(props: Props) {
     super(props)
-    this.state = {saveState: 'same'}
+    this.state = {saveState: 'same', lastStateChangeTime: Date.now()}
   }
 
-  getDerivedStateFromProps = (nextProps: Props) => {
-    if (nextProps.saving === this.props.saving) {
+  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
+    if (nextProps.saving) {
+      if (prevState.saveState !== 'same') {
+        // Already saving.
+        return null
+      }
+
+      return {saveState: 'saving', lastStateChangeTime: Date.now()}
+    }
+
+    if (prevState.saveState === 'same') {
+      // Already not saving.
       return null
     }
 
-    if (nextProps.saving) {
-      this.saveStartTime = Date.now()
-      return {saveState: 'saving'}
-    }
-
-    const dt = Date.now() - (this.saveStartTime || 0)
+    const dt = Date.now() - prevState.lastStateChangeTime
     if (dt < nextProps.minSavingTimeMs) {
       // Set state to 'justSaved' after minSavingTimeMs - dt.
       return null
     }
 
     // Set state to 'same' after savedTimeoutMs.
-    return {saveState: 'justSaved'}
+    return {saveState: 'justSaved', lastStateChangeTime: Date.now()}
   }
 
   render = () => {
@@ -58,7 +62,11 @@ class SaveIndicator extends React.Component<Props, State> {
       case 'same':
         return null
       case 'saving':
-        return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
+        return (
+          <Box style={containerStyle}>
+            <ProgressIndicator style={{width: globalMargins.medium}} />
+          </Box>
+        )
       case 'justSaved':
         return (
           <Box style={containerStyle}>
