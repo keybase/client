@@ -243,9 +243,13 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return message.set('downloadPath', path)
       })
     case Chat2Gen.metasReceived:
-      return action.payload.clearExistingMessages
-        ? messageMap.filter((_, k) => k !== Constants.pendingConversationIDKey)
-        : messageMap
+      const existingPending = messageMap.get(Constants.pendingConversationIDKey)
+      if (action.payload.clearExistingMessages) {
+        return existingPending
+          ? messageMap.clear().set(Constants.pendingConversationIDKey, existingPending)
+          : messageMap.clear()
+      }
+      return messageMap
     default:
       return messageMap
   }
@@ -256,9 +260,13 @@ const messageOrdinalsReducer = (messageOrdinals, action) => {
     case Chat2Gen.markConversationsStale:
       return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
     case Chat2Gen.metasReceived:
-      return action.payload.clearExistingMessages
-        ? messageOrdinals.filter((_, k) => k !== Constants.pendingConversationIDKey)
-        : messageOrdinals
+      const existingPending = messageOrdinals.get(Constants.pendingConversationIDKey)
+      if (action.payload.clearExistingMessages) {
+        return existingPending
+          ? messageOrdinals.clear().set(Constants.pendingConversationIDKey, existingPending)
+          : messageOrdinals.clear()
+      }
+      return messageOrdinals
     default:
       return messageOrdinals
   }

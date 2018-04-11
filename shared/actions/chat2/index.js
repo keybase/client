@@ -641,7 +641,7 @@ const loadMoreMessages = (
     reason = action.payload.reason || 'selected'
   } else if (action.type === Chat2Gen.metasReceived) {
     if (!action.payload.clearExistingMessages) {
-      logger.info("Load thread bail: metas received but haven't cleared the existing messages")
+      // we didn't clear anything out, we don't need to fetch anything
       return
     }
     key = Constants.getSelectedConversation(state)
