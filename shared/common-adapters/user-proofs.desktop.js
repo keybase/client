@@ -174,7 +174,7 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
   )
 }
 
-// CSSTransition injects foreign props so lets not just accept all props
+// CSSTransition injects foreign props so let's not just accept all props
 const IgnorePropsBox = ({children, onlyProps}: {children?: any, onlyProps?: any}) => (
   <Box {...onlyProps}>{children}</Box>
 )

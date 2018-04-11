@@ -83,7 +83,7 @@ describe('RouteDefNode', () => {
 })
 
 describe('RouteStateNode', () => {
-  it('updateChild creates a a child', () => {
+  it('updateChild creates a child', () => {
     const childNode = makeRouteStateNode({selected: null})
     const node = makeRouteStateNode({selected: 'hello'})
 

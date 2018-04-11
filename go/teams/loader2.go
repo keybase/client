@@ -310,7 +310,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		return signer, err
 	}
 
-	// The more complicated case is that there's an explicit admin permssion given, perhaps
+	// The more complicated case is that there's an explicit admin permission given, perhaps
 	// of a parent team.
 	adminTeam, err := l.walkUpToAdmin(ctx, state, me, readSubteamID, uv, *explicitAdmin)
 	if err != nil {
@@ -915,7 +915,7 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 		return chain.inner.RootAncestor, nil
 	}
 
-	// Load the parent. The parent load will recalculate it's own name,
+	// Load the parent. The parent load will recalculate its own name,
 	// so this name recalculation is recursive.
 	parent, err := l.load2(ctx, load2ArgT{
 		teamID:        *chain.GetParentID(),

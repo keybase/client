@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -75,7 +76,7 @@ func (cid ConversationID) DbShortForm() ConvIDShort {
 }
 
 func (cid ConversationID) DbShortFormString() string {
-	return hex.EncodeToString(cid.DbShortForm())
+	return DbShortFormToString(cid.DbShortForm())
 }
 
 func DbShortFormToString(cid ConvIDShort) string {
@@ -340,6 +341,20 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
+func (m MessageUnboxedValid) GetEphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageUnboxedValid) IsEphemeralExpired() bool {
+	metadata := m.GetEphemeralMetadata()
+	expired := time.Now().Sub(m.ServerHeader.Ctime.Time()) >= time.Second*time.Duration(metadata.Lifetime)
+	return expired || m.ServerHeader.ExplodedByUID != nil
+}
+
+func (m MessageUnboxedValid) IsExploding() bool {
+	return m.GetEphemeralMetadata() != nil
+}
+
 func (b MessageBody) IsNil() bool {
 	return b == MessageBody{}
 }
@@ -414,6 +429,14 @@ func (m MessageBoxed) Summary() MessageSummary {
 
 func (m MessageBoxed) KBFSEncrypted() bool {
 	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
+}
+
+func (m MessageBoxed) GetEphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageBoxed) IsExploding() bool {
+	return m.GetEphemeralMetadata() != nil
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -516,7 +539,7 @@ func (c ConversationInfoLocal) TLFNameExpanded() string {
 
 // TLFNameExpandedSummary returns a TLF name with a summary of the
 // account reset if there was one.
-// This version is for display purposes only and connot be used to lookup the TLF.
+// This version is for display purposes only and cannot be used to lookup the TLF.
 func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 	if c.FinalizeInfo == nil {
 		return c.TlfName

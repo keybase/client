@@ -85,7 +85,7 @@ func decode(data []byte, res interface{}) error {
 	return err
 }
 
-// SimpleResultCollector aggregates all results in a the basic way. It is not thread safe.
+// SimpleResultCollector aggregates all results in a basic way. It is not thread safe.
 type SimpleResultCollector struct {
 	res    []chat1.MessageUnboxed
 	target int
@@ -177,7 +177,7 @@ func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
 	return true
 }
 
-// TypedResultCollector aggregates results with a type contraints. It is not thread safe.
+// TypedResultCollector aggregates results with a type constraints. It is not thread safe.
 type TypedResultCollector struct {
 	res         []chat1.MessageUnboxed
 	target, cur int
@@ -321,7 +321,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	var err Error
 
 	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functons.
+	// They should never be called from private functions.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
@@ -742,7 +742,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery,
 	pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
 	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functons.
+	// They should never be called from private functions.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "FetchUpToLocalMaxMsgID")()
@@ -759,7 +759,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
 	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functons.
+	// They should never be called from private functions.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Fetch")()

@@ -586,7 +586,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 	// Write metadata to the inbox cache
 	if err = storage.NewInbox(s.G(), uid).MergeLocalMetadata(ctx, inbox.Convs); err != nil {
-		// Don't abort the operaton on this kind of error
+		// Don't abort the operation on this kind of error
 		s.Debug(ctx, "Read: unable to write inbox local metadata: %s", err)
 	}
 
@@ -632,7 +632,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			return res, rl, err
 		}
 
-		// Write out to local storage only if we are using local daata
+		// Write out to local storage only if we are using local data
 		if useLocalData {
 			if cerr = inboxStore.Merge(ctx, res.Version, utils.PluckConvs(res.ConvsUnverified), query, p); cerr != nil {
 				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())

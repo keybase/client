@@ -1078,7 +1078,7 @@ func WrapError(e error) interface{} {
 var _ rpc.WrapErrorFunc = WrapError
 
 // ErrorUnwrapper is converter that take a Status object off the wire and convert it
-// into an Error that Go can understand, and you can descriminate on in your code.
+// into an Error that Go can understand, and you can discriminate on in your code.
 // Though status object can act as Go errors, you can further convert them into
 // typed errors via the Upcaster function if specified. An Upcaster takes a Status
 // and returns something that obeys the Error interface, but can be anything your

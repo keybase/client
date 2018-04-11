@@ -394,38 +394,51 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }, {})
 
     const infos = []
-    const types = ['admins', 'owners', 'readers', 'writers']
-    const typeMap = {
-      admins: 'admin',
-      owners: 'owner',
-      readers: 'reader',
-      writers: 'writer',
+    const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+    const typeToKey: Types.TypeMap = {
+      reader: 'readers',
+      writer: 'writers',
+      admin: 'admins',
+      owner: 'owners',
     }
     types.forEach(type => {
-      const members = details.members[type] || []
+      const key = typeToKey[type]
+      const members = details.members[key] || []
       members.forEach(({active, fullName, username}) => {
         infos.push([
           username,
           Constants.makeMemberInfo({
             active,
             fullName,
-            type: typeMap[type],
+            type,
             username,
           }),
         ])
       })
     })
 
-    const invites = map(details.annotatedActiveInvites, invite =>
-      Constants.makeInviteInfo({
+    const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
+      const role = Constants.teamRoleByEnum[invite.role]
+      if (role === 'none') {
+        return null
+      }
+      const username = (() => {
+        const t = invite.type
+        if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
+          return ''
+        }
+        // $ForceType
+        const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
+        return `${invite.name}@${sbs}`
+      })()
+      return Constants.makeInviteInfo({
         email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
         name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
-        role: Constants.teamRoleByEnum[invite.role],
-        username:
-          invite.type.c === RPCTypes.teamsTeamInviteCategory.sbs ? `${invite.name}@${invite.type.sbs}` : '',
+        role,
+        username,
         id: invite.id,
       })
-    )
+    }).filter(Boolean)
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
@@ -561,7 +574,7 @@ const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerato
     const teams = results.teams || []
     const teamnames = []
     const teammembercounts = {}
-    const teamNameToRole = {}
+    const teamNameToRole: {[Types.Teamname]: Types.MaybeTeamRoleType} = {}
     const teamNameToIsOpen = {}
     const teamNameToAllowPromote = {}
     const teamNameToIsShowcasing = {}
@@ -629,7 +642,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
 
   const calls = map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
     if (wantsToBeInChannel) {
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localJoinConversationLocalRpcPromise, {
         tlfName: teamname,
         topicName: channelname,
@@ -640,7 +653,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
     const convID =
       channelnameToConvID[channelname] && ChatTypes.keyToConversationID(channelnameToConvID[channelname])
     if (convID) {
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
         convID,
       })

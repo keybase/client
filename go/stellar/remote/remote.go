@@ -181,11 +181,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	err = pukring.Sync(ctx)
-	if err != nil {
-		return res, 0, err
-	}
-	puk, err := pukring.GetSeedByGeneration(ctx, decodeRes.Enc.Gen)
+	puk, err := pukring.GetSeedByGenerationOrSync(ctx, decodeRes.Enc.Gen)
 	if err != nil {
 		return res, 0, err
 	}

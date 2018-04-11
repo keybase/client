@@ -889,7 +889,7 @@ static DDTTYLogger *sharedInstance;
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -926,7 +926,7 @@ static DDTTYLogger *sharedInstance;
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");

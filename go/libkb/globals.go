@@ -116,7 +116,7 @@ type GlobalContext struct {
 	logoutHooks        []LogoutHook              // call these on logout
 	GregorDismisser    GregorDismisser           // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
-	oodiMu             *sync.RWMutex             // For manipluating the OutOfDateInfo
+	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
 	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
 	lastUpgradeWarning *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
 
@@ -590,7 +590,7 @@ func (g *GlobalContext) Shutdown() error {
 
 		// loginState request loop should be shut down first
 		// so that any active requests can use all of the
-		// services that are about to be shutdown below.
+		// services that are about to be shut down below.
 		// (for example, g.LocalDb)
 		g.loginStateMu.Lock()
 		if g.loginState != nil {

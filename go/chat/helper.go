@@ -626,7 +626,7 @@ L:
 			case chat1.ConversationMembersType_KBFS:
 				debugger.Debug(ctx, "FindConversations: failed with KBFS, aborting")
 				// We don't want to return random errors from KBFS if we are falling back to it,
-				// just return no conversatins and call it a day
+				// just return no conversations and call it a day
 				if membersTypeIn == chat1.ConversationMembersType_KBFS {
 					err = ierr
 				}

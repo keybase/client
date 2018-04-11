@@ -34,7 +34,7 @@ const mapStateToProps = (
 type DispatchProps = {
   _onChat: () => void,
   onClick: () => void,
-  _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => void,
+  _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => void,
   _onRemoveFromTeam: (teamname: string, username: string) => void,
   _onShowTracker: (username: string) => void,
 }
@@ -52,12 +52,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
         },
       ])
     ),
-  _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => {
+  _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
         teamname,
         username,
-        role: role || 'reader',
+        role: role,
         sendChatNotification: false,
         email: '',
       })

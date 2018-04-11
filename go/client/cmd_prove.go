@@ -18,7 +18,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-// CmdProve is the wrapper structure for the the `keybase prove` operation.
+// CmdProve is the wrapper structure for the `keybase prove` operation.
 type CmdProve struct {
 	libkb.Contextified
 	arg    keybase1.StartProofArg
