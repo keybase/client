@@ -394,22 +394,23 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }, {})
 
     const infos = []
-    const types = ['admins', 'owners', 'readers', 'writers']
-    const typeMap = {
-      admins: 'admin',
-      owners: 'owner',
-      readers: 'reader',
-      writers: 'writer',
+    const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+    const typeToKey: Types.TypeMap = {
+      reader: 'readers',
+      writer: 'writers',
+      admin: 'admins',
+      owner: 'owners',
     }
     types.forEach(type => {
-      const members = details.members[type] || []
+      const key = typeToKey[type]
+      const members = details.members[key] || []
       members.forEach(({active, fullName, username}) => {
         infos.push([
           username,
           Constants.makeMemberInfo({
             active,
             fullName,
-            type: typeMap[type],
+            type,
             username,
           }),
         ])

@@ -25,7 +25,7 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   active: true,
   fullName: '',
-  type: null,
+  type: 'reader',
   username: '',
 })
 
