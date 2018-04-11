@@ -157,6 +157,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
             ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
             : message
       )
+    case Chat2Gen.inboxRefresh:
+      return action.payload.reason === 'inboxSyncedClear'
+        ? messageMap.filter((_, k) => k !== Constants.pendingConversationIDKey)
+        : messageMap
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, placeholderID)
@@ -242,13 +246,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         const path = action.error ? '' : action.payload.path
         return message.set('downloadPath', path)
       })
-    case Chat2Gen.metasReceived:
-      if (action.payload.clearExisting) {
-        // clear out what we have
-        // retain info pertaining to pending conversation
-        return messageMap.filter((_, k) => k !== Constants.pendingConversationIDKey)
-      }
-      return messageMap
     default:
       return messageMap
   }
@@ -256,15 +253,12 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
 
 const messageOrdinalsReducer = (messageOrdinals, action) => {
   switch (action.type) {
+    case Chat2Gen.inboxRefresh:
+      return action.payload.reason === 'inboxSyncedClear'
+        ? messageOrdinals.filter((_, k) => k !== Constants.pendingConversationIDKey)
+        : messageOrdinals
     case Chat2Gen.markConversationsStale:
       return messageOrdinals.deleteAll(action.payload.conversationIDKeys)
-    case Chat2Gen.metasReceived:
-      if (action.payload.clearExisting) {
-        // clear out what we have
-        // retain info pertaining to pending conversation
-        return messageOrdinals.filter((_, k) => k !== Constants.pendingConversationIDKey)
-      }
-      return messageOrdinals
     default:
       return messageOrdinals
   }
@@ -636,6 +630,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     }
     // metaMap/messageMap/messageOrdinalsList only actions
+    case Chat2Gen.inboxRefresh:
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
     case Chat2Gen.messageWasEdited:
@@ -668,7 +663,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.exitSearch:
-    case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:
     case Chat2Gen.loadOlderMessagesDueToScroll:
