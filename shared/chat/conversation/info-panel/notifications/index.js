@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
+import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import {type SaveState, default as SaveIndicator} from '../../../../common-adapters/save-indicator'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
@@ -10,27 +11,11 @@ export type Props = {
   desktop: Types.NotificationsType,
   mobile: Types.NotificationsType,
   muted: boolean,
-  saveState: SaveStateType,
+  saveState: SaveState,
   toggleMuted: () => void,
   updateDesktop: Types.NotificationsType => void,
   updateMobile: Types.NotificationsType => void,
   toggleChannelWide: () => void,
-}
-
-export const SaveStateComponent = ({saveState}: {saveState: SaveStateType}) => {
-  switch (saveState) {
-    case 'same':
-      return null
-    case 'saving':
-      return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
-    case 'justSaved':
-      return [
-        <Icon key="0" type="iconfont-check" style={{color: globalColors.green}} />,
-        <Text key="1" type="BodySmall" style={{color: globalColors.green2}}>
-          &nbsp; Saved
-        </Text>,
-      ]
-  }
 }
 
 const UnmutedNotificationPrefs = (props: Props) => (
@@ -141,7 +126,7 @@ export const Notifications = (props: Props) => (
     </Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}
     <Box style={styleSaveState}>
-      <SaveStateComponent saveState={props.saveState} />
+      <SaveIndicator saveState={props.saveState} />
     </Box>
   </Box>
 )
