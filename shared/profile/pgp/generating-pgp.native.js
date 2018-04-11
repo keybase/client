@@ -13,8 +13,8 @@ class GeneratingPgp extends Component<Props> {
           Generating your unique key...
         </Text>
         <Text style={styleBody} type="Body">
-          Math time! You are about to discover a 4096-bit key pair. This could take as long as a couple
-          of minutes.
+          Math time! You are about to discover a 4096-bit key pair. This could take as long as a couple of
+          minutes.
         </Text>
         <Icon style={styleLoadingIcon} type="icon-loader-infinity-64" />
       </StandardScreen>
