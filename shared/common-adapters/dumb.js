@@ -21,7 +21,7 @@ import {
   Text,
 } from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
-import {globalStyles, globalColors, isMobile} from '../styles'
+import {globalStyles, globalColors, isMobile, platformStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 
 const onClick = () => console.log('on click!')
@@ -348,10 +348,16 @@ const IconHolder = ({iconFont}) => {
                 <Text type="BodySmall">{i}</Text>
                 <Icon
                   type={i}
-                  style={{
-                    margin: 10,
-                    ...(isMobile ? {} : {borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}),
-                  }}
+                  style={platformStyles({
+                    common: {
+                      margin: 10,
+                    },
+                    isElectron: {
+                      borderColor: '#777777',
+                      borderStyle: 'solid',
+                      borderWidth: 1,
+                    },
+                  })}
                 />
               </Box>
             ))}

@@ -6,7 +6,6 @@ import * as React from 'react'
 import {globalColors, glamorous} from '../styles'
 import {iconMeta} from './icon.constants'
 import {NativeStyleSheet} from './native-wrappers.native.js'
-
 import type {IconType, Props} from './icon'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
@@ -24,16 +23,6 @@ const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
 
 const styles = NativeStyleSheet.create(fontSizes)
 
-/* TODO
-  const omitFromStyle = (obj, omitKeys) => {
-  return Object.keys(obj).reduce((result, key) => {
-    if (!omitKeys.includes(key)) {
-      result[key] = obj[key]
-    }
-    return result
-  }, {})
-}
- */
 const Text = glamorous.text(
   // static styles
   {
@@ -126,14 +115,14 @@ class Icon extends React.PureComponent<Props> {
       )
     } else {
       // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
-      // lets just filter it out if it exists
-      // const imageStyle = omitFromStyle(props.style, ['color'])    <---- TODO
-      const imageStyle = props.style
+      // lets just override it by making it undefined in a style occurring later in this array
+      const imageStyle = [props.style, {color: undefined}]
+      // const imageStyle = props.style
       icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
     }
 
-    // const boxStyle = omitFromStyle(props.style, ['color', 'fontSize', 'textAlign']) <--- TODO
-    const boxStyle = props.style
+    const boxStyle = [props.style, {color: undefined, fontSize: undefined, textAlign: undefined}]
+//    const boxStyle = props.style
 
     return props.onClick ? (
       <ClickableBox
