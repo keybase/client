@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
-import {globalColors, glamorous} from '../styles'
+import {globalColors, glamorous, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 import type {IconType, Props} from './icon'
@@ -116,13 +116,14 @@ class Icon extends React.PureComponent<Props> {
     } else {
       // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
       // lets just override it by making it undefined in a style occurring later in this array
-      const imageStyle = [props.style, {color: undefined}]
-      // const imageStyle = props.style
+      const imageStyle = collapseStyles([props.style, {color: undefined}])
       icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
     }
 
-    const boxStyle = [props.style, {color: undefined, fontSize: undefined, textAlign: undefined}]
-//    const boxStyle = props.style
+    const boxStyle = collapseStyles([
+      props.style,
+      {color: undefined, fontSize: undefined, textAlign: undefined},
+    ])
 
     return props.onClick ? (
       <ClickableBox
