@@ -36,9 +36,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isNew: false,
     isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
     newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
-    // $FlowIssue
     onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
-    // $FlowIssue
     onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
   }
