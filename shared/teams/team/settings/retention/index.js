@@ -206,7 +206,11 @@ class RetentionPicker extends React.Component<Props, State> {
         )}
         {this.props.showSaveState && (
           <Box style={saveStateStyle}>
-            <SaveIndicator saveState={this.state.saveState} />
+            <SaveIndicator
+              saving={this.state.saveState !== 'same'}
+              minSavingTimeMs={300}
+              savedTimeoutMs={2500}
+            />
           </Box>
         )}
       </Box>

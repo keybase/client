@@ -126,7 +126,7 @@ export const Notifications = (props: Props) => (
     </Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}
     <Box style={styleSaveState}>
-      <SaveIndicator saveState={props.saveState} />
+      <SaveIndicator saving={props.saveState !== 'same'} minSavingTimeMs={300} savedTimeoutMs={2500} />
     </Box>
   </Box>
 )

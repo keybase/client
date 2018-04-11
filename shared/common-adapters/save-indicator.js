@@ -9,8 +9,9 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 type SaveState = 'same' | 'saving' | 'justSaved'
 
 type Props = {
-  // TODO: Remove.
-  saveState: SaveState,
+  saving: boolean,
+  minSavingTimeMs: number,
+  savedTimeoutMs: number,
 }
 
 type State = {
@@ -25,12 +26,34 @@ const containerStyle = {
 }
 
 class SaveIndicator extends React.Component<Props, State> {
+  saveStartTime: ?number
+
   constructor(props: Props) {
     super(props)
     this.state = {saveState: 'same'}
   }
 
-  render() {
+  getDerivedStateFromProps = (nextProps: Props) => {
+    if (nextProps.saving === this.props.saving) {
+      return null
+    }
+
+    if (nextProps.saving) {
+      this.saveStartTime = Date.now()
+      return {saveState: 'saving'}
+    }
+
+    const dt = Date.now() - (this.saveStartTime || 0)
+    if (dt < nextProps.minSavingTimeMs) {
+      // Set state to 'justSaved' after minSavingTimeMs - dt.
+      return null
+    }
+
+    // Set state to 'same' after savedTimeoutMs.
+    return {saveState: 'justSaved'}
+  }
+
+  render = () => {
     switch (this.state.saveState) {
       case 'same':
         return null
