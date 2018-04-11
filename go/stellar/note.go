@@ -118,9 +118,6 @@ func noteMixKeys(ctx context.Context, g *libkb.GlobalContext, puk1 libkb.PerUser
 	if err != nil {
 		return res, err
 	}
-	if puk1Enc.Private == nil {
-		return res, fmt.Errorf("missing local puk private key")
-	}
 	puk2EncGeneric, err := libkb.ImportKeypairFromKID(puk2EncKID)
 	if err != nil {
 		return res, err
@@ -130,6 +127,8 @@ func noteMixKeys(ctx context.Context, g *libkb.GlobalContext, puk1 libkb.PerUser
 		return res, fmt.Errorf("recipient per-user key was not a DH key")
 	}
 	var zeros [32]byte
+	// This is a constant used for key derivation.
+	// The derived key will be used with one-time random nonces for the actual encryption/decryption.
 	nonce := noteMixPukNonce()
 	sharedSecretBox := box.Seal(nil, zeros[:], &nonce, (*[32]byte)(&puk2Enc.Public), (*[32]byte)(puk1Enc.Private))
 	return libkb.MakeByte32Soft(sharedSecretBox[len(sharedSecretBox)-32:])
