@@ -27,6 +27,7 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
 type VBoxProps = {
   children: React.Node,
   fullHeight?: true,
+  centered?: true,
   style?: StylesCrossPlatform,
   gap?: number,
   gapStart?: boolean,
@@ -34,10 +35,11 @@ type VBoxProps = {
 }
 class VBox extends React.Component<VBoxProps> {
   render() {
-    let style = this.props.fullHeight ? styles.vboxFullHeight : styles.vbox
-    if (this.props.style) {
-      style = collapseStyles([style, this.props.style])
-    }
+    const style = collapseStyles([
+      this.props.fullHeight ? styles.vboxFullHeight : styles.vbox,
+      this.props.centered ? styles.vboxCentered : null,
+      this.props.style,
+    ])
     return (
       <div style={style}>
         {injectGaps(VBoxGap, this.props.children, this.props.gap, this.props.gapStart, this.props.gapEnd)}
@@ -57,10 +59,11 @@ type HBoxProps = {
 }
 class HBox extends React.Component<HBoxProps> {
   render() {
-    let style = this.props.fullWidth ? styles.hboxFullWidth : styles.hbox
-    if (this.props.style) {
-      style = collapseStyles([style, this.props.style])
-    }
+    const style = collapseStyles([
+      this.props.fullWidth ? styles.hboxFullWidth : styles.hbox,
+      this.props.centered ? styles.hboxCentered : null,
+      this.props.style,
+    ])
     return (
       <div style={style}>
         {injectGaps(HBoxGap, this.props.children, this.props.gap, this.props.gapStart, this.props.gapEnd)}
@@ -76,6 +79,10 @@ const styles = {
     alignItems: 'stretch',
     height: '100%',
   },
+  hboxCentered: {
+    alignSelf: 'center',
+    width: undefined,
+  },
   hboxFullWidth: {
     ...globalStyles.flexBoxRow,
     alignItems: 'stretch',
@@ -85,12 +92,18 @@ const styles = {
   vbox: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
+    justifyContent: 'flex-start',
     width: '100%',
+  },
+  vboxCentered: {
+    alignSelf: 'center',
+    width: undefined,
   },
   vboxFullHeight: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     height: '100%',
+    justifyContent: 'flex-start',
     width: '100%',
   },
 }

@@ -2,8 +2,8 @@
 import * as React from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/rpc-gen'
-import {Meta, NameWithIcon, StandardScreen, Box, Text, Button, VBox, HBox} from '../../common-adapters'
-import {globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../styles'
+import {Meta, NameWithIcon, Box, Text, Button, VBox, HBox, HeaderHoc} from '../../common-adapters'
+import {globalStyles, globalColors, styleSheetCreate} from '../../styles'
 
 export type TimelineItem = {
   desc: string,
@@ -25,14 +25,14 @@ type Props = {
 
 const TimelineMarker = ({first, last, closedCircle}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Box style={{...styles.line, height: 6, opacity: first ? 0 : 1}} />
+    <Box style={{...styles.timelineLine, height: 6, opacity: first ? 0 : 1}} />
     <Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Box style={{...styles.line, flex: 1, opacity: last ? 0 : 1}} />
+    <Box style={{...styles.timelineLine, flex: 1, opacity: last ? 0 : 1}} />
   </Box>
 )
 
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
-  <VBox style={styles.timeLabel}>
+  <VBox style={styles.timelineLabel}>
     <Text type="Body">{desc}</Text>
     {subDesc &&
       subDescIsName && (
@@ -50,7 +50,7 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
 
 const Timeline = ({timeline}) =>
   timeline ? (
-    <VBox>
+    <VBox centered={true}>
       {timeline.map(({type, desc, subDesc}, idx) => (
         <HBox key={desc} gap={16}>
           <TimelineMarker
@@ -78,7 +78,7 @@ const Render = (props: Props) => {
   }
 
   return (
-    <StandardScreen style={styles.container} onBack={props.onBack}>
+    <Box>
       <VBox gap={15}>
         <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
         <Timeline timeline={props.timeline} />
@@ -90,7 +90,7 @@ const Render = (props: Props) => {
           />
         )}
       </VBox>
-    </StandardScreen>
+    </Box>
   )
 }
 
@@ -117,26 +117,16 @@ const styles = styleSheetCreate({
     ...circleCommon,
     borderColor: globalColors.lightGrey2,
   },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-  },
-  iconHeaderContainer: platformStyles({
-    isElectron: {
-      alignSelf: 'flex-start',
-      padding: 30,
-    },
-  }),
-  line: {
-    backgroundColor: globalColors.lightGrey2,
-    width: 2,
-  },
   meta: {
     alignSelf: 'center',
     backgroundColor: globalColors.red,
     marginTop: 4,
   },
-  timeLabel: {alignItems: 'flex-start'},
+  timelineLabel: {alignItems: 'flex-start'},
+  timelineLine: {
+    backgroundColor: globalColors.lightGrey2,
+    width: 2,
+  },
   title: titleCommon,
   titleRevoked: {
     ...titleCommon,
@@ -145,4 +135,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default Render
+export default HeaderHoc(Render)
