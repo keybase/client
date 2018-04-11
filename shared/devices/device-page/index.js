@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {StandardScreen, Box, Text, Icon, Button} from '../../common-adapters'
+import {Meta, NameWithIcon, StandardScreen, Box, Text, Button, VBox, HBox} from '../../common-adapters'
 import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/rpc-gen'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
@@ -23,70 +23,70 @@ type Props = {
   timeline?: Array<TimelineItem>,
 }
 
-const Header = ({name, isCurrent, isRevoked}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
-    <Text type="Header" style={isRevoked ? styles.titleRevoked : styles.title}>
-      {name}
-    </Text>
-    {isRevoked && (
-      <Text type="Header" style={styles.meta}>
-        REVOKED
-      </Text>
-    )}
-    <Box style={globalStyles.flexBoxRow}>{isCurrent && <Text type="BodySmall">Current device</Text>}</Box>
-  </Box>
-)
-
 const TimelineMarker = ({idx, max, type}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16}}>
-    <Box style={{...styles.line, height: 8, opacity: idx ? 1 : 0}} />
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+    <Box style={{...styles.line, height: 6, opacity: idx ? 1 : 0}} />
     <Box style={type === 'Revoked' ? styles.circleClosed : styles.circleOpen} />
     <Box style={{...styles.line, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>
 )
 
-const Timeline = ({timeline}) => (
-  <Box style={{marginTop: 30}}>
-    {timeline.map(({type, desc, subDesc}, idx) => (
-      <Box key={desc} style={globalStyles.flexBoxRow}>
-        <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
-        <Box style={globalStyles.flexBoxColumn}>
-          <Text type="Body">{desc}</Text>
-          {subDesc && (type === 'Added' || type === 'Revoked') ? (
-            <Text type="BodySmall">
-              by{' '}
-              <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
-                {subDesc}
-              </Text>
-            </Text>
-          ) : (
-            <Text type="BodySmall">{subDesc}</Text>
-          )}
-          <Box style={{height: 15}} />
-        </Box>
-      </Box>
-    ))}
-  </Box>
+const TimelineLabel = ({idx, max, desc, subDesc, type}) => (
+  <VBox style={styles.timeLabel}>
+    <Text type="Body">{desc}</Text>
+    {subDesc && (type === 'Added' || type === 'Revoked') ? (
+      <Text type="BodySmall">
+        by{' '}
+        <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
+          {subDesc}
+        </Text>
+      </Text>
+    ) : (
+      <Text type="BodySmall">{subDesc}</Text>
+    )}
+    {idx < max && <Box style={{height: 15}} />}
+  </VBox>
 )
 
-const Render = (props: Props) => (
-  <StandardScreen
-    style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}}
-    onBack={props.onBack}
-  >
-    <Icon type={props.icon} style={{marginTop: 32, opacity: props.revokedAt ? 0.4 : 1}} />
-    <Header name={props.name} isCurrent={props.currentDevice} isRevoked={props.revokedAt} />
-    {!!props.timeline && <Timeline timeline={props.timeline} />}
-    {!props.revokedAt && (
-      <Button
-        type="Danger"
-        style={{marginTop: globalMargins.small}}
-        label={`Revoke this ${props.revokeName || ''}`}
-        onClick={props.showRevokeDevicePage}
-      />
-    )}
-  </StandardScreen>
-)
+const Timeline = ({timeline}) =>
+  timeline ? (
+    <VBox>
+      {timeline.map(({type, desc, subDesc}, idx) => (
+        <HBox key={desc} gap={16}>
+          <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
+          <TimelineLabel idx={idx} max={timeline.length - 1} desc={desc} subDesc={subDesc} type={type} />
+        </HBox>
+      ))}
+    </VBox>
+  ) : null
+
+const Render = (props: Props) => {
+  let metaOne
+  if (props.currentDevice) {
+    metaOne = 'Current device'
+  } else if (props.revokedAt) {
+    metaOne = <Meta title="REVOKED" style={styles.meta} />
+  }
+
+  return (
+    <StandardScreen
+      style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}}
+      onBack={props.onBack}
+    >
+      <VBox gap={15}>
+        <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
+        <Timeline timeline={props.timeline} />
+        {!props.revokedAt && (
+          <Button
+            type="Danger"
+            label={`Revoke this ${props.revokeName || ''}`}
+            onClick={props.showRevokeDevicePage}
+          />
+        )}
+      </VBox>
+    </StandardScreen>
+  )
+}
 
 const circleCommon = {
   borderRadius: 8 / 2,
@@ -111,26 +111,23 @@ const styles = styleSheetCreate({
     ...circleCommon,
     borderColor: globalColors.lightGrey2,
   },
+  iconHeaderContainer: platformStyles({
+    isElectron: {
+      alignSelf: 'flex-start',
+      padding: 30,
+    },
+  }),
   line: {
     backgroundColor: globalColors.lightGrey2,
     width: 2,
   },
-  meta: platformStyles({
-    isMobile: {
-      backgroundColor: globalColors.red,
-      borderRadius: 2,
-      color: globalColors.white,
-      fontSize: 12,
-      height: 15,
-      lineHeight: 15,
-      marginTop: globalMargins.xtiny,
-      paddingLeft: 2,
-      paddingRight: 2,
-    },
-  }),
-  title: {
-    ...titleCommon,
+  meta: {
+    alignSelf: 'center',
+    backgroundColor: globalColors.red,
+    marginTop: 4,
   },
+  timeLabel: {alignItems: 'flex-start'},
+  title: titleCommon,
   titleRevoked: {
     ...titleCommon,
     color: globalColors.black_40,

@@ -22,9 +22,6 @@ const devicesProps: Props = {
 }
 const provider = createPropProvider({
   DevicePage: (props: {revoked: boolean, type: string, current: boolean, timeLen: ?number}) => ({
-    bannerBackgroundColor: undefined,
-    bannerColor: undefined,
-    bannerDesc: null,
     currentDevice: !!props.current,
     deviceID: '123',
     icon: {
@@ -32,7 +29,7 @@ const provider = createPropProvider({
       desktop: 'icon-computer-64',
       mobile: 'icon-phone-64',
     }[props.type],
-    name: 'my desktop',
+    name: `My ${props.type}`,
     onBack: action('onback'),
     revokeName: {
       backup: 'paper key',
@@ -42,7 +39,7 @@ const provider = createPropProvider({
     revokedAt: props.revoked ? new Date('2002-10-11T01:23:45') : null,
     showRevokeDevicePage: props.revoked ? null : action('onrevoke'),
     timeline: [
-      {desc: 'Revoked whenever', subDesc: 'by whomever', type: 'Revoked'},
+      {desc: 'Revoked whenever', subDesc: 'whomever', type: 'Revoked'},
       {desc: 'Last used whenever', subDesc: 'whenever', type: 'LastUsed'},
       {desc: 'Added whenever', subDesc: 'provisioner', type: 'Added'},
     ].slice(0, props.timeLen || 0),
