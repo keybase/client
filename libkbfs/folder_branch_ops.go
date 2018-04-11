@@ -6425,6 +6425,81 @@ func (fbo *folderBranchOps) TeamAbandoned(
 	fbo.locallyFinalizeTLF(ctx)
 }
 
+// MigrateToImplicitTeam implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) MigrateToImplicitTeam(
+	ctx context.Context, id tlf.ID) (err error) {
+	fb := FolderBranch{id, MasterBranch}
+	if fb != fbo.folderBranch {
+		// TODO: log instead of panic?
+		panic(WrongOpsError{fbo.folderBranch, fb})
+	}
+
+	fbo.log.CDebugf(ctx, "Starting migration of TLF %s", id)
+	defer func() {
+		fbo.log.CDebugf(ctx, "Finished migration of TLF %s, err=%+v", id, err)
+	}()
+
+	if id.Type() != tlf.Private && id.Type() != tlf.Public {
+		return errors.Errorf("Cannot migrate a TLF of type: %s", id.Type())
+	}
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	md, err := fbo.getMDForWriteLockedForFilename(ctx, lState, "")
+	if err != nil {
+		return err
+	}
+
+	if md == (ImmutableRootMetadata{}) {
+		fbo.log.CDebugf(ctx, "Nothing to upgrade")
+		return nil
+	}
+
+	if md.IsFinal() {
+		fbo.log.CDebugf(ctx, "No need to upgrade a finalized TLF")
+		return nil
+	}
+
+	if md.TypeForKeying() == tlf.TeamKeying {
+		fbo.log.CDebugf(ctx, "Already migrated")
+		return nil
+	}
+
+	newHandle, err := ParseTlfHandle(
+		ctx, fbo.config.KBPKI(), fbo.config.MDOps(),
+		string(md.GetTlfHandle().GetCanonicalName()), id.Type())
+	if err != nil {
+		return err
+	}
+
+	// Make sure the new handle contains just a team.
+	if newHandle.TypeForKeying() != tlf.TeamKeying {
+		return errors.New("No corresponding implicit team yet")
+	}
+
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+
+	isWriter := true // getMDForWriteLockedForFilename already checked this.
+	newMD, err := md.MakeSuccessorWithNewHandle(
+		ctx, newHandle, fbo.config.MetadataVersion(), fbo.config.Codec(),
+		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),
+		md.mdID, isWriter)
+	if err != nil {
+		return err
+	}
+
+	// Add an empty operation to satisfy assumptions elsewhere.
+	newMD.AddOp(newRekeyOp())
+
+	return fbo.finalizeMDRekeyWriteLocked(
+		ctx, lState, newMD, session.VerifyingKey)
+}
+
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {

@@ -285,6 +285,25 @@ func (md *RootMetadata) MakeSuccessor(
 	return newMd, nil
 }
 
+// MakeSuccessorWithNewHandle does the same thing as MakeSuccessor,
+// plus it changes the handle.  (The caller is responsible for
+// ensuring that the handle change is valid.)
+func (md *RootMetadata) MakeSuccessorWithNewHandle(
+	ctx context.Context, newHandle *TlfHandle, latestMDVer kbfsmd.MetadataVer,
+	codec kbfscodec.Codec, keyManager KeyManager, merkleGetter merkleRootGetter,
+	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
+	*RootMetadata, error) {
+	mdCopy, err := md.deepCopy(codec)
+	if err != nil {
+		return nil, err
+	}
+
+	mdCopy.tlfHandle = newHandle.deepCopy()
+	return mdCopy.MakeSuccessor(
+		ctx, latestMDVer, codec, keyManager, merkleGetter, teamKeyer, mdID,
+		isWriter)
+}
+
 // GetTlfHandle returns the TlfHandle for this RootMetadata.
 func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	if md.tlfHandle == nil {

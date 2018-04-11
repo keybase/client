@@ -1014,6 +1014,18 @@ func (fs *KBFSOpsStandard) TeamAbandoned(
 	}
 }
 
+// MigrateToImplicitTeam implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) MigrateToImplicitTeam(
+	ctx context.Context, id tlf.ID) error {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	// We currently only migrate on the master branch of a TLF.
+	ops := fs.getOps(ctx,
+		FolderBranch{Tlf: id, Branch: MasterBranch}, FavoritesOpNoChange)
+	return ops.MigrateToImplicitTeam(ctx, id)
+}
+
 // KickoffAllOutstandingRekeys implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {

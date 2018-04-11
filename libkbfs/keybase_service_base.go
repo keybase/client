@@ -1122,7 +1122,13 @@ func (k *KeybaseServiceBase) StartMigration(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 	folder keybase1.Folder) (err error) {
-	return nil
+	fav := NewFavoriteFromFolder(folder)
+	handle, err := GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
+	if err != nil {
+		return err
+	}
+	return k.config.KBFSOps().MigrateToImplicitTeam(ctx, handle.TlfID())
 }
 
 // GetTLFCryptKeys implements the TlfKeysInterface interface for

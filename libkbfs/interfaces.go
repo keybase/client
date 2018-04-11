@@ -418,6 +418,10 @@ type KBFSOps interface {
 	// TeamAbandoned indicates that a team has been abandoned, and
 	// shouldn't be referred to by its previous name anymore.
 	TeamAbandoned(ctx context.Context, tid keybase1.TeamID)
+	// MigrateToImplicitTeam migrates the given folder from a private-
+	// or public-keyed folder, to a team-keyed folder.  If it's
+	// already a private/public team-keyed folder, nil is returned.
+	MigrateToImplicitTeam(ctx context.Context, id tlf.ID) error
 	// KickoffAllOutstandingRekeys kicks off all outstanding rekeys. It does
 	// nothing to folders that have not scheduled a rekey. This should be
 	// called when we receive an event of "paper key cached" from service.

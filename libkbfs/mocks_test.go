@@ -1354,6 +1354,18 @@ func (mr *MockKBFSOpsMockRecorder) TeamAbandoned(ctx, tid interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeamAbandoned", reflect.TypeOf((*MockKBFSOps)(nil).TeamAbandoned), ctx, tid)
 }
 
+// MigrateToImplicitTeam mocks base method
+func (m *MockKBFSOps) MigrateToImplicitTeam(ctx context.Context, id tlf.ID) error {
+	ret := m.ctrl.Call(m, "MigrateToImplicitTeam", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MigrateToImplicitTeam indicates an expected call of MigrateToImplicitTeam
+func (mr *MockKBFSOpsMockRecorder) MigrateToImplicitTeam(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateToImplicitTeam", reflect.TypeOf((*MockKBFSOps)(nil).MigrateToImplicitTeam), ctx, id)
+}
+
 // KickoffAllOutstandingRekeys mocks base method
 func (m *MockKBFSOps) KickoffAllOutstandingRekeys() error {
 	ret := m.ctrl.Call(m, "KickoffAllOutstandingRekeys")
