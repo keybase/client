@@ -60,7 +60,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 			start = "sudo pacman -Syu"
 		}
 	} else {
-		return "", fmt.Errorf("Unhandled linux upgrade instruction.")
+		return "", fmt.Errorf("Unhandled Linux upgrade instruction.")
 	}
 
 	complete := start + " && run_keybase"

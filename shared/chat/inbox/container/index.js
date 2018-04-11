@@ -120,7 +120,7 @@ export default compose(
     },
     componentDidUpdate(prevProps) {
       const loadedForTheFirstTime = prevProps.rows.length === 0 && this.props.rows.length > 0
-      // See if the first 6 are small, this implies its expanded
+      // See if the first 6 are small, this implies it's expanded
       const smallRowsPlusOne = prevProps.rows.slice(0, 6).filter(r => r.type === 'small')
       const expandedForTheFirstTime = smallRowsPlusOne.length === 5 && this.props.rows.length > 5
       if (loadedForTheFirstTime || expandedForTheFirstTime) {

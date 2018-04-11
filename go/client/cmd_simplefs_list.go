@@ -17,7 +17,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// ListOptions is for the linux style
+// ListOptions is for the Linux style
 type ListOptions struct {
 	all         bool
 	long        bool

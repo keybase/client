@@ -289,7 +289,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return loading.delete(action.payload.key)
         } else {
           console.log('Setting negative chat loading key', action.payload.key, count)
-          // This should hopefully never happen but some flows are flakey so lets log it but not throw an error
+          // This should hopefully never happen but some flows are flakey so let's log it but not throw an error
           return loading.set(action.payload.key, count)
         }
       })

@@ -151,12 +151,12 @@ extern unsigned long long const kDDDefaultLogFilesDiskQuota;
 // Notifications from DDFileLogger
 
 /**
- *  Called when a log file was archieved
+ *  Called when a log file was archived
  */
 - (void)didArchiveLogFile:(NSString *)logFilePath NS_SWIFT_NAME(didArchiveLogFile(atPath:));
 
 /**
- *  Called when the roll action was executed and the log was archieved
+ *  Called when the roll action was executed and the log was archived
  */
 - (void)didRollAndArchiveLogFile:(NSString *)logFilePath NS_SWIFT_NAME(didRollAndArchiveLogFile(atPath:));
 
@@ -328,7 +328,7 @@ extern unsigned long long const kDDDefaultLogFilesDiskQuota;
 
 /**
  *  Called when the logger checks archive or not current log file. 
- *  Override this method to exdend standart behavior. By default returns NO.
+ *  Override this method to extend standard behavior. By default returns NO.
  */
 - (BOOL)shouldArchiveRecentLogFileInfo:(DDLogFileInfo *)recentLogFileInfo;
 
@@ -433,7 +433,7 @@ extern unsigned long long const kDDDefaultLogFilesDiskQuota;
  * It was designed to provide quick snapshots of the current state of log files,
  * and to help sort log files in an array.
  *
- * This class does not monitor the files, or update it's cached attribute values if the file changes on disk.
+ * This class does not monitor the files, or update its cached attribute values if the file changes on disk.
  * This is not what the class was designed for.
  *
  * If you absolutely must get updated values,
@@ -474,7 +474,7 @@ extern unsigned long long const kDDDefaultLogFilesDiskQuota;
 // This is exactly what extended attributes were designed for.
 //
 // But Apple screws us over on the simulator.
-// Everytime you build-and-go, they copy the application into a new folder on the hard drive,
+// Every time you build-and-go, they copy the application into a new folder on the hard drive,
 // and as part of the process they strip extended attributes from our log files.
 // Normally, a copy of a file preserves extended attributes.
 // So obviously Apple has gone to great lengths to piss us off.

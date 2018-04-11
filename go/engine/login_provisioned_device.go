@@ -170,7 +170,7 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 
 func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
 
-	// CORE-5876 idea that lksec will be unusable if reachablity state is NO
+	// CORE-5876 idea that lksec will be unusable if reachability state is NO
 	// and the user changed passphrase with a different device since it won't
 	// be able to sync the new server half.
 	if e.G().ConnectivityMonitor.IsConnected(ctx.NetContext) != libkb.ConnectivityMonitorYes {

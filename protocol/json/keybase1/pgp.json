@@ -92,7 +92,7 @@
           "name": "signKey"
         }
       ],
-      "doc": "PGPSigVerification is returned by pgpDecrypt and pgpVerify with information\n    about a the signature verification. If isSigned is false, there was no\n    signature, and the rest of the fields should be ignored."
+      "doc": "PGPSigVerification is returned by pgpDecrypt and pgpVerify with information\n    about the signature verification. If isSigned is false, there was no\n    signature, and the rest of the fields should be ignored."
     },
     {
       "type": "record",

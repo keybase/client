@@ -62,7 +62,7 @@ func _testCryptocurrency(t *testing.T, sigVersion libkb.SigVersion) {
 	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "zcash", SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err == nil {
-		t.Fatal("Wanted an error for wrong adddress type")
+		t.Fatal("Wanted an error for wrong address type")
 	}
 	if current != "" {
 		t.Fatalf("No address should be set")
@@ -119,7 +119,7 @@ func _testCryptocurrency(t *testing.T, sigVersion libkb.SigVersion) {
 	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash1, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err != nil {
-		t.Fatal("We should be able to add a zcash in addition to a BTC address")
+		t.Fatal("We should be able to add a Zcash in addition to a BTC address")
 	}
 	current = getCurrentCryptocurrencyAddr(tc, u.Username, libkb.CryptocurrencyFamilyBitcoin)
 	if current != secondAddress {
@@ -151,7 +151,7 @@ func _testCryptocurrency(t *testing.T, sigVersion libkb.SigVersion) {
 	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: zcash2, Force: true, SigVersion: &sv})
 	err = RunEngine(e, ctx)
 	if err != nil {
-		t.Fatal("Forcing zcash overwrite should have worked")
+		t.Fatal("Forcing Zcash overwrite should have worked")
 	}
 	current = getCurrentCryptocurrencyAddr(tc, u.Username, libkb.CryptocurrencyFamilyBitcoin)
 	if current != secondAddress {
@@ -173,7 +173,7 @@ func _testCryptocurrency(t *testing.T, sigVersion libkb.SigVersion) {
 	} else if revoked[0].ToDisplayString() != firstAddress {
 		t.Fatal("Revoked link should correspond to the first address.")
 	} else if revoked[1].ToDisplayString() != zcash1 {
-		t.Fatal("Revoked link should correspond to the first zcash address.")
+		t.Fatal("Revoked link should correspond to the first Zcash address.")
 	}
 }
 

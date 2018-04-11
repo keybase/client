@@ -206,7 +206,7 @@
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -266,7 +266,7 @@
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -310,7 +310,7 @@
                     if (_saveTimer == NULL) {
                         // Handles #2
                         //
-                        // Since the saveTimer uses the unsavedTime to calculate it's first fireDate,
+                        // Since the saveTimer uses the unsavedTime to calculate its first fireDate,
                         // if a save is needed the timer will fire immediately.
 
                         [self createSuspendedSaveTimer];
@@ -319,7 +319,7 @@
                         // Handles #3
                         // Handles #4
                         //
-                        // Since the saveTimer uses the unsavedTime to calculate it's first fireDate,
+                        // Since the saveTimer uses the unsavedTime to calculate its first fireDate,
                         // if a save is needed the timer will fire immediately.
 
                         [self updateAndResumeSaveTimer];
@@ -357,7 +357,7 @@
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -454,7 +454,7 @@
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -498,7 +498,7 @@
                     if (_deleteTimer == NULL) {
                         // Handles #2
                         //
-                        // Since the deleteTimer uses the lastDeleteTime to calculate it's first fireDate,
+                        // Since the deleteTimer uses the lastDeleteTime to calculate its first fireDate,
                         // if a delete is needed the timer will fire immediately.
 
                         [self createAndStartDeleteTimer];
@@ -506,7 +506,7 @@
                         // Handles #3
                         // Handles #4
                         //
-                        // Since the deleteTimer uses the lastDeleteTime to calculate it's first fireDate,
+                        // Since the deleteTimer uses the lastDeleteTime to calculate its first fireDate,
                         // if a save is needed the timer will fire immediately.
 
                         [self updateDeleteTimer];
@@ -544,7 +544,7 @@
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
