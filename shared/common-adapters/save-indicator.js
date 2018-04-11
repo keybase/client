@@ -9,6 +9,11 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 type SaveState = 'same' | 'saving' | 'justSaved'
 
 type Props = {
+  // TODO: Remove.
+  saveState: SaveState,
+}
+
+type State = {
   saveState: SaveState,
 }
 
@@ -19,21 +24,28 @@ const containerStyle = {
   justifyContent: 'center',
 }
 
-const SaveIndicator = ({saveState}: Props) => {
-  switch (saveState) {
-    case 'same':
-      return null
-    case 'saving':
-      return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
-    case 'justSaved':
-      return (
-        <Box style={containerStyle}>
-          <Icon type="iconfont-check" style={{color: globalColors.green}} />
-          <Text type="BodySmall" style={{color: globalColors.green2}}>
-            &nbsp; Saved
-          </Text>
-        </Box>
-      )
+class SaveIndicator extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {saveState: 'same'}
+  }
+
+  render() {
+    switch (this.state.saveState) {
+      case 'same':
+        return null
+      case 'saving':
+        return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
+      case 'justSaved':
+        return (
+          <Box style={containerStyle}>
+            <Icon type="iconfont-check" style={{color: globalColors.green}} />
+            <Text type="BodySmall" style={{color: globalColors.green2}}>
+              &nbsp; Saved
+            </Text>
+          </Box>
+        )
+    }
   }
 }
 
