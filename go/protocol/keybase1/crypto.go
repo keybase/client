@@ -250,7 +250,7 @@ func (c CryptoClient) SignED25519ForKBFS(ctx context.Context, __arg SignED25519F
 	return
 }
 
-// Same as the above except the full marsheled and encoded NaclSigInfo.
+// Same as the above except the full marshaled and encoded NaclSigInfo.
 func (c CryptoClient) SignToString(ctx context.Context, __arg SignToStringArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.crypto.signToString", []interface{}{__arg}, &res)
 	return
