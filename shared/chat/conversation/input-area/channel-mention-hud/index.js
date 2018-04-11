@@ -73,7 +73,7 @@ const MentionHud = compose(
     }
   ),
   withProps((props: {channels: Array<string>, filter: string, selectedIndex: number}) => {
-    const fullList = props.channels ? props.channels.sort() : []
+    const fullList = props.channels ? props.channels.slice().sort() : []
     return {
       data: fullList
         .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
@@ -116,6 +116,9 @@ const MentionHud = compose(
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
         if (nextProps.selectedIndex < nextProps.data.length) {
+          // Check if the previously selected entry matches the currently selected one
+          // we do this to prevent replace the user's text if the currently selected
+          // moves around in the list
           const prevChannelname = this.props.fullList[this.props.selectedIndex]
           const nextChannelname = nextProps.data[nextProps.selectedIndex].channelName
           if (prevChannelname !== nextChannelname) {

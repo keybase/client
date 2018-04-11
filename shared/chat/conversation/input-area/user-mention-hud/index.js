@@ -150,6 +150,9 @@ const MentionHud = compose(
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
         if (nextProps.selectedIndex < nextProps.data.length) {
+          // Check if the previously selected entry matches the currently selected one
+          // we do this to prevent replace the user's text if the currently selected
+          // moves around in the list
           const prevUser = this.props.fullList[this.props.selectedIndex]
           const prevUsername = prevUser && prevUser.username
           const nextUsername = nextProps.data[nextProps.selectedIndex].username
