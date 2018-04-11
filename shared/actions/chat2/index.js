@@ -436,7 +436,10 @@ const onChatThreadStale = updates => {
     return arr
   }, [])
   if (conversationIDKeys.length > 0) {
-    return [Chat2Gen.createMarkConversationsStale({conversationIDKeys})]
+    return [
+      Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
+      Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'onChatThreadStale'}),
+    ]
   }
 }
 
