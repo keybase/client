@@ -58,8 +58,13 @@ const inboxRefresh = (
         const metas = items
           .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
           .filter(Boolean)
-
-        yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+        // Check if some of our existing stored metas might no longer be valid
+        const clearExistingMetas =
+          action.type === Chat2Gen.inboxRefresh &&
+          ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+        const clearExistingMessages =
+          action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
         return EngineRpc.rpcResult()
       },
     },
@@ -611,7 +616,8 @@ const loadMoreMessages = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.SetPendingConversationUsersPayload
-    | Chat2Gen.MarkConversationsStalePayload,
+    | Chat2Gen.MarkConversationsStalePayload
+    | Chat2Gen.MetasReceivedPayload,
   state: TypedState
 ) => {
   const numMessagesOnInitialLoad = isMobile ? 20 : 50
@@ -636,6 +642,12 @@ const loadMoreMessages = (
   } else if (action.type === Chat2Gen.selectConversation) {
     key = action.payload.conversationIDKey
     reason = action.payload.reason || 'selected'
+  } else if (action.type === Chat2Gen.metasReceived) {
+    if (!action.payload.clearExistingMessages) {
+      // we didn't clear anything out, we don't need to fetch anything
+      return
+    }
+    key = Constants.getSelectedConversation(state)
   } else {
     key = action.payload.conversationIDKey
   }
@@ -1047,7 +1059,7 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
   ])
 
 const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
-  const pendingMessages = state.chat2.messageMap.get(Types.stringToConversationIDKey(''))
+  const pendingMessages = state.chat2.messageMap.get(Constants.pendingConversationIDKey)
   if (!(pendingMessages && !pendingMessages.isEmpty())) {
     logger.warn('retryPendingConversation: found no pending messages; aborting')
     return
@@ -1996,6 +2008,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
+      Chat2Gen.metasReceived,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess
