@@ -25,7 +25,7 @@ export type Props = {
   onReAddToTeam: () => void,
   onRemoveFromTeam: () => void,
   onShowTracker: () => void,
-  roleType: ?TeamRoleType,
+  roleType: TeamRoleType,
   username: string,
   you: ?string,
 }
