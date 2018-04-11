@@ -72,17 +72,15 @@ const MentionHud = compose(
       setSelectedIndex: () => (selectedIndex: number) => ({selectedIndex}),
     }
   ),
-  withProps((props: {channels: Array<string>, filter: string, selectedIndex: number}) => ({
-    data: props.channels
-      ? props.channels
-          .reduce((arr, c) => {
-            c.toLowerCase().indexOf(props.filter) >= 0 && arr.push(c)
-            return arr
-          }, [])
-          .sort()
-          .map((c, i) => ({channelName: c, selected: i === props.selectedIndex}))
-      : {},
-  })),
+  withProps((props: {channels: Array<string>, filter: string, selectedIndex: number}) => {
+    const fullList = props.channels ? props.channels.sort() : []
+    return {
+      data: fullList
+        .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
+        .map((c, i) => ({channelName: c, selected: i === props.selectedIndex})),
+      fullList,
+    }
+  }),
   setDisplayName('ChannelMentionHud'),
   lifecycle({
     componentWillReceiveProps(nextProps) {
@@ -118,7 +116,11 @@ const MentionHud = compose(
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
         if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onSelectChannel(nextProps.data[nextProps.selectedIndex].channelName)
+          const prevChannelname = this.props.fullList[this.props.selectedIndex]
+          const nextChannelname = nextProps.data[nextProps.selectedIndex].channelName
+          if (prevChannelname !== nextChannelname) {
+            nextProps.onSelectChannel(nextChannelname)
+          }
         }
       }
     },
