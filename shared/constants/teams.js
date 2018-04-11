@@ -4,7 +4,6 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import {invert} from 'lodash-es'
 
 import type {Service} from './types/search'
 import {type TypedState} from './reducer'
@@ -26,7 +25,7 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   active: true,
   fullName: '',
-  type: null,
+  type: 'reader',
   username: '',
 })
 
@@ -42,11 +41,21 @@ export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
   username: '',
 })
 
-export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
+export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
+  const mInv: {[RPCTypes.TeamRole]: Types.MaybeTeamRoleType} = {}
+  for (const roleStr in m) {
+    // roleStr is typed as string; see
+    // https://github.com/facebook/flow/issues/1736 .
+    // $ForceType
+    const role: Types.TeamRoleType = roleStr
+    const e = m[role]
+    mInv[e] = role
+  }
+  return mInv
+})(RPCTypes.teamsTeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
-  none: 'None',
   owner: 'Owner',
   reader: 'Reader',
   writer: 'Writer',
@@ -176,8 +185,8 @@ const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatType
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
-const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
-  state.teams.getIn(['teamNameToRole', teamname], null)
+const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
+  state.teams.getIn(['teamNameToRole', teamname], 'none')
 
 const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
   state.teams.getIn(['teamNameToCanPerform', teamname], initialCanUserPerform)
@@ -229,8 +238,13 @@ const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): 
 const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
   state.teams.getIn(['teamNameToInvites', teamname], I.Set())
 
-const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamnames', teamname])
+// Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
+// since that may contain subteams you're not a member of.
+
+const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean => getRole(state, teamname) !== 'none'
+
+const isInSomeTeam = (state: TypedState): boolean =>
+  !!state.teams.teamNameToRole.find(role => role !== 'none')
 
 const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
@@ -253,8 +267,27 @@ const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Typ
 const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
   state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
 
-const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
-const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
+// Sorts teamnames canonically.
+function sortTeamnames(a: string, b: string) {
+  const aName = a.toUpperCase()
+  const bName = b.toUpperCase()
+  if (aName < bName) {
+    return -1
+  } else if (aName > bName) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
+const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
+  let teamnames = state.teams.teamnames.toArray()
+  teamnames.sort(sortTeamnames)
+  return teamnames
+}
+
+const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
+const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
 
 // TODO make this check for only valid subteam names
 const isSubteam = (maybeTeamname: string) => {
@@ -343,6 +376,7 @@ export {
   getTeamPublicitySettings,
   getTeamInvites,
   isInTeam,
+  isInSomeTeam,
   isAccessRequestPending,
   getTeamSubteams,
   getTeamSettings,
@@ -350,6 +384,7 @@ export {
   getTeamLoadingInvites,
   getTeamRequests,
   getTeamConvIDs,
+  getSortedTeamnames,
   getTopicFromConvID,
   getTeamType,
   isAdmin,

@@ -3,12 +3,13 @@ import * as React from 'react'
 import {Avatar, Box, Button, ClickableBox, Text, Usernames} from '../../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
+import {type TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   label: string, // email, sbs, or seitan
   onCancelInvite: () => void,
   following: boolean,
-  role: string,
+  role: TeamRoleType,
   you: ?string,
 }
 

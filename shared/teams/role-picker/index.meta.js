@@ -3,7 +3,6 @@
 import {globalColors} from '../../styles'
 
 export const roleDescMap = {
-  null: '',
   reader: 'Can write in chats but read only in folders.',
   writer: 'Can create channels, and write and read in chats and folders.',
   admin:

@@ -4,6 +4,7 @@ import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+export type MaybeTeamRoleType = 'none' | TeamRoleType
 
 export type TeamOperations = RPCTypes.TeamOperation
 
@@ -51,7 +52,7 @@ export type ChannelInfo = I.RecordOf<_ChannelInfo>
 export type _MemberInfo = {
   active: boolean,
   fullName: string,
-  type: ?TeamRoleType,
+  type: TeamRoleType,
   username: string,
 }
 export type MemberInfo = I.RecordOf<_MemberInfo>
@@ -83,19 +84,9 @@ export type _SubteamInfo = {
 }
 export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
-export type TypeMap = {
-  admin: string,
-  owner: string,
-  reader: string,
-  writer: string,
-}
+export type TypeMap = {[TeamRoleType]: string}
 
-export type BoolTypeMap = {
-  admin: boolean,
-  owner: boolean,
-  reader: boolean,
-  writer: boolean,
-}
+export type BoolTypeMap = {[TeamRoleType]: boolean}
 
 export type ResetUserBadgeID = Buffer
 export type ResetUserBadgeIDKey = string
@@ -125,7 +116,7 @@ export type _State = {
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>,
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>,
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>,
-  teamNameToRole: I.Map<Teamname, TeamRoleType>,
+  teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>,
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>,
   teamNameToCanPerform: I.Map<Teamname, TeamOperations>,
   teamNameToSettings: I.Map<Teamname, TeamSettings>,
