@@ -75,16 +75,20 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     allowOwner: isOwner(stateProps.yourRole),
     onComplete,
     showSendNotification,
-    currentType: user && user.type,
+    currentType: user ? user.type : 'reader',
   }
 }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
-    ({currentType}) => ({selectedRole: currentType, sendNotification: false, confirm: false}),
+    ({currentType}: {currentType: Types.TeamRoleType}) => ({
+      selectedRole: currentType,
+      sendNotification: false,
+      confirm: false,
+    }),
     {
-      setSelectedRole: () => selectedRole => ({selectedRole}),
+      setSelectedRole: () => (selectedRole: Types.TeamRoleType) => ({selectedRole}),
       setSendNotification: () => sendNotification => ({sendNotification}),
       setConfirm: () => confirm => ({confirm}),
     }
