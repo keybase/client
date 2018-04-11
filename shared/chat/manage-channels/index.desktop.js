@@ -12,7 +12,7 @@ import {
   Icon,
   ButtonBar,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
+import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} from '../../styles'
 
 import type {Props, RowProps} from '.'
 
@@ -164,11 +164,15 @@ const _boxStyle = {
   flex: 1,
 }
 
-const _createIcon = {
-  color: globalColors.blue,
-  display: 'block',
-  marginRight: globalMargins.xtiny,
-}
+const _createIcon = platformStyles({
+  common: {
+    color: globalColors.blue,
+    marginRight: globalMargins.xtiny,
+  },
+  isElectron: {
+    display: 'block',
+  },
+})
 
 const _hoverColor = globalColors.blue2
 

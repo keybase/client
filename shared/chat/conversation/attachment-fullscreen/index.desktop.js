@@ -15,7 +15,10 @@ const Fullscreen = (props: Props) => {
           </Text>
           <Icon
             type="iconfont-ellipsis"
-            style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
+            style={platformStyles({
+              common: {color: globalColors.black_40, marginLeft: globalMargins.tiny},
+              isElectron: {cursor: 'pointer'},
+            })}
             onClick={event => {
               const node = event.target instanceof window.HTMLElement ? event.target : null
               props.onShowMenu(node ? node.getBoundingClientRect() : null)

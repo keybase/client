@@ -84,14 +84,18 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
     const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus} = this.props
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const menuButtonVisible = this.state.hovering || showingMenu
-    const iconStyle: StylesCrossPlatform = {
-      transitionDuration: '.15s',
-      transitionProperty: 'all',
-      transitionTimingFunction: 'ease',
-      color: proofStatusIconType && defaultColor(proofStatusIconType),
-      marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
-      opacity: menuButtonVisible ? 1 : 0,
-    }
+    const iconStyle = platformStyles({
+      common: {
+        color: proofStatusIconType && defaultColor(proofStatusIconType),
+        marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
+        opacity: menuButtonVisible ? 1 : 0,
+      },
+      isElectron: {
+        transitionDuration: '.15s',
+        transitionProperty: 'all',
+        transitionTimingFunction: 'ease',
+      },
+    })
 
     return (
       <Box style={styleRow} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>

@@ -8,6 +8,8 @@ import {
   glamorous,
   isMobile,
   desktopStyles,
+  collapseStyles,
+  platformStyles,
 } from '../../../../styles'
 
 type Props = {
@@ -38,27 +40,32 @@ class BigTeamHeader extends React.PureComponent<Props> {
   }
 }
 
-const iconStyle = {
-  color: globalColors.black_20,
-  fontSize: isMobile ? 20 : 16,
-  padding: 4,
-  ...(isMobile
-    ? {
-        backgroundColor: globalColors.fastBlank,
-      }
-    : {}),
-}
+const iconStyle = platformStyles({
+  common: {
+    color: globalColors.black_20,
+    padding: 4,
+  },
+  isMobile: {
+    backgroundColor: globalColors.fastBlank,
+    fontSize: 20,
+  },
+  isElectron: {
+    fontSize: 16,
+  },
+})
 
-const teamRowContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-  flexShrink: 0,
-  maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  minHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: isMobile ? 0 : globalMargins.xtiny,
-}
+const teamRowContainerStyle = collapseStyles([
+  globalStyles.flexBoxRow,
+  desktopStyles.clickable,
+  {
+    alignItems: 'center',
+    flexShrink: 0,
+    maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
+    minHeight: isMobile ? globalMargins.large : globalMargins.medium,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: isMobile ? 0 : globalMargins.xtiny,
+  },
+])
 
 const HeaderBox = glamorous(Box)({
   ...teamRowContainerStyle,

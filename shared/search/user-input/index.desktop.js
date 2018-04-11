@@ -160,12 +160,16 @@ class UserInput extends Component<Props, State> {
                 <Icon
                   onClick={onClickAddButton}
                   type="iconfont-add"
-                  style={{
-                    fontSize: 12,
-                    color: globalColors.blue,
-                    marginLeft: globalMargins.xtiny,
-                    cursor: 'pointer',
-                  }}
+                  style={platformStyles({
+                    common: {
+                      fontSize: 12,
+                      color: globalColors.blue,
+                      marginLeft: globalMargins.xtiny,
+                    },
+                    isElectron: {
+                      cursor: 'pointer',
+                    },
+                  })}
                 />
               )}
           </Box>
