@@ -1047,7 +1047,7 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
   ])
 
 const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
-  const pendingMessages = state.chat2.messageMap.get(Types.stringToConversationIDKey(''))
+  const pendingMessages = state.chat2.messageMap.get(Constants.pendingConversationIDKey)
   if (!(pendingMessages && !pendingMessages.isEmpty())) {
     logger.warn('retryPendingConversation: found no pending messages; aborting')
     return
