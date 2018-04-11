@@ -217,6 +217,15 @@
         }
       ],
       "response": null
+    },
+    "exchangeRateLocal": {
+      "request": [
+        {
+          "name": "currency",
+          "type": "LocalCurrencyCode"
+        }
+      ],
+      "response": "LocalExchangeRate"
     }
   },
   "namespace": "stellar.1"

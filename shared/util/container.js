@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import isEqualWith from 'lodash/isEqualWith'
+import {isEqualWith} from 'lodash-es'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>

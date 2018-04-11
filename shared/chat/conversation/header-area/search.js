@@ -27,9 +27,9 @@ export default compose(
     {incrementFocus: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1})}
   ),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
-      if (this.props.pendingConversationUsers !== nextProps.pendingConversationUsers) {
-        nextProps.incrementFocus()
+    componentDidUpdate(prevProps) {
+      if (this.props.pendingConversationUsers !== prevProps.pendingConversationUsers) {
+        this.props.incrementFocus()
       }
     },
   }),

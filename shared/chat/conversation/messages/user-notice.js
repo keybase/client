@@ -25,6 +25,41 @@ const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar
   </Box>
 )
 
+export type SmallProps = {
+  avatarUsername: string,
+  bottomLine: React.Node,
+  onAvatarClicked: () => void,
+  title?: string,
+  topLine: React.Node,
+}
+
+const SmallUserNotice = (props: SmallProps) => (
+  <Box
+    style={{
+      flex: 1,
+      marginTop: 3,
+      marginBottom: 3,
+      marginLeft: globalMargins.tiny,
+      marginRight: globalMargins.medium,
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    }}
+    title={props.title}
+  >
+    <Avatar
+      onClick={props.onAvatarClicked}
+      size={24}
+      username={props.avatarUsername}
+      style={{marginRight: globalMargins.tiny}}
+    />
+    <Box style={globalStyles.flexBoxColumn}>
+      {props.topLine}
+      {props.bottomLine}
+    </Box>
+  </Box>
+)
+
 const styleOuterBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
@@ -56,4 +91,5 @@ const styleBox = {
   paddingBottom: globalMargins.tiny,
 }
 
+export {SmallUserNotice}
 export default UserNotice

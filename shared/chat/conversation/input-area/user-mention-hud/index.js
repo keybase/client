@@ -113,7 +113,7 @@ const MentionHud = compose(
   withProps(_withProps),
   setDisplayName('MentionHud'),
   lifecycle({
-    componentWillReceiveProps: function(nextProps) {
+    componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {
         nextProps.setSelectedIndex(0)
       }

@@ -3,7 +3,7 @@ import * as shared from './index.shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships'
 import React, {PureComponent} from 'react'
-import orderBy from 'lodash/orderBy'
+import {orderBy} from 'lodash-es'
 import moment from 'moment'
 import {
   Avatar,
@@ -244,10 +244,10 @@ class ProfileRender extends PureComponent<Props, State> {
     this.props && this.props.refresh()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const oldUsername = this.props && this.props.username
-    if (nextProps && nextProps.username !== oldUsername) {
-      nextProps.refresh()
+  componentDidUpdate(prevProps: Props) {
+    const oldUsername = prevProps && prevProps.username
+    if (this.props && this.props.username !== oldUsername) {
+      this.props.refresh()
     }
   }
 
@@ -369,7 +369,6 @@ class ProfileRender extends PureComponent<Props, State> {
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
-                onClickAvatar={this.props.onClickAvatar}
                 onClickFollowers={this.props.onClickFollowers}
                 onClickFollowing={this.props.onClickFollowing}
               />

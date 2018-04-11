@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import UserNotice from '../user-notice'
-import {Avatar, Box, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import UserNotice, {SmallUserNotice} from '../user-notice'
+import {Text, ConnectedUsernames} from '../../../../common-adapters'
+import {globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 type Props = {
@@ -25,23 +25,11 @@ class Joined extends React.PureComponent<Props> {
       return <JoinedUserNotice {...this.props} />
     }
     return (
-      <Box
-        style={{
-          marginTop: 3,
-          marginBottom: 3,
-          marginLeft: globalMargins.tiny,
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-        }}
-      >
-        <Avatar
-          onClick={() => onUsernameClicked(author)}
-          size={24}
-          username={author}
-          style={{marginRight: globalMargins.tiny}}
-        />
-        <Box style={globalStyles.flexBoxColumn}>
+      <SmallUserNotice
+        avatarUsername={author}
+        onAvatarClicked={() => onUsernameClicked(author)}
+        title={formatTimeForMessages(timestamp)}
+        topLine={
           <ConnectedUsernames
             inline={true}
             type="BodySmallSemibold"
@@ -50,7 +38,9 @@ class Joined extends React.PureComponent<Props> {
             underline={true}
             usernames={[author]}
           />
-          <Text title={formatTimeForMessages(timestamp)} type="BodySmall">
+        }
+        bottomLine={
+          <Text type="BodySmall">
             joined {isBigTeam ? `#${channelname}` : teamname}
             {'. '}
             {author === you &&
@@ -60,8 +50,8 @@ class Joined extends React.PureComponent<Props> {
                 </Text>
               )}
           </Text>
-        </Box>
-      </Box>
+        }
+      />
     )
   }
 }

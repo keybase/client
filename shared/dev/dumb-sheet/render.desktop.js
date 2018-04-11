@@ -2,7 +2,7 @@
 import DumbSheetItem from './item'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import dumbComponentMap from './component-map.desktop'
 import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'

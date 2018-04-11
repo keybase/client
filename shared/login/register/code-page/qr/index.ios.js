@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import type {Props} from './index'
 import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
-import throttle from 'lodash/throttle'
+import {throttle} from 'lodash-es'
 
 class QR extends Component<Props, {permissionGranted: ?boolean}> {
   state = {

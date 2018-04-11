@@ -4,8 +4,7 @@ import * as Constants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
-import orderBy from 'lodash/orderBy'
-import chunk from 'lodash/chunk'
+import {orderBy, chunk} from 'lodash-es'
 import moment from 'moment'
 import {
   Avatar,
@@ -195,10 +194,10 @@ class Profile extends Component<Props, State> {
     this.props && this.props.refresh()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const oldUsername = this.props && this.props.username
-    if (nextProps && nextProps.username !== oldUsername) {
-      nextProps.refresh()
+  componentDidUpdate(prevProps: Props) {
+    const oldUsername = prevProps && prevProps.username
+    if (this.props && this.props.username !== oldUsername) {
+      this.props.refresh()
     }
   }
 

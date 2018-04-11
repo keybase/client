@@ -105,12 +105,12 @@ const EditChannel: React.ComponentType<Props> = compose(
     }
   ),
   lifecycle({
-    componentWillReceiveProps: function(nextProps: Props) {
-      if (nextProps.channelName !== this.props.channelName) {
-        this.props.onChangeChannelName(nextProps.channelName)
+    componentDidUpdate(prevProps: Props) {
+      if (prevProps.channelName !== this.props.channelName) {
+        this.props.onChangeChannelName(this.props.channelName)
       }
-      if (nextProps.topic !== this.props.topic) {
-        this.props.onChangeTopic(nextProps.topic)
+      if (prevProps.topic !== this.props.topic) {
+        this.props.onChangeTopic(this.props.topic)
       }
     },
   })

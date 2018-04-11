@@ -5,12 +5,12 @@ import * as Types from '../../constants/types/teams'
 import {connect} from 'react-redux'
 import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
-import {getRole, isOwner} from '../../constants/teams'
+import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
 
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
-  _memberInfo: I.Set<Types.MemberInfo>,
+  _memberInfo: I.Map<string, Types.MemberInfo>,
   you: ?string,
   username: string,
   teamname: string,
@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   const teamname = routeProps.get('teamname')
   const username = routeProps.get('username')
   return {
-    _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+    _memberInfo: getTeamMembers(state, teamname),
     teamname,
     username,
     you: state.config.username,
@@ -58,7 +58,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
-  const user = stateProps._memberInfo.find(member => member.username === stateProps.username)
+  const user = stateProps._memberInfo.get(stateProps.username)
   const onComplete = (role: Types.TeamRoleType, sendNotification?: boolean) => {
     if (user) {
       dispatchProps._onEditMember(stateProps.teamname, stateProps.username, role)

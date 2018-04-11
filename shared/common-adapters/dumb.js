@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import keyBy from 'lodash/keyBy'
+import {keyBy} from 'lodash-es'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {
