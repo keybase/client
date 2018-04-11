@@ -59,10 +59,12 @@ const inboxRefresh = (
           .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
           .filter(Boolean)
         // Check if some of our existing stored metas might no longer be valid
-        const clearExisting =
+        const clearExistingMetas =
           action.type === Chat2Gen.inboxRefresh &&
           ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExisting}))
+        const clearExistingMessages =
+          action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
         return EngineRpc.rpcResult()
       },
     },

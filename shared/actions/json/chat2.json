@@ -94,7 +94,8 @@
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>",
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
-      "clearExisting?": "boolean", // If true, clear out the existing metaMap before inserting
+      "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
+      "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
     },
     // Got some inbox errors
     "metaReceivedError": {
