@@ -136,6 +136,12 @@ func (c *V1) Authenticate(ctx context.Context, username, cleartextPassword strin
 
 	c.bcryptLimiter.Wait(ctx)
 
+	select {
+	case <-ctx.Done():
+		return false
+	default:
+	}
+
 	match := bcrypt.CompareHashAndPassword(
 		[]byte(passwordHash), []byte(cleartextPassword)) == nil
 	if match {

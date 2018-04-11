@@ -13,7 +13,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
-const configCacheTime = 16 * time.Second
+const configCacheTime = 2 * time.Minute
 
 type site struct {
 	// fs should never be changed once it's constructed.
