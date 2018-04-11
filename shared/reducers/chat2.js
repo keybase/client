@@ -107,6 +107,9 @@ const metaMapReducer = (metaMap, action) => {
     }
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
+        if (action.payload.clearExisting) {
+          map.clear()
+        }
         const neverCreate = !!action.payload.neverCreate
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
@@ -118,10 +121,6 @@ const metaMapReducer = (metaMap, action) => {
           })
         })
       })
-    case Chat2Gen.inboxRefresh:
-      return ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-        ? metaMap.clear()
-        : metaMap
     case Chat2Gen.updateConvRetentionPolicy:
       const {conv} = action.payload
       const newMeta = Constants.inboxUIItemToConversationMeta(conv)
@@ -140,6 +139,7 @@ const metaMapReducer = (metaMap, action) => {
         return updated
       }, {})
       return metaMap.merge(newMetas)
+    case Chat2Gen.inboxRefresh: // fallthrough
     default:
       return metaMap
   }

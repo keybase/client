@@ -348,6 +348,7 @@ export const createMetasReceived = (
   payload: $ReadOnly<{|
     metas: Array<Types.ConversationMeta>,
     neverCreate?: boolean,
+    clearExisting?: boolean,
   |}>
 ) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (
