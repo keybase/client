@@ -445,7 +445,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	return ncres.Conv.Info
 }
 
-func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
+func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody, ephemeralMetadata *chat1.MsgEphemeralMetadata) (chat1.PostLocalRes, error) {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
@@ -455,9 +455,10 @@ func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *
 		ConversationID: conv.Id,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:        conv.Triple,
-				MessageType: mt,
-				TlfName:     conv.TlfName,
+				Conv:              conv.Triple,
+				MessageType:       mt,
+				TlfName:           conv.TlfName,
+				EphemeralMetadata: ephemeralMetadata,
 			},
 			MessageBody: msg,
 		},
@@ -468,19 +469,26 @@ func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *
 func postLocalForTest(t *testing.T, ctc *chatTestContext,
 	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
 	defer ctc.advanceFakeClock(time.Second)
-	return postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	return postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg, nil /* MsgEphemeralMetadata */)
 }
 
 func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext,
-	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) chat1.MessageID {
-	x, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessageID {
+	x, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg, ephemeralMetadata)
 	require.NoError(t, err)
 	return x.MessageID
 }
 
 func mustPostLocalForTest(t *testing.T, ctc *chatTestContext,
 	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) chat1.MessageID {
-	msgID := mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	msgID := mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg, nil /* MsgEphemeralMetadata */)
+	ctc.advanceFakeClock(time.Second)
+	return msgID
+}
+
+func mustPostLocalEphemeralForTest(t *testing.T, ctc *chatTestContext,
+	asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessageID {
+	msgID := mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg, ephemeralMetadata)
 	ctc.advanceFakeClock(time.Second)
 	return msgID
 }
@@ -546,6 +554,33 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 		case <-afterCh:
 			require.FailNow(t, fmt.Sprintf("no messages deleted after %v runs, %v hit, upto %v, %v",
 				i, foundTaskCount, upto, maxTime))
+		default:
+		}
+	}
+}
+
+func pollForEphemeralPurge(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, listener *serverChatListener, convID chat1.ConversationID) chat1.EphemeralPurgeInfo {
+	t.Logf("sweepPollForDeletion(convID: %v)", convID)
+	tc := ctc.as(t, asUser)
+	maxTime := 5 * time.Second
+	afterCh := time.After(maxTime)
+	var foundTaskCount int
+	for i := 0; ; i++ {
+		res, err := tc.ri.EphemeralPurge(tc.startCtx)
+		require.NoError(t, err)
+		if res.FoundTask {
+			foundTaskCount++
+		}
+		if res.DeletedMessages {
+			purgeInfo := consumeEphemeralPurge(t, listener)
+			require.Equal(t, convID, purgeInfo.ConvID, "accidentally consumed ephemeralPurge info for other conv")
+			return purgeInfo
+		}
+		time.Sleep(10 * time.Millisecond)
+		select {
+		case <-afterCh:
+			require.FailNow(t, fmt.Sprintf("no messages deleted after %v runs, %v hit, %v",
+				i, foundTaskCount, maxTime))
 		default:
 		}
 	}
@@ -1801,6 +1836,7 @@ type serverChatListener struct {
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
+	ephemeralPurge          chan chat1.EphemeralPurgeInfo
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1842,6 +1878,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.teamType <- activity.Teamtype()
 	case chat1.ChatActivityType_EXPUNGE:
 		n.expunge <- activity.Expunge()
+	case chat1.ChatActivityType_EPHEMERAL_PURGE:
+		n.ephemeralPurge <- activity.EphemeralPurge()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
@@ -1877,6 +1915,7 @@ func newServerChatListener() *serverChatListener {
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
+		ephemeralPurge:          make(chan chat1.EphemeralPurgeInfo, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2698,6 +2737,16 @@ func consumeExpunge(t *testing.T, listener *serverChatListener) chat1.ExpungeInf
 	}
 }
 
+func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.EphemeralPurgeInfo {
+	select {
+	case x := <-listener.ephemeralPurge:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get ephemeralPurge notification")
+		return chat1.EphemeralPurgeInfo{}
+	}
+}
+
 func TestChatSrvTeamChannels(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatTeamChannels", 3)
@@ -3146,6 +3195,38 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 		tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
 		require.NoError(t, err)
 		require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+	})
+}
+
+func TestChatSrvEphemeralPurge(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			t.Logf("skipping kbfs stage")
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvEphemeralPurge", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		mustPostLocalEphemeralForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &chat1.MsgEphemeralMetadata{})
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+
+		purgeInfo := pollForEphemeralPurge(t, ctc, users[1], listener, created.Id)
+		require.True(t, purgeInfo.ConvID.Eq(created.Id))
+
+		_, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: created.Id})
+		require.NoError(t, err)
+		// TODO enable this once sending is implemented
+		// require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
 	})
 }
 

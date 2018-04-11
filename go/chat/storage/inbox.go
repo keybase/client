@@ -1039,6 +1039,42 @@ func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 	return i.writeDiskInbox(ctx, ibox)
 }
 
+// Mark the latest ktime on the stored inbox
+func (i *Inbox) EphemeralPurge(ctx context.Context, vers chat1.InboxVers,
+	convID chat1.ConversationID, metadata *chat1.ConvEphemeralMetadata) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "EphemeralPurge: vers: %d convID: %s", vers, convID)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Find conversation
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "EphemeralPurge: no conversation found: convID: %s, clearing", convID)
+		return i.Clear(ctx)
+	}
+	conv.Conv.EphemeralMetadata = metadata
+	conv.Conv.Metadata.Version = vers.ToConvVers()
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, ibox)
+}
+
 func (i *Inbox) SetConvRetention(ctx context.Context, vers chat1.InboxVers,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy) (err Error) {
 	locks.Inbox.Lock()
@@ -1256,12 +1292,18 @@ type InboxSyncRes struct {
 	TeamTypeChanged    bool
 	MembersTypeChanged []chat1.ConversationID
 	Expunges           []InboxSyncResExpunge
+	EphemeralPurges    []InboxSyncResEphemeralPurge
 	TopicNameChanged   []chat1.ConversationID
 }
 
 type InboxSyncResExpunge struct {
 	ConvID  chat1.ConversationID
 	Expunge chat1.Expunge
+}
+
+type InboxSyncResEphemeralPurge struct {
+	ConvID   chat1.ConversationID
+	Metadata *chat1.ConvEphemeralMetadata
 }
 
 func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Conversation) bool {
@@ -1313,6 +1355,12 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 				res.Expunges = append(res.Expunges, InboxSyncResExpunge{
 					ConvID:  newConv.Metadata.ConversationID,
 					Expunge: newConv.Expunge,
+				})
+			}
+			if oldConv.EphemeralMetadata != newConv.EphemeralMetadata {
+				res.EphemeralPurges = append(res.EphemeralPurges, InboxSyncResEphemeralPurge{
+					ConvID:   newConv.Metadata.ConversationID,
+					Metadata: newConv.EphemeralMetadata,
 				})
 			}
 			if i.topicNameChanged(ctx, oldConv, newConv) {

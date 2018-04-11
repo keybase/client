@@ -395,6 +395,7 @@ export const notifyChatChatActivityType = {
   setAppNotificationSettings: 7,
   teamtype: 8,
   expunge: 9,
+  ephemeralPurge: 10,
 }
 
 export const notifyChatStaleUpdateType = {
@@ -411,6 +412,10 @@ export const remoteChannelMention = {
 export const remoteDeleteConversationRpcChannelMap = (configKeys: Array<string>, request: RemoteDeleteConversationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.deleteConversation', request)
 
 export const remoteDeleteConversationRpcPromise = (request: RemoteDeleteConversationRpcParam): Promise<RemoteDeleteConversationResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.deleteConversation', request, (error: RPCError, result: RemoteDeleteConversationResult) => (error ? reject(error) : resolve(result))))
+
+export const remoteEphemeralPurgeRpcChannelMap = (configKeys: Array<string>, request: RemoteEphemeralPurgeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.ephemeralPurge', request)
+
+export const remoteEphemeralPurgeRpcPromise = (request: RemoteEphemeralPurgeRpcParam): Promise<RemoteEphemeralPurgeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.remote.ephemeralPurge', request, (error: RPCError, result: RemoteEphemeralPurgeResult) => (error ? reject(error) : resolve(result))))
 
 export const remoteGetGlobalAppNotificationSettingsRpcChannelMap = (configKeys: Array<string>, request: RemoteGetGlobalAppNotificationSettingsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getGlobalAppNotificationSettings', request)
 
@@ -611,7 +616,7 @@ export type ChannelMention =
 
 export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
 
-export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo}
+export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeInfo}
 
 export type ChatActivityType =
   | 0 // RESERVED_0
@@ -624,6 +629,7 @@ export type ChatActivityType =
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
   | 9 // EXPUNGE_9
+  | 10 // EPHEMERAL_PURGE_10
 
 export type ChatSearchHit = $ReadOnly<{prevMessage?: ?UIMessage, hitMessage?: ?UIMessage, nextMessage?: ?UIMessage, matches?: ?Array<String>}>
 
@@ -665,9 +671,11 @@ export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomi
 
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type ConvEphemeralMetadata = $ReadOnly<{lastKtime: Gregor1.Time}>
+
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, ephemeralMetadata?: ?ConvEphemeralMetadata}>
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 
@@ -704,7 +712,7 @@ export type ConversationIDTriple = $ReadOnly<{tlfid: TLFID, topicType: TopicType
 
 export type ConversationInfoLocal = $ReadOnly<{id: ConversationID, triple: ConversationIDTriple, tlfName: String, topicName: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, existence: ConversationExistence, version: ConversationVers, participants?: ?Array<ConversationLocalParticipant>, finalizeInfo?: ?ConversationFinalizeInfo, resetNames?: ?Array<String>}>
 
-export type ConversationLocal = $ReadOnly<{error?: ?ConversationErrorLocal, info: ConversationInfoLocal, readerInfo: ConversationReaderInfo, creatorInfo?: ?ConversationCreatorInfoLocal, notifications?: ?ConversationNotificationInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, maxMessages?: ?Array<MessageUnboxed>, isEmpty: Boolean, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
+export type ConversationLocal = $ReadOnly<{error?: ?ConversationErrorLocal, info: ConversationInfoLocal, readerInfo: ConversationReaderInfo, creatorInfo?: ?ConversationCreatorInfoLocal, notifications?: ?ConversationNotificationInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>, maxMessages?: ?Array<MessageUnboxed>, isEmpty: Boolean, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, ephemeralMetadata?: ?ConvEphemeralMetadata}>
 
 export type ConversationLocalParticipant = $ReadOnly<{username: String, fullname?: ?String}>
 
@@ -751,7 +759,11 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
-export type EphemeralMetadata = $ReadOnly<{ephemeralLifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
+export type EphemeralPurgeInfo = $ReadOnly<{convID: ConversationID}>
+
+export type EphemeralPurgePayload = $ReadOnly<{Action: String, convMetadata: {[key: string]: ConvEphemeralMetadata}, inboxVers: InboxVers}>
+
+export type EphemeralPurgeRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
@@ -995,9 +1007,9 @@ export type MessageBoxedVersion =
   | 1 // V1_1
   | 2 // V2_2
 
-export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?EphemeralMetadata}>
+export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
-export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?EphemeralMetadata}>
+export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
 
@@ -1080,6 +1092,8 @@ export type MessageUnboxedState =
   | 4 // PLACEHOLDER_4
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
+
+export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
 
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 
@@ -1166,6 +1180,8 @@ export type ReadMessageInfo = $ReadOnly<{convID: ConversationID, msgID: MessageI
 export type ReadMessagePayload = $ReadOnly<{Action: String, convID: ConversationID, msgID: MessageID, inboxVers: InboxVers, unreadUpdate?: ?UnreadUpdate}>
 
 export type RemoteDeleteConversationRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type RemoteEphemeralPurgeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type RemoteGetGlobalAppNotificationSettingsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -1416,6 +1432,7 @@ type LocalSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLoca
 type LocalSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type LocalUnboxMobilePushNotificationResult = String
 type RemoteDeleteConversationResult = DeleteConversationRemoteRes
+type RemoteEphemeralPurgeResult = EphemeralPurgeRes
 type RemoteGetGlobalAppNotificationSettingsResult = GlobalAppNotificationSettings
 type RemoteGetInboxRemoteResult = GetInboxRemoteRes
 type RemoteGetInboxVersionResult = InboxVers

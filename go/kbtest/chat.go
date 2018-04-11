@@ -669,6 +669,10 @@ func (m *ChatRemoteMock) RetentionSweepConv(ctx context.Context, convID chat1.Co
 	return res, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) EphemeralPurge(ctx context.Context) (res chat1.EphemeralPurgeRes, err error) {
+	return res, errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLFID) error {
 	return errors.New("not implemented")
 }

@@ -327,7 +327,12 @@ func (f failingRemote) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRete
 }
 
 func (f failingRemote) RetentionSweepConv(ctx context.Context, convID chat1.ConversationID) (res chat1.SweepRes, err error) {
-	require.Fail(f.t, "UpgradeKBFSToImpteam")
+	require.Fail(f.t, "RetentionSweepConv")
+	return res, nil
+}
+
+func (f failingRemote) EphemeralPurge(ctx context.Context) (res chat1.EphemeralPurgeRes, err error) {
+	require.Fail(f.t, "EphemeralPurge")
 	return res, nil
 }
 

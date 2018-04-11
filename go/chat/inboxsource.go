@@ -452,6 +452,10 @@ func (s *RemoteInboxSource) Expunge(ctx context.Context, uid gregor1.UID, vers c
 	return res, err
 }
 
+func (s *RemoteInboxSource) EphemeralPurge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID, metadata *chat1.ConvEphemeralMetadata) (res *chat1.ConversationLocal, err error) {
+	return res, err
+}
+
 func (s *RemoteInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy) (res *chat1.ConversationLocal, err error) {
 	return res, err
@@ -531,6 +535,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		expunge := conv.GetExpunge()
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
+		}
+
+		// Try to purge any ephemeral messages
+		metadata := conv.GetEphemeralMetadata()
+		if metadata != nil {
+			s.G().ConvSource.EphemeralPurge(ctx, conv.GetConvID(), uid, metadata)
 		}
 
 		// Queue all these convs up to be loaded by the background loader (cap it at first 50)
@@ -891,6 +901,13 @@ func (s *HybridInboxSource) Expunge(ctx context.Context, uid gregor1.UID, vers c
 	})
 }
 
+func (s *HybridInboxSource) EphemeralPurge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+	metadata *chat1.ConvEphemeralMetadata) (*chat1.ConversationLocal, error) {
+	return s.modConversation(ctx, "EphemeralPurge", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
+		return ib.EphemeralPurge(ctx, vers, convID, metadata)
+	})
+}
+
 func (s *HybridInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy) (res *chat1.ConversationLocal, err error) {
 	return s.modConversation(ctx, "SetConvRetention", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
@@ -1141,6 +1158,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 	}
 	conversationLocal.Expunge = conversationRemote.Expunge
+	conversationLocal.EphemeralMetadata = conversationRemote.EphemeralMetadata
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
 

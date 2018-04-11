@@ -762,6 +762,18 @@ func (o SweepRes) DeepCopy() SweepRes {
 	}
 }
 
+type EphemeralPurgeRes struct {
+	FoundTask       bool `codec:"foundTask" json:"foundTask"`
+	DeletedMessages bool `codec:"deletedMessages" json:"deletedMessages"`
+}
+
+func (o EphemeralPurgeRes) DeepCopy() EphemeralPurgeRes {
+	return EphemeralPurgeRes{
+		FoundTask:       o.FoundTask,
+		DeletedMessages: o.DeletedMessages,
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -944,6 +956,9 @@ type RetentionSweepConvArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type EphemeralPurgeArg struct {
+}
+
 type UpgradeKBFSToImpteamArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
@@ -983,6 +998,7 @@ type RemoteInterface interface {
 	SetConvRetention(context.Context, SetConvRetentionArg) (SetRetentionRes, error)
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
 	RetentionSweepConv(context.Context, ConversationID) (SweepRes, error)
+	EphemeralPurge(context.Context) (EphemeralPurgeRes, error)
 	UpgradeKBFSToImpteam(context.Context, TLFID) error
 }
 
@@ -1529,6 +1545,17 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ephemeralPurge": {
+				MakeArg: func() interface{} {
+					ret := make([]EphemeralPurgeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.EphemeralPurge(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"upgradeKBFSToImpteam": {
 				MakeArg: func() interface{} {
 					ret := make([]UpgradeKBFSToImpteamArg, 1)
@@ -1732,6 +1759,11 @@ func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetenti
 func (c RemoteClient) RetentionSweepConv(ctx context.Context, convID ConversationID) (res SweepRes, err error) {
 	__arg := RetentionSweepConvArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.remote.retentionSweepConv", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) EphemeralPurge(ctx context.Context) (res EphemeralPurgeRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.ephemeralPurge", []interface{}{EphemeralPurgeArg{}}, &res)
 	return
 }
 

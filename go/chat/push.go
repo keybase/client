@@ -631,6 +631,28 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
+		case types.ActionEphemeralPurge:
+			var nm chat1.EphemeralPurgePayload
+			err = dec.Decode(&nm)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+				return
+			}
+			g.Debug(ctx, "chat activity: ephemeralPurge: convMetadata: %v", nm.ConvMetadata)
+			uid := m.UID().Bytes()
+			for convIDStr, metadata := range nm.ConvMetadata {
+				convID, err := chat1.MakeConvID(convIDStr)
+				if err != nil {
+					g.Debug(ctx, "chat activity: unable to parse convID from purgeUpdate: %s", err.Error())
+					continue
+				}
+				if err = g.G().ConvSource.EphemeralPurge(ctx, convID, uid, &metadata); err != nil {
+					g.Debug(ctx, "chat activity: unable to update conv: %s", err.Error())
+				}
+				if conv, err = g.G().InboxSource.EphemeralPurge(ctx, uid, nm.InboxVers, convID, &metadata); err != nil {
+					g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				}
+			}
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 			return

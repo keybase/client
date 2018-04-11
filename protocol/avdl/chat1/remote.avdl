@@ -276,11 +276,18 @@ protocol remote {
 
   // Used only for testing.
   record SweepRes {
-  boolean foundTask;
+    boolean foundTask;
     boolean deletedMessages;
     Expunge expunge;
   }
   SweepRes retentionSweepConv(ConversationID convID);
+
+  // Used only for testing.
+  record EphemeralPurgeRes {
+    boolean foundTask;
+    boolean deletedMessages;
+  }
+  EphemeralPurgeRes ephemeralPurge();
 
   void upgradeKBFSToImpteam(TLFID tlfID);
 }
