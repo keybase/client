@@ -12,6 +12,7 @@ type State = {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
 }
 
 class SaveIndicatorContainer extends React.Component<{}, State> {
@@ -27,7 +28,7 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
   render() {
     return (
       <Box style={containerStyle}>
-        <Button label="Save" onClick={this._save} type="Primary" />
+        <Button label="Save" onClick={this._save} style={{alignSelf: 'flex-start'}} type="Primary" />
         <SaveIndicator saveState={this.state.saveState} />
       </Box>
     )
