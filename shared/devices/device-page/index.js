@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Meta, NameWithIcon, StandardScreen, Box, Text, Button, VBox, HBox} from '../../common-adapters'
 import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/rpc-gen'
-import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import {Meta, NameWithIcon, StandardScreen, Box, Text, Button, VBox, HBox} from '../../common-adapters'
+import {globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../styles'
 
 export type TimelineItem = {
   desc: string,
@@ -23,28 +23,28 @@ type Props = {
   timeline?: Array<TimelineItem>,
 }
 
-const TimelineMarker = ({idx, max, type}) => (
+const TimelineMarker = ({first, last, closedCircle}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Box style={{...styles.line, height: 6, opacity: idx ? 1 : 0}} />
-    <Box style={type === 'Revoked' ? styles.circleClosed : styles.circleOpen} />
-    <Box style={{...styles.line, flex: 1, opacity: idx < max ? 1 : 0}} />
+    <Box style={{...styles.line, height: 6, opacity: first ? 0 : 1}} />
+    <Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
+    <Box style={{...styles.line, flex: 1, opacity: last ? 0 : 1}} />
   </Box>
 )
 
-const TimelineLabel = ({idx, max, desc, subDesc, type}) => (
+const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
   <VBox style={styles.timeLabel}>
     <Text type="Body">{desc}</Text>
-    {subDesc && (type === 'Added' || type === 'Revoked') ? (
-      <Text type="BodySmall">
-        by{' '}
-        <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
-          {subDesc}
+    {subDesc &&
+      subDescIsName && (
+        <Text type="BodySmall">
+          by{' '}
+          <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
+            {subDesc}
+          </Text>
         </Text>
-      </Text>
-    ) : (
-      <Text type="BodySmall">{subDesc}</Text>
-    )}
-    {idx < max && <Box style={{height: 15}} />}
+      )}
+    {subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
+    {spacerOnBottom && <Box style={{height: 15}} />}
   </VBox>
 )
 
@@ -53,8 +53,17 @@ const Timeline = ({timeline}) =>
     <VBox>
       {timeline.map(({type, desc, subDesc}, idx) => (
         <HBox key={desc} gap={16}>
-          <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
-          <TimelineLabel idx={idx} max={timeline.length - 1} desc={desc} subDesc={subDesc} type={type} />
+          <TimelineMarker
+            first={idx === 0}
+            last={idx === timeline.length - 1}
+            closedCircle={type === 'Revoked'}
+          />
+          <TimelineLabel
+            spacerOnBottom={idx < timeline.length - 1}
+            desc={desc}
+            subDesc={subDesc}
+            subDescIsName={['Added', 'Revoked'].includes(type)}
+          />
         </HBox>
       ))}
     </VBox>
@@ -69,10 +78,7 @@ const Render = (props: Props) => {
   }
 
   return (
-    <StandardScreen
-      style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}}
-      onBack={props.onBack}
-    >
+    <StandardScreen style={styles.container} onBack={props.onBack}>
       <VBox gap={15}>
         <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
         <Timeline timeline={props.timeline} />
@@ -110,6 +116,10 @@ const styles = styleSheetCreate({
   circleOpen: {
     ...circleCommon,
     borderColor: globalColors.lightGrey2,
+  },
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
   },
   iconHeaderContainer: platformStyles({
     isElectron: {
