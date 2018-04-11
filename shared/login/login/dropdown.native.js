@@ -23,9 +23,9 @@ type Props = {
 }
 
 /*
- * A dropdown on ios and android.
- * The ios version will show a modal with an inline picker, clicking in the modal selects the option.
- * The android version uses the built in picker but invisibly so it can show its modal correctly.
+ * A dropdown on iOS and Android.
+ * The iOS version will show a modal with an inline picker, clicking in the modal selects the option.
+ * The Android version uses the built in picker but invisibly so it can show its modal correctly.
  */
 
 // sentry for the 'other' value

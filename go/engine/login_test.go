@@ -320,7 +320,7 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	testTrack("t_alice")
 
 	// Make sure that we can still track without a passphrase
-	// after a similated service restart.  In other words, that
+	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
 	simulateServiceRestart(t, tcY, userX)
 	testTrack("t_bob")
@@ -3097,7 +3097,7 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	}
 
 	// Make sure that we can still track without a passphrase
-	// after a similated service restart.  In other words, that
+	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
 	simulateServiceRestart(t, tcY, userX)
 	testTrack("t_bob")
@@ -3234,7 +3234,7 @@ func TestProvisionAndRevoke(t *testing.T) {
 	}
 
 	// Make sure that we can still track without a passphrase
-	// after a similated service restart.  In other words, that
+	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
 	simulateServiceRestart(t, tcY, userX)
 	testTrack("t_bob")

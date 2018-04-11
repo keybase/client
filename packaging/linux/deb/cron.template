@@ -9,7 +9,7 @@
 # It creates the repository configuration file for package updates, and it
 # monitors that config to see if it has been disabled by the overly aggressive
 # distro upgrade process (e.g.  intrepid -> jaunty). When this situation is
-# detected, the respository will be re-enabled. If the respository is disabled
+# detected, the repository will be re-enabled. If the repository is disabled
 # for any other reason, this won't re-enable it.
 #
 # This functionality can be controlled by creating the $DEFAULTS_FILE and

@@ -629,7 +629,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
 
   const calls = map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
     if (wantsToBeInChannel) {
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localJoinConversationLocalRpcPromise, {
         tlfName: teamname,
         topicName: channelname,
@@ -640,7 +640,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
     const convID =
       channelnameToConvID[channelname] && ChatTypes.keyToConversationID(channelnameToConvID[channelname])
     if (convID) {
-      // $FlowIssue doens't like callAndWrap
+      // $FlowIssue doesn't like callAndWrap
       return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
         convID,
       })

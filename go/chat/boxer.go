@@ -58,7 +58,7 @@ type Boxer struct {
 	// Normally set to normal implementations.
 	hashV1 func(data []byte) chat1.Hash
 
-	// Slots for replacing with with test implementations.
+	// Slots for replacing with test implementations.
 	// These are normally nil.
 	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError)
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
@@ -463,7 +463,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	skipBodyVerification := (len(boxed.BodyCiphertext.E) == 0)
 
 	// TODO We should check whether the body is allowed to have been deleted by checking
-	// the there is in fact a message that deleted it.
+	// that there is in fact a message that deleted it.
 	// We should fetch that message and check its signed body.
 	// That involves fetching a message whose ID is not known here.
 
@@ -645,7 +645,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 	isBodyDeleted := (len(boxed.BodyCiphertext.E) == 0)
 
 	// TODO We should check whether the body is allowed to have been deleted by checking
-	// the there is in fact a message that deleted it.
+	// that there is in fact a message that deleted it.
 	// We should fetch that message and check its signed body.
 	// That involves fetching a message whose ID is not known here.
 
@@ -944,7 +944,7 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 
 	username, deviceName, deviceType, err := b.getUsernameAndDevice(ctx, uid, did)
 	if err != nil {
-		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
+		b.Debug(ctx, "unable to fetch sender and device information: UID: %s deviceID: %s",
 			uid1, deviceID1)
 		// try to just get username
 		username, err = b.getUsername(ctx, uid)

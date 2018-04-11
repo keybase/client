@@ -440,7 +440,7 @@ func getTraceBundle(log logger.Logger, traceDir string) []byte {
 	return buf.Bytes()
 }
 
-// LogSend sends the the tails of log files to kb, and also the last
+// LogSend sends the tails of log files to kb, and also the last
 // few trace output files.
 func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int) (string, error) {
 	logs := l.Logs

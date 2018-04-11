@@ -43,9 +43,9 @@ if [ "$PLATFORM" = "darwin" ]; then
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/git-remote-keybase
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/keybase-redirector
 elif [ "$PLATFORM" = "linux" ]; then
-  echo "No codesigning for linux"
+  echo "No codesigning for Linux"
 elif [ "$PLATFORM" = "windows" ]; then
-  echo "No codesigning for windows"
+  echo "No codesigning for Windows"
 else
   echo "Invalid PLATFORM"
   exit 1

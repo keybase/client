@@ -2,7 +2,7 @@
 import {Dimensions, Platform, NativeModules} from 'react-native'
 import {cachesDirectoryPath} from '../util/file.native'
 
-// Modules from the native part of the code. Differently named on android/ios
+// Modules from the native part of the code. Differently named on Android/iOS
 const nativeBridge = NativeModules.KeybaseEngine ||
   NativeModules.ObjcEngine || {
     version: 'fallback',

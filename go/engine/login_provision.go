@@ -752,8 +752,8 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	case keybase1.GPGMethod_GPG_IMPORT:
 		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
 		if err != nil {
-			// there was an error importing the key.
-			// so offer to switch to using gpg to sign
+			// There was an error importing the key.
+			// So offer to switch to using gpg to sign
 			// the provisioning statement:
 			signingKey, err = e.switchToGPGSign(ctx, key, err)
 			if err != nil {

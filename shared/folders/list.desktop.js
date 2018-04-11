@@ -41,7 +41,7 @@ class ListRender extends Component<Props> {
     }
 
     // TODO how this works is HORRIBLE. This is just a short term fix to
-    // take this very very old code that we're about to throw out and have it so its not rendering every single row
+    // take this very very old code that we're about to throw out and have it so it's not rendering every single row
     const tlfsIdx = index - this.props.extraRows.length
     const ignoredIdx = tlfsIdx - this.props.tlfs.length - 1 // 1 because we have the divider
     const isTLF = tlfsIdx < this.props.tlfs.length

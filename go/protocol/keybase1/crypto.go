@@ -132,7 +132,7 @@ type CryptoInterface interface {
 	SignED25519(context.Context, SignED25519Arg) (ED25519SignatureInfo, error)
 	// Same as the above except a KBFS-specific prefix is added to the payload to be signed.
 	SignED25519ForKBFS(context.Context, SignED25519ForKBFSArg) (ED25519SignatureInfo, error)
-	// Same as the above except the full marsheled and encoded NaclSigInfo.
+	// Same as the above except the full marshaled and encoded NaclSigInfo.
 	SignToString(context.Context, SignToStringArg) (string, error)
 	// Decrypt exactly 32 bytes using nacl/box with the given nonce, the given
 	// peer's public key, and the device's private encryption key, and return the
