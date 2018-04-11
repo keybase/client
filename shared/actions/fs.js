@@ -212,7 +212,6 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
     return
   }
   polling = true
-  let syncingSet = false
   try {
     let status: RPCTypes.FSSyncStatus = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
     if (status.totalSyncingBytes <= 0) {
@@ -221,22 +220,15 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
 
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
     yield Saga.put(FsGen.createSetFlags({syncing: true}))
-    syncingSet = true
 
     while (status.totalSyncingBytes > 0) {
       yield Saga.delay(2000)
       status = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
     }
-
+  } finally {
+    polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
     yield Saga.put(FsGen.createSetFlags({syncing: false}))
-    syncingSet = false
-  } finally {
-    if (syncingSet) {
-      yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-      yield Saga.put(FsGen.createSetFlags({syncing: false}))
-    }
-    polling = false
   }
 }
 
