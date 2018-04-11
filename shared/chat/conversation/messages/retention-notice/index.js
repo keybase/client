@@ -36,4 +36,6 @@ const containerStyle = {
 
 const iconStyle = {
   marginBottom: globalMargins.tiny,
+  height: isMobile ? 48 : 32,
+  width: isMobile ? 48 : 32,
 }
