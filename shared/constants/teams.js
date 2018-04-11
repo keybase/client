@@ -44,6 +44,8 @@ export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
 export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[RPCTypes.TeamRole]: Types.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
+    // roleStr is typed as string; see
+    // https://github.com/facebook/flow/issues/1736 .
     // $ForceType
     const role: Types.TeamRoleType = roleStr
     const e = m[role]
