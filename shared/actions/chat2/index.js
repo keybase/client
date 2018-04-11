@@ -613,7 +613,8 @@ const loadMoreMessages = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.SetPendingConversationUsersPayload
-    | Chat2Gen.MarkConversationsStalePayload,
+    | Chat2Gen.MarkConversationsStalePayload
+    | Chat2Gen.MetasReceivedPayload,
   state: TypedState
 ) => {
   const numMessagesOnInitialLoad = isMobile ? 20 : 50
@@ -638,6 +639,12 @@ const loadMoreMessages = (
   } else if (action.type === Chat2Gen.selectConversation) {
     key = action.payload.conversationIDKey
     reason = action.payload.reason || 'selected'
+  } else if (action.type === Chat2Gen.metasReceived) {
+    if (!action.payload.clearExistingMessages) {
+      logger.info("Load thread bail: metas received but haven't cleared the existing messages")
+      return
+    }
+    key = Constants.getSelectedConversation(state)
   } else {
     key = action.payload.conversationIDKey
   }
@@ -1998,6 +2005,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
+      Chat2Gen.metasReceived,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess
