@@ -21,19 +21,17 @@ const _headerChildren = {
   },
 }
 
-const _previewRoute = {
-  component: FilePreview,
-  tags: makeLeafTags({title: 'Preview'}),
-  children: {
-    ..._headerChildren,
-  },
-}
-
 const _folderRoute = {
   children: {
     ..._headerChildren,
     folder: () => makeRouteDefNode(_folderRoute),
-    preview: _previewRoute,
+    preview: {
+      component: FilePreview,
+      tags: makeLeafTags({title: 'Preview'}),
+      children: {
+        ..._headerChildren,
+      },
+    },
     sortbarAction: {
       component: RelativePopupHoc(SortBarPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
