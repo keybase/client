@@ -48,7 +48,9 @@ const iconStyle = {
   right: -4,
   backgroundColor: globalColors.white,
   borderRadius: 16,
-  border: `solid 2px ${globalColors.white}`,
+  borderColor: globalColors.white,
+  borderStyle: 'solid',
+  borderWidth: 2,
   padding: '1px 0px 0px 1px',
 }
 

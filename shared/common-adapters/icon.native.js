@@ -5,8 +5,6 @@ import ClickableBox from './clickable-box'
 import * as React from 'react'
 import {globalColors, glamorous} from '../styles'
 import {iconMeta} from './icon.constants'
-import omit from 'lodash/omit'
-import has from 'lodash/has'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 
 import type {IconType, Props} from './icon'
@@ -26,6 +24,16 @@ const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
 
 const styles = NativeStyleSheet.create(fontSizes)
 
+/* TODO
+  const omitFromStyle = (obj, omitKeys) => {
+  return Object.keys(obj).reduce((result, key) => {
+    if (!omitKeys.includes(key)) {
+      result[key] = obj[key]
+    }
+    return result
+  }, {})
+}
+ */
 const Text = glamorous.text(
   // static styles
   {
@@ -119,12 +127,13 @@ class Icon extends React.PureComponent<Props> {
     } else {
       // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
       // lets just filter it out if it exists
-      const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
+      // const imageStyle = omitFromStyle(props.style, ['color'])    <---- TODO
+      const imageStyle = props.style
       icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
     }
 
-    const filter = ['color', 'fontSize', 'textAlign']
-    const boxStyle = filter.some(key => has(props.style, key)) ? omit(props.style, filter) : props.style
+    // const boxStyle = omitFromStyle(props.style, ['color', 'fontSize', 'textAlign']) <--- TODO
+    const boxStyle = props.style
 
     return props.onClick ? (
       <ClickableBox

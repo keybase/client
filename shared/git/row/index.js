@@ -14,7 +14,16 @@ import {
   HOCTimers,
 } from '../../common-adapters'
 
-import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  transition,
+  isMobile,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../../styles'
 
 export type Props = {
   canDelete: boolean,
@@ -149,8 +158,8 @@ class Row extends React.Component<Props, State> {
                       style={{
                         color: globalColors.white,
                         fontSize: isMobile ? 20 : 16,
-                        ...(isMobile ? {} : {hoverColor: globalColors.blue5}),
                       }}
+                      hoverColor={isMobile ? undefined : globalColors.blue5}
                     />
                   </ClickableBox>
                 </Box>
@@ -358,16 +367,18 @@ const _rowBottomStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
-const _iconCaretStyle = {
-  ...(isMobile
+const _iconCaretStyle: StylesCrossPlatform = collapseStyles([
+  isMobile
     ? {fontSize: 12}
     : {
         display: 'inline-block',
         fontSize: 8,
-      }),
-  marginBottom: 2,
-  marginRight: globalMargins.tiny,
-}
+      },
+  {
+    marginBottom: 2,
+    marginRight: globalMargins.tiny,
+  },
+])
 
 const _metaStyle = {
   alignSelf: 'center',

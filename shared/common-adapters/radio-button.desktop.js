@@ -31,7 +31,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <StyledRadio disabled={disabled} selected={selected}>
-      <div style={styleIcon} />
+      <div style={styleIcon} hoverColor={globalColors.white} />
     </StyledRadio>
     <Text type="Body" style={{color: globalColors.black_75}}>
       {label}
@@ -49,7 +49,6 @@ const styleIcon = {
   border: `solid 3px ${globalColors.white}`,
   borderRadius: '100%',
   color: globalColors.white,
-  hoverColor: globalColors.white,
   left: 3,
   position: 'absolute',
   top: 3,

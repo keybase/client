@@ -43,7 +43,11 @@ class Checkbox extends Component<Props> {
         }
       >
         <div style={boxStyle}>
-          <Icon type="iconfont-check" style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}} />
+          <Icon
+            type="iconfont-check"
+            style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}}
+            hoverColor={globalColors.white}
+          />
         </div>
         <Text type="Body" style={{color: globalColors.black_75}}>
           {this.props.labelComponent || this.props.label}
@@ -61,7 +65,6 @@ const styleContainer = {
 const styleIcon = {
   ...transition('opacity'),
   color: globalColors.white,
-  hoverColor: globalColors.white,
   position: 'absolute',
   left: 1,
   top: 1,

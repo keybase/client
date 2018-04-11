@@ -26,8 +26,9 @@ export type _StylesCrossPlatform = {|
   borderWidth?: number,
   bottom?: Dimension,
   color?: Color,
+  cursor?: 'pointer',
   direction?: 'inherit' | 'ltr' | 'rtl',
-  display?: 'none' | 'flex',
+  display?: 'block' | 'none' | 'flex',
   flex?: number,
   flexBasis?: number | string,
   flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse',
@@ -69,6 +70,9 @@ export type _StylesCrossPlatform = {|
   textDecorationLine?: 'none' | 'underline' | 'line-through' | 'underline line-through',
   textDecorationStyle?: 'solid' | 'double' | 'dotted' | 'dashed',
   top?: Dimension,
+  transitionDuration?: string,
+  transitionProperty?: string,
+  transitionTimingFunction?: string,
   transform?: $ReadOnlyArray<
     | {perspective: number}
     | {rotate: string}

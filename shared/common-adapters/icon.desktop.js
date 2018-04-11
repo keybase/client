@@ -3,7 +3,7 @@ import * as shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalColors, glamorous, desktopStyles} from '../styles'
+import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
@@ -51,7 +51,7 @@ class Icon extends Component<Exact<Props>, void> {
         color ||
         (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
       hoverColor =
-        (this.props.style && this.props.style.hoverColor) ||
+        this.props.hoverColor ||
         hoverColor ||
         (this.props.opacity ? globalColors.black : globalColors.black_75)
     }
@@ -65,21 +65,28 @@ class Icon extends Component<Exact<Props>, void> {
         }
       : null
 
+    const imgStyle = collapseStyles([
+      desktopStyles.noSelect,
+      this.props.style,
+      onClick ? desktopStyles.clickable : {},
+    ])
+
     if (isFontIcon) {
-      const cleanStyle = {
-        fontFamily: 'kb',
-        speak: 'none',
-        fontStyle: 'normal',
-        fontWeight: 'normal',
-        fontVariant: 'normal',
-        textTransform: 'none',
-        lineHeight: 1, // NOT 1px, just 1
-        WebkitFontSmoothing: 'antialiased',
-        ...this.props.style,
-      }
+      const cleanStyle = collapseStyles([
+        {
+          fontFamily: 'kb',
+          speak: 'none',
+          fontStyle: 'normal',
+          fontWeight: 'normal',
+          fontVariant: 'normal',
+          textTransform: 'none',
+          lineHeight: 1, // NOT 1px, just 1
+          WebkitFontSmoothing: 'antialiased',
+        },
+        this.props.style,
+      ])
       // We have to blow these styles away else FontIcon gets confused and will overwrite what it calculates
       delete cleanStyle.color
-      delete cleanStyle.hoverColor
 
       return (
         <Box>
@@ -109,11 +116,7 @@ class Icon extends Component<Exact<Props>, void> {
           className={this.props.className}
           draggable="false"
           title={this.props.hint}
-          style={{
-            ...desktopStyles.noSelect,
-            ...this.props.style,
-            ...(onClick ? desktopStyles.clickable : {}),
-          }}
+          style={imgStyle}
           onClick={onClick}
           srcSet={iconTypeToSrcSet(iconType)}
         />

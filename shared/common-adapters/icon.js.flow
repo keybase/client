@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from './icon.constants'
+import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
   type: IconType,
@@ -9,12 +10,13 @@ export type Props = {
   onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
-  style?: any,
+  style?: StylesCrossPlatform,
   opacity?: boolean,
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
-  iconStyle?: any, // style directly for the icon and not the box. the way this works currently isn't great. we shouldn't be stripping out styles like we do now
+  iconStyle?: StylesCrossPlatform, // style directly for the icon and not the box. the way this works currently isn't great. we shouldn't be stripping out styles like we do now
+  hoverColor?: string,
   // its totally not compatible with stylesheet
 }
 

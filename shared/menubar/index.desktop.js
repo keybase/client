@@ -5,7 +5,7 @@ import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
 import type {IconType} from '../common-adapters/icon'
 import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
-import {globalStyles, globalColors, desktopStyles} from '../styles'
+import {globalStyles, globalColors, desktopStyles, collapseStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {remote} from 'electron'
 import throttle from 'lodash/throttle'
@@ -55,7 +55,7 @@ class MenubarRender extends Component<Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = {...desktopStyles.clickable, color: menuColor, hoverColor: menuColor}
+    const menuStyle = collapseStyles([desktopStyles.clickable, {color: menuColor}])
 
     return (
       <Box style={styles.container}>
@@ -64,6 +64,7 @@ class MenubarRender extends Component<Props, State> {
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
           <Icon
             style={menuStyle}
+            hoverColor={menuColor}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
@@ -165,13 +166,15 @@ class MenubarRender extends Component<Props, State> {
             ))}
           </Box>
           <Icon
-            style={{
-              ...desktopStyles.clickable,
-              color: globalColors.black_40,
-              hoverColor: globalColors.black,
-              width: 16,
-              marginLeft: 8,
-            }}
+            style={collapseStyles([
+              desktopStyles.clickable,
+              {
+                color: globalColors.black_40,
+                width: 16,
+                marginLeft: 8,
+              },
+            ])}
+            hoverColor={globalColors.black}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />

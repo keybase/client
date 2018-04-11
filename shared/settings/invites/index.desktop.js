@@ -173,8 +173,8 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
       <Icon
         type="iconfont-link"
         style={{
-          fontSize: '13px',
           color: globalColors.black_20,
+          fontSize: 13,
           marginRight: globalMargins.tiny,
           marginTop: 3,
         }}

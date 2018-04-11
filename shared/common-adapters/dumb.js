@@ -346,7 +346,13 @@ const IconHolder = ({iconFont}) => {
             {sizes[size].map((i: IconType) => (
               <Box key={i} style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: 4}}>
                 <Text type="BodySmall">{i}</Text>
-                <Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} />
+                <Icon
+                  type={i}
+                  style={{
+                    margin: 10,
+                    ...(isMobile ? {} : {borderColor: '#777777', borderStyle: 'solid', borderWidth: 1}),
+                  }}
+                />
               </Box>
             ))}
           </Box>

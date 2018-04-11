@@ -8,6 +8,8 @@ import {
   isMobile,
   desktopStyles,
   platformStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
 } from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
@@ -67,13 +69,15 @@ const styleContainer = {
   ...desktopStyles.scrollable,
 }
 
-const styleClose = {
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  ...desktopStyles.clickable,
-  color: globalColors.black_10,
-}
+const styleClose: StylesCrossPlatform = collapseStyles([
+  {
+    position: 'absolute',
+    top: globalMargins.small,
+    right: globalMargins.small,
+    color: globalColors.black_10,
+  },
+  desktopStyles.clickable,
+])
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,

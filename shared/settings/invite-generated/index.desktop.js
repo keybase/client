@@ -1,6 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalMargins, globalColors, desktopStyles} from '../../styles'
+import {
+  globalStyles,
+  globalMargins,
+  globalColors,
+  desktopStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
@@ -19,16 +26,7 @@ class InviteGeneratedRender extends Component<Props> {
           alignItems: 'center',
         }}
       >
-        <Icon
-          type="iconfont-close"
-          style={{
-            ...desktopStyles.clickable,
-            position: 'absolute',
-            right: globalMargins.small,
-            top: globalMargins.small,
-          }}
-          onClick={this.props.onClose}
-        />
+        <Icon type="iconfont-close" style={iconStyle} onClick={this.props.onClose} />
         <Icon type="icon-invite-link-48" />
         {this.props.email ? (
           <Text type="Body" style={textStyle}>
@@ -76,6 +74,15 @@ const linkContainerStyle = {
   paddingRight: globalMargins.medium,
   backgroundColor: globalColors.green3,
 }
+
+const iconStyle: StylesCrossPlatform = collapseStyles([
+  desktopStyles.clickable,
+  {
+    position: 'absolute',
+    right: globalMargins.small,
+    top: globalMargins.small,
+  },
+])
 
 export default connect(
   (state: any, {routeProps}) => ({

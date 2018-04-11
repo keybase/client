@@ -31,6 +31,7 @@ class BigTeamHeader extends React.PureComponent<Props> {
           type="iconfont-gear"
           onClick={isMobile ? () => props.onClickGear() : props.onClickGear}
           style={iconStyle}
+          hoverColor={isMobile ? undefined : globalColors.black_75}
         />
       </HeaderBox>
     )
@@ -45,9 +46,7 @@ const iconStyle = {
     ? {
         backgroundColor: globalColors.fastBlank,
       }
-    : {
-        hoverColor: globalColors.black_75,
-      }),
+    : {}),
 }
 
 const teamRowContainerStyle = {

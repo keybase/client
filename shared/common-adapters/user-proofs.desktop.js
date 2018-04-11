@@ -7,7 +7,15 @@ import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
 import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import {defaultColor} from '../common-adapters/icon.shared'
-import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  desktopStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../styles'
 import {metaNone} from '../constants/tracker'
 
 function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Node {
@@ -22,7 +30,7 @@ function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.No
       <Box style={iconContainer}>
         <Icon
           className="user-proof-row__icon"
-          style={{...styleService, color: missingColor}}
+          style={collapseStyles([styleService, {color: missingColor}])}
           type={shared.iconNameForProof(missingProof)}
           hint={missingProof.type}
         />
@@ -36,7 +44,7 @@ function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.No
       </Box>
       <Icon
         type={'iconfont-proof-placeholder'}
-        style={{...styleStatusIcon, color: globalColors.black_10, fontSize: 20}}
+        style={collapseStyles([styleStatusIcon, {color: globalColors.black_10, fontSize: 20}])}
       />
     </Box>
   )
@@ -76,6 +84,14 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
     const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus} = this.props
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const menuButtonVisible = this.state.hovering || showingMenu
+    const iconStyle: StylesCrossPlatform = {
+      transitionDuration: '.15s',
+      transitionProperty: 'all',
+      transitionTimingFunction: 'ease',
+      color: proofStatusIconType && defaultColor(proofStatusIconType),
+      marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
+      opacity: menuButtonVisible ? 1 : 0,
+    }
 
     return (
       <Box style={styleRow} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
@@ -126,17 +142,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
           {proofStatusIconType && (
             <Icon type={proofStatusIconType} style={{fontSize: 20, color: shared.proofColor(proof, true)}} />
           )}
-          {hasMenu && (
-            <Icon
-              type="iconfont-caret-down"
-              style={{
-                transition: 'all .15s ease',
-                color: proofStatusIconType && defaultColor(proofStatusIconType),
-                marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
-                opacity: menuButtonVisible ? 1 : 0,
-              }}
-            />
-          )}
+          {hasMenu && <Icon type="iconfont-caret-down" style={iconStyle} />}
         </Box>
       </Box>
     )
@@ -154,7 +160,10 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
         </Box>
       </Box>
       <Icon
-        style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor, fontSize: 20}}
+        style={collapseStyles([
+          styleStatusIcon,
+          {color: globalStyles.loadingTextStyle.backgroundColor, fontSize: 20},
+        ])}
         type={'iconfont-proof-placeholder'}
       />
     </Box>
@@ -280,27 +289,31 @@ const iconContainer = {
   width: 24,
 }
 
-const styleService = {
-  ...desktopStyles.clickable,
-  color: globalColors.black_75,
-  marginRight: globalMargins.tiny,
-  height: 16,
-  minHeight: 16,
-  minWidth: 16,
-  width: 16,
-  textAlign: 'center',
-  transition: '0.15s color',
-}
+const styleService: StylesCrossPlatform = collapseStyles([
+  desktopStyles.clickable,
+  {
+    color: globalColors.black_75,
+    marginRight: globalMargins.tiny,
+    height: 16,
+    minHeight: 16,
+    minWidth: 16,
+    width: 16,
+    textAlign: 'center',
+    transition: '0.15s color',
+  },
+])
 
-const styleStatusIcon = {
-  ...desktopStyles.clickable,
-  width: 20,
-  height: 20,
-  minWidth: 20,
-  minHeight: 20,
-  marginLeft: 10,
-  marginRight: 2,
-}
+const styleStatusIcon: StylesCrossPlatform = collapseStyles([
+  desktopStyles.clickable,
+  {
+    width: 20,
+    height: 20,
+    minWidth: 20,
+    minHeight: 20,
+    marginLeft: 10,
+    marginRight: 2,
+  },
+])
 
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
@@ -332,14 +345,16 @@ const styleProofType = platformStyles({
   },
 })
 
-const styleProofMenuButton = {
-  ...styleStatusIcon,
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  marginLeft: 10,
-  minWidth: 34, // reserve space for menu dropdown caret
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-}
+const styleProofMenuButton = collapseStyles([
+  styleStatusIcon,
+  globalStyles.flexBoxRow,
+  desktopStyles.clickable,
+  {
+    marginLeft: 10,
+    minWidth: 34, // reserve space for menu dropdown caret
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+])
 
 export default ProofsRender

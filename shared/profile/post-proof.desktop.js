@@ -4,7 +4,14 @@ import * as React from 'react'
 import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../common-adapters'
 import LinkWithIcon from './link-with-icon'
 import {clipboard} from 'electron'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  desktopStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../styles'
 
 import type {Props} from './post-proof'
 
@@ -122,13 +129,15 @@ const styleContainer = {
   ...desktopStyles.scrollable,
 }
 
-const styleClose = {
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  ...desktopStyles.clickable,
-  color: globalColors.black_10,
-}
+const styleClose: StylesCrossPlatform = collapseStyles([
+  {
+    position: 'absolute',
+    top: globalMargins.small,
+    right: globalMargins.small,
+    color: globalColors.black_10,
+  },
+  desktopStyles.clickable,
+])
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,

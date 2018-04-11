@@ -18,6 +18,7 @@ export type Props = {
   onHidden?: ?() => void,
   style?: Object,
   styleCatcher?: ?Object,
+  hoverColor?: string,
 }
 
 export type ModalLessPopupMenuProps = {
@@ -26,6 +27,7 @@ export type ModalLessPopupMenuProps = {
   onHidden?: ?() => void,
   closeOnClick?: boolean,
   style?: Object,
+  hoverColor?: string,
 }
 
 export type HeaderTextProps = {
