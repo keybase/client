@@ -59,9 +59,6 @@ const revokeName = type =>
   }[type])
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  bannerBackgroundColor: undefined,
-  bannerColor: undefined,
-  bannerDesc: null, // TODO at some point
   currentDevice: stateProps.device.currentDevice,
   deviceID: stateProps.device.deviceID,
   icon: icon(stateProps.device.type),

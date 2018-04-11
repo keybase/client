@@ -1,23 +1,35 @@
 // @flow
 import * as React from 'react'
 import {StandardScreen, Box, Text, Icon, Button} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import type {Props} from '.'
+import type {IconType} from '../../common-adapters/icon'
+import type {Time} from '../../constants/types/rpc-gen'
+import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 
-// TODO remove this for a common banner
-const Banner = ({color, backgroundColor, desc}) => (
-  <Text type="BodySemibold" style={{...stylesBanner, backgroundColor, color}}>
-    {desc}
-  </Text>
-)
+export type TimelineItem = {
+  desc: string,
+  subDesc?: string,
+  type: 'LastUsed' | 'Added' | 'Revoked',
+}
+
+type Props = {
+  currentDevice: boolean,
+  deviceID: string,
+  icon: IconType,
+  name: string,
+  onBack: () => void,
+  revokeName: ?string,
+  revokedAt?: ?Time,
+  showRevokeDevicePage: () => void,
+  timeline?: Array<TimelineItem>,
+}
 
 const Header = ({name, isCurrent, isRevoked}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
-    <Text type="Header" style={isRevoked ? styleTitleRevoked : styleTitle}>
+    <Text type="Header" style={isRevoked ? styles.titleRevoked : styles.title}>
       {name}
     </Text>
     {isRevoked && (
-      <Text type="Header" style={stylesMeta}>
+      <Text type="Header" style={styles.meta}>
         REVOKED
       </Text>
     )}
@@ -27,9 +39,9 @@ const Header = ({name, isCurrent, isRevoked}) => (
 
 const TimelineMarker = ({idx, max, type}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16}}>
-    <Box style={{...stylesLine, height: 8, opacity: idx ? 1 : 0}} />
-    {type === 'Revoked' ? <Box style={stylesCircleClosed} /> : <Box style={stylesCircleOpen} />}
-    <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
+    <Box style={{...styles.line, height: 8, opacity: idx ? 1 : 0}} />
+    <Box style={type === 'Revoked' ? styles.circleClosed : styles.circleOpen} />
+    <Box style={{...styles.line, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>
 )
 
@@ -62,13 +74,6 @@ const Render = (props: Props) => (
     style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}}
     onBack={props.onBack}
   >
-    {!!props.bannerDesc && (
-      <Banner
-        color={props.bannerColor}
-        backgroundColor={props.bannerBackgroundColor}
-        desc={props.bannerDesc}
-      />
-    )}
     <Icon type={props.icon} style={{marginTop: 32, opacity: props.revokedAt ? 0.4 : 1}} />
     <Header name={props.name} isCurrent={props.currentDevice} isRevoked={props.revokedAt} />
     {!!props.timeline && <Timeline timeline={props.timeline} />}
@@ -83,59 +88,53 @@ const Render = (props: Props) => (
   </StandardScreen>
 )
 
-const stylesBanner = {
-  alignSelf: 'stretch',
-  minHeight: 48,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.tiny,
-  textAlign: 'center',
+const circleCommon = {
+  borderRadius: 8 / 2,
+  borderStyle: 'solid',
+  borderWidth: 2,
+  height: 8,
+  width: 8,
 }
 
-const styleTitle = {
+const titleCommon = {
   fontStyle: 'italic',
   textAlign: 'center',
 }
 
-const styleTitleRevoked = {
-  ...styleTitle,
-  color: globalColors.black_40,
-  textDecorationLine: 'line-through',
-}
-
-const circleSize = 8
-
-const stylesCircleOpen = {
-  borderColor: globalColors.lightGrey2,
-  borderRadius: circleSize / 2,
-  borderWidth: 2,
-  height: circleSize,
-  width: circleSize,
-}
-
-const stylesCircleClosed = {
-  ...stylesCircleOpen,
-  backgroundColor: globalColors.lightGrey2,
-  borderColor: globalColors.white,
-}
-
-const stylesLine = {
-  backgroundColor: globalColors.lightGrey2,
-  width: 2,
-}
-
-const stylesMeta = platformStyles({
-  isMobile: {
-    backgroundColor: globalColors.red,
-    borderRadius: 2,
-    color: globalColors.white,
-    fontSize: 12,
-    height: 15,
-    lineHeight: 15,
-    marginTop: globalMargins.xtiny,
-    paddingLeft: 2,
-    paddingRight: 2,
+const styles = styleSheetCreate({
+  circleClosed: {
+    ...circleCommon,
+    backgroundColor: globalColors.lightGrey2,
+    borderColor: globalColors.white,
+  },
+  circleOpen: {
+    ...circleCommon,
+    borderColor: globalColors.lightGrey2,
+  },
+  line: {
+    backgroundColor: globalColors.lightGrey2,
+    width: 2,
+  },
+  meta: platformStyles({
+    isMobile: {
+      backgroundColor: globalColors.red,
+      borderRadius: 2,
+      color: globalColors.white,
+      fontSize: 12,
+      height: 15,
+      lineHeight: 15,
+      marginTop: globalMargins.xtiny,
+      paddingLeft: 2,
+      paddingRight: 2,
+    },
+  }),
+  title: {
+    ...titleCommon,
+  },
+  titleRevoked: {
+    ...titleCommon,
+    color: globalColors.black_40,
+    textDecorationLine: 'line-through',
   },
 })
 
