@@ -14,16 +14,7 @@ import {
   HOCTimers,
 } from '../../common-adapters'
 
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  transition,
-  isMobile,
-  collapseStyles,
-  type StylesCrossPlatform,
-} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
 
 export type Props = {
   canDelete: boolean,
@@ -367,18 +358,19 @@ const _rowBottomStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
-const _iconCaretStyle: StylesCrossPlatform = collapseStyles([
-  isMobile
-    ? {fontSize: 12}
-    : {
-        display: 'inline-block',
-        fontSize: 8,
-      },
-  {
+const _iconCaretStyle = platformStyles({
+  common: {
     marginBottom: 2,
     marginRight: globalMargins.tiny,
   },
-])
+  isMobile: {
+    fontSize: 12,
+  },
+  isElectron: {
+    display: 'inline-block',
+    fontSize: 8,
+  },
+})
 
 const _metaStyle = {
   alignSelf: 'center',
