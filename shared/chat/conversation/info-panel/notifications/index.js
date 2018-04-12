@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-import {default as SaveIndicator} from '../../../../common-adapters/save-indicator'
+import SaveIndicator from '../../../../common-adapters/save-indicator'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {

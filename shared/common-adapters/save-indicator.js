@@ -4,12 +4,13 @@ import Box from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
-import {globalColors, globalMargins, globalStyles} from '../styles'
+import {collapseStyles, globalColors, globalMargins, globalStyles, type StylesCrossPlatform} from '../styles'
 
 type SaveState = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
 
 type Props = {
   saving: boolean,
+  style?: StylesCrossPlatform,
   minSavingTimeMs: number,
   savedTimeoutMs: number,
   onStateChange?: string => void,
@@ -72,7 +73,7 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
   }
 }
 
-const containerStyle = {
+const defaultStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   height: globalMargins.medium,
@@ -156,7 +157,7 @@ class SaveIndicator extends React.Component<Props, State> {
   }
 
   render = () => {
-    return <Box style={containerStyle}>{this._getChildren()}</Box>
+    return <Box style={collapseStyles[(defaultStyle, this.props.style)]}>{this._getChildren()}</Box>
   }
 }
 

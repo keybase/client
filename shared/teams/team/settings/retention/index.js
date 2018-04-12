@@ -14,7 +14,7 @@ import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
-import {default as SaveIndicator} from '../../../../common-adapters/save-indicator'
+import SaveIndicator from '../../../../common-adapters/save-indicator'
 import {type RetentionEntityType} from './container'
 
 export type Props = {
@@ -174,9 +174,12 @@ class RetentionPicker extends React.Component<Props, State> {
           </Text>
         )}
         {this.props.showSaveIndicator && (
-          <Box style={saveStateStyle}>
-            <SaveIndicator saving={this.state.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
-          </Box>
+          <SaveIndicator
+            saving={this.state.saving}
+            style={saveStateStyle}
+            minSavingTimeMs={300}
+            savedTimeoutMs={2500}
+          />
         )}
       </Box>
     )
