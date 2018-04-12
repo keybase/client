@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
+import {type TimerProps, default as HOCTimers} from './hoc-timers'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
@@ -108,10 +109,10 @@ const defaultStyle = {
   justifyContent: 'center',
 }
 
-class SaveIndicator extends React.Component<Props, State> {
+class SaveIndicator extends React.Component<Props & TimerProps, State> {
   _timeoutID: ?TimeoutID
 
-  constructor(props: Props) {
+  constructor(props: Props & TimerProps) {
     super(props)
     this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', lastJustSaved: new Date(0)}
   }
@@ -137,9 +138,9 @@ class SaveIndicator extends React.Component<Props, State> {
 
   _runStateMachine = () => {
     if (this._timeoutID) {
-      clearTimeout(this._timeoutID)
-      this._timeoutID = null
+      this.props.clearTimeout(this._timeoutID)
     }
+    this._timeoutID = null
 
     const now = new Date()
     const result = computeNextState(this.props, this.state, now)
@@ -148,7 +149,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     if (typeof result === 'number') {
-      this._timeoutID = setTimeout(this._runStateMachine, result)
+      this._timeoutID = this.props.setTimeout(this._runStateMachine, result)
       return
     }
 
@@ -199,4 +200,4 @@ class SaveIndicator extends React.Component<Props, State> {
 
 export type {Props, State}
 export {computeNextState}
-export default SaveIndicator
+export default HOCTimers(SaveIndicator)

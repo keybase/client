@@ -23,7 +23,7 @@ const Scroller = (props: any) => (
 
 const Splash = HOCTimers(
   class _Splash extends Component<Props & TimerProps, {showFeedback: boolean}> {
-    timeoutId: number
+    timeoutId: TimeoutID
     state = {
       showFeedback: false,
     }

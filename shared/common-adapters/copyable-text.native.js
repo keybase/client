@@ -19,7 +19,7 @@ type State = {
 
 class CopyableText<P: Props & TimerProps> extends Component<P, State> {
   state: State
-  lastCopyTimeoutId: ?number
+  lastCopyTimeoutId: TimeoutID
 
   constructor(props: P) {
     super(props)

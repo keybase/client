@@ -1,6 +1,6 @@
 // @flow
-export type TimerFunc = (func: () => void, timing: number) => number
-export type ClearTimerFunc = (id: ?number) => void
+export type TimerFunc = (func: () => void, timing: number) => TimeoutID
+export type ClearTimerFunc = (id: TimeoutID) => void
 export type TimerProps = {
   setTimeout: TimerFunc,
   clearTimeout: ClearTimerFunc,
