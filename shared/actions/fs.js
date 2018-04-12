@@ -15,6 +15,7 @@ import {
   installKBFSSuccess,
   installFuseSaga,
   installDokanSaga,
+  openSecurityPreferences,
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
@@ -258,6 +259,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
 
   yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)

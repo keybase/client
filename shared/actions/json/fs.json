@@ -76,6 +76,7 @@
     "syncingStatus": {
       "isSyncing": "boolean"
     },
+    "openSecurityPreferences": {},
 
     "setupFSHandlers": {}
   }

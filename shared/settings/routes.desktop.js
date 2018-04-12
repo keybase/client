@@ -18,6 +18,7 @@ import DumbSheet from '../dev/dumb-sheet'
 import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
 import PlanDetails from './plan-details/container'
+import SecurityPrefs from '../fs/common/security-prefs-container'
 
 const routeTree = makeRouteDefNode({
   defaultSelected: Constants.landingTab,
@@ -88,7 +89,11 @@ const routeTree = makeRouteDefNode({
     },
     [Constants.fsTab]: {
       component: FilesContainer,
-      children: {},
+      children: {
+        securityPrefs: {
+          component: SecurityPrefs,
+        },
+      },
     },
   },
 })

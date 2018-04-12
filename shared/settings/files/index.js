@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Checkbox} from '../../common-adapters'
+import {Box, Text, Icon, Checkbox, ClickableBox} from '../../common-adapters'
 import {fileUIName, isMobile, isLinux} from '../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import FileBanner from '../../fs/banner'
@@ -12,16 +12,24 @@ type Props = {
   onUninstall: () => void,
 }
 
-const checkBoxComponent = (kbfsEnabled: boolean) => (
+const checkBoxComponent = (
   <Box style={globalStyles.flexBoxColumn}>
     <Text type="Body">Enable Keybase in {fileUIName}</Text>
     <Text type="BodySmall">Access your Keybase files just like you normally do with your local files.</Text>
   </Box>
 )
 
+
 const Files = isMobile
   ? () => <Box />
-  : ({kbfsEnabled, inProgress, onInstall, onUninstall}: Props) => (
+  : ({
+    kbfsEnabled,
+    inProgress,
+    showSecurityPrefsLink,
+    onInstall,
+    onUninstall,
+    showSecurityPrefs,
+  }: Props) => (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <FileBanner
           inProgress={inProgress}
@@ -36,10 +44,15 @@ const Files = isMobile
               <Box style={contentHeaderStyle}>
                 <Text type="BodySmallSemibold">{fileUIName} integration</Text>
                 <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
+                {showSecurityPrefsLink && (
+                  <ClickableBox style={actionNeededBoxStyle} onClick={showSecurityPrefs}>
+                    <Text style={actionNeededTextStyle} type="BodySmallSemibold">Action needed!</Text>
+                  </ClickableBox>
+                )}
               </Box>
               <Checkbox
                 onCheck={kbfsEnabled ? onUninstall : onInstall}
-                labelComponent={checkBoxComponent(kbfsEnabled)}
+                labelComponent={checkBoxComponent}
                 checked={kbfsEnabled}
                 disabled={inProgress}
               />
@@ -65,6 +78,14 @@ const contentHeaderIconStyle = {
   fontSize: 16,
   color: globalColors.black_20,
   paddingLeft: globalMargins.tiny,
+}
+
+const actionNeededBoxStyle = {
+  marginLeft: globalMargins.medium,
+}
+
+const actionNeededTextStyle = {
+  color: globalColors.red,
 }
 
 export default Files

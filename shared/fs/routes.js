@@ -9,6 +9,7 @@ import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import RowPopupMenu from './popups/row-action-popup-container'
 import TransferPopup from './popups/transfer-container.js'
+import SecurityPrefs from './common/security-prefs-container'
 
 const _folderRoute = {
   children: {
@@ -38,6 +39,9 @@ const _folderRoute = {
       component: RelativePopupHoc(TransferPopup),
       tags: makeLeafTags({layerOnTop: true}),
     },
+    securityPrefs: {
+      component: SecurityPrefs,
+    }
   },
   component: Files,
 }
