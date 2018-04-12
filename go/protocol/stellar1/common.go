@@ -4,6 +4,7 @@
 package stellar1
 
 import (
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -122,6 +123,61 @@ func (o PaymentResult) DeepCopy() PaymentResult {
 		StellarID: o.StellarID.DeepCopy(),
 		KeybaseID: o.KeybaseID.DeepCopy(),
 		Ledger:    o.Ledger,
+	}
+}
+
+type EncryptedNote struct {
+	V         int               `codec:"v" json:"v"`
+	E         []byte            `codec:"e" json:"e"`
+	N         keybase1.BoxNonce `codec:"n" json:"n"`
+	Sender    NoteRecipient     `codec:"sender" json:"sender"`
+	Recipient *NoteRecipient    `codec:"recipient,omitempty" json:"recipient,omitempty"`
+}
+
+func (o EncryptedNote) DeepCopy() EncryptedNote {
+	return EncryptedNote{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N:      o.N.DeepCopy(),
+		Sender: o.Sender.DeepCopy(),
+		Recipient: (func(x *NoteRecipient) *NoteRecipient {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Recipient),
+	}
+}
+
+type NoteRecipient struct {
+	User   keybase1.UserVersion          `codec:"user" json:"user"`
+	PukGen keybase1.PerUserKeyGeneration `codec:"pukGen" json:"pukGen"`
+}
+
+func (o NoteRecipient) DeepCopy() NoteRecipient {
+	return NoteRecipient{
+		User:   o.User.DeepCopy(),
+		PukGen: o.PukGen.DeepCopy(),
+	}
+}
+
+type NoteContents struct {
+	Version   int           `codec:"version" json:"version"`
+	Note      string        `codec:"note" json:"note"`
+	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
+}
+
+func (o NoteContents) DeepCopy() NoteContents {
+	return NoteContents{
+		Version:   o.Version,
+		Note:      o.Note,
+		StellarID: o.StellarID.DeepCopy(),
 	}
 }
 

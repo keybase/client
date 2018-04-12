@@ -79,8 +79,10 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return stellar1.PaymentResult{}, err
 	}
-
-	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount)
+	if !arg.Asset.IsNativeXLM() {
+		return stellar1.PaymentResult{}, fmt.Errorf("sending non-XLM assets is not supported")
+	}
+	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.RecentPaymentCLILocal, err error) {
@@ -98,60 +100,7 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 	} else {
 		selectAccountID = *accountID
 	}
-	payments, err := s.remoter.RecentPayments(ctx, selectAccountID, 0)
-	if err != nil {
-		return nil, err
-	}
-	for _, x := range payments {
-		y := stellar1.RecentPaymentCLILocal{
-			StellarTxID: x.StellarTxID,
-			Status:      "pending",
-			Amount:      x.Amount,
-			Asset:       x.Asset,
-			FromStellar: x.From,
-			ToStellar:   x.To,
-		}
-		if x.Stellar != nil {
-			y.Status = "completed"
-		}
-		if x.Keybase != nil {
-			y.Time = x.Keybase.Ctime
-			switch x.Keybase.Status {
-			case stellar1.TransactionStatus_PENDING:
-				y.Status = "pending"
-			case stellar1.TransactionStatus_SUCCESS:
-				y.Status = "completed"
-			case stellar1.TransactionStatus_ERROR_TRANSIENT:
-				y.Status = "error"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			case stellar1.TransactionStatus_ERROR_PERMANENT:
-				y.Status = "error"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			default:
-				y.Status = "unknown"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			}
-			y.DisplayAmount = x.Keybase.DisplayAmount
-			y.DisplayCurrency = x.Keybase.DisplayCurrency
-			fromUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, x.Keybase.From.Uid)
-			if err == nil {
-				tmp := fromUsername.String()
-				y.FromUsername = &tmp
-			}
-			if x.Keybase.To != nil {
-				toUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, x.Keybase.To.Uid)
-				if err == nil {
-					tmp := toUsername.String()
-					y.ToUsername = &tmp
-				}
-			}
-		}
-		if x.Stellar != nil {
-			y.Time = x.Stellar.Ctime
-		}
-		res = append(res, y)
-	}
-	return res, nil
+	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
 }
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {

@@ -1986,6 +1986,20 @@ func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	return nil
 }
 
+// Can return nil.
+func (u UserPlusKeysV2) GetPerUserKeyByGen(gen PerUserKeyGeneration) *PerUserKey {
+	genint := int(gen)
+	if genint <= 0 || genint > len(u.PerUserKeys) {
+		return nil
+	}
+	puk := u.PerUserKeys[genint-1]
+	if puk.Gen != genint {
+		// The PerUserKeys field of this object is malformed
+		return nil
+	}
+	return &puk
+}
+
 func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }
 
 func (s PerTeamKeySeed) IsZero() bool {

@@ -4,13 +4,6 @@ protocol remote {
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
-  record EncryptedNote {
-    int v;             // version 
-    bytes e;           // encrypted data
-    bytes n;           // nonce
-    keybase1.KID KID;  // public key data was encrypted for
-  }
-
   record Members {
     AccountID fromStellar;
     string fromKeybase;
@@ -27,7 +20,7 @@ protocol remote {
     TransactionStatus status;
     string errMsg;
 
-    EncryptedNote note;
+    string noteB64; // b64-encoded EncryptedNote or empty string.
 
     Asset asset;
     string amount;
@@ -61,7 +54,7 @@ protocol remote {
     int feePaid;
 
     Members members;
-    EncryptedNote note;
+    string noteB64; // b64-encoded EncryptedNote or empty string.
     array<string> signatures;
     array<Operation> operations;
 
@@ -76,7 +69,7 @@ protocol remote {
     string displayAmount;
     string displayCurrency;
 
-    EncryptedNote note;
+    string noteB64; // b64-encoded EncryptedNote or empty string.
 
     string signedTransaction;
   }
@@ -103,9 +96,9 @@ protocol remote {
     keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to;
-    // union { null, EncryptedNote }  note; // TODO
     union { null, string } displayAmount;
     union { null, string } displayCurrency;
+    string noteB64; // b64-encoded EncryptedNote or empty string.
   }
 
   record PaymentSummaryStellar {
