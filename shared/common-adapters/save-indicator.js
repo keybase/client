@@ -28,17 +28,12 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
   const timeSinceSavingChanged = now - state.savingChanged
   const timeSinceSaveStateChanged = now - state.saveStateChanged
   const timeToJustSaved = props.minSavingTimeMs - timeSinceSavingChanged
-  const timeToSteady = props.savedTimeoutMs - timeSinceSaveStateChanged
 
   const {saveState} = state
   switch (saveState) {
     case 'steady':
       if (state.saving) {
         return 'saving'
-      }
-
-      if (timeToSteady > 0) {
-        return 'justSaved'
       }
 
       return null
@@ -70,6 +65,7 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return 'saving'
       }
 
+      const timeToSteady = props.savedTimeoutMs - timeSinceSaveStateChanged
       if (timeToSteady > 0) {
         return timeToSteady
       }
