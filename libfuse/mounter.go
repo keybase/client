@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"strings"
 
 	"bazil.org/fuse"
 	"github.com/keybase/client/go/libkb"
@@ -97,12 +98,16 @@ func (m *mounter) Unmount() (err error) {
 	return
 }
 
-// volumeName returns the directory (base) name
+// volumeName returns the first word of the directory (base) name
 func volumeName(dir string) (string, error) {
 	volName := path.Base(dir)
 	if volName == "." || volName == "/" {
 		err := fmt.Errorf("Bad volume name: %v", volName)
 		return "", err
 	}
-	return volName, nil
+	s := strings.Split(volName, " ")
+	if len(s) == 0 {
+		return "", fmt.Errorf("Bad volume name: %v", volName)
+	}
+	return s[0], nil
 }
