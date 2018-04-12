@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {Notifications, type SaveStateType} from '.'
+import {Notifications} from '.'
 import {
   compose,
   connect,
@@ -47,12 +47,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) =
     ),
 })
 
-// Minimum amount of time to stay in the saving state.
-const minSavingTimeMs = 300
-
-// How long to stay in the justSaved state.
-const savedTimeoutMs = 2500
-
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
@@ -77,7 +71,7 @@ export default compose(
       desktop: props._storeDesktop,
       mobile: props._storeMobile,
       muted: props._storeMuted,
-      saveState: 'same',
+      saving: false,
     }),
     {
       toggleChannelWide: (state, props) => () => {
@@ -102,7 +96,7 @@ export default compose(
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
       },
-      updateSaveState: () => (saveState: SaveStateType) => ({saveState}),
+      updateSaving: () => (saving: boolean) => ({saving}),
       syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
         channelWide,
         desktop,
@@ -120,27 +114,8 @@ export default compose(
         nextProps._storeChannelWide === nextProps.channelWide &&
         nextProps._storeMuted === nextProps.muted
       ) {
-        // Mark it as saved
-        if (nextProps.saveState === 'saving') {
-          const resetTimeout = (fn, delay) => {
-            if (this._timeoutID) {
-              clearTimeout(this._timeoutID)
-            }
-            this._timeoutID = setTimeout(fn, delay)
-          }
-
-          const setJustSaved = () => {
-            nextProps.updateSaveState('justSaved')
-            resetTimeout(() => {
-              nextProps.updateSaveState('same')
-            }, savedTimeoutMs)
-          }
-          const dt = Date.now() - this._lastSaveStartTime
-          if (dt < minSavingTimeMs) {
-            resetTimeout(setJustSaved, minSavingTimeMs - dt)
-          } else {
-            setJustSaved()
-          }
+        if (nextProps.saving) {
+          nextProps.updateSaving(false)
         }
       } else {
         // did our local settings change at all?
@@ -150,10 +125,7 @@ export default compose(
           this.props.channelWide !== nextProps.channelWide ||
           this.props.muted !== nextProps.muted
         ) {
-          this._lastSaveStartTime = Date.now()
-          if (nextProps.saveState !== 'saving') {
-            nextProps.updateSaveState('saving')
-          }
+          nextProps.updateSaving(true)
         }
       }
       // store changed?

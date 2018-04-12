@@ -21,7 +21,7 @@ const actions = {
 
 const commonProps = {
   loading: false,
-  showSaveState: false,
+  showSaveIndicator: false,
 }
 
 const onClick = action('onClick')

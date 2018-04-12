@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
-import {type SaveState, default as SaveIndicator} from '../../../../common-adapters/save-indicator'
+import {default as SaveIndicator} from '../../../../common-adapters/save-indicator'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
@@ -11,7 +11,7 @@ export type Props = {
   desktop: Types.NotificationsType,
   mobile: Types.NotificationsType,
   muted: boolean,
-  saveState: SaveState,
+  saving: boolean,
   toggleMuted: () => void,
   updateDesktop: Types.NotificationsType => void,
   updateMobile: Types.NotificationsType => void,
@@ -125,9 +125,7 @@ export const Notifications = (props: Props) => (
       />
     </Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}
-    <Box style={styleSaveState}>
-      <SaveIndicator saving={props.saveState !== 'same'} minSavingTimeMs={300} savedTimeoutMs={2500} />
-    </Box>
+    <SaveIndicator saving={props.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
   </Box>
 )
 
@@ -145,11 +143,4 @@ const styleHeaderMobile = {
 const styleRadioButton = {
   ...globalStyles.flexBoxRow,
   marginLeft: globalMargins.tiny,
-}
-
-const styleSaveState = {
-  ...globalStyles.flexBoxRow,
-  height: globalMargins.medium,
-  justifyContent: 'center',
-  alignItems: 'center',
 }

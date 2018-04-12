@@ -9,12 +9,12 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
 } from '../../../../styles'
-import {Box, ClickableBox, HOCTimers, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
-import {type SaveState, default as SaveIndicator} from '../../../../common-adapters/save-indicator'
+import {default as SaveIndicator} from '../../../../common-adapters/save-indicator'
 import {type RetentionEntityType} from './container'
 
 export type Props = {
@@ -26,30 +26,24 @@ export type Props = {
   loading: boolean, // for when we're waiting to fetch the team policy
   showInheritOption: boolean,
   showOverrideNotice: boolean,
-  showSaveState: boolean,
+  showSaveIndicator: boolean,
   type: 'simple' | 'auto',
-  saveRetentionPolicy: (policy: RetentionPolicy) => void,
+  setRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
-
-  // HOCTimers
-  setTimeout: typeof setTimeout,
-  clearTimeout: typeof clearTimeout,
 }
 
 type State = {
-  saveState: SaveState,
+  saving: boolean,
   selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
 }
 
-const savedTimeout = 2500
-
 class RetentionPicker extends React.Component<Props, State> {
   state = {
-    saveState: 'same',
+    saving: false,
     selected: retentionPolicies.policyRetain,
     items: [],
     showMenu: false,
@@ -75,7 +69,7 @@ class RetentionPicker extends React.Component<Props, State> {
       return
     }
     const onConfirm = () => {
-      this.props.saveRetentionPolicy(selected)
+      this.props.setRetentionPolicy(selected)
     }
     const onCancel = this._init
     if (decreased) {
@@ -87,36 +81,15 @@ class RetentionPicker extends React.Component<Props, State> {
     // set immediately
     onConfirm()
     this._showSaved = true
-    this._setSaving()
+    this._setSaving(true)
   }
 
   _onSelect = (selected: RetentionPolicy) => {
-    // set saveState to 'same' in case we're in the middle of an animation
-    this._setSame()
     this.setState({selected}, this._handleSelection)
   }
 
-  _setSaving = () => {
-    this.setState({saveState: 'saving'})
-  }
-
-  _setJustSaved = () => {
-    if (!this._showSaved) {
-      // Don't show if we went through the confirmation dialog flow
-      this._setSame()
-      return
-    }
-    this.setState({saveState: 'justSaved'})
-    this.props.clearTimeout(this._timeoutID)
-    this._timeoutID = this.props.setTimeout(() => {
-      // clear notice after timeout
-      this._setSame()
-    }, savedTimeout)
-  }
-
-  _setSame = () => {
-    this.props.clearTimeout(this._timeoutID)
-    this.setState({saveState: 'same'})
+  _setSaving = (saving: boolean) => {
+    this.setState({saving})
   }
 
   _makeItems = () => {
@@ -166,15 +139,11 @@ class RetentionPicker extends React.Component<Props, State> {
     ) {
       if (policyEquals(nextProps.policy, this.state.selected)) {
         // we just got updated retention policy matching the selected one
-        this._setJustSaved()
+        this._setSaving(false)
       } // we could show a notice that we received a new value in an else block
       this._makeItems()
       this._setInitialSelected(nextProps.policy)
     }
-  }
-
-  componentWillUnmount() {
-    this.props.clearTimeout(this._timeoutID)
   }
 
   _onShowDropdown = (evt: SyntheticEvent<Element>) => {
@@ -204,13 +173,9 @@ class RetentionPicker extends React.Component<Props, State> {
             Individual channels can override this.
           </Text>
         )}
-        {this.props.showSaveState && (
+        {this.props.showSaveIndicator && (
           <Box style={saveStateStyle}>
-            <SaveIndicator
-              saving={this.state.saveState !== 'same'}
-              minSavingTimeMs={300}
-              savedTimeoutMs={2500}
-            />
+            <SaveIndicator saving={this.state.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
           </Box>
         )}
       </Box>
@@ -403,4 +368,4 @@ const RetentionSwitcher = (props: Props & {entityType: RetentionEntityType}) => 
   return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
 }
 
-export default HOCTimers(RetentionSwitcher)
+export default RetentionSwitcher
