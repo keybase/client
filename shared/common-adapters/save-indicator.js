@@ -108,7 +108,12 @@ class SaveIndicator extends React.Component<Props, State> {
       return null
     }
 
-    return {saving: nextProps.saving, savingChanged: Date.now()}
+    const onStateChange = nextProps.onStateChange
+    const newPartialState = {saving: nextProps.saving, savingChanged: Date.now()}
+    if (onStateChange) {
+      onStateChange(`merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`)
+    }
+    return newPartialState
   }
 
   _runStateMachine = () => {
@@ -128,7 +133,12 @@ class SaveIndicator extends React.Component<Props, State> {
       return
     }
 
-    this.setState({saveState: result, saveStateChanged: now})
+    const onStateChange = this.props.onStateChange
+    const newPartialState = {saveState: result, saveStateChanged: now}
+    if (onStateChange) {
+      onStateChange(`merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(this.state)}`)
+    }
+    this.setState(newPartialState)
   }
 
   componentDidUpdate = () => {
