@@ -1,8 +1,7 @@
 // @flow
-import HOCTimers from './hoc-timers'
 import React, {Component} from 'react'
 import type {Props as PropsCommon} from './copyable-text'
-import type {TimerProps} from './hoc-timers'
+import {type TimerProps, default as HOCTimers} from './hoc-timers'
 import Text from './text'
 import Box from './box'
 import {Clipboard, TouchableHighlight} from 'react-native'
