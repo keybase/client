@@ -155,6 +155,7 @@ class SaveIndicator extends React.Component<Props, State> {
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(saveState: empty)
+        throw new Error(`Unexpected state ${saveState}`)
     }
   }
 }
