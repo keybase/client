@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, collapseStyles} from '../styles'
+import {globalStyles, collapseStyles, globalMargins} from '../styles'
 import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
@@ -50,8 +50,8 @@ class Box2 extends React.Component<Box2Props> {
     )
   }
 }
-const VBoxGap = ({gap}) => <div style={{height: gap}} />
-const HBoxGap = ({gap}) => <div style={{width: gap}} />
+const VBoxGap = ({gap}) => <View style={{height: globalMargins[gap]}} />
+const HBoxGap = ({gap}) => <View style={{width: globalMargins[gap]}} />
 
 const styles = {
   centered: {alignSelf: 'center'},
