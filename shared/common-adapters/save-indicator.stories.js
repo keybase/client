@@ -21,14 +21,21 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
     this.state = {saving: false}
   }
 
-  _save = () => {
-    this.setState({saving: true})
+  _toggleSave = () => {
+    this.setState(state => ({
+      saving: !state.saving,
+    }))
   }
 
   render() {
     return (
       <Box style={containerStyle}>
-        <Button label="Save" onClick={this._save} style={{alignSelf: 'flex-start'}} type="Primary" />
+        <Button
+          label={this.state.saving ? 'Stop save' : 'Start save'}
+          onClick={this._toggleSave}
+          style={{alignSelf: 'flex-start'}}
+          type="Primary"
+        />
         <SaveIndicator saving={this.state.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
       </Box>
     )

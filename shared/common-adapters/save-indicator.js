@@ -27,6 +27,8 @@ const containerStyle = {
 }
 
 class SaveIndicator extends React.Component<Props, State> {
+  _timeoutID: ?TimeoutID
+
   constructor(props: Props) {
     super(props)
     this.state = {saveState: 'same', lastStateChangeTime: Date.now()}
@@ -55,6 +57,39 @@ class SaveIndicator extends React.Component<Props, State> {
 
     // Set state to 'same' after savedTimeoutMs.
     return {saveState: 'justSaved', lastStateChangeTime: Date.now()}
+  }
+
+  resetTimeout = (fn: () => void, delay: number) => {
+    if (this._timeoutID) {
+      clearTimeout(this._timeoutID)
+    }
+    this._timeoutID = setTimeout(fn, delay)
+  }
+
+  componentDidUpdate = (prevProps: Props) => {
+    if (prevProps.saving === this.props.saving) {
+      return
+    }
+
+    if (this.props.saving) {
+      return
+    }
+
+    if (this.state.saveState === 'saving') {
+      const dt = Date.now() - this.state.lastStateChangeTime
+      if (dt < this.props.minSavingTimeMs) {
+        this.resetTimeout(() => {
+          this.setState({saveState: 'justSaved', lastStateChangeTime: Date.now()})
+        }, this.props.minSavingTimeMs - dt)
+      }
+      return
+    }
+
+    if (this.state.saveState === 'justSaved') {
+      this.resetTimeout(() => {
+        this.setState({saveState: 'same', lastStateChangeTime: Date.now()})
+      }, this.props.savedTimeoutMs)
+    }
   }
 
   render = () => {
