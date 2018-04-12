@@ -92,6 +92,7 @@ export const createSetFlags = (
     kbfsInstalling?: boolean,
     fuseInstalling?: boolean,
     kextPermissionError?: boolean,
+    securityPrefsPropmted?: boolean,
     showBanner?: boolean,
   |}>
 ) => ({error: false, payload, type: setFlags})

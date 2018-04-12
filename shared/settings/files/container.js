@@ -3,7 +3,7 @@ import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import {isLinux} from '../../constants/platform'
-import {SecurityPrefsHoc} from '../../fs/common/hocs'
+import {SecurityPrefsPromptingHoc} from '../../fs/common/hocs'
 import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => {
@@ -21,7 +21,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm({onSuccess: uninstall})),
-    showSecurityPrefs: () => dispatch(navigateAppend([{selected: 'securityPrefs'}])),
+    showSecurityPrefs: () =>
+      dispatch(
+        navigateAppend([
+          {
+            props: {},
+            selected: 'securityPrefs',
+          },
+        ])
+      ),
   }
 }
 
@@ -34,4 +42,4 @@ const ConnectedFiles = compose(
   })
 )(Files)
 
-export default SecurityPrefsHoc(ConnectedFiles)
+export default SecurityPrefsPromptingHoc(ConnectedFiles)

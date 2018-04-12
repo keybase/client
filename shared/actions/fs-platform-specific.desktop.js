@@ -207,18 +207,23 @@ export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
 }
 
 export function openSecurityPreferences() {
-  return Saga.call(() => new Promise((resolve, reject) => {
-    Electron.shell.openExternal(
-      'x-apple.systempreferences:com.apple.preference.security?General',
-      {}, err => {
-        if (err) {
-          reject(err)
-          return
-        }
-        logger.info('Opened Security Preferences')
-        resolve()
+  return Saga.call(
+    () =>
+      new Promise((resolve, reject) => {
+        Electron.shell.openExternal(
+          'x-apple.systempreferences:com.apple.preference.security?General',
+          {},
+          err => {
+            if (err) {
+              reject(err)
+              return
+            }
+            logger.info('Opened Security Preferences')
+            resolve()
+          }
+        )
       })
-  }))
+  )
 }
 
 // Invoking the cached installer package has to happen from the topmost process

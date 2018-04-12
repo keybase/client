@@ -8,6 +8,8 @@ import FileBanner from '../../fs/banner'
 type Props = {
   kbfsEnabled: boolean,
   inProgress: boolean,
+  showSecurityPrefsLink: boolean,
+  showSecurityPrefs: () => void,
   onInstall: () => void,
   onUninstall: () => void,
 }
@@ -19,17 +21,9 @@ const checkBoxComponent = (
   </Box>
 )
 
-
 const Files = isMobile
   ? () => <Box />
-  : ({
-    kbfsEnabled,
-    inProgress,
-    showSecurityPrefsLink,
-    onInstall,
-    onUninstall,
-    showSecurityPrefs,
-  }: Props) => (
+  : ({kbfsEnabled, inProgress, showSecurityPrefsLink, onInstall, onUninstall, showSecurityPrefs}: Props) => (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <FileBanner
           inProgress={inProgress}
@@ -46,7 +40,9 @@ const Files = isMobile
                 <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
                 {showSecurityPrefsLink && (
                   <ClickableBox style={actionNeededBoxStyle} onClick={showSecurityPrefs}>
-                    <Text style={actionNeededTextStyle} type="BodySmallSemibold">Action needed!</Text>
+                    <Text style={actionNeededTextStyle} type="BodySmallSemibold">
+                      Action needed!
+                    </Text>
                   </ClickableBox>
                 )}
               </Box>

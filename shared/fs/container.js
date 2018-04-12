@@ -1,12 +1,10 @@
 // @flow
 import * as I from 'immutable'
 import {
-  branch,
   compose,
   connect,
   lifecycle,
   mapProps,
-  renderNothing,
   setDisplayName,
   type Dispatch,
   type TypedState,
@@ -15,8 +13,7 @@ import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {SecurityPrefsHoc} from './common/hocs'
+import {SecurityPrefsPromptingHoc} from './common/hocs'
 
 type OwnProps = {
   path: Types.Path,
@@ -98,4 +95,4 @@ const FilesLoadingHoc = compose(
   setDisplayName('FilesLoadingHoc')
 )(ConnectedFiles)
 
-export default SecurityPrefsHoc(FilesLoadingHoc)
+export default SecurityPrefsPromptingHoc(FilesLoadingHoc)

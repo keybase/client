@@ -1,10 +1,5 @@
-import {
-  connect,
-  compose,
-  lifecycle,
-  type TypedState,
-  type Dispatch,
-} from '../../util/container'
+// @flow
+import {connect, compose, lifecycle, type TypedState, type Dispatch} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import InstallSecurityPrefs from './security-prefs'
 import {navigateUp} from '../../actions/route-tree'
@@ -33,6 +28,6 @@ export default compose(
         // gone to the security preferences to allow the kext. So check again.
         this.props._getFuseStatus()
       }
-    }
+    },
   })
 )(InstallSecurityPrefs)

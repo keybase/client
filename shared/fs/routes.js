@@ -41,7 +41,7 @@ const _folderRoute = {
     },
     securityPrefs: {
       component: SecurityPrefs,
-    }
+    },
   },
   component: Files,
 }
