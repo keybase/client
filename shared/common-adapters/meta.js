@@ -49,6 +49,7 @@ const styles = styleSheetCreate({
       color: globalColors.white,
     },
     isElectron: {
+      display: 'block',
       fontSize: 10,
       fontWeight: '700',
       lineHeight: 'inherit',

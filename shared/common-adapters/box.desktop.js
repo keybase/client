@@ -15,10 +15,10 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
   if (gap) {
     children = intersperseFn(index => <Component key={index} gap={gap} />, React.Children.toArray(_children))
     if (gapStart) {
-      children.unshift(<HBoxGap key="gapStart" gap={gap} />)
+      children.unshift(<Component key="gapStart" gap={gap} />)
     }
     if (gapEnd) {
-      children.push(<HBoxGap key="gapEnd" gap={gap} />)
+      children.push(<Component key="gapEnd" gap={gap} />)
     }
   }
 
@@ -50,8 +50,8 @@ class Box2 extends React.Component<Box2Props> {
     )
   }
 }
-const VBoxGap = ({gap}) => <View style={{height: globalMargins[gap]}} />
-const HBoxGap = ({gap}) => <View style={{width: globalMargins[gap]}} />
+const VBoxGap = ({gap}) => <div style={{height: globalMargins[gap]}} />
+const HBoxGap = ({gap}) => <div style={{width: globalMargins[gap]}} />
 
 const styles = {
   centered: {alignSelf: 'center'},
