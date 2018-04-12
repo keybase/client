@@ -36,30 +36,34 @@ class SaveIndicator extends React.Component<Props, State> {
 
   static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
     if (nextProps.saving) {
-      if (prevState.saveState !== 'same') {
-        // Already saving.
+      if (prevState.saveState === 'saving') {
+        // Already saving, so nothing to do.
         return null
       }
 
       return {saveState: 'saving', lastStateChangeTime: Date.now()}
     }
 
-    if (prevState.saveState === 'same') {
-      // Already not saving.
+    if (prevState.saveState === 'same' || prevState.saveState === 'justSaved') {
+      // Already done saving, so nothing to do.
       return null
     }
 
     const dt = Date.now() - prevState.lastStateChangeTime
     if (dt < nextProps.minSavingTimeMs) {
-      // Set state to 'justSaved' after minSavingTimeMs - dt.
+      // (1) Save took less than minSavingTimeMs, so stay in the
+      // saving state, set a timer in componentDidUpdate to transition
+      // to 'justSaved'. (See (1) below.)
       return null
     }
 
-    // Set state to 'same' after savedTimeoutMs.
+    // (2) Save took at least minSavingTimeMs, so transition to
+    // justSaved, and set a timer in componentDidUpdate to transition
+    // to 'same'. (See (2) below.)
     return {saveState: 'justSaved', lastStateChangeTime: Date.now()}
   }
 
-  resetTimeout = (fn: () => void, delay: number) => {
+  _resetTimeout = (fn: () => void, delay: number) => {
     if (this._timeoutID) {
       clearTimeout(this._timeoutID)
     }
@@ -67,28 +71,36 @@ class SaveIndicator extends React.Component<Props, State> {
   }
 
   componentDidUpdate = (prevProps: Props) => {
-    if (prevProps.saving === this.props.saving) {
-      return
-    }
-
     if (this.props.saving) {
+      // Already handled in getDerivedStateFromProps.
       return
     }
 
-    if (this.state.saveState === 'saving') {
-      const dt = Date.now() - this.state.lastStateChangeTime
-      if (dt < this.props.minSavingTimeMs) {
-        this.resetTimeout(() => {
-          this.setState({saveState: 'justSaved', lastStateChangeTime: Date.now()})
-        }, this.props.minSavingTimeMs - dt)
+    switch (this.state.saveState) {
+      case 'same':
+        // Nothing to do.
+        return
+
+      case 'saving': {
+        // (1) Transition to 'justSaved', either now or later.
+        const dt = Date.now() - this.state.lastStateChangeTime
+        if (dt < this.props.minSavingTimeMs) {
+          this._resetTimeout(() => {
+            this.setState({saveState: 'justSaved', lastStateChangeTime: Date.now()})
+          }, this.props.minSavingTimeMs - dt)
+        }
+        return
       }
-      return
-    }
 
-    if (this.state.saveState === 'justSaved') {
-      this.resetTimeout(() => {
-        this.setState({saveState: 'same', lastStateChangeTime: Date.now()})
-      }, this.props.savedTimeoutMs)
+      case 'justSaved': {
+        // (2) Transition to 'same', either now or later.
+        const dt = Date.now() - this.state.lastStateChangeTime
+        if (dt < this.props.savedTimeoutMs) {
+          this._resetTimeout(() => {
+            this.setState({saveState: 'same', lastStateChangeTime: Date.now()})
+          }, this.props.savedTimeoutMs - dt)
+        }
+      }
     }
   }
 
