@@ -68,9 +68,8 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
     default:
       // eslint-disable-next-line no-unused-expressions
       ;(saveState: empty)
+      throw new Error(`Unexpected state ${saveState}`)
   }
-
-  throw new Error('Unexpected state')
 }
 
 const containerStyle = {
