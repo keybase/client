@@ -414,3 +414,27 @@ func (h *Handle) DeepEqual(other Handle) bool {
 
 	return true
 }
+
+func checkUIDEquality(a, b []keybase1.UserOrTeamID) bool {
+	// Assume `a` doesn't contain any duplicates (or that we don't
+	// care if `b` matches the exact number of duplicates).
+	aMap := make(map[keybase1.UserOrTeamID]bool)
+	for _, u := range a {
+		aMap[u] = true
+	}
+	for _, u := range b {
+		if !aMap[u] {
+			return false
+		}
+		delete(aMap, u)
+	}
+	return len(aMap) == 0
+}
+
+// ResolvedUsersEqual checks whether the resolved users of this TLF
+// matches the provided lists of writers and readers.
+func (h *Handle) ResolvedUsersEqual(
+	writers []keybase1.UserOrTeamID, readers []keybase1.UserOrTeamID) bool {
+	return checkUIDEquality(h.Writers, writers) &&
+		checkUIDEquality(h.Readers, readers)
+}

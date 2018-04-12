@@ -331,8 +331,7 @@ func (h TlfHandle) Equals(
 	}
 
 	if eq && h.name != other.name {
-		panic(fmt.Errorf(
-			"%+v equals %+v in everything but name", h, other))
+		return false, nil
 	}
 
 	return eq, nil

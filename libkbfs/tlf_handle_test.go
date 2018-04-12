@@ -589,14 +589,13 @@ func TestTlfHandlEqual(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, eq)
 
-	// Test panic on name difference.
+	// Test failure on name difference.
 	h2, err = ParseTlfHandle(ctx, kbpki, nil, name1, tlf.Private)
 	require.NoError(t, err)
 	h2.name += "x"
-
-	require.Panics(t, func() {
-		h1.Equals(codec, *h2)
-	}, "in everything but name")
+	eq, err = h1.Equals(codec, *h2)
+	require.NoError(t, err)
+	require.False(t, eq)
 }
 
 func TestParseTlfHandleSocialAssertion(t *testing.T) {
@@ -870,7 +869,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err :=
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h1)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h1)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -883,7 +882,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -902,7 +901,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -918,7 +917,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	h2.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -944,7 +943,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -968,7 +967,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	h1.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -985,7 +984,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
 	require.Error(t, err)
 
 	// Test positive resolution cases.
@@ -1015,7 +1014,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h2)
+			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, nil, *h2)
 		require.NoError(t, err)
 		assert.True(t, resolvesTo, tc.name2)
 		require.Equal(t, h2, partialResolvedH1, tc.name2)
@@ -1039,12 +1038,139 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h2)
+			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, nil, *h2)
 		require.NoError(t, err)
 		assert.False(t, resolvesTo, tc.name2)
 
 		daemon.removeAssertionForTest("u2@twitter")
 	}
+}
+
+func TestTlfHandleMigrationResolvesTo(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{
+		"u1", "u2", "u3",
+	})
+	currentUID := localUsers[0].UID
+	codec := kbfscodec.NewMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, nil, codec)
+
+	kbpki := &daemonKBPKI{
+		KBPKI:  NewKBPKIClient(keybaseServiceSelfOwner{daemon}, nil),
+		daemon: daemon,
+	}
+
+	t.Log("Simple private team migration")
+	id := tlf.FakeID(1, tlf.Private)
+	// Handle without iteam.
+	name1 := "u1,u2"
+	h1, err := ParseTlfHandle(
+		ctx, kbpki, constIDGetter{id}, name1, tlf.Private)
+	require.NoError(t, err)
+
+	makeImplicitHandle := func(
+		name string, ty tlf.Type, id tlf.ID) *TlfHandle {
+		wrName, suffix, err := tlf.SplitExtension(name)
+		require.NoError(t, err)
+		iteamInfo, err := daemon.ResolveIdentifyImplicitTeam(
+			ctx, wrName, suffix, ty, true, "")
+		require.NoError(t, err)
+		err = daemon.CreateTeamTLF(ctx, iteamInfo.TID, id)
+		require.NoError(t, err)
+		h, err := ParseTlfHandle(
+			ctx, kbpki, constIDGetter{id}, name, ty)
+		require.NoError(t, err)
+		require.Equal(t, tlf.TeamKeying, h.TypeForKeying())
+		return h
+	}
+	h2 := makeImplicitHandle(name1, tlf.Private, id)
+
+	resolvesTo, partialResolvedH1, err :=
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h2)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Equal(t, h1, partialResolvedH1)
+
+	t.Log("Simple public team migration")
+	idPub := tlf.FakeID(1, tlf.Public)
+	// Handle without iteam.
+	h1Pub, err := ParseTlfHandle(
+		ctx, kbpki, constIDGetter{idPub}, name1, tlf.Public)
+	require.NoError(t, err)
+	h2Pub := makeImplicitHandle(name1, tlf.Public, idPub)
+
+	resolvesTo, partialResolvedH1, err =
+		h1Pub.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, kbpki, *h2Pub)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Equal(t, h1Pub, partialResolvedH1)
+
+	t.Log("Bad migration to team with extra user")
+	name2 := "u1,u2,u3"
+	h3 := makeImplicitHandle(name2, tlf.Private, id)
+	resolvesTo, _, err =
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h3)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+
+	t.Log("Bad migration to team with fewer users")
+	name3 := "u1"
+	h4 := makeImplicitHandle(name3, tlf.Private, id)
+	resolvesTo, _, err =
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h4)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+
+	t.Log("Bad migration to team with new readers")
+	name4 := "u1,u2#u3"
+	h5 := makeImplicitHandle(name4, tlf.Private, id)
+	resolvesTo, _, err =
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h5)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+
+	t.Log("Private team migration with unresolved users")
+	// Handle without iteam.
+	name5 := "u1,u2,u3@twitter"
+	h6, err := ParseTlfHandle(
+		ctx, kbpki, constIDGetter{id}, name5, tlf.Private)
+	require.NoError(t, err)
+	h7 := makeImplicitHandle(name5, tlf.Private, id)
+	resolvesTo, partialResolvedH6, err :=
+		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h7)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Equal(t, h6, partialResolvedH6)
+
+	t.Log("Bad private team migration with extra unresolved user")
+	// Handle without iteam.
+	name6 := "u1,u2,u3@twitter,u4@twitter"
+	h8 := makeImplicitHandle(name6, tlf.Private, id)
+	resolvesTo, _, err =
+		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h8)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+
+	t.Log("Private team migration with newly-resolved user")
+	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
+	resolvesTo, partialResolvedH6, err =
+		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h3)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Len(t, partialResolvedH6.UnresolvedWriters(), 0)
+
+	t.Log("Private team migration with conflict info")
+	name7 := "u1,u2 (conflicted copy 2016-03-14 #3)"
+	h9, err := ParseTlfHandle(
+		ctx, kbpki, constIDGetter{id}, name7, tlf.Private)
+	require.NoError(t, err)
+	h10 := makeImplicitHandle(name7, tlf.Private, id)
+	resolvesTo, partialResolvedH9, err :=
+		h9.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h10)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Equal(t, h9, partialResolvedH9)
 }
 
 func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {

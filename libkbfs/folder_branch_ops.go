@@ -892,7 +892,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 	resolvesTo, partialResolvedOldHandle, err :=
 		oldHandle.ResolvesTo(
 			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
-			constIDGetter{fbo.id()}, *newHandle)
+			constIDGetter{fbo.id()}, fbo.config.KBPKI(), *newHandle)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "oldHandle=%+v, newHandle=%+v: err=%+v", oldHandle, newHandle, err)
 		return err
@@ -6467,9 +6467,10 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 		return nil
 	}
 
+	name := string(md.GetTlfHandle().GetCanonicalName())
+	fbo.log.CDebugf(ctx, "Looking up implicit team for %s", name)
 	newHandle, err := ParseTlfHandle(
-		ctx, fbo.config.KBPKI(), fbo.config.MDOps(),
-		string(md.GetTlfHandle().GetCanonicalName()), id.Type())
+		ctx, fbo.config.KBPKI(), fbo.config.MDOps(), name, id.Type())
 	if err != nil {
 		return err
 	}
