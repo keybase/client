@@ -6,23 +6,53 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import {collapseStyles, globalColors, globalMargins, globalStyles, type StylesCrossPlatform} from '../styles'
 
+// States of the state machine for the save indicator:
+//
+//   steady:           (initial state) Nothing's been saved yet, or enough time
+//                     has passed since the last save. Display nothing.
+//   saving:           In the middle of saving; display a progress indicator.
+//   savingHysteresis: Just finished saving, but still display a
+//                     progress indicator until some minimum time has
+//                     elapsed.
+//   justSaved:        Just finished saving; display a checkbox and 'Saved' for some minimum time.
+//
+// The possible transitions are (implemented in computeNextState):
+//
+//   * -> saving:                   whenever Props.saving goes from true to false.
+//   saving -> savingHysteresis:    whenever Props.saving goes from false to true.
+//   savingHysteresis -> justSaved: whenever at least minSavingTimeMs
+//                                  has elapsed in the
+//                                  saving/savingHysteresis state.
+//   justSaved -> steady:           whenever at least savedTimeoutMs has elapsed
+//                                  in the justSaved state.
 type SaveState = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
 
 type Props = {
   saving: boolean,
   style?: StylesCrossPlatform,
+  // Minimum duration to stay in saving or savingHysteresis.
   minSavingTimeMs: number,
+  // Minimum duration to stay in justSaved.
   savedTimeoutMs: number,
   onStateChange?: string => void,
 }
 
 type State = {
+  // Mirrors Props.saving.
   saving: boolean,
+  // Last time saving went from false to true.
   lastSave: Date,
   saveState: SaveState,
+  // Last time saveState was set to 'justSaved'.
   lastJustSaved: Date,
 }
 
+// computeNextState takes props and state, possibly with updated
+// saving / lastSave fields, the current time, and returns either:
+//
+// - null:      Remain in the current state.
+// - SaveState: Transition to the returned state.
+// - number:    Wait the returned number of ms, then run computeNextState again.
 const computeNextState = (props: Props, state: State, now: Date): null | SaveState | number => {
   const {saveState} = state
   switch (saveState) {
@@ -93,6 +123,8 @@ class SaveIndicator extends React.Component<Props, State> {
       return null
     }
 
+    // Just set saving and lastSave here -- run the state machine from
+    // componentDidUpdate.
     const onStateChange = nextProps.onStateChange
     const newPartialState = {saving: nextProps.saving, ...(nextProps.saving ? {lastSave: new Date()} : {})}
     if (onStateChange) {
