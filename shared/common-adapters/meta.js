@@ -38,10 +38,14 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
       alignSelf: 'flex-start',
-      paddingBottom: 2,
-      paddingLeft: 2,
-      paddingRight: 2,
-      paddingTop: 2,
+      borderRadius: 1,
+    },
+    isElectron: {
+      paddingLeft: 4,
+      paddingRight: 4,
+    },
+    isMobile: {
+      padding: 2,
     },
   }),
   text: platformStyles({
@@ -52,7 +56,7 @@ const styles = styleSheetCreate({
       display: 'block',
       fontSize: 10,
       fontWeight: '700',
-      lineHeight: 'inherit',
+      lineHeight: 'initial',
     },
     isMobile: {
       fontSize: 11,

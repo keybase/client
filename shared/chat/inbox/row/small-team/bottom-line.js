@@ -143,9 +143,7 @@ const resetStyle = platformStyles({
     alignSelf: 'center',
     marginRight: 6,
   },
-  isElectron: {
-    display: 'block',
-  },
+  isElectron: {},
   isMobile: {
     marginTop: 2,
   },
