@@ -1701,13 +1701,13 @@ func (e UnhandledSignatureError) Error() string {
 	return fmt.Sprintf("unhandled signature version: %d", e.version)
 }
 
-type DeletedError struct {
+type UserDeletedError struct {
 	Msg string
 }
 
-func (e DeletedError) Error() string {
+func (e UserDeletedError) Error() string {
 	if len(e.Msg) == 0 {
-		return "Deleted"
+		return "User deleted"
 	}
 	return e.Msg
 }
@@ -2168,7 +2168,7 @@ func UserErrorFromStatus(s keybase1.StatusCode) error {
 	case keybase1.StatusCode_SCOk:
 		return nil
 	case keybase1.StatusCode_SCDeleted:
-		return DeletedError{}
+		return UserDeletedError{}
 	default:
 		return &APIError{Code: int(s), Msg: "user status error"}
 	}
