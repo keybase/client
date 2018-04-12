@@ -22,7 +22,7 @@ type State = {
   lastJustSaved: Date,
 }
 
-const computeNextState = (props: Props, state: State, now: number): null | SaveState | number => {
+const computeNextState = (props: Props, state: State, now: Date): null | SaveState | number => {
   const {saveState} = state
   switch (saveState) {
     case 'steady':
@@ -160,5 +160,6 @@ class SaveIndicator extends React.Component<Props, State> {
   }
 }
 
-export type {SaveState}
+export type {Props, State}
+export {computeNextState}
 export default SaveIndicator
