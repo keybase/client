@@ -127,7 +127,7 @@ func noteMixKeys(ctx context.Context, g *libkb.GlobalContext, puk1 libkb.PerUser
 		return res, fmt.Errorf("recipient per-user key was not a DH key")
 	}
 	var zeros [32]byte
-	// This is a constant used for key derivation.
+	// This is a constant nonce used for key derivation.
 	// The derived key will be used with one-time random nonces for the actual encryption/decryption.
 	nonce := noteMixPukNonce()
 	sharedSecretBox := box.Seal(nil, zeros[:], &nonce, (*[32]byte)(&puk2Enc.Public), (*[32]byte)(puk1Enc.Private))
