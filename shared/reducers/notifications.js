@@ -50,6 +50,7 @@ export default function(state: Types.State = initialState, action: Notifications
       const navBadges = state.get('navBadges').withMutations(n => {
         n.set(Tabs.chatTab, totalMessages)
         n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
+        n.set(Tabs.fsTab, newTlfs + rekeysNeeded)
         n.set(Tabs.gitTab, newGit)
         n.set(Tabs.teamsTab, newTeams)
         n.set(Tabs.peopleTab, homeTodoItems)

@@ -2,8 +2,8 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, isMobile, glamorous, platformStyles} from '../../styles'
+import {Badge, Box, ClickableBox, Icon, Meta, Text, Divider} from '../../common-adapters'
 import {memoize} from 'lodash-es'
-import {Box, ClickableBox, Icon, Text, Divider} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
 
@@ -13,6 +13,8 @@ type RowProps = {
   lastModifiedTimestamp: number,
   lastWriter: string,
   itemStyles: Types.ItemStyles,
+  badgeCount: number,
+  tlfMeta?: Types.FavoriteMetadata,
   onOpen: () => void,
   openInFileUI: () => void,
   onAction: (event: SyntheticEvent<>) => void,
@@ -32,12 +34,37 @@ const HoverBox = isMobile
       },
     })
 
+const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
+  if (isIgnored || !(isNew || isIgnored || needsRekey || badgeCount)) {
+    return <Box />
+  }
+
+  return (
+    <Box style={{width: 0, display: 'flex'}}>
+      {needsRekey && (
+        <Box style={styleBadgeContainerRekey}>
+          <Meta title="rekey" style={badgeStyleRekey} />
+        </Box>
+      )}
+      {isNew && (
+        <Box style={styleBadgeContainerNew}>
+          <Meta title="new" style={badgeStyleNew} />
+        </Box>
+      )}
+      <Box style={styleBadgeContainer}>
+        {!!badgeCount && <Badge badgeNumber={badgeCount} badgeStyle={badgeStyleCount} />}
+      </Box>
+    </Box>
+  )
+}
+
 export const Row = (props: RowProps) => (
   <Box>
     <Box style={stylesCommonRow}>
       <HoverBox style={stylesRowContainer}>
         <ClickableBox onClick={props.onOpen} style={stylesRowBox}>
           <PathItemIcon spec={props.itemStyles.iconSpec} style={pathItemIconStyle} />
+          <RowMeta badgeCount={props.badgeCount} {...props.tlfMeta} />
           <Box style={folderBoxStyle}>
             <Text
               type={props.itemStyles.textType}
@@ -161,3 +188,35 @@ const rowTextStyles = memoize(color =>
     },
   })
 )
+
+const styleBadgeContainer = {
+  position: 'absolute',
+  left: 24,
+  top: -1,
+}
+
+const styleBadgeContainerNew = {
+  ...styleBadgeContainer,
+  left: 16,
+}
+
+const styleBadgeContainerRekey = {
+  ...styleBadgeContainer,
+  top: 24,
+  left: 8,
+}
+
+const badgeStyleNew = {
+  color: globalColors.white,
+  backgroundColor: globalColors.orange,
+}
+
+const badgeStyleRekey = {
+  color: globalColors.white,
+  backgroundColor: globalColors.red,
+}
+
+const badgeStyleCount = {
+  marginLeft: 0,
+  marginRight: 0,
+}

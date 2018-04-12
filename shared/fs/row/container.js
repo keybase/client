@@ -8,7 +8,7 @@ import {Row} from './row'
 import {isMobile, isLinux} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
+  const pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
   const _username = state.config.username || undefined
   return {
     _username,
@@ -66,6 +66,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   name: stateProps.pathItem.name,
   type: stateProps.pathItem.type,
+  badgeCount: stateProps.pathItem.badgeCount,
+  tlfMeta: stateProps.pathItem.tlfMeta,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
   lastWriter: stateProps.pathItem.lastWriter.username,
   onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),

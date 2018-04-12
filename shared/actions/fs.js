@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/fs'
 import * as FsGen from './fs-gen'
 import * as I from 'immutable'
@@ -22,6 +23,23 @@ import {
 import {isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
+
+function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  try {
+    const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+      args: [{key: 'problems', value: '1'}],
+      endpoint: 'kbfs/favorite/list',
+    })
+    const username = state.config.username || ''
+    const loggedIn = state.config.loggedIn
+    const folders = Constants.folderToFavoriteItems(results && results.body, username, loggedIn)
+
+    yield Saga.put(FsGen.createFavoritesLoaded({folders}))
+  } catch (e) {
+    logger.warn('Error listing favorites:', e)
+  }
+}
 
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
@@ -76,7 +94,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   ]
 
   // Get metadata fields of the directory that we just loaded from state to
-  // avoid override them.
+  // avoid overriding them.
   const state = yield Saga.select()
   const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
 
@@ -89,7 +107,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
           lastWriter,
           size,
           name: Types.getPathName(rootPath),
-          children: I.List(entries.map(d => d.name)),
+          children: I.Set(entries.map(d => d.name)),
           progress: 'loaded',
         }),
       ],
@@ -247,6 +265,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
+  yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
