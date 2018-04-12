@@ -74,4 +74,30 @@ describe('computeNextState', () => {
       expect(nextState).toEqual('justSaved')
     }
   })
+
+  it('justSaved to saving or steady', () => {
+    const props: Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const state: State = {
+      saving: false,
+      lastSave: new Date(5000),
+      saveState: 'justSaved',
+      lastJustSaved: new Date(6000),
+    }
+    const now = new Date(8999)
+
+    {
+      const nextState = computeNextState(props, state, now)
+      expect(nextState).toEqual(1)
+    }
+
+    {
+      const nextState = computeNextState({...props, saving: true}, {...state, saving: true}, now)
+      expect(nextState).toEqual('saving')
+    }
+
+    {
+      const nextState = computeNextState(props, state, new Date(9000))
+      expect(nextState).toEqual('steady')
+    }
+  })
 })
