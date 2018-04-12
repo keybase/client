@@ -82,21 +82,41 @@ type Inbox struct {
 	Pagination      *chat1.Pagination
 }
 
+type ConvLoaderPriority int
+
+var (
+	ConvLoaderPriorityHighest ConvLoaderPriority = 10
+	ConvLoaderPriorityHigh    ConvLoaderPriority = 7
+	ConvLoaderPriorityMedium  ConvLoaderPriority = 5
+	ConvLoaderPriorityLow     ConvLoaderPriority = 3
+	ConvLoaderPriorityLowest  ConvLoaderPriority
+)
+
+func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
+	return int(c) > int(c2)
+}
+
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
 	Pagination   *chat1.Pagination
+	Priority     ConvLoaderPriority
 	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
+}
+
+func (j ConvLoaderJob) HigherPriorityThan(j2 ConvLoaderJob) bool {
+	return j.Priority.HigherThan(j2.Priority)
 }
 
 func (j ConvLoaderJob) String() string {
 	return fmt.Sprintf("[convID: %s pagination: %v]", j.ConvID, j.Pagination)
 }
 
-func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination,
+func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
 	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
 		Pagination:   pagination,
+		Priority:     priority,
 		PostLoadHook: postLoadHook,
 	}
 }

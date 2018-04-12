@@ -967,7 +967,7 @@ func (s *HybridConversationSource) ExpungeFromDelete(ctx context.Context, uid gr
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ExpungeFromDelete: delete not found, expunging")
 	p := &chat1.Pagination{Num: 100}
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p,
+	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			expunge := chat1.Expunge{
 				Upto: tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID()),

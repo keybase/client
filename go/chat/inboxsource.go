@@ -525,8 +525,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, ib.RateLimit, err
 	}
 
-	// Run all expunge operations on fetched conversations
-	for _, conv := range ib.Inbox.Full().Conversations {
+	for index, conv := range ib.Inbox.Full().Conversations {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
@@ -536,14 +535,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
 			s.G().ConvSource.ExpungeFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
 		}
-	}
 
-	// Queue all these convs up to be loaded by the background loader
-	for index, conv := range ib.Inbox.Full().Conversations {
+		// Queue all these convs up to be loaded by the background loader
 		// Only load first 100 so we don't get the conv loader too backed up
 		if index < 100 {
 			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
-				newConvLoaderPagebackHook(s.G(), 0, 5))
+				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}

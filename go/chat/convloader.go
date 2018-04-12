@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"container/list"
 	"errors"
 	"sync"
 	"time"
@@ -30,6 +31,58 @@ type clTask struct {
 	lastAttemptAt time.Time
 }
 
+type jobQueue struct {
+	sync.Mutex
+	queue   *list.List
+	retCh   *chan clTask
+	maxSize int
+}
+
+func newJobQueue(maxSize int) *jobQueue {
+	return &jobQueue{
+		queue:   list.New(),
+		maxSize: maxSize,
+	}
+}
+
+func (j *jobQueue) Pop() <-chan clTask {
+	j.Lock()
+	defer j.Unlock()
+	ret := make(chan clTask, 1)
+	if j.queue.Len() > 0 {
+		front := j.queue.Front()
+		j.queue.Remove(front)
+		task := front.Value.(clTask)
+		ret <- task
+		return ret
+	}
+	j.retCh = &ret
+	return ret
+}
+
+func (j *jobQueue) Push(task clTask) error {
+	j.Lock()
+	defer j.Unlock()
+	// If we someone waiting for this already, then just send it to them and return
+	if j.retCh != nil {
+		*j.retCh <- task
+		j.retCh = nil
+		return nil
+	}
+	if j.queue.Len() >= j.maxSize {
+		return errors.New("job queue full")
+	}
+	for e := j.queue.Front(); e != nil; e = e.Next() {
+		eval := e.Value.(clTask)
+		if task.job.HigherPriorityThan(eval.job) {
+			j.queue.InsertBefore(task, e)
+			return nil
+		}
+	}
+	j.queue.PushBack(task)
+	return nil
+}
+
 type BackgroundConvLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -37,7 +90,7 @@ type BackgroundConvLoader struct {
 
 	uid           gregor1.UID
 	started       bool
-	queueCh       chan clTask
+	queue         *jobQueue
 	stopCh        chan chan struct{}
 	suspendCh     chan chan struct{}
 	resumeCh      chan struct{}
@@ -187,14 +240,7 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
-	select {
-	case b.queueCh <- task:
-		b.Debug(ctx, "enqueue: added %s to queue", task.job)
-	default:
-		b.Debug(ctx, "enqueue: queue is full, not adding %s", task.job)
-		return errors.New("queue is full")
-	}
-	return nil
+	return b.queue.Push(task)
 }
 
 func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
@@ -266,7 +312,7 @@ func (b *BackgroundConvLoader) loop() {
 	// Main loop
 	for {
 		select {
-		case task := <-b.queueCh:
+		case task := <-b.queue.Pop():
 			if task.job.ConvID.IsNil() {
 				// means we closed this channel
 				continue
@@ -328,10 +374,7 @@ func (b *BackgroundConvLoader) loop() {
 }
 
 func (b *BackgroundConvLoader) newQueue() {
-	if b.queueCh != nil {
-		close(b.queueCh)
-	}
-	b.queueCh = make(chan clTask, 200)
+	b.queue = newJobQueue(1000)
 }
 
 func (b *BackgroundConvLoader) retriableError(err error) bool {
@@ -403,6 +446,7 @@ func newConvLoaderPagebackHook(g *globals.Context, curCalls, maxCalls int) func(
 		}
 		job.Pagination.Next = tv.Pagination.Next
 		job.Pagination.Previous = nil
+		job.Priority = types.ConvLoaderPriorityLow
 		job.PostLoadHook = newConvLoaderPagebackHook(g, curCalls+1, maxCalls)
 		if err := g.ConvLoader.Queue(ctx, job); err != nil {
 			g.GetLog().CDebugf(ctx, "newConvLoaderPagebackHook: failed to queue job: %s", err)
