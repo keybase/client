@@ -31,10 +31,11 @@ type Storage struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	engine       storageEngine
-	idtracker    *msgIDTracker
-	breakTracker *breakTracker
-	delhTracker  *delhTracker
+	engine           storageEngine
+	idtracker        *msgIDTracker
+	breakTracker     *breakTracker
+	delhTracker      *delhTracker
+	ephemeralTracker *ephemeralTracker
 }
 
 type storageEngine interface {
@@ -48,12 +49,13 @@ type storageEngine interface {
 
 func New(g *globals.Context) *Storage {
 	return &Storage{
-		Contextified: globals.NewContextified(g),
-		engine:       newBlockEngine(g),
-		idtracker:    newMsgIDTracker(g),
-		breakTracker: newBreakTracker(g),
-		delhTracker:  newDelhTracker(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Storage", false),
+		Contextified:     globals.NewContextified(g),
+		engine:           newBlockEngine(g),
+		idtracker:        newMsgIDTracker(g),
+		breakTracker:     newBreakTracker(g),
+		delhTracker:      newDelhTracker(g),
+		ephemeralTracker: newEphemeralTracker(g),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
 }
 
@@ -315,10 +317,7 @@ func (s *Storage) Expunge(ctx context.Context,
 // MergeHelper requires msgs to be sorted by descending message ID
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (MergeResult, Error) {
-
-	var res MergeResult
-	var err Error
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
 
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
@@ -358,6 +357,17 @@ func (s *Storage) MergeHelper(ctx context.Context,
 		return res, s.MaybeNuke(false, err, convID, uid)
 	}
 	res.Expunged = expunged
+
+	purgeInfo, _, err := s.filterEphemeralMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return res, s.MaybeNuke(false, err, convID, uid)
+	}
+	// We may only be merging in some subset of messages, we only update if the
+	// info we get is more restrictive that what we have already
+	err = s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	if err != nil {
+		s.Debug(ctx, "failed to update ephemeralTracker")
+	}
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
@@ -703,11 +713,17 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
 	// Run seek looking for all the messages
-	var res []chat1.MessageUnboxed
 	if err = s.engine.ReadMessages(ctx, rc, convID, uid, maxID); err != nil {
 		return chat1.ThreadView{}, err
 	}
-	res = rc.Result()
+	msgs := rc.Result()
+
+	// Clear out any ephemeral messages that have exploded before we hand these
+	// messages out.
+	_, validMsgs, err := s.filterEphemeralMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return chat1.ThreadView{}, err
+	}
 
 	// Get the stored latest point upto which has been deleted.
 	// `maxDeletedUpto` can be behind the times, so the pager is patched later in ConvSource.
@@ -725,16 +741,16 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	// Form paged result
 	var tres chat1.ThreadView
 	var pmsgs []pager.Message
-	for _, m := range res {
+	for _, m := range validMsgs {
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
 		return chat1.ThreadView{},
 			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
-	tres.Messages = res
+	tres.Messages = validMsgs
 
-	s.Debug(ctx, "Fetch: cache hit: num: %d", len(res))
+	s.Debug(ctx, "Fetch: cache hit: num: %d", len(validMsgs))
 	return tres, nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -38,6 +39,7 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_EDIT,
@@ -50,10 +52,18 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
+func makeEphemeralEdit(id chat1.MessageID, supersedes chat1.MessageID, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessageUnboxed {
+	msg := makeEdit(id, supersedes)
+	mvalid := msg.Valid()
+	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
+	return chat1.NewMessageUnboxedWithValid(mvalid)
+}
+
 func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []chat1.MessageID) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_DELETE,
@@ -69,6 +79,7 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_TEXT,
@@ -80,10 +91,18 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
+func makeEphemeralText(id chat1.MessageID, text string, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessageUnboxed {
+	msg := makeText(id, text)
+	mvalid := msg.Valid()
+	mvalid.ClientHeader.EphemeralMetadata = ephemeralMetadata
+	return chat1.NewMessageUnboxedWithValid(mvalid)
+}
+
 func makeSystemMessage(id chat1.MessageID) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_SYSTEM,
@@ -101,6 +120,7 @@ func makeHeadlineMessage(id chat1.MessageID) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_HEADLINE,
@@ -116,6 +136,7 @@ func makeDeleteHistory(id chat1.MessageID, upto chat1.MessageID) chat1.MessageUn
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_DELETEHISTORY,
@@ -131,6 +152,7 @@ func makeMsgWithType(id chat1.MessageID, typ chat1.MessageType) chat1.MessageUnb
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
+			Ctime:     gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: typ,

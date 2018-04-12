@@ -174,8 +174,10 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				continue
 			}
 			if !newMsg.IsValidFull() {
-				// Drop the message. It has been deleted locally but not superseded by anything.
-				// Could have been deleted by a delete-history or retention expunge.
+				// Drop the message. It has been deleted locally but not
+				// superseded by anything.  Could have been deleted by a
+				// delete-history, retention expunge, or was an exploding
+				// message.
 				continue
 			}
 			newMsgs = append(newMsgs, *newMsg)

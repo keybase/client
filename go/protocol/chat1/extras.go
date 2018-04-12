@@ -341,18 +341,24 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
-func (m MessageUnboxedValid) GetEphemeralMetadata() *MsgEphemeralMetadata {
+func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
+func (m MessageUnboxedValid) Etime() gregor1.Time {
+	metadata := m.EphemeralMetadata()
+	etime := m.ServerHeader.Ctime.Time().Add(time.Second * time.Duration(metadata.Lifetime))
+	return gregor1.ToTime(etime)
+}
+
 func (m MessageUnboxedValid) IsEphemeralExpired() bool {
-	metadata := m.GetEphemeralMetadata()
-	expired := time.Now().Sub(m.ServerHeader.Ctime.Time()) >= time.Second*time.Duration(metadata.Lifetime)
-	return expired || m.ServerHeader.ExplodedByUID != nil
+	etime := m.Etime().Time()
+	now := time.Now()
+	return etime.Before(now) || etime.Equal(now) || m.ServerHeader.ExplodedByUID != nil
 }
 
 func (m MessageUnboxedValid) IsExploding() bool {
-	return m.GetEphemeralMetadata() != nil
+	return m.EphemeralMetadata() != nil
 }
 
 func (b MessageBody) IsNil() bool {
@@ -431,12 +437,12 @@ func (m MessageBoxed) KBFSEncrypted() bool {
 	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
 }
 
-func (m MessageBoxed) GetEphemeralMetadata() *MsgEphemeralMetadata {
+func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
 func (m MessageBoxed) IsExploding() bool {
-	return m.GetEphemeralMetadata() != nil
+	return m.EphemeralMetadata() != nil
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{

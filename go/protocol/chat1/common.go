@@ -743,16 +743,6 @@ func (o Expunge) DeepCopy() Expunge {
 	}
 }
 
-type ConvEphemeralMetadata struct {
-	LastKtime gregor1.Time `codec:"lastKtime" json:"lastKtime"`
-}
-
-func (o ConvEphemeralMetadata) DeepCopy() ConvEphemeralMetadata {
-	return ConvEphemeralMetadata{
-		LastKtime: o.LastKtime.DeepCopy(),
-	}
-}
-
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
@@ -920,16 +910,15 @@ func (o ConversationCreatorInfoLocal) DeepCopy() ConversationCreatorInfoLocal {
 }
 
 type Conversation struct {
-	Metadata          ConversationMetadata          `codec:"metadata" json:"metadata"`
-	ReaderInfo        *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	Notifications     *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	MaxMsgs           []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
-	MaxMsgSummaries   []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
-	CreatorInfo       *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	Expunge           Expunge                       `codec:"expunge" json:"expunge"`
-	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
-	TeamRetention     *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
-	EphemeralMetadata *ConvEphemeralMetadata        `codec:"em,omitempty" json:"em,omitempty"`
+	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
+	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
+	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -993,13 +982,6 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TeamRetention),
-		EphemeralMetadata: (func(x *ConvEphemeralMetadata) *ConvEphemeralMetadata {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.EphemeralMetadata),
 	}
 }
 

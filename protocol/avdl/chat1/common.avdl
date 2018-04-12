@@ -210,10 +210,6 @@
   }
 
   @mpackkey("em") @jsonkey("em")
-  record ConvEphemeralMetadata {
-    gregor1.Time lastKtime;
-  }
-
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -281,10 +277,6 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-
-    // The last message id that was exploded.
-    @mpackkey("em") @jsonkey("em")
-    union { null, ConvEphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageSummary {

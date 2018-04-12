@@ -665,11 +665,9 @@ export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomi
 
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConvEphemeralMetadata = $ReadOnly<{lastKtime: Gregor1.Time}>
-
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, ephemeralMetadata?: ?ConvEphemeralMetadata}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 
@@ -752,8 +750,6 @@ export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
-
-export type EphemeralPurgePayload = $ReadOnly<{Action: String, convMetadata: {[key: string]: ConvEphemeralMetadata}, inboxVers: InboxVers}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
