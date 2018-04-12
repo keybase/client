@@ -101,7 +101,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     const onStateChange = nextProps.onStateChange
-    const newPartialState = {saving: nextProps.saving, savingChanged: Date.now()}
+    const newPartialState = {saving: nextProps.saving, ...(nextProps.saving ? {lastSave: Date.now()} : {})}
     if (onStateChange) {
       onStateChange(`merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`)
     }
