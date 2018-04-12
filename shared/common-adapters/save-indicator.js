@@ -129,7 +129,7 @@ class SaveIndicator extends React.Component<Props, State> {
     this._runStateMachine()
   }
 
-  render = () => {
+  _getChildren = () => {
     const {saveState} = this.state
     switch (saveState) {
       case 'steady':
@@ -137,19 +137,15 @@ class SaveIndicator extends React.Component<Props, State> {
 
       case 'saving':
       case 'savingHysteresis':
-        return (
-          <Box style={containerStyle}>
-            <ProgressIndicator style={{width: globalMargins.medium}} />
-          </Box>
-        )
+        return <ProgressIndicator style={{width: globalMargins.medium}} />
       case 'justSaved':
         return (
-          <Box style={containerStyle}>
+          <React.Fragment>
             <Icon type="iconfont-check" style={{color: globalColors.green}} />
             <Text type="BodySmall" style={{color: globalColors.green2}}>
               &nbsp; Saved
             </Text>
-          </Box>
+          </React.Fragment>
         )
 
       default:
@@ -157,6 +153,10 @@ class SaveIndicator extends React.Component<Props, State> {
         ;(saveState: empty)
         throw new Error(`Unexpected state ${saveState}`)
     }
+  }
+
+  render = () => {
+    return <Box style={containerStyle}>{this._getChildren()}</Box>
   }
 }
 
