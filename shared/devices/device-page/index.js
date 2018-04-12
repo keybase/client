@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/rpc-gen'
-import {Meta, NameWithIcon, Box, Text, Button, VBox, HBox, HeaderHoc} from '../../common-adapters'
+import {Meta, NameWithIcon, Box, Text, Button, Box2, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../../styles'
 
 export type TimelineItem = {
@@ -32,7 +32,7 @@ const TimelineMarker = ({first, last, closedCircle}) => (
 )
 
 const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
-  <VBox style={styles.timelineLabel}>
+  <Box2 direction="vertical" style={styles.timelineLabel}>
     <Text type="Body">{desc}</Text>
     {subDesc &&
       subDescIsName && (
@@ -45,14 +45,14 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
       )}
     {subDesc && !subDescIsName && <Text type="BodySmall">{subDesc}</Text>}
     {spacerOnBottom && <Box style={{height: 15}} />}
-  </VBox>
+  </Box2>
 )
 
 const Timeline = ({timeline}) =>
   timeline ? (
-    <VBox centered={true}>
+    <Box2 direction="vertical">
       {timeline.map(({type, desc, subDesc}, idx) => (
-        <HBox key={desc} gap={16}>
+        <Box2 direction="horizontal" key={desc} gap="small" fullWidth={true}>
           <TimelineMarker
             first={idx === 0}
             last={idx === timeline.length - 1}
@@ -64,9 +64,9 @@ const Timeline = ({timeline}) =>
             subDesc={subDesc}
             subDescIsName={['Added', 'Revoked'].includes(type)}
           />
-        </HBox>
+        </Box2>
       ))}
-    </VBox>
+    </Box2>
   ) : null
 
 const Render = (props: Props) => {
@@ -74,23 +74,21 @@ const Render = (props: Props) => {
   if (props.currentDevice) {
     metaOne = 'Current device'
   } else if (props.revokedAt) {
-    metaOne = <Meta title="REVOKED" style={styles.meta} />
+    metaOne = <Meta title="revoked" style={styles.meta} backgroundColor={globalColors.red} />
   }
 
   return (
-    <VBox fullHeight={true}>
-      <VBox gap={15}>
-        <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
-        <Timeline timeline={props.timeline} />
-        {!props.revokedAt && (
-          <Button
-            type="Danger"
-            label={`Revoke this ${props.revokeName || ''}`}
-            onClick={props.showRevokeDevicePage}
-          />
-        )}
-      </VBox>
-    </VBox>
+    <Box2 direction="vertical" gap='small' fullWidth={true}>
+      <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
+      <Timeline timeline={props.timeline} />
+      {!props.revokedAt && (
+        <Button
+          type="Danger"
+          label={`Revoke this ${props.revokeName || ''}`}
+          onClick={props.showRevokeDevicePage}
+        />
+      )}
+    </Box2>
   )
 }
 
@@ -119,7 +117,6 @@ const styles = styleSheetCreate({
   },
   meta: {
     alignSelf: 'center',
-    backgroundColor: globalColors.red,
     marginTop: 4,
   },
   subDesc: {

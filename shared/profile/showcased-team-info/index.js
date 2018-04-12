@@ -26,7 +26,7 @@ const TeamInfo = (props: Props) => (
 
     <Box style={globalStyles.flexBoxRow}>
       <Text type="BodySmall">TEAM</Text>
-      {props.openTeam && <Meta title="OPEN" style={styleMeta} />}
+      {props.openTeam && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
     </Box>
 
     <Text type="BodySmall">{props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}</Text>
@@ -118,7 +118,6 @@ const styleInnerWrap = {
 
 const styleMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
   borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,

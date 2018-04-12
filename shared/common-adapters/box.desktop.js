@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import {type StylesCrossPlatform, globalStyles, collapseStyles} from '../styles'
+import {globalStyles, collapseStyles} from '../styles'
 import {intersperseFn} from '../util/arrays'
+import type {Box2Props} from './box'
 
 class Box extends React.Component<any> {
   render() {
@@ -24,89 +25,49 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
-type VBoxProps = {
-  children: React.Node,
-  fullHeight?: true,
-  centered?: true,
-  style?: StylesCrossPlatform,
-  gap?: number,
-  gapStart?: boolean,
-  gapEnd?: boolean,
-}
-class VBox extends React.Component<VBoxProps> {
+class Box2 extends React.Component<Box2Props> {
   render() {
+    const horizontal = this.props.direction === 'horizontal'
     const style = collapseStyles([
-      this.props.fullHeight ? styles.vboxFullHeight : styles.vbox,
-      this.props.centered ? styles.vboxCentered : null,
+      horizontal ? styles.hbox : styles.vbox,
+      this.props.fullHeight && styles.fullHeight,
+      this.props.fullWidth && styles.fullWidth,
+      !this.props.fullHeight && !this.props.fullWidth && styles.centered,
+      // uncomment this to get debugging colors
+      // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
       this.props.style,
     ])
     return (
       <div style={style}>
-        {injectGaps(VBoxGap, this.props.children, this.props.gap, this.props.gapStart, this.props.gapEnd)}
+        {injectGaps(
+          horizontal ? HBoxGap : VBoxGap,
+          this.props.children,
+          this.props.gap,
+          this.props.gapStart,
+          this.props.gapEnd
+        )}
       </div>
     )
   }
 }
 const VBoxGap = ({gap}) => <div style={{height: gap}} />
-
-type HBoxProps = {
-  children: React.Node,
-  fullWidth?: true,
-  style?: StylesCrossPlatform,
-  gap?: number,
-  gapStart?: boolean,
-  gapEnd?: boolean,
-}
-class HBox extends React.Component<HBoxProps> {
-  render() {
-    const style = collapseStyles([
-      this.props.fullWidth ? styles.hboxFullWidth : styles.hbox,
-      this.props.centered ? styles.hboxCentered : null,
-      this.props.style,
-    ])
-    return (
-      <div style={style}>
-        {injectGaps(HBoxGap, this.props.children, this.props.gap, this.props.gapStart, this.props.gapEnd)}
-      </div>
-    )
-  }
-}
 const HBoxGap = ({gap}) => <div style={{width: gap}} />
 
 const styles = {
+  centered: {alignSelf: 'center'},
+  fullHeight: {height: '100%'},
+  fullWidth: {width: '100%'},
   hbox: {
     ...globalStyles.flexBoxRow,
     alignItems: 'stretch',
-    height: '100%',
-  },
-  hboxCentered: {
-    alignSelf: 'center',
-    width: undefined,
-  },
-  hboxFullWidth: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'stretch',
-    height: '100%',
-    width: '100%',
+    justifyContent: 'flex-start',
   },
   vbox: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     justifyContent: 'flex-start',
-    width: '100%',
-  },
-  vboxCentered: {
-    alignSelf: 'center',
-    width: undefined,
-  },
-  vboxFullHeight: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    height: '100%',
-    justifyContent: 'flex-start',
-    width: '100%',
   },
 }
 
 export default Box
-export {Box, VBox, HBox}
+export {Box, Box2}

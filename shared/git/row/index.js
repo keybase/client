@@ -118,7 +118,9 @@ class Row extends React.Component<Props, State> {
               <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Text>
-              {this.props.isNew && <Meta title="New" style={_metaStyle} />}
+              {this.props.isNew && (
+                <Meta title="new" style={_metaStyle} backgroundColor={globalColors.orange} />
+              )}
             </Box>
           </ClickableBox>
           {this.props.expanded && (
@@ -371,7 +373,6 @@ const _iconCaretStyle = {
 
 const _metaStyle = {
   alignSelf: 'center',
-  backgroundColor: globalColors.orange,
   marginLeft: 6,
 }
 

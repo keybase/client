@@ -111,7 +111,9 @@ class BottomLine extends PureComponent<Props> {
           maxHeight: isMobile ? 20 : 17,
         }}
       >
-        {this.props.hasResetUsers && <Meta title="RESET" style={resetStyle} />}
+        {this.props.hasResetUsers && (
+          <Meta title="reset" style={resetStyle} backgroundColor={globalColors.red} />
+        )}
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -136,12 +138,18 @@ class BottomLine extends PureComponent<Props> {
   }
 }
 
-const resetStyle = {
-  ...(isMobile ? {marginTop: 2} : {display: 'block'}),
-  alignSelf: 'center',
-  backgroundColor: globalColors.red,
-  marginRight: 6,
-}
+const resetStyle = platformStyles({
+  common: {
+    alignSelf: 'center',
+    marginRight: 6,
+  },
+  isElectron: {
+    display: 'block',
+  },
+  isMobile: {
+    marginTop: 2,
+  },
+})
 
 const styles = styleSheetCreate({
   bottomLine: platformStyles({

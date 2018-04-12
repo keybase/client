@@ -31,7 +31,6 @@ type RowProps = {
 }
 
 const newCharmStyle = {
-  backgroundColor: globalColors.orange,
   borderRadius: 1,
   marginRight: 4,
   alignSelf: 'center',
@@ -39,7 +38,6 @@ const newCharmStyle = {
 
 const openCharmStyle = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
   borderRadius: 1,
   marginLeft: 4,
   marginTop: 2,
@@ -83,10 +81,10 @@ const TeamRow = ({
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySemibold">{name}</Text>
-            {isOpen && <Meta title="OPEN" style={openCharmStyle} />}
+            {isOpen && <Meta title="open" style={openCharmStyle} backgroundColor={globalColors.green} />}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            {isNew && <Meta title="NEW" style={newCharmStyle} />}
+            {isNew && <Meta title="new" style={newCharmStyle} backgroundColor={globalColors.orange} />}
             <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
           </Box>
         </Box>
