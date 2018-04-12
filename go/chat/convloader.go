@@ -51,8 +51,8 @@ func (j *jobQueue) Pop() <-chan clTask {
 	ret := make(chan clTask, 1)
 	if j.queue.Len() > 0 {
 		front := j.queue.Front()
-		j.queue.Remove(front)
 		task := front.Value.(clTask)
+		j.queue.Remove(front)
 		ret <- task
 		return ret
 	}
@@ -63,7 +63,7 @@ func (j *jobQueue) Pop() <-chan clTask {
 func (j *jobQueue) Push(task clTask) error {
 	j.Lock()
 	defer j.Unlock()
-	// If we someone waiting for this already, then just send it to them and return
+	// If we have someone waiting for this already, then just send it to them and return
 	if j.retCh != nil {
 		*j.retCh <- task
 		j.retCh = nil
