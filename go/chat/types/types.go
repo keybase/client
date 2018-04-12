@@ -1,9 +1,12 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 var ActionNewConversation = "newConversation"
@@ -77,4 +80,23 @@ type Inbox struct {
 	ConvsUnverified []RemoteConversation
 	Convs           []chat1.ConversationLocal
 	Pagination      *chat1.Pagination
+}
+
+type ConvLoaderJob struct {
+	ConvID       chat1.ConversationID
+	Pagination   *chat1.Pagination
+	PostLoadHook func(context.Context, chat1.ThreadView)
+}
+
+func (j ConvLoaderJob) String() string {
+	return fmt.Sprintf("[convID: %s pagination: %v]", j.ConvID, j.Pagination)
+}
+
+func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination,
+	postLoadHook func(context.Context, chat1.ThreadView)) ConvLoaderJob {
+	return ConvLoaderJob{
+		ConvID:       convID,
+		Pagination:   pagination,
+		PostLoadHook: postLoadHook,
+	}
 }

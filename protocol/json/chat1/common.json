@@ -142,8 +142,7 @@
         "JOIN_9",
         "LEAVE_10",
         "SYSTEM_11",
-        "DELETEHISTORY_12",
-        "EXPLODENOW_13"
+        "DELETEHISTORY_12"
       ],
       "go": "nostring"
     },

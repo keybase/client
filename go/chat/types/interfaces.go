@@ -175,7 +175,7 @@ type FetchRetrier interface {
 type ConvLoader interface {
 	Resumable
 
-	Queue(ctx context.Context, convID chat1.ConversationID) error
+	Queue(ctx context.Context, job ConvLoaderJob) error
 	Suspend(ctx context.Context) bool
 	Resume(ctx context.Context) bool
 }

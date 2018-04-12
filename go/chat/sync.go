@@ -385,7 +385,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 
 		// Queue background conversation loads
 		for _, conv := range incr.Convs {
-			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
+			job := types.NewConvLoaderJob(conv.GetConvID(), nil, nil)
+			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 			}
 		}
