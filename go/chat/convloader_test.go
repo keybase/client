@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -43,7 +44,8 @@ func TestConvLoader(t *testing.T) {
 	tc, world, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
-	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(), res.ConvID))
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, nil, nil)))
 	select {
 	case convID := <-listener.bgConvLoads:
 		if !convID.Eq(res.ConvID) {
@@ -92,7 +94,8 @@ func TestConvLoaderSuspend(t *testing.T) {
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
-	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(), res.ConvID))
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, nil, nil)))
 	select {
 	case <-slowRi.callCh:
 	case <-time.After(20 * time.Second):
@@ -140,7 +143,8 @@ func TestConvLoaderAppState(t *testing.T) {
 		return slowRi
 	}
 	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
-	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(), res.ConvID))
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, nil, nil)))
 	clock.BlockUntil(1)
 	clock.Advance(200 * time.Millisecond) // Get by small sleep
 	select {
@@ -179,7 +183,8 @@ func TestConvLoaderAppState(t *testing.T) {
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
-	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(), res.ConvID))
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, nil, nil)))
 	clock.BlockUntil(1)
 	clock.Advance(200 * time.Millisecond) // Get by small sleep
 	select {
