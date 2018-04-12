@@ -75,8 +75,7 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
         return 'saving'
       }
 
-      const timeSinceLastSave = now - state.lastSave
-      const timeToJustSaved = props.minSavingTimeMs - timeSinceLastSave
+      const timeToJustSaved = state.lastSave.getTime() + props.minSavingTimeMs - now.getTime()
       if (timeToJustSaved > 0) {
         return timeToJustSaved
       }
@@ -88,8 +87,7 @@ const computeNextState = (props: Props, state: State, now: Date): null | SaveSta
         return 'saving'
       }
 
-      const timeSinceJustSaved = now - state.lastJustSaved
-      const timeToSteady = props.savedTimeoutMs - timeSinceJustSaved
+      const timeToSteady = state.lastJustSaved.getTime() + props.savedTimeoutMs - now.getTime()
       if (timeToSteady > 0) {
         return timeToSteady
       }
