@@ -1,22 +1,21 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/teams'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import * as Types from '../../../constants/types/teams'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 type TeamTabsProps = {
   admin: boolean,
   memberCount: number,
-  teamname: Types.Teamname,
-  newTeamRequests: Array<Types.Teamname>,
+  numNewRequests: number,
   numInvites: number,
   numRequests: number,
   numSubteams: number,
-  resetUserCount: number,
-  loading?: boolean,
-  selectedTab?: string,
-  setSelectedTab: (?Types.TabKey) => void,
+  numResetUsers: number,
+  loading: boolean,
+  selectedTab: Types.TabKey,
+  setSelectedTab: Types.TabKey => void,
   yourOperations: RPCTypes.TeamOperation,
 }
 
@@ -25,11 +24,10 @@ const TeamTabs = (props: TeamTabsProps) => {
     admin,
     numInvites,
     memberCount,
-    teamname,
-    newTeamRequests,
+    numNewRequests,
     numRequests,
     numSubteams,
-    resetUserCount,
+    numResetUsers,
     loading = false,
     selectedTab,
     setSelectedTab,
@@ -48,18 +46,12 @@ const TeamTabs = (props: TeamTabsProps) => {
       >
         {membersLabel}
       </Text>
-      {!!resetUserCount && <Badge badgeNumber={resetUserCount} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+      {!!numResetUsers && <Badge badgeNumber={numResetUsers} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
     </Box>,
   ]
 
-  let requestsBadge = 0
-  if (newTeamRequests.length) {
-    // Use min here so we never show a badge number > the (X) number of requests we have
-    requestsBadge = Math.min(
-      newTeamRequests.reduce((count, team) => (team === teamname ? count + 1 : count), 0),
-      numRequests
-    )
-  }
+  // Make sure we don't show a badge number > the number of requests we have
+  const cappedNumNewRequests = Math.min(numNewRequests, numRequests)
 
   if (admin) {
     let invitesLabel = 'INVITES'
@@ -74,7 +66,9 @@ const TeamTabs = (props: TeamTabsProps) => {
         >
           {invitesLabel}
         </Text>
-        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+        {!!cappedNumNewRequests && (
+          <Badge badgeNumber={cappedNumNewRequests} badgeStyle={{marginTop: 1, marginLeft: 2}} />
+        )}
       </Box>
     )
   }

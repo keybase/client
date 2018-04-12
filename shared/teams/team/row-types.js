@@ -9,18 +9,9 @@ type HeaderRow = {
 type TabsRow = {
   type: 'tabs',
   key: 'tabs',
-  admin: boolean,
-  memberCount: number,
   teamname: Types.Teamname,
-  newTeamRequests: Array<Types.Teamname>,
-  numInvites: number,
-  numRequests: number,
-  numSubteams: number,
-  loading?: boolean,
-  resetUserCount: number,
-  selectedTab?: string,
-  setSelectedTab: (?Types.TabKey) => void,
-  yourOperations: Types.TeamOperations,
+  selectedTab: Types.TabKey,
+  setSelectedTab: Types.TabKey => void,
 }
 
 /* Member row */

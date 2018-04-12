@@ -15,9 +15,9 @@ export type Props = {
   numSubteams: number,
   listItems?: Array<any>,
   loading: boolean,
-  selectedTab: string,
+  selectedTab: Types.TabKey,
   resetUserCount: number,
-  setSelectedTab: (?Types.TabKey) => void,
+  setSelectedTab: Types.TabKey => void,
   yourOperations: Types.TeamOperations,
   onShowMenu: any => void,
 }
@@ -29,18 +29,9 @@ const Team = (props: Props) => {
   rows.push({
     type: 'tabs',
     key: 'tabs',
-    admin: props.yourOperations.manageMembers,
-    memberCount: props.memberCount,
     teamname,
-    newTeamRequests: props.newTeamRequests,
-    numInvites: props.numInvites,
-    numRequests: props.numRequests,
-    numSubteams: props.numSubteams,
-    loading: props.loading,
-    resetUserCount: props.resetUserCount,
     selectedTab: props.selectedTab,
     setSelectedTab: props.setSelectedTab,
-    yourOperations: props.yourOperations,
   })
 
   if (props.selectedTab === 'publicity') {

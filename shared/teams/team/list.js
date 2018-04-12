@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import TeamHeader from './header/container'
-import TeamTabs from './tabs'
+import TeamTabs from './tabs/container'
 import renderMemberRow from './members/member-row/container'
 import {renderSubteamsRow} from './subteams/index'
 import {renderRequestsOrInvitesRow} from './invites/index'
