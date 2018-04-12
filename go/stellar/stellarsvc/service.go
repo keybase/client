@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -238,6 +239,17 @@ func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.Loc
 
 		ret = append(ret, acc)
 	}
+
+	// Put the primary account first
+	sort.SliceStable(ret, func(i, j int) bool {
+		if ret[i].IsPrimary {
+			return true
+		}
+		if ret[j].IsPrimary {
+			return false
+		}
+		return i < j
+	})
 
 	return ret, accountError
 }
