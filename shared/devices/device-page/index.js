@@ -3,7 +3,7 @@ import * as React from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Time} from '../../constants/types/rpc-gen'
 import {Meta, NameWithIcon, Box, Text, Button, VBox, HBox, HeaderHoc} from '../../common-adapters'
-import {globalStyles, globalColors, styleSheetCreate} from '../../styles'
+import {globalStyles, globalColors, styleSheetCreate, collapseStyles} from '../../styles'
 
 export type TimelineItem = {
   desc: string,
@@ -24,10 +24,10 @@ type Props = {
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-    <Box style={{...styles.timelineLine, height: 6, opacity: first ? 0 : 1}} />
+  <Box style={collapseStyles([globalStyles.flexBoxColumn, {alignItems: 'center'}])}>
+    <Box style={collapseStyles([styles.timelineLine, {height: 6, opacity: first ? 0 : 1}])} />
     <Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
-    <Box style={{...styles.timelineLine, flex: 1, opacity: last ? 0 : 1}} />
+    <Box style={collapseStyles([styles.timelineLine, {flex: 1, opacity: last ? 0 : 1}])} />
   </Box>
 )
 
@@ -38,7 +38,7 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
       subDescIsName && (
         <Text type="BodySmall">
           by{' '}
-          <Text type="BodySmall" style={{color: globalColors.black_75, fontStyle: 'italic'}}>
+          <Text type="BodySmall" style={styles.subDesc}>
             {subDesc}
           </Text>
         </Text>
@@ -78,7 +78,7 @@ const Render = (props: Props) => {
   }
 
   return (
-    <Box>
+    <VBox fullHeight={true}>
       <VBox gap={15}>
         <NameWithIcon icon={props.icon} title={props.name} metaOne={metaOne} />
         <Timeline timeline={props.timeline} />
@@ -90,7 +90,7 @@ const Render = (props: Props) => {
           />
         )}
       </VBox>
-    </Box>
+    </VBox>
   )
 }
 
@@ -121,6 +121,10 @@ const styles = styleSheetCreate({
     alignSelf: 'center',
     backgroundColor: globalColors.red,
     marginTop: 4,
+  },
+  subDesc: {
+    color: globalColors.black_75,
+    fontStyle: 'italic',
   },
   timelineLabel: {alignItems: 'flex-start'},
   timelineLine: {
