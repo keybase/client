@@ -89,11 +89,7 @@ func noteSymmetricKeyForDecryption(ctx context.Context, g *libkb.GlobalContext, 
 	if err != nil {
 		return res, err
 	}
-	err = pukring.Sync(ctx)
-	if err != nil {
-		return res, err
-	}
-	pukSeed, err := pukring.GetSeedByGeneration(ctx, mePukGen)
+	pukSeed, err := pukring.GetSeedByGenerationOrSync(ctx, mePukGen)
 	if err != nil {
 		return res, err
 	}
