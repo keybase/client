@@ -12,6 +12,7 @@ type Props = {
   saving: boolean,
   minSavingTimeMs: number,
   savedTimeoutMs: number,
+  onStateChange?: string => void,
 }
 
 type State = {
@@ -70,7 +71,13 @@ class SaveIndicator extends React.Component<Props, State> {
     this._timeoutID = setTimeout(fn, delay)
   }
 
-  componentDidUpdate = (prevProps: Props) => {
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
+    const onStateChange = this.props.onStateChange
+    if (onStateChange && prevState.saveState !== this.state.saveState) {
+      const dtS = (Date.now() - prevState.lastStateChangeTime) / 1000
+      onStateChange(`was in '${prevState.saveState}' for ${dtS}s, now in '${this.state.saveState}'`)
+    }
+
     if (this.props.saving) {
       // Already handled in getDerivedStateFromProps.
       return

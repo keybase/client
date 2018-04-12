@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {default as SaveIndicator} from './save-indicator'
-import {storiesOf} from '../stories/storybook'
+import {storiesOf, action} from '../stories/storybook'
 import {globalStyles} from '../styles'
 import Box from './box'
 import Button from './button'
@@ -36,7 +36,12 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
           style={{alignSelf: 'flex-start'}}
           type="Primary"
         />
-        <SaveIndicator saving={this.state.saving} minSavingTimeMs={2000} savedTimeoutMs={3000} />
+        <SaveIndicator
+          saving={this.state.saving}
+          minSavingTimeMs={2000}
+          savedTimeoutMs={3000}
+          onStateChange={action('onStateChange')}
+        />
       </Box>
     )
   }
