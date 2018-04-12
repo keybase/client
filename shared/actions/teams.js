@@ -103,6 +103,11 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const teamID = Constants.getTeamID(state, teamname)
+  if (!teamID) {
+    const errMsg = `getTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
+    logger.error(errMsg)
+    return
+  }
   const policy: RPCChatTypes.RetentionPolicy = yield Saga.call(
     RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
     {teamID}
@@ -133,7 +138,7 @@ const _saveTeamRetentionPolicy = function(
   // get teamID
   const teamID = Constants.getTeamID(state, teamname)
   if (!teamID) {
-    const errMsg = `Unable to find teamID for teamname ${teamname}`
+    const errMsg = `saveTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
     logger.error(errMsg)
     throw new Error(errMsg)
   }
