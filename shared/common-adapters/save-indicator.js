@@ -19,15 +19,15 @@ type Props = {
 
 type State = {
   saving: boolean,
-  savingChanged: number,
+  lastSave: number,
   saveState: SaveState2,
   saveStateChanged: number,
 }
 
 const computeNextState = (props: Props, state: State, now: number): null | SaveState2 | number => {
-  const timeSinceSavingChanged = now - state.savingChanged
+  const timeSinceLastSave = now - state.lastSave
   const timeSinceSaveStateChanged = now - state.saveStateChanged
-  const timeToJustSaved = props.minSavingTimeMs - timeSinceSavingChanged
+  const timeToJustSaved = props.minSavingTimeMs - timeSinceLastSave
 
   const {saveState} = state
   switch (saveState) {
@@ -92,7 +92,7 @@ class SaveIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {saving: false, savingChanged: 0, saveState: 'steady', saveStateChanged: 0}
+    this.state = {saving: false, lastSave: 0, saveState: 'steady', saveStateChanged: 0}
   }
 
   static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
