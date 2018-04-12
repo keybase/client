@@ -342,7 +342,7 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 	s := &RemoteInboxSource{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     labeler,
-		sourceOfflinable: newSourceOfflinable(labeler),
+		sourceOfflinable: newSourceOfflinable(g, labeler),
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, ri)
 	return s
@@ -487,7 +487,7 @@ func NewHybridInboxSource(g *globals.Context,
 	s := &HybridInboxSource{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     labeler,
-		sourceOfflinable: newSourceOfflinable(labeler),
+		sourceOfflinable: newSourceOfflinable(g, labeler),
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
 	return s
