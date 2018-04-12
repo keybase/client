@@ -3,6 +3,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
+import shallowEqual from 'shallowequal'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -54,6 +55,11 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       })
 
     case TeamsGen.setTeamCanPerform:
+      const existing = state.getIn(['teamNameToCanPerform', action.payload.teamname])
+      if (shallowEqual(existing, action.payload.teamOperation)) {
+        // noop
+        return state
+      }
       return state.setIn(['teamNameToCanPerform', action.payload.teamname], action.payload.teamOperation)
 
     case TeamsGen.setTeamPublicitySettings:

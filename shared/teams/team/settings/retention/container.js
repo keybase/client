@@ -181,7 +181,7 @@ export default compose(
   lifecycle({
     componentDidMount() {
       this.props._setParentPath(this.props._path)
-      this.props._loadTeamPolicy()
+      this.props.loading && this.props._loadTeamPolicy()
       !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },
   }),

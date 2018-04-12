@@ -6,6 +6,7 @@ import type {ConversationIDKey} from './chat2'
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type MaybeTeamRoleType = 'none' | TeamRoleType
 
+// TODO we should make this and other plain objects here into records
 export type TeamOperations = RPCTypes.TeamOperation
 
 export type PublicitySettings = {

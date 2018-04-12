@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   }
 
   return {
-    _yourOperations: Constants.getCanPerform(state, teamname),
+    _canJoinTeam: Constants.getCanPerform(state, teamname).joinTeam,
     selectedTab: routeState.get('selectedTab') || 'members',
     teamname,
   }
@@ -69,8 +69,8 @@ const mergeProps = (stateProps, dispatchProps): Props => {
       onOpenFolder={dispatchProps.onOpenFolder}
       onChat={dispatchProps.onChat}
       onShowMenu={dispatchProps.onShowMenu}
-      canChat={!stateProps._yourOperations.joinTeam}
-      canViewFolder={!stateProps._yourOperations.joinTeam}
+      canChat={!stateProps._canJoinTeam}
+      canViewFolder={!stateProps._canJoinTeam}
     />
   )
   return {
