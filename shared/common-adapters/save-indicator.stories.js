@@ -40,7 +40,7 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
           saving={this.state.saving}
           minSavingTimeMs={2000}
           savedTimeoutMs={3000}
-          onStateChange={action('onStateChange')}
+          debugLog={action('debugLog')}
         />
       </Box>
     )
