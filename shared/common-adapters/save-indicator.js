@@ -27,6 +27,8 @@ type State = {
 const computeNextState = (props: Props, state: State, now: number): null | SaveState2 | number => {
   const timeSinceSavingChanged = now - state.savingChanged
   const timeSinceSaveStateChanged = now - state.saveStateChanged
+  const timeToJustSaved = props.minSavingTimeMs - timeSinceSavingChanged
+  const timeToSteady = props.savedTimeoutMs - timeSinceSaveStateChanged
 
   const {saveState} = state
   switch (saveState) {
@@ -35,7 +37,7 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return 'saving'
       }
 
-      if (timeSinceSaveStateChanged <= props.savedTimeoutMs) {
+      if (timeToSteady > 0) {
         return 'justSaved'
       }
 
@@ -46,7 +48,7 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return null
       }
 
-      if (timeSinceSavingChanged <= props.minSavingTimeMs) {
+      if (timeToJustSaved > 0) {
         return 'savingHysteresis'
       } else {
         return 'justSaved'
@@ -57,28 +59,22 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return 'saving'
       }
 
-      const timeToJustSaved = timeSinceSavingChanged - props.minSavingTimeMs
-      if (timeToJustSaved <= 0) {
-        return 'justSaved'
+      if (timeToJustSaved > 0) {
+        return timeToJustSaved
       }
 
-      return timeToJustSaved
+      return 'justSaved'
 
     case 'justSaved':
       if (state.saving) {
         return 'saving'
       }
 
-      if (timeSinceSavingChanged <= props.minSavingTimeMs) {
-        return 'savingHysteresis'
+      if (timeToSteady > 0) {
+        return timeToSteady
       }
 
-      const timeToSteady = timeSinceSaveStateChanged - props.savedTimeoutMs
-      if (timeToSteady <= 0) {
-        return 'steady'
-      }
-
-      return timeToSteady
+      return 'steady'
 
     default:
       // eslint-disable-next-line no-unused-expressions
