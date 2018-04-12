@@ -16,8 +16,8 @@ const containerStyle = {
 }
 
 class SaveIndicatorContainer extends React.Component<{}, State> {
-  constructor() {
-    super({})
+  constructor(props) {
+    super(props)
     this.state = {saving: false}
   }
 
