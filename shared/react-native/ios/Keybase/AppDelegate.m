@@ -210,7 +210,7 @@ const BOOL isDebug = NO;
 - (void) hideCover {
   // Always cancel outstanding animations else they can fight and the timing is very weird
   [self.resignImageView.layer removeAllAnimations];
-  [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+  [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
     self.resignImageView.alpha = 0;
   } completion:nil];
 }
