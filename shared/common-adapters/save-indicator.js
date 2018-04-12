@@ -6,9 +6,7 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-type SaveState = 'same' | 'saving' | 'justSaved'
-
-type SaveState2 = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
+type SaveState = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
 
 type Props = {
   saving: boolean,
@@ -20,11 +18,11 @@ type Props = {
 type State = {
   saving: boolean,
   lastSave: Date,
-  saveState: SaveState2,
+  saveState: SaveState,
   saveStateChanged: Date,
 }
 
-const computeNextState = (props: Props, state: State, now: number): null | SaveState2 | number => {
+const computeNextState = (props: Props, state: State, now: number): null | SaveState | number => {
   const {saveState} = state
   switch (saveState) {
     case 'steady':
