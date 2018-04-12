@@ -19,9 +19,9 @@ type Props = {
 
 type State = {
   saving: boolean,
-  lastSave: number,
+  lastSave: Date,
   saveState: SaveState2,
-  saveStateChanged: number,
+  saveStateChanged: Date,
 }
 
 const computeNextState = (props: Props, state: State, now: number): null | SaveState2 | number => {
@@ -87,7 +87,7 @@ class SaveIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {saving: false, lastSave: 0, saveState: 'steady', saveStateChanged: 0}
+    this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', saveStateChanged: new Date(0)}
   }
 
   static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
@@ -96,7 +96,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     const onStateChange = nextProps.onStateChange
-    const newPartialState = {saving: nextProps.saving, ...(nextProps.saving ? {lastSave: Date.now()} : {})}
+    const newPartialState = {saving: nextProps.saving, ...(nextProps.saving ? {lastSave: new Date()} : {})}
     if (onStateChange) {
       onStateChange(`merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(prevState)}`)
     }
@@ -109,7 +109,7 @@ class SaveIndicator extends React.Component<Props, State> {
       this._timeoutID = null
     }
 
-    const now = Date.now()
+    const now = new Date()
     const result = computeNextState(this.props, this.state, now)
     if (!result) {
       return
