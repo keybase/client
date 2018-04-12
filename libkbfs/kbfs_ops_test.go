@@ -3693,3 +3693,76 @@ func TestKBFSOpsAutocreateNodesDir(t *testing.T) {
 func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
 	testKBFSOpsAutocreateNodes(t, Sym, "sympath")
 }
+
+func testKBFSOpsMigrateToImplicitTeam(t *testing.T, ty tlf.Type) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+
+	config2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+
+	t.Log("Create the folder before implicit teams are enabled.")
+	name := "u1,u2"
+	h, err := ParseTlfHandle(
+		ctx, config1.KBPKI(), config1.MDOps(), string(name), ty)
+	require.NoError(t, err)
+	require.False(t, h.IsBackedByTeam())
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
+		ctx, h, MasterBranch)
+	require.NoError(t, err)
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Load the folder for u2.")
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(
+		ctx, h, MasterBranch)
+	require.NoError(t, err)
+	eis, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
+	require.NoError(t, err)
+	require.Len(t, eis, 1)
+	_, ok := eis["a"]
+	require.True(t, ok)
+
+	// These are deterministic, and should add the same
+	// ImplicitTeamInfos for both user configs.
+	err = EnableImplicitTeamsForTest(config1)
+	require.NoError(t, err)
+	teamID := AddImplicitTeamForTestOrBust(t, config1, name, "", 1, ty)
+	_ = AddImplicitTeamForTestOrBust(t, config2, name, "", 1, ty)
+	// The service should be adding the team TLF ID to the iteam's
+	// sigchain before they call `StartMigration`.
+	err = config1.KBPKI().CreateTeamTLF(ctx, teamID, h.tlfID)
+	require.NoError(t, err)
+
+	t.Log("Starting migration to implicit team")
+	err = kbfsOps1.MigrateToImplicitTeam(ctx, h.tlfID)
+	require.NoError(t, err)
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
+	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Check migration from other client")
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	eis, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
+	require.NoError(t, err)
+	require.Len(t, eis, 2)
+	_, ok = eis["a"]
+	require.True(t, ok)
+	_, ok = eis["b"]
+	require.True(t, ok)
+}
+
+func TestKBFSOpsMigratePrivateToImplicitTeam(t *testing.T) {
+	testKBFSOpsMigrateToImplicitTeam(t, tlf.Private)
+}
+
+func TestKBFSOpsMigratePublicToImplicitTeam(t *testing.T) {
+	testKBFSOpsMigrateToImplicitTeam(t, tlf.Public)
+}
