@@ -193,7 +193,7 @@ class SaveIndicator extends React.Component<Props, State> {
   }
 
   render = () => {
-    return <Box style={collapseStyles[(defaultStyle, this.props.style)]}>{this._getChildren()}</Box>
+    return <Box style={collapseStyles([defaultStyle, this.props.style])}>{this._getChildren()}</Box>
   }
 }
 
