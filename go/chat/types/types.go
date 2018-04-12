@@ -85,7 +85,7 @@ type Inbox struct {
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
 	Pagination   *chat1.Pagination
-	PostLoadHook func(context.Context, chat1.ThreadView)
+	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
 }
 
 func (j ConvLoaderJob) String() string {
@@ -93,7 +93,7 @@ func (j ConvLoaderJob) String() string {
 }
 
 func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination,
-	postLoadHook func(context.Context, chat1.ThreadView)) ConvLoaderJob {
+	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
 		Pagination:   pagination,

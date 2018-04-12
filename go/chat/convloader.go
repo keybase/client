@@ -385,7 +385,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	b.Debug(ctx, "load: loaded job: %s", job)
 	if job.PostLoadHook != nil {
 		b.Debug(ctx, "load: invoking post load hook on job: %s", job)
-		job.PostLoadHook(ctx, tv)
+		job.PostLoadHook(ctx, tv, job)
 	}
 
 	// if testing, put the convID on the loads channel
@@ -394,4 +394,18 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 		b.loads <- job.ConvID
 	}
 	return nil
+}
+
+func newConvLoaderPagebackHook(g *globals.Context, curCalls, maxCalls int) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+		if curCalls >= maxCalls || tv.Pagination == nil || tv.Pagination.Last {
+			return
+		}
+		job.Pagination.Next = tv.Pagination.Next
+		job.Pagination.Previous = nil
+		job.PostLoadHook = newConvLoaderPagebackHook(g, curCalls+1, maxCalls)
+		if err := g.ConvLoader.Queue(ctx, job); err != nil {
+			g.GetLog().CDebugf(ctx, "newConvLoaderPagebackHook: failed to queue job: %s", err)
+		}
+	}
 }

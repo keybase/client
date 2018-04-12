@@ -63,6 +63,8 @@ type ConversationSource interface {
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
+	ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+		convID chat1.ConversationID, deleteID chat1.MessageID)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
