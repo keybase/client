@@ -13,6 +13,8 @@ function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
+// TODO: Put proper types on HOCTimers below.
+
 export default function HOCTimers(ComposedComponent: any) {
   class TimersComponent extends React.Component<any> {
     static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
