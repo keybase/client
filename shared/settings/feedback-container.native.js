@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import React, {Component} from 'react'
-import {HeaderHoc, HOCTimers} from '../common-adapters'
+import {HeaderHoc} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
 import {compose, connect, type TypedState} from '../util/container'
@@ -15,7 +15,7 @@ import {
   logFileName,
   traceDir,
 } from '../constants/platform'
-import {type TimerProps} from '../common-adapters/hoc-timers'
+import {type TimerProps, default as HOCTimers} from '../common-adapters/hoc-timers'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 type State = {

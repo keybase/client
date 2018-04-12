@@ -2,9 +2,8 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
-import {HOCTimers} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
-import {type TimerProps} from '../../common-adapters/hoc-timers'
+import {type TimerProps, default as HOCTimers} from '../../common-adapters/hoc-timers'
 import {connect, type TypedState} from '../../util/container'
 
 class DeleteConfirmContainer extends Component<Props & TimerProps> {

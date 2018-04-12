@@ -28,7 +28,7 @@ import {collapseStyles, globalColors, globalMargins, globalStyles, type StylesCr
 //                                  in the justSaved state.
 type SaveState = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
 
-type Props = {
+type _Props = {
   saving: boolean,
   style?: StylesCrossPlatform,
   // Minimum duration to stay in saving or savingHysteresis.
@@ -37,6 +37,8 @@ type Props = {
   savedTimeoutMs: number,
   debugLog?: string => void,
 }
+
+type Props = _Props & TimerProps
 
 type State = {
   // Mirrors Props.saving.
@@ -54,7 +56,7 @@ type State = {
 // - null:      Remain in the current state.
 // - SaveState: Transition to the returned state.
 // - number:    Wait the returned number of ms, then run computeNextState again.
-const computeNextState = (props: Props, state: State, now: Date): null | SaveState | number => {
+const computeNextState = (props: _Props, state: State, now: Date): null | SaveState | number => {
   const {saveState} = state
   switch (saveState) {
     case 'steady':
@@ -109,10 +111,10 @@ const defaultStyle = {
   justifyContent: 'center',
 }
 
-class SaveIndicator extends React.Component<Props & TimerProps, State> {
+class SaveIndicator extends React.Component<Props, State> {
   _timeoutID: ?TimeoutID
 
-  constructor(props: Props & TimerProps) {
+  constructor(props: Props) {
     super(props)
     this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', lastJustSaved: new Date(0)}
   }
@@ -198,6 +200,6 @@ class SaveIndicator extends React.Component<Props & TimerProps, State> {
   }
 }
 
-export type {Props, State}
+export type {_Props, Props, State}
 export {computeNextState}
 export default HOCTimers(SaveIndicator)

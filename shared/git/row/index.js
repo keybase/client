@@ -11,12 +11,12 @@ import {
   Avatar,
   Meta,
   Usernames,
-  HOCTimers,
 } from '../../common-adapters'
+import {type TimerProps, default as HOCTimers} from '../../common-adapters/hoc-timers'
 
 import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
 
-export type Props = {
+type _Props = {
   canDelete: boolean,
   canEdit: boolean,
   channelName: ?string,
@@ -37,9 +37,10 @@ export type Props = {
   onChannelClick: (SyntheticEvent<>) => void,
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
-  setTimeout: (() => void, number) => number,
   openUserTracker: (username: string) => void,
 }
+
+export type Props = _Props & TimerProps
 
 type State = {
   showingCopy: boolean,

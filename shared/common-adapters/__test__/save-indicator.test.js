@@ -1,10 +1,10 @@
 // @flow
 /* eslint-env jest */
-import {type Props, type State, computeNextState} from '../save-indicator'
+import {type _Props, type State, computeNextState} from '../save-indicator'
 
 describe('computeNextState', () => {
   it('steady to saving', () => {
-    const props: Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
     const state: State = {
       saving: false,
       lastSave: new Date(0),
@@ -29,7 +29,7 @@ describe('computeNextState', () => {
   })
 
   it('saving to savingHysteresis', () => {
-    const props: Props = {saving: true, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {saving: true, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
     const state: State = {
       saving: true,
       lastSave: new Date(5000),
@@ -50,7 +50,7 @@ describe('computeNextState', () => {
   })
 
   it('savingHysteresis to saving or justSaved', () => {
-    const props: Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
     const state: State = {
       saving: false,
       lastSave: new Date(5000),
@@ -76,7 +76,7 @@ describe('computeNextState', () => {
   })
 
   it('justSaved to saving or steady', () => {
-    const props: Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
     const state: State = {
       saving: false,
       lastSave: new Date(5000),

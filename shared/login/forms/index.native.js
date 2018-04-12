@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   ButtonBar,
-  HOCTimers,
   Icon,
   Text,
   NativeScrollView,
@@ -13,7 +12,7 @@ import {
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
-import type {TimerProps} from '../../common-adapters/hoc-timers'
+import {type TimerProps, default as HOCTimers} from '../../common-adapters/hoc-timers'
 
 const Scroller = (props: any) => (
   <NativeScrollView style={{height: '100%', width: '100%', paddingTop: 20}}>
