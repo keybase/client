@@ -70,6 +70,7 @@ export const commonMessageType = {
   leave: 10,
   system: 11,
   deletehistory: 12,
+  explodenow: 13,
 }
 
 export const commonNotificationKind = {
@@ -1062,6 +1063,7 @@ export type MessageType =
   | 10 // LEAVE_10
   | 11 // SYSTEM_11
   | 12 // DELETEHISTORY_12
+  | 13 // EXPLODENOW_13
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
