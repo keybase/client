@@ -71,7 +71,7 @@ export type _RequestInfo = {
 }
 export type RequestInfo = I.RecordOf<_RequestInfo>
 
-export type TabKey = 'members' | 'requests' | 'pending'
+export type TabKey = 'members' | 'invites' | 'subteams' | 'publicity'
 
 export type _SubteamInfo = {
   key: string,

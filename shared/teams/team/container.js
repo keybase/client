@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../constants/teams'
-import * as I from 'immutable'
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as KBFSGen from '../../actions/kbfs-gen'
@@ -9,7 +8,6 @@ import Team, {CustomComponent, type Props} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
-import {anyWaiting} from '../../constants/waiting'
 import {teamsTab} from '../../constants/tabs'
 
 import {membersListItemsConnector} from './members/container'
@@ -26,20 +24,11 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
-  const yourOperations = Constants.getCanPerform(state, teamname)
 
   return {
-    teamname,
-    admin: yourOperations.manageMembers,
-    memberCount: Constants.getTeamMemberCount(state, teamname),
-    _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-    numInvites: Constants.getTeamInvites(state, teamname).size,
-    numRequests: Constants.getTeamRequests(state, teamname).size,
-    numSubteams: Constants.getTeamSubteams(state, teamname).size,
-    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-    resetUserCount: Constants.getTeamResetUsers(state, teamname).size,
+    _yourOperations: Constants.getCanPerform(state, teamname),
     selectedTab: routeState.get('selectedTab') || 'members',
-    yourOperations,
+    teamname,
   }
 }
 
@@ -80,15 +69,14 @@ const mergeProps = (stateProps, dispatchProps): Props => {
       onOpenFolder={dispatchProps.onOpenFolder}
       onChat={dispatchProps.onChat}
       onShowMenu={dispatchProps.onShowMenu}
-      canChat={!stateProps.yourOperations.joinTeam}
-      canViewFolder={!stateProps.yourOperations.joinTeam}
+      canChat={!stateProps._yourOperations.joinTeam}
+      canViewFolder={!stateProps._yourOperations.joinTeam}
     />
   )
   return {
     ...stateProps,
     ...dispatchProps,
     customComponent,
-    newTeamRequests: stateProps._newTeamRequests.toArray(),
   }
 }
 

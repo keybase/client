@@ -7,18 +7,9 @@ import List, {type TeamRows} from './list'
 
 export type Props = {
   teamname: Types.Teamname,
-  admin: boolean,
-  memberCount: number,
-  newTeamRequests: Array<Types.Teamname>,
-  numInvites: number,
-  numRequests: number,
-  numSubteams: number,
   listItems?: Array<any>,
-  loading: boolean,
   selectedTab: Types.TabKey,
-  resetUserCount: number,
   setSelectedTab: Types.TabKey => void,
-  yourOperations: Types.TeamOperations,
   onShowMenu: any => void,
 }
 
