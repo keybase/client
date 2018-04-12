@@ -259,7 +259,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
 }
 
 - (NSString *)logsDirectory {
-    // We could do this check once, during initialization, and not bother again.
+    // We could do this check once, during initalization, and not bother again.
     // But this way the code continues to work if the directory gets deleted while the code is running.
 
     if (![[NSFileManager defaultManager] fileExistsAtPath:_logsDirectory]) {
@@ -456,7 +456,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
             // When creating log file on iOS we're setting NSFileProtectionKey attribute to NSFileProtectionCompleteUnlessOpen.
             //
             // But in case if app is able to launch from background we need to have an ability to open log file any time we
-            // want (even if device is locked). That's why that attribute has to be changed to
+            // want (even if device is locked). Thats why that attribute have to be changed to
             // NSFileProtectionCompleteUntilFirstUserAuthentication.
 
             NSFileProtectionType key = _defaultFileProtectionLevel ? :
@@ -622,7 +622,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -652,7 +652,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -679,7 +679,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -709,7 +709,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");
@@ -894,13 +894,13 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
             // When creating log file on iOS we're setting NSFileProtectionKey attribute to NSFileProtectionCompleteUnlessOpen.
             //
             // But in case if app is able to launch from background we need to have an ability to open log file any time we
-            // want (even if device is locked). That's why that attribute has to be changed to
+            // want (even if device is locked). Thats why that attribute have to be changed to
             // NSFileProtectionCompleteUntilFirstUserAuthentication.
             //
             // If previous log was created when app wasn't running in background, but now it is - we archive it and create
             // a new one.
             //
-            // If user has overwritten to NSFileProtectionNone there is no need to create a new one.
+            // If user has overwritten to NSFileProtectionNone there is no neeed to create a new one.
 
             if (!_doNotReuseLogFiles && doesAppRunInBackground()) {
                 NSFileProtectionType key = mostRecentLogFileInfo.fileAttributes[NSFileProtectionKey];
@@ -947,7 +947,7 @@ unsigned long long const kDDDefaultLogFilesDiskQuota   = 20 * 1024 * 1024; // 20
         if (_currentLogFileHandle) {
             [self scheduleTimerToRollLogFileDueToAge];
 
-            // Here we are monitoring the log file. In case if it would be deleted or moved
+            // Here we are monitoring the log file. In case if it would be deleted ormoved
             // somewhere we want to roll it and use a new one.
             _currentLogFileVnode = dispatch_source_create(
                     DISPATCH_SOURCE_TYPE_VNODE,
@@ -1474,7 +1474,7 @@ static int exception_count = 0;
  * When creating log file on iOS we're setting NSFileProtectionKey attribute to NSFileProtectionCompleteUnlessOpen.
  *
  * But in case if app is able to launch from background we need to have an ability to open log file any time we
- * want (even if device is locked). That's why that attribute has to be changed to
+ * want (even if device is locked). Thats why that attribute have to be changed to
  * NSFileProtectionCompleteUntilFirstUserAuthentication.
  */
 BOOL doesAppRunInBackground() {

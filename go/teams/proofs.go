@@ -104,7 +104,7 @@ func newProofSet(g *libkb.GlobalContext) *proofSetT {
 // but we know that c<a and b<d, then it suffices to replace c<d with a<b as
 // the needed proof. Each proof in the proof set in the end will correspond
 // to a merkle tree lookup, so it makes sense to be stingy. Return the modified
-// proof set with the new proofs needed, but the original argument p will
+// proof set with the new proofs needed, but the original arugment p will
 // be mutated.
 func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) {
 
@@ -202,7 +202,7 @@ func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (
 }
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
-// data that comes back fits the proof and previously checked sigchain links.
+// data that comes back fits the proof and previously checked sighcain links.
 func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext, proofSet *proofSetT) (err error) {
 	defer func() {
 		g.Log.CDebugf(ctx, "TeamLoader proofSet check1(%v) -> %v", p.shortForm(), err)

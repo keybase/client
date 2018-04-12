@@ -106,7 +106,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	}
 
 	if len(prevs) == 0 {
-		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(res.Messages))
+		return chat1.MessagePlaintext{}, fmt.Errorf("Could not find previous messsages for prev pointers (of %v)", len(res.Messages))
 	}
 
 	for _, msg2 := range res.Messages {
@@ -806,7 +806,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Queue")()
 
-	// Push onto outbox and immediately return
+	// Push onto outbox and immediatley return
 	obr, err = s.outbox.PushMessage(ctx, convID, msg, outboxID, identifyBehavior)
 	if err != nil {
 		return obr, err
@@ -886,7 +886,7 @@ func (s *Deliverer) deliverLoop() {
 		// Wait for the signal to take action
 		select {
 		case cb := <-s.shutdownCh:
-			s.Debug(bgctx, "shutting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			s.Debug(bgctx, "shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			defer close(cb)
 			return
 		case <-s.reconnectCh:

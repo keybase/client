@@ -6,7 +6,7 @@ protocol merkle {
 
   record MerkleRootAndTime {
     MerkleRootV2 root;
-    Time updateTime; // when the root was committed on the server
+    Time updateTime; // when the root was commited on the server
     Time fetchTime;  // when it was fetched from the server
   }
 

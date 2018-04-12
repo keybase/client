@@ -25,7 +25,7 @@ type Log interface {
 	Errorf(s string, args ...interface{})
 }
 
-// Context is the environment for this package
+// Context is the enviroment for this package
 type Context interface {
 	GetConfigDir() string
 	GetCacheDir() string
@@ -285,7 +285,7 @@ func UpdaterBinPath() (string, error) {
 }
 
 // kbfsBinPathDefault returns the default path to the KBFS executable.
-// If binPath (directory) is specified, it will override the default (which is in
+// If binPath (directory) is specifed, it will override the default (which is in
 // the same directory where the keybase executable is).
 func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 	path, err := chooseBinPath(binPath)

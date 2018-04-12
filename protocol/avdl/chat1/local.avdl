@@ -463,7 +463,7 @@ protocol local {
 
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that
   // faithfully represent identify result. If identify information is not
-  // available, we should use a different type.
+  // availabe, we should use a different type.
   record ConversationLocal {
     union { null, ConversationErrorLocal } error;
     ConversationInfoLocal info;

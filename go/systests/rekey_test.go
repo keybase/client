@@ -441,7 +441,7 @@ func (rkt *rekeyTester) snoozeRekeyWindow(dw *deviceWrapper) {
 	}
 	rkt.clearAllEvents(dw)
 
-	// Our snooze should be 23 hours long, and should be resistant
+	// Our snooze should be 23 hours long, and should be resistent
 	// to interrupts.
 	rkt.log.Debug("+ confirming no rekey activity (1)")
 	rkt.confirmNoRekeyUIActivity(dw, 14, false)
@@ -860,7 +860,7 @@ func testRekeyOnce(t libkb.TestingTB) {
 	rkt.snoozeRekeyWindow(secondaryDevice)
 
 	// 10. Generate a new backup key, but make sure the snooze still holds.
-	// For some reason, this doesn't work on the secondary device.
+	// For some reason, this doesn't work on the secondary dervice.
 	// Merg. But shouldn't really matter.
 	rkt.generateNewBackupKey(primaryDevice)
 

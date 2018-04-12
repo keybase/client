@@ -787,7 +787,7 @@ else echo \\"bar\\";",
     },
     Object {
       "children": Array [
-        " Now you are thinking with ",
+        " Now youre thinking with ",
         Object {
           "children": Array [
             "portals",

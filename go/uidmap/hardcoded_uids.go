@@ -50,7 +50,7 @@ func initUsernames() {
 	//  2. concatenate all username strings after sorting in 1
 	//  3. Tolower the blob
 	//  4. run through zlib
-	//  5. Also, along with (2), record the length of all of the usernames, and insert into an array
+	//  5. Also, along with (2), record the lenght of all of the usernames, and insert into an array
 	//  6. Compute running offsets by cumsum'ing the values in 5.
 	//
 	zip, err := zlib.NewReader(bytes.NewReader(usernamesCompressed[:]))

@@ -8,7 +8,7 @@ if (__STORYBOOK__) {
   root = path.resolve(path.join(__dirname, '..'))
   prefix = ''
 } else {
-  // must do a require for storybook to work
+  // must due a require for storybook to work
   const electron = require('electron')
   // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
 

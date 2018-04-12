@@ -229,7 +229,7 @@ func (c *CmdChatSetRetention) showNonTeamConv(conv *chat1.ConversationLocal) (er
 		c.println(dui, "Unrecognized policy 'inherit'")
 		return errUnrecoginzedPolicy
 	default:
-		c.println(dui, "Unrecognized policy type '%v'", rpType)
+		c.println(dui, "Unregonized policy type '%v'", rpType)
 		return errUnrecoginzedPolicy
 	}
 	return nil
@@ -264,7 +264,7 @@ func (c *CmdChatSetRetention) showTeamChannelHTeam(conv *chat1.ConversationLocal
 		c.println(dui, "Unrecognized policy 'inherit'")
 		return errUnrecoginzedPolicy
 	default:
-		c.println(dui, "Unrecognized policy type '%v'", rpType)
+		c.println(dui, "Unregonized policy type '%v'", rpType)
 		return errUnrecoginzedPolicy
 	}
 	c.println(dui, "Team policy: %v", desc)
@@ -293,7 +293,7 @@ func (c *CmdChatSetRetention) showTeamChannelHChannel(conv *chat1.ConversationLo
 	case chat1.RetentionPolicyType_INHERIT:
 		desc = rpInheritMsg
 	default:
-		c.println(dui, "Unrecognized policy type '%v'", rpType)
+		c.println(dui, "Unregonized policy type '%v'", rpType)
 		return errUnrecoginzedPolicy
 	}
 	c.println(dui, "#%v channel: %v", conv.Info.TopicName, desc)

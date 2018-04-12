@@ -227,7 +227,7 @@ services:
       , pattern: "^keybaseproofs$"
       , case_insensitive: true
       , from: "subreddit_from_json"
-      , error: ["CONTENT_FAILURE", "Wrong subreddit %{subreddit_from_json}"] } },
+      , error: ["CONTENT_FAILURE", "Wrong subreddti %{subreddit_from_json}"] } },
     # check the author
     { selector_json: {
       , selectors: [0, "data", "children", 0, "data", "author"]

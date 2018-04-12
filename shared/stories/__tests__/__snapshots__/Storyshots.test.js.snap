@@ -38296,7 +38296,7 @@ exports[`Storyshots People/Todos Follow someone 1`] = `
           onClick={undefined}
           title={undefined}
         >
-          Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.
+          Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.
         </span>
         <div
           style={

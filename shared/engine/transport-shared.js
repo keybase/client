@@ -180,7 +180,7 @@ class TransportShared extends RobustTransport {
   }
 
   invoke(arg: Object, cb: any) {
-    // args needs to be wrapped as an array for some reason so let's just do that here
+    // args needs to be wrapped as an array for some reason so lets just do that here
     const wrappedArgs = {
       ...arg,
       args: [arg.args || {}],

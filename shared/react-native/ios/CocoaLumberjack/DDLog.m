@@ -51,8 +51,8 @@
 
 // Specifies the maximum queue size of the logging thread.
 //
-// Since most logging is asynchronous, it's possible for rogue threads to flood the logging queue.
-// That is, to issue an abundance of log statements faster than the logging thread can keep up.
+// Since most logging is asynchronous, its possible for rogue threads to flood the logging queue.
+// That is, to issue an abundance of log statements faster than the logging thread can keepup.
 // Typically such a scenario occurs when log statements are added haphazardly within large loops,
 // but may also be possible if relatively slow loggers are being used.
 //
@@ -110,7 +110,7 @@ static void *const GlobalLoggingQueueIdentityKey = (void *)&GlobalLoggingQueueId
 static dispatch_queue_t _loggingQueue;
 
 // Individual loggers are executed concurrently per log statement.
-// Each logger has its own associated queue, and a dispatch group is used for synchrnoization.
+// Each logger has it's own associated queue, and a dispatch group is used for synchrnoization.
 static dispatch_group_t _loggingGroup;
 
 // In order to prevent to queue from growing infinitely large,
@@ -143,7 +143,7 @@ static NSUInteger _numProcessors;
  * method may never be invoked if the class is not used.) The runtime sends the initialize message to
  * classes in a thread-safe manner. Superclasses receive this message before their subclasses.
  *
- * This method may also be called directly (presumably by accident), hence the safety mechanism.
+ * This method may also be called directly (assumably by accident), hence the safety mechanism.
  **/
 + (void)initialize {
     static dispatch_once_t DDLogOnceToken;
@@ -185,7 +185,7 @@ static NSUInteger _numProcessors;
 #else
         NSString *notificationName = nil;
         
-        // On Command Line Tool apps AppKit may not be available
+        // On Command Line Tool apps AppKit may not be avaliable
 #ifdef NSAppKitVersionNumber10_0
         
         if (NSApp) {
@@ -343,7 +343,7 @@ static NSUInteger _numProcessors;
 
     // We are using a counting semaphore provided by GCD.
     // The semaphore is initialized with our DDLOG_MAX_QUEUE_SIZE value.
-    // Every time we want to queue a log message we decrement this value.
+    // Everytime we want to queue a log message we decrement this value.
     // If the resulting value is less than zero,
     // the semaphore function waits in FIFO order for a signal to occur before returning.
     //
@@ -843,7 +843,7 @@ static NSUInteger _numProcessors;
         
         dispatch_group_wait(_loggingGroup, DISPATCH_TIME_FOREVER);
     } else {
-        // Execute each logger serially, each within its own queue.
+        // Execute each logger serialy, each within its own queue.
         
         for (DDLoggerNode *loggerNode in self._loggers) {
             // skip the loggers that shouldn't write this message based on the log level
@@ -878,7 +878,7 @@ static NSUInteger _numProcessors;
 - (void)lt_flush {
     // All log statements issued before the flush method was invoked have now been executed.
     //
-    // Now we need to propagate the flush request to any loggers that implement the flush method.
+    // Now we need to propogate the flush request to any loggers that implement the flush method.
     // This is designed for loggers that buffer IO.
     
     NSAssert(dispatch_get_specific(GlobalLoggingQueueIdentityKey),
@@ -1303,7 +1303,7 @@ static __inline__ __attribute__((__always_inline__)) void _dispatch_queue_label_
     //
     // Using "self." syntax to go through this method will cause immediate deadlock.
     // This is the intended result. Fix it by accessing the ivar directly.
-    // Great strides have been taken to ensure this is safe to do. Plus it's MUCH faster.
+    // Great strides have been take to ensure this is safe to do. Plus it's MUCH faster.
 
     NSAssert(![self isOnGlobalLoggingQueue], @"Core architecture requirement failure");
     NSAssert(![self isOnInternalLoggerQueue], @"MUST access ivar directly, NOT via self.* syntax.");

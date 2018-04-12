@@ -34,7 +34,7 @@ func TestOurResolve(t *testing.T) {
 	require.Equal(t, rres.UserOrTeam().Id.String(), id2.String())
 }
 
-// Test that verifyResolveResult would catch a bad (unverifiable) resolution.
+// Test that verifyResolveResult would catch an bad (unverifiable) resolution.
 func TestVerifyResolveEvilServer(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()

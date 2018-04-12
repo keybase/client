@@ -477,7 +477,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "merkle-kids",
-			Usage: "Set of admissible Merkle Tree fingerprints (colon-separated).",
+			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated).",
 		},
 		cli.BoolFlag{
 			Name:  "no-debug",

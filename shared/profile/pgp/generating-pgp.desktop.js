@@ -15,7 +15,7 @@ class GeneratingPgp extends Component<Props> {
         <Text style={styleBody} type="Body">
           Math time! You are about to discover a 4096-bit key pair.
           <br />
-          This could take as long as a couple of minutes.
+          This could take as long as a couple minutes.
         </Text>
         <Icon type="icon-loader-infinity-64" />
         <Button

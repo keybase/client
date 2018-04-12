@@ -13,7 +13,7 @@ var ErrShutdown = errors.New("shutting down")
 // ErrUserDeleted is raised when a user is deleted, but was loaded without the loadDeleted flag
 var ErrUserDeleted = errors.New("user was deleted")
 
-// BadUsernameError is raised when the given username disagrees with the expected
+// BadUsernameError is raised when the given username disagreeds with the expected
 // username
 type BadUsernameError struct {
 	expected libkb.NormalizedUsername

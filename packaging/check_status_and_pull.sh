@@ -4,7 +4,7 @@
 #   1) Does repo X exist?
 #   2) Does it have master checked out?
 #   3) It is clean?
-#   4) Is it up to date?
+#   4) Is is up to date?
 # This script takes care of all that.
 
 set -e -u -o pipefail

@@ -28,7 +28,7 @@ func setupTest(t *testing.T, nm string) *TestContext {
 //
 // Another property of named pipes that is NOT tested here is security:
 // only processes in the same user account are supposed to be able to
-// open each other's named pipes.
+// open each others' named pipes.
 func TestWindowsNamedPipe(t *testing.T) {
 
 	tc := setupTest(t, "socket_windows_test")

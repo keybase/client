@@ -19,7 +19,7 @@ import {isValidInitialTabString} from '../constants/tabs'
 
 // This makes an empty one which isn't really allowed, we always init it before anything really happens
 const initialState = Constants.makeState()
-// So let's actually use the initial routeDef we get
+// So lets actually use the initial routeDef we get
 let firstRouteDef: ?RouteDefNode
 
 function computeLoggedInUserNavigated(navigationSource: Types.NavigationSource, newSelectedTab: ?string) {

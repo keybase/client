@@ -15,7 +15,7 @@ protocol SimpleFS {
     simpleFSOpen
     simpleFSMove
     simpleFSRemove
-  then calls one of the following until status is no longer pending
+  then calls one of the following until until status is no longer pending
   or operation is cancelled:
     simpleFSReadList (after list or listRecursive)
     simpleFSRead (after open)
@@ -47,7 +47,7 @@ protocol SimpleFS {
   
   record Dirent {
     Time time;
-    int size;   // size of file or count of dir entries (TBD - may be expensive/unnecessary)
+    int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
     string name;
     DirentType direntType;
     // The last writer of this directory entry.  NOTE: this is NOT

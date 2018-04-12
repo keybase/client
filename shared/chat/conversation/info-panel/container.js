@@ -135,7 +135,7 @@ const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergePro
 
 type SelectorOwnProps = {
   conversationIDKey: ?Types.ConversationIDKey,
-  routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile it's a route
+  routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile its a route
   navigateUp?: typeof Route.navigateUp,
 }
 

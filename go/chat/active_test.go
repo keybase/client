@@ -25,10 +25,10 @@ func TestChatActive(t *testing.T) {
 	touch := TouchFirstChatActiveQueryTime(ctx, g, log).Unix()
 	afterTouch := time.Now().Unix()
 	if touch < beforeTouch {
-		t.Fatalf("touch unexpectedly early: %d < %d", touch, beforeTouch)
+		t.Fatalf("touch unexpectly early: %d < %d", touch, beforeTouch)
 	}
 	if touch > afterTouch {
-		t.Fatalf("touch unexpectedly late: %d > %d", touch, afterTouch)
+		t.Fatalf("touch unexpectly late: %d > %d", touch, afterTouch)
 	}
 
 	// Subsequent queries shouldn't change the first query time.
@@ -46,9 +46,9 @@ func TestChatActive(t *testing.T) {
 	lastSend := GetLastSendTime(ctx, g, log).Unix()
 	afterSend := time.Now().Unix()
 	if lastSend < beforeSend {
-		t.Fatalf("send unexpectedly early: %d < %d", lastSend, beforeSend)
+		t.Fatalf("send unexpectly early: %d < %d", lastSend, beforeSend)
 	}
 	if lastSend > afterSend {
-		t.Fatalf("send unexpectedly late: %d > %d", lastSend, afterSend)
+		t.Fatalf("send unexpectly late: %d > %d", lastSend, afterSend)
 	}
 }

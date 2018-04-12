@@ -434,7 +434,7 @@
   enum RetentionPolicyType {
     NONE_0,
     RETAIN_1, // Keep messages forever
-    EXPIRE_2, // Delete after a while
+    EXPIRE_2, // Delete afer a while
     INHERIT_3 // Use the team's policy
   }
 

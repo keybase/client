@@ -16,7 +16,7 @@ function init() {
     if (location.hostname.endsWith('twitter.com')) {
       // Twitter hack: Monitor location for changes and re-init. Twitter does
       // weird single-page-app stuff that makes it difficult to hook into.
-      // FIXME: This is sad. An alternative would be very desirable.
+      // FIXME: This is sad. An alternative would be very desireable.
       // Subscribing to `popstate` does not work.
       let loc = window.location.pathname;
       function twitterMonitor() {

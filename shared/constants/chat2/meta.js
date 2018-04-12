@@ -317,7 +317,7 @@ export const getConversationIDKeyMetasToLoad = (
 
 export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
   meta.participants
-    // Filter out ourselves unless it's our 1:1 conversation
+    // Filter out ourselves unless its our 1:1 conversation
     .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))
 
 export const timestampToString = (meta: Types.ConversationMeta) =>

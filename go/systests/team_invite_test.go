@@ -241,7 +241,7 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: teamName.String(), ForceRepoll: true})
 	require.NoError(t, err)
 
-	// Bob should have become an admin, because the second invitations
+	// Bob should have became an admin, because the second invitations
 	// should have been used, not the first one.
 	require.Equal(t, len(details.Members.Admins), 1)
 	require.Equal(t, details.Members.Admins[0].Username, bob.username)

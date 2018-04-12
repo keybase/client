@@ -601,7 +601,7 @@ func (u *User) remoteTrackChainLinkFor(username NormalizedUsername, uid keybase1
 }
 
 // BaseProofSet creates a basic proof set for a user with their
-// keybase and uid proofs and any pgp fingerprint proofs.
+// keybase and uid proofs and any pgp fingerpring proofs.
 func (u *User) BaseProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},

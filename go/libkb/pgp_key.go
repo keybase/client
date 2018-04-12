@@ -567,7 +567,7 @@ func (k *PGPKeyBundle) HasSecretKey() bool {
 
 // FindPGPPrivateKey checks if supposed secret key PGPKeyBundle
 // contains any valid PrivateKey entities. Sometimes primary private
-// key is stoopped out but there are subkeys with secret keys.
+// key is stupped out but there are subkeys with secret keys.
 func FindPGPPrivateKey(k *PGPKeyBundle) bool {
 	if k.PrivateKey.PrivateKey != nil {
 		return true

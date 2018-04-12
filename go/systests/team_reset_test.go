@@ -94,7 +94,7 @@ func TestTeamDelete(t *testing.T) {
 
 	// It's important for cam to clear her cache right before the attempt to send,
 	// since she might have received gregors that ann deleted her account,
-	// and therefore might be trying to refresh and load the team.
+	// and thefore might be trying to refresh and load the team.
 	cam.primaryDevice().clearUPAKCache()
 	cam.sendChat(team, "1")
 
@@ -629,7 +629,7 @@ func TestTeamListAfterReset(t *testing.T) {
 	for _, w := range list.Members.Writers {
 		if w.Username == bob.username {
 			require.False(t, found, "wasn't found twice")
-			require.True(t, w.Uv.EldestSeqno > 1, "reset eldest seqno")
+			require.True(t, w.Uv.EldestSeqno > 1, "reset eldset seqno")
 			require.True(t, w.Active, "is active")
 			found = true
 		}

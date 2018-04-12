@@ -220,7 +220,7 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 			return haystack[(i + 1):]
 		}
 	}
-	t.Fatalf("Didn't find line %q", needle)
+	t.Fatalf("Didnt find line %q", needle)
 	return nil
 }
 

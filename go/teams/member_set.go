@@ -108,7 +108,7 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext,
 			if !storeRecipient {
 				// If caller doesn't care about keys, it probably expects
 				// reset users to be passed through as well. This is used
-				// in reading reset users in impteams.
+				// in readding reset users in impteams.
 				members = append(members, member{version: uv})
 			} else {
 				g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
@@ -222,7 +222,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		}
 		if _, err := m.loadMember(ctx, g, uv, true, forceUserPoll); err != nil {
 			if _, reset := err.(libkb.AccountResetError); reset {
-				g.Log.CDebugf(ctx, "Skipping user who was reset: %s", uv.String())
+				g.Log.CDebugf(ctx, "Skipping user was who reset: %s", uv.String())
 				continue
 			}
 			return err
