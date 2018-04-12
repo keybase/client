@@ -19,7 +19,7 @@ type State = {
   saving: boolean,
   lastSave: Date,
   saveState: SaveState,
-  saveStateChanged: Date,
+  lastJustSaved: Date,
 }
 
 const computeNextState = (props: Props, state: State, now: number): null | SaveState | number => {
@@ -57,8 +57,8 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return 'saving'
       }
 
-      const timeSinceSaveStateChanged = now - state.saveStateChanged
-      const timeToSteady = props.savedTimeoutMs - timeSinceSaveStateChanged
+      const timeSinceJustSaved = now - state.lastJustSaved
+      const timeToSteady = props.savedTimeoutMs - timeSinceJustSaved
       if (timeToSteady > 0) {
         return timeToSteady
       }
@@ -85,7 +85,7 @@ class SaveIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', saveStateChanged: new Date(0)}
+    this.state = {saving: false, lastSave: new Date(0), saveState: 'steady', lastJustSaved: new Date(0)}
   }
 
   static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
@@ -119,7 +119,7 @@ class SaveIndicator extends React.Component<Props, State> {
     }
 
     const onStateChange = this.props.onStateChange
-    const newPartialState = {saveState: result, saveStateChanged: now}
+    const newPartialState = {saveState: result, ...(result === 'justSaved' ? {lastJustSaved: now} : {})}
     if (onStateChange) {
       onStateChange(`merging ${JSON.stringify(newPartialState)} into ${JSON.stringify(this.state)}`)
     }
