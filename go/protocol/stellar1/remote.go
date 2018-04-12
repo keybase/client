@@ -277,12 +277,18 @@ type SubmitPaymentArg struct {
 	Payment PaymentPost          `codec:"payment" json:"payment"`
 }
 
+type IsMasterKeyActiveArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
 	Transaction(context.Context, TransactionArg) (TransactionDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
+	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -369,6 +375,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"isMasterKeyActive": {
+				MakeArg: func() interface{} {
+					ret := make([]IsMasterKeyActiveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IsMasterKeyActiveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IsMasterKeyActiveArg)(nil), args)
+						return
+					}
+					ret, err = i.IsMasterKeyActive(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -399,5 +421,10 @@ func (c RemoteClient) AccountSeqno(ctx context.Context, __arg AccountSeqnoArg) (
 
 func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) IsMasterKeyActive(ctx context.Context, __arg IsMasterKeyActiveArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res)
 	return
 }

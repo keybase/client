@@ -113,4 +113,7 @@ protocol remote {
   // js can't handle uint64, so returning a string
   string accountSeqno(keybase1.UserVersion caller, AccountID accountID);
   PaymentResult submitPayment(keybase1.UserVersion caller, PaymentPost payment);
+
+  // ask the stellar network whether the master key for the account has power
+  boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
 }
