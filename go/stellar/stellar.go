@@ -95,6 +95,9 @@ func Upkeep(ctx context.Context, g *libkb.GlobalContext) (err error) {
 
 func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stellar1.SecretKey, makePrimary bool) (err error) {
 	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
 	nextBundle := bundle.Advance(prevBundle)
 	err = bundle.AddAccount(&nextBundle, secretKey, "", makePrimary)
 	if err != nil {
