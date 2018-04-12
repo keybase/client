@@ -105,7 +105,7 @@ func pathToString(path keybase1.Path) string {
 	return path.Local()
 }
 
-// Check whether the given path is a directory and return its string
+// Cheeck whether the given path is a directory and return its string
 func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path keybase1.Path) (bool, string, error) {
 	var isDir bool
 	var pathString string
@@ -236,7 +236,7 @@ func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]
 	}
 
 	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return srcPaths, destPath, errors.New(name + " reacquires KBFS source and/or destination")
+		return srcPaths, destPath, errors.New(name + " reaquires KBFS source and/or destination")
 	}
 	return srcPaths, destPath, nil
 }

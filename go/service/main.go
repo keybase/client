@@ -611,7 +611,7 @@ func (d *Service) tryGregordConnect() error {
 	if err != nil {
 		// A network error means we *think* we're logged in, and we tried to
 		// confirm with the API server. In that case we'll swallow the error
-		// and allow control to proceed to the gregor loop. We'll still
+		// and allow control to proceeed to the gregor loop. We'll still
 		// short-circuit for any unexpected errors though.
 		switch err.(type) {
 		case libkb.LoginStateTimeoutError, libkb.APINetError:

@@ -33,7 +33,7 @@ func canExec(s string) error {
 	// Only consider non-directories that have at least one +x
 	//  bit set.
 	//
-	// TODO: Recheck this on Windows!
+	// TODO: Recheck this on windows!
 	//   See here for lookpath: http://golang.org/src/pkg/os/exec/lp_windows.go
 	//
 	// Similar to check from exec.LookPath below
@@ -106,5 +106,5 @@ func FindPinentry(log logger.Logger) (string, error) {
 }
 
 func (pe *Pinentry) GetTerminalName() {
-	// Noop on all platforms but Windows
+	// Noop on all platforms but windows
 }

@@ -252,7 +252,7 @@
       "More.ReturnType<typeof createAttachmentUpload>"
       ]
     },
-    // We've made a new conversation successfully and want to clean up the pending info now
+    // We've made a new conversation successfully and want to cleanup the pending info now
     "clearPendingConversation": {
     },
     // We want to ensure we have an attachment preview

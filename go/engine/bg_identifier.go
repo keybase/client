@@ -217,7 +217,7 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 		case <-b.G().Clock().AfterTime(waitUntil):
 			b.G().Log.Debug("| running next after wait")
 
-			// Reset the netContext every time through the loop, so we don't
+			// Reset the netContext everytime through the loop, so we don't
 			// endlessly accumulate WithValues
 			ctx.NetContext = netContext
 			b.runNext(ctx)

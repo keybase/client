@@ -97,7 +97,7 @@ function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.
 
 function _openURLIfNotNull(nullableThing, url, metaText): void {
   if (nullableThing == null) {
-    logger.warn("Can't open URL because we have a null", metaText)
+    logger.warn("Can't openURL because we have a null", metaText)
     return
   }
   openURL(url)

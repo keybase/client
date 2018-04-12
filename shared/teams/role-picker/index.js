@@ -127,7 +127,7 @@ export const RoleOptions = ({
   </Box>
 )
 
-// 2. Confirm screen with role permission details
+// 2. Confirm screen with role permissions details
 // Permission renderer
 const PermissionRow = (props: {can: boolean, permission: string}) => (
   <Box

@@ -1253,7 +1253,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   }
 
   return Saga.sequentially([
-    // it's a fixed set of users so it's not a search (aka you can't add people to it)
+    // its a fixed set of users so it's not a search (aka you can't add people to it)
     Saga.put(
       Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
     ),

@@ -271,7 +271,7 @@ func imageToPaletted(img image.Image) *image.Paletted {
 	return pm
 }
 
-// gifDuration returns the duration of one loop of an animated gif
+// gifDuration returns the duration of one loop of an animiated gif
 // in milliseconds.
 func gifDuration(g *gif.GIF) int {
 	var total int

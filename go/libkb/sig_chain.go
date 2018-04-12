@@ -771,7 +771,7 @@ func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 }
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
-// multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false otherwise.
+// multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false othewise.
 func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
 	// First consume the currently active sigchain.
 	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(ctx, eldest, ckf)
@@ -807,7 +807,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allL
 
 	for {
 		if len(allLinks) == 0 {
-			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; no further links")
+			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; no futher links")
 			break
 		}
 

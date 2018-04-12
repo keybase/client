@@ -47,7 +47,7 @@ func makePad(l int) []byte {
 
 var spaceRE = regexp.MustCompile(`[[:space:]]+`)
 
-// specify replaces arbitrary strings of whitespace with
+// spacify replaces arbitrary strings of whitespace with
 // a single ' ' character. Also strips off leading and trailing
 // whitespace.
 func spacify(s string) string {

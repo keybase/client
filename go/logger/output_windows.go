@@ -246,7 +246,7 @@ func (cw *ColorWriter) parseColorControl(p []byte) []byte {
 }
 
 // parseControlCode is for absorbing backspaces, which
-// caused junk to come out on the console, and whichever
+// caused junk tocome out on the console, and whichever
 // other control code we're probably unprepared for
 func (cw *ColorWriter) parseControlCode(p []byte) []byte {
 	if p[0] == 'D' {

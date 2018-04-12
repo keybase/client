@@ -53,7 +53,7 @@ static void (*dd_asl_release)(aslresponse obj);
                 dd_asl_release = &aslresponse_free;
             #pragma GCC diagnostic pop
         #else
-            // Building on latest, correct SDK, targeting latest API
+            // Building on lastest, correct SDK, targeting latest API
             dd_asl_next    = &asl_next;
             dd_asl_release = &asl_release;
         #endif

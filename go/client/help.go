@@ -46,7 +46,7 @@ On Device Provisioning - If you've previously set up a keybase account and host
   do all of the non-PGP work for this machine going forward (e.g., signing follower
   statements, provisioning new devices, etc.)
 
-On signup - When you sign up, you can also "select" a PGP key for use with keybase
+On signup - When you signup, you can also "select" a PGP key for use with keybase
   from your local GPG keyring. See "keybase pgp select" below.
 
 'keybase pgp gen' - Running "gen" will generate a new PGP key via the Go libraries.

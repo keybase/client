@@ -117,7 +117,7 @@ class Icon extends React.PureComponent<Props> {
       )
     } else {
       // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
-      // let's just filter it out if it exists
+      // lets just filter it out if it exists
       const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
       icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
     }

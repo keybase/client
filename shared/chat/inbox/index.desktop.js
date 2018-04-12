@@ -27,7 +27,7 @@ class Inbox extends PureComponent<Props, State> {
   _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
-    // If we click the expand button let's try and show the floater. Kinda tricky as we decide if we're showing it
+    // If we click the expand button lets try and show the floater. Kinda tricky as we decide if we're showing it
     // based on a callback the list gives us so there's a race. Let's just give it half a sec
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       setTimeout(() => {

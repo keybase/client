@@ -508,7 +508,7 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 	return ret
 }
 
-// If the local clock is within a reasonable offset of the server's
+// If the local clock is within a reasonable offst of the server's
 // clock, we'll get 0.  Otherwise, we set the skew accordingly. Safe
 // to set this every time.
 func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) {
@@ -654,7 +654,7 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	// if SCBadSession comes back, but no session was provided, then the session isn't invalid,
 	// the requesting code is broken.
 	if arg.SessionType == APISessionTypeNONE {
-		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad session", arg.Endpoint)
+		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad sesion", arg.Endpoint)
 		return fmt.Errorf("api endpoint %q requires session, APIArg for this request had session type NONE", arg.Endpoint)
 	}
 

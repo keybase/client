@@ -226,7 +226,7 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_BACKGROUNDACTIVE:
 			fallthrough
 		case keybase1.AppState_FOREGROUND:
-			// Make sure the URI is set before attempting this (possible it isn't in a race)
+			// Make sure the URI is set before attempting this (possible it isnt in a race)
 			if g.uri != nil {
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
 				if err := g.Connect(g.uri); err != nil {
@@ -438,7 +438,7 @@ func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler)
 	handler.PushState(s, keybase1.PushReason_RECONNECTED)
 }
 
-// iterateOverFirehoseHandlers applies the function f to all live firehose handlers
+// iterateOverFirehoseHandlers applies the function f to all live fireshose handlers
 // and then resets the list to only include the live ones.
 func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehoseHandler)) {
 	var freshHandlers []libkb.GregorFirehoseHandler
@@ -875,7 +875,7 @@ func (g *gregorHandler) broadcastMessageHandler() {
 	}
 }
 
-// BroadcastMessage is called when we receive a new message from gregord. Grabs
+// BroadcastMessage is called when we receive a new messages from gregord. Grabs
 // the lock protect the state machine and handleInBandMessage
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	// Send the message on a channel so we can return to Gregor as fast as possible. Note
@@ -1214,7 +1214,7 @@ const (
 
 func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token string, res loggedInRes) {
 
-	// Check to see if we have been shut down,
+	// Check to see if we have been shutdown,
 	select {
 	case <-g.shutdownCh:
 		return uid, token, loggedInMaybe
@@ -1488,7 +1488,7 @@ func (g *gregorHandler) connectTLS() error {
 	// We should grab it here instead of in OnConnect, since the connection is not
 	// fully established in OnConnect. Anything that wants to make calls outside
 	// of OnConnect should use g.cli, everything else should the client that is
-	// a parameter to OnConnect
+	// a paramater to OnConnect
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
 		chat.ErrChatServerTimeout)
 	g.pingCli = g.conn.GetClient() // Don't want this to have a timeout from here
@@ -1517,7 +1517,7 @@ func (g *gregorHandler) connectNoTLS() error {
 		WrapErrorFunc:                 libkb.MakeWrapError(g.G().ExternalG()),
 		InitialReconnectBackoffWindow: func() time.Duration { return g.chatAwareInitialReconnectBackoffWindow(ctx) },
 		ReconnectBackoff:              func() backoff.BackOff { return g.chatAwareReconnectBackoff(ctx) },
-		// We deliberately avoid ForceInitialBackoff here, because we don't
+		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t,

@@ -106,7 +106,7 @@ func (c *CmdChatDeleteHistory) GetUsage() libkb.Usage {
 	}
 }
 
-// Returns a duration and English string like "2 days".
+// Returns a duration and english string like "2 days".
 func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, string, error) {
 	generalErr := fmt.Errorf("duration must be an integer and suffix [s,h,d,w,m] like: 10d")
 	if len(s) < 2 {

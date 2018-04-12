@@ -514,7 +514,7 @@ func (c *Conn) Write(buf []byte) (n int, err error) {
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
-	// Our protocol specifies that writing an empty buffer means "close"
+	// Our protocol specifes that writing an empty buffer means "close"
 	// the connection.  We don't want callers of `Write` to do this by
 	// accident, we want them to call `Close()` explicitly. So short-circuit
 	// the write operation here for empty buffers.

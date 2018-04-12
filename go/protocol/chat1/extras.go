@@ -539,7 +539,7 @@ func (c ConversationInfoLocal) TLFNameExpanded() string {
 
 // TLFNameExpandedSummary returns a TLF name with a summary of the
 // account reset if there was one.
-// This version is for display purposes only and cannot be used to lookup the TLF.
+// This version is for display purposes only and connot be used to lookup the TLF.
 func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 	if c.FinalizeInfo == nil {
 		return c.TlfName

@@ -130,7 +130,7 @@ func (v conversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1
 // When we hit identify failures looking up a conversation, we short-circuit
 // before we get to parsing out readers and writers (which itself does more
 // identifying). Instead we get an untrusted TLF name string, and we have the
-// visibility. Cobble together a poor man's conversation name from those, by
+// visiblity. Cobble together a poor man's conversation name from those, by
 // hacking out the current user's name. This should only be displayed next to
 // an indication that it's unverified.
 func formatUnverifiedConvName(unverifiedTLFName string, visibility keybase1.TLFVisibility, myUsername string) string {

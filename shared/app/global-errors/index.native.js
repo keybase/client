@@ -65,7 +65,7 @@ class GlobalError extends Component<Props, State> {
           cachedDetails: this._detailsForError(this.props.error),
           cachedSummary: this._summaryForError(this.props.error),
         })
-      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
+      }, this.props.error ? 0 : 7000) // if its set, do it immediately, if its cleared set it in a bit
       this._resetError(!!this.props.error)
     }
     if (prevProps.debugDump !== this.props.debugDump) {

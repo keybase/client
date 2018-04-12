@@ -33,7 +33,7 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
     isMobile ? 'computer' : 'phone'
   }. Until you have at least 2 devices, you risk losing data.`,
   follow:
-    'Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.',
+    'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
   paperkey:
     'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',

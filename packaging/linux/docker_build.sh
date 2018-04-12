@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# This script is the starting point for Linux packaging builds. Here's what the
+# This script is the starting point for linux packaging builds. Here's what the
 # build does:
 #   1) create the "keybase_packaging_v*" docker image, if it doesn't exist
 #   2) run the "inside_docker_main.sh" script in that image, sharing several

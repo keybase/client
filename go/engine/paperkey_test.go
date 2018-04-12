@@ -99,7 +99,7 @@ func TestPaperKey(t *testing.T) {
 	// and that the actual device id didn't change.
 	// (investigating bug theory)
 	if userDeviceID == devid {
-		t.Errorf("user's device id before backup key gen (%s) matches backup key device id (%s).  They should be different.", userDeviceID, devid)
+		t.Errorf("user's device id before backup key gen (%s) matches backup key device id (%s).  They shouuld be different.", userDeviceID, devid)
 	}
 	if userDeviceID != tc.G.Env.GetDeviceID() {
 		t.Errorf("user device id changed.  start = %s, post-backup = %s", userDeviceID, tc.G.Env.GetDeviceID())

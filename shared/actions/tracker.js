@@ -214,7 +214,7 @@ function _serverCallMap(
   onStart: ?(username: string) => void,
   onFinish: ?() => void
 ): RPCTypes.IncomingCallMapType {
-  // if true we already have a pending call so let's skip a ton of work
+  // if true we already have a pending call so lets skip a ton of work
   let username
   let clearPendingTimeout
   let alreadyPending = false
@@ -222,7 +222,7 @@ function _serverCallMap(
 
   const requestIdle = f => {
     if (!alreadyPending) {
-      // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichever comes first.
+      // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichover comes first.
       // The timeout is necessary because the callback fn f won't be called if the window is hidden.
       requestIdleCallback(f, {timeout: 1e3})
     } else {

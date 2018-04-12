@@ -19,10 +19,10 @@ import {writeLogLinesToFile} from '../util/forward-logs'
 import {stat, unlink} from '../util/file'
 
 // Function to flatten arrays and preserve their sort order
-// Same as concatenating all the arrays and calling .sort() but could be faster
+// Same as concating all the arrays and calling .sort() but could be faster
 // sortFn behaves just like .sort()'s sortFn
 function _mergeSortedArraysHelper<A>(sortFn: (a: A, b: A) => number, ...arrays: Array<Array<A>>): Array<A> {
-  // TODO make a more efficient version - doing simple thing for now
+  // TODO make a more effecient version - doing simple thing for now
   return [].concat(...arrays).sort(sortFn)
 }
 

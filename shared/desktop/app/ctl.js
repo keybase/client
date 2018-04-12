@@ -32,7 +32,7 @@ function exitProcess() {
 
 export function quit(appOnly: boolean = false) {
   if (appOnly || __DEV__) {
-    console.log('Only quitting gui')
+    console.log('Only quiting gui')
     exitApp()
     return
   }
@@ -41,7 +41,7 @@ export function quit(appOnly: boolean = false) {
   ctlStop(function(stopErr) {
     console.log('Done with ctlstop')
     if (stopErr) {
-      console.log('Error in ctl stop, when quitting:', stopErr)
+      console.log('Error in ctl stop, when quiting:', stopErr)
     }
     exitApp()
   })

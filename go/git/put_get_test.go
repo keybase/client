@@ -177,7 +177,7 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 	// as u2 at this point), and one in the directory that u1 and u2 share. One
 	// of the things we'll be testing is that the second one does *not* show up
 	// in the results of GetAllMetadata. This is a product choice -- we want to
-	// pretend they kinda don't exist.
+	// pretent they kinda don't exist.
 
 	t.Logf("me only repo")
 	repoName1 := keybase1.GitRepoName("me only repo")

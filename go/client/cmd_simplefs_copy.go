@@ -131,7 +131,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 	return err
 }
 
-// ParseArgv gets the required arguments for this command.
+// ParseArgv gets the rquired arguments for this command.
 func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	var err error
 

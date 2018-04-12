@@ -357,7 +357,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
-			// since the previous line updates the in-memory cache satisfactorily.
+			// since the previous line updates the in-memory cache satisfactorially.
 			if err := u.putUPAKToCache(ctx, upak); err != nil {
 				u.G().Log.CDebugf(ctx, "continuing past error in putUPAKToCache: %s", err)
 			}
@@ -505,7 +505,7 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 
 	argBase := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 
-	// Make the retry mechanism increasingly aggressive. See CORE-8851.
+	// Make the retry mechanism increasingly aggresive. See CORE-8851.
 	// It should be that a ForcePoll is good enough, but in some rare cases,
 	// people have cached values for previous pre-reset user incarnations that
 	// were incorrect. So clobber over that if it comes to it.

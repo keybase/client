@@ -35,7 +35,7 @@ class Screenprotector extends Component<{}, State> {
 
   render() {
     if (!isAndroid) {
-      return <Text type="Body">Screenprotector is only supported on Android</Text>
+      return <Text type="Body">Screenprotector is only supported on android</Text>
     }
 
     return (

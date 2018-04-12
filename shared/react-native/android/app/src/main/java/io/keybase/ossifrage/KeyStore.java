@@ -149,11 +149,11 @@ public class KeyStore implements UnsafeExternalKeyStore {
             }
 
             // Try to read the entry from the keystore.
-            // The entry may exist, but it may not be readable by us.
+            // The entry may exists, but it may not be readable by us.
             // (this happens when the app is uninstalled and reinstalled)
             // In that case, lets' delete the entry and recreate it.
             // Note we are purposely not recursing to avoid a state where we
-            // constantly try to generate new RSA keys (which is slow)
+            // Constantly try to generate new RSA keys (which is slow)
             try {
                 final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
                 if (entry == null) {

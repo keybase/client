@@ -5,7 +5,7 @@
 1. Go to the Icon font [zeplin sheet](https://app.zeplin.io/project/56a15d74e1e098dd3116d10b/screen/5a2876af3f178f005f0f6409)
 1. Export all the icons to this folder
     1. On the right panel you can click the assets tab and download all SVGs into this folder.
-    1. Delete all non-icon font svgs from that folder (anything that's not 'kb-iconfont-.*')
+    1. Delete all non-icon font svgs from that folder (anything thats not 'kb-iconfont-.*')
         * hint: `find . -type f ! -name 'kb-iconfont-*' -name '*.svg' -delete`
 
 ## Phase 2: Get svg paths

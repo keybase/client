@@ -39,7 +39,7 @@ func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 func (r *userHandler) keyChange() error {
 	r.G().KeyfamilyChanged(r.G().Env.GetUID())
 
-	// check if this device was just revoked and if so, log out
+	// check if this device was just revoked and if so, logout
 	return r.G().LogoutIfRevoked()
 }
 

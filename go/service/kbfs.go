@@ -62,7 +62,7 @@ func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncSt
 
 // checkConversationRekey looks for rekey finished notifications and tries to
 // find any conversations associated with the rekeyed TLF.  If it finds any,
-// it will send ChatThreadsStale notifications for them.
+// it will send ChatThreadsStale notifcations for them.
 func (h *KBFSHandler) checkConversationRekey(arg keybase1.FSNotification) {
 	if arg.NotificationType != keybase1.FSNotificationType_REKEYING {
 		return

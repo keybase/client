@@ -831,7 +831,7 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 	me keybase1.UserVersion, uv keybase1.UserVersion) (bool, error) {
 
 	// IDs of ancestors that were not freshly polled.
-	// Check them again with forceRepoll if the affirmative is not found cached.
+	// Check them again with forceRepoll if the affirmitive is not found cached.
 	checkAgain := make(map[keybase1.TeamID]bool)
 
 	check1 := func(chain *TeamSigChainState) bool {

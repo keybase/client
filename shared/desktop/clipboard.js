@@ -10,7 +10,7 @@ if (__STORYBOOK__) {
   }
   _clipboard = new Proxy({}, mocker)
 } else {
-  // must do a require for storybook to work
+  // must due a require for storybook to work
   const electron = require('electron')
   _clipboard = electron.clipboard
 }

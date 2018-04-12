@@ -122,7 +122,7 @@ func (p InboxPager) MakePage(res []InboxEntry, reqed int) (*chat1.Pagination, er
 	return p.Pager.MakePage(len(res), reqed, nextPF, prevPF)
 }
 
-// threadPager provides a convenient interface to pager for the thread use case
+// threadPager provides a covenient interface to pager for the thread use case
 type ThreadPager struct {
 	Pager
 }

@@ -550,7 +550,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 
 // convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
 // to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
-// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeds,
+// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeeds,
 // we output a service block that can entered into found-versus-tracked comparison logic.
 // The `index` provided is what index this JSON stanza is in the overall track statement.
 func convertTrackedProofToServiceBlock(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
@@ -815,7 +815,7 @@ func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) 
 //
 
 // PGPUpdateChainLink represents a chain link which marks a new version of a
-// PGP key as current. The KID and a new full hash are included in the
+// PGP key as current. The KID and a new new full hash are included in the
 // pgp_update section of the body.
 type PGPUpdateChainLink struct {
 	GenericChainLink
