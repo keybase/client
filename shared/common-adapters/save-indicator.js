@@ -25,10 +25,6 @@ type State = {
 }
 
 const computeNextState = (props: Props, state: State, now: number): null | SaveState2 | number => {
-  const timeSinceLastSave = now - state.lastSave
-  const timeSinceSaveStateChanged = now - state.saveStateChanged
-  const timeToJustSaved = props.minSavingTimeMs - timeSinceLastSave
-
   const {saveState} = state
   switch (saveState) {
     case 'steady':
@@ -43,17 +39,15 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return null
       }
 
-      if (timeToJustSaved > 0) {
-        return 'savingHysteresis'
-      } else {
-        return 'justSaved'
-      }
+      return 'savingHysteresis'
 
     case 'savingHysteresis':
       if (state.saving) {
         return 'saving'
       }
 
+      const timeSinceLastSave = now - state.lastSave
+      const timeToJustSaved = props.minSavingTimeMs - timeSinceLastSave
       if (timeToJustSaved > 0) {
         return timeToJustSaved
       }
@@ -65,6 +59,7 @@ const computeNextState = (props: Props, state: State, now: number): null | SaveS
         return 'saving'
       }
 
+      const timeSinceSaveStateChanged = now - state.saveStateChanged
       const timeToSteady = props.savedTimeoutMs - timeSinceSaveStateChanged
       if (timeToSteady > 0) {
         return timeToSteady
