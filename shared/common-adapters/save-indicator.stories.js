@@ -36,7 +36,7 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
           style={{alignSelf: 'flex-start'}}
           type="Primary"
         />
-        <SaveIndicator saving={this.state.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
+        <SaveIndicator saving={this.state.saving} minSavingTimeMs={2000} savedTimeoutMs={3000} />
       </Box>
     )
   }
