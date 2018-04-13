@@ -95,7 +95,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		}
 	}
 
-	verifyTrackerState := func(expectedPurgeInfo *ephemeralPurgeInfo) {
+	verifyTrackerState := func(expectedPurgeInfo *EphemeralPurgeInfo) {
 		purgeInfo, err := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
 		if expectedPurgeInfo == nil {
 			require.Error(t, err)
@@ -106,7 +106,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
-	ephemeralPurgeAndVerify := func(expectedPurgeInfo *ephemeralPurgeInfo) {
+	ephemeralPurgeAndVerify := func(expectedPurgeInfo *EphemeralPurgeInfo) {
 		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
 		newPurgeInfo, err := storage.EphemeralPurge(context.Background(), convID, uid, purgeInfo)
 		require.NoError(t, err)
@@ -128,7 +128,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("initial merge")
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
 	// We set the initial tracker info when we merge in
-	expectedPurgeInfo := &ephemeralPurgeInfo{
+	expectedPurgeInfo := &EphemeralPurgeInfo{
 		NextPurgeTime:   msgC.Valid().Etime(),
 		MinUnexplodedID: msgC.GetMessageID(),
 	}
@@ -158,7 +158,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	verifyTrackerState(expectedPurgeInfo)
 	// Once we run EphemeralPurge and sweep all messages, we update our tracker
 	// state
-	expectedPurgeInfo = &ephemeralPurgeInfo{
+	expectedPurgeInfo = &EphemeralPurgeInfo{
 		NextPurgeTime:   msgF.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 	}
@@ -176,7 +176,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	// we've slept for ~ lifetime*2, F's lifetime is up
 	time.Sleep(sleepLifetime)
-	expectedPurgeInfo = &ephemeralPurgeInfo{
+	expectedPurgeInfo = &EphemeralPurgeInfo{
 		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 	}

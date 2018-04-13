@@ -18,9 +18,9 @@ type ephemeralTracker struct {
 	sync.Mutex
 }
 
-type allPurgeInfo map[string]ephemeralPurgeInfo
+type allPurgeInfo map[string]EphemeralPurgeInfo
 
-type ephemeralPurgeInfo struct {
+type EphemeralPurgeInfo struct {
 	NextPurgeTime   gregor1.Time    `codec:"n"`
 	MinUnexplodedID chat1.MessageID `codec:"e"`
 }
@@ -92,7 +92,7 @@ func (t *ephemeralTracker) dbSet(ctx context.Context, uid gregor1.UID, newInfo a
 }
 
 func (t *ephemeralTracker) getPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) (*ephemeralPurgeInfo, Error) {
+	convID chat1.ConversationID, uid gregor1.UID) (*EphemeralPurgeInfo, Error) {
 	t.Debug(ctx, "getPurgeInfo")
 
 	t.Lock()
@@ -119,7 +119,7 @@ func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 }
 
 func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *ephemeralPurgeInfo) Error {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) Error {
 	t.Debug(ctx, "setPurgeInfo %v", purgeInfo)
 
 	t.Lock()
@@ -136,7 +136,7 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 // When we are filtering new messages coming in/out of storage, we maybe update
 // if they tell us about something older we should be purging.
 func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *ephemeralPurgeInfo) Error {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) Error {
 	t.Debug(ctx, "maybeUpdatePurgeInfo")
 
 	t.Lock()

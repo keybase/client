@@ -9,7 +9,7 @@ import (
 // For a given conversation, purge all ephemeral messages from
 // purgeInfo.MinUnexplodedID to the present, updating bookkeeping for the next
 // time we need to purge this conv.
-func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *ephemeralPurgeInfo) (*ephemeralPurgeInfo, Error) {
+func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) (*EphemeralPurgeInfo, Error) {
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
@@ -41,7 +41,7 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	}
 	rc := NewSimpleResultCollector(target)
 	err = s.engine.ReadMessages(ctx, rc, convID, uid, maxMsgID)
-	var newPurgeInfo *ephemeralPurgeInfo
+	var newPurgeInfo *EphemeralPurgeInfo
 	switch err.(type) {
 	case nil:
 		// ok
@@ -85,7 +85,7 @@ func (s *Storage) filterEphemeralMessages(ctx context.Context, convID chat1.Conv
 // for our bookkeeping for the next time we have to purge.
 // requires msgs to be sorted by descending message ID
 func (s *Storage) _filterEphemeralMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (*ephemeralPurgeInfo, []chat1.MessageUnboxed, Error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (*EphemeralPurgeInfo, []chat1.MessageUnboxed, Error) {
 	s.Debug(ctx, "_filterEphemeralMessages convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))
 
 	if msgs == nil || len(msgs) == 0 {
@@ -132,7 +132,7 @@ func (s *Storage) _filterEphemeralMessages(ctx context.Context, convID chat1.Con
 		return nil, nil, err
 	}
 
-	return &ephemeralPurgeInfo{
+	return &EphemeralPurgeInfo{
 		MinUnexplodedID: minUnexplodedID,
 		NextPurgeTime:   nextPurgeTime,
 	}, unexploded, nil
