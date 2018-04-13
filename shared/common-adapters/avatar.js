@@ -335,7 +335,7 @@ const mockOwnToViewProps = (props: Props) => {
   }
 
   return {
-    borderColor: 'red',
+    borderColor: props.borderColor,
     children: props.children,
     followIconSize: _followIconSize(props.size, !!props.followsYou, !!props.following),
     followIconStyle: followSizeToStyle[props.size],
