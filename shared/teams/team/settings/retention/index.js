@@ -28,7 +28,7 @@ export type Props = {
   showOverrideNotice: boolean,
   showSaveIndicator: boolean,
   type: 'simple' | 'auto',
-  setRetentionPolicy: (policy: RetentionPolicy) => void,
+  saveRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
   onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
@@ -69,7 +69,7 @@ class RetentionPicker extends React.Component<Props, State> {
       return
     }
     const onConfirm = () => {
-      this.props.setRetentionPolicy(selected)
+      this.props.saveRetentionPolicy(selected)
     }
     const onCancel = this._init
     if (decreased) {
