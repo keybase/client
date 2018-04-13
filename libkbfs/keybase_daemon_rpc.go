@@ -272,6 +272,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifyTeamProtocol(k),
 		keybase1.TlfKeysProtocol(k),
 		keybase1.ReachabilityProtocol(k),
+		keybase1.ImplicitTeamMigrationProtocol(k),
 	}
 
 	// Add simplefs if set
