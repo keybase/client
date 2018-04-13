@@ -75,8 +75,10 @@ function showShareActionSheet(options: {
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
-    NativeModules.ShareFiles.share(options.url, options.mimeType)
-    return Promise.resolve({completed: false, method: ''})
+    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
+      () => ({completed: true, method: ''}),
+      () => ({completed: false, method: ''})
+    )
   }
 }
 
