@@ -2,7 +2,9 @@ package io.keybase.ossifrage.modules;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -25,12 +27,17 @@ public class ShareFiles extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void share(String uriPath, String mimeType) {
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_SEND);
+    public void share(String uriPath, String mimeType, Promise promise) {
         Uri uri = Uri.parse(uriPath);
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.setType(mimeType);
-        reactContext.startActivity(Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to)));
+        Intent intent = new Intent(Intent.ACTION_SEND)
+                .putExtra(Intent.EXTRA_STREAM, uri)
+                .setType(mimeType);
+        Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
+        if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
+            reactContext.startActivity(chooser);
+            promise.resolve(true);
+        } else {
+            promise.reject(new Exception("Invalid chooser"));
+        }
     }
 }

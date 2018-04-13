@@ -75,7 +75,6 @@ function showShareActionSheet(options: {
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
-    logger.warn('Sharing action not implemented in android')
     NativeModules.ShareFiles.share(options.url, options.mimeType)
     return Promise.resolve({completed: false, method: ''})
   }
