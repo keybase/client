@@ -291,10 +291,11 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	j.Push(newTask(types.ConvLoaderPriorityLow))
 	require.True(t, <-cb)
 
-	j.Push(newTask(types.ConvLoaderPriorityLow))
-	j.Push(newTask(types.ConvLoaderPriorityLow))
-	j.Push(newTask(types.ConvLoaderPriorityMedium))
-	j.Push(newTask(types.ConvLoaderPriorityHigh))
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityMedium)))
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityHigh)))
+	require.Error(t, j.Push(newTask(types.ConvLoaderPriorityHigh)))
 	order := []types.ConvLoaderPriority{types.ConvLoaderPriorityHigh, types.ConvLoaderPriorityMedium,
 		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow}
 	for i := 0; i < len(order); i++ {

@@ -108,7 +108,7 @@ func (j ConvLoaderJob) HigherPriorityThan(j2 ConvLoaderJob) bool {
 }
 
 func (j ConvLoaderJob) String() string {
-	return fmt.Sprintf("[convID: %s pagination: %v]", j.ConvID, j.Pagination)
+	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
 }
 
 func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,

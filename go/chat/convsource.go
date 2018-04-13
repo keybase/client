@@ -393,8 +393,9 @@ type HybridConversationSource struct {
 	utils.DebugLabeler
 	*baseConversationSource
 
-	storage *storage.Storage
-	lockTab *conversationLockTab
+	numExpungeReload int
+	storage          *storage.Storage
+	lockTab          *conversationLockTab
 }
 
 var _ types.ConversationSource = (*HybridConversationSource)(nil)
@@ -407,6 +408,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
 		lockTab:                newConversationLockTab(g),
+		numExpungeReload:       100,
 	}
 }
 
@@ -957,8 +959,8 @@ func (s *HybridConversationSource) ExpungeFromDelete(ctx context.Context, uid gr
 	defer s.Trace(ctx, func() error { return nil }, "ExpungeFromDelete")()
 
 	// Check to see if we have the message stored
-	_, err := s.storage.FetchMessages(ctx, convID, uid, []chat1.MessageID{deleteID})
-	if err == nil {
+	stored, err := s.storage.FetchMessages(ctx, convID, uid, []chat1.MessageID{deleteID})
+	if err == nil && stored[0] != nil {
 		// Any error is grounds to load this guy into the conv loader aggressively
 		s.Debug(ctx, "ExpungeFromDelete: delete message stored, doing nothing")
 		return
@@ -966,7 +968,7 @@ func (s *HybridConversationSource) ExpungeFromDelete(ctx context.Context, uid gr
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ExpungeFromDelete: delete not found, expunging")
-	p := &chat1.Pagination{Num: 100}
+	p := &chat1.Pagination{Num: s.numExpungeReload}
 	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			expunge := chat1.Expunge{

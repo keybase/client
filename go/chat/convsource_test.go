@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -823,4 +824,65 @@ func TestConversationLockingDeadlock(t *testing.T) {
 
 	require.True(t, hcs.lockTab.Release(ctx, uid, conv2.GetConvID()))
 	require.True(t, hcs.lockTab.Release(ctx2, uid, conv3.GetConvID()))
+}
+
+func TestExpungeFromDelete(t *testing.T) {
+	ctx, world, ri2, _, sender, listener := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	if hcs == nil {
+		t.Skip()
+	}
+
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
+		u.Username, "hi"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
+		u.Username, "hi2"))
+
+	_, delMsg, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  3,
+		},
+		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: []chat1.MessageID{3},
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
+
+	select {
+	case <-listener.bgConvLoads:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no conv loader")
+	}
+
+	require.NoError(t, hcs.storage.MaybeNuke(true, nil, conv.GetConvID(), uid))
+	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2})
+	require.NoError(t, err)
+	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)
+	require.Error(t, err)
+	require.IsType(t, storage.MissError{}, err)
+
+	hcs.numExpungeReload = 1
+	hcs.ExpungeFromDelete(ctx, uid, conv.GetConvID(), 4)
+	select {
+	case <-listener.bgConvLoads:
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no conv loader")
+	}
+	tv, err = hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tv.Messages))
 }
