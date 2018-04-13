@@ -5901,12 +5901,12 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   display: -webkit-flex;
   display: flex;
   flex-direction: row;
-  cursor: pointer;
   align-items: center;
   flex-shrink: 0;
+  padding-left: 8px;
+  cursor: pointer;
   max-height: 24px;
   min-height: 24px;
-  padding-left: 8px;
   padding-right: 4px;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
