@@ -1,19 +1,10 @@
 // @flow
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonBar,
-  ClickableBox,
-  Text,
-  Icon,
-  Usernames,
-} from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
-import {roleIconColorMap} from '../../../role-picker/index.meta'
-import {typeToLabel} from '../../../../constants/teams'
-import {type BoolTypeMap, type TeamRoleType} from '../../../../constants/types/teams'
+import {Avatar, Box, Button, ButtonBar, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
+import {globalMargins, globalStyles, globalColors, isMobile} from '../../../styles'
+import {roleIconColorMap} from '../../role-picker/index.meta'
+import {typeToLabel} from '../../../constants/teams'
+import {type BoolTypeMap, type TeamRoleType} from '../../../constants/types/teams'
 
 export type Props = {
   active: boolean,

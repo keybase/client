@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/teams'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import * as Types from '../../../constants/types/teams'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 type TeamTabsProps = {
   admin: boolean,
@@ -21,22 +21,9 @@ type TeamTabsProps = {
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {
-    admin,
-    numInvites,
-    memberCount,
-    teamname,
-    newTeamRequests,
-    numRequests,
-    numSubteams,
-    resetUserCount,
-    loading = false,
-    selectedTab,
-    setSelectedTab,
-    yourOperations,
-  } = props
+  const {loading = false} = props
   let membersLabel = 'MEMBERS'
-  membersLabel += !loading && memberCount !== 0 ? ` (${memberCount})` : ''
+  membersLabel += !loading && props.memberCount !== 0 ? ` (${props.memberCount})` : ''
   const tabs = [
     <Box key="members" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
@@ -48,22 +35,27 @@ const TeamTabs = (props: TeamTabsProps) => {
       >
         {membersLabel}
       </Text>
-      {!!resetUserCount && <Badge badgeNumber={resetUserCount} badgeStyle={{marginTop: 1, marginLeft: 2}} />}
+      {!!props.resetUserCount && (
+        <Badge badgeNumber={props.resetUserCount} badgeStyle={{marginTop: 1, marginLeft: 2}} />
+      )}
     </Box>,
   ]
 
   let requestsBadge = 0
-  if (newTeamRequests.length) {
+  if (props.newTeamRequests.length) {
     // Use min here so we never show a badge number > the (X) number of requests we have
     requestsBadge = Math.min(
-      newTeamRequests.reduce((count, team) => (team === teamname ? count + 1 : count), 0),
-      numRequests
+      props.newTeamRequests.reduce((count, team) => (team === props.teamname ? count + 1 : count), 0),
+      props.numRequests
     )
   }
 
-  if (admin) {
+  if (props.admin) {
     let invitesLabel = 'INVITES'
-    invitesLabel += !loading && numInvites + numRequests !== 0 ? ` (${numInvites + numRequests})` : ''
+    invitesLabel +=
+      !loading && props.numInvites + props.numRequests !== 0
+        ? ` (${props.numInvites + props.numRequests})`
+        : ''
     tabs.push(
       <Box key="invites" style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Text
@@ -80,8 +72,8 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   let subteamsLabel = 'SUBTEAMS'
-  subteamsLabel += !loading && numSubteams !== 0 ? ` (${numSubteams})` : ''
-  if (numSubteams > 0 || yourOperations.manageSubteams) {
+  subteamsLabel += !loading && props.numSubteams !== 0 ? ` (${props.numSubteams})` : ''
+  if (props.numSubteams > 0 || props.yourOperations.manageSubteams) {
     tabs.push(
       <Text
         key="subteams"
@@ -120,14 +112,14 @@ const TeamTabs = (props: TeamTabsProps) => {
     const key = tab && tab.key
     if (key) {
       if (key !== 'loadingIndicator') {
-        setSelectedTab(key)
+        props.setSelectedTab(key)
       } else {
-        setSelectedTab('members')
+        props.setSelectedTab('members')
       }
     }
   }
 
-  const selected = tabs.find(tab => tab.key === selectedTab)
+  const selected = tabs.find(tab => tab.key === props.selectedTab)
   return (
     <Tabs
       tabs={tabs}
@@ -146,5 +138,4 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
 }
 
-export type {TeamTabsProps}
 export default TeamTabs

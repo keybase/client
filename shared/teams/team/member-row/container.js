@@ -1,17 +1,15 @@
 // @flow
-import * as React from 'react'
-import * as Types from '../../../../constants/types/teams'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Types from '../../../constants/types/teams'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/teams'
 import {TeamMemberRow} from '.'
-import {amIFollowing} from '../../../../constants/selectors'
-import {getCanPerform} from '../../../../constants/teams'
-import {navigateAppend} from '../../../../actions/route-tree'
-import {connect, type TypedState} from '../../../../util/container'
-import * as TrackerGen from '../../../../actions/tracker-gen'
+import {amIFollowing} from '../../../constants/selectors'
+import {navigateAppend} from '../../../actions/route-tree'
+import {connect, type TypedState} from '../../../util/container'
+import * as TrackerGen from '../../../actions/tracker-gen'
 
 import type {MemberRow as OwnProps} from '../../row-types'
-export type {OwnProps}
 
 type StateProps = {
   following: boolean,
@@ -20,16 +18,22 @@ type StateProps = {
   youCanManageMembers: boolean,
 }
 
-const mapStateToProps = (
-  state: TypedState,
-  {active, fullName, teamname, username}: OwnProps
-): StateProps => ({
-  active,
-  following: amIFollowing(state, username),
-  fullName: state.config.username === username ? 'You' : fullName,
-  you: state.config.username,
-  youCanManageMembers: getCanPerform(state, 'teamname').manageMembers,
-})
+const blankInfo = Constants.makeMemberInfo()
+
+const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => {
+  const map = Constants.getTeamMembers(state, teamname)
+  const info = map.get(username, blankInfo)
+
+  return {
+    active: info.active,
+    following: amIFollowing(state, username),
+    fullName: state.config.username === username ? 'You' : info.fullName,
+    roleType: info.type,
+    username: info.username,
+    you: state.config.username,
+    youCanManageMembers: Constants.getCanPerform(state, 'teamname').manageMembers,
+  }
+}
 
 type DispatchProps = {
   _onChat: () => void,
@@ -80,8 +84,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
-    ...ownProps,
-    ...stateProps,
+    active: stateProps.active,
+    youCanManageMembers: stateProps.youCanManageMembers,
+    following: stateProps.following,
+    fullName: stateProps.fullName,
+    roleType: stateProps.roleType,
+    username: stateProps.username,
+    you: stateProps.you,
     onChat: () => dispatchProps._onChat(),
     onClick: dispatchProps.onClick,
     onReAddToTeam: () =>
@@ -91,9 +100,4 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-const ConnectedMemberRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
-
-export default function(i: number, props: OwnProps) {
-  // $FlowIssue I have no idea but everything works
-  return <ConnectedMemberRow {...props} />
-}
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)

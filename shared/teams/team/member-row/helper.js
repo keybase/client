@@ -1,9 +1,9 @@
 // @flow
-import * as Constants from '../../../constants/teams'
+// import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as I from 'immutable'
-import {type TypedState, connect} from '../../../util/container'
-import {Members} from '.'
+// import {type TypedState, connect} from '../../../util/container'
+// import {Members} from '.'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 export type OwnProps = {
@@ -12,7 +12,7 @@ export type OwnProps = {
 
 const order = {owner: 0, admin: 1, writer: 2, reader: 3}
 
-const getOrderedMemberArray = (
+export const getOrderedMemberArray = (
   memberInfo: I.Map<string, Types.MemberInfo>,
   you: ?string,
   yourOperations: RPCTypes.TeamOperation
@@ -63,32 +63,33 @@ const getOrderedMemberArray = (
   return returnArray
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  // Assume teamname exists here because parent throws an error if not.
-  _memberInfo: Constants.getTeamMembers(state, teamname),
-  you: state.config.username,
-  yourOperations: Constants.getCanPerform(state, teamname),
-})
+// const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
+// // Assume teamname exists here because parent throws an error if not.
+// _memberInfo: Constants.getTeamMembers(state, teamname),
+// you: state.config.username,
+// yourOperations: Constants.getCanPerform(state, teamname),
+// })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const _members = getOrderedMemberArray(stateProps._memberInfo, stateProps.you, stateProps.yourOperations)
-  return {
-    members: _members.map(member => ({
-      type: 'member',
-      fullName: member.fullName,
-      username: member.username,
-      teamname: ownProps.teamname,
-      active: member.active,
-      key: member.username + member.active.toString(),
-      roleType: member.type,
-    })),
-  }
-}
+// const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+// const _members = getOrderedMemberArray(stateProps._memberInfo, stateProps.you, stateProps.yourOperations)
+// return {
+// members: _members.map(member => ({
+// type: 'member',
+// fullName: member.fullName,
+// username: member.username,
+// teamname: ownProps.teamname,
+// active: member.active,
+// key: member.username + member.active.toString(),
+// roleType: member.type,
+// })),
+// }
+// }
 
-const listMergeProps = (stateProps, dispatchProps, ownProps) => ({
-  listItems: mergeProps(stateProps, dispatchProps, ownProps).members,
-  ...ownProps,
-})
+// const listMergeProps = (stateProps, dispatchProps, ownProps) => ({
+// listItems: mergeProps(stateProps, dispatchProps, ownProps).members,
+// ...ownProps,
+// })
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Members)
-export const membersListItemsConnector = connect(mapStateToProps, () => ({}), listMergeProps)
+// used?
+// export default connect(mapStateToProps, () => ({}), mergeProps)(Members)
+// export const membersListItemsConnector = connect(mapStateToProps, () => ({}), listMergeProps)
