@@ -16,7 +16,7 @@ export default class Window {
     this.initiallyVisible = this.opts.show || false
     this.createWindow()
 
-    // Listen for remote windows to show a dock icon for, we'll bind the on close to
+    // Listen for remote windows to show a dock icon for, we'll bind them on close to
     // hide the dock icon too
     ipcMain.on('showDockIconForRemoteWindow', (event, remoteWindowId) => {
       showDockIcon()

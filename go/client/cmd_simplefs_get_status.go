@@ -115,7 +115,7 @@ func (c *CmdSimpleFSGetStatus) Run() error {
 	return err
 }
 
-// ParseArgv gets the rquired path argument for this command.
+// ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSGetStatus) ParseArgv(ctx *cli.Context) error {
 	var err error
 

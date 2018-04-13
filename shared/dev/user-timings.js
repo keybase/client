@@ -81,7 +81,7 @@ const _endSaga = effectId => {
 const _getLabel = obj => {
   let label
   try {
-    // Try and extract a userful name from saga events
+    // Try and extract a useful name from saga events
     if (!obj.effect) {
       label = obj.effectId
     } else if (obj.effect.saga) {

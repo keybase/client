@@ -529,7 +529,7 @@ export const makePendingAttachmentMessage = (
   })
 }
 
-// We only pass message ids to the service so lets just truncate it so a messageid-like value instead of searching back for it.
+// We only pass message ids to the service so let's just truncate it so a messageid-like value instead of searching back for it.
 // this value is a hint to the service and how the ordinals work this is always a valid messageid
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const lastOrdinal =

@@ -39,7 +39,7 @@ type NodeHashLong [NodeHashLenLong]byte
 // It's unfortunate we need it, but I didn't see any other way to use the
 // Go json marshal/unmarshal system where the hashes might be either short
 // or long. Our hacky solution is to have a union-type struct that supports
-// both, and just to unmarshal into the relevant relevant field. Note this
+// both, and just to unmarshal into the relevant field. Note this
 // type also fits ths NodeHash interface.
 type NodeHashAny struct {
 	s *NodeHashShort
@@ -1436,7 +1436,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRootHelper(ctx context.Context, ss 
 	}()
 
 	// It's important to check the merkle skip sequence before verifying the root.
-	// If it's historical, then it's OK to to swap ordering directions.
+	// If it's historical, then it's OK to swap ordering directions.
 	if err = mc.verifySkipSequence(ctx, ss, curr, prev, historical); err != nil {
 		return err
 	}
@@ -1456,7 +1456,7 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
-	// Note, we can have multiple concurrenct calls to LookupUser that can return in any order.
+	// Note, we can have multiple concurrent calls to LookupUser that can return in any order.
 	// Checking against the cache after the call completes can cause false-positive rollback
 	// warnings if the first call is super slow, and the second call is super fast, and there
 	// was a change on the server side. See CORE-4064.
@@ -1569,7 +1569,7 @@ func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) 
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
-	// Note, we can have multiple concurrenct calls to LookupUser that can return in any order.
+	// Note, we can have multiple concurrent calls to LookupUser that can return in any order.
 	// Checking against the cache after the call completes can cause false-positive rollback
 	// warnings if the first call is super slow, and the second call is super fast, and there
 	// was a change on the server side. See CORE-4064.

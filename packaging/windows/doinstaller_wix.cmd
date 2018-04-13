@@ -1,4 +1,4 @@
-:: Sign keybase.exe and generate a signed installer, with an embedded signed uninsaller
+:: Sign keybase.exe and generate a signed installer, with an embedded signed uninstaller
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::

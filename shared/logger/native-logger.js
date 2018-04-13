@@ -26,7 +26,7 @@ const parseLine = (l: string): LogLine => {
   return [ts, matches[2]]
 }
 
-// Uses the native logging mechanism (e.g. Log.i on android)
+// Uses the native logging mechanism (e.g. Log.i on Android)
 class NativeLogger implements Logger {
   _tagPrefix: string
 

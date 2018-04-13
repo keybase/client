@@ -308,7 +308,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 		}
 
 		if err != nil {
-			// We can treat a 403 or 404 as non existance
+			// We can treat a 403 or 404 as non existence
 			if e, ok := err.(*Error); ok && (e.StatusCode == 403 || e.StatusCode == 404) {
 				return false, nil
 			}
@@ -772,7 +772,7 @@ func (b *Bucket) GetBucketContents() (*map[string]Key, error) {
 	return &bucketContents, nil
 }
 
-// URL returns a non-signed URL that allows retriving the
+// URL returns a non-signed URL that allows retrieving the
 // object at path. It only works if the object is publicly
 // readable (see SignedURL).
 func (b *Bucket) URL(path string) string {

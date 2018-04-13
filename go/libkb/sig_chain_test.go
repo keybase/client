@@ -111,7 +111,7 @@ type TestList struct {
 	ErrorTypes []string            `json:"error_types"`
 }
 
-// The input data for a single test. Each tests has its own input JSON file.
+// The input data for a single test. Each test has its own input JSON file.
 type TestInput struct {
 	// We omit the "chain" member here, because we need it in blob form.
 	Username  string            `json:"username"`
