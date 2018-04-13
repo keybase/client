@@ -199,7 +199,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         yield Saga.call(saveAttachmentDialog, localPath)
         break
       case 'share':
-        yield Saga.call(showShareActionSheet, {url: localPath})
+        yield Saga.call(showShareActionSheet, {url: localPath, mimeType: action.payload.mimeType})
         break
       default:
         // eslint-disable-next-line no-unused-expressions

@@ -9,6 +9,7 @@ import {type IconType} from '../common-adapters/icon'
 import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
+import * as mime from 'react-native-mime-types'
 
 export const defaultPath = '/keybase'
 
@@ -287,8 +288,7 @@ export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
 
 export const isImage = (name: string): boolean => {
-  const lower = name.toLowerCase()
-  return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
+  return (mime.lookup(name) || '').indexOf('image/') !== -1
 }
 
 export type FavoritesListResult = {
@@ -431,3 +431,5 @@ export const folderToFavoriteItems = (
     )
   )
 }
+
+export const mimeTypeFromPathItem = (p: Types.PathItem): string => mime.lookup(p.name) || ''

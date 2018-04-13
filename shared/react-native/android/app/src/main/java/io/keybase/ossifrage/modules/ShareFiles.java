@@ -7,6 +7,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
+import io.keybase.ossifrage.R;
+
 
 public class ShareFiles extends ReactContextBaseJavaModule {
 
@@ -29,6 +31,6 @@ public class ShareFiles extends ReactContextBaseJavaModule {
         Uri uri = Uri.parse(uriPath);
         intent.putExtra(Intent.EXTRA_STREAM, uri);
         intent.setType(mimeType);
-        reactContext.startActivity(intent);
+        reactContext.startActivity(Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to)));
     }
 }
