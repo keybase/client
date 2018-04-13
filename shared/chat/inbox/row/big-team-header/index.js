@@ -22,7 +22,7 @@ class BigTeamHeader extends React.PureComponent<Props> {
 
     return (
       <HeaderBox>
-        <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
+        <Avatar teamname={props.teamname} size={32} />
         <Text type="BodySmallSemibold" style={teamStyle}>
           {props.teamname}
         </Text>
@@ -55,10 +55,10 @@ const teamRowContainerStyle = {
   ...desktopStyles.clickable,
   alignItems: 'center',
   flexShrink: 0,
-  maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  minHeight: isMobile ? globalMargins.large : globalMargins.medium,
+  maxHeight: 32,
+  minHeight: 32,
   paddingLeft: globalMargins.tiny,
-  paddingRight: isMobile ? 0 : globalMargins.xtiny,
+  paddingRight: globalMargins.tiny,
 }
 
 const HeaderBox = glamorous(Box)({

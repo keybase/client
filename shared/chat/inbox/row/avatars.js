@@ -70,7 +70,7 @@ class Avatars extends React.Component<AvatarProps> {
       <Box style={avatarBoxStyle}>
         <Box style={avatarInnerBoxStyle}>
           <MultiAvatar
-            singleSize={isMobile ? 48 : 40}
+            singleSize={48}
             multiSize={32}
             avatarProps={avatarProps}
             multiPadding={isMobile ? 2 : 0}
@@ -98,17 +98,17 @@ const avatarBoxStyle = {
   justifyContent: 'flex-start',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
-  maxWidth: isMobile ? 48 : 40,
-  minWidth: isMobile ? 48 : 40,
+  maxWidth: 48,
+  minWidth: 48,
   position: 'relative',
 }
 
 const avatarInnerBoxStyle = {
   height: '100%',
-  maxWidth: isMobile ? 48 : 40,
-  minWidth: isMobile ? 48 : 40,
-  paddingBottom: 4,
-  paddingTop: 4,
+  maxWidth: 48,
+  minWidth: 48,
+  paddingBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
   position: 'relative',
 }
 
@@ -120,7 +120,7 @@ class TeamAvatar extends React.Component<{
   render() {
     return (
       <Box style={avatarBoxStyle}>
-        <Avatar teamname={this.props.teamname} size={isMobile ? 48 : 40} />
+        <Avatar teamname={this.props.teamname} size={48} />
         <MutedIcon isSelected={this.props.isSelected} isMuted={this.props.isMuted} isLocked={false} />
       </Box>
     )
@@ -128,7 +128,7 @@ class TeamAvatar extends React.Component<{
 }
 
 const avatarMutedIconStyle = {
-  bottom: 5,
+  bottom: globalMargins.xtiny,
   position: 'absolute',
   right: 0,
 }
