@@ -471,3 +471,35 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 
 	return nil
 }
+
+func HandleOpenTeamMemberOutFromReset(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamMemberOutFromReset) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	traceName := fmt.Sprintf("HandleOpenTeamMemberOutFromReset(%s,%+v)", msg.TeamName, msg.ResetUser)
+	defer g.CTrace(ctx, traceName, func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        msg.TeamName,
+		Public:      false,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+	if !team.IsOpen() {
+		g.Log.CDebugf(ctx, "Team %q is not open anymore, ignoring member_out_from_reset_open.", msg.TeamName)
+		return nil
+	}
+	uv := keybase1.NewUserVersion(msg.ResetUser.Uid, msg.ResetUser.EldestSeqno)
+	role, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return err
+	}
+	if role == keybase1.TeamRole_NONE {
+		// Member is already gone.
+		return nil
+	}
+	req := keybase1.TeamChangeReq{
+		None: []keybase1.UserVersion{uv},
+	}
+	return team.ChangeMembershipPermanent(ctx, req, false /* permanent */)
+}
