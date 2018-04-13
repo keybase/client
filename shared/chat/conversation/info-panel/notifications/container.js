@@ -114,9 +114,7 @@ export default compose(
         nextProps._storeChannelWide === nextProps.channelWide &&
         nextProps._storeMuted === nextProps.muted
       ) {
-        if (nextProps.saving) {
-          nextProps.updateSaving(false)
-        }
+        nextProps.updateSaving(false)
       } else {
         // did our local settings change at all?
         if (
