@@ -1148,11 +1148,11 @@
 			"revisionTime": "2017-12-01T00:24:35Z"
 		},
 		{
-			"checksumSHA1": "rZYExDgnlRGQip6eHLzV+ptdKFI=",
+			"checksumSHA1": "62+vHe8Tw5C0/6hrCYK55vS8C8A=",
 			"origin": "github.com/keybase/go-git/storage/filesystem/internal/dotgit",
 			"path": "gopkg.in/src-d/go-git.v4/storage/filesystem/internal/dotgit",
-			"revision": "d2b6d67be5cb04d1640faf47995ace874dc3cb05",
-			"revisionTime": "2017-12-01T00:24:35Z"
+			"revision": "58898ae21bb8fb3cdde546f12872767683a2239a",
+			"revisionTime": "2018-04-13T23:39:03Z"
 		},
 		{
 			"checksumSHA1": "4xP9AhC2OWXL3oUsZ/k6n7oMs8s=",
