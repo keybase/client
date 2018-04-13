@@ -30385,7 +30385,7 @@ exports[`Storyshots Files Preview 1`] = `
                 onClick={undefined}
                 title={undefined}
               >
-                Show in Finder
+                Download a copy
               </span>
             </div>
           </div>

@@ -77,7 +77,7 @@ const load = () => {
     ))
     .add('Preview', () => (
       <FilePreview
-        fileUIEnabled={true}
+        fileUIEnabled={false}
         pathItem={Constants.makeFile({
           name: 'bar.jpg',
           size: 10240,
