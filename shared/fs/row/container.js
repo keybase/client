@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             isShare: false,
             targetRect,
           },
-          selected: 'rowAction',
+          selected: 'pathItemAction',
         },
       ])
     )
