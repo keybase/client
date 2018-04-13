@@ -14,7 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupLoaderTest(t *testing.T) (*kbtest.ChatTestContext, *kbtest.ChatMockWorld, *chatListener, chat1.NewConversationRemoteRes) {
+func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *kbtest.ChatMockWorld,
+	func() chat1.RemoteInterface, types.Sender, *chatListener, chat1.NewConversationRemoteRes) {
 	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
 
 	u := world.GetUsers()[0]
@@ -37,15 +38,15 @@ func setupLoaderTest(t *testing.T) (*kbtest.ChatTestContext, *kbtest.ChatMockWor
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
-	return tc, world, listener, res
+	return ctx, tc, world, func() chat1.RemoteInterface { return ri }, baseSender, listener, res
 }
 
 func TestConvLoader(t *testing.T) {
-	tc, world, listener, res := setupLoaderTest(t)
+	_, tc, world, _, _, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	select {
 	case convID := <-listener.bgConvLoads:
 		if !convID.Eq(res.ConvID) {
@@ -86,7 +87,7 @@ func (s slowestRemote) GetMessagesRemote(ctx context.Context, arg chat1.GetMessa
 }
 
 func TestConvLoaderSuspend(t *testing.T) {
-	tc, world, listener, res := setupLoaderTest(t)
+	_, tc, world, _, _, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
 	ri := tc.ChatG.ConvSource.(*HybridConversationSource).ri
@@ -95,7 +96,7 @@ func TestConvLoaderSuspend(t *testing.T) {
 		return slowRi
 	}
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	select {
 	case <-slowRi.callCh:
 	case <-time.After(20 * time.Second):
@@ -126,7 +127,7 @@ func TestConvLoaderSuspend(t *testing.T) {
 }
 
 func TestConvLoaderAppState(t *testing.T) {
-	tc, world, listener, res := setupLoaderTest(t)
+	_, tc, world, _, _, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
 	clock := clockwork.NewFakeClock()
@@ -144,7 +145,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	clock.BlockUntil(1)
 	clock.Advance(200 * time.Millisecond) // Get by small sleep
 	select {
@@ -184,7 +185,7 @@ func TestConvLoaderAppState(t *testing.T) {
 		return slowRi
 	}
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	clock.BlockUntil(1)
 	clock.Advance(200 * time.Millisecond) // Get by small sleep
 	select {
@@ -220,6 +221,89 @@ func TestConvLoaderAppState(t *testing.T) {
 		require.Equal(t, res.ConvID, convID)
 	case <-time.After(failDuration):
 		require.Fail(t, "no event")
+	}
+
+}
+
+func TestConvLoaderPageBack(t *testing.T) {
+	ctx, tc, world, ri, sender, listener, res := setupLoaderTest(t)
+	defer world.Cleanup()
+
+	ib, err := ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &res.ConvID,
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(ib.Inbox.Full().Conversations))
+	conv := ib.Inbox.Full().Conversations[0]
+
+	u := world.GetUsers()[0]
+	for i := 0; i < 2; i++ {
+		_, _, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Metadata.IdTriple,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+		}, 0, nil)
+		require.NoError(t, err)
+	}
+
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 1}, types.ConvLoaderPriorityHigh, nil)))
+
+	for i := 0; i < 2; i++ {
+		select {
+		case <-listener.bgConvLoads:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no load")
+		}
+	}
+}
+
+func TestConvLoaderJobQueue(t *testing.T) {
+	j := newJobQueue(5)
+	newTask := func(p types.ConvLoaderPriority) clTask {
+		job := types.NewConvLoaderJob(chat1.ConversationID{}, nil, p, nil)
+		return clTask{job: job}
+	}
+
+	select {
+	case <-j.Pop():
+		require.Fail(t, "queue empty")
+	default:
+	}
+
+	cb := make(chan bool, 1)
+	go func() {
+		ret := true
+		select {
+		case <-j.Pop():
+		case <-time.After(20 * time.Second):
+			ret = false
+		}
+		cb <- ret
+	}()
+	time.Sleep(100 * time.Millisecond)
+	j.Push(newTask(types.ConvLoaderPriorityLow))
+	require.True(t, <-cb)
+
+	j.Push(newTask(types.ConvLoaderPriorityLow))
+	j.Push(newTask(types.ConvLoaderPriorityLow))
+	j.Push(newTask(types.ConvLoaderPriorityMedium))
+	j.Push(newTask(types.ConvLoaderPriorityHigh))
+	order := []types.ConvLoaderPriority{types.ConvLoaderPriorityHigh, types.ConvLoaderPriorityMedium,
+		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow}
+	for i := 0; i < len(order); i++ {
+		select {
+		case task := <-j.Pop():
+			require.Equal(t, order[i], task.job.Priority)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no task")
+		}
 	}
 
 }
