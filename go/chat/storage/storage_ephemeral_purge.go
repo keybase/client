@@ -54,7 +54,7 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	default:
 		return nil, err
 	}
-	newPurgeInfo, _, err = s.filterEphemeralMessages(ctx, convID, uid, rc.Result())
+	newPurgeInfo, _, err = s._filterEphemeralMessages(ctx, convID, uid, rc.Result())
 	if err != nil {
 		return nil, err
 	}
@@ -67,12 +67,26 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	return newPurgeInfo, err
 }
 
+func (s *Storage) filterEphemeralMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, Error) {
+	s.Debug(ctx, "filterEphemeralMessages convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))
+	purgeInfo, filteredMsgs, err := s._filterEphemeralMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return msgs, err
+	}
+
+	// We may only be merging in some subset of messages, we only update if the
+	// info we get is more restrictive that what we have already
+	err = s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
+	return filteredMsgs, err
+}
+
 // Before adding or removing messages from storage, filter them and give info
 // for our bookkeeping for the next time we have to purge.
 // requires msgs to be sorted by descending message ID
-func (s *Storage) filterEphemeralMessages(ctx context.Context, convID chat1.ConversationID,
+func (s *Storage) _filterEphemeralMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) (*ephemeralPurgeInfo, []chat1.MessageUnboxed, Error) {
-	s.Debug(ctx, "filterEphemeralMessages convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))
+	s.Debug(ctx, "_filterEphemeralMessages convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))
 
 	if msgs == nil || len(msgs) == 0 {
 		return nil, msgs, nil

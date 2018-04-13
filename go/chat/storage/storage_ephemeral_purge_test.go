@@ -127,17 +127,13 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	t.Logf("initial merge")
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
-	// We set the purge time on the merge since we have no tracker data, but no IDs
-	verifyTrackerState(&ephemeralPurgeInfo{
-		NextPurgeTime:   msgC.Valid().Etime(),
-		MinUnexplodedID: 0,
-	})
-	// We keep the purge time since it's the minimum, but can now set the
-	// minUnexplodedID
+	// We set the initial tracker info when we merge in
 	expectedPurgeInfo := &ephemeralPurgeInfo{
 		NextPurgeTime:   msgC.Valid().Etime(),
 		MinUnexplodedID: msgC.GetMessageID(),
 	}
+	verifyTrackerState(expectedPurgeInfo)
+	// Running purge has not effect since nothing is expired
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
 
 	setExpected("A", msgA, false, 0) // TLFNAME messages have no body
@@ -148,14 +144,20 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	setExpected("F", msgF, false, msgG.GetMessageID())
 	setExpected("G", msgG, true, 0)
 	assertState(msgG.GetMessageID())
+	// After fetching messages tracker state is unchanged since nothing is
+	// expired.
+	verifyTrackerState(expectedPurgeInfo)
 
 	t.Logf("sleep and fetch")
-	// We sleep for `lifetime`, so we expect C to get purged on fetch (msg H is not get merged in)
-	// The tracker will not update though until EphemeralPurge runs again
+	// We sleep for `lifetime`, so we expect C to get purged on fetch (msg H is
+	// not yet merged in)
 	time.Sleep(sleepLifetime)
 	unsetExpected("C")
 	assertState(msgG.GetMessageID())
+	// We don't update the  tracker state is updated from a fetch
 	verifyTrackerState(expectedPurgeInfo)
+	// Once we run EphemeralPurge and sweep all messages, we update our tracker
+	// state
 	expectedPurgeInfo = &ephemeralPurgeInfo{
 		NextPurgeTime:   msgF.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
@@ -164,7 +166,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	t.Logf("mergeH")
 	// We add msgH, which is already expired, so it should get purged on entry,
-	// but our nextPurgeTime should be unchanged
+	// but our nextPurgeTime should be unchanged, since msgF's etime is still
+	// the min.
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgH}))
 	verifyTrackerState(expectedPurgeInfo)
 	// We never set H in expected, since it's already gone..

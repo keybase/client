@@ -358,15 +358,9 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 	res.Expunged = expunged
 
-	purgeInfo, _, err := s.filterEphemeralMessages(ctx, convID, uid, msgs)
+	_, err = s.filterEphemeralMessages(ctx, convID, uid, msgs)
 	if err != nil {
 		return res, s.MaybeNuke(false, err, convID, uid)
-	}
-	// We may only be merging in some subset of messages, we only update if the
-	// info we get is more restrictive that what we have already
-	err = s.ephemeralTracker.maybeUpdatePurgeInfo(ctx, convID, uid, purgeInfo)
-	if err != nil {
-		s.Debug(ctx, "failed to update ephemeralTracker")
 	}
 
 	// Update max msg ID if needed
@@ -720,7 +714,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 	// Clear out any ephemeral messages that have exploded before we hand these
 	// messages out.
-	_, validMsgs, err := s.filterEphemeralMessages(ctx, convID, uid, msgs)
+	filteredMsgs, err := s.filterEphemeralMessages(ctx, convID, uid, msgs)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -741,16 +735,16 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	// Form paged result
 	var tres chat1.ThreadView
 	var pmsgs []pager.Message
-	for _, m := range validMsgs {
+	for _, m := range filteredMsgs {
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num, maxDeletedUpto); ierr != nil {
 		return chat1.ThreadView{},
 			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
-	tres.Messages = validMsgs
+	tres.Messages = filteredMsgs
 
-	s.Debug(ctx, "Fetch: cache hit: num: %d", len(validMsgs))
+	s.Debug(ctx, "Fetch: cache hit: num: %d", len(filteredMsgs))
 	return tres, nil
 }
 

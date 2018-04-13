@@ -152,11 +152,7 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	}
 	curPurgeInfo, ok := allPurgeInfo[convID.String()]
 	t.Debug(ctx, "maybeUpdatePurgeInfo old: %v, ok: %v, new: %v", curPurgeInfo, ok, purgeInfo)
-	if !ok {
-		// we can only set the NextPurgeTime, but know nothing about the
-		// minUnexplodedID, so we clear that value.
-		purgeInfo.MinUnexplodedID = 0
-	} else { // Throw away our update info if what we already have is more restrictive.
+	if ok { // Throw away our update info if what we already have is more restrictive.
 		if purgeInfo.MinUnexplodedID == 0 || curPurgeInfo.MinUnexplodedID < purgeInfo.MinUnexplodedID {
 			purgeInfo.MinUnexplodedID = curPurgeInfo.MinUnexplodedID
 		}
