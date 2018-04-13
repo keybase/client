@@ -1426,6 +1426,13 @@ func (md *RootMetadataV3) SetWriters(writers []keybase1.UserOrTeamID) {
 	md.WriterMetadata.Writers = writers
 }
 
+// ClearForV4Migration implements the MutableRootMetadata interface
+// for RootMetadataV3.
+func (md *RootMetadataV3) ClearForV4Migration() {
+	md.WriterMetadata.WKeyBundleID = TLFWriterKeyBundleID{}
+	md.RKeyBundleID = TLFReaderKeyBundleID{}
+}
+
 // SetTlfID implements the MutableRootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) SetTlfID(tlf tlf.ID) {
 	md.WriterMetadata.ID = tlf

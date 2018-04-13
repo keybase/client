@@ -298,7 +298,11 @@ func (md *RootMetadata) MakeSuccessorWithNewHandle(
 		return nil, err
 	}
 
+	mdCopy.extra = nil
 	mdCopy.tlfHandle = newHandle.deepCopy()
+	mdCopy.SetWriters(newHandle.ResolvedWriters())
+	mdCopy.bareMd.ClearForV4Migration()
+
 	return mdCopy.MakeSuccessor(
 		ctx, latestMDVer, codec, keyManager, merkleGetter, teamKeyer, mdID,
 		isWriter)

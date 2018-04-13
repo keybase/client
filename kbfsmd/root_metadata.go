@@ -229,6 +229,10 @@ type MutableRootMetadata interface {
 	SetFinalizedInfo(fi *tlf.HandleExtension)
 	// SetWriters sets the list of writers associated with this folder.
 	SetWriters(writers []keybase1.UserOrTeamID)
+	// ClearForV4Migration clears out data not needed for an upgrade
+	// to an implicit-team-backed TLF.  Note that `SetWriters` should
+	// also be called separately to set the new team ID as a writer.
+	ClearForV4Migration()
 	// SetTlfID sets the ID of the underlying folder in the metadata structure.
 	SetTlfID(tlf tlf.ID)
 

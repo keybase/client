@@ -3694,13 +3694,16 @@ func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
 	testKBFSOpsAutocreateNodes(t, Sym, "sympath")
 }
 
-func testKBFSOpsMigrateToImplicitTeam(t *testing.T, ty tlf.Type) {
+func testKBFSOpsMigrateToImplicitTeam(
+	t *testing.T, ty tlf.Type, initialMDVer kbfsmd.MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	config1.SetMetadataVersion(initialMDVer)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
+	config2.SetMetadataVersion(initialMDVer)
 
 	t.Log("Create the folder before implicit teams are enabled.")
 	name := "u1,u2"
@@ -3738,6 +3741,10 @@ func testKBFSOpsMigrateToImplicitTeam(t *testing.T, ty tlf.Type) {
 	// sigchain before they call `StartMigration`.
 	err = config1.KBPKI().CreateTeamTLF(ctx, teamID, h.tlfID)
 	require.NoError(t, err)
+	err = config2.KBPKI().CreateTeamTLF(ctx, teamID, h.tlfID)
+	require.NoError(t, err)
+	config1.SetMetadataVersion(kbfsmd.ImplicitTeamsVer)
+	config2.SetMetadataVersion(kbfsmd.ImplicitTeamsVer)
 
 	t.Log("Starting migration to implicit team")
 	err = kbfsOps1.MigrateToImplicitTeam(ctx, h.tlfID)
@@ -3757,12 +3764,32 @@ func testKBFSOpsMigrateToImplicitTeam(t *testing.T, ty tlf.Type) {
 	require.True(t, ok)
 	_, ok = eis["b"]
 	require.True(t, ok)
+
+	t.Log("Make sure the new MD really is keyed for the implicit team")
+	ops1 := getOps(config1, rootNode1.GetFolderBranch().Tlf)
+	lState := makeFBOLockState()
+	md, err := ops1.getMDForRead(ctx, lState, mdReadNeedIdentify)
+	require.NoError(t, err)
+	require.Equal(t, tlf.TeamKeying, md.TypeForKeying())
+	require.Equal(t, kbfsmd.ImplicitTeamsVer, md.Version())
 }
 
 func TestKBFSOpsMigratePrivateToImplicitTeam(t *testing.T) {
-	testKBFSOpsMigrateToImplicitTeam(t, tlf.Private)
+	testKBFSOpsMigrateToImplicitTeam(
+		t, tlf.Private, kbfsmd.SegregatedKeyBundlesVer)
 }
 
 func TestKBFSOpsMigratePublicToImplicitTeam(t *testing.T) {
-	testKBFSOpsMigrateToImplicitTeam(t, tlf.Public)
+	testKBFSOpsMigrateToImplicitTeam(
+		t, tlf.Public, kbfsmd.SegregatedKeyBundlesVer)
+}
+
+func TestKBFSOpsMigratePrivateV2ToImplicitTeam(t *testing.T) {
+	testKBFSOpsMigrateToImplicitTeam(
+		t, tlf.Private, kbfsmd.InitialExtraMetadataVer)
+}
+
+func TestKBFSOpsMigratePublicV2ToImplicitTeam(t *testing.T) {
+	testKBFSOpsMigrateToImplicitTeam(
+		t, tlf.Public, kbfsmd.InitialExtraMetadataVer)
 }

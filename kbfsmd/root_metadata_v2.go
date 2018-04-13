@@ -413,7 +413,7 @@ func (md *RootMetadataV2) makeSuccessorCopyV3(
 	// Have this as ExtraMetadata so we return an untyped nil
 	// instead of a typed nil.
 	var extraCopy ExtraMetadata
-	if md.LatestKeyGeneration() != PublicKeyGen {
+	if md.LatestKeyGeneration() != PublicKeyGen && md.WKeys != nil {
 		// Fill out the writer key bundle.
 		wkbV2, wkbV3, err := md.WKeys.ToTLFWriterKeyBundleV3(
 			codec, tlfCryptKeyGetter)
@@ -1110,6 +1110,15 @@ func (md *RootMetadataV2) SetFinalizedInfo(fi *tlf.HandleExtension) {
 // SetWriters implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) SetWriters(writers []keybase1.UserOrTeamID) {
 	md.Writers = writers
+}
+
+// ClearForV4Migration implements the MutableRootMetadata interface
+// for RootMetadataV2.
+func (md *RootMetadataV2) ClearForV4Migration() {
+	md.WKeys = nil
+	md.RKeys = nil
+	md.Extra.UnresolvedWriters = nil
+	md.UnresolvedReaders = nil
 }
 
 // SetTlfID implements the MutableRootMetadata interface for RootMetadataV2.

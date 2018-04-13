@@ -903,8 +903,8 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 
 	if !resolvesTo {
 		fbo.log.CDebugf(ctx, "Incompatible handle error, "+
-			"oldHandle: %#v, partialResolvedOldHandle: %#v",
-			oldHandle, partialResolvedOldHandle)
+			"oldHandle: %#v, partialResolvedOldHandle: %#v, newHandle: %#v",
+			oldHandle, partialResolvedOldHandle, newHandle)
 		return IncompatibleHandleError{
 			oldName,
 			partialResolvedOldHandle.GetCanonicalName(),
@@ -6492,6 +6492,10 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 		md.mdID, isWriter)
 	if err != nil {
 		return err
+	}
+
+	if newMD.TypeForKeying() != tlf.TeamKeying {
+		return errors.New("Migration failed")
 	}
 
 	// Add an empty operation to satisfy assumptions elsewhere.
