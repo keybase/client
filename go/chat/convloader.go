@@ -48,14 +48,16 @@ func newJobQueue(maxSize int) *jobQueue {
 func (j *jobQueue) Pop() <-chan clTask {
 	j.Lock()
 	defer j.Unlock()
-	ret := make(chan clTask, 1)
+	var ret chan clTask
 	if j.queue.Len() > 0 {
+		ret = make(chan clTask, 1)
 		front := j.queue.Front()
 		task := front.Value.(clTask)
 		j.queue.Remove(front)
 		ret <- task
 		return ret
 	}
+	ret = make(chan clTask)
 	j.retCh = &ret
 	return ret
 }
@@ -65,9 +67,12 @@ func (j *jobQueue) Push(task clTask) error {
 	defer j.Unlock()
 	// If we have someone waiting for this already, then just send it to them and return
 	if j.retCh != nil {
-		*j.retCh <- task
-		j.retCh = nil
-		return nil
+		select {
+		case *j.retCh <- task:
+			j.retCh = nil
+			return nil
+		default:
+		}
 	}
 	if j.queue.Len() >= j.maxSize {
 		return errors.New("job queue full")
@@ -240,6 +245,7 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
+	b.Debug(ctx, "enqueue: adding task: %s", task.job)
 	return b.queue.Push(task)
 }
 
@@ -311,6 +317,7 @@ func (b *BackgroundConvLoader) loop() {
 
 	// Main loop
 	for {
+		b.Debug(bgctx, "loop: waiting for job")
 		select {
 		case task := <-b.queue.Pop():
 			if task.job.ConvID.IsNil() {
