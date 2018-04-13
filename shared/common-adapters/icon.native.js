@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
-import {globalColors, glamorous, collapseStyles} from '../styles'
+import {globalColors, glamorous, type CollapsibleStyle} from '../styles'
 import {iconMeta} from './icon.constants'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 import type {IconType, Props} from './icon'
@@ -89,6 +89,28 @@ const Image = glamorous.image(
     props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
 )
 
+const stripStyles = (styleArg: CollapsibleStyle, toStrip) => {
+  let styleOut = {}
+  if (!styleArg) {
+    return styleOut
+  }
+  // this isn't an array of style objects on native but it satisfies flow
+  let styleIn =
+    styleArg instanceof Array
+      ? styleArg.reduce((obj, style) => {
+          if (style) {
+            Object.assign(obj, style)
+          }
+        }, {})
+      : styleArg
+  for (var prop in styleIn) {
+    if (styleIn.hasOwnProperty(prop) && !toStrip.includes(prop)) {
+      styleOut[prop] = styleIn[prop]
+    }
+  }
+  return styleOut
+}
+
 class Icon extends React.PureComponent<Props> {
   render() {
     const props = this.props
@@ -115,15 +137,13 @@ class Icon extends React.PureComponent<Props> {
       )
     } else {
       // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
-      // lets just override it by making it undefined in a style occurring later in this array
-      const imageStyle = collapseStyles([props.style, {color: undefined}])
+      // lets just override it by removing it here
+      const imageStyle = stripStyles(props.style, ['color'])
+
       icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
     }
 
-    const boxStyle = collapseStyles([
-      props.style,
-      {color: undefined, fontSize: undefined, textAlign: undefined},
-    ])
+    const boxStyle = stripStyles(props.style, ['color', 'fontSize', 'textAlign'])
 
     return props.onClick ? (
       <ClickableBox

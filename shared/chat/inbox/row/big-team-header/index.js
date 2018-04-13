@@ -8,7 +8,6 @@ import {
   glamorous,
   isMobile,
   desktopStyles,
-  collapseStyles,
   platformStyles,
 } from '../../../../styles'
 
@@ -54,18 +53,25 @@ const iconStyle = platformStyles({
   },
 })
 
-const teamRowContainerStyle = collapseStyles([
-  globalStyles.flexBoxRow,
-  desktopStyles.clickable,
-  {
+const teamRowContainerStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 0,
-    maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
-    minHeight: isMobile ? globalMargins.large : globalMargins.medium,
     paddingLeft: globalMargins.tiny,
-    paddingRight: isMobile ? 0 : globalMargins.xtiny,
   },
-])
+  isElectron: {
+    ...desktopStyles.clickable,
+    maxHeight: globalMargins.medium,
+    minHeight: globalMargins.medium,
+    paddingRight: globalMargins.xtiny,
+  },
+  isMobile: {
+    maxHeight: globalMargins.large,
+    minHeight: globalMargins.large,
+    paddingRight: 0,
+  },
+})
 
 const HeaderBox = glamorous(Box)({
   ...teamRowContainerStyle,
