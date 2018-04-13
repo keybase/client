@@ -38,6 +38,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     selectedTab: routeState.get('selectedTab') || 'members',
     _yourOperations: yourOperations,
     _you: state.config.username || '',
+    _invites: Constants.getTeamInvites(state, teamname),
+    _requests: Constants.getTeamRequests(state, teamname),
   }
 }
 
@@ -97,6 +99,20 @@ const mergeProps = (stateProps, dispatchProps): Props => {
         username: i.username,
       }))
       break
+    case 'invites': {
+      const requests = stateProps._requests.map(r => ({
+        type: 'request',
+        username: r.username,
+      }))
+      const invites = stateProps._invites.map(i => ({id: i.id, type: 'invite'}))
+      tabSpecificRows = [
+        ...requests,
+        ...(requests.length ? [{type: 'divider'}] : []),
+        ...invites,
+        ...(invites.length ? [{type: 'divider'}] : []),
+        ...(requests.length + invites.length === 0 ? [{type: 'none'}] : []),
+      ]
+    }
   }
   const rows = [{type: 'header'}, {type: 'tabs'}, ...tabSpecificRows]
   return {

@@ -7,6 +7,10 @@ import {globalStyles, globalMargins, isMobile} from '../../styles'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
 import MemberRow from './member-row/container'
+import InviteRow from './invites/invite-row/container'
+import RequestRow from './invites/request-row/container'
+import InviteDividerRow from './invites/divider-row'
+import InviteEmptyRow from './invites/empty-row'
 
 export type Props = {
   teamname: Types.Teamname,
@@ -42,12 +46,17 @@ class Team extends React.Component<Props> {
       }
       case 'member':
         return <MemberRow teamname={this.props.teamname} username={row.username} key={row.username} />
+      case 'invite':
+        return <InviteRow teamname={this.props.teamname} id={row.id} key={row.id} />
+      case 'request':
+        return <RequestRow teamname={this.props.teamname} username={row.username} key={row.username} />
+      case 'divider':
+        return <InviteDividerRow key={String(index)} />
+      case 'none':
+        return <InviteEmptyRow />
 
       // case 'subteam': {
       // return renderSubteamsRow(index, row)
-      // }
-      // case 'invites': {
-      // return renderRequestsOrInvitesRow(index, row)
       // }
       // case 'settings': {
       // return <Settings key="settings" teamname={row.teamname} />
