@@ -4889,6 +4889,18 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
 
 .css-15,
 [data-css-15] {
+  font-size: 10px;
+  line-height: initial;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  display: block;
+}
+
+.css-16,
+[data-css-16] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -4904,8 +4916,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   padding-right: 7px;
 }
 
-.css-16,
-[data-css-16] {
+.css-17,
+[data-css-17] {
   font-size: 11px;
   line-height: 15px;
   color: #ffffff;
@@ -4916,18 +4928,18 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   background-color: #4C8EFF;
 }
 
-.css-17,
-[data-css-17] {
+.css-18,
+[data-css-18] {
   color: #ffffff;
 }
 
-.css-17:hover,
-[data-css-17]:hover {
+.css-18:hover,
+[data-css-18]:hover {
   color: rgba(255, 255, 255, 0.75);
 }
 
-.css-19,
-[data-css-19] {
+.css-20,
+[data-css-20] {
   font-size: 11px;
   line-height: 15px;
   color: #ffffff;
@@ -5666,6 +5678,248 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
         style={
           Object {
             "alignItems": "stretch",
+            "backgroundColor": "#ffffff",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          className="css-0"
+          style={
+            Object {
+              "backgroundColor": "#F7F9FC",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "flexShrink": 0,
+              "height": 56,
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexShrink": 0,
+                "justifyContent": "flex-start",
+                "marginLeft": 8,
+                "marginRight": 8,
+                "maxWidth": 40,
+                "minWidth": 40,
+                "position": "relative",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "height": "100%",
+                  "maxWidth": 40,
+                  "minWidth": 40,
+                  "paddingBottom": 4,
+                  "paddingTop": 4,
+                  "position": "relative",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "height": "100%",
+                    "justifyContent": "center",
+                    "width": "100%",
+                  }
+                }
+              >
+                <div
+                  onClick={undefined}
+                  style={
+                    Object {
+                      "backgroundColor": undefined,
+                      "height": 40,
+                      "maxWidth": 40,
+                      "minHeight": 40,
+                      "minWidth": 40,
+                      "position": "relative",
+                      "userSelect": "none",
+                    }
+                  }
+                >
+                  <div
+                    className="css-10"
+                  />
+                  <div
+                    className="css-11"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "backgroundColor": "#F7F9FC",
+                "display": "flex",
+                "flexDirection": "column",
+                "flexGrow": 1,
+                "height": "100%",
+                "justifyContent": "center",
+                "paddingLeft": 8,
+                "paddingRight": 8,
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexGrow": 1,
+                  "height": 17,
+                  "maxHeight": 17,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "justifyContent": "center",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <span
+                    className="css-4"
+                    onClick={undefined}
+                    title="jzila"
+                  >
+                    jzila
+                  </span>
+                </div>
+              </div>
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                5:12 pm
+              </span>
+            </div>
+            <div
+              style={
+                Object {
+                  "backgroundColor": undefined,
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexGrow": 1,
+                  "height": 17,
+                  "maxHeight": 17,
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "alignSelf": "center",
+                    "backgroundColor": "#ff4d61",
+                    "borderRadius": 1,
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "marginRight": 6,
+                    "paddingLeft": 4,
+                    "paddingRight": 4,
+                  }
+                }
+              >
+                <span
+                  className="css-15"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  RESET
+                </span>
+              </div>
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "flexGrow": 1,
+                    "height": "100%",
+                    "position": "relative",
+                  }
+                }
+              >
+                <div
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "bottom": 0,
+                      "display": "flex",
+                      "flexDirection": "row",
+                      "left": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <span
+                    className="css-8"
+                    onClick={undefined}
+                    title={undefined}
+                  >
+                    I don	 know that I would want.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
             "backgroundColor": "#4C8EFF",
             "borderRadius": 0,
             "cursor": "pointer",
@@ -5783,7 +6037,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-15"
+                    className="css-16"
                     onClick={undefined}
                     title="atracks"
                   >
@@ -5792,7 +6046,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 </div>
               </div>
               <span
-                className="css-16 small-team-timestamp"
+                className="css-17 small-team-timestamp"
                 onClick={undefined}
                 title={undefined}
               >
@@ -5800,7 +6054,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
               </span>
               <div>
                 <span
-                  className="css-17 small-team-gear"
+                  className="css-18 small-team-gear"
                   onClick={[Function]}
                   onMouseEnter={undefined}
                   onMouseLeave={undefined}
@@ -5863,7 +6117,7 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   }
                 >
                   <span
-                    className="css-19"
+                    className="css-20"
                     onClick={undefined}
                     title={undefined}
                   >
@@ -14679,6 +14933,1153 @@ exports[`Storyshots Common Box 1`] = `
         </span>
       </div>
     </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Common Box2 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap start
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap end
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap both
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap full width
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 24,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap full height
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": "100%",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 24,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Vertical small gap full height/width
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": "100%",
+            "justifyContent": "flex-start",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 24,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap start
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap end
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap both
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "alignSelf": "center",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 16,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap full width
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 24,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap full height
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "height": "100%",
+            "justifyContent": "flex-start",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 24,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
+    <span
+      className="css-0"
+      onClick={undefined}
+      title={undefined}
+    >
+      Horizontal small gap full height/width
+    </span>
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "backgroundColor": "#3DCCA6",
+          "display": "flex",
+          "flexDirection": "column",
+          "height": 200,
+          "width": 200,
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "stretch",
+            "backgroundColor": "#fff75a",
+            "display": "flex",
+            "flexDirection": "row",
+            "height": "100%",
+            "justifyContent": "flex-start",
+            "width": "100%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "width": 24,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "backgroundColor": "#ff4d61",
+              "height": 10,
+              "width": 10,
+            }
+          }
+        />
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "backgroundColor": "#000000",
+          "height": 1,
+          "width": "100%",
+        }
+      }
+    />
   </div>
 </div>
 `;
@@ -26136,6 +27537,149 @@ exports[`Storyshots Common Input (visible password) 1`] = `
 </div>
 `;
 
+exports[`Storyshots Common Meta 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 10px;
+  line-height: initial;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  display: block;
+}
+
+.css-1,
+[data-css-1] {
+  font-size: 10px;
+  line-height: initial;
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 700;
+  display: block;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "stretch",
+          "alignSelf": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "height": 16,
+          }
+        }
+      />
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#ff4d61",
+            "borderRadius": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "paddingLeft": 4,
+            "paddingRight": 4,
+          }
+        }
+      >
+        <span
+          className="css-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          ONE
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 16,
+          }
+        }
+      />
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#ff6f21",
+            "borderRadius": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "paddingLeft": 4,
+            "paddingRight": 4,
+          }
+        }
+      >
+        <span
+          className="css-1"
+          onClick={undefined}
+          title={undefined}
+        >
+          TWO
+        </span>
+      </div>
+      <div
+        style={
+          Object {
+            "height": 16,
+          }
+        }
+      />
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#4C8EFF",
+            "borderRadius": 1,
+            "display": "flex",
+            "flexDirection": "column",
+            "paddingLeft": 4,
+            "paddingRight": 4,
+          }
+        }
+      >
+        <span
+          className="css-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          THREE
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Common Name with icon 1`] = `
 .css-0,
 [data-css-0] {
@@ -26626,7 +28170,7 @@ exports[`Storyshots Common Name with icon 1`] = `
                 Object {
                   "WebkitFontSmoothing": "antialiased",
                   "fontFamily": "kb",
-                  "fontSize": 64,
+                  "fontSize": 16,
                   "fontStyle": "normal",
                   "fontVariant": "normal",
                   "fontWeight": "normal",
@@ -28911,14 +30455,13 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 700;
 }
 
 .css-3,
@@ -28987,6 +30530,7 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -28994,11 +30538,15 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -29007,9 +30555,11 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -29050,20 +30600,21 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -29074,27 +30625,23 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
             srcSet="icons/icon-computer-64.png 1x, icons/icon-computer-64@2x.png 2x"
             style={
               Object {
-                "opacity": 1,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -29103,140 +30650,36 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
+              My desktop
             </span>
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
-            />
           </div>
-          <div
-            style={
-              Object {
-                "marginTop": 30,
-              }
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
             }
-          >
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginRight": 16,
-                  }
-                }
-              >
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "height": 5,
-                      "opacity": 0,
-                      "width": 2,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "border": "solid 2px #ffffff",
-                      "borderRadius": 4,
-                      "height": 8,
-                      "width": 8,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "flex": 1,
-                      "opacity": 0,
-                      "width": 2,
-                    }
-                  }
-                />
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "flex",
-                    "flexDirection": "column",
-                  }
-                }
-              >
-                <span
-                  className="css-3"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Revoked whenever
-                </span>
-                <span
-                  className="css-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  by
-                   
-                  <span
-                    className="css-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    by whomever
-                  </span>
-                </span>
-                <div
-                  style={
-                    Object {
-                      "height": 15,
-                    }
-                  }
-                />
-              </div>
-            </div>
-          </div>
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#ff4d61",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "marginTop": 15,
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "width": "100%",
               }
             }
           >
@@ -29245,21 +30688,141 @@ exports[`Storyshots Devices/Device Desktop 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
-                  "flexDirection": "row",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
+                  "flexDirection": "column",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "height": 6,
+                    "opacity": 0,
+                    "width": 2,
+                  }
+                }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 4,
+                    "borderStyle": "solid",
+                    "borderWidth": 2,
+                    "height": 8,
+                    "width": 8,
+                  }
+                }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "flex": 1,
+                    "opacity": 0,
+                    "width": 2,
+                  }
+                }
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "width": 16,
+                }
+              }
+            />
+            <div
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "alignSelf": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
                 }
               }
             >
               <span
-                className="css-6"
+                className="css-3"
                 onClick={undefined}
                 title={undefined}
               >
-                Revoke this device
+                Revoked whenever
+              </span>
+              <span
+                className="css-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                by
+                 
+                <span
+                  className="css-5"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  whomever
+                </span>
               </span>
             </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ff4d61",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="css-6"
+              onClick={undefined}
+              title={undefined}
+            >
+              Revoke this device
+            </span>
           </div>
         </div>
       </div>
@@ -29288,33 +30851,25 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.40);
+  font-size: 24px;
+  line-height: 28px;
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
-  text-decoration-line: line-through;
-  -webkit-text-decoration-line: line-through;
+  font-weight: 700;
 }
 
 .css-3,
 [data-css-3] {
   font-size: 10px;
-  line-height: 11px;
+  line-height: initial;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  background-color: #ff4d61;
-  border-radius: 1px;
-  height: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
-  text-transform: uppercase;
+  font-weight: 700;
+  display: block;
 }
 
 .css-4,
@@ -29370,6 +30925,7 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -29377,11 +30933,15 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -29390,9 +30950,11 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -29433,20 +30995,21 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -29457,27 +31020,23 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
             srcSet="icons/icon-computer-64.png 1x, icons/icon-computer-64@2x.png 2x"
             style={
               Object {
-                "opacity": 0.4,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -29486,287 +31045,341 @@ exports[`Storyshots Devices/Device Desktop Revoked 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
-            </span>
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              REVOKED
+              My desktop
             </span>
             <div
               style={
                 Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#ff4d61",
+                  "borderRadius": 1,
                   "display": "flex",
-                  "flexDirection": "row",
+                  "flexDirection": "column",
+                  "marginTop": 4,
+                  "paddingLeft": 4,
+                  "paddingRight": 4,
                 }
               }
-            />
+            >
+              <span
+                className="css-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                REVOKED
+              </span>
+            </div>
           </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
           <div
             style={
               Object {
-                "marginTop": 30,
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "width": "100%",
               }
             }
           >
             <div
               style={
                 Object {
+                  "alignItems": "center",
                   "display": "flex",
-                  "flexDirection": "row",
+                  "flexDirection": "column",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginRight": 16,
+                    "backgroundColor": "#e6e6e6",
+                    "height": 6,
+                    "opacity": 0,
+                    "width": 2,
                   }
                 }
-              >
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "height": 5,
-                      "opacity": 0,
-                      "width": 2,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "border": "solid 2px #ffffff",
-                      "borderRadius": 4,
-                      "height": 8,
-                      "width": 8,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "flex": 1,
-                      "opacity": 1,
-                      "width": 2,
-                    }
-                  }
-                />
-              </div>
+              />
               <div
                 style={
                   Object {
-                    "display": "flex",
-                    "flexDirection": "column",
+                    "backgroundColor": "#e6e6e6",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 4,
+                    "borderStyle": "solid",
+                    "borderWidth": 2,
+                    "height": 8,
+                    "width": 8,
                   }
                 }
-              >
-                <span
-                  className="css-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Revoked whenever
-                </span>
-                <span
-                  className="css-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  by
-                   
-                  <span
-                    className="css-6"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    by whomever
-                  </span>
-                </span>
-                <div
-                  style={
-                    Object {
-                      "height": 15,
-                    }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "flex": 1,
+                    "opacity": 1,
+                    "width": 2,
                   }
-                />
-              </div>
+                }
+              />
             </div>
             <div
               style={
                 Object {
+                  "width": 16,
+                }
+              }
+            />
+            <div
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "alignSelf": "center",
                   "display": "flex",
-                  "flexDirection": "row",
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
+                }
+              }
+            >
+              <span
+                className="css-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                Revoked whenever
+              </span>
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                by
+                 
+                <span
+                  className="css-6"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  whomever
+                </span>
+              </span>
+              <div
+                style={
+                  Object {
+                    "height": 15,
+                  }
+                }
+              />
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "width": "100%",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginRight": 16,
+                    "backgroundColor": "#e6e6e6",
+                    "height": 6,
+                    "opacity": 1,
+                    "width": 2,
                   }
                 }
-              >
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "height": 5,
-                      "opacity": 1,
-                      "width": 2,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "border": "solid 2px #e6e6e6",
-                      "borderRadius": 4,
-                      "height": 8,
-                      "width": 8,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "flex": 1,
-                      "opacity": 1,
-                      "width": 2,
-                    }
-                  }
-                />
-              </div>
+              />
               <div
                 style={
                   Object {
-                    "display": "flex",
-                    "flexDirection": "column",
+                    "borderColor": "#e6e6e6",
+                    "borderRadius": 4,
+                    "borderStyle": "solid",
+                    "borderWidth": 2,
+                    "height": 8,
+                    "width": 8,
                   }
                 }
-              >
-                <span
-                  className="css-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Last used whenever
-                </span>
-                <span
-                  className="css-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  whenever
-                </span>
-                <div
-                  style={
-                    Object {
-                      "height": 15,
-                    }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "flex": 1,
+                    "opacity": 1,
+                    "width": 2,
                   }
-                />
-              </div>
+                }
+              />
             </div>
             <div
               style={
                 Object {
+                  "width": 16,
+                }
+              }
+            />
+            <div
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "alignSelf": "center",
                   "display": "flex",
-                  "flexDirection": "row",
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
+                }
+              }
+            >
+              <span
+                className="css-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                Last used whenever
+              </span>
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                whenever
+              </span>
+              <div
+                style={
+                  Object {
+                    "height": 15,
+                  }
+                }
+              />
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "width": "100%",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
                 }
               }
             >
               <div
                 style={
                   Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginRight": 16,
+                    "backgroundColor": "#e6e6e6",
+                    "height": 6,
+                    "opacity": 1,
+                    "width": 2,
                   }
                 }
-              >
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "height": 5,
-                      "opacity": 1,
-                      "width": 2,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "border": "solid 2px #e6e6e6",
-                      "borderRadius": 4,
-                      "height": 8,
-                      "width": 8,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "flex": 1,
-                      "opacity": 0,
-                      "width": 2,
-                    }
-                  }
-                />
-              </div>
+              />
               <div
                 style={
                   Object {
-                    "display": "flex",
-                    "flexDirection": "column",
+                    "borderColor": "#e6e6e6",
+                    "borderRadius": 4,
+                    "borderStyle": "solid",
+                    "borderWidth": 2,
+                    "height": 8,
+                    "width": 8,
                   }
                 }
-              >
-                <span
-                  className="css-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Added whenever
-                </span>
-                <span
-                  className="css-5"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  by
-                   
-                  <span
-                    className="css-6"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    provisioner
-                  </span>
-                </span>
-                <div
-                  style={
-                    Object {
-                      "height": 15,
-                    }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "flex": 1,
+                    "opacity": 0,
+                    "width": 2,
                   }
-                />
-              </div>
+                }
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "width": 16,
+                }
+              }
+            />
+            <div
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "alignSelf": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
+                }
+              }
+            >
+              <span
+                className="css-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                Added whenever
+              </span>
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                by
+                 
+                <span
+                  className="css-6"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  provisioner
+                </span>
+              </span>
             </div>
           </div>
         </div>
@@ -29796,14 +31409,13 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 700;
 }
 
 .css-3,
@@ -29811,10 +31423,17 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
   font-size: 11px;
   line-height: 15px;
   color: rgba(0, 0, 0, 0.40);
+  overflow: hidden;
+  display: unset;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .css-4,
@@ -29832,6 +31451,17 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
 [data-css-5] {
   font-size: 11px;
   line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.css-6,
+[data-css-6] {
+  font-size: 11px;
+  line-height: 15px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -29840,8 +31470,8 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
   font-style: italic;
 }
 
-.css-6,
-[data-css-6] {
+.css-7,
+[data-css-7] {
   font-size: 14px;
   line-height: 18px;
   color: #ffffff;
@@ -29872,6 +31502,7 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -29879,11 +31510,15 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -29892,9 +31527,11 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -29935,20 +31572,21 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -29959,27 +31597,23 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
             srcSet="icons/icon-computer-64.png 1x, icons/icon-computer-64@2x.png 2x"
             style={
               Object {
-                "opacity": 1,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -29988,228 +31622,43 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
+              My desktop
             </span>
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
+            <span
+              className="css-3"
+              onClick={undefined}
+              title={undefined}
             >
-              <span
-                className="css-3"
-                onClick={undefined}
-                title={undefined}
-              >
-                Current device
-              </span>
-            </div>
+              Current device
+            </span>
           </div>
-          <div
-            style={
-              Object {
-                "marginTop": 30,
-              }
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
             }
-          >
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginRight": 16,
-                  }
-                }
-              >
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "height": 5,
-                      "opacity": 0,
-                      "width": 2,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "border": "solid 2px #ffffff",
-                      "borderRadius": 4,
-                      "height": 8,
-                      "width": 8,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "flex": 1,
-                      "opacity": 1,
-                      "width": 2,
-                    }
-                  }
-                />
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "flex",
-                    "flexDirection": "column",
-                  }
-                }
-              >
-                <span
-                  className="css-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Revoked whenever
-                </span>
-                <span
-                  className="css-3"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  by
-                   
-                  <span
-                    className="css-5"
-                    onClick={undefined}
-                    title={undefined}
-                  >
-                    by whomever
-                  </span>
-                </span>
-                <div
-                  style={
-                    Object {
-                      "height": 15,
-                    }
-                  }
-                />
-              </div>
-            </div>
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "marginRight": 16,
-                  }
-                }
-              >
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "height": 5,
-                      "opacity": 1,
-                      "width": 2,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "border": "solid 2px #e6e6e6",
-                      "borderRadius": 4,
-                      "height": 8,
-                      "width": 8,
-                    }
-                  }
-                />
-                <div
-                  style={
-                    Object {
-                      "backgroundColor": "#e6e6e6",
-                      "flex": 1,
-                      "opacity": 0,
-                      "width": 2,
-                    }
-                  }
-                />
-              </div>
-              <div
-                style={
-                  Object {
-                    "display": "flex",
-                    "flexDirection": "column",
-                  }
-                }
-              >
-                <span
-                  className="css-4"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Last used whenever
-                </span>
-                <span
-                  className="css-3"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  whenever
-                </span>
-                <div
-                  style={
-                    Object {
-                      "height": 15,
-                    }
-                  }
-                />
-              </div>
-            </div>
-          </div>
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
             style={
               Object {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#ff4d61",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
-                "justifyContent": "center",
-                "lineHeight": "inherit",
-                "marginTop": 15,
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "width": "100%",
               }
             }
           >
@@ -30218,21 +31667,235 @@ exports[`Storyshots Devices/Device Desktop current 1`] = `
                 Object {
                   "alignItems": "center",
                   "display": "flex",
-                  "flexDirection": "row",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
+                  "flexDirection": "column",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "height": 6,
+                    "opacity": 0,
+                    "width": 2,
+                  }
+                }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 4,
+                    "borderStyle": "solid",
+                    "borderWidth": 2,
+                    "height": 8,
+                    "width": 8,
+                  }
+                }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "flex": 1,
+                    "opacity": 1,
+                    "width": 2,
+                  }
+                }
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "width": 16,
+                }
+              }
+            />
+            <div
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "alignSelf": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
                 }
               }
             >
               <span
-                className="css-6"
+                className="css-4"
                 onClick={undefined}
                 title={undefined}
               >
-                Revoke this device
+                Revoked whenever
+              </span>
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                by
+                 
+                <span
+                  className="css-6"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  whomever
+                </span>
+              </span>
+              <div
+                style={
+                  Object {
+                    "height": 15,
+                  }
+                }
+              />
+            </div>
+          </div>
+          <div
+            style={
+              Object {
+                "alignItems": "stretch",
+                "display": "flex",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "width": "100%",
+              }
+            }
+          >
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                }
+              }
+            >
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "height": 6,
+                    "opacity": 1,
+                    "width": 2,
+                  }
+                }
+              />
+              <div
+                style={
+                  Object {
+                    "borderColor": "#e6e6e6",
+                    "borderRadius": 4,
+                    "borderStyle": "solid",
+                    "borderWidth": 2,
+                    "height": 8,
+                    "width": 8,
+                  }
+                }
+              />
+              <div
+                style={
+                  Object {
+                    "backgroundColor": "#e6e6e6",
+                    "flex": 1,
+                    "opacity": 0,
+                    "width": 2,
+                  }
+                }
+              />
+            </div>
+            <div
+              style={
+                Object {
+                  "width": 16,
+                }
+              }
+            />
+            <div
+              style={
+                Object {
+                  "alignItems": "flex-start",
+                  "alignSelf": "center",
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "justifyContent": "flex-start",
+                }
+              }
+            >
+              <span
+                className="css-4"
+                onClick={undefined}
+                title={undefined}
+              >
+                Last used whenever
+              </span>
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                whenever
               </span>
             </div>
+          </div>
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ff4d61",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div
+            style={
+              Object {
+                "alignItems": "center",
+                "display": "flex",
+                "flexDirection": "row",
+                "height": "100%",
+                "justifyContent": "center",
+                "position": "relative",
+              }
+            }
+          >
+            <span
+              className="css-7"
+              onClick={undefined}
+              title={undefined}
+            >
+              Revoke this device
+            </span>
           </div>
         </div>
       </div>
@@ -30261,14 +31924,13 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 700;
 }
 
 .css-3,
@@ -30303,6 +31965,7 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -30310,11 +31973,15 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -30323,9 +31990,11 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -30366,20 +32035,21 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -30390,27 +32060,23 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
             srcSet="icons/icon-phone-64.png 1x, icons/icon-phone-64@2x.png 2x"
             style={
               Object {
-                "opacity": 1,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -30419,73 +32085,82 @@ exports[`Storyshots Devices/Device Mobile 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
+              My mobile
             </span>
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
-            />
           </div>
-          <div
-            style={
-              Object {
-                "marginTop": 30,
-              }
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
             }
-          />
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ff4d61",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
             style={
               Object {
                 "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#ff4d61",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
+                "display": "flex",
+                "flexDirection": "row",
+                "height": "100%",
                 "justifyContent": "center",
-                "lineHeight": "inherit",
-                "marginTop": 15,
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
                 "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
               }
             }
           >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
+            <span
+              className="css-3"
+              onClick={undefined}
+              title={undefined}
             >
-              <span
-                className="css-3"
-                onClick={undefined}
-                title={undefined}
-              >
-                Revoke this device
-              </span>
-            </div>
+              Revoke this device
+            </span>
           </div>
         </div>
       </div>
@@ -30514,33 +32189,25 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.40);
+  font-size: 24px;
+  line-height: 28px;
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
-  text-decoration-line: line-through;
-  -webkit-text-decoration-line: line-through;
+  font-weight: 700;
 }
 
 .css-3,
 [data-css-3] {
   font-size: 10px;
-  line-height: 11px;
+  line-height: initial;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  background-color: #ff4d61;
-  border-radius: 1px;
-  height: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
-  text-transform: uppercase;
+  font-weight: 700;
+  display: block;
 }
 
 <div
@@ -30562,6 +32229,7 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -30569,11 +32237,15 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -30582,9 +32254,11 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -30625,20 +32299,21 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -30649,27 +32324,23 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
             srcSet="icons/icon-phone-64.png 1x, icons/icon-phone-64@2x.png 2x"
             style={
               Object {
-                "opacity": 0.4,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -30678,32 +32349,51 @@ exports[`Storyshots Devices/Device Mobile Revoked 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
-            </span>
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              REVOKED
+              My mobile
             </span>
             <div
               style={
                 Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#ff4d61",
+                  "borderRadius": 1,
                   "display": "flex",
-                  "flexDirection": "row",
+                  "flexDirection": "column",
+                  "marginTop": 4,
+                  "paddingLeft": 4,
+                  "paddingRight": 4,
                 }
               }
-            />
+            >
+              <span
+                className="css-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                REVOKED
+              </span>
+            </div>
           </div>
-          <div
-            style={
-              Object {
-                "marginTop": 30,
-              }
-            }
-          />
         </div>
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        />
       </div>
     </div>
   </div>
@@ -30730,14 +32420,13 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 24px;
+  line-height: 28px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 700;
 }
 
 .css-3,
@@ -30772,6 +32461,7 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -30779,11 +32469,15 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -30792,9 +32486,11 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -30835,20 +32531,21 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -30859,27 +32556,23 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
             srcSet="icons/icon-paper-key-64.png 1x, icons/icon-paper-key-64@2x.png 2x"
             style={
               Object {
-                "opacity": 1,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -30888,73 +32581,82 @@ exports[`Storyshots Devices/Device Paper key 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
+              My backup
             </span>
-            <div
-              style={
-                Object {
-                  "display": "flex",
-                  "flexDirection": "row",
-                }
-              }
-            />
           </div>
-          <div
-            style={
-              Object {
-                "marginTop": 30,
-              }
+        </div>
+        <div
+          style={
+            Object {
+              "height": 16,
             }
-          />
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "alignSelf": "center",
+              "backgroundColor": "#ff4d61",
+              "borderRadius": 50,
+              "cursor": "pointer",
+              "display": "inline-block",
+              "flexDirection": "column",
+              "height": 32,
+              "justifyContent": "center",
+              "lineHeight": "inherit",
+              "minWidth": undefined,
+              "paddingLeft": 24,
+              "paddingRight": 24,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
             style={
               Object {
                 "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#ff4d61",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
-                "flexDirection": "column",
-                "height": 32,
+                "display": "flex",
+                "flexDirection": "row",
+                "height": "100%",
                 "justifyContent": "center",
-                "lineHeight": "inherit",
-                "marginTop": 15,
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
                 "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
               }
             }
           >
-            <div
-              style={
-                Object {
-                  "alignItems": "center",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "height": "100%",
-                  "justifyContent": "center",
-                  "position": "relative",
-                }
-              }
+            <span
+              className="css-3"
+              onClick={undefined}
+              title={undefined}
             >
-              <span
-                className="css-3"
-                onClick={undefined}
-                title={undefined}
-              >
-                Revoke this paper key
-              </span>
-            </div>
+              Revoke this paper key
+            </span>
           </div>
         </div>
       </div>
@@ -30983,33 +32685,25 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
 
 .css-2,
 [data-css-2] {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.40);
+  font-size: 24px;
+  line-height: 28px;
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  font-style: italic;
-  text-decoration-line: line-through;
-  -webkit-text-decoration-line: line-through;
+  font-weight: 700;
 }
 
 .css-3,
 [data-css-3] {
   font-size: 10px;
-  line-height: 11px;
+  line-height: initial;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  background-color: #ff4d61;
-  border-radius: 1px;
-  height: 11px;
-  padding-left: 2px;
-  padding-right: 2px;
-  text-transform: uppercase;
+  font-weight: 700;
+  display: block;
 }
 
 <div
@@ -31031,6 +32725,7 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
       style={
         Object {
           "display": "flex",
+          "flex": 1,
           "flexDirection": "column",
         }
       }
@@ -31038,11 +32733,15 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
       <div
         style={
           Object {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
             "display": "flex",
-            "flexDirection": "column",
-            "height": 48,
-            "justifyContent": "center",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "minHeight": 48,
             "paddingLeft": 16,
+            "paddingRight": 16,
+            "position": "relative",
           }
         }
       >
@@ -31051,9 +32750,11 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
           style={
             Object {
               "alignItems": "center",
+              "color": "rgba(0, 0, 0, 0.40)",
               "cursor": "pointer",
               "display": "flex",
               "flexDirection": "row",
+              "position": "absolute",
             }
           }
         >
@@ -31094,20 +32795,21 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
       <div
         style={
           Object {
+            "alignItems": "stretch",
             "display": "flex",
-            "flexDirection": "row",
-            "padding": 30,
+            "flexDirection": "column",
+            "justifyContent": "flex-start",
+            "width": "100%",
           }
         }
       >
         <div
+          onClick={undefined}
           style={
             Object {
-              "alignItems": "flex-start",
+              "alignItems": "center",
               "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "width": 240,
+              "flexDirection": "column",
             }
           }
         >
@@ -31118,27 +32820,23 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
             srcSet="icons/icon-paper-key-64.png 1x, icons/icon-paper-key-64@2x.png 2x"
             style={
               Object {
-                "opacity": 0.4,
+                "height": 64,
                 "userSelect": "none",
+                "width": 64,
               }
             }
             title={undefined}
           />
-        </div>
-        <div
-          style={
-            Object {
-              "display": "flex",
-              "flexDirection": "column",
-            }
-          }
-        >
           <div
             style={
               Object {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 8,
+                "textAlign": "center",
+                "width": "100%",
               }
             }
           >
@@ -31147,32 +32845,51 @@ exports[`Storyshots Devices/Device Paper key Revoked 1`] = `
               onClick={undefined}
               title={undefined}
             >
-              my desktop
-            </span>
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              REVOKED
+              My backup
             </span>
             <div
               style={
                 Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#ff4d61",
+                  "borderRadius": 1,
                   "display": "flex",
-                  "flexDirection": "row",
+                  "flexDirection": "column",
+                  "marginTop": 4,
+                  "paddingLeft": 4,
+                  "paddingRight": 4,
                 }
               }
-            />
+            >
+              <span
+                className="css-3"
+                onClick={undefined}
+                title={undefined}
+              >
+                REVOKED
+              </span>
+            </div>
           </div>
-          <div
-            style={
-              Object {
-                "marginTop": 30,
-              }
-            }
-          />
         </div>
+        <div
+          style={
+            Object {
+              "height": 16,
+            }
+          }
+        />
+        <div
+          style={
+            Object {
+              "alignItems": "stretch",
+              "alignSelf": "center",
+              "display": "flex",
+              "flexDirection": "column",
+              "justifyContent": "flex-start",
+            }
+          }
+        />
       </div>
     </div>
   </div>
@@ -31220,6 +32937,7 @@ exports[`Storyshots Devices/List Only active 1`] = `
           "display": "flex",
           "flexDirection": "column",
           "height": "100%",
+          "justifyContent": "flex-start",
           "width": "100%",
         }
       }
@@ -31370,6 +33088,7 @@ exports[`Storyshots Devices/List Showing revoked 1`] = `
           "display": "flex",
           "flexDirection": "column",
           "height": "100%",
+          "justifyContent": "flex-start",
           "width": "100%",
         }
       }
@@ -38690,22 +40409,13 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
 .css-0,
 [data-css-0] {
   font-size: 10px;
-  line-height: 11px;
+  line-height: initial;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
-  align-self: center;
-  border-radius: 2px;
-  height: 11px;
-  padding-left: 3px;
-  padding-right: 3px;
-  text-transform: uppercase;
-  background-color: #4C8EFF;
-  min-width: 16px;
-  text-align: center;
-  -webkit-align-self: center;
+  display: block;
 }
 
 .css-1,
@@ -38901,13 +40611,30 @@ exports[`Storyshots People/Follow notification A few people followed you 1`] = `
               }
             }
           >
-            <span
-              className="css-0"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#4C8EFF",
+                  "borderRadius": 1,
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "minWidth": 16,
+                  "paddingLeft": 4,
+                  "paddingRight": 4,
+                  "textAlign": "center",
+                }
+              }
             >
-              +3
-            </span>
+              <span
+                className="css-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                +3
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -39122,22 +40849,13 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
 .css-0,
 [data-css-0] {
   font-size: 10px;
-  line-height: 11px;
+  line-height: initial;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
-  align-self: center;
-  border-radius: 2px;
-  height: 11px;
-  padding-left: 3px;
-  padding-right: 3px;
-  text-transform: uppercase;
-  background-color: #4C8EFF;
-  min-width: 16px;
-  text-align: center;
-  -webkit-align-self: center;
+  display: block;
 }
 
 .css-1,
@@ -39333,13 +41051,30 @@ exports[`Storyshots People/Follow notification Many people followed you 1`] = `
               }
             }
           >
-            <span
-              className="css-0"
-              onClick={undefined}
-              title={undefined}
+            <div
+              style={
+                Object {
+                  "alignItems": "center",
+                  "alignSelf": "center",
+                  "backgroundColor": "#4C8EFF",
+                  "borderRadius": 1,
+                  "display": "flex",
+                  "flexDirection": "column",
+                  "minWidth": 16,
+                  "paddingLeft": 4,
+                  "paddingRight": 4,
+                  "textAlign": "center",
+                }
+              }
             >
-              +9
-            </span>
+              <span
+                className="css-0"
+                onClick={undefined}
+                title={undefined}
+              >
+                +9
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -54357,22 +56092,13 @@ exports[`Storyshots Teams TeamList 1`] = `
 .css-3,
 [data-css-3] {
   font-size: 10px;
-  line-height: 11px;
+  line-height: initial;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 700;
-  align-self: center;
-  border-radius: 1px;
-  height: 11px;
-  padding-left: 3px;
-  padding-right: 3px;
-  text-transform: uppercase;
-  background-color: #3DCCA6;
-  margin-left: 4px;
-  margin-top: 2px;
-  -webkit-align-self: center;
+  display: block;
 }
 
 .css-4,
@@ -54540,13 +56266,30 @@ exports[`Storyshots Teams TeamList 1`] = `
                   >
                     stripe
                   </span>
-                  <span
-                    className="css-3"
-                    onClick={undefined}
-                    title={undefined}
+                  <div
+                    style={
+                      Object {
+                        "alignItems": "center",
+                        "alignSelf": "center",
+                        "backgroundColor": "#3DCCA6",
+                        "borderRadius": 1,
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "marginLeft": 4,
+                        "marginTop": 2,
+                        "paddingLeft": 4,
+                        "paddingRight": 4,
+                      }
+                    }
                   >
-                    OPEN
-                  </span>
+                    <span
+                      className="css-3"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      OPEN
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={
@@ -54946,13 +56689,30 @@ exports[`Storyshots Teams TeamList 1`] = `
                   >
                     techtonica
                   </span>
-                  <span
-                    className="css-3"
-                    onClick={undefined}
-                    title={undefined}
+                  <div
+                    style={
+                      Object {
+                        "alignItems": "center",
+                        "alignSelf": "center",
+                        "backgroundColor": "#3DCCA6",
+                        "borderRadius": 1,
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "marginLeft": 4,
+                        "marginTop": 2,
+                        "paddingLeft": 4,
+                        "paddingRight": 4,
+                      }
+                    }
                   >
-                    OPEN
-                  </span>
+                    <span
+                      className="css-3"
+                      onClick={undefined}
+                      title={undefined}
+                    >
+                      OPEN
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={

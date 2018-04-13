@@ -66,7 +66,7 @@ const mocks = [
   },
   {
     ...simpleCommon,
-    conversationIDKey: '3',
+    conversationIDKey: '5',
     hasBadge: false,
     hasResetUsers: true,
     hasUnread: false,

@@ -11,7 +11,7 @@ const stories = {...commonStories, ...nativeStories}
 
 const scrollViewDecorator = story => [
   <StatusBar key="statusbar" hidden={true} />,
-  <ScrollView key="scrollview" style={{flex: 1}} contentContainerStyle={{height: '100%'}}>
+  <ScrollView key="scrollview" style={{height: '100%', width: '100%'}}>
     {story()}
   </ScrollView>,
 ]
