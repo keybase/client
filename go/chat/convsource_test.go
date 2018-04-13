@@ -879,7 +879,7 @@ func TestExpungeFromDelete(t *testing.T) {
 	hcs.ExpungeFromDelete(ctx, uid, conv.GetConvID(), 4)
 	select {
 	case <-listener.bgConvLoads:
-	case <-time.After(2 * time.Second):
+	case <-time.After(20 * time.Second):
 		require.Fail(t, "no conv loader")
 	}
 	tv, err = hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)
