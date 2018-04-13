@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {default as SaveIndicator} from './save-indicator'
+import SaveIndicator from './save-indicator'
 import {storiesOf, action} from '../stories/storybook'
 import {globalStyles} from '../styles'
 import Box from './box'

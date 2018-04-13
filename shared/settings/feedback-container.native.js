@@ -15,7 +15,7 @@ import {
   logFileName,
   traceDir,
 } from '../constants/platform'
-import {type TimerProps, default as HOCTimers} from '../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../common-adapters/hoc-timers'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 type State = {

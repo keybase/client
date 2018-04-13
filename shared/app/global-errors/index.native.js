@@ -9,7 +9,7 @@ import {
   List,
   NativeTouchableWithoutFeedback,
 } from '../../common-adapters/index.native'
-import {type TimerProps, default as HOCTimers} from '../../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'

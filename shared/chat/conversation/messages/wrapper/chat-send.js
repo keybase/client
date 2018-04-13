@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Icon} from '../../../../common-adapters'
-import {type TimerProps, default as HOCTimers} from '../../../../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../../../../common-adapters/hoc-timers'
 import type {IconType} from '../../../../common-adapters/icon.constants'
 
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'

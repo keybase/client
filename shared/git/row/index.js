@@ -12,7 +12,7 @@ import {
   Meta,
   Usernames,
 } from '../../common-adapters'
-import {type TimerProps, default as HOCTimers} from '../../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 
 import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
 

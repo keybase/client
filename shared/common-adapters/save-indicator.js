@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import {type TimerProps, default as HOCTimers} from './hoc-timers'
+import HOCTimers, {type TimerProps} from './hoc-timers'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'

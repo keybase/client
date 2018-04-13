@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import logger from '../../logger'
 import {Box, Text, Icon} from '../../common-adapters'
-import {type TimerProps, default as HOCTimers} from '../../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
