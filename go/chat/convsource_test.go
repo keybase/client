@@ -885,4 +885,5 @@ func TestExpungeFromDelete(t *testing.T) {
 	tv, err = hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tv.Messages))
+	require.Equal(t, chat1.MessageID(4), tv.Messages[0].GetMessageID())
 }
