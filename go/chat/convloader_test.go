@@ -275,7 +275,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 }
 
 func TestConvLoaderJobQueue(t *testing.T) {
-	j := newJobQueue(5)
+	j := newJobQueue(4)
 	newTask := func(p types.ConvLoaderPriority) clTask {
 		job := types.NewConvLoaderJob(chat1.ConversationID{}, nil, p, nil)
 		return clTask{job: job}
@@ -300,6 +300,10 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	j.Push(newTask(types.ConvLoaderPriorityLow))
 	require.True(t, <-cb)
+	task, ok := j.PopFront()
+	require.True(t, ok)
+	require.Equal(t, types.ConvLoaderPriorityLow, task.job.Priority)
+	require.Zero(t, j.queue.Len())
 
 	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
 	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
@@ -318,5 +322,5 @@ func TestConvLoaderJobQueue(t *testing.T) {
 			require.Fail(t, "no task")
 		}
 	}
-
+	require.Zero(t, j.queue.Len())
 }
