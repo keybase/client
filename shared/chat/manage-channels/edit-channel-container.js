@@ -10,8 +10,7 @@ import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
-  const teamname =
-    routeProps.get('teamname') || Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
+  const teamname = routeProps.get('teamname')
   const waitingForSave = anyWaiting(
     state,
     `updateTopic:${conversationIDKey}`,
@@ -80,7 +79,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
 }
 const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname?: string}>,
+  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
 }> = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
