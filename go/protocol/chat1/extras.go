@@ -607,6 +607,11 @@ func (p Pagination) Eq(other Pagination) bool {
 		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
 }
 
+func (p Pagination) String() string {
+	return fmt.Sprintf("[Num: %d n: %s p: %s]", p.Num, hex.EncodeToString(p.Next),
+		hex.EncodeToString(p.Previous))
+}
+
 func (c ConversationLocal) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
