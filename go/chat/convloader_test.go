@@ -169,16 +169,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	require.True(t, tc.Context().ConvLoader.Resume(context.TODO()))
 	clock.BlockUntil(1)
 	clock.Advance(2 * time.Second) // Get by resume wait
-	cb := make(chan struct{})
-	go func() {
-		clock.BlockUntil(1)
-		close(cb)
-	}()
-	select {
-	case <-cb:
-	case <-time.After(2 * time.Second):
-		require.Fail(t, "die")
-	}
+	clock.BlockUntil(1)
 	clock.Advance(time.Hour) // Get by small sleep
 	select {
 	case convID := <-listener.bgConvLoads:
