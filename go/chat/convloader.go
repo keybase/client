@@ -34,7 +34,7 @@ type clTask struct {
 type jobQueue struct {
 	sync.Mutex
 	queue   *list.List
-	retCh   *chan clTask
+	waitChs []chan struct{}
 	maxSize int
 }
 
@@ -45,38 +45,32 @@ func newJobQueue(maxSize int) *jobQueue {
 	}
 }
 
-func (j *jobQueue) Pop() <-chan clTask {
+func (j *jobQueue) Wait() <-chan struct{} {
 	j.Lock()
 	defer j.Unlock()
-	var ret chan clTask
-	if j.queue.Len() > 0 {
-		ret = make(chan clTask, 1)
-		front := j.queue.Front()
-		task := front.Value.(clTask)
-		j.queue.Remove(front)
-		ret <- task
-		return ret
+	if j.queue.Len() == 0 {
+		ch := make(chan struct{})
+		j.waitChs = append(j.waitChs, ch)
+		return ch
 	}
-	ret = make(chan clTask)
-	j.retCh = &ret
-	return ret
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }
 
 func (j *jobQueue) Push(task clTask) error {
 	j.Lock()
 	defer j.Unlock()
-	// If we have someone waiting for this already, then just send it to them and return
-	if j.retCh != nil {
-		select {
-		case *j.retCh <- task:
-			j.retCh = nil
-			return nil
-		default:
-		}
-	}
 	if j.queue.Len() >= j.maxSize {
 		return errors.New("job queue full")
 	}
+	defer func() {
+		// Notify waiters we have some stuff for them now
+		for _, w := range j.waitChs {
+			close(w)
+		}
+		j.waitChs = nil
+	}()
 	for e := j.queue.Front(); e != nil; e = e.Next() {
 		eval := e.Value.(clTask)
 		if task.job.HigherPriorityThan(eval.job) {
@@ -86,6 +80,18 @@ func (j *jobQueue) Push(task clTask) error {
 	}
 	j.queue.PushBack(task)
 	return nil
+}
+
+func (j *jobQueue) PopFront() (res clTask, ok bool) {
+	j.Lock()
+	defer j.Unlock()
+	if j.queue.Len() == 0 {
+		return res, false
+	}
+	el := j.queue.Front()
+	res = el.Value.(clTask)
+	j.queue.Remove(el)
+	return res, true
 }
 
 type BackgroundConvLoader struct {
@@ -319,11 +325,16 @@ func (b *BackgroundConvLoader) loop() {
 	for {
 		b.Debug(bgctx, "loop: waiting for job")
 		select {
-		case task := <-b.queue.Pop():
+		case <-b.queue.Wait():
+			task, ok := b.queue.PopFront()
+			if !ok {
+				continue
+			}
 			if task.job.ConvID.IsNil() {
 				// means we closed this channel
 				continue
 			}
+
 			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
 			// neither have any data on them.
 			select {

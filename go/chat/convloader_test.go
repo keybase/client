@@ -179,62 +179,60 @@ func TestConvLoaderAppState(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		require.Fail(t, "die")
 	}
-	/*
-		clock.Advance(time.Hour) // Get by small sleep
-		select {
-		case convID := <-listener.bgConvLoads:
-			require.Equal(t, res.ConvID, convID)
-		case <-time.After(failDuration):
-			require.Fail(t, "no event")
-		}
-			t.Logf("testing foreground/background")
-			// Test that background/foreground works
-			tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
-			tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
-				return slowRi
-			}
+	clock.Advance(time.Hour) // Get by small sleep
+	select {
+	case convID := <-listener.bgConvLoads:
+		require.Equal(t, res.ConvID, convID)
+	case <-time.After(failDuration):
+		require.Fail(t, "no event")
+	}
+	t.Logf("testing foreground/background")
+	// Test that background/foreground works
+	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
+	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
+		return slowRi
+	}
 
-			require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-				types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 
-				clock.BlockUntil(1)
-					clock.Advance(200 * time.Millisecond) // Get by small sleep
-					select {
-					case <-slowRi.callCh:
-					case <-time.After(failDuration):
-						require.Fail(t, "no remote call")
-					}
-						tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
-						select {
-						case <-appStateCh:
-						case <-time.After(failDuration):
-							require.Fail(t, "no app state")
-						}
-						tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
-						tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
-						select {
-						case <-appStateCh:
-						case <-time.After(failDuration):
-							require.Fail(t, "no app state")
-						}
-						// Need to advance clock
-						select {
-						case <-listener.bgConvLoads:
-							require.Fail(t, "no load yet")
-						default:
-						}
+	clock.BlockUntil(1)
+	clock.Advance(200 * time.Millisecond) // Get by small sleep
+	select {
+	case <-slowRi.callCh:
+	case <-time.After(failDuration):
+		require.Fail(t, "no remote call")
+	}
+	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
+	select {
+	case <-appStateCh:
+	case <-time.After(failDuration):
+		require.Fail(t, "no app state")
+	}
+	tc.ChatG.ConvSource.(*HybridConversationSource).ri = ri
+	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
+	select {
+	case <-appStateCh:
+	case <-time.After(failDuration):
+		require.Fail(t, "no app state")
+	}
+	// Need to advance clock
+	select {
+	case <-listener.bgConvLoads:
+		require.Fail(t, "no load yet")
+	default:
+	}
 
-							clock.BlockUntil(1)
-							clock.Advance(10 * time.Second)
-							clock.BlockUntil(1)
-							clock.Advance(time.Hour) // Get by small sleep
-								select {
-								case convID := <-listener.bgConvLoads:
-									require.Equal(t, res.ConvID, convID)
-								case <-time.After(failDuration):
-									require.Fail(t, "no event")
-								}
-	*/
+	clock.BlockUntil(1)
+	clock.Advance(10 * time.Second)
+	clock.BlockUntil(1)
+	clock.Advance(time.Hour) // Get by small sleep
+	select {
+	case convID := <-listener.bgConvLoads:
+		require.Equal(t, res.ConvID, convID)
+	case <-time.After(failDuration):
+		require.Fail(t, "no event")
+	}
 }
 
 func TestConvLoaderPageBack(t *testing.T) {
@@ -284,7 +282,7 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	}
 
 	select {
-	case <-j.Pop():
+	case <-j.Wait():
 		require.Fail(t, "queue empty")
 	default:
 	}
@@ -293,7 +291,7 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	go func() {
 		ret := true
 		select {
-		case <-j.Pop():
+		case <-j.Wait():
 		case <-time.After(20 * time.Second):
 			ret = false
 		}
@@ -312,7 +310,9 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow}
 	for i := 0; i < len(order); i++ {
 		select {
-		case task := <-j.Pop():
+		case <-j.Wait():
+			task, ok := j.PopFront()
+			require.True(t, ok)
 			require.Equal(t, order[i], task.job.Priority)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no task")
