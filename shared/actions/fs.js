@@ -20,7 +20,7 @@ import {
   uninstallKBFS,
   uninstallKBFSSuccess,
 } from './fs-platform-specific'
-import {isWindows} from '../constants/platform'
+import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
 
@@ -232,27 +232,25 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   polling = true
   try {
     let status: RPCTypes.FSSyncStatus = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
-    let _kbfsUploading = false // Don't send duplicates else we get high cpu usage.
+    if (status.totalSyncingBytes <= 0) {
+      return
+    }
+
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+    yield Saga.put(FsGen.createSetFlags({syncing: true}))
+
     while (status.totalSyncingBytes > 0) {
-      if (!_kbfsUploading) {
-        _kbfsUploading = true
-        yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
-        yield Saga.put(FsGen.createSyncingStatus({isSyncing: true}))
-      }
       yield Saga.delay(2000)
       status = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
     }
-    if (_kbfsUploading) {
-      yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-      yield Saga.put(FsGen.createSyncingStatus({isSyncing: false}))
-    }
   } finally {
     polling = false
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    yield Saga.put(FsGen.createSetFlags({syncing: false}))
   }
 }
 
 function _setupFSHandlers() {
-  console.log('SONGGAO-setupfshandler')
   return Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
       dispatch(FsGen.createFsActivity())
@@ -277,9 +275,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
-  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
 
-  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
+  if (!isMobile) {
+    // TODO: enable this when we need it on mobile.
+    yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+    yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
+  }
 }
 
 export default fsSaga

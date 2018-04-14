@@ -115,8 +115,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['flags'], action.payload)
     case FsGen.installKBFS:
       return state.mergeIn(['flags'], {kbfsInstalling: true})
-    case FsGen.syncingStatus:
-      return state.mergeIn(['flags'], {syncing: action.payload.isSyncing})
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:

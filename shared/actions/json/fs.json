@@ -65,7 +65,8 @@
       "kbfsInstalling?": "boolean",
       "fuseInstalling?": "boolean",
       "kextPermissionError?": "boolean",
-      "showBanner?": "boolean"
+      "showBanner?": "boolean",
+      "syncing?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {
@@ -77,9 +78,6 @@
     },
     "uninstallKBFS": {},
     "fsActivity": {},
-    "syncingStatus": {
-      "isSyncing": "boolean"
-    },
 
     "setupFSHandlers": {}
   }
