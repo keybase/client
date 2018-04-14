@@ -185,9 +185,6 @@ const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatType
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
 
-const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
-
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')
 
@@ -388,7 +385,6 @@ export {
   getTeamRequests,
   getTeamConvIDs,
   getSortedTeamnames,
-  getTopicFromConvID,
   getTeamType,
   isAdmin,
   isBigTeam,
