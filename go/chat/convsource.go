@@ -34,7 +34,7 @@ func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterfa
 		DebugLabeler:     labeler,
 		ri:               ri,
 		boxer:            boxer,
-		sourceOfflinable: newSourceOfflinable(labeler),
+		sourceOfflinable: newSourceOfflinable(g, labeler),
 	}
 }
 

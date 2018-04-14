@@ -492,6 +492,15 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
+	// If this is from a push, set us into the foreground
+	if arg.Reason == chat1.GetThreadNonblockReason_PUSH {
+		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
+		// to reset any delay checks or timers
+		if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
+			h.G().Syncer.Disconnected(ctx)
+		}
+		h.G().AppState.Update(keybase1.AppState_FOREGROUND)
+	}
 
 	// Set last select conversation on syncer
 	h.G().Syncer.SelectConversation(ctx, arg.ConversationID)
