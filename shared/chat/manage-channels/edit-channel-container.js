@@ -20,8 +20,8 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
   const _needsLoad = !channelName
   const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
-  const yourRole = Constants.getRole(state, teamname) || 'reader'
-  const canDelete = (yourRole && (Constants.isAdmin(yourRole) || Constants.isOwner(yourRole))) || false
+  const yourRole = Constants.getRole(state, teamname)
+  const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
     _needsLoad,
     conversationIDKey,
