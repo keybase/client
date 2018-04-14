@@ -65,7 +65,7 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 	s.Unlock()
 
 	if offline {
-		if !delayed {
+		if delayed {
 			s.Debug(ctx, "IsOffline: offline, but skipping delay since we already did it")
 			return offline
 		}
