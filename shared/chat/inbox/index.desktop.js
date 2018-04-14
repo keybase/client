@@ -7,7 +7,7 @@ import {makeRow} from './row'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import {isDarwin} from '../../constants/platform'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
@@ -27,7 +27,7 @@ class Inbox extends PureComponent<Props, State> {
   _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
-    // If we click the expand button lets try and show the floater. Kinda tricky as we decide if we're showing it
+    // If we click the expand button let's try and show the floater. Kinda tricky as we decide if we're showing it
     // based on a callback the list gives us so there's a race. Let's just give it half a sec
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       setTimeout(() => {

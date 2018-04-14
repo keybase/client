@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 import dumbComponentMap from './component-map.native'
 import {Box, Button, Icon, Input, Text} from '../../common-adapters/index.native'
 import {Provider} from 'react-redux'

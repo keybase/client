@@ -23,9 +23,9 @@ type Props = {
 }
 
 /*
- * A dropdown on ios and android.
- * The ios version will show a modal with an inline picker, clicking in the modal selects the option.
- * The android version uses the built in picker but invisibly so it can show its modal correctly.
+ * A dropdown on iOS and Android.
+ * The iOS version will show a modal with an inline picker, clicking in the modal selects the option.
+ * The Android version uses the built in picker but invisibly so it can show its modal correctly.
  */
 
 // sentry for the 'other' value
@@ -39,26 +39,17 @@ type State = {
 }
 
 class Dropdown extends React.Component<Props, State> {
-  state: State
+  state: State = {modalVisible: false, value: null}
   showingPick: boolean
 
   constructor(props: Props) {
     super(props)
 
     this.showingPick = !this.props.value
-
-    this.state = {
-      modalVisible: false,
-      value: this._stateValue(this.props.value),
-    }
   }
 
-  _stateValue(value: ?string): string {
-    return value || pickItemValue
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    this.setState({value: this._stateValue(nextProps.value)})
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    return {value: nextProps.value || pickItemValue}
   }
 
   _selected() {

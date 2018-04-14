@@ -13,7 +13,7 @@ const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
 const policy7Days = makeRetentionPolicy({type: 'expire', days: 7})
 
 const actions = {
-  setRetentionPolicy: action('setRetentionPolicy'),
+  saveRetentionPolicy: action('saveRetentionPolicy'),
   onSelect: action('onSelectPolicy'),
   onShowDropdown: action('onShowDropdown'),
   onShowWarning: action('onShowWarning'),
@@ -21,7 +21,7 @@ const actions = {
 
 const commonProps = {
   loading: false,
-  showSaveState: false,
+  showSaveIndicator: false,
 }
 
 const onClick = action('onClick')

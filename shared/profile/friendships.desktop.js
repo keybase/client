@@ -17,19 +17,19 @@ class UserEntry extends PureComponent<UserEntryProps> {
 
   constructor(props: UserEntryProps) {
     super(props)
-
     this._updateOnClick(props)
   }
 
   _updateOnClick(p: UserEntryProps) {
     const {onClick, username, uid} = p
+    // TODO we shouldn't be doing this
     this._onClick = () => {
       onClick && onClick(username, uid)
     }
   }
 
-  componentWillReceiveProps(nextProps: UserEntryProps) {
-    this._updateOnClick(nextProps)
+  componentDidUpdate(prevProps: UserEntryProps) {
+    this._updateOnClick(this.props)
   }
 
   render() {

@@ -201,7 +201,7 @@ func (i *identifyUser) trackChainLinkFor(ctx context.Context, name libkb.Normali
 		// There's a corner case here -- the track chain link does exist, but
 		// it wasn't found on disk. This is probably because the db cache was nuked.
 		// Thus, in this case we force a full user reload, and we're sure to get
-		// the tracking infomation then.
+		// the tracking information then.
 		//
 		// See Jira ticket CORE-4310
 		//
@@ -477,7 +477,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	}
 
 	// First we check that all remote assertions as present for the user,
-	// whether or not the remote check actually suceeds (hence the
+	// whether or not the remote check actually succeeds (hence the
 	// ProofState_NONE check).
 	okStates := []keybase1.ProofState{keybase1.ProofState_NONE, keybase1.ProofState_OK}
 	if err = e.checkRemoteAssertions(okStates); err != nil {

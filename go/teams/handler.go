@@ -37,7 +37,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 			return err
 		}
 
-		g.Log.CDebugf(ctx, "sucess rotating team %s (%s)", team.Name(), teamID)
+		g.Log.CDebugf(ctx, "success rotating team %s (%s)", team.Name(), teamID)
 		return nil
 	})
 }

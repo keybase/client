@@ -736,7 +736,7 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	u.device.tctx.Tp.DisableUpgradePerUserKey = !puk
 	g := u.device.tctx.G
 
-	// We have to reset a socket here, since we need to regigster
+	// We have to reset a socket here, since we need to register
 	// the protocols in the genericUI below. If we reuse the previous
 	// socket, then the RPC protocols will not update, and we'll wind
 	// up reusing the old device name.

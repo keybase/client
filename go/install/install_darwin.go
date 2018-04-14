@@ -1070,7 +1070,7 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 }
 
 // KBFSBinPath returns the path to the KBFS executable.
-// If binPath (directory) is specifed, it will override the default (which is in
+// If binPath (directory) is specified, it will override the default (which is in
 // the same directory where the keybase executable is).
 func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	// If it's brew lookup path by formula name

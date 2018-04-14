@@ -17,7 +17,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../../util/container'
-import throttle from 'lodash/throttle'
+import {throttle} from 'lodash-es'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
 
@@ -26,7 +26,7 @@ type OwnProps = {
   onScrollDown: () => void,
 }
 
-// We used to store this in the route state but thats so complicated. We just want a map of id => text if we haven't sent
+// We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
 const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {

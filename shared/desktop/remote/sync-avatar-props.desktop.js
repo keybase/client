@@ -5,7 +5,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import {ipcRenderer, remote} from 'electron'
-import pick from 'lodash/pick'
+import {pick} from 'lodash-es'
 import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
 
 const BrowserWindow = remote.BrowserWindow

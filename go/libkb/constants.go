@@ -592,13 +592,17 @@ const (
 	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
 	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
 	// Context used for chaining generations of PerUserKeys.
-	DeriveReasonPUKPrev          DeriveReason = "Derived-User-NaCl-SecretBox-1"
-	DeriveReasonPUKStellarBundle DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
+	DeriveReasonPUKPrev            DeriveReason = "Derived-User-NaCl-SecretBox-1"
+	DeriveReasonPUKStellarBundle   DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
+	DeriveReasonPUKStellarNoteSelf DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
 
 	DeriveReasonDeviceEKEncryption DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
 	DeriveReasonUserEKEncryption   DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
 	DeriveReasonTeamEKEncryption   DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
 )
+
+// Not a DeriveReason because it is not used in the same way.
+const DeriveReasonPUKStellarNoteShared string = "Keybase-Derived-Stellar-Note-PUK-Sbox-NaCl-DH-1"
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.

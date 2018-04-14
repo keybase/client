@@ -23,19 +23,6 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: ?string): SortedAdm
   return {publicAdmins, publicAdminsOthers}
 }
 
-// Sorts teamnames canonically.
-function sortTeamnames(a: string, b: string) {
-  const aName = a.toUpperCase()
-  const bName = b.toUpperCase()
-  if (aName < bName) {
-    return -1
-  } else if (aName > bName) {
-    return 1
-  } else {
-    return 0
-  }
-}
-
 // Parses retention polcies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
   policy: RetentionPolicy,
@@ -65,4 +52,4 @@ function makeRetentionNotice(
   return `Messages in this ${convType} ${explanation}`
 }
 
-export {makeRetentionNotice, parsePublicAdmins, sortTeamnames}
+export {makeRetentionNotice, parsePublicAdmins}

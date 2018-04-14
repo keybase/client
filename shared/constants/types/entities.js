@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as Teams from './teams'
 import * as SearchTypes from './search'
 import * as Git from './git'
 import {type NoErrorTypedAction} from './flux'
@@ -42,7 +41,6 @@ export type _State = {
   search: SearchSubState,
   searchQueryToResult: I.Map<SearchTypes.SearchQuery, I.List<SearchTypes.SearchResultId>>,
   searchResults: I.Map<SearchTypes.SearchResultId, SearchTypes.SearchResult>,
-  teams: Teams.State,
 }
 
 export type State = I.RecordOf<_State>

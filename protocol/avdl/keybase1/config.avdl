@@ -98,7 +98,7 @@ protocol config {
     ForkType forkType;
   }
 
-  // A poor man's union, since we only currently supprt union { null, T }
+  // A poor man's union, since we only currently support union { null, T }
   record ConfigValue {
     boolean isNull;
     union { null, boolean } b;

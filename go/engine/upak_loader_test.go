@@ -259,7 +259,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	t.Logf("d2 provisioned (1)")
 
 	// Without pubsub (not available on engine tests), we don't get any
-	// invalidation of the user on the the first machine (tc). So this
+	// invalidation of the user on the first machine (tc). So this
 	// user's sigchain should stay the same.
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)

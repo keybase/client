@@ -90,8 +90,8 @@ const hudStyle = {
   backgroundColor: globalColors.white,
 }
 
-const _withProps = ({users, filter, selectedIndex}) => ({
-  data: users
+const _withProps = ({users, filter, selectedIndex}) => {
+  const fullList = users
     .map((u, i) => ({
       fullName: u.fullName,
       key: u.username,
@@ -102,18 +102,22 @@ const _withProps = ({users, filter, selectedIndex}) => ({
       key: 'channel',
       username: 'channel',
     })
-    .filter(u => {
-      return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
-    })
-    .map((u, i) => ({...u, selected: i === selectedIndex})),
-})
+  return {
+    data: fullList
+      .filter(u => {
+        return u.username.toLowerCase().indexOf(filter) >= 0 || u.fullName.toLowerCase().indexOf(filter) >= 0
+      })
+      .map((u, i) => ({...u, selected: i === selectedIndex})),
+    fullList,
+  }
+}
 
 const MentionHud = compose(
   withStateHandlers({selectedIndex: 0}, {setSelectedIndex: () => selectedIndex => ({selectedIndex})}),
   withProps(_withProps),
   setDisplayName('MentionHud'),
   lifecycle({
-    componentWillReceiveProps: function(nextProps) {
+    componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {
         nextProps.setSelectedIndex(0)
       }
@@ -146,7 +150,15 @@ const MentionHud = compose(
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
         if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onSelectUser(nextProps.data[nextProps.selectedIndex].username)
+          // Check if the previously selected entry matches the currently selected one
+          // we do this to prevent replace the user's text if the currently selected
+          // moves around in the list
+          const prevUser = this.props.fullList[this.props.selectedIndex]
+          const prevUsername = prevUser && prevUser.username
+          const nextUsername = nextProps.data[nextProps.selectedIndex].username
+          if (prevUsername !== nextUsername) {
+            nextProps.onSelectUser(nextUsername)
+          }
         }
       }
     },

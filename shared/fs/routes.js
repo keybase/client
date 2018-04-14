@@ -21,12 +21,24 @@ const _headerChildren = {
   },
 }
 
+const _commonChildren = {
+  pathItemAction: {
+    component: RelativePopupHoc(RowPopupMenu),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+  transferPopup: {
+    component: RelativePopupHoc(TransferPopup),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+}
+
 const _folderRoute = {
   children: {
     ..._headerChildren,
     folder: () => makeRouteDefNode(_folderRoute),
     preview: {
       component: FilePreview,
+      children: _commonChildren,
       tags: makeLeafTags({title: 'Preview'}),
       children: {
         ..._headerChildren,
@@ -36,14 +48,11 @@ const _folderRoute = {
       component: RelativePopupHoc(SortBarPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
     },
-    rowAction: {
-      component: RelativePopupHoc(RowPopupMenu),
+    finderAction: {
+      component: RelativePopupHoc(FinderPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
     },
-    transferPopup: {
-      component: RelativePopupHoc(TransferPopup),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
+    ..._commonChildren,
   },
   component: Files,
 }

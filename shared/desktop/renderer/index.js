@@ -20,8 +20,7 @@ import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import merge from 'lodash/merge'
-import throttle from 'lodash/throttle'
+import {throttle, merge} from 'lodash-es'
 import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import flags from '../../util/feature-flags'
@@ -150,6 +149,10 @@ const FontLoader = () => (
 )
 
 function render(store, MainComponent) {
+  const root = document.getElementById('root')
+  if (!root) {
+    throw new Error('No root element?')
+  }
   ReactDOM.render(
     <Root store={store}>
       <div style={{display: 'flex', flex: 1}}>
@@ -158,8 +161,7 @@ function render(store, MainComponent) {
         <MainComponent />
       </div>
     </Root>,
-    // $FlowIssue wants this to be non-null
-    document.getElementById('root')
+    root
   )
 }
 

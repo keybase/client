@@ -4,7 +4,7 @@ import {app, screen, ipcMain} from 'electron'
 import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
-import isEqual from 'lodash/isEqual'
+import {isEqual} from 'lodash-es'
 import {windowStyle} from '../../styles'
 
 export type State = {

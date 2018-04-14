@@ -79,7 +79,7 @@ export default compose(
       title: 'Add people',
     })),
     lifecycle({
-      componentWillMount: function() {
+      componentDidMount() {
         this.props._getSuggestions()
       },
     }),

@@ -24,9 +24,9 @@ if [ "$PLATFORM" = "darwin" ]; then
   code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" "$build_dir/keybase"
 elif [ "$PLATFORM" = "linux" ]; then
-  echo "No codesigning for linux"
+  echo "No codesigning for Linux"
 elif [ "$PLATFORM" = "windows" ]; then
-  echo "No codesigning for windows"
+  echo "No codesigning for Windows"
 else
   echo "Invalid PLATFORM"
   exit 1

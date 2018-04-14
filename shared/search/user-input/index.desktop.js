@@ -1,6 +1,5 @@
 // @flow
-import last from 'lodash/last'
-import trim from 'lodash/trim'
+import {trim, last} from 'lodash-es'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles, collapseStyles} from '../../styles'

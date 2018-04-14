@@ -36,6 +36,7 @@ type Props = {
 
 type State = {
   loaded: boolean,
+  url: ?string,
 }
 
 const sizeToTeamBorderRadius = {
@@ -110,6 +111,7 @@ class Border extends React.PureComponent<{borderColor: any, borderRadius: number
 class AvatarRender extends React.PureComponent<Props, State> {
   state: State = {
     loaded: false,
+    url: null,
   }
 
   _mounted: boolean = false
@@ -120,10 +122,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.url !== nextProps.url) {
-      this.setState({loaded: false})
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    if (nextProps.url !== prevState.url) {
+      return {loaded: false, url: nextProps.url}
     }
+    return null
   }
 
   componentDidMount() {

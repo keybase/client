@@ -33,10 +33,11 @@ class Dropdown extends React.Component<Props, State> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.selected !== nextProps.selected) {
-      this.setState({selected: nextProps.selected})
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    if (nextProps.selected !== prevState.selected) {
+      return {selected: nextProps.selected}
     }
+    return null
   }
 
   _toggleOpen = () => {

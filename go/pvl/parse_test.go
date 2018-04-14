@@ -239,7 +239,7 @@ var testPvlString = `
             "cmp": "cicmp",
             "error": [
               "BAD_USERNAME",
-              "Wrong keybase username in post '%{username_from_link}' should be '%{username_keybase}'"
+              "Wrong Keybase username in post '%{username_from_link}' should be '%{username_keybase}'"
             ]
           }
         },
@@ -481,7 +481,7 @@ var testPvlString = `
             "case_insensitive": true,
             "error": [
               "CONTENT_FAILURE",
-              "Wrong subreddti %{subreddit_from_json}"
+              "Wrong subreddit %{subreddit_from_json}"
             ],
             "from": "subreddit_from_json",
             "pattern": "^keybaseproofs$"

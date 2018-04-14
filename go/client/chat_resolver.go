@@ -287,7 +287,7 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			// 2) user specified TLF name but we auto-completed it or canonicalized
 			//    it.
 			//
-			// Either way, we present a visual confirmation so that user knows chich
+			// Either way, we present a visual confirmation so that user knows which
 			// conversation she's sending into or reading from.
 			if info.Triple.TopicType == chat1.TopicType_CHAT {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation: %s\n",

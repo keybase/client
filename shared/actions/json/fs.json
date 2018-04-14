@@ -10,6 +10,10 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
+    "favoritesLoad": {},
+    "favoritesLoaded": {
+      "folders": "I.Map<Types.Path, Types.FavoriteItem>"
+    },
     "filePreviewLoad": {
       "path": "Types.Path"
     },
@@ -61,7 +65,8 @@
       "kbfsInstalling?": "boolean",
       "fuseInstalling?": "boolean",
       "kextPermissionError?": "boolean",
-      "showBanner?": "boolean"
+      "showBanner?": "boolean",
+      "syncing?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {
@@ -73,9 +78,6 @@
     },
     "uninstallKBFS": {},
     "fsActivity": {},
-    "syncingStatus": {
-      "isSyncing": "boolean"
-    },
 
     "setupFSHandlers": {}
   }

@@ -20,7 +20,7 @@ type Props = {
 }
 
 class ImageAttachment extends React.PureComponent<Props> {
-  componentWillMount() {
+  componentDidMount() {
     if (this.props.loadPreview) {
       this.props.loadPreview()
     }

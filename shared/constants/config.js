@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/config'
-import uniq from 'lodash/uniq'
+import {uniq} from 'lodash-es'
 import {isMobile, runMode} from './platform'
 
 export const maxBootstrapTries = 3
@@ -23,7 +23,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
-  avatars: {}, // Can't be an I.Map since its used by remotes
+  avatars: {}, // Can't be an I.Map since it's used by remotes
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: maxBootstrapTries,
   config: null,

@@ -40,7 +40,7 @@ const followTaskProps: Props = {
   badged: true,
   confirmLabel: 'Browse people',
   instructions:
-    'Follow at least one person on Keybase. A "follow" is a signed snaphot of someone. It strengthens Keybase and your own security.',
+    'Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.',
   dismissable: true,
   icon: 'icon-onboarding-follow-32',
   ...actionProps,
