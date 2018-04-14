@@ -311,7 +311,7 @@ func TestImplicitResetNoPUKtoPUK(t *testing.T) {
 func TestImplicitResetPUKtoNoPUK(t *testing.T) {
 	// We are lucky this case even works, it breaks the rules a little
 	// bit: there is no way to post removeMember+addInvite in one
-	// link, so when PUKful bob resets and ann readds him as PUKless,
+	// link, so when PUKful bob resets and ann re-adds him as PUKless,
 	// only invite link is posted. So technically there are 3 active
 	// people in the team at the time:
 	//   ann, PUKful bob, PUKless (invited) bob.

@@ -1,12 +1,12 @@
 // @flow
 import logger from '../logger'
-import * as I from 'immutable'
 import * as KBFSGen from '../actions/kbfs-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Constants from '../constants/tracker'
 import * as Types from '../constants/types/tracker'
+import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import * as React from 'react'
@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
   }
-  const youAreInTeams = state.teams.getIn(['teamnames'], I.Set()).count() > 0
+  const youAreInTeams = isInSomeTeam(state)
 
   return {
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),

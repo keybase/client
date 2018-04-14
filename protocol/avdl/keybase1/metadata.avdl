@@ -74,7 +74,7 @@ protocol metadata {
   void startImplicitTeamMigration(string folderID);
 
   // Merkle tree specific commands
-  // todo: we probably also want a method which will return a minmum set of interior nodes
+  // todo: we probably also want a method which will return a minimum set of interior nodes
   // and a leaf node given a root node and a TLF ID.
   MerkleRoot getMerkleRoot(MerkleTreeID treeID, long seqNo);
   MerkleRoot getMerkleRootLatest(MerkleTreeID treeID);

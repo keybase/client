@@ -8,7 +8,7 @@ const defaultProps = {
   desktop: 'onWhenAtMentioned',
   mobile: 'never',
   muted: false,
-  saveState: 'same',
+  saving: false,
   toggleChannelWide: action('onToggleChannelwide'),
   toggleMuted: action('toggleMuted'),
   updateDesktop: action('updateDesktop'),
@@ -17,7 +17,7 @@ const defaultProps = {
 
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanelNotifications', module)
-    .add('Notifications (unsaved)', () => <Notifications {...defaultProps} saveState="same" />)
+    .add('Notifications', () => <Notifications {...defaultProps} />)
     .add('Notifications (muted)', () => <Notifications {...defaultProps} muted={true} />)
     .add('Notifications (saving)', () => (
       <Notifications
@@ -25,16 +25,7 @@ const load = () => {
         channelWide={true}
         desktop="onAnyActivity"
         mobile="onWhenAtMentioned"
-        saveState="saving"
-      />
-    ))
-    .add('Notifications (saved)', () => (
-      <Notifications
-        {...defaultProps}
-        channelWide={true}
-        desktop="onAnyActivity"
-        mobile="onWhenAtMentioned"
-        saveState="justSaved"
+        saving={true}
       />
     ))
 }

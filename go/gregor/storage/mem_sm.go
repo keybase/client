@@ -47,7 +47,7 @@ type item struct {
 	ctime time.Time
 	dtime *time.Time
 
-	// If we received a message from the server that a message should be dimissed,
+	// If we received a message from the server that a message should be dismissed,
 	// do so immediately, so as not to introduce clock-skew bugs. We previously
 	// had a bug here --- a message would come in to dismiss a message M at server time T,
 	// but then we would wait around for S seconds before marking that message as

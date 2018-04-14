@@ -101,7 +101,7 @@ func (e *LoginWithPaperKey) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		e.G().Log.Debug("Stored secret with LKS from paperky")
+		e.G().Log.Debug("Stored secret with LKS from paperkey")
 
 		// This could prompt but shouldn't because of the secret store.
 		err = e.unlockDeviceKeys(ctx, me)

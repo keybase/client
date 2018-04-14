@@ -430,7 +430,7 @@ func (t *TeamSigChainState) ListSubteams() (res []keybase1.TeamIDAndName) {
 	// collision, take the one with the latest (parent) seqno
 	// modifying its name.
 	// A collision could occur if you were removed from a team
-	// and miss its renaming or deletion to to stubbing.
+	// and miss its renaming or deletion to stubbing.
 	resMap := make(map[string] /*TeamName*/ Entry)
 	for subteamID, points := range t.inner.SubteamLog {
 		if len(points) == 0 {
@@ -832,7 +832,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			signerRole = keybase1.TeamRole_NONE
 		}
 		if !signerRole.IsWriterOrAbove() {
-			return fmt.Errorf("link signer does not have writer persmission to %s: %v is a %v", op, signer, signerRole)
+			return fmt.Errorf("link signer does not have writer permission to %s: %v is a %v", op, signer, signerRole)
 		}
 		return nil
 	}
@@ -1351,7 +1351,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// Sanity check that the parent doesn't claim to have changed.
 		parentID, err := keybase1.TeamIDFromString(string(team.Parent.ID))
 		if err != nil {
-			return res, fmt.Errorf("invvalid parent team id: %v", err)
+			return res, fmt.Errorf("invalid parent team id: %v", err)
 		}
 		if !parentID.Eq(*prevState.GetParentID()) {
 			return res, fmt.Errorf("wrong parent team ID: %s != %s", parentID, prevState.GetParentID())
@@ -1765,7 +1765,7 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 	return additions, cancelations, nil
 }
 
-// A map describing an intent to change users's roles.
+// A map describing an intent to change users' roles.
 // Each item means: change that user to that role.
 // To be clear: An omission does NOT mean to remove the existing role.
 type chainRoleUpdates map[keybase1.TeamRole][]keybase1.UserVersion

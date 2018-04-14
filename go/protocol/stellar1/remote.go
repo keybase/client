@@ -9,32 +9,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type EncryptedNote struct {
-	V   int          `codec:"v" json:"v"`
-	E   []byte       `codec:"e" json:"e"`
-	N   []byte       `codec:"n" json:"n"`
-	KID keybase1.KID `codec:"KID" json:"KID"`
-}
-
-func (o EncryptedNote) DeepCopy() EncryptedNote {
-	return EncryptedNote{
-		V: o.V,
-		E: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.E),
-		N: (func(x []byte) []byte {
-			if x == nil {
-				return nil
-			}
-			return append([]byte{}, x...)
-		})(o.N),
-		KID: o.KID.DeepCopy(),
-	}
-}
-
 type Members struct {
 	FromStellar  AccountID            `codec:"fromStellar" json:"fromStellar"`
 	FromKeybase  string               `codec:"fromKeybase" json:"fromKeybase"`
@@ -62,7 +36,7 @@ type TransactionSummary struct {
 	KeybaseID       KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
 	Status          TransactionStatus    `codec:"status" json:"status"`
 	ErrMsg          string               `codec:"errMsg" json:"errMsg"`
-	Note            EncryptedNote        `codec:"note" json:"note"`
+	NoteB64         string               `codec:"noteB64" json:"noteB64"`
 	Asset           Asset                `codec:"asset" json:"asset"`
 	Amount          string               `codec:"amount" json:"amount"`
 	DisplayAmount   string               `codec:"displayAmount" json:"displayAmount"`
@@ -78,7 +52,7 @@ func (o TransactionSummary) DeepCopy() TransactionSummary {
 		KeybaseID:       o.KeybaseID.DeepCopy(),
 		Status:          o.Status.DeepCopy(),
 		ErrMsg:          o.ErrMsg,
-		Note:            o.Note.DeepCopy(),
+		NoteB64:         o.NoteB64,
 		Asset:           o.Asset.DeepCopy(),
 		Amount:          o.Amount,
 		DisplayAmount:   o.DisplayAmount,
@@ -119,7 +93,7 @@ type TransactionDetails struct {
 	SourceAccountSequence string               `codec:"sourceAccountSequence" json:"sourceAccountSequence"`
 	FeePaid               int                  `codec:"feePaid" json:"feePaid"`
 	Members               Members              `codec:"members" json:"members"`
-	Note                  EncryptedNote        `codec:"note" json:"note"`
+	NoteB64               string               `codec:"noteB64" json:"noteB64"`
 	Signatures            []string             `codec:"signatures" json:"signatures"`
 	Operations            []Operation          `codec:"operations" json:"operations"`
 	Ctime                 TimeMs               `codec:"ctime" json:"ctime"`
@@ -136,7 +110,7 @@ func (o TransactionDetails) DeepCopy() TransactionDetails {
 		SourceAccountSequence: o.SourceAccountSequence,
 		FeePaid:               o.FeePaid,
 		Members:               o.Members.DeepCopy(),
-		Note:                  o.Note.DeepCopy(),
+		NoteB64:               o.NoteB64,
 		Signatures: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -164,12 +138,12 @@ func (o TransactionDetails) DeepCopy() TransactionDetails {
 }
 
 type PaymentPost struct {
-	StellarAccountSeqno uint64        `codec:"stellarAccountSeqno" json:"stellarAccountSeqno"`
-	Members             Members       `codec:"members" json:"members"`
-	DisplayAmount       string        `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency     string        `codec:"displayCurrency" json:"displayCurrency"`
-	Note                EncryptedNote `codec:"note" json:"note"`
-	SignedTransaction   string        `codec:"signedTransaction" json:"signedTransaction"`
+	StellarAccountSeqno uint64  `codec:"stellarAccountSeqno" json:"stellarAccountSeqno"`
+	Members             Members `codec:"members" json:"members"`
+	DisplayAmount       string  `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency     string  `codec:"displayCurrency" json:"displayCurrency"`
+	NoteB64             string  `codec:"noteB64" json:"noteB64"`
+	SignedTransaction   string  `codec:"signedTransaction" json:"signedTransaction"`
 }
 
 func (o PaymentPost) DeepCopy() PaymentPost {
@@ -178,7 +152,7 @@ func (o PaymentPost) DeepCopy() PaymentPost {
 		Members:             o.Members.DeepCopy(),
 		DisplayAmount:       o.DisplayAmount,
 		DisplayCurrency:     o.DisplayCurrency,
-		Note:                o.Note.DeepCopy(),
+		NoteB64:             o.NoteB64,
 		SignedTransaction:   o.SignedTransaction,
 	}
 }
@@ -228,6 +202,7 @@ type PaymentSummaryKeybase struct {
 	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
 	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
 	DisplayCurrency *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	NoteB64         string                `codec:"noteB64" json:"noteB64"`
 }
 
 func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
@@ -260,6 +235,7 @@ func (o PaymentSummaryKeybase) DeepCopy() PaymentSummaryKeybase {
 			tmp := (*x)
 			return &tmp
 		})(o.DisplayCurrency),
+		NoteB64: o.NoteB64,
 	}
 }
 
@@ -301,12 +277,18 @@ type SubmitPaymentArg struct {
 	Payment PaymentPost          `codec:"payment" json:"payment"`
 }
 
+type IsMasterKeyActiveArg struct {
+	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
 	Transaction(context.Context, TransactionArg) (TransactionDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
+	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -393,6 +375,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"isMasterKeyActive": {
+				MakeArg: func() interface{} {
+					ret := make([]IsMasterKeyActiveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IsMasterKeyActiveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IsMasterKeyActiveArg)(nil), args)
+						return
+					}
+					ret, err = i.IsMasterKeyActive(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -423,5 +421,10 @@ func (c RemoteClient) AccountSeqno(ctx context.Context, __arg AccountSeqnoArg) (
 
 func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) IsMasterKeyActive(ctx context.Context, __arg IsMasterKeyActiveArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res)
 	return
 }

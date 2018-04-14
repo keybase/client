@@ -177,7 +177,7 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 	res := i.cache[uid]
 	stats := &i.slowStats
 
-	// Please execuse this horrible hack, but use the `GetCacheDurationFunc` to see if we're dealing
+	// Please excuse this horrible hack, but use the `GetCacheDurationFunc` to see if we're dealing
 	// with a fast cache duration
 	if gcdf(keybase1.Identify2Res{}) == libkb.Identify2CacheShortTimeout {
 		stats = &i.fastStats

@@ -803,7 +803,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				require.Fail(t, "no conv received")
 			}
 		}
-		require.Equal(t, 0, len(convs), "didnt get all convs")
+		require.Equal(t, 0, len(convs), "didn't get all convs")
 
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
 			chat1.GetInboxNonblockLocalArg{
@@ -1587,7 +1587,7 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 		}
 		if len(res.Conversations) != 2 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
+			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 item, got %d\n", len(res.Conversations))
 		}
 
 		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx, chat1.GetInboxSummaryForCLILocalQuery{
@@ -1603,7 +1603,7 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 		}
 		if len(res.Conversations) != 3 {
-			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
+			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 item, got %d\n", len(res.Conversations))
 		}
 	})
 }

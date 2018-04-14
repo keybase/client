@@ -237,7 +237,7 @@ var detachedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeDetachedS
 // of that stream without consuming any data from it. It returns a reader that you
 // should read from instead, in addition to the classification. If classification
 // fails, there will be a `UnknownStreamError`, or additional EOF errors if the
-// stream ended beform classification could go.
+// stream ended before classification could go.
 func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err error) {
 	peeker := NewStreamPeeker(r)
 	var buf [100]byte

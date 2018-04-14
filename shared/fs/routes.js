@@ -11,12 +11,31 @@ import RowPopupMenu from './popups/row-action-popup-container'
 import TransferPopup from './popups/transfer-container.js'
 import SecurityPrefs from './common/security-prefs-container'
 
+const _commonChildren = {
+  finderAction: {
+    component: RelativePopupHoc(FinderPopupMenu),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+  pathItemAction: {
+    component: RelativePopupHoc(RowPopupMenu),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+  transferPopup: {
+    component: RelativePopupHoc(TransferPopup),
+    tags: makeLeafTags({layerOnTop: true}),
+  },
+  securityPrefs: {
+    component: SecurityPrefs,
+  },
+}
+
 const _folderRoute = {
   children: {
-    folder: () => folderRoute,
+    ..._commonChildren,
+    folder: () => makeRouteDefNode(_folderRoute),
     preview: {
       component: FilePreview,
-      initialState: {},
+      children: _commonChildren,
       tags: makeLeafTags({title: 'Preview'}),
     },
     breadcrumbAction: {
@@ -27,26 +46,9 @@ const _folderRoute = {
       component: RelativePopupHoc(SortBarPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
     },
-    rowAction: {
-      component: RelativePopupHoc(RowPopupMenu),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
-    finderAction: {
-      component: RelativePopupHoc(FinderPopupMenu),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
-    transferPopup: {
-      component: RelativePopupHoc(TransferPopup),
-      tags: makeLeafTags({layerOnTop: true}),
-    },
-    securityPrefs: {
-      component: SecurityPrefs,
-    },
   },
   component: Files,
 }
-
-const folderRoute = makeRouteDefNode(_folderRoute)
 
 const routeTree = makeRouteDefNode({
   ..._folderRoute,

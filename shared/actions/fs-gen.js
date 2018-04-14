@@ -14,6 +14,8 @@ export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const favoritesLoad = 'fs:favoritesLoad'
+export const favoritesLoaded = 'fs:favoritesLoaded'
 export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
@@ -29,7 +31,6 @@ export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
-export const syncingStatus = 'fs:syncingStatus'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
@@ -59,6 +60,8 @@ export const createDownloadStarted = (
     opID: RPCTypes.OpID,
   |}>
 ) => ({error: false, payload, type: downloadStarted})
+export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
+export const createFavoritesLoaded = (payload: $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>) => ({error: false, payload, type: favoritesLoaded})
 export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (
   payload: $ReadOnly<{|
@@ -94,6 +97,7 @@ export const createSetFlags = (
     kextPermissionError?: boolean,
     securityPrefsPropmted?: boolean,
     showBanner?: boolean,
+    syncing?: boolean,
   |}>
 ) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
@@ -103,7 +107,6 @@ export const createSortSetting = (
     sortSetting: Types.SortSetting,
   |}>
 ) => ({error: false, payload, type: sortSetting})
-export const createSyncingStatus = (payload: $ReadOnly<{|isSyncing: boolean|}>) => ({error: false, payload, type: syncingStatus})
 export const createTransferProgress = (
   payload: $ReadOnly<{|
     key: string,
@@ -120,6 +123,8 @@ export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfe
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
+export type FavoritesLoadPayload = More.ReturnType<typeof createFavoritesLoad>
+export type FavoritesLoadedPayload = More.ReturnType<typeof createFavoritesLoaded>
 export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
 export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
@@ -135,7 +140,6 @@ export type OpenSecurityPreferencesPayload = More.ReturnType<typeof createOpenSe
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
-export type SyncingStatusPayload = More.ReturnType<typeof createSyncingStatus>
 export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
@@ -148,6 +152,8 @@ export type Actions =
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>
   | More.ReturnType<typeof createDownloadStarted>
+  | More.ReturnType<typeof createFavoritesLoad>
+  | More.ReturnType<typeof createFavoritesLoaded>
   | More.ReturnType<typeof createFilePreviewLoad>
   | More.ReturnType<typeof createFilePreviewLoaded>
   | More.ReturnType<typeof createFolderListLoad>
@@ -163,7 +169,6 @@ export type Actions =
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>
-  | More.ReturnType<typeof createSyncingStatus>
   | More.ReturnType<typeof createTransferProgress>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSConfirm>

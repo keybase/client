@@ -525,18 +525,23 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, ib.RateLimit, err
 	}
 
-	// Run any tasks on the fetched conversations
 	for index, conv := range ib.Inbox.Full().Conversations {
-		// Need to run expunge on anything we fetch from the server
+		// Retention policy expunge
 		expunge := conv.GetExpunge()
 		if expunge != nil {
 			s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, *expunge)
 		}
+		// Delete message expunge
+		if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
+			s.G().ConvSource.ExpungeFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
+		}
 
-		// Queue all these convs up to be loaded by the background loader (cap it at first 50)
-		// Also make sure we aren't here because of a background loader operation
-		if index < 50 {
-			if err := s.G().ConvLoader.Queue(ctx, conv.GetConvID()); err != nil {
+		// Queue all these convs up to be loaded by the background loader
+		// Only load first 100 so we don't get the conv loader too backed up
+		if index < 100 {
+			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
+			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}
 		}
@@ -586,7 +591,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 	// Write metadata to the inbox cache
 	if err = storage.NewInbox(s.G(), uid).MergeLocalMetadata(ctx, inbox.Convs); err != nil {
-		// Don't abort the operaton on this kind of error
+		// Don't abort the operation on this kind of error
 		s.Debug(ctx, "Read: unable to write inbox local metadata: %s", err)
 	}
 
@@ -632,7 +637,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			return res, rl, err
 		}
 
-		// Write out to local storage only if we are using local daata
+		// Write out to local storage only if we are using local data
 		if useLocalData {
 			if cerr = inboxStore.Merge(ctx, res.Version, utils.PluckConvs(res.ConvsUnverified), query, p); cerr != nil {
 				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())

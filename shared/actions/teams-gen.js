@@ -230,7 +230,7 @@ export const createSetTeamInfo = (
     teamnames: I.Set<Types.Teamname>,
     teammembercounts: I.Map<Types.Teamname, number>,
     teamNameToIsOpen: I.Map<Types.Teamname, boolean>,
-    teamNameToRole: I.Map<Types.Teamname, Types.TeamRoleType>,
+    teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>,
     teamNameToAllowPromote: I.Map<Types.Teamname, boolean>,
     teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>,
     teamNameToID: I.Map<Types.Teamname, string>,

@@ -189,7 +189,7 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
     }
   })
   yield Saga.put(
-    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doens't look anything like what we're pushing
+    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
     SettingsGen.createInvitesRefreshed({
       invites: {
         acceptedInvites,

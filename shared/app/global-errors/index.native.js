@@ -5,11 +5,11 @@ import {
   Button,
   Text,
   Icon,
-  HOCTimers,
   NativeScrollView,
   List,
   NativeTouchableWithoutFeedback,
 } from '../../common-adapters/index.native'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
@@ -23,7 +23,7 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & {clearTimeout: number => void, setTimeout: (() => void, number) => number}
+type Props = _Props & TimerProps
 
 class GlobalError extends Component<Props, State> {
   state: State
@@ -65,7 +65,7 @@ class GlobalError extends Component<Props, State> {
           cachedDetails: this._detailsForError(this.props.error),
           cachedSummary: this._summaryForError(this.props.error),
         })
-      }, this.props.error ? 0 : 7000) // if its set, do it immediately, if its cleared set it in a bit
+      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
     if (prevProps.debugDump !== this.props.debugDump) {

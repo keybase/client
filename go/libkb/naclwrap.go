@@ -92,6 +92,11 @@ var _ GenericKey = NaclDHKeyPair{}
 
 type NaclSecretBoxKey [NaclSecretBoxKeySize]byte
 
+func (k NaclSecretBoxKey) IsZero() bool {
+	var z NaclSecretBoxKey
+	return hmac.Equal(k[:], z[:])
+}
+
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 	kid := keybase1.KIDFromString(s)
 	return importNaclKid(kid.ToBytes(), typ, bodyLen)

@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/fs'
 import * as FsGen from './fs-gen'
 import * as I from 'immutable'
@@ -20,9 +21,26 @@ import {
   uninstallKBFS,
   uninstallKBFSSuccess,
 } from './fs-platform-specific'
-import {isWindows} from '../constants/platform'
+import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
+
+function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  try {
+    const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+      args: [{key: 'problems', value: '1'}],
+      endpoint: 'kbfs/favorite/list',
+    })
+    const username = state.config.username || ''
+    const loggedIn = state.config.loggedIn
+    const folders = Constants.folderToFavoriteItems(results && results.body, username, loggedIn)
+
+    yield Saga.put(FsGen.createFavoritesLoaded({folders}))
+  } catch (e) {
+    logger.warn('Error listing favorites:', e)
+  }
+}
 
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
@@ -77,7 +95,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   ]
 
   // Get metadata fields of the directory that we just loaded from state to
-  // avoid override them.
+  // avoid overriding them.
   const state = yield Saga.select()
   const {lastModifiedTimestamp, lastWriter, size}: Types.PathItemMetadata = state.fs.pathItems.get(rootPath)
 
@@ -90,7 +108,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
           lastWriter,
           size,
           name: Types.getPathName(rootPath),
-          children: I.List(entries.map(d => d.name)),
+          children: I.Set(entries.map(d => d.name)),
           progress: 'loaded',
         }),
       ],
@@ -215,27 +233,25 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   polling = true
   try {
     let status: RPCTypes.FSSyncStatus = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
-    let _kbfsUploading = false // Don't send duplicates else we get high cpu usage.
+    if (status.totalSyncingBytes <= 0) {
+      return
+    }
+
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+    yield Saga.put(FsGen.createSetFlags({syncing: true}))
+
     while (status.totalSyncingBytes > 0) {
-      if (!_kbfsUploading) {
-        _kbfsUploading = true
-        yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
-        yield Saga.put(FsGen.createSyncingStatus({isSyncing: true}))
-      }
       yield Saga.delay(2000)
       status = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
     }
-    if (_kbfsUploading) {
-      yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-      yield Saga.put(FsGen.createSyncingStatus({isSyncing: false}))
-    }
   } finally {
     polling = false
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    yield Saga.put(FsGen.createSetFlags({syncing: false}))
   }
 }
 
 function _setupFSHandlers() {
-  console.log('SONGGAO-setupfshandler')
   return Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
       dispatch(FsGen.createFsActivity())
@@ -248,6 +264,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
+  yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
@@ -259,10 +276,14 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
-  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
 
-  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
+  if (!isMobile) {
+    yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+
+    // TODO: enable these when we need it on mobile.
+    yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+    yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
+  }
 }
 
 export default fsSaga
