@@ -275,18 +275,18 @@ func TestConvLoaderPageBack(t *testing.T) {
 }
 
 func TestConvLoaderJobQueue(t *testing.T) {
-	j := newJobQueue(4)
+	j := newJobQueue(10)
 	newTask := func(p types.ConvLoaderPriority) clTask {
 		job := types.NewConvLoaderJob(chat1.ConversationID{}, nil, p, nil)
 		return clTask{job: job}
 	}
 
+	t.Logf("test wait")
 	select {
 	case <-j.Wait():
 		require.Fail(t, "queue empty")
 	default:
 	}
-
 	cb := make(chan bool, 1)
 	go func() {
 		ret := true
@@ -298,29 +298,30 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		cb <- ret
 	}()
 	time.Sleep(100 * time.Millisecond)
-	j.Push(newTask(types.ConvLoaderPriorityLow))
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
 	require.True(t, <-cb)
 	task, ok := j.PopFront()
 	require.True(t, ok)
 	require.Equal(t, types.ConvLoaderPriorityLow, task.job.Priority)
 	require.Zero(t, j.queue.Len())
 
-	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
-	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
-	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityMedium)))
-	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityHigh)))
-	require.Error(t, j.Push(newTask(types.ConvLoaderPriorityHigh)))
+	t.Logf("test priority")
 	order := []types.ConvLoaderPriority{types.ConvLoaderPriorityHigh, types.ConvLoaderPriorityMedium,
 		types.ConvLoaderPriorityLow, types.ConvLoaderPriorityLow}
+	for i := len(order) - 1; i >= 0; i-- {
+		require.NoError(t, j.Push(newTask(order[i])))
+	}
 	for i := 0; i < len(order); i++ {
-		select {
-		case <-j.Wait():
-			task, ok := j.PopFront()
-			require.True(t, ok)
-			require.Equal(t, order[i], task.job.Priority)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no task")
-		}
+		task, ok := j.PopFront()
+		require.True(t, ok)
+		require.Equal(t, order[i], task.job.Priority)
+
 	}
 	require.Zero(t, j.queue.Len())
+
+	t.Logf("test maxsize")
+	j = newJobQueue(2)
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
+	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
+	require.Error(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
 }
