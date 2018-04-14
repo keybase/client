@@ -11,6 +11,7 @@ type ImageProps = {
   size: AvatarSize,
   url: string,
   borderRadius: any,
+  isTeam?: boolean,
 }
 
 type Props = {
@@ -78,9 +79,11 @@ const UserImageDiv = glamorous.div(
   },
   props => {
     const {opacity = 1} = props
+    const isTeam = props.isTeam
     return {
       backgroundImage: props.url,
       borderRadius: props.borderRadius,
+      boxShadow: isTeam ? `inset 0px 0px 0px 1px ${globalColors.black_05}` : null,
       height: props.size,
       maxWidth: props.size,
       minWidth: props.size,
@@ -96,6 +99,7 @@ class UserImage extends React.PureComponent<ImageProps> {
         size={this.props.size}
         url={this.props.url}
         borderRadius={this.props.borderRadius}
+        isTeam={this.props.isTeam}
       />
     )
   }
@@ -145,6 +149,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
             size={this.props.size}
             url={this.props.url}
             borderRadius={borderRadius}
+            isTeam={this.props.isTeam}
           />
         )}
         {!!this.props.borderColor && (
