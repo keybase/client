@@ -1,14 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 import {Box, Text} from '../../common-adapters'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemInfo from '../common/path-item-info'
-
-// TODO: use Constants.filesize after it's in.
-const filesize = s => `${(s / 1024).toString()} KB`
 
 type Props = {
   name: string,
@@ -35,7 +33,7 @@ const Popup = (props: Props) => {
         <Text type="BodySmallSemibold" style={{color: props.itemStyles.textColor}} lineClamp={1}>
           {props.name}
         </Text>
-        {props.type === 'file' && <Text type="BodySmall">{filesize(props.size)}</Text>}
+        {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
         {props.type === 'folder' && (
           <Text type="BodySmall">
             {props.childrenFolders
