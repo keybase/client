@@ -17,9 +17,10 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     `updateChannelName:${conversationIDKey}`,
     `getChannels:${teamname}`
   )
-  const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
-  const _needsLoad = !channelName
-  const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
+  const channelInfo = Constants.getChannelInfoFromConvID(state, conversationIDKey)
+  const _needsLoad = !channelInfo
+  const channelName = channelInfo ? channelInfo.channelname : ''
+  const topic = channelInfo ? channelInfo.description : ''
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
