@@ -8,7 +8,7 @@ import * as Types from './types/engine'
 import * as SagaTypes from './types/saga'
 import type {Channel} from 'redux-saga'
 import {getEngine, EngineChannel} from '../engine'
-import mapValues from 'lodash/mapValues'
+import {mapValues} from 'lodash-es'
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
@@ -174,7 +174,7 @@ class EngineRpcCall {
         }
 
         if (incoming.finished) {
-          // Used just by device add for now. this is to fix a bug and i'm not sure this should apply generally
+          // Used just by device add for now. This is to fix a bug and I'm not sure this should apply generally
           if (incoming.finished.error && this._finishedErrorShouldCancel) {
             yield Saga.call([this, this._cleanup], subSagaTasks)
             const {error, params} = incoming.finished

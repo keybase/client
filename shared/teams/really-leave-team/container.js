@@ -1,18 +1,17 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import {connect, type TypedState} from '../../util/container'
-import {Set} from 'immutable'
 import {compose, branch, renderComponent} from 'recompose'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
-import {isSubteam} from '../../constants/teams'
+import {getTeamMemberCount, isSubteam} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
-  const members = state.entities.getIn(['teams', 'teamNameToMembers', name], Set())
-  const _lastOwner = members.size <= 1 && !isSubteam(name)
+  const memberCount = getTeamMemberCount(state, name)
+  const _lastOwner = memberCount <= 1 && !isSubteam(name)
   return {
     _lastOwner,
     name,

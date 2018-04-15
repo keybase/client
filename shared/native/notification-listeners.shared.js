@@ -3,12 +3,12 @@ import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
 import * as LoginGen from '../actions/login-gen'
 import * as NotificationsGen from '../actions/notifications-gen'
-import throttle from 'lodash/throttle'
+import {throttle} from 'lodash-es'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 
-// Keep track of the last time we notified and ignore if its the same
+// Keep track of the last time we notified and ignore if it's the same
 let lastLoggedInNotifyUsername = null
 
 // We get a counter for badge state, if we get one that's less than what we've seen we toss it

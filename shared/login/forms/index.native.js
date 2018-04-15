@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   ButtonBar,
-  HOCTimers,
   Icon,
   Text,
   NativeScrollView,
@@ -13,7 +12,7 @@ import {
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
-import type {TimerProps} from '../../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 
 const Scroller = (props: any) => (
   <NativeScrollView style={{height: '100%', width: '100%', paddingTop: 20}}>
@@ -23,12 +22,12 @@ const Scroller = (props: any) => (
 
 const Splash = HOCTimers(
   class _Splash extends Component<Props & TimerProps, {showFeedback: boolean}> {
-    timeoutId: number
+    timeoutId: TimeoutID
     state = {
       showFeedback: false,
     }
 
-    componentWillMount() {
+    componentDidMount() {
       this.props.clearTimeout(this.timeoutId)
       this.timeoutId = this.props.setTimeout(() => {
         this.setState({

@@ -88,7 +88,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
     /**
      * Set the custom {@link SlidingTabStrip.TabColorizer} to be used.
      *
-     * If you only require simple custmisation then you can use
+     * If you only require simple customisation then you can use
      * {@link #setSelectedIndicatorColors(int...)} and {@link #setDividerColors(int...)} to achieve
      * similar effects.
      */
@@ -115,7 +115,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
     /**
      * Set the {@link ViewPager.OnPageChangeListener}. When using {@link SlidingTabLayout} you are
      * required to set any {@link ViewPager.OnPageChangeListener} through this method. This is so
-     * that the layout can update it's scroll position correctly.
+     * that the layout can update its scroll position correctly.
      *
      * @see ViewPager#setOnPageChangeListener(ViewPager.OnPageChangeListener)
      */

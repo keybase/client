@@ -28,6 +28,7 @@ class Passphrase extends Component<Props> {
               onEnterKeyDown: this.props.onSubmit,
               onChangeText: t => this.props.onChange(t),
               value: this.props.passphrase,
+              uncontrolled: true,
               errorText: this.props.error,
             }}
             checkboxesProps={[{label: 'Show typing', checked: !!showTyping, onCheck: toggleShowTyping}]}

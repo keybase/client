@@ -21,12 +21,15 @@ class InstallSecurityPrefs extends Component<Props, State> {
     appFocusedCount: -1,
   }
 
-  componentWillReceiveProps(nextProps: Props) {
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.appFocusedCount !== prevState.appFocusedCount) {
+      return {appFocusedCount: nextProps.appFocusedCount}
+    }
+    return null
+  }
+  componentDidUpdate(prevProps: Props) {
     // When app is focused, re-check Fuse status
-    if (nextProps.appFocusedCount !== this.state.appFocusedCount) {
-      this.setState({
-        appFocusedCount: nextProps.appFocusedCount,
-      })
+    if (prevProps.appFocusedCount !== this.state.appFocusedCount) {
       this.props.getFuseStatus()
     }
   }

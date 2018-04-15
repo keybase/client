@@ -85,6 +85,7 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 
 func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
 	defer e.G().CTrace(ctx, "keygenIfNeeded", func() error { return err })()
+	defer e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot) // always try to cleanup expired keys
 
 	if deviceEKNeeded, err := e.newDeviceEKNeeded(ctx, merkleRoot); err != nil {
 		return err
@@ -103,7 +104,7 @@ func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot)
 			return err
 		}
 	}
-	return e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot)
+	return nil
 }
 
 func (e *EKLib) CleanupStaleUserAndDeviceEKs(ctx context.Context) (err error) {
@@ -303,6 +304,7 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 		return teamEK, err
 	}
 	merkleRoot := *merkleRootPtr
+	defer teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot) // always try to deleteExpired
 
 	// First publish new device or userEKs if we need to.
 	if err = e.keygenIfNeeded(ctx, merkleRoot); err != nil {
@@ -332,10 +334,6 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 	}
 	// Cache the latest generation
 	e.teamEKGenCache.Add(key, e.newCacheEntry(publishedMetadata.Generation))
-	_, err = teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
-	if err != nil {
-		return teamEK, err
-	}
 	return teamEK, nil
 }
 
@@ -379,7 +377,7 @@ func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKey
 		return nil, err
 	}
 	if maxGeneration < 0 {
-		e.G().Log.CWarningf(ctx, "No userEK found")
+		e.G().Log.CDebugf(ctx, "No userEK found")
 		return nil, nil
 	}
 	userEK, err := userEKBoxStorage.Get(ctx, maxGeneration)

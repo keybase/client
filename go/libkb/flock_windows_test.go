@@ -17,7 +17,7 @@ func exists(name string) bool {
 	return !os.IsNotExist(err)
 }
 
-// run runs arg command. It retrns error if command could not be run.
+// run runs arg command. It returns error if command could not be run.
 // If command did run, the function will return error == nil and
 // integer command exit code.
 func run(arg ...string) (int, error) {

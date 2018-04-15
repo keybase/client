@@ -5,8 +5,7 @@ import ClickableBox from './clickable-box'
 import * as React from 'react'
 import {globalColors, glamorous} from '../styles'
 import {iconMeta} from './icon.constants'
-import omit from 'lodash/omit'
-import has from 'lodash/has'
+import {omit, has} from 'lodash-es'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 
 import type {IconType, Props} from './icon'
@@ -118,7 +117,7 @@ class Icon extends React.PureComponent<Props> {
       )
     } else {
       // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
-      // lets just filter it out if it exists
+      // let's just filter it out if it exists
       const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
       icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
     }

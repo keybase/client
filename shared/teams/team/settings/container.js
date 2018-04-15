@@ -11,38 +11,32 @@ export type OwnProps = {
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  ignoreAccessRequests: state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'ignoreAccessRequests'],
-    false
-  ),
-  openTeam: state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'open'], false),
-  openTeamRole:
-    Constants.teamRoleByEnum[
-      state.entities.getIn(['teams', 'teamNameToTeamSettings', teamname, 'joinAs'], 1)
-    ],
-  // $FlowFixMe sort out the team settings / publicity settings types
-  publicityAnyMember: state.entities.getIn(
-    ['teams', 'teamNameToPublicitySettings', teamname, 'anyMemberShowcase'],
-    false
-  ),
-  // $FlowFixMe same here
-  publicityMember: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'member'], false),
-  // $FlowFixMe and here
-  publicityTeam: state.entities.getIn(['teams', 'teamNameToPublicitySettings', teamname, 'team'], false),
-  waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
-  yourOperations: Constants.getCanPerform(state, teamname),
-})
+const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
+  const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)
+  const publicityAnyMember = publicitySettings.anyMemberShowcase
+  const publicityMember = publicitySettings.member
+  const publicityTeam = publicitySettings.team
+  const settings = Constants.getTeamSettings(state, teamname)
+  return {
+    isBigTeam: Constants.isBigTeam(state, teamname),
+    ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
+    openTeam: settings.open,
+    openTeamRole: Constants.teamRoleByEnum[settings.joinAs],
+    publicityAnyMember,
+    publicityMember,
+    publicityTeam,
+    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
+    yourOperations: Constants.getCanPerform(state, teamname),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
     dispatch(TeamsGen.createSetPublicity({teamname, settings})),
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: Types.RetentionPolicy) =>
-    dispatch(TeamsGen.createSetTeamRetentionPolicy({teamname, policy})),
-  _showRetentionWarning: (days: number, onConfirm: () => void) =>
-    dispatch(
-      navigateAppend([{selected: 'retentionWarning', props: {days, onConfirm, entityType: 'big team'}}])
-    ),
+    dispatch(TeamsGen.createSaveTeamRetentionPolicy({teamname, policy})),
+  _showRetentionWarning: (days: number, onConfirm: () => void, entityType: 'big team' | 'small team') =>
+    dispatch(navigateAppend([{selected: 'retentionWarning', props: {days, onConfirm, entityType}}])),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
       navigateAppend([
@@ -65,11 +59,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ...stateProps,
     ...ownProps,
     savePublicity: (settings, showRetentionWarning: boolean, policy: Types.RetentionPolicy) => {
-      showRetentionWarning &&
-        dispatchProps._showRetentionWarning(policy.days, () =>
-          dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
-        )
-      !showRetentionWarning && dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
+      if (stateProps.yourOperations.setRetentionPolicy) {
+        showRetentionWarning &&
+          dispatchProps._showRetentionWarning(
+            policy.days,
+            () => dispatchProps._saveRetentionPolicy(ownProps.teamname, policy),
+            stateProps.isBigTeam ? 'big team' : 'small team'
+          )
+        !showRetentionWarning && dispatchProps._saveRetentionPolicy(ownProps.teamname, policy)
+      }
       dispatchProps._savePublicity(ownProps.teamname, settings)
     },
     setOpenTeamRole: dispatchProps.setOpenTeamRole,

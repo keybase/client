@@ -19,6 +19,7 @@ import push from './push'
 import routeTree from './route-tree'
 import settings from './settings'
 import signup from './signup'
+import teams from './teams'
 import tracker from './tracker'
 import unlockFolders from './unlock-folders'
 import users from './users'
@@ -49,6 +50,7 @@ const reducers = {
   routeTree,
   settings,
   signup,
+  teams,
   tracker,
   unlockFolders,
   users,
@@ -60,7 +62,7 @@ const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers
 export default function(state: TypedState | void, action: any): TypedState {
   // Warn if any keys did not change after a resetStore action
   if (__DEV__ && action.type === resetStore && state) {
-    // Don't give a false warning if the state is the same cause its the initial state
+    // Don't give a false warning if the state is the same cause it's the initial state
     const initialState = reducer(undefined, action)
     const nextState = reducer(state, action)
     Object.keys(nextState).forEach(

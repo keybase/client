@@ -1052,7 +1052,7 @@ type MsgSummary struct {
 	KBFSEncrypted bool                           `json:"kbfs_encrypted,omitempty"`
 }
 
-// Message contains eiter a MsgSummary or an Error.  Used for JSON output.
+// Message contains either a MsgSummary or an Error.  Used for JSON output.
 type Message struct {
 	Msg   *MsgSummary `json:"msg,omitempty"`
 	Error *string     `json:"error,omitempty"`

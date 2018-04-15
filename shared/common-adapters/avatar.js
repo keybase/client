@@ -1,8 +1,7 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import Render from './avatar.render'
-import pickBy from 'lodash/pickBy'
-import debounce from 'lodash/debounce'
+import {pickBy, debounce} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType} from './icon'
 import {isTesting} from '../local-debug'
 import {
@@ -245,9 +244,9 @@ const realConnector = compose(
       }
     },
   }),
-  // $FlowIssue
+  // $FlowIssue : todo just have one connector for avatar and pass a flag to include the follow or not
   lifecycle({
-    componentWillMount() {
+    componentDidMount() {
       const _timeoutID = setTimeout(() => {
         if (this.props._name === this.props._stateName) {
           this.props._maybeLoadUserData()
@@ -255,8 +254,8 @@ const realConnector = compose(
       }, 200)
       this.props.setMounted(this.props._name, _timeoutID)
     },
-    componentWillReceiveProps(nextProps) {
-      if (this.props._name !== nextProps._name) {
+    componentDidUpdate(prevProps) {
+      if (this.props._name !== prevProps._name) {
         this.props._maybeLoadUserData()
       }
     },

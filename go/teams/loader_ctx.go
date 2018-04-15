@@ -137,16 +137,7 @@ func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno key
 	if err != nil {
 		return nil, err
 	}
-	// Try to get it locally, if that fails try again after syncing.
-	encKey, err := kr.GetEncryptionKeyBySeqno(ctx, userSeqno)
-	if err == nil {
-		return encKey, err
-	}
-	if err := kr.Sync(ctx); err != nil {
-		return nil, err
-	}
-	encKey, err = kr.GetEncryptionKeyBySeqno(ctx, userSeqno)
-	return encKey, err
+	return kr.GetEncryptionKeyBySeqnoOrSync(ctx, userSeqno)
 }
 
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {

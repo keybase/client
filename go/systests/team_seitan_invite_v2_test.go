@@ -266,7 +266,7 @@ func TestTeamHandleMultipleSeitans(t *testing.T) {
 	defer tt.cleanup()
 
 	// Make standalone user without gregor, we want to handle seitan
-	// requests manually so we are sure that get all 4 of them batched
+	// requests manually so we are sure that we get all 4 of them batched
 	// in one Handle call.
 	ann := makeUserStandalone(t, "ann", standaloneUserArgs{
 		disableGregor:            true,

@@ -2,7 +2,7 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from './types/tracker'
 import {type PlatformsExpandedType} from '../constants/types/more'
-import uniqBy from 'lodash/uniqBy'
+import {uniqBy} from 'lodash-es'
 
 const cachedIdentifyGoodUntil = 1000 * 60 * 60
 const profileFromUI = '@@UI-PROFILE'

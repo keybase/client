@@ -14,20 +14,11 @@ type State = {
 }
 
 class ChoiceList extends Component<Props, State> {
-  state: State
+  state: State = {activeIndex: null}
 
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      activeIndex: null,
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps !== this.props) {
-      this.setState({
-        activeIndex: null,
-      })
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps !== this.props) {
+      this.setState({activeIndex: null})
     }
   }
 

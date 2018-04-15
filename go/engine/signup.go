@@ -8,7 +8,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/stellar"
 	triplesec "github.com/keybase/go-triplesec"
 	context "golang.org/x/net/context"
 )
@@ -145,7 +144,7 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	s.G().CallLoginHooks()
 
 	go func() {
-		stellar.InitWalletSoft(context.Background(), s.G())
+		s.G().GetStellar().CreateWalletSoft(context.Background())
 	}()
 
 	return nil

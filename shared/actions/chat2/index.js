@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
+import {hasCanPerform, retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -58,8 +58,13 @@ const inboxRefresh = (
         const metas = items
           .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
           .filter(Boolean)
-
-        yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+        // Check if some of our existing stored metas might no longer be valid
+        const clearExistingMetas =
+          action.type === Chat2Gen.inboxRefresh &&
+          ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+        const clearExistingMessages =
+          action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
         return EngineRpc.rpcResult()
       },
     },
@@ -436,7 +441,10 @@ const onChatThreadStale = updates => {
     return arr
   }, [])
   if (conversationIDKeys.length > 0) {
-    return [Chat2Gen.createMarkConversationsStale({conversationIDKeys})]
+    return [
+      Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
+      Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'onChatThreadStale'}),
+    ]
   }
 }
 
@@ -590,7 +598,6 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   switch (key) {
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
-    case 'headline':
     case 'attachmentuploaded':
       break
     default:
@@ -609,7 +616,8 @@ const loadMoreMessages = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.SetPendingConversationUsersPayload
-    | Chat2Gen.MarkConversationsStalePayload,
+    | Chat2Gen.MarkConversationsStalePayload
+    | Chat2Gen.MetasReceivedPayload,
   state: TypedState
 ) => {
   const numMessagesOnInitialLoad = isMobile ? 20 : 50
@@ -634,6 +642,12 @@ const loadMoreMessages = (
   } else if (action.type === Chat2Gen.selectConversation) {
     key = action.payload.conversationIDKey
     reason = action.payload.reason || 'selected'
+  } else if (action.type === Chat2Gen.metasReceived) {
+    if (!action.payload.clearExistingMessages) {
+      // we didn't clear anything out, we don't need to fetch anything
+      return
+    }
+    key = Constants.getSelectedConversation(state)
   } else {
     key = action.payload.conversationIDKey
   }
@@ -800,7 +814,7 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
 
 // If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
 const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'preview'
+  action.payload.reason === 'preview' || action.payload.reason === 'messageLink'
     ? Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
         convID: Types.keyToConversationID(action.payload.conversationIDKey),
       })
@@ -814,15 +828,19 @@ const clearInboxFilter = (action: Chat2Gen.SelectConversationPayload) =>
 // Show a desktop notification
 const desktopNotify = (action: Chat2Gen.DesktopNotificationPayload, state: TypedState) => {
   const {conversationIDKey, author, body} = action.payload
-  const metaMap = state.chat2.metaMap
+  const meta = Constants.getMeta(state, conversationIDKey)
 
   if (
     !Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) &&
-    !metaMap.getIn([conversationIDKey, 'isMuted']) // ignore muted convos
+    !meta.isMuted // ignore muted convos
   ) {
     logger.info('Sending Chat notification')
     return Saga.put((dispatch: Dispatch) => {
-      NotifyPopup(author, {body}, -1, author, () => {
+      let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+      if (meta.teamType === 'big') {
+        title += `#${meta.channelname}`
+      }
+      NotifyPopup(title, {body}, -1, author, () => {
         dispatch(
           Chat2Gen.createSelectConversation({
             conversationIDKey,
@@ -1081,7 +1099,7 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
   ])
 
 const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
-  const pendingMessages = state.chat2.messageMap.get(Types.stringToConversationIDKey(''))
+  const pendingMessages = state.chat2.messageMap.get(Constants.pendingConversationIDKey)
   if (!(pendingMessages && !pendingMessages.isEmpty())) {
     logger.warn('retryPendingConversation: found no pending messages; aborting')
     return
@@ -1276,7 +1294,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   }
 
   return Saga.sequentially([
-    // its a fixed set of users so it's not a search (aka you can't add people to it)
+    // it's a fixed set of users so it's not a search (aka you can't add people to it)
     Saga.put(
       Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
     ),
@@ -1818,8 +1836,7 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   if (!teamname) {
     return
   }
-  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], null)
-  if (!canPerform) {
+  if (!hasCanPerform(state, teamname)) {
     return Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   }
 }
@@ -2032,6 +2049,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
+      Chat2Gen.metasReceived,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess

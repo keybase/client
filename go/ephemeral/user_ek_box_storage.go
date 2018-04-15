@@ -125,7 +125,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
-		s.G().Log.CWarningf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
+		s.G().Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
 		return userEK, nil
 	}
 	if err != nil {
@@ -133,7 +133,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	}
 
 	if userEKStatement == nil { // shouldn't happen
-		s.G().Log.CWarningf(ctx, "No error but got nil userEKStatement")
+		s.G().Log.CDebugf(ctx, "No error but got nil userEKStatement")
 		return userEK, err
 	}
 
@@ -189,7 +189,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 	deviceEKStorage := s.G().GetDeviceEKStorage()
 	deviceEK, err := deviceEKStorage.Get(ctx, userEKBoxed.DeviceEkGeneration)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "%v", err)
 		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 
@@ -198,7 +198,7 @@ func (s *UserEKBoxStorage) unbox(ctx context.Context, userEKGeneration keybase1.
 
 	msg, _, err := deviceKeypair.DecryptFromString(userEKBoxed.Box)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "%v", err)
+		s.G().Log.CDebugf(ctx, "%v", err)
 		return userEK, newEKUnboxErr(UserEKStr, userEKGeneration, DeviceEKStr, userEKBoxed.DeviceEkGeneration)
 	}
 

@@ -170,19 +170,19 @@ const ConnectedUserInput = compose(
     }
   }),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
-      if (this.props.focusInputCounter !== nextProps.focusInputCounter) {
+    componentDidUpdate(prevProps) {
+      if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.onFocusInput()
       }
 
-      if (this.props.searchResultIds !== nextProps.searchResultIds) {
-        nextProps.onUpdateSelectedSearchResult(
-          (nextProps.searchResultIds && nextProps.searchResultIds[0]) || null
+      if (this.props.searchResultIds !== prevProps.searchResultIds) {
+        this.props.onUpdateSelectedSearchResult(
+          (this.props.searchResultIds && this.props.searchResultIds[0]) || null
         )
       }
 
-      if (this.props.clearSearchTextInput !== nextProps.clearSearchTextInput) {
-        nextProps.onChangeSearchText('')
+      if (this.props.clearSearchTextInput !== prevProps.clearSearchTextInput) {
+        this.props.onChangeSearchText('')
       }
     },
   })

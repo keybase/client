@@ -2,7 +2,7 @@
 import Box from './box'
 import * as React from 'react'
 import Text from './text'
-import omit from 'lodash/omit'
+import {omit} from 'lodash-es'
 import type {Props} from './meta'
 import {globalColors, platformStyles} from '../styles'
 

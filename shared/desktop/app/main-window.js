@@ -18,6 +18,7 @@ export default function() {
   const mainWindow = new Window(
     resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')),
     {
+      backgroundThrottling: false,
       height: appState.state.height,
       minHeight: windowStyle.minHeight,
       minWidth: windowStyle.minWidth,
@@ -47,7 +48,7 @@ export default function() {
   appState.manageWindow(mainWindow.window)
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
-  // app.getLoginItemSettings().restoreState is mac only, so consider it always on in Windows
+  // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
     getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState || isWindows
   const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'

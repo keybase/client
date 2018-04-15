@@ -1,9 +1,6 @@
 // @flow
 import logger from '../logger'
-import mapValues from 'lodash/mapValues'
-import isEqual from 'lodash/isEqual'
-import map from 'lodash/map'
-import forEach from 'lodash/forEach'
+import {mapValues, isEqual, map, forEach} from 'lodash-es'
 import {buffers, channel, delay} from 'redux-saga'
 import type {Pattern, ForkEffect, Saga as _Saga} from 'redux-saga'
 import {

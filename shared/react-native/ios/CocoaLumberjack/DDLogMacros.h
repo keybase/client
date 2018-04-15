@@ -36,7 +36,7 @@
 
 /**
  * These are the two macros that all other macros below compile into.
- * These big multiline macros makes all the other macros easier to read.
+ * These big multiline macros make all the other macros easier to read.
  **/
 #define LOG_MACRO(isAsynchronous, lvl, flg, ctx, atag, fnct, frmt, ...) \
         [DDLog log : isAsynchronous                                     \

@@ -5,6 +5,7 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
+import {getCanPerform} from '../../../../constants/teams'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
 import * as TrackerGen from '../../../../actions/tracker-gen'
@@ -27,16 +28,13 @@ const mapStateToProps = (
   following: amIFollowing(state, username),
   fullName: state.config.username === username ? 'You' : fullName,
   you: state.config.username,
-  youCanManageMembers: state.entities.getIn(
-    ['teams', 'teamNameToCanPerform', teamname, 'manageMembers'],
-    false
-  ),
+  youCanManageMembers: getCanPerform(state, 'teamname').manageMembers,
 })
 
 type DispatchProps = {
   _onChat: () => void,
   onClick: () => void,
-  _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => void,
+  _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => void,
   _onRemoveFromTeam: (teamname: string, username: string) => void,
   _onShowTracker: (username: string) => void,
 }
@@ -54,12 +52,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
         },
       ])
     ),
-  _onReAddToTeam: (teamname: string, username: string, role: ?Types.TeamRoleType) => {
+  _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
         teamname,
         username,
-        role: role || 'reader',
+        role: role,
         sendChatNotification: false,
         email: '',
       })

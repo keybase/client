@@ -8,8 +8,7 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WaitingGen from '../actions/waiting-gen'
-import mapValues from 'lodash/mapValues'
-import trim from 'lodash/trim'
+import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {type TypedState} from '../constants/reducer'
@@ -190,7 +189,7 @@ function* _refreshInvitesSaga(): Saga.SagaGenerator<any, any> {
     }
   })
   yield Saga.put(
-    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doens't look anything like what we're pushing
+    // $FlowIssues the typing of this is very incorrect. acceptedInvites shape doesn't look anything like what we're pushing
     SettingsGen.createInvitesRefreshed({
       invites: {
         acceptedInvites,

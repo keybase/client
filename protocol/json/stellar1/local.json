@@ -9,24 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "LocalBalance",
-      "fields": [
-        {
-          "type": "Balance",
-          "name": "balance"
-        },
-        {
-          "type": "string",
-          "name": "currency"
-        },
-        {
-          "type": "string",
-          "name": "value"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "RecentPaymentCLILocal",
       "fields": [
         {
@@ -88,6 +70,59 @@
             "string"
           ],
           "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LocalCurrencyCode",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "LocalExchangeRate",
+      "fields": [],
+      "typedef": "float"
+    },
+    {
+      "type": "record",
+      "name": "LocalOwnAccount",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "boolean",
+          "name": "isPrimary"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Balance"
+          },
+          "name": "balance"
+        },
+        {
+          "type": "LocalCurrencyCode",
+          "name": "localCurrency"
+        },
+        {
+          "type": "LocalExchangeRate",
+          "name": "localExchangeRate"
         }
       ]
     }
@@ -102,7 +137,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "LocalBalance"
+        "items": "Balance"
       }
     },
     "sendLocal": {
@@ -149,6 +184,13 @@
       "request": [],
       "response": "Bundle"
     },
+    "walletGetLocalAccounts": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "LocalOwnAccount"
+      }
+    },
     "ownAccountLocal": {
       "request": [
         {
@@ -183,6 +225,15 @@
         }
       ],
       "response": null
+    },
+    "exchangeRateLocal": {
+      "request": [
+        {
+          "name": "currency",
+          "type": "LocalCurrencyCode"
+        }
+      ],
+      "response": "LocalExchangeRate"
     }
   },
   "namespace": "stellar.1"

@@ -343,18 +343,6 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 	}
 }
 
-type UserVersion struct {
-	Uid         UID   `codec:"uid" json:"uid"`
-	EldestSeqno Seqno `codec:"eldestSeqno" json:"eldestSeqno"`
-}
-
-func (o UserVersion) DeepCopy() UserVersion {
-	return UserVersion{
-		Uid:         o.Uid.DeepCopy(),
-		EldestSeqno: o.EldestSeqno.DeepCopy(),
-	}
-}
-
 type UserVersionPercentForm string
 
 func (o UserVersionPercentForm) DeepCopy() UserVersionPercentForm {

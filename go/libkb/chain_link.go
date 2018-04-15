@@ -1113,7 +1113,7 @@ func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
 	var serverKID, linkKID, verifyKID keybase1.KID
 
-	// PC: i'm not sure what exactly this was trying to do since
+	// PC: I'm not sure what exactly this was trying to do since
 	// c.packed.kid can only be equal to c.unpacked.kid at this point.
 	// The following two lines result in the least changes below:
 	serverKID = c.unpacked.kid

@@ -8,6 +8,7 @@ package service
 import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarsvc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -26,7 +27,7 @@ func newWalletHandler(xp rpc.Transporter, g *libkb.GlobalContext) *walletHandler
 		BaseHandler:  NewBaseHandler(g, xp),
 	}
 
-	h.Server = stellarsvc.New(g, h)
+	h.Server = stellarsvc.New(g, h, remote.NewRemoteNet(g))
 
 	return h
 }

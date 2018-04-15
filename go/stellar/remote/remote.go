@@ -181,11 +181,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	err = pukring.Sync(ctx)
-	if err != nil {
-		return res, 0, err
-	}
-	puk, err := pukring.GetSeedByGeneration(ctx, decodeRes.Enc.Gen)
+	puk, err := pukring.GetSeedByGenerationOrSync(ctx, decodeRes.Enc.Gen)
 	if err != nil {
 		return res, 0, err
 	}
@@ -322,16 +318,6 @@ func (b *tickerResult) GetAppStatus() *libkb.AppStatus {
 type XLMExchangeRate struct {
 	Price    float64
 	Currency string
-}
-
-func (b *XLMExchangeRate) ConvertXLM(XLMAmount string) (localAmount string, err error) {
-	local, err := strconv.ParseFloat(XLMAmount, 64)
-	if err != nil {
-		return "", err
-	}
-
-	localAmount = strconv.FormatFloat(b.Price*local, 'f', 2, 64)
-	return localAmount, nil
 }
 
 func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (XLMExchangeRate, error) {

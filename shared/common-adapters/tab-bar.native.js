@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import get from 'lodash/get'
+import {get} from 'lodash-es'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
 import Badge from './badge'

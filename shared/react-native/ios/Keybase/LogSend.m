@@ -6,6 +6,11 @@ static NSString * logPath = @"";
 
 RCT_EXPORT_MODULE();
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 RCT_REMAP_METHOD(logSend,
                  status:(NSString*)status
                  feedback:(NSString*)feedback

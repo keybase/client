@@ -3,10 +3,12 @@ import SystemInviteAccepted from '.'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Route from '../../../../actions/route-tree'
+import {getMeta} from '../../../../constants/chat2/'
 import {teamsTab} from '../../../../constants/tabs'
 import {connect, type TypedState, isMobile, type Dispatch} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = (state: TypedState, ownProps) => ({
+  teamname: getMeta(state, ownProps.message.conversationIDKey).teamname,
   you: state.config.username,
 })
 
