@@ -55,7 +55,9 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "team.seitan":
 		return true, r.seitanCompletion(ctx, cli, item)
 	case "team.member_out_from_reset":
-		return true, r.memberOutFromReset(ctx, cli, item)
+		return true, r.memberOutFromReset(ctx, cli, item, category, false /* openTeam */)
+	case "team.member_out_from_reset_open":
+		return true, r.memberOutFromReset(ctx, cli, item, category, true /* openTeam */)
 	case "team.abandoned":
 		return true, r.abandonTeam(ctx, cli, item)
 	default:
@@ -83,21 +85,25 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
-func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	nm := "team.member_out_from_reset"
-	r.G().Log.CDebugf(ctx, "teamHandler: %s received", nm)
+func (r *teamHandler) memberOutFromReset(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, category string, openTeam bool) error {
+	r.G().Log.CDebugf(ctx, "teamHandler: %s received", category)
 	var msg keybase1.TeamMemberOutFromReset
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", nm, msg)
+	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", category, msg)
 
 	if err := r.G().UIDMapper.ClearUIDAtEldestSeqno(ctx, r.G(), msg.ResetUser.Uid, msg.ResetUser.EldestSeqno); err != nil {
 		return err
 	}
+	r.G().Log.CDebugf(ctx, "%s: cleared UIDMap cache for %s%%%d", category, msg.ResetUser.Uid, msg.ResetUser.EldestSeqno)
 
-	r.G().Log.CDebugf(ctx, "%s: cleared UIDMap cache for %s%%%d", nm, msg.ResetUser.Uid, msg.ResetUser.EldestSeqno)
+	if openTeam {
+		if err := teams.HandleOpenTeamMemberOutFromReset(ctx, r.G(), msg); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
