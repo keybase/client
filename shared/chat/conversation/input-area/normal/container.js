@@ -35,17 +35,22 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
-  const quotedMessage = state.chat2.quotedMessage
+  const quotingOrdinal = Constants.getQuotingOrdinal(state, conversationIDKey)
+  console.warn({quotingOrdinal})
+  const _quotingMessage = quotingOrdinal
+    ? Constants.getMessageMap(state, conversationIDKey).get(quotingOrdinal)
+    : null
+  console.warn({_quotingMessage})
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
   return {
     _editingMessage,
+    _quotingMessage,
     _meta: Constants.getMeta(state, conversationIDKey),
     _you,
     conversationIDKey,
     pendingWaiting,
-    quotedMessage,
     typing: Constants.getTyping(state, conversationIDKey),
   }
 }
@@ -112,7 +117,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onCancelQuoting: () => dispatchProps._onCancelQuoting(),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   pendingWaiting: stateProps.pendingWaiting,
-  quotedMessage: stateProps.quotedMessage,
+  quotedMessage: stateProps._quotingMessage,
   sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
   typing: stateProps.typing,
 })
@@ -180,7 +185,10 @@ export default compose(
         this.props.setText(text, true)
         !isMobile && this.props.inputMoveToEnd()
       } else if (nextProps.quotedMessage && nextProps.quotedMessage !== this.props.quotedMessage) {
-        const text = nextProps.quotedMessage.stringValue()
+        const text =
+          nextProps.quotedMessage && nextProps.quotedMessage.type === 'text'
+            ? nextProps.quotedMessage.text.stringValue()
+            : ''
         const newText = text && formatTextForQuoting(text)
         if (text) {
           this.props.setText('') // blow away any unset stuff if we go into a quote, else you edit / cancel / switch tabs and come back and you see the unsent value

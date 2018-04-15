@@ -57,7 +57,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (message.type === 'text') {
       dispatch(
         Chat2Gen.createMessageSetQuoting({
-          quotedMessage: message.text,
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
         })
       )
     }
@@ -65,13 +66,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onReplyPrivately: (message: Types.Message) => {
     if (message.type === 'text' && message.author && message.text) {
       dispatch(
-        Chat2Gen.createStartConversation({
-          participants: [message.author],
-        })
-      )
-      dispatch(
-        Chat2Gen.createMessageSetQuoting({
-          quotedMessage: message.text,
+        Chat2Gen.createMessageReplyPrivately({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
         })
       )
     }

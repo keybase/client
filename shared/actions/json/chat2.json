@@ -135,7 +135,7 @@
       "submitState": ["'failed'", "'pending'"]
     },
     "cancelPendingConversation": {
-      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
+      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigatac to the inbox"
     },
     "retryPendingConversation": {
       "_description": "Retries sending the pending message that is currently stored in the metaMap"
@@ -148,8 +148,14 @@
     },
     // Start quoting a message / or clear quoting
     "messageSetQuoting": {
-      "quotedMessage": "?HiddenString"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
+    // Reply privately to a message with quoting
+    "messageReplyPrivately": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+     },
     // Submit an edit to the daemon
     "messageEdit": {
       "conversationIDKey": "Types.ConversationIDKey",

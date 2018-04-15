@@ -898,6 +898,46 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function* messageReplyPrivately(action: Chat2Gen.MessageReplyPrivately) {
+  const {conversationIDKey, ordinal} = action.payload
+  let state: TypedState = yield Saga.select()
+  console.warn('in messageReplyPrivately')
+  let selectedConversation = state.chat2.selectedConversation
+  console.warn('before, selectedConversation is', selectedConversation)
+  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
+  console.warn('message', message)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
+  }
+  console.warn('got message')
+  return Saga.put(
+    Chat2Gen.createStartConversation({
+      participants: [message.author],
+    })
+  )
+}
+
+const messageReplyPrivatelySuccess = (
+  results: [any, RPCChatTypes.NewConversationLocalRes],
+  action: Chat2Gen.SendToPendingConversationPayload
+) => {
+  console.warn('success', action, results)
+  const conversationIDKey = Types.conversationIDToKey(results[1].conv.info.id)
+  if (!conversationIDKey) {
+    logger.warn("Couldn't make a new conversation?")
+    return
+  }
+  if (conversationIDKey) {
+    console.warn({conversationIDKey})
+    return Saga.put(Chat2Gen.createMessageSetQuoting({conversationIDKey, ordinal: null}))
+  }
+}
+
+const messageReplyPrivatelyError = (e: Error, action: Chat2Gen.SendToPendingConversationPayload) => {
+  console.warn('error', action)
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -2025,6 +2065,13 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     searchUpdated
+  )
+
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.messageReplyPrivately,
+    messageReplyPrivately,
+    messageReplyPrivatelySuccess,
+    messageReplyPrivatelyError
   )
 
   yield Saga.safeTakeEveryPure(

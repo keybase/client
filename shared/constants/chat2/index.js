@@ -19,7 +19,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   pendingSelected: false,
   pendingStatus: 'none',
-  quotedMessage: null,
+  quotingMap: I.Map(),
   selectedConversation: Types.stringToConversationIDKey(''),
   typingMap: I.Map(),
   unreadMap: I.Map(),
@@ -36,6 +36,8 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getEditingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.editingMap.get(id)
+export const getQuotingOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
+  state.chat2.quotingMap.get(id)
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.typingMap.get(id, I.Set())
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
