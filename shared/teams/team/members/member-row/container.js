@@ -1,13 +1,14 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../../constants/teams'
 import * as Types from '../../../../constants/types/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
-import {getCanPerform} from '../../../../constants/teams'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
+import {anyWaiting} from '../../../../constants/waiting'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 
 import type {MemberRow as OwnProps} from '../../row-types'
@@ -27,8 +28,10 @@ const mapStateToProps = (
   active,
   following: amIFollowing(state, username),
   fullName: state.config.username === username ? 'You' : fullName,
+  waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),
+  waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
   you: state.config.username,
-  youCanManageMembers: getCanPerform(state, teamname).manageMembers,
+  youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
 })
 
 type DispatchProps = {
