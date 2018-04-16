@@ -188,9 +188,6 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 }
 
 func (r *RemoteMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	r.Lock()
-	defer r.Unlock()
-
 	return txLog.Filter(accountID, limit), nil
 }
 
