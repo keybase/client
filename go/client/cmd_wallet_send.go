@@ -92,7 +92,7 @@ func (c *cmdWalletSend) Run() error {
 	arg := stellar1.SendLocalArg{
 		Recipient: c.recipient,
 		Amount:    amount,
-		Asset:     stellar1.Asset{Type: "native"},
+		Asset:     stellar1.AssetNative(),
 		Note:      c.note,
 	}
 	res, err := cli.SendLocal(context.Background(), arg)

@@ -192,11 +192,14 @@ const styleNoteText = {
 
 const styleProofAction = {
   marginTop: globalMargins.small,
+  flexShrink: 0,
 }
 
 const styleButtonsContainer = {
   ...globalStyles.flexBoxRow,
+  flexShrink: 0,
   marginTop: globalMargins.medium,
+  marginBottom: globalMargins.medium,
 }
 
 export default PostProof

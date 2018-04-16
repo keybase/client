@@ -916,6 +916,35 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const you = state.config.username
+  const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
+  }
+
+  // Do we already have a convo for this author?
+  const newConversationIDKey =
+    you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
+
+  return Saga.sequentially([
+    Saga.put(
+      Chat2Gen.createMessageSetQuoting({
+        ordinal,
+        sourceConversationIDKey,
+        targetConversationIDKey: newConversationIDKey || Constants.pendingConversationIDKey,
+      })
+    ),
+    Saga.put(
+      Chat2Gen.createStartConversation({
+        participants: [message.author],
+      })
+    ),
+  ])
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -977,6 +1006,8 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
   return Saga.sequentially([
     // Disable sending more into a pending conversation
     Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'waiting'})),
+    // Disable searching for more people once you've tried to send
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
     // Try to make the conversation
     Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -990,10 +1021,10 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
 
 // Now actually send
 const sendToPendingConversationSuccess = (
-  results: [any, RPCChatTypes.NewConversationLocalRes],
+  results: [any, any, RPCChatTypes.NewConversationLocalRes],
   action: Chat2Gen.SendToPendingConversationPayload
 ) => {
-  const conversationIDKey = Types.conversationIDToKey(results[1].conv.info.id)
+  const conversationIDKey = Types.conversationIDToKey(results[2].conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
     return
@@ -1211,6 +1242,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // we handled participants or tlfs
   if (participants) {
     users = participants
+    conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
@@ -2087,6 +2119,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
 }
 
 export default chat2Saga

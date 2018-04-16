@@ -882,6 +882,10 @@ export const identifyUiDismissReasonType = {
   handledElsewhere: 1,
 }
 
+export const implicitTeamMigrationFinalizeMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationFinalizeMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.finalizeMigration', request)
+
+export const implicitTeamMigrationFinalizeMigrationRpcPromise = (request: ImplicitTeamMigrationFinalizeMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.finalizeMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
 
 export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2588,6 +2592,8 @@ export type ImplicitRole = $ReadOnly<{role: TeamRole, ancestor: TeamID}>
 export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration, time: Time}>
 
 export type ImplicitTeamDisplayName = $ReadOnly<{isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo}>
+
+export type ImplicitTeamMigrationFinalizeMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ImplicitTeamMigrationStartMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

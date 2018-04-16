@@ -46,7 +46,7 @@ const FolderHeader = ({
               </Box>
             )}
             {breadcrumbItems.map(i => (
-              <Box key={i.name} style={folderBreadcrumbStyle}>
+              <Box key={Types.pathToString(i.path)} style={folderBreadcrumbStyle}>
                 {i.isTlfNameItem &&
                   isTeamPath && <Avatar size={12} teamname={i.name} isTeam={true} style={styleTeamAvatar} />}
                 {i.isLastItem ? (

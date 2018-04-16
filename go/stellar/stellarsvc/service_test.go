@@ -182,6 +182,9 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
 	srv, rm := newTestServer(tcs[0].G)
 	accountIDSender := rm.AddAccount(t)
 	accountIDRecip := rm.AddAccount(t)
@@ -190,7 +193,7 @@ func TestSendLocalStellarAddress(t *testing.T) {
 		SecretKey:   rm.SecretKey(t, accountIDSender),
 		MakePrimary: true,
 	}
-	err := srv.ImportSecretKeyLocal(context.Background(), argImport)
+	err = srv.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
 	arg := stellar1.SendLocalArg{
@@ -219,6 +222,11 @@ func TestSendLocalKeybase(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
+	require.NoError(t, err)
+
 	srvSender, rm := newTestServer(tcs[0].G)
 	accountIDSender := rm.AddAccount(t)
 	accountIDRecip := rm.AddAccount(t)
@@ -229,7 +237,7 @@ func TestSendLocalKeybase(t *testing.T) {
 		SecretKey:   rm.SecretKey(t, accountIDSender),
 		MakePrimary: true,
 	}
-	err := srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
 
 	argImport.SecretKey = rm.SecretKey(t, accountIDRecip)

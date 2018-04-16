@@ -4,6 +4,7 @@
 *.bat text eol=crlf
 *.js linguist-language=JSX
 shared/actions/*-gen.js linguist-generated=true
+shared/flow-typed/* linguist-generated=true
 shared/constants/types/rpc*.js linguist-generated=true
 protocol/js/rpc*.js linguist-generated=true
 *.snap linguist-generated=true

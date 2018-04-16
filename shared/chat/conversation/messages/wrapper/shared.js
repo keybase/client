@@ -103,7 +103,6 @@ class MessageWrapper extends React.PureComponent<Props> {
               />
               <Box style={styles.sendIndicatorContainer}>
                 {props.isYou && (
-                  // $FlowIssue doesn't like HOCTimers
                   <SendIndicator
                     sent={props.messageSent}
                     failed={props.messageFailed}

@@ -16,6 +16,15 @@
         }
       ],
       "response": null
+    },
+    "finalizeMigration": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -874,740 +874,6 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (mute
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (saved) 1`] = `
-.css-0,
-[data-css-0] {
-  color: #ffffff;
-}
-
-.css-1,
-[data-css-1] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.css-2,
-[data-css-2] {
-  color: rgba(0, 0, 0, 0.20);
-}
-
-.css-3,
-[data-css-3] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.css-4,
-[data-css-4] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-}
-
-.css-5,
-[data-css-5] {
-  transition: background 0.1s ease-out;
-  border-radius: 100%;
-  height: 14px;
-  margin-right: 8px;
-  position: relative;
-  width: 14px;
-  background-color: #4C8EFF;
-  border: solid 1px rgba(0, 0, 0, 0.10);
-  opacity: 1;
-  selected: ;
-  -webkit-transition: background 0.1s ease-out;
-  -moz-transition: background 0.1s ease-out;
-}
-
-.css-5:hover,
-[data-css-5]:hover {
-  border: solid 1px #4C8EFF;
-}
-
-.css-7,
-[data-css-7] {
-  transition: background 0.1s ease-out;
-  border-radius: 100%;
-  height: 14px;
-  margin-right: 8px;
-  position: relative;
-  width: 14px;
-  background-color: inherit;
-  border: solid 1px rgba(0, 0, 0, 0.10);
-  opacity: 1;
-  -webkit-transition: background 0.1s ease-out;
-  -moz-transition: background 0.1s ease-out;
-}
-
-.css-7:hover,
-[data-css-7]:hover {
-  border: solid 1px #4C8EFF;
-}
-
-.css-9,
-[data-css-9] {
-  color: #3DCCA6;
-}
-
-.css-10,
-[data-css-10] {
-  font-size: 11px;
-  line-height: 15px;
-  color: #34ad79;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={
-      Object {
-        "height": "100%",
-      }
-    }
-  >
-    <div
-      style={
-        Object {
-          "display": "flex",
-          "flexDirection": "column",
-          "paddingLeft": 16,
-          "paddingRight": 16,
-        }
-      }
-    >
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "marginBottom": 4,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-start",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "backgroundColor": "inherit",
-                "border": "solid 1px rgba(0, 0, 0, 0.20)",
-                "borderRadius": 2,
-                "height": 13,
-                "marginRight": 8,
-                "marginTop": 2,
-                "opacity": 1,
-                "position": "relative",
-                "transition": "background 0.1s ease-out",
-                "width": 13,
-              }
-            }
-          >
-            <div>
-              <span
-                className="css-0"
-                onClick={null}
-                onMouseEnter={undefined}
-                onMouseLeave={undefined}
-                style={
-                  Object {
-                    "WebkitFontSmoothing": "antialiased",
-                    "fontFamily": "kb",
-                    "fontSize": 9,
-                    "fontStyle": "normal",
-                    "fontVariant": "normal",
-                    "fontWeight": "normal",
-                    "left": 1,
-                    "lineHeight": 1,
-                    "opacity": 0,
-                    "position": "absolute",
-                    "speak": "none",
-                    "textTransform": "none",
-                    "top": 1,
-                    "transition": "opacity 0.1s ease-out",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                
-              </span>
-            </div>
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Mute all notifications
-          </span>
-        </div>
-        <div>
-          <span
-            className="css-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "marginLeft": 4,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-      </div>
-      <div
-        onClick={[Function]}
-        style={
-          Object {
-            "alignItems": "flex-start",
-            "cursor": "pointer",
-            "display": "flex",
-            "flexDirection": "row",
-          }
-        }
-      >
-        <div
-          style={
-            Object {
-              "backgroundColor": "inherit",
-              "border": "solid 1px rgba(0, 0, 0, 0.20)",
-              "borderRadius": 2,
-              "height": 13,
-              "marginRight": 8,
-              "marginTop": 2,
-              "opacity": 1,
-              "position": "relative",
-              "transition": "background 0.1s ease-out",
-              "width": 13,
-            }
-          }
-        >
-          <div>
-            <span
-              className="css-0"
-              onClick={null}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "fontFamily": "kb",
-                  "fontSize": 9,
-                  "fontStyle": "normal",
-                  "fontVariant": "normal",
-                  "fontWeight": "normal",
-                  "left": 1,
-                  "lineHeight": 1,
-                  "opacity": 0,
-                  "position": "absolute",
-                  "speak": "none",
-                  "textTransform": "none",
-                  "top": 1,
-                  "transition": "opacity 0.1s ease-out",
-                  "userSelect": "none",
-                }
-              }
-            >
-              
-            </span>
-          </div>
-        </div>
-        <span
-          className="css-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Ignore 
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              @here
-            </span>
-             and 
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              @channel
-            </span>
-             mentions
-          </span>
-        </span>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "paddingTop": 16,
-          }
-        }
-      >
-        <span
-          className="css-4"
-          onClick={undefined}
-          title={undefined}
-        >
-          Desktop notifications
-        </span>
-        <div>
-          <span
-            className="css-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "paddingLeft": 4,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "marginLeft": 8,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginTop": 4,
-            }
-          }
-        >
-          <div
-            className="css-5"
-          >
-            <div
-              style={
-                Object {
-                  "border": "solid 3px #ffffff",
-                  "borderRadius": "100%",
-                  "color": "#ffffff",
-                  "hoverColor": "#ffffff",
-                  "left": 3,
-                  "position": "absolute",
-                  "top": 3,
-                  "transition": "opacity 0.1s ease-out",
-                }
-              }
-            />
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            On any activity
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "marginLeft": 8,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginTop": 4,
-            }
-          }
-        >
-          <div
-            className="css-7"
-          >
-            <div
-              style={
-                Object {
-                  "border": "solid 3px #ffffff",
-                  "borderRadius": "100%",
-                  "color": "#ffffff",
-                  "hoverColor": "#ffffff",
-                  "left": 3,
-                  "position": "absolute",
-                  "top": 3,
-                  "transition": "opacity 0.1s ease-out",
-                }
-              }
-            />
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Only when @mentioned
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "marginLeft": 8,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginTop": 4,
-            }
-          }
-        >
-          <div
-            className="css-7"
-          >
-            <div
-              style={
-                Object {
-                  "border": "solid 3px #ffffff",
-                  "borderRadius": "100%",
-                  "color": "#ffffff",
-                  "hoverColor": "#ffffff",
-                  "left": 3,
-                  "position": "absolute",
-                  "top": 3,
-                  "transition": "opacity 0.1s ease-out",
-                }
-              }
-            />
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Never
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "paddingTop": 16,
-          }
-        }
-      >
-        <span
-          className="css-4"
-          onClick={undefined}
-          title={undefined}
-        >
-          Mobile notifications
-        </span>
-        <div>
-          <span
-            className="css-2"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "paddingLeft": 4,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "marginLeft": 8,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginTop": 4,
-            }
-          }
-        >
-          <div
-            className="css-7"
-          >
-            <div
-              style={
-                Object {
-                  "border": "solid 3px #ffffff",
-                  "borderRadius": "100%",
-                  "color": "#ffffff",
-                  "hoverColor": "#ffffff",
-                  "left": 3,
-                  "position": "absolute",
-                  "top": 3,
-                  "transition": "opacity 0.1s ease-out",
-                }
-              }
-            />
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            On any activity
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "marginLeft": 8,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginTop": 4,
-            }
-          }
-        >
-          <div
-            className="css-5"
-          >
-            <div
-              style={
-                Object {
-                  "border": "solid 3px #ffffff",
-                  "borderRadius": "100%",
-                  "color": "#ffffff",
-                  "hoverColor": "#ffffff",
-                  "left": 3,
-                  "position": "absolute",
-                  "top": 3,
-                  "transition": "opacity 0.1s ease-out",
-                }
-              }
-            />
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Only when @mentioned
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "display": "flex",
-            "flexDirection": "row",
-            "marginLeft": 8,
-          }
-        }
-      >
-        <div
-          onClick={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "cursor": "pointer",
-              "display": "flex",
-              "flexDirection": "row",
-              "marginTop": 4,
-            }
-          }
-        >
-          <div
-            className="css-7"
-          >
-            <div
-              style={
-                Object {
-                  "border": "solid 3px #ffffff",
-                  "borderRadius": "100%",
-                  "color": "#ffffff",
-                  "hoverColor": "#ffffff",
-                  "left": 3,
-                  "position": "absolute",
-                  "top": 3,
-                  "transition": "opacity 0.1s ease-out",
-                }
-              }
-            />
-          </div>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Never
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "height": 24,
-            "justifyContent": "center",
-          }
-        }
-      >
-        <div>
-          <span
-            className="css-9"
-            onClick={null}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
-        <span
-          className="css-10"
-          onClick={undefined}
-          title={undefined}
-        >
-            Saved
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (saving) 1`] = `
 .css-0,
 [data-css-0] {
@@ -2288,28 +1554,13 @@ exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (savi
             "justifyContent": "center",
           }
         }
-      >
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={null}
-          srcSet="icons/icon-progress-grey-static.png 1x, icons/icon-progress-grey-static@2x.png 2x"
-          style={
-            Object {
-              "alignSelf": "center",
-              "userSelect": "none",
-              "width": 24,
-            }
-          }
-          title={undefined}
-        />
-      </div>
+      />
     </div>
   </div>
 </div>
 `;
 
-exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications (unsaved) 1`] = `
+exports[`Storyshots Chat/Conversation/InfoPanelNotifications Notifications 1`] = `
 .css-0,
 [data-css-0] {
   color: #ffffff;
@@ -27596,6 +26847,109 @@ exports[`Storyshots Common RadioButton 1`] = `
 </div>
 `;
 
+exports[`Storyshots Common SaveIndicator 1`] = `
+.css-0,
+[data-css-0] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  text-align: center;
+  white-space: pre;
+}
+
+<div
+  style={
+    Object {
+      "flex": 1,
+      "overflow": "auto",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "height": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "display": "flex",
+          "flexDirection": "column",
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={undefined}
+        onMouseLeave={undefined}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#4C8EFF",
+            "borderRadius": 50,
+            "cursor": "pointer",
+            "display": "inline-block",
+            "flexDirection": "column",
+            "height": 32,
+            "justifyContent": "center",
+            "lineHeight": "inherit",
+            "minWidth": undefined,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": "100%",
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <span
+            className="css-0"
+            onClick={undefined}
+            title={undefined}
+          >
+            Start save
+          </span>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "height": 24,
+            "justifyContent": "center",
+          }
+        }
+      />
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Common Text 1`] = `
 .css-0,
 [data-css-0] {
@@ -30064,20 +29418,15 @@ exports[`Storyshots Edit team description Description unchanged 1`] = `
 exports[`Storyshots Files Preview 1`] = `
 .css-0,
 [data-css-0] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  color: rgba(0, 0, 0, 0.40);
 }
 
 .css-1,
 [data-css-1] {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.40);
+  font-size: 13px;
+  line-height: 17px;
+  color: #4C8EFF;
+  cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -30093,24 +29442,59 @@ exports[`Storyshots Files Preview 1`] = `
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 600;
-  margin-top: 16px;
 }
 
 .css-3,
 [data-css-3] {
-  font-size: 14px;
-  line-height: 18px;
-  color: #ffffff;
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  white-space: pre;
+  font-weight: 400;
 }
 
 .css-4,
 [data-css-4] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.40);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.css-5,
+[data-css-5] {
+  font-size: 11px;
+  line-height: 15px;
+  color: rgba(0, 0, 0, 0.60);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+}
+
+.css-6,
+[data-css-6] {
+  font-size: 14px;
+  line-height: 18px;
+  color: #2645A3;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.css-7,
+[data-css-7] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -30140,6 +29524,8 @@ exports[`Storyshots Files Preview 1`] = `
     <div
       style={
         Object {
+          "display": "flex",
+          "flexDirection": "column",
           "height": "100%",
           "position": "relative",
         }
@@ -30149,26 +29535,190 @@ exports[`Storyshots Files Preview 1`] = `
         style={
           Object {
             "display": "flex",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <div
+          onClick={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "marginLeft": 8,
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-0"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 6,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <span
+            className="css-1"
+            onClick={[Function]}
+            title={undefined}
+          >
+            Back
+          </span>
+        </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "borderBottomColor": "rgba(0, 0, 0, 0.05)",
+              "borderBottomWidth": 0,
+              "display": "flex",
+              "flexDirection": "column",
+              "flexGrow": 1,
+              "height": 48,
+              "justifyContent": "center",
+              "minHeight": 40,
+            }
+          }
+        >
+          <span
+            className="css-2"
+            onClick={undefined}
+            title={undefined}
+          >
+            bar.jpg
+          </span>
+          <div
+            style={
+              Object {
+                "display": "flex",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <span
+              className="css-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              Last modified [mocked]
+            </span>
+            <span
+              className="css-4"
+              onClick={undefined}
+              title={undefined}
+            >
+               by 
+              <span
+                className="css-5"
+                onClick={undefined}
+                title={undefined}
+              >
+                foo
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#F7F9FC",
+            "display": "flex",
+            "flex": 1,
             "flexDirection": "column",
+            "flexGrow": 1,
+            "justifyContent": "center",
+            "padding": 24,
           }
         }
       >
         <div
           style={
             Object {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
               "display": "flex",
+              "flex": 1,
               "flexDirection": "column",
+              "flexGrow": 1,
+              "justifyContent": "center",
+              "width": "100%",
             }
           }
         >
+          <img
+            className={undefined}
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+            style={
+              Object {
+                "color": "#3663EA",
+                "userSelect": "none",
+              }
+            }
+            title={undefined}
+          />
+          <span
+            className="css-6"
+            onClick={undefined}
+            title={undefined}
+          >
+            bar.jpg
+          </span>
+          <span
+            className="css-3"
+            onClick={undefined}
+            title={undefined}
+          >
+            10 KB
+          </span>
           <div
+            onClick={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={undefined}
+            onMouseLeave={undefined}
+            onMouseUp={[Function]}
             style={
               Object {
                 "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
+                "alignSelf": "center",
+                "backgroundColor": "#e6e6e6",
+                "borderRadius": 50,
+                "cursor": "pointer",
+                "display": "inline-block",
+                "flexDirection": "column",
+                "height": 32,
                 "justifyContent": "center",
-                "minHeight": 48,
+                "lineHeight": "inherit",
+                "marginTop": 16,
+                "minWidth": undefined,
+                "paddingLeft": 24,
+                "paddingRight": 24,
+                "position": "relative",
+                "textAlign": "left",
+                "transform": "none",
+                "transition": "none",
               }
             }
           >
@@ -30178,187 +29728,20 @@ exports[`Storyshots Files Preview 1`] = `
                   "alignItems": "center",
                   "display": "flex",
                   "flexDirection": "row",
+                  "height": "100%",
                   "justifyContent": "center",
+                  "position": "relative",
                 }
               }
             >
               <span
-                className="css-0"
+                className="css-7"
                 onClick={undefined}
                 title={undefined}
               >
-                Keybase Files
+                Download a copy
               </span>
             </div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div
-          style={
-            Object {
-              "alignItems": "center",
-              "borderBottomColor": "rgba(0, 0, 0, 0.05)",
-              "borderBottomWidth": 0,
-              "display": "flex",
-              "flexDirection": "column",
-              "justifyContent": "center",
-              "minHeight": 40,
-            }
-          }
-        >
-          <span
-            className="css-0"
-            onClick={undefined}
-            title={undefined}
-          >
-            bar.img
-          </span>
-          <span
-            className="css-1"
-            onClick={undefined}
-            title={undefined}
-          >
-            Modified on [mocked] by foobar
-          </span>
-        </div>
-      </div>
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flex": 1,
-            "flexDirection": "column",
-            "height": "100%",
-            "justifyContent": "center",
-          }
-        }
-      >
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={null}
-          srcSet="icons/icon-folder-private-48.png 1x, icons/icon-folder-private-48@2x.png 2x"
-          style={
-            Object {
-              "userSelect": "none",
-            }
-          }
-          title={undefined}
-        />
-        <span
-          className="css-2"
-          onClick={undefined}
-          title={undefined}
-        >
-          bar.img
-        </span>
-        <span
-          className="css-1"
-          onClick={undefined}
-          title={undefined}
-        >
-          15 KB
-        </span>
-        <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          onMouseUp={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "backgroundColor": "#4C8EFF",
-              "borderRadius": 50,
-              "cursor": "pointer",
-              "display": "inline-block",
-              "flexDirection": "column",
-              "height": 32,
-              "justifyContent": "center",
-              "lineHeight": "inherit",
-              "marginTop": 24,
-              "minWidth": undefined,
-              "paddingLeft": 24,
-              "paddingRight": 24,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "height": "100%",
-                "justifyContent": "center",
-                "position": "relative",
-              }
-            }
-          >
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            >
-              Share
-            </span>
-          </div>
-        </div>
-        <div
-          onClick={[Function]}
-          onMouseDown={[Function]}
-          onMouseEnter={undefined}
-          onMouseLeave={undefined}
-          onMouseUp={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "alignSelf": "center",
-              "backgroundColor": "#e6e6e6",
-              "borderRadius": 50,
-              "cursor": "pointer",
-              "display": "inline-block",
-              "flexDirection": "column",
-              "height": 32,
-              "justifyContent": "center",
-              "lineHeight": "inherit",
-              "marginTop": 16,
-              "minWidth": undefined,
-              "paddingLeft": 24,
-              "paddingRight": 24,
-              "position": "relative",
-              "textAlign": "left",
-              "transform": "none",
-              "transition": "none",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "height": "100%",
-                "justifyContent": "center",
-                "position": "relative",
-              }
-            }
-          >
-            <span
-              className="css-4"
-              onClick={undefined}
-              title={undefined}
-            >
-              Open file
-            </span>
           </div>
         </div>
       </div>

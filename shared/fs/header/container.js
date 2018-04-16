@@ -64,6 +64,7 @@ const mergeProps = (
       isTlfNameItem: i === 2,
       isLastItem: i === elems.length - 1,
       name: e,
+      path: path,
       onOpenBreadcrumb: (evt?: SyntheticEvent<>) => _onOpenBreadcrumb(path, evt),
     }
   })

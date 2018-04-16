@@ -12,16 +12,25 @@ type Props = {
   onDeleteMessageHistory: null | (() => void),
   onEdit: null | (() => void),
   onHidden: () => void,
+  onQuote: null | (() => void),
+  onReplyPrivately: null | (() => void),
+  onViewProfile: () => void,
   showDivider: boolean,
   style?: Object,
   yourMessage: boolean,
 }
 
 const TextPopupMenu = (props: Props) => {
+  const commonItems = [
+    {onClick: props.onCopy, title: 'Copy Text'},
+    {onClick: props.onQuote, title: 'Quote'},
+    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+    {onClick: props.onViewProfile, title: 'View Profile'},
+  ]
   const items = props.yourMessage
     ? [
         ...(props.showDivider ? ['Divider'] : []),
-        {onClick: props.onCopy, title: 'Copy Text'},
+        ...commonItems,
         {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
         {
           danger: true,
@@ -41,7 +50,7 @@ const TextPopupMenu = (props: Props) => {
             ]
           : []),
       ]
-    : [{onClick: props.onCopy, title: 'Copy Text'}]
+    : commonItems
 
   const header = {
     title: 'header',

@@ -9,6 +9,7 @@ import PathItemIcon from '../common/path-item-icon'
 
 type PopupMenuProps = {
   items: Array<{
+    path: Types.Path,
     name: string,
     styles: Types.ItemStyles,
     onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
@@ -19,7 +20,7 @@ type PopupMenuProps = {
 const BreadcrumbPopupMenu = ({items, onHidden}: PopupMenuProps) => {
   const popupItems = items.map(item => ({
     onClick: item.onOpenBreadcrumb,
-    title: item.name,
+    title: Types.pathToString(item.path),
     view: (
       <Box style={stylesRow}>
         <PathItemIcon spec={item.styles.iconSpec} style={pathItemIconStyle} small={true} />

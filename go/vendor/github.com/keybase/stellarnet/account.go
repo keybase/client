@@ -2,6 +2,7 @@ package stellarnet
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -23,6 +24,11 @@ func SetClientURL(url string) {
 func SetClient(c *horizon.Client, n build.Network) {
 	client = c
 	network = n
+}
+
+// Client returns the horizon client.
+func Client() *horizon.Client {
+	return client
 }
 
 // Account represents a Stellar account.
@@ -67,6 +73,45 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 	return a.internal.Balances, nil
 }
 
+// IsMasterKeyActive returns whether the account's master key can sign transactions.
+// The return value is true for normal accounts and multi-sig setups.
+// The return value is false for explicitly disabled accounts.
+// The master key is considered active if both:
+// - The master key signing weight is non-zero.
+// - The combined weight of all signers satisfies
+//   the minimum signing weight required to sign an operation.
+//   (Any operation at all, not necessarily payment)
+func IsMasterKeyActive(accountID AddressStr) (bool, error) {
+	a := NewAccount(accountID)
+	err := a.load()
+	if err != nil {
+		if err == ErrAccountNotFound {
+			// Accounts with no entries have active master keys.
+			return true, nil
+		}
+		return false, err
+	}
+	minThreshold := int32(minBytes([]byte{a.internal.Thresholds.LowThreshold,
+		a.internal.Thresholds.MedThreshold, a.internal.Thresholds.HighThreshold}, 0))
+	foundMaster := false
+	var masterWeight int32
+	var availableWeight int32
+	for _, signer := range a.internal.Signers {
+		if a.internal.AccountID == signer.PublicKey {
+			masterWeight = signer.Weight
+			foundMaster = true
+		}
+		availableWeight += signer.Weight
+	}
+	if !foundMaster {
+		return false, fmt.Errorf("master key entry not found")
+	}
+	if masterWeight <= 0 {
+		return false, nil
+	}
+	return availableWeight >= minThreshold, nil
+}
+
 // AccountSeqno returns the account sequence number.
 func AccountSeqno(address AddressStr) (uint64, error) {
 	seqno, err := client.SequenceForAccount(address.String())
@@ -77,7 +122,7 @@ func AccountSeqno(address AddressStr) (uint64, error) {
 }
 
 // RecentPayments returns the account's recent payments.
-// This is a summary of any recent payment transactions (payment or create_account).
+// This is a summary of any recent payment transactions (payment, create_account, or account_merge).
 // It does not contain as much information as RecentTransactions.
 // It is faster as it is only one request to horizon.
 func (a *Account) RecentPayments() ([]horizon.Payment, error) {
@@ -193,16 +238,16 @@ func (a *Account) SendXLM(from SeedStr, to AddressStr, amount string) (ledger in
 
 // paymentXLM creates a payment transaction from 'from' to 'to' for 'amount' lumens.
 func (a *Account) paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	_, signed, err := a.PaymentXLMTransaction(from, to, amount, client)
+	sig, err := a.PaymentXLMTransaction(from, to, amount, client)
 	if err != nil {
 		return 0, "", err
 	}
-
-	return Submit(signed)
+	return Submit(sig.Signed)
 }
 
 // PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
-func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount string, seqnoProvider build.SequenceProvider) (seqno uint64, signed string, err error) {
+func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
+	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		network,
@@ -214,25 +259,24 @@ func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount stri
 		build.MemoText{Value: "via keybase"},
 	)
 	if err != nil {
-		return 0, "", err
+		return res, err
 	}
-
 	return a.sign(from, tx)
 }
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
 func (a *Account) createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	_, signed, err := a.CreateAccountXLMTransaction(from, to, amount, client)
+	sig, err := a.CreateAccountXLMTransaction(from, to, amount, client)
 	if err != nil {
 		return 0, "", err
 	}
-
-	return Submit(signed)
+	return Submit(sig.Signed)
 }
 
 // CreateAccountXLMTransaction creates a signed transaction to fund an new account 'to' from 'from'
 // with a starting balance of 'amount'.
-func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string, seqnoProvider build.SequenceProvider) (seqno uint64, signed string, err error) {
+func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
+	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		network,
@@ -244,22 +288,37 @@ func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amoun
 		build.MemoText{Value: "via keybase"},
 	)
 	if err != nil {
-		return 0, "", err
+		return res, err
 	}
-
 	return a.sign(from, tx)
 }
 
+type SignResult struct {
+	Seqno  uint64
+	Signed string // signed transaction (base64)
+	TxHash string // transaction hash (hex)
+}
+
 // sign signs and base64-encodes a transaction.
-func (a *Account) sign(from SeedStr, tx *build.TransactionBuilder) (seqno uint64, signed string, err error) {
+func (a *Account) sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error) {
 	txe, err := tx.Sign(from.SecureNoLogString())
 	if err != nil {
-		return 0, "", err
+		return res, err
 	}
-
-	seqno = uint64(txe.E.Tx.SeqNum)
-	signed, err = txe.Base64()
-	return seqno, signed, err
+	seqno := uint64(txe.E.Tx.SeqNum)
+	signed, err := txe.Base64()
+	if err != nil {
+		return res, err
+	}
+	txHashHex, err := tx.HashHex()
+	if err != nil {
+		return res, err
+	}
+	return SignResult{
+		Seqno:  seqno,
+		Signed: signed,
+		TxHash: txHashHex,
+	}, nil
 }
 
 // Submit submits a signed transaction to horizon.
@@ -323,4 +382,17 @@ func errMap(err error) error {
 	}
 
 	return err
+}
+
+func minBytes(bs []byte, deflt byte) byte {
+	if len(bs) == 0 {
+		return deflt
+	}
+	res := bs[0]
+	for _, b := range bs[1:] {
+		if b < res {
+			res = b
+		}
+	}
+	return res
 }

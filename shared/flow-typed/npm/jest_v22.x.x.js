@@ -1,5 +1,5 @@
-// flow-typed signature: 159e15f694a5e3ba2a989dea756a6e22
-// flow-typed version: 0215e23590/jest_v22.x.x/flow_>=v0.39.x
+// flow-typed signature: a952be01612bad0a20584bce33415d58
+// flow-typed version: 0d3c93990f/jest_v22.x.x/flow_>=v0.39.x
 
 type JestMockFn<TArguments: $ReadOnlyArray<*>, TReturn> = {
   (...args: TArguments): TReturn,
@@ -55,6 +55,11 @@ type JestMockFn<TArguments: $ReadOnlyArray<*>, TReturn> = {
   mockImplementationOnce(
     fn: (...args: TArguments) => TReturn
   ): JestMockFn<TArguments, TReturn>,
+  /**
+   * Accepts a string to use in test result output in place of "jest.fn()" to
+   * indicate which mock function is being referenced.
+   */
+  mockName(name: string): JestMockFn<TArguments, TReturn>,
   /**
    * Just a simple sugar function for returning `this`
    */
@@ -144,8 +149,15 @@ type EnzymeMatchersType = {
   toMatchSelector(selector: string): void
 };
 
+// DOM testing library extensions https://github.com/kentcdodds/dom-testing-library#custom-jest-matchers
+type DomTestingLibraryType = {
+  toBeInTheDOM(): void,
+  toHaveTextContent(content: string): void,
+  toHaveAttribute(name: string, expectedValue?: string): void
+};
+
 type JestExpectType = {
-  not: JestExpectType & EnzymeMatchersType,
+  not: JestExpectType & EnzymeMatchersType & DomTestingLibraryType,
   /**
    * If you have a mock function, you can use .lastCalledWith to test what
    * arguments it was last called with.
@@ -560,7 +572,7 @@ declare var xtest: typeof it;
 /** The expect function is used every time you want to test a value */
 declare var expect: {
   /** The object that you want to make assertions against */
-  (value: any): JestExpectType & JestPromiseType & EnzymeMatchersType,
+  (value: any): JestExpectType & JestPromiseType & EnzymeMatchersType & DomTestingLibraryType,
   /** Add additional Jasmine matchers to Jest's roster */
   extend(matchers: { [name: string]: JestMatcher }): void,
   /** Add a module that formats application-specific data structures. */

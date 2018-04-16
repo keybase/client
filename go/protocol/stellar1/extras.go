@@ -61,7 +61,7 @@ func (a AccountID) LossyAbbreviation() string {
 	if len(a) != 56 {
 		return "[invalid account id]"
 	}
-	return fmt.Sprintf("%v...%v", a[:2], a[len(a)-5:len(a)-1])
+	return fmt.Sprintf("%v...%v", a[:2], a[len(a)-4:len(a)])
 }
 
 func (s SecretKey) String() string {
