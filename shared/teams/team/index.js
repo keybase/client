@@ -1,16 +1,10 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
-import InviteDividerRow from './divider-row'
-import InviteEmptyRow from './empty-row'
-import InviteRow from './invite-row/container'
-import MemberRow from './member-row/container'
-import RequestRow from './request-row/container'
+import {renderItem as renderInvitesItem} from './invites-tab/helper'
+import {renderItem as renderMemeberItem} from './members-tab/helper'
+import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings/container'
-import SubteamAdd from './subteam-add/container'
-import SubteamIntro from './subteam-intro/container'
-import SubteamNone from './subteam-none'
-import SubteamSubteam from './subteam-subteam/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
 import {Box, List} from '../../common-adapters'
@@ -49,23 +43,17 @@ class Team extends React.Component<Props> {
         )
       }
       case 'member':
-        return <MemberRow teamname={this.props.teamname} username={row.username} key={row.username} />
-      case 'invite':
-        return <InviteRow teamname={this.props.teamname} id={row.id} key={row.id} />
-      case 'request':
-        return <RequestRow teamname={this.props.teamname} username={row.username} key={row.username} />
-      case 'divider':
-        return <InviteDividerRow key={row.label} label={row.label} />
-      case 'none':
-        return <InviteEmptyRow key="invite-empty" />
+        return renderMemeberItem(this.props.teamname, row)
+      case 'invites-invite':
+      case 'invites-request':
+      case 'invites-divider':
+      case 'invites-none':
+        return renderInvitesItem(this.props.teamname, row)
       case 'subteam-intro':
-        return <SubteamIntro key="subteam-intro" teamname={this.props.teamname} />
       case 'subteam-add':
-        return <SubteamAdd key="subteam-add" teamname={this.props.teamname} />
       case 'subteam-none':
-        return <SubteamNone key="subteam-none" />
       case 'subteam-subteam':
-        return <SubteamSubteam key={row.teamname} teamname={row.teamname} />
+        return renderSubteamsItem(this.props.teamname, row)
       case 'settings':
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
