@@ -2,7 +2,16 @@
 import * as React from 'react'
 import {compose, withStateHandlers, lifecycle} from '../../util/container'
 import DeleteChannel from './delete-channel'
-import {Avatar, Text, Box, Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
+import {
+  Avatar,
+  Text,
+  Box,
+  Button,
+  Input,
+  ProgressIndicator,
+  StandardScreen,
+  ButtonBar,
+} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 
 type Props = {
@@ -31,14 +40,20 @@ const EditChannelBare = (props: Props & TextState) => (
     <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
       {props.teamname}
     </Text>
-    <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
-      Edit #{props.channelName}
-    </Text>
+    {props.waitingForGetInfo ? (
+      <ProgressIndicator
+        style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny, width: 20}}
+      />
+    ) : (
+      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+        Edit #{props.channelName}
+      </Text>
+    )}
     <Box style={{position: 'relative'}}>
       <Input
         onChangeText={props.onChangeChannelName}
         hintText={'Channel name'}
-        editable={!props.deleteRenameDisabled}
+        editable={!props.waitingForGetInfo && !props.deleteRenameDisabled}
         value={props.newChannelName}
       />
 
@@ -59,6 +74,7 @@ const EditChannelBare = (props: Props & TextState) => (
 
       <Input
         onChangeText={props.onChangeTopic}
+        editable={!props.waitingForGetInfo}
         hintText={'Description or topic (optional)'}
         value={props.newTopic}
       />

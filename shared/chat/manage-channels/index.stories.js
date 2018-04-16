@@ -145,7 +145,7 @@ const load = () => {
         <EditChannel
           onBack={action('onBack')}
           teamname={'stripe.usa'}
-          channelName={'takeover'}
+          channelName={''}
           topic={''}
           onCancel={action('onCancel')}
           onSave={action('onSave')}
