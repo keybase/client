@@ -52,7 +52,7 @@ const EditChannelBare = (props: Props & TextState) => (
     <Box style={{position: 'relative'}}>
       <Input
         onChangeText={props.onChangeChannelName}
-        hintText={'Channel name'}
+        hintText={props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
         editable={!props.waitingForGetInfo && !props.deleteRenameDisabled}
         value={props.newChannelName}
       />
@@ -75,7 +75,9 @@ const EditChannelBare = (props: Props & TextState) => (
       <Input
         onChangeText={props.onChangeTopic}
         editable={!props.waitingForGetInfo}
-        hintText={'Description or topic (optional)'}
+        hintText={
+          props.waitingForGetInfo ? 'Loading channel description...' : 'Description or topic (optional)'
+        }
         value={props.newTopic}
       />
     </Box>
