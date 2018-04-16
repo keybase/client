@@ -18,7 +18,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../../util/container'
-import {throttle} from 'lodash-es'
+import {isEqual, throttle} from 'lodash-es'
 import {chatTab} from '../../../../constants/tabs'
 import mentionHoc from '../mention-handler-hoc'
 
@@ -35,12 +35,31 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
-  const quote = Constants.getQuotingOrdinal(state, conversationIDKey)
+  let quote = Constants.getQuotingOrdinal(state, conversationIDKey)
+  if (state.chat2.pendingSelected) {
+    quote = Constants.getQuotingOrdinal(state, 'pending')
+  }
   const quotingOrdinal = quote && quote.ordinal
   const sourceConversationIDKey = quote && quote.sourceConversationIDKey
-  const _quotingMessage = quotingOrdinal
+  let _quotingMessage = quotingOrdinal
     ? Constants.getMessageMap(state, sourceConversationIDKey).get(quotingOrdinal)
     : null
+
+  // Sanity check -- is this quoted-pending message for the right person?
+  if (
+    state.chat2.pendingSelected &&
+    _quotingMessage &&
+    !isEqual([_quotingMessage.author], state.chat2.pendingConversationUsers.toArray())
+  ) {
+    console.warn(
+      'Should never happen:',
+      state.chat2.pendingConversationUsers.toArray(),
+      'vs',
+      _quotingMessage.author
+    )
+    _quotingMessage = null
+  }
+
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
   return {

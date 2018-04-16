@@ -935,14 +935,18 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivately, state: Ty
     console.warn("didn't find convo")
   }
   return Saga.sequentially([
-    Saga.put(Chat2Gen.createMessageSetQuoting({
-      ordinal,
-      sourceConversationIDKey,
-      targetConversationIDKey: newConversationIDKey || 'pending',
-    })),
-    Saga.put(Chat2Gen.createStartConversation({
-      participants: [message.author],
-    }))
+    Saga.put(
+      Chat2Gen.createMessageSetQuoting({
+        ordinal,
+        sourceConversationIDKey,
+        targetConversationIDKey: newConversationIDKey || 'pending',
+      })
+    ),
+    Saga.put(
+      Chat2Gen.createStartConversation({
+        participants: [message.author],
+      })
+    ),
   ])
 }
 
