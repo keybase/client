@@ -169,6 +169,26 @@
           "name": "stellarID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "OutsideCurrencyCode",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "OutsideExchangeRate",
+      "fields": [
+        {
+          "type": "OutsideCurrencyCode",
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "rate"
+        }
+      ]
     }
   ],
   "messages": {},

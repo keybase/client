@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	"github.com/keybase/client/go/libkb"
@@ -304,8 +305,8 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 
 type tickerResult struct {
 	Status     libkb.AppStatus `json:"status"`
-	Price      float64         `json:"price"`
-	PriceInBTC float64         `json:"xlm_btc"`
+	Price      string          `json:"price"`
+	PriceInBTC string          `json:"xlm_btc"`
 	CachedAt   keybase1.Time   `json:"cached_at"`
 	URL        string          `json:"url"`
 	Currency   string          `json:"currency"`
@@ -316,11 +317,12 @@ func (b *tickerResult) GetAppStatus() *libkb.AppStatus {
 }
 
 type XLMExchangeRate struct {
-	Price    float64
-	Currency string
+	Currency   string
+	PriceFloat float64
+	PriceRat   big.Rat
 }
 
-func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (XLMExchangeRate, error) {
+func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (stellar1.OutsideExchangeRate, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/ticker",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -331,9 +333,12 @@ func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) 
 	}
 	var apiRes tickerResult
 	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
-		return XLMExchangeRate{}, err
+		return stellar1.OutsideExchangeRate{}, err
 	}
-	return XLMExchangeRate{Price: apiRes.Price, Currency: apiRes.Currency}, nil
+	return stellar1.OutsideExchangeRate{
+		Currency: stellar1.OutsideCurrencyCode(apiRes.Currency),
+		Rate:     apiRes.Price,
+	}, nil
 }
 
 type accountCurrencyResult struct {
