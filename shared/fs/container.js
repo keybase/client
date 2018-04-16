@@ -31,12 +31,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-  loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = stateProps => {
   const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
   const pathItems = itemNames.map(name => {
     return (
@@ -53,16 +48,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     items,
     progress: stateProps.progress,
     path: stateProps.path,
-
-    loadFolderList: dispatchProps.loadFolderList,
-    loadFavorites: dispatchProps.loadFavorites,
   }
 }
 
-const ConnectedFiles = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Files')
-)(Files)
+const ConnectedFiles = compose(connect(mapStateToProps, undefined, mergeProps), setDisplayName('Files'))(
+  Files
+)
 
 const FilesLoadingHoc = compose(
   connect(undefined, (dispatch: Dispatch) => ({
