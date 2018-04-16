@@ -916,6 +916,35 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const you = state.config.username
+  const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
+  }
+
+  // Do we already have a convo for this author?
+  const newConversationIDKey =
+    you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
+
+  return Saga.sequentially([
+    Saga.put(
+      Chat2Gen.createMessageSetQuoting({
+        ordinal,
+        sourceConversationIDKey,
+        targetConversationIDKey: newConversationIDKey || Constants.pendingConversationIDKey,
+      })
+    ),
+    Saga.put(
+      Chat2Gen.createStartConversation({
+        participants: [message.author],
+      })
+    ),
+  ])
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -1213,6 +1242,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // we handled participants or tlfs
   if (participants) {
     users = participants
+    conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
@@ -2089,6 +2119,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
 }
 
 export default chat2Saga
