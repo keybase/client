@@ -1,7 +1,6 @@
 // @flow
 import logger from '../../logger'
 import {isEqual, pickBy} from 'lodash-es'
-import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -17,13 +16,7 @@ import {
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
-import {
-  getChannelsWaitingKey,
-  getCanPerform,
-  getChannelInfoFromConvID,
-  getTeamConvIDs,
-  hasCanPerform,
-} from '../../constants/teams'
+import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
@@ -31,7 +24,7 @@ type ChannelMembershipState = {[channelname: string]: boolean}
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
   const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, getChannelsWaitingKey(teamname))
-  const convIDs = getTeamConvIDs(state, teamname)
+  const channelInfos = getTeamChannelInfos(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
   // We can get here without loading team operations
@@ -42,10 +35,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
   const canCreateChannels = yourOperations.createChannel
 
-  const channels = convIDs
-    .map(convID => {
-      const info: ?Types.ChannelInfo = getChannelInfoFromConvID(state, convID)
-
+  const channels = channelInfos
+    .map((info, convID) => {
       return info && info.channelname
         ? {
             description: info.description,
@@ -55,6 +46,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
           }
         : null
     })
+    .toSet()
     .toArray()
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))

@@ -186,6 +186,13 @@ const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<Chat
 const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
   !state.teams.chosenChannelsForTeam.has(teamname)
 
+const getTeamChannelInfos = (state: TypedState, teamname: Types.Teamname) => {
+  const channels = getTeamConvIDs(state, teamname)
+    .toMap()
+    .map(convID => getChannelInfoFromConvID(state, convID))
+  return channels
+}
+
 const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
@@ -375,6 +382,7 @@ export {
   hasCanPerform,
   getTeamMemberCount,
   userIsActiveInTeamHelper,
+  getTeamChannelInfos,
   getChannelInfoFromConvID,
   getChannelNameFromConvID,
   getTeamID,
