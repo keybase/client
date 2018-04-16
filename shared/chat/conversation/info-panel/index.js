@@ -364,7 +364,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             }
             dropdownStyle={retentionStyles.dropdownStyle}
             entityType={row.entityType}
-            showSaveState={true}
+            showSaveIndicator={true}
             teamname={row.teamname}
             type="auto"
           />

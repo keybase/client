@@ -31,7 +31,7 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): Sta
     roleType: info.type,
     username: info.username,
     you: state.config.username,
-    youCanManageMembers: Constants.getCanPerform(state, 'teamname').manageMembers,
+    youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
   }
 }
 

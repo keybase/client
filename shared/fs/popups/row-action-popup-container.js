@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             navigateAppend([
               {
                 props: {path, isShare: true},
-                selected: 'rowAction',
+                selected: 'pathItemAction',
               },
             ])
           ),
