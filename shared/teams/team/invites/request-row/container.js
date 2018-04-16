@@ -1,8 +1,6 @@
 // @flow
-import * as React from 'react'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {amIFollowing} from '../../../../constants/selectors'
 import {TeamRequestRow} from '.'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
@@ -13,15 +11,7 @@ type OwnProps = {
   teamname: string,
 }
 
-type StateProps = {
-  you: ?string,
-  following: boolean,
-}
-
-const mapStateToProps = (state: TypedState, {username}: OwnProps): StateProps => ({
-  following: amIFollowing(state, username),
-  you: state.config.username,
-})
+const mapStateToProps = (state: TypedState) => ({})
 
 type DispatchProps = {
   onOpenProfile: (u: string) => void,
@@ -31,7 +21,6 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  onOpenProfile: (username: string) => dispatch(createShowUserProfile({username})),
   _onAccept: (name: string, username: string) =>
     dispatch(
       navigateAppend([
@@ -46,15 +35,16 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   },
   _onIgnoreRequest: (teamname: string, username: string) =>
     dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
+  onOpenProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
     ...ownProps,
     ...dispatchProps,
     ...stateProps,
-    onChat: () => dispatchProps._onChat(ownProps.username),
     onAccept: () => dispatchProps._onAccept(ownProps.teamname, ownProps.username),
+    onChat: () => dispatchProps._onChat(ownProps.username),
     onIgnoreRequest: () => dispatchProps._onIgnoreRequest(ownProps.teamname, ownProps.username),
   }
 }
