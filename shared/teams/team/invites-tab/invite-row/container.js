@@ -6,6 +6,7 @@ import {connect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {
   id: string,
+  teamname: string,
 }
 
 const mapStateToProps = (state: TypedState, {teamname, id}: OwnProps) => {
@@ -15,11 +16,7 @@ const mapStateToProps = (state: TypedState, {teamname, id}: OwnProps) => {
   }
 }
 
-type DispatchProps = {
-  onCancelInvite: () => void,
-}
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onCancelInvite: ({email, teamname, username, inviteID}) => {
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, inviteID, teamname, username}))
   },
@@ -56,7 +53,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 
   return {
-    ...stateProps,
     label: user.email || user.username || user.name,
     onCancelInvite,
     role: user.role,

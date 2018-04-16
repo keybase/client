@@ -22,6 +22,7 @@ export type Props = {
   loading: boolean,
   selectedTab: string,
   resetUserCount: number,
+  rows: Array<*>,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,
   onShowMenu: any => void,

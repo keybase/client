@@ -13,14 +13,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: TypedState) => ({})
 
-type DispatchProps = {
-  onOpenProfile: (u: string) => void,
-  _onAccept: (string, string) => void,
-  _onChat: (string, ?string) => void,
-  _onIgnoreRequest: (name: string, username: string) => void,
-}
-
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onAccept: (name: string, username: string) =>
     dispatch(
       navigateAppend([
@@ -38,14 +31,14 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onOpenProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
-    ...ownProps,
-    ...dispatchProps,
-    ...stateProps,
     onAccept: () => dispatchProps._onAccept(ownProps.teamname, ownProps.username),
     onChat: () => dispatchProps._onChat(ownProps.username),
     onIgnoreRequest: () => dispatchProps._onIgnoreRequest(ownProps.teamname, ownProps.username),
+    onOpenProfile: dispatchProps.onOpenProfile,
+    teamname: ownProps.teamname,
+    username: ownProps.username,
   }
 }
 

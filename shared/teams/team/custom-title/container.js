@@ -32,14 +32,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps): Props => {
-  return {
-    canChat: !stateProps._yourOperations.joinTeam,
-    canViewFolder: !stateProps._yourOperations.joinTeam,
-    onChat: dispatchProps.onChat,
-    onOpenFolder: dispatchProps.onOpenFolder,
-    onShowMenu: dispatchProps.onShowMenu,
-  }
-}
+const mergeProps = (stateProps, dispatchProps) => ({
+  canChat: !stateProps._yourOperations.joinTeam,
+  canViewFolder: !stateProps._yourOperations.joinTeam,
+  onChat: dispatchProps.onChat,
+  onOpenFolder: dispatchProps.onOpenFolder,
+  onShowMenu: dispatchProps.onShowMenu,
+})
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Title)

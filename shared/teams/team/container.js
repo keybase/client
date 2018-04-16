@@ -36,7 +36,7 @@ const mapDispatchToProps = (
   }
 }
 
-const mergeProps = (stateProps, dispatchProps): Props => {
+const mergeProps = (stateProps, dispatchProps) => {
   let tabSpecificRows = []
   switch (stateProps.selectedTab) {
     case 'members':

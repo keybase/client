@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, {teamname, selectedTab, setSelectedT
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-const mergeProps = (stateProps, dispatchProps): Props => {
+const mergeProps = (stateProps, dispatchProps) => {
   return {
     admin: stateProps.admin,
     loading: stateProps.loading,

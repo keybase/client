@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
 
-const Add = ({onCreateSubteam}) => (
+const Add = ({onCreateSubteam}: {onCreateSubteam: () => void}) => (
   <Box style={addSubteamStyle}>
     <ClickableBox
       onClick={onCreateSubteam}

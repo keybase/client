@@ -1,6 +1,9 @@
 // @flow
 import * as React from 'react'
+import * as I from 'immutable'
 import * as Constants from '../../../constants/teams'
+import * as Types from '../../../constants/types/teams'
+import {type TypedState} from '../../../util/container'
 import Add from './add-row/container'
 import Intro from './intro-row/container'
 import None from './none-row'
@@ -10,13 +13,19 @@ export type OwnProps = {
   teamname: string,
 }
 
-export const mapStateHelper = (state: TypedState, {teamname}) => ({
+type StateProps = {
+  _sawSubteamsBanner: boolean,
+  _subteams: I.Set<Types.Teamname>,
+  _yourOperations: Types.TeamOperations,
+}
+
+export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StateProps => ({
   _sawSubteamsBanner: state.teams.getIn(['sawSubteamsBanner'], false),
   _subteams: Constants.getTeamSubteams(state, teamname),
   _yourOperations: Constants.getCanPerform(state, teamname),
 })
 
-export const getRows = ({_subteams, _sawSubteamsBanner, _yourOperations}) => {
+export const getRows = ({_subteams, _sawSubteamsBanner, _yourOperations}: StateProps) => {
   const subteams = _subteams.sort()
   const noSubteams = subteams.isEmpty()
   return [
@@ -27,7 +36,7 @@ export const getRows = ({_subteams, _sawSubteamsBanner, _yourOperations}) => {
   ]
 }
 
-export const renderItem = (teamname, row) => {
+export const renderItem = (teamname: string, row: {teamname: string, type: string}) => {
   switch (row.type) {
     case 'subteam-intro':
       return <Intro key="subteam-intro" teamname={teamname} />

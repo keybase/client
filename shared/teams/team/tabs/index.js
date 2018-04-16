@@ -14,7 +14,7 @@ type TeamTabsProps = {
   numRequests: number,
   numSubteams: number,
   resetUserCount: number,
-  loading?: boolean,
+  loading: boolean,
   selectedTab?: string,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: RPCTypes.TeamOperation,

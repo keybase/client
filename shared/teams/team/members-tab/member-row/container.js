@@ -9,18 +9,14 @@ import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 
-import type {MemberRow as OwnProps} from '../../../row-types'
-
-type StateProps = {
-  following: boolean,
-  active: boolean,
-  you: ?string,
-  youCanManageMembers: boolean,
+type OwnProps = {
+  teamname: string,
+  username: string,
 }
 
 const blankInfo = Constants.makeMemberInfo()
 
-const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => {
+const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
   const map = Constants.getTeamMembers(state, teamname)
   const info = map.get(username, blankInfo)
 
@@ -82,7 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
   },
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
     active: stateProps.active,
     youCanManageMembers: stateProps.youCanManageMembers,
@@ -94,7 +90,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     onChat: () => dispatchProps._onChat(),
     onClick: dispatchProps.onClick,
     onReAddToTeam: () =>
-      dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, ownProps.roleType),
+      dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, stateProps.roleType),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
   }

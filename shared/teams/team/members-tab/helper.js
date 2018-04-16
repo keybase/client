@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
+import {type TypedState} from '../../../util/container'
 import * as I from 'immutable'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import MemberRow from './member-row/container'
@@ -63,18 +64,24 @@ const getOrderedMemberArray = (
   return returnArray
 }
 
-export const mapStateHelper = (state: TypedState, {teamname}) => ({
-  _memberInfo: Constants.getTeamMembers(state, teamname),
+type StateProps = {
+  _memberInfo: I.Map<string, Types.MemberInfo>,
+  _you: ?string,
+  _yourOperations: RPCTypes.TeamOperation,
+}
+
+export const mapStateHelper = (state: TypedState, ownProps: {teamname: string}): StateProps => ({
+  _memberInfo: Constants.getTeamMembers(state, ownProps.teamname),
   _you: state.config.username || '',
-  _yourOperations: Constants.getCanPerform(state, teamname),
+  _yourOperations: Constants.getCanPerform(state, ownProps.teamname),
 })
 
-export const getRows = ({_memberInfo, _you, _yourOperations}) =>
+export const getRows = ({_memberInfo, _you, _yourOperations}: StateProps) =>
   getOrderedMemberArray(_memberInfo, _you, _yourOperations).map(i => ({
     type: 'member',
     username: i.username,
   }))
 
-export const renderItem = (teamname, row) => (
+export const renderItem = (teamname: string, row: {username: string}) => (
   <MemberRow teamname={teamname} username={row.username} key={row.username} />
 )

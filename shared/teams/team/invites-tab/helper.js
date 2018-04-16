@@ -1,5 +1,8 @@
 // @flow
 import * as React from 'react'
+import {type TypedState} from '../../../util/container'
+import * as Types from '../../../constants/types/teams'
+import * as I from 'immutable'
 import * as Constants from '../../../constants/teams'
 import InviteDividerRow from './divider-row'
 import InviteEmptyRow from './empty-row'
@@ -10,12 +13,17 @@ export type OwnProps = {
   teamname: string,
 }
 
-export const mapStateHelper = (state: TypedState, {teamname}) => ({
+type StateProps = {
+  _invites: I.Set<Types.InviteInfo>,
+  _requests: I.Set<Types.RequestInfo>,
+}
+
+export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StateProps => ({
   _invites: Constants.getTeamInvites(state, teamname),
   _requests: Constants.getTeamRequests(state, teamname),
 })
 
-export const getRows = ({_requests, _invites}) => {
+export const getRows = ({_requests, _invites}: StateProps) => {
   const requests = _requests.map(r => ({
     type: 'invites-request',
     username: r.username,
@@ -30,7 +38,10 @@ export const getRows = ({_requests, _invites}) => {
   ]
 }
 
-export const renderItem = (teamname, row) => {
+export const renderItem = (
+  teamname: string,
+  row: {id: string, username: string, label: string, type: string}
+) => {
   switch (row.type) {
     case 'invites-invite':
       return <InviteRow teamname={teamname} id={row.id} key={row.id} />
