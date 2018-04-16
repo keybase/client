@@ -20,8 +20,8 @@ import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
-import RetentionDropdown from '../teams/team/settings/retention/dropdown'
-import RetentionWarning from '../teams/team/settings/retention/warning/container'
+import RetentionDropdown from '../teams/team/settings-tab/retention/dropdown'
+import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 
 const editChannel = {
   component: MaybePopupHoc(isMobile)(EditChannel),
