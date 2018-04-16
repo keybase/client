@@ -318,6 +318,7 @@ func (s *Storage) Expunge(ctx context.Context,
 // expunge is optional
 func (s *Storage) MergeHelper(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "MergeHelper")()
 
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
@@ -358,8 +359,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 	res.Expunged = expunged
 
-	err = s.ephemeralPurgeHelper(ctx, convID, uid, msgs)
-	if err != nil {
+	if err = s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
 		return res, s.MaybeNuke(false, err, convID, uid)
 	}
 
@@ -714,7 +714,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 	// Clear out any ephemeral messages that have exploded before we hand these
 	// messages out.
-	if err := s.ephemeralPurgeHelper(ctx, convID, uid, msgs); err != nil {
+	if err := s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
 		return chat1.ThreadView{}, err
 	}
 

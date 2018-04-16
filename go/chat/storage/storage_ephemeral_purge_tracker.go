@@ -46,21 +46,20 @@ func (t *ephemeralTracker) makeDbKey(uid gregor1.UID) libkb.DbKey {
 	}
 }
 
-func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (allPurgeInfo, Error) {
-	t.Debug(ctx, "dbGet")
+func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (info allPurgeInfo, err Error) {
+	defer t.Trace(ctx, func() error { return err }, "dbGet")()
 
 	dbKey := t.makeDbKey(uid)
-	raw, found, err := t.G().LocalChatDb.GetRaw(dbKey)
+	raw, found, lerr := t.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
-		return nil, NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return nil, NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", lerr.Error())
 	}
 	if !found {
 		return make(allPurgeInfo), nil
 	}
 
 	var dbRes ephemeralTrackerEntry
-	err = decode(raw, &dbRes)
-	if err != nil {
+	if err := decode(raw, &dbRes); err != nil {
 		return nil, NewInternalError(ctx, t.DebugLabeler, "decode error: %s", err.Error())
 	}
 	switch dbRes.StorageVersion {
@@ -72,28 +71,27 @@ func (t *ephemeralTracker) dbGet(ctx context.Context, uid gregor1.UID) (allPurge
 	}
 }
 
-func (t *ephemeralTracker) dbSet(ctx context.Context, uid gregor1.UID, newInfo allPurgeInfo) Error {
-	t.Debug(ctx, "dbSet")
+func (t *ephemeralTracker) dbSet(ctx context.Context, uid gregor1.UID, newInfo allPurgeInfo) (err Error) {
+	defer t.Trace(ctx, func() error { return err }, "dbSet")()
 
 	var entry ephemeralTrackerEntry
 	entry.StorageVersion = ephemeralTrackerDiskVersion
 	entry.AllPurgeInfo = newInfo
-	data, err := encode(entry)
-	if err != nil {
-		return NewInternalError(ctx, t.DebugLabeler, "encode error: %s", err.Error())
+	data, lerr := encode(entry)
+	if lerr != nil {
+		return NewInternalError(ctx, t.DebugLabeler, "encode error: %s", lerr.Error())
 	}
 
 	dbKey := t.makeDbKey(uid)
-	err = t.G().LocalChatDb.PutRaw(dbKey, data)
-	if err != nil {
+	if err := t.G().LocalChatDb.PutRaw(dbKey, data); err != nil {
 		return NewInternalError(ctx, t.DebugLabeler, "PutRaw error: %s", err.Error())
 	}
 	return nil
 }
 
 func (t *ephemeralTracker) getPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) (*EphemeralPurgeInfo, Error) {
-	t.Debug(ctx, "getPurgeInfo")
+	convID chat1.ConversationID, uid gregor1.UID) (purgeInfo *EphemeralPurgeInfo, err Error) {
+	defer t.Trace(ctx, func() error { return err }, "getPurgeInfo")()
 
 	t.Lock()
 	defer t.Unlock()
@@ -102,15 +100,15 @@ func (t *ephemeralTracker) getPurgeInfo(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	purgeInfo, ok := allPurgeInfo[convID.String()]
+	info, ok := allPurgeInfo[convID.String()]
 	if !ok {
 		return nil, MissError{}
 	}
-	return &purgeInfo, nil
+	return &info, nil
 }
 
-func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurgeInfo, Error) {
-	t.Debug(ctx, "getAllPurgeInfo")
+func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID) (info allPurgeInfo, err Error) {
+	defer t.Trace(ctx, func() error { return err }, "getAllPurgeInfo")()
 
 	t.Lock()
 	defer t.Unlock()
@@ -119,8 +117,8 @@ func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 }
 
 func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) Error {
-	t.Debug(ctx, "setPurgeInfo %v", purgeInfo)
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) (err Error) {
+	defer t.Trace(ctx, func() error { return err }, "setPurgeInfo")()
 
 	t.Lock()
 	defer t.Unlock()
@@ -136,8 +134,8 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 // When we are filtering new messages coming in/out of storage, we maybe update
 // if they tell us about something older we should be purging.
 func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) Error {
-	t.Debug(ctx, "maybeUpdatePurgeInfo")
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) (err Error) {
+	defer t.Trace(ctx, func() error { return err }, "maybeUpdatePurgeInfo")()
 
 	t.Lock()
 	defer t.Unlock()
@@ -168,8 +166,8 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 // If we run an EphemeralPurge and have nothing in our cache, we remove the
 // tracker.
 func (t *ephemeralTracker) deletePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) Error {
-	t.Debug(ctx, "deletePurgeInfo")
+	convID chat1.ConversationID, uid gregor1.UID) (err Error) {
+	defer t.Trace(ctx, func() error { return err }, "deletePurgeInfo")()
 
 	t.Lock()
 	defer t.Unlock()

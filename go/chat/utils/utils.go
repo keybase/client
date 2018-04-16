@@ -465,12 +465,11 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 // (as ash lines)
 func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	for _, msg := range msgs {
-		if !msg.IsValid() {
-			continue
-		}
-		mvalid := msg.Valid()
-		if mvalid.IsExploding() && mvalid.HideExplosion() {
-			continue
+		if msg.IsValid() {
+			mvalid := msg.Valid()
+			if mvalid.IsExploding() && mvalid.HideExplosion() {
+				continue
+			}
 		}
 		res = append(res, msg)
 	}
