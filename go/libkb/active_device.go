@@ -3,18 +3,19 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 	"strings"
 	"sync"
-
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ActiveDevice struct {
 	uid           keybase1.UID
 	deviceID      keybase1.DeviceID
 	deviceName    string
-	signingKey    GenericKey // cached secret signing key
-	encryptionKey GenericKey // cached secret encryption key
+	signingKey    GenericKey   // cached secret signing key
+	encryptionKey GenericKey   // cached secret encryption key
+	nistFactory   *NISTFactory // Non-Interactive Session Token
 	sync.RWMutex
 }
 
@@ -39,7 +40,7 @@ func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.De
 // setSigningKey acquires the write lock and sets the signing key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setSigningKey(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
+func (a *ActiveDevice) setSigningKey(g *GlobalContext, acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -48,6 +49,7 @@ func (a *ActiveDevice) setSigningKey(acct *Account, uid keybase1.UID, deviceID k
 	}
 
 	a.signingKey = sigKey
+	a.nistFactory = NewNISTFactory(g, uid, deviceID, sigKey)
 	return nil
 }
 
@@ -124,6 +126,7 @@ func (a *ActiveDevice) clear(acct *Account) error {
 	a.deviceID = ""
 	a.signingKey = nil
 	a.encryptionKey = nil
+	a.nistFactory = nil
 
 	return nil
 }
@@ -211,4 +214,10 @@ func (a *ActiveDevice) Valid() bool {
 	defer a.RUnlock()
 
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
+}
+
+func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
+	a.RLock()
+	defer a.RUnlock()
+	return a.nistFactory.NIST(ctx)
 }
