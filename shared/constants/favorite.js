@@ -31,9 +31,6 @@ const initialState: Types.State = {
   fuseStatusLoading: false,
   kbfsInstalling: false,
   kbfsOpening: false,
-  kbfsStatus: {
-    isAsyncWriteHappening: false,
-  },
   kextPermissionError: false,
   viewState: {
     privateIgnoredOpen: false,

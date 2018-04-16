@@ -39,6 +39,7 @@ class Conversation extends React.PureComponent<Props> {
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
+          onToggleInfoPanel={this.props.onOpenInfoPanelMobile}
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}

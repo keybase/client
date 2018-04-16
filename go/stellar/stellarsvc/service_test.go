@@ -108,7 +108,7 @@ func TestImport(t *testing.T) {
 	_, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	srv := newTestServer(tcs[0].G)
+	srv, _ := newTestServer(tcs[0].G)
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
@@ -159,6 +159,111 @@ func TestImport(t *testing.T) {
 	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Len(t, bundle.Accounts, 3)
+}
+
+func TestBalances(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	srv, rm := newTestServer(tcs[0].G)
+	accountID := rm.AddAccount(t)
+
+	balances, err := srv.BalancesLocal(context.Background(), accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	require.Len(t, balances, 1)
+	require.Equal(t, balances[0].Asset.Type, "native")
+	require.Equal(t, balances[0].Amount, "10000")
+}
+
+func TestSendLocalStellarAddress(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	srv, rm := newTestServer(tcs[0].G)
+	accountIDSender := rm.AddAccount(t)
+	accountIDRecip := rm.AddAccount(t)
+
+	argImport := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(t, accountIDSender),
+		MakePrimary: true,
+	}
+	err = srv.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	arg := stellar1.SendLocalArg{
+		Recipient: accountIDRecip.String(),
+		Amount:    "100",
+		Asset:     stellar1.Asset{Type: "native"},
+	}
+	res, err := srv.SendLocal(context.Background(), arg)
+	require.NoError(t, err)
+	_ = res
+
+	balances, err := srv.BalancesLocal(context.Background(), accountIDSender)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, balances[0].Amount, "9899.9999900")
+
+	balances, err = srv.BalancesLocal(context.Background(), accountIDRecip)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, balances[0].Amount, "10100.0000000")
+}
+
+func TestSendLocalKeybase(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
+	require.NoError(t, err)
+
+	srvSender, rm := newTestServer(tcs[0].G)
+	accountIDSender := rm.AddAccount(t)
+	accountIDRecip := rm.AddAccount(t)
+
+	srvRecip, _ := newTestServer(tcs[1].G)
+
+	argImport := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(t, accountIDSender),
+		MakePrimary: true,
+	}
+	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	argImport.SecretKey = rm.SecretKey(t, accountIDRecip)
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	arg := stellar1.SendLocalArg{
+		Recipient: fus[1].Username,
+		Amount:    "100",
+		Asset:     stellar1.Asset{Type: "native"},
+	}
+	res, err := srvSender.SendLocal(context.Background(), arg)
+	require.NoError(t, err)
+	_ = res
+
+	balances, err := srvSender.BalancesLocal(context.Background(), accountIDSender)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, balances[0].Amount, "9899.9999900")
+
+	balances, err = srvSender.BalancesLocal(context.Background(), accountIDRecip)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, balances[0].Amount, "10100.0000000")
 }
 
 // Create n TestContexts with logged in users
@@ -213,6 +318,7 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 	return nullSecretUI{}
 }
 
-func newTestServer(g *libkb.GlobalContext) *Server {
-	return New(g, &testUISource{})
+func newTestServer(g *libkb.GlobalContext) (*Server, *RemoteMock) {
+	m := NewRemoteMock(g)
+	return New(g, &testUISource{}, m), m
 }

@@ -90,7 +90,7 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
 }
 
 // TODO don't use this anymore
-// TODO fix this so its not broken
+// TODO fix this so it's not broken
 class PopupMenu extends Component<Props> {
   render() {
     return (
@@ -109,7 +109,7 @@ class PopupMenu extends Component<Props> {
   }
 }
 
-// TEMP to just get the desktop release working. the previous change totally broke this in devices / git / etc
+// TEMP to just get the desktop release working. The previous change totally broke this in devices / git / etc
 class OLDPopupMenu extends Component<Props> {
   render() {
     const realCSS = `

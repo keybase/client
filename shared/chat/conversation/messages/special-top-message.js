@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import CreateTeamNotice from './system-create-team-notice/container'
 import ProfileResetNotice from './system-profile-reset-notice/container'
+import RetentionNotice from './retention-notice/container'
 import {Text, Box, Icon} from '../../../common-adapters'
 import {connect, type TypedState} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
@@ -11,8 +12,11 @@ import {globalStyles, globalMargins, isMobile} from '../../../styles'
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
   hasOlderResetConversation: boolean,
+  showRetentionNotice: boolean,
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
+  onToggleInfoPanel: () => void,
   showTeamOffer: boolean,
+  // $FlowIssue "null or undefined is incompatible with null or undefined"
   measure: ?() => void,
 }
 
@@ -30,31 +34,43 @@ class TopMessage extends React.PureComponent<Props> {
 
   render() {
     return (
-      <Box style={containerStyle}>
+      <Box>
+        {this.props.loadMoreType === 'noMoreToLoad' &&
+          this.props.showRetentionNotice && (
+            <RetentionNotice
+              onToggleInfoPanel={this.props.onToggleInfoPanel}
+              conversationIDKey={this.props.conversationIDKey}
+              measure={this.props.measure}
+            />
+          )}
+        <Box style={spacerStyle} />
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
-        {this.props.loadMoreType === 'noMoreToLoad' && (
-          <Box style={secureStyle}>
-            <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-          </Box>
-        )}
+        {this.props.loadMoreType === 'noMoreToLoad' &&
+          !this.props.showRetentionNotice && (
+            <Box style={secureStyle}>
+              <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
+            </Box>
+          )}
         {this.props.showTeamOffer && (
           <Box style={moreStyle}>
             <CreateTeamNotice />
           </Box>
         )}
-        <Box style={this.props.loadMoreType === 'moreToLoad' ? moreStyle : noneStyle}>
-          <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
-          <Text type="BodySmallSemibold">Digging ancient messages...</Text>
-        </Box>
+        {this.props.loadMoreType === 'moreToLoad' && (
+          <Box style={moreStyle}>
+            <Text type="BodySmallSemibold">ヽ(ಠ益ಠ)ノ</Text>
+            <Text type="BodySmallSemibold">Digging ancient messages...</Text>
+          </Box>
+        )}
       </Box>
     )
   }
 }
 
-const containerStyle = {
-  paddingTop: globalMargins.small,
+const spacerStyle = {
+  height: globalMargins.small,
 }
 
 const secureStyle = {
@@ -67,13 +83,11 @@ const moreStyle = {
   alignItems: 'center',
 }
 
-const noneStyle = {
-  ...moreStyle,
-  opacity: 0,
-}
-
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  // TODO DESKTOP-6256 get rid of this
+  onToggleInfoPanel: () => void,
+  measure: ?() => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -81,14 +95,24 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const loadMoreType = meta.paginationKey ? 'moreToLoad' : 'noMoreToLoad'
   const showTeamOffer = meta.teamType === 'adhoc' && meta.participants.size > 2
   const hasOlderResetConversation = !!meta.supersedes
+  // don't show default header in the case of the retention notice being visible
+  const showRetentionNotice =
+    meta.retentionPolicy.type !== 'retain' &&
+    !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
   return {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
+    onToggleInfoPanel: ownProps.onToggleInfoPanel,
+    showRetentionNotice,
     loadMoreType,
     showTeamOffer,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
-const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  measure: ownProps.measure,
+})
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TopMessage)

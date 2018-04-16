@@ -1,15 +1,15 @@
 // @flow
 import * as TeamsGen from '../actions/teams-gen'
 import NewTeamDialog from '../teams/new-team'
-import upperFirst from 'lodash/upperFirst'
+import {upperFirst} from 'lodash-es'
 import {connect, lifecycle, type TypedState, compose, withStateHandlers} from '../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   baseTeam: '',
-  errorText: upperFirst(state.entities.teams.teamCreationError),
+  errorText: upperFirst(state.teams.teamCreationError),
   isSubteam: false,
   joinSubteam: false,
-  pending: state.entities.teams.teamCreationPending,
+  pending: state.teams.teamCreationPending,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({

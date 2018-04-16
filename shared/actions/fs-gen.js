@@ -14,10 +14,13 @@ export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const favoritesLoad = 'fs:favoritesLoad'
+export const favoritesLoaded = 'fs:favoritesLoaded'
 export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
+export const fsActivity = 'fs:fsActivity'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
@@ -25,6 +28,7 @@ export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const openInFileUI = 'fs:openInFileUI'
 export const setFlags = 'fs:setFlags'
+export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
@@ -55,6 +59,8 @@ export const createDownloadStarted = (
     opID: RPCTypes.OpID,
   |}>
 ) => ({error: false, payload, type: downloadStarted})
+export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
+export const createFavoritesLoaded = (payload: $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>) => ({error: false, payload, type: favoritesLoaded})
 export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
 export const createFilePreviewLoaded = (
   payload: $ReadOnly<{|
@@ -69,6 +75,7 @@ export const createFolderListLoaded = (
     pathItems: I.Map<Types.Path, Types.PathItem>,
   |}>
 ) => ({error: false, payload, type: folderListLoaded})
+export const createFsActivity = () => ({error: false, payload: undefined, type: fsActivity})
 export const createFuseStatus = () => ({error: false, payload: undefined, type: fuseStatus})
 export const createFuseStatusResult = (
   payload: $ReadOnly<{|
@@ -87,8 +94,10 @@ export const createSetFlags = (
     fuseInstalling?: boolean,
     kextPermissionError?: boolean,
     showBanner?: boolean,
+    syncing?: boolean,
   |}>
 ) => ({error: false, payload, type: setFlags})
+export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
 export const createSortSetting = (
   payload: $ReadOnly<{|
     path: Types.Path,
@@ -111,10 +120,13 @@ export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfe
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
+export type FavoritesLoadPayload = More.ReturnType<typeof createFavoritesLoad>
+export type FavoritesLoadedPayload = More.ReturnType<typeof createFavoritesLoaded>
 export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
 export type FilePreviewLoadedPayload = More.ReturnType<typeof createFilePreviewLoaded>
 export type FolderListLoadPayload = More.ReturnType<typeof createFolderListLoad>
 export type FolderListLoadedPayload = More.ReturnType<typeof createFolderListLoaded>
+export type FsActivityPayload = More.ReturnType<typeof createFsActivity>
 export type FuseStatusPayload = More.ReturnType<typeof createFuseStatus>
 export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusResult>
 export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
@@ -122,6 +134,7 @@ export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseR
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
+export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
 export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
@@ -135,10 +148,13 @@ export type Actions =
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>
   | More.ReturnType<typeof createDownloadStarted>
+  | More.ReturnType<typeof createFavoritesLoad>
+  | More.ReturnType<typeof createFavoritesLoaded>
   | More.ReturnType<typeof createFilePreviewLoad>
   | More.ReturnType<typeof createFilePreviewLoaded>
   | More.ReturnType<typeof createFolderListLoad>
   | More.ReturnType<typeof createFolderListLoaded>
+  | More.ReturnType<typeof createFsActivity>
   | More.ReturnType<typeof createFuseStatus>
   | More.ReturnType<typeof createFuseStatusResult>
   | More.ReturnType<typeof createInstallFuse>
@@ -146,6 +162,7 @@ export type Actions =
   | More.ReturnType<typeof createInstallKBFS>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createSetFlags>
+  | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>
   | More.ReturnType<typeof createTransferProgress>
   | More.ReturnType<typeof createUninstallKBFS>

@@ -1,7 +1,7 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import NewTeamDialog from './'
-import upperFirst from 'lodash/upperFirst'
+import {upperFirst} from 'lodash-es'
 import {
   connect,
   compose,
@@ -13,8 +13,8 @@ import {
 import {baseTeamname} from '../../constants/teamname'
 
 const mapStateToProps = (state: TypedState) => ({
-  errorText: upperFirst(state.entities.teams.teamCreationError),
-  pending: state.entities.teams.teamCreationPending,
+  errorText: upperFirst(state.teams.teamCreationError),
+  pending: state.teams.teamCreationPending,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
@@ -54,7 +54,7 @@ export default compose(
     onSubmit: ({joinSubteam, name, _onCreateNewTeam}) => () => _onCreateNewTeam(joinSubteam, name),
   }),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._onSetTeamCreationError('')
     },
   })

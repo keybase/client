@@ -492,6 +492,18 @@
     },
     {
       "type": "record",
+      "name": "ConvEphemeralMetadata",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "lastKtime"
+        }
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
+    },
+    {
+      "type": "record",
       "name": "ConversationMetadata",
       "fields": [
         {
@@ -702,6 +714,15 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "ConvEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
@@ -746,6 +767,13 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "explodedByUID"
         }
       ]
     },
@@ -776,6 +804,26 @@
           "name": "composeTime"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MsgEphemeralMetadata",
+      "fields": [
+        {
+          "type": "gregor1.DurationSec",
+          "name": "lifetime",
+          "mpackkey": "life",
+          "jsonkey": "life"
+        },
+        {
+          "type": "keybase1.EkGeneration",
+          "name": "generation",
+          "mpackkey": "gen",
+          "jsonkey": "gen"
+        }
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
     },
     {
       "type": "record",
@@ -857,6 +905,15 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": [
+            null,
+            "MsgEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
@@ -922,6 +979,15 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": [
+            null,
+            "MsgEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },

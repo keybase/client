@@ -292,7 +292,7 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 			return output, err
 		}
 	} else {
-		e.G().Log.CWarningf(e.ctx.NetContext, "Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
+		e.G().Log.CDebugf(e.ctx.NetContext, "Skipping userEKBox generation empty KID or storage. KID: %v, storage: %v", input.DeviceEkKID, userEKBoxStorage)
 	}
 
 	return output, nil

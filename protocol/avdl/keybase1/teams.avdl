@@ -100,11 +100,6 @@ protocol teams {
     TeamShowcase showcase;
   }
 
-  record UserVersion {
-    UID uid;
-    Seqno eldestSeqno;
-  }
-
   @typedef("string")
   record UserVersionPercentForm {}
 
@@ -312,7 +307,7 @@ protocol teams {
   record UserLogPoint {
     // The new role. Including NONE if the user left the team.
     TeamRole role;
-    // The seqno at which the user became this role, and other imporant
+    // The seqno at which the user became this role, and other important
     // details, like the last known MerkleRoot at that time.
     SignatureMetadata sigMeta;
   }
@@ -528,9 +523,10 @@ protocol teams {
 
     TeamRefreshers refreshers;
 
-    boolean forceFullReload;      // Ignore local data and fetch from the server.
-    boolean forceRepoll;          // Force a sync with merkle.
-    boolean staleOK;              // If a very stale cache hit is OK.
+    boolean forceFullReload;           // Ignore local data and fetch from the server.
+    boolean forceRepoll;               // Force a sync with merkle.
+    boolean staleOK;                   // If a very stale cache hit is OK.
+    boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
   }
 
   record ImplicitRole {

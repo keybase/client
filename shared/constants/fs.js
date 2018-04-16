@@ -2,10 +2,13 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import uuidv1 from 'uuid/v1'
+import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import {type IconType} from '../common-adapters/icon'
-import memoize from 'lodash/memoize'
+import {FolderTypeToString} from '../constants/rpc'
+import {tlfToPreferredOrder} from '../util/kbfs'
+import {memoize, findKey} from 'lodash-es'
 
 export const defaultPath = '/keybase'
 
@@ -17,16 +20,20 @@ export const ExitCodeFuseKextPermissionError = 5
 export const ExitCodeAuthCanceledError = 6
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
+  badgeCount: 0,
   name: 'unknown',
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
-  children: I.List(),
+  children: I.Set(),
+  favoriteChildren: I.Set(),
+  tlfMeta: undefined,
   type: 'folder',
 })
 
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
+  badgeCount: 0,
   name: 'unknown',
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
@@ -36,12 +43,20 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
+  badgeCount: 0,
   name: 'unknown',
   lastModifiedTimestamp: 0,
   lastWriter: {uid: '', username: ''},
   size: 0,
   progress: 'pending',
   type: 'unknown',
+})
+
+export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
+  name: 'unknown',
+  badgeCount: 0,
+  favoriteChildren: I.Set(),
+  tlfMeta: undefined,
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
@@ -81,6 +96,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   fuseInstalling: false,
   kextPermissionError: false,
   showBanner: false,
+  syncing: false,
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -121,7 +137,9 @@ export const sortPathItems = (
   items: I.List<Types.PathItem>,
   sortSetting: Types.SortSetting,
   username?: string
-): I.List<Types.PathItem> => items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
+): I.List<Types.PathItem> => {
+  return items.sort(Types.sortSettingToCompareFunction(sortSetting, username))
+}
 
 const privateIconColor = globalColors.darkBlue2
 const privateTextColor = globalColors.darkBlue
@@ -167,6 +185,11 @@ const itemStylesPrivateUnknown = {
   textColor: privateTextColor,
   textType: fileTextType,
 }
+const itemStylesKeybase = {
+  iconSpec: makeBasicPathItemIconSpec('iconfont-folder-private', unknownTextColor),
+  textColor: unknownTextColor,
+  textType: folderTextType,
+}
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: string) => {
   if (usernames.length === 1) {
@@ -198,14 +221,13 @@ const itemStylesTeamTlf = memoize((teamName: string) => ({
   textType: folderTextType,
 }))
 
-export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
+export const humanReadableFileSize = (size: number) => {
   const kib = 1024
   const mib = kib * kib
   const gib = mib * kib
   const tib = gib * kib
 
-  if (!meta) return ''
-  const size = meta.size
+  if (!size) return ''
   if (size >= tib) return `${Math.round(size / tib)} TB`
   if (size >= gib) return `${Math.round(size / gib)} GB`
   if (size >= mib) return `${Math.round(size / mib)} MB`
@@ -218,6 +240,9 @@ export const getItemStyles = (
   type: Types.PathType,
   username?: string
 ): Types.ItemStyles => {
+  if (pathElems.length === 1 && pathElems[0] === 'keybase') {
+    return itemStylesKeybase
+  }
   // For /keybase/team, the icon is different from directories inside a TLF.
   if (pathElems.length === 2 && pathElems[1] === 'team') {
     return itemStylesTeamList
@@ -263,4 +288,145 @@ export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
 export const isImage = (name: string): boolean => {
   const lower = name.toLowerCase()
   return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
+}
+
+export type FavoritesListResult = {
+  users: {[string]: string},
+  devices: {[string]: Types.Device},
+  favorites: Array<Types.FavoriteFolder>,
+  new: Array<Types.FavoriteFolder>,
+  ignored: Array<Types.FavoriteFolder>,
+}
+
+// Take the parsed JSON from kbfs/favorite/list, and populate an array of
+// Types.FolderRPCWithMeta with the appropriate metadata:
+//
+// 1) Is this favorite ignored or new?
+// 2) Does it need a rekey?
+//
+const _fillMetadataInFavoritesResult = (
+  favoritesResult: FavoritesListResult,
+  myKID: any
+): Array<Types.FolderRPCWithMeta> => {
+  const mapFolderWithMeta = ({isIgnored, isNew}) => (
+    folder: Types.FavoriteFolder
+  ): Types.FolderRPCWithMeta => {
+    if (!folder.problem_set) {
+      return {
+        ...folder,
+        isIgnored,
+        isNew,
+        needsRekey: false,
+      }
+    }
+
+    const solutions = folder.problem_set.solution_kids || {}
+    const canSelfHelp = folder.problem_set.can_self_help
+    const youCanUnlock = canSelfHelp
+      ? (solutions[myKID] || []).map(kid => ({...favoritesResult.devices[kid], deviceID: kid}))
+      : []
+
+    const waitingForParticipantUnlock = !canSelfHelp
+      ? Object.keys(solutions).map(userID => {
+          const devices = solutions[userID].map(kid => favoritesResult.devices[kid].name)
+          const numDevices = devices.length
+          const last = numDevices > 1 ? devices.pop() : null
+
+          return {
+            name: favoritesResult.users[userID],
+            devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
+              last ? ` or ${last}` : ''
+            }.`,
+          }
+        })
+      : []
+    return {
+      ...folder,
+      isIgnored,
+      isNew,
+      needsRekey: !!Object.keys(solutions).length,
+      waitingForParticipantUnlock,
+      youCanUnlock,
+    }
+  }
+
+  return [
+    ...favoritesResult.favorites.map(mapFolderWithMeta({isIgnored: false, isNew: false})),
+    ...favoritesResult.ignored.map(mapFolderWithMeta({isIgnored: true, isNew: false})),
+    ...favoritesResult.new.map(mapFolderWithMeta({isIgnored: false, isNew: true})),
+  ]
+}
+
+export const folderToFavoriteItems = (
+  txt: string = '',
+  username: string,
+  loggedIn: boolean
+): I.Map<Types.Path, Types.FavoriteItem> => {
+  let favoritesResult: FavoritesListResult
+  let badges = {
+    '/keybase/private': 0,
+    '/keybase/public': 0,
+    '/keybase/team': 0,
+  }
+  let favoriteChildren = {
+    '/keybase/private': new Set(),
+    '/keybase/public': new Set(),
+    '/keybase/team': new Set(),
+  }
+  try {
+    favoritesResult = JSON.parse(txt)
+  } catch (err) {
+    logger.warn('Invalid json from getFavorites: ', err)
+    return I.Map()
+  }
+
+  const myKID = findKey(favoritesResult.users, name => name === username)
+
+  // figure out who can solve the rekey
+  const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
+  const favoriteFolders = folders.map(
+    ({name, folderType, isIgnored, isNew, needsRekey, waitingForParticipantUnlock, youCanUnlock}) => {
+      const folderTypeString = FolderTypeToString(folderType)
+      const folderParent = `/keybase/${folderTypeString}`
+      const preferredName = tlfToPreferredOrder(name, username)
+      const folderPathString = `${folderParent}/${preferredName}`
+      const folderPath = Types.stringToPath(folderPathString)
+      favoriteChildren[folderParent].add(preferredName)
+      if (isNew) {
+        badges[folderParent] += 1
+      }
+      return [
+        // key
+        folderPath,
+        // value
+        makeFavoriteItem({
+          badgeCount: 0,
+          name: preferredName,
+          tlfMeta: {
+            folderType,
+            isIgnored,
+            isNew,
+            needsRekey,
+            waitingForParticipantUnlock,
+            youCanUnlock,
+          },
+        }),
+      ]
+    }
+  )
+  return I.Map(
+    favoriteFolders.concat(
+      Object.keys(badges).map(badgeKey => {
+        const badgePath = Types.stringToPath(badgeKey)
+        return [
+          badgePath,
+          makeFavoriteItem({
+            badgeCount: badges[badgeKey],
+            name: Types.getPathName(badgePath),
+            favoriteChildren: I.Set(favoriteChildren[badgeKey]),
+          }),
+        ]
+      })
+    )
+  )
 }

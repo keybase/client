@@ -7,6 +7,8 @@ export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   messageOrdinals: I.List<Types.Ordinal>,
   onFocusInput: () => void,
+  // TODO DESKTOP-6256 get rid of this
+  onToggleInfoPanel: () => void,
   loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
   editingOrdinal: ?Types.Ordinal,
   lastLoadMoreOrdinal: ?Types.Ordinal,

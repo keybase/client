@@ -42,7 +42,7 @@ export default compose(
   }),
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       // Facebook proof checking gets enabled after they click continue.
       if (this.props.platform === 'facebook') {
         this.props.onAllowProofCheck(false)

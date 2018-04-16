@@ -3,6 +3,7 @@
 protocol SimpleFS {
 
   import idl "common.avdl";
+  import idl "kbfs_common.avdl";
 
 /*
   File manipulation interface
@@ -14,7 +15,7 @@ protocol SimpleFS {
     simpleFSOpen
     simpleFSMove
     simpleFSRemove
-  then calls one of the following until until status is no longer pending
+  then calls one of the following until status is no longer pending
   or operation is cancelled:
     simpleFSReadList (after list or listRecursive)
     simpleFSRead (after open)
@@ -46,7 +47,7 @@ protocol SimpleFS {
   
   record Dirent {
     Time time;
-    int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
+    int size;   // size of file or count of dir entries (TBD - may be expensive/unnecessary)
     string name;
     DirentType direntType;
     // The last writer of this directory entry.  NOTE: this is NOT
@@ -262,4 +263,9 @@ protocol SimpleFS {
    Instructs KBFS to dump debugging info into its logs.
    */
   void simpleFSDumpDebuggingInfo();
+
+  /**
+   Get sync status.
+   */
+  FSSyncStatus simpleFSSyncStatus();
 }

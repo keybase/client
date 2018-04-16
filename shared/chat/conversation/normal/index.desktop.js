@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../constants/types/chat2'
 import fs from 'fs'
 import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
@@ -16,6 +17,7 @@ import type {Props} from '.'
 type State = {
   infoPanelOpen: boolean,
   showDropOverlay: boolean,
+  conversationIDKey: ?Types.ConversationIDKey,
 }
 
 const DropOverlay = ({onDragLeave, onDrop}) => (
@@ -57,6 +59,7 @@ const InfoPaneWrapper = ({onToggle, conversationIDKey}) => (
 class Conversation extends React.PureComponent<Props, State> {
   _mounted = false
   state = {
+    conversationIDKey: null,
     infoPanelOpen: false,
     showDropOverlay: false,
   }
@@ -69,11 +72,11 @@ class Conversation extends React.PureComponent<Props, State> {
     this._mounted = true
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const convoChanged = this.props.conversationIDKey !== nextProps.conversationIDKey
-    if (convoChanged) {
-      this.setState({infoPanelOpen: false})
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+    if (nextProps.conversationIDKey !== prevState.conversationIDKey) {
+      return {conversationIDKey: nextProps.conversationIDKey, infoPanelOpen: false}
     }
+    return null
   }
 
   _onDrop = e => {
@@ -155,6 +158,8 @@ class Conversation extends React.PureComponent<Props, State> {
         {this.props.showLoader && <LoadingLine />}
         <ListArea
           listScrollDownCounter={this.props.listScrollDownCounter}
+          // TODO DESKTOP-6256 get rid of this
+          onToggleInfoPanel={this._onToggleInfoPanel}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />

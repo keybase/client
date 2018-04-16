@@ -107,7 +107,14 @@ const config = (_, {mode}) => {
         extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
       },
       stats: {
-        optimizationBailout: true,
+        ...(isDev
+          ? {}
+          : {
+              exclude: undefined,
+              maxModules: Infinity,
+              providedExports: true,
+              usedExports: true,
+            }),
       },
       ...(isDev
         ? {}
@@ -134,6 +141,9 @@ const config = (_, {mode}) => {
     context: path.resolve(__dirname, '..'),
     entry: {main: './desktop/app/index.js'},
     name: 'mainThread',
+    stats: {
+      ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
+    },
     target: 'electron-main',
   })
   const renderThreadConfig = merge(commonConfig, {

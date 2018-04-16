@@ -6,6 +6,7 @@ import ReallyLeaveTeam, {Spinner, type Props as RenderProps} from '.'
 import LastOwnerDialog from './last-owner'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
+import {getCanPerform, hasCanPerform} from '../../constants/teams'
 import {type Teamname} from '../../constants/types/teams'
 
 type Props = RenderProps & {
@@ -16,11 +17,11 @@ type Props = RenderProps & {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const name = routeProps.get('teamname')
-  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', name], null)
-  const _canLeaveTeam = (canPerform && canPerform.leaveTeam) || false
+  const canPerform = getCanPerform(state, name)
+  const _canLeaveTeam = canPerform.leaveTeam
   return {
     _canLeaveTeam,
-    _loaded: !!canPerform,
+    _loaded: hasCanPerform(state, name),
     name,
   }
 }
@@ -36,7 +37,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 class Switcher extends React.PureComponent<Props> {
-  componentWillMount() {
+  componentDidMount() {
     if (!this.props._loaded) {
       this.props._loadOperations(this.props.name)
     }

@@ -30,7 +30,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       )
     }
 
-    componentWillMount() {
+    componentDidMount() {
       this._sendLoad()
 
       // Allow reloads
@@ -52,7 +52,7 @@ const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
   folderProps: state.favorite.folderState,
-  isAsyncWriteHappening: state.favorite.kbfsStatus && state.favorite.kbfsStatus.isAsyncWriteHappening,
+  isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
 })

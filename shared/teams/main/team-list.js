@@ -24,8 +24,8 @@ type RowProps = {
   isNew: boolean,
   isOpen: boolean,
   newRequests: number,
-  onOpenFolder: ?() => void,
-  onManageChat: ?() => void,
+  onOpenFolder: null | (() => void),
+  onManageChat: null | (() => void),
   resetUserCount?: number,
   onViewTeam: () => void,
 }

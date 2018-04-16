@@ -140,7 +140,7 @@ func (b *BackgroundIdentifier) Shutdown() {
 func (b *BackgroundIdentifier) shutdownLocked() {
 	defer b.G().Trace("BackgroundIdentifier#Shutdown", func() error { return nil })()
 	if b.isDead {
-		b.G().Log.Debug("identifier was already shutdown")
+		b.G().Log.Debug("identifier was already shut down")
 		return
 	}
 	b.isDead = true

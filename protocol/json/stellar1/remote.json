@@ -14,28 +14,6 @@
   "types": [
     {
       "type": "record",
-      "name": "EncryptedNote",
-      "fields": [
-        {
-          "type": "int",
-          "name": "v"
-        },
-        {
-          "type": "bytes",
-          "name": "e"
-        },
-        {
-          "type": "bytes",
-          "name": "n"
-        },
-        {
-          "type": "keybase1.KID",
-          "name": "KID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "Members",
       "fields": [
         {
@@ -47,8 +25,8 @@
           "name": "fromKeybase"
         },
         {
-          "type": "keybase1.UID",
-          "name": "fromUID"
+          "type": "keybase1.UserVersion",
+          "name": "from"
         },
         {
           "type": "keybase1.DeviceID",
@@ -63,8 +41,8 @@
           "name": "toKeybase"
         },
         {
-          "type": "keybase1.UID",
-          "name": "toUID"
+          "type": "keybase1.UserVersion",
+          "name": "to"
         }
       ]
     },
@@ -89,8 +67,8 @@
           "name": "errMsg"
         },
         {
-          "type": "EncryptedNote",
-          "name": "note"
+          "type": "string",
+          "name": "noteB64"
         },
         {
           "type": "Asset",
@@ -193,8 +171,8 @@
           "name": "members"
         },
         {
-          "type": "EncryptedNote",
-          "name": "note"
+          "type": "string",
+          "name": "noteB64"
         },
         {
           "type": {
@@ -237,8 +215,8 @@
           "name": "displayCurrency"
         },
         {
-          "type": "EncryptedNote",
-          "name": "note"
+          "type": "string",
+          "name": "noteB64"
         },
         {
           "type": "string",
@@ -311,8 +289,8 @@
           "name": "rtime"
         },
         {
-          "type": "keybase1.UID",
-          "name": "fromUID"
+          "type": "keybase1.UserVersion",
+          "name": "from"
         },
         {
           "type": "keybase1.DeviceID",
@@ -321,9 +299,9 @@
         {
           "type": [
             null,
-            "keybase1.UID"
+            "keybase1.UserVersion"
           ],
-          "name": "toUID"
+          "name": "to"
         },
         {
           "type": [
@@ -338,6 +316,10 @@
             "string"
           ],
           "name": "displayCurrency"
+        },
+        {
+          "type": "string",
+          "name": "noteB64"
         }
       ]
     },
@@ -360,8 +342,8 @@
     "balances": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "accountID",
@@ -376,8 +358,8 @@
     "recentPayments": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "accountID",
@@ -396,8 +378,8 @@
     "transaction": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "id",
@@ -409,8 +391,8 @@
     "accountSeqno": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "accountID",
@@ -422,8 +404,8 @@
     "submitPayment": {
       "request": [
         {
-          "name": "uid",
-          "type": "keybase1.UID"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         },
         {
           "name": "payment",
@@ -431,6 +413,19 @@
         }
       ],
       "response": "PaymentResult"
+    },
+    "isMasterKeyActive": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "stellar.1"

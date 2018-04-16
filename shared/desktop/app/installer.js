@@ -18,7 +18,16 @@ type State = {
   promptedForCLI: boolean,
 }
 class InstallerData extends UserData<State> {}
-const installerState = new InstallerData('installer.json', {promptedForCLI: false})
+// prevent error spewage on windows by not instantiating
+// InstallerData. Flow seems to require this fake stub.
+const installerState = isWindows
+  ? {
+      save: () => {},
+      state: {
+        promptedForCLI: false,
+      },
+    }
+  : new InstallerData('installer.json', {promptedForCLI: false})
 
 type CheckErrorsResult = {
   errors: Array<string>,

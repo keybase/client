@@ -117,17 +117,24 @@ EXIT /B 0
 
 :no_smokea
 
+setlocal ENABLEDELAYEDEXPANSION
+
+set BUILD_TAG_ENCODED=!BUILD_TAG:+=%%2B!
+
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%, kbfs: %KBFS_BUILD%"
+    %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.386.exe"
     goto :no_smokeb
 )
 ::Smoke B json
 s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\*.json prerelease.keybase.io/windows-support  || goto:build_error || EXIT /B 1
 set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
+set BUILD_TAG_ENCODED=!SmokeASemVer:+=%%2B!
 %OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer%
+%OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.386.exe"
 :no_smokeb
 
 echo %ERRORLEVEL%

@@ -21,6 +21,8 @@ type RecentPaymentCLILocal struct {
 	ToStellar       AccountID     `codec:"toStellar" json:"toStellar"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	Note            string        `codec:"note" json:"note"`
+	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 }
 
 func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
@@ -61,6 +63,50 @@ func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToUsername),
+		Note:    o.Note,
+		NoteErr: o.NoteErr,
+	}
+}
+
+type LocalCurrencyCode string
+
+func (o LocalCurrencyCode) DeepCopy() LocalCurrencyCode {
+	return o
+}
+
+type LocalExchangeRate float32
+
+func (o LocalExchangeRate) DeepCopy() LocalExchangeRate {
+	return o
+}
+
+type LocalOwnAccount struct {
+	AccountID         AccountID         `codec:"accountID" json:"accountID"`
+	IsPrimary         bool              `codec:"isPrimary" json:"isPrimary"`
+	Name              string            `codec:"name" json:"name"`
+	Balance           []Balance         `codec:"balance" json:"balance"`
+	LocalCurrency     LocalCurrencyCode `codec:"localCurrency" json:"localCurrency"`
+	LocalExchangeRate LocalExchangeRate `codec:"localExchangeRate" json:"localExchangeRate"`
+}
+
+func (o LocalOwnAccount) DeepCopy() LocalOwnAccount {
+	return LocalOwnAccount{
+		AccountID: o.AccountID.DeepCopy(),
+		IsPrimary: o.IsPrimary,
+		Name:      o.Name,
+		Balance: (func(x []Balance) []Balance {
+			if x == nil {
+				return nil
+			}
+			var ret []Balance
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Balance),
+		LocalCurrency:     o.LocalCurrency.DeepCopy(),
+		LocalExchangeRate: o.LocalExchangeRate.DeepCopy(),
 	}
 }
 
@@ -85,6 +131,9 @@ type WalletInitLocalArg struct {
 type WalletDumpLocalArg struct {
 }
 
+type WalletGetLocalAccountsArg struct {
+}
+
 type OwnAccountLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -94,14 +143,26 @@ type ImportSecretKeyLocalArg struct {
 	MakePrimary bool      `codec:"makePrimary" json:"makePrimary"`
 }
 
+type SetDisplayCurrencyArg struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Currency  string    `codec:"currency" json:"currency"`
+}
+
+type ExchangeRateLocalArg struct {
+	Currency LocalCurrencyCode `codec:"currency" json:"currency"`
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]RecentPaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
+	WalletGetLocalAccounts(context.Context) ([]LocalOwnAccount, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
+	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
+	ExchangeRateLocal(context.Context, LocalCurrencyCode) (LocalExchangeRate, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -178,6 +239,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"walletGetLocalAccounts": {
+				MakeArg: func() interface{} {
+					ret := make([]WalletGetLocalAccountsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.WalletGetLocalAccounts(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"ownAccountLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]OwnAccountLocalArg, 1)
@@ -206,6 +278,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.ImportSecretKeyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setDisplayCurrency": {
+				MakeArg: func() interface{} {
+					ret := make([]SetDisplayCurrencyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetDisplayCurrencyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetDisplayCurrencyArg)(nil), args)
+						return
+					}
+					err = i.SetDisplayCurrency(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"exchangeRateLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ExchangeRateLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ExchangeRateLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ExchangeRateLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ExchangeRateLocal(ctx, (*typedArgs)[0].Currency)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -245,6 +349,11 @@ func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error
 	return
 }
 
+func (c LocalClient) WalletGetLocalAccounts(ctx context.Context) (res []LocalOwnAccount, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.walletGetLocalAccounts", []interface{}{WalletGetLocalAccountsArg{}}, &res)
+	return
+}
+
 func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (res bool, err error) {
 	__arg := OwnAccountLocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.ownAccountLocal", []interface{}{__arg}, &res)
@@ -253,5 +362,16 @@ func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (
 
 func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecretKeyLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCurrencyArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency LocalCurrencyCode) (res LocalExchangeRate, err error) {
+	__arg := ExchangeRateLocalArg{Currency: currency}
+	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
 	return
 }

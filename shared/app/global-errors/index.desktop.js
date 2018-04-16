@@ -1,9 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import logger from '../../logger'
-import {Box, Text, Icon, HOCTimers} from '../../common-adapters'
+import {Box, Text, Icon} from '../../common-adapters'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
+import {RPCError} from '../../util/errors'
 
 import type {Props as _Props} from './index'
 
@@ -14,11 +16,12 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & {clearTimeout: number => void, setTimeout: (() => void, number) => number}
+type Props = _Props & TimerProps
 
 class GlobalError extends Component<Props, State> {
   state: State
-  timerID: any
+  timerID: ?TimeoutID
+  _mounted: boolean = true
 
   constructor(props: Props) {
     super(props)
@@ -30,7 +33,12 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  componentWillMount() {
+  componentWillUnmount() {
+    this._mounted = false
+  }
+
+  componentDidMount() {
+    this._mounted = true
     this._resetError(!!this.props.error)
   }
 
@@ -40,7 +48,9 @@ class GlobalError extends Component<Props, State> {
   }
 
   _clearCountdown() {
-    this.props.clearTimeout(this.timerID)
+    if (this.timerID) {
+      this.props.clearTimeout(this.timerID)
+    }
     this.timerID = null
   }
 
@@ -55,26 +65,28 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  _summaryForError(err: ?Error): ?string {
+  _summaryForError(err: null | Error | RPCError): ?string {
     return err ? err.message : null
   }
 
-  _detailsForError(err: ?Error): ?string {
+  _detailsForError(err: null | Error | RPCError): ?string {
     return err ? err.stack : null
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.error !== this.props.error) {
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.error !== this.props.error) {
       this.props.setTimeout(() => {
-        this.setState({
-          cachedDetails: this._detailsForError(nextProps.error),
-          cachedSummary: this._summaryForError(nextProps.error),
-        })
-      }, nextProps.error ? 0 : 7000) // if its set, do it immediately, if its cleared set it in a bit
-      this._resetError(!!nextProps.error)
+        if (this._mounted) {
+          this.setState({
+            cachedDetails: this._detailsForError(this.props.error),
+            cachedSummary: this._summaryForError(this.props.error),
+          })
+        }
+      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
+      this._resetError(!!this.props.error)
     }
-    if (nextProps.debugDump !== this.props.debugDump) {
-      this._resetError(nextProps.debugDump.length > 0)
+    if (prevProps.debugDump !== this.props.debugDump) {
+      this._resetError(this.props.debugDump.length > 0)
     }
   }
 

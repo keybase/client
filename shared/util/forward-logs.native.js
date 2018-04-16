@@ -1,5 +1,5 @@
 // @flow
-import noop from 'lodash/noop'
+import {noop} from 'lodash-es'
 import RNFetchBlob from 'react-native-fetch-blob'
 import type {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {writeStream, exists} from './file'

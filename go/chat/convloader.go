@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"container/list"
 	"errors"
 	"sync"
 	"time"
@@ -25,9 +26,72 @@ const (
 )
 
 type clTask struct {
-	convID        chat1.ConversationID
+	job           types.ConvLoaderJob
 	attempt       int
 	lastAttemptAt time.Time
+}
+
+type jobQueue struct {
+	sync.Mutex
+	queue   *list.List
+	waitChs []chan struct{}
+	maxSize int
+}
+
+func newJobQueue(maxSize int) *jobQueue {
+	return &jobQueue{
+		queue:   list.New(),
+		maxSize: maxSize,
+	}
+}
+
+func (j *jobQueue) Wait() <-chan struct{} {
+	j.Lock()
+	defer j.Unlock()
+	if j.queue.Len() == 0 {
+		ch := make(chan struct{})
+		j.waitChs = append(j.waitChs, ch)
+		return ch
+	}
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (j *jobQueue) Push(task clTask) error {
+	j.Lock()
+	defer j.Unlock()
+	if j.queue.Len() >= j.maxSize {
+		return errors.New("job queue full")
+	}
+	defer func() {
+		// Notify waiters we have some stuff for them now
+		for _, w := range j.waitChs {
+			close(w)
+		}
+		j.waitChs = nil
+	}()
+	for e := j.queue.Front(); e != nil; e = e.Next() {
+		eval := e.Value.(clTask)
+		if task.job.HigherPriorityThan(eval.job) {
+			j.queue.InsertBefore(task, e)
+			return nil
+		}
+	}
+	j.queue.PushBack(task)
+	return nil
+}
+
+func (j *jobQueue) PopFront() (res clTask, ok bool) {
+	j.Lock()
+	defer j.Unlock()
+	if j.queue.Len() == 0 {
+		return res, false
+	}
+	el := j.queue.Front()
+	res = el.Value.(clTask)
+	j.queue.Remove(el)
+	return res, true
 }
 
 type BackgroundConvLoader struct {
@@ -37,7 +101,7 @@ type BackgroundConvLoader struct {
 
 	uid           gregor1.UID
 	started       bool
-	queueCh       chan clTask
+	queue         *jobQueue
 	stopCh        chan chan struct{}
 	suspendCh     chan chan struct{}
 	resumeCh      chan struct{}
@@ -93,8 +157,10 @@ func (b *BackgroundConvLoader) monitorAppState() {
 			}
 		case keybase1.AppState_BACKGROUND:
 			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
-			b.Suspend(ctx)
-			suspended = true
+			if !suspended {
+				b.Suspend(ctx)
+				suspended = true
+			}
 		}
 		if b.appStateCh != nil {
 			b.appStateCh <- struct{}{}
@@ -145,12 +211,12 @@ func (b *BackgroundConvLoader) isConvLoaderContext(ctx context.Context) bool {
 	return false
 }
 
-func (b *BackgroundConvLoader) Queue(ctx context.Context, convID chat1.ConversationID) error {
+func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJob) error {
 	if b.isConvLoaderContext(ctx) {
-		b.Debug(ctx, "Queue: refusing to queue in background loader context: convID: %s", convID)
+		b.Debug(ctx, "Queue: refusing to queue in background loader context: convID: %s", job)
 		return nil
 	}
-	return b.enqueue(ctx, clTask{convID: convID})
+	return b.enqueue(ctx, clTask{job: job})
 }
 
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
@@ -185,14 +251,8 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
-	select {
-	case b.queueCh <- task:
-		b.Debug(ctx, "enqueue: added %s to queue", task.convID)
-	default:
-		b.Debug(ctx, "enqueue: queue is full, not adding %s", task.convID)
-		return errors.New("queue is full")
-	}
-	return nil
+	b.Debug(ctx, "enqueue: adding task: %s", task.job)
+	return b.queue.Push(task)
 }
 
 func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
@@ -263,12 +323,18 @@ func (b *BackgroundConvLoader) loop() {
 
 	// Main loop
 	for {
+		b.Debug(bgctx, "loop: waiting for job")
 		select {
-		case task := <-b.queueCh:
-			if task.convID.IsNil() {
+		case <-b.queue.Wait():
+			task, ok := b.queue.PopFront()
+			if !ok {
+				continue
+			}
+			if task.job.ConvID.IsNil() {
 				// means we closed this channel
 				continue
 			}
+
 			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
 			// neither have any data on them.
 			select {
@@ -283,7 +349,7 @@ func (b *BackgroundConvLoader) loop() {
 				return
 			default:
 			}
-			b.Debug(bgctx, "loop: pulled queued task: %s", task.convID)
+			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
 
 			// Wait for a small amount of time before loading, this way we aren't in a tight loop
 			// charging through conversations
@@ -326,10 +392,7 @@ func (b *BackgroundConvLoader) loop() {
 }
 
 func (b *BackgroundConvLoader) newQueue() {
-	if b.queueCh != nil {
-		close(b.queueCh)
-	}
-	b.queueCh = make(chan clTask, 200)
+	b.queue = newJobQueue(1000)
 }
 
 func (b *BackgroundConvLoader) retriableError(err error) bool {
@@ -344,8 +407,9 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 }
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
-	b.Debug(ictx, "load: loading conversation %s", task.convID)
+	b.Debug(ictx, "load: loading conversation %s", task.job)
 	b.Lock()
+	job := task.job
 	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(
 		Context(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
@@ -363,8 +427,11 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	}()
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
-	pagination := &chat1.Pagination{Num: 50}
-	_, _, err := b.G().ConvSource.Pull(ctx, task.convID, uid, query, pagination)
+	pagination := job.Pagination
+	if pagination == nil {
+		pagination = &chat1.Pagination{Num: 50}
+	}
+	tv, _, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, query, pagination)
 	if err != nil {
 		b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {
@@ -373,15 +440,34 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 			task.lastAttemptAt = time.Now()
 			return &task
 		}
-		b.Debug(ctx, "load: failed to load conv %s", task.convID)
+		b.Debug(ctx, "load: failed to load job: %s", job)
 		return nil
 	}
-	b.Debug(ctx, "load: loaded conversation %s", task.convID)
+	b.Debug(ctx, "load: loaded job: %s", job)
+	if job.PostLoadHook != nil {
+		b.Debug(ctx, "load: invoking post load hook on job: %s", job)
+		job.PostLoadHook(ctx, tv, job)
+	}
 
 	// if testing, put the convID on the loads channel
 	if b.loads != nil {
-		b.Debug(ctx, "load: putting convID %s on loads chan", task.convID)
-		b.loads <- task.convID
+		b.Debug(ctx, "load: putting convID %s on loads chan", job.ConvID)
+		b.loads <- job.ConvID
 	}
 	return nil
+}
+
+func newConvLoaderPagebackHook(g *globals.Context, curCalls, maxCalls int) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+		if curCalls >= maxCalls || tv.Pagination == nil || tv.Pagination.Last {
+			return
+		}
+		job.Pagination.Next = tv.Pagination.Next
+		job.Pagination.Previous = nil
+		job.Priority = types.ConvLoaderPriorityLow
+		job.PostLoadHook = newConvLoaderPagebackHook(g, curCalls+1, maxCalls)
+		if err := g.ConvLoader.Queue(ctx, job); err != nil {
+			g.GetLog().CDebugf(ctx, "newConvLoaderPagebackHook: failed to queue job: %s", err)
+		}
+	}
 }

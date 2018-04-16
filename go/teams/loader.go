@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -44,15 +45,20 @@ type TeamLoader struct {
 	// Single-flight locks per team ID.
 	// (Private and public loads of the same ID will block each other, should be fine)
 	locktab libkb.LockTable
+
+	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
+	// from the frontend
+	nameLookupBurstCache *libkb.BurstCache
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
 
 func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *Storage) *TeamLoader {
 	return &TeamLoader{
-		Contextified: libkb.NewContextified(g),
-		world:        world,
-		storage:      storage,
+		Contextified:         libkb.NewContextified(g),
+		world:                world,
+		storage:              storage,
+		nameLookupBurstCache: libkb.NewBurstCache(g, 100, 10*time.Second, "SubteamNameToID"),
 	}
 }
 
@@ -108,6 +114,74 @@ func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID
 	return nil
 }
 
+type nameLookupBurstCacheKey struct {
+	teamName keybase1.TeamName
+	public   bool
+}
+
+func (n nameLookupBurstCacheKey) String() string {
+	return fmt.Sprintf("%s:%v", n.teamName.String(), n.public)
+}
+
+// Resolve a team name to a team ID.
+// Will always hit the server for subteams. The server can lie in this return value.
+func (l *TeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error) {
+
+	defer l.G().CVTrace(ctx, libkb.VLog0, fmt.Sprintf("resolveNameToUIDUntrusted(%s,%v,%v)", teamName.String(), public, allowCache), func() error { return err })()
+
+	// For root team names, just hash.
+	if teamName.IsRootTeam() {
+		return teamName.ToTeamID(public), nil
+	}
+
+	if !allowCache {
+		return resolveNameToIDUntrustedAPICall(ctx, l.G(), teamName, public)
+	}
+
+	var idVoidPointer interface{}
+	key := nameLookupBurstCacheKey{teamName, public}
+	idVoidPointer, err = l.nameLookupBurstCache.Load(ctx, key, l.makeNameLookupBurstCacheLoader(ctx, l.G(), key))
+	if err != nil {
+		return keybase1.TeamID(""), err
+	}
+	if idPointer, ok := idVoidPointer.(*keybase1.TeamID); ok && idPointer != nil {
+		id = *idPointer
+	} else {
+		return keybase1.TeamID(""), errors.New("bad cast out of nameLookupBurstCache")
+	}
+	return id, nil
+}
+
+func resolveNameToIDUntrustedAPICall(ctx context.Context, g *libkb.GlobalContext, teamName keybase1.TeamName, public bool) (id keybase1.TeamID, err error) {
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.Args = libkb.HTTPArgs{
+		"name":        libkb.S{Val: teamName.String()},
+		"lookup_only": libkb.B{Val: true},
+		"public":      libkb.B{Val: public},
+	}
+
+	var rt rawTeam
+	if err := g.API.GetDecode(arg, &rt); err != nil {
+		return id, err
+	}
+	id = rt.ID
+	if !id.Exists() {
+		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
+	}
+	return id, nil
+}
+
+func (l *TeamLoader) makeNameLookupBurstCacheLoader(ctx context.Context, g *libkb.GlobalContext, key nameLookupBurstCacheKey) libkb.BurstCacheLoader {
+	return func() (obj interface{}, err error) {
+		id, err := resolveNameToIDUntrustedAPICall(ctx, g, key.teamName, key.public)
+		if err != nil {
+			return nil, err
+		}
+		return &id, nil
+	}
+}
+
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
 // The key difference between load1 and load2 is that load2 is recursive (for subteams).
 func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
@@ -130,7 +204,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
 	if !teamID.Exists() {
-		teamID, err = l.world.resolveNameToIDUntrusted(ctx, *teamName, lArg.Public)
+		teamID, err = l.ResolveNameToIDUntrusted(ctx, *teamName, lArg.Public, lArg.AllowNameLookupBurstCache)
 		if err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			return nil, err
@@ -757,7 +831,7 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 	me keybase1.UserVersion, uv keybase1.UserVersion) (bool, error) {
 
 	// IDs of ancestors that were not freshly polled.
-	// Check them again with forceRepoll if the affirmitive is not found cached.
+	// Check them again with forceRepoll if the affirmative is not found cached.
 	checkAgain := make(map[keybase1.TeamID]bool)
 
 	check1 := func(chain *TeamSigChainState) bool {

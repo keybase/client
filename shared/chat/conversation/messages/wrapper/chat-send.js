@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {HOCTimers, Icon} from '../../../../common-adapters'
+import {Icon} from '../../../../common-adapters'
+import HOCTimers, {type TimerProps} from '../../../../common-adapters/hoc-timers'
 import type {IconType} from '../../../../common-adapters/icon.constants'
 
 type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
@@ -24,10 +25,8 @@ type Props = {
   sent: boolean,
   failed: boolean,
   id?: string,
-  setTimeout: typeof setTimeout,
-  clearTimeout: typeof clearTimeout,
   style: any,
-}
+} & TimerProps
 
 type State = {iconStatus: IconStatus, visible: boolean}
 class SendIndicator extends React.Component<Props, State> {
@@ -62,7 +61,7 @@ class SendIndicator extends React.Component<Props, State> {
     this._setStatus('sending')
   }
 
-  componentWillMount() {
+  componentDidMount() {
     if (!(this.props.sent || this.props.failed)) {
       // Only show the `encrypting` icon for messages once
       if (!shownEncryptingSet.has(this.props.id)) {

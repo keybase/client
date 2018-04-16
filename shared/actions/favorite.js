@@ -5,17 +5,9 @@ import * as Types from '../constants/types/favorite'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as FavoriteGen from './favorite-gen'
-import * as NotificationsGen from './notifications-gen'
-import flatten from 'lodash/flatten'
-import partition from 'lodash/partition'
-import difference from 'lodash/difference'
-import debounce from 'lodash/debounce'
-import findKey from 'lodash/findKey'
-import engine from '../engine'
+import {findKey, difference, partition, flatten} from 'lodash-es'
 import {NotifyPopup} from '../native/notifications'
-import {isMobile} from '../constants/platform'
 
-import type {Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import type {FolderRPCWithMeta} from '../constants/types/folders'
 
@@ -237,42 +229,9 @@ function _notify(state: Types.FolderState): void {
   previousNotifyState = newNotifyState
 }
 
-// Don't send duplicates else we get high cpu usage
-let _kbfsUploadingState = false
-function* _setupKBFSChangedHandler(): Saga.SagaGenerator<any, any> {
-  yield Saga.put((dispatch: Dispatch) => {
-    const debouncedKBFSStopped = debounce(() => {
-      if (_kbfsUploadingState === true) {
-        _kbfsUploadingState = false
-        const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})
-        dispatch(badgeAction)
-        dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: false}}))
-      }
-    }, 2000)
-
-    if (!isMobile) {
-      engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
-        // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
-        // ie. we don't get the syncingBytes or ops correctly (always zero)
-        if (_kbfsUploadingState === false) {
-          _kbfsUploadingState = true
-          const badgeAction: Action = NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})
-          dispatch(badgeAction)
-          dispatch(FavoriteGen.createKbfsStatusUpdated({status: {isAsyncWriteHappening: true}}))
-        }
-        // We have to debounce while the events are still happening no matter what
-        debouncedKBFSStopped()
-      })
-    }
-  })
-
-  yield Saga.call(RPCTypes.NotifyFSRequestFSSyncStatusRequestRpcPromise, {req: {requestID: 0}})
-}
-
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(FavoriteGen.favoriteList, _listSaga)
   yield Saga.safeTakeEvery([FavoriteGen.favoriteAdd, FavoriteGen.favoriteIgnore], _addOrIgnoreSaga)
-  yield Saga.safeTakeEvery(FavoriteGen.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
 export default favoriteSaga

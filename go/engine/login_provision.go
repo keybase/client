@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/stellar"
 )
 
 // loginProvision is an engine that will provision the current
@@ -147,7 +146,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 
 	// initialize a stellar wallet for the user if they don't already have one.
 	e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "loginProvision")
-	stellar.InitWalletSoft(context.Background(), e.G())
+	e.G().GetStellar().CreateWalletSoft(context.Background())
 
 	return nil
 }
@@ -753,8 +752,8 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	case keybase1.GPGMethod_GPG_IMPORT:
 		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
 		if err != nil {
-			// there was an error importing the key.
-			// so offer to switch to using gpg to sign
+			// There was an error importing the key.
+			// So offer to switch to using gpg to sign
 			// the provisioning statement:
 			signingKey, err = e.switchToGPGSign(ctx, key, err)
 			if err != nil {

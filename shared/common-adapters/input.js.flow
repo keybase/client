@@ -21,7 +21,7 @@ export type KeyboardType =
 
 export type Props = {
   // if true we use a smarter algorithm to decide when we need to recalculate our height
-  // might be safe to use this everywhere but i wanted to limit it to just chat short term
+  // might be safe to use this everywhere but I wanted to limit it to just chat short term
   smartAutoresize?: boolean,
   autoFocus?: boolean,
   className?: string,
@@ -62,6 +62,10 @@ export type Props = {
   keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
+  // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
+  // i'm afraid of touching this now while I'm fixing a crash.
+  // If true it won't use its internal value to drive its rendering
+  uncontrolled?: boolean,
 }
 
 declare export default class Input extends Component<Props> {

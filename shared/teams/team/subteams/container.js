@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-import * as I from 'immutable'
 import * as GregorGen from '../../../actions/gregor-gen'
 import openURL from '../../../util/open-url'
 import {navigateAppend} from '../../../actions/route-tree'
@@ -13,8 +12,8 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  _subteams: state.entities.getIn(['teams', 'teamNameToSubteams', teamname], I.Set()),
-  sawSubteamsBanner: state.entities.getIn(['teams', 'sawSubteamsBanner'], false),
+  _subteams: Constants.getTeamSubteams(state, teamname),
+  sawSubteamsBanner: state.teams.getIn(['sawSubteamsBanner'], false),
   yourOperations: Constants.getCanPerform(state, teamname),
 })
 

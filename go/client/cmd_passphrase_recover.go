@@ -84,7 +84,7 @@ func (c *CmdPassphraseRecover) Run() error {
 		return err
 	}
 
-	// Run the main recovery engine.At this point the user should be logged in with
+	// Run the main recovery engine. At this point the user should be logged in with
 	// unlocked keys. This has the potential to issue all sorts of prompts
 	// but given that we should now be logged in and unlocked, it shouldn't
 	// issue any prompts.

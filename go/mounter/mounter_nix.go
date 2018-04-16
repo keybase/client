@@ -39,7 +39,7 @@ func Unmount(dir string, force bool, log Log) error {
 	return err
 }
 
-// ForceUnmount tries to forceably unmount a directory
+// ForceUnmount tries to forcibly unmount a directory
 func ForceUnmount(dir string, log Log) error {
 	switch runtime.GOOS {
 	case "darwin":

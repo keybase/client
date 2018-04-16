@@ -245,7 +245,8 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name: teamname,
+		Name:        teamname,
+		ForceRepoll: true,
 	})
 	if err != nil {
 		return res, err
@@ -363,7 +364,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			res.Invited = append(res.Invited, addr.Address)
 		}
 		if len(invites) == 0 {
-			g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
+			g.Log.CDebugf(ctx, "team %s: after existing filter, no one to invite", teamname)
 			// return value assign to escape closure
 			resOuter = res
 			return nil
@@ -383,7 +384,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			return fmt.Errorf("unknown team role: %s", role)
 		}
 
-		g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
+		g.Log.CDebugf(ctx, "team %s: after existing filter, inviting %d emails as %s", teamname, len(invites), role)
 		err = t.postTeamInvites(ctx, teamInvites)
 		if err != nil {
 			return err
@@ -1247,6 +1248,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		Name:    teamname,
 		StaleOK: true,
 		Public:  false, // assume private team
+		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {
 		// Note: we eat the error here, assuming it meant this user
@@ -1435,13 +1437,19 @@ func (c *disableTARsRes) GetAppStatus() *libkb.AppStatus {
 }
 
 func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname string) (bool, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+
+	nameParsed, err := keybase1.TeamNameFromString(teamname)
+	if err != nil {
+		return false, err
+	}
+
+	id, err := g.GetTeamLoader().ResolveNameToIDUntrusted(ctx, nameParsed, false, true)
 	if err != nil {
 		return false, err
 	}
 
 	arg := apiArg(ctx, "team/disable_tars")
-	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
+	arg.Args.Add("tid", libkb.S{Val: id.String()})
 	var ret disableTARsRes
 	if err := g.API.GetDecode(arg, &ret); err != nil {
 		return false, err

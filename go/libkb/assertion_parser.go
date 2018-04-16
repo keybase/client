@@ -250,7 +250,7 @@ func ParseAssertionsWithReaders(ctx AssertionContext, assertions string) (writer
 
 	split := strings.Split(assertions, "#")
 	if len(split) > 2 {
-		return writers, readers, fmt.Errorf("too many reader divisons ('#') in assertions: %v", assertions)
+		return writers, readers, fmt.Errorf("too many reader divisions ('#') in assertions: %v", assertions)
 	}
 
 	writers, err = ParseAssertionList(ctx, split[0])

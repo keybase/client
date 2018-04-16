@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {PanResponder as NativePanResponder} from 'react-native'
 import Box from './box'
-import clamp from 'lodash/clamp'
+import {clamp} from 'lodash-es'
 import type {Props} from './zoomable-box'
 
 type Touch = {
@@ -128,7 +128,7 @@ class ZoomableBox extends React.Component<Props, State> {
     translateY: 0,
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this._panResponder = NativePanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onStartShouldSetPanResponderCapture: () => true,

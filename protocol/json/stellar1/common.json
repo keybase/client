@@ -1,6 +1,12 @@
 {
   "protocol": "common",
-  "imports": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    }
+  ],
   "types": [
     {
       "type": "record",
@@ -100,6 +106,67 @@
         {
           "type": "int",
           "name": "Ledger"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedNote",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "NoteRecipient",
+          "name": "sender"
+        },
+        {
+          "type": [
+            null,
+            "NoteRecipient"
+          ],
+          "name": "recipient"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NoteRecipient",
+      "fields": [
+        {
+          "type": "keybase1.UserVersion",
+          "name": "user"
+        },
+        {
+          "type": "keybase1.PerUserKeyGeneration",
+          "name": "pukGen"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NoteContents",
+      "fields": [
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
         }
       ]
     }

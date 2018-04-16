@@ -72,6 +72,7 @@ type GlobalContext struct {
 	LinkCache        *LinkCache       // cache of ChainLinks
 	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader       // Play back teams for id/name properties
+	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
@@ -115,7 +116,7 @@ type GlobalContext struct {
 	logoutHooks        []LogoutHook              // call these on logout
 	GregorDismisser    GregorDismisser           // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
-	oodiMu             *sync.RWMutex             // For manipluating the OutOfDateInfo
+	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
 	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
 	lastUpgradeWarning *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
 
@@ -220,6 +221,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
+	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
@@ -320,6 +322,11 @@ func (g *GlobalContext) Logout() error {
 	tl := g.teamLoader
 	if tl != nil {
 		tl.OnLogout()
+	}
+
+	st := g.stellar
+	if st != nil {
+		st.OnLogout()
 	}
 
 	g.TrackCache = NewTrackCache()
@@ -510,6 +517,12 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	return g.teamLoader
 }
 
+func (g *GlobalContext) GetStellar() Stellar {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.stellar
+}
+
 func (g *GlobalContext) GetDeviceEKStorage() DeviceEKStorage {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -577,7 +590,7 @@ func (g *GlobalContext) Shutdown() error {
 
 		// loginState request loop should be shut down first
 		// so that any active requests can use all of the
-		// services that are about to be shutdown below.
+		// services that are about to be shut down below.
 		// (for example, g.LocalDb)
 		g.loginStateMu.Lock()
 		if g.loginState != nil {
@@ -1035,6 +1048,12 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamLoader = l
+}
+
+func (g *GlobalContext) SetStellar(s Stellar) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.stellar = s
 }
 
 func (g *GlobalContext) SetDeviceEKStorage(s DeviceEKStorage) {

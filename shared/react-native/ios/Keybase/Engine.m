@@ -13,6 +13,9 @@
 #import "AppDelegate.h"
 #import "Utils.h"
 
+// singleton so the exported react component can get it
+static Engine * sharedEngine = nil;
+
 @interface Engine ()
 
 @property dispatch_queue_t readQueue;
@@ -34,6 +37,7 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
+    sharedEngine = self;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
     [self setupQueues];
     [self setupKeybaseWithSettings:settings error:error];
@@ -108,33 +112,32 @@ static NSString *const eventName = @"objc-engine-event";
 #pragma mark - Engine exposed to react
 
 @interface KeybaseEngine ()
-@property (readonly) Engine* engine;
 @end
 
 @implementation KeybaseEngine
 
 RCT_EXPORT_MODULE();
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 - (NSArray<NSString *> *)supportedEvents
 {
   return @[eventName];
 }
 
-- (Engine *)engine {
-  AppDelegate * delegate = (AppDelegate*)[UIApplication sharedApplication].delegate;
-  return delegate.engine;
-}
-
 RCT_EXPORT_METHOD(runWithData:(NSString *)data) {
-  [self.engine runWithData: data];
+  [sharedEngine runWithData: data];
 }
 
 RCT_EXPORT_METHOD(reset) {
-  [self.engine reset];
+  [sharedEngine reset];
 }
 
 RCT_EXPORT_METHOD(start) {
-  [self.engine start: self];
+  [sharedEngine start: self];
 }
 
 - (NSDictionary *)constantsToExport {

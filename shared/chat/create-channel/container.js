@@ -10,11 +10,11 @@ import {
   type TypedState,
 } from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
-import upperFirst from 'lodash/upperFirst'
+import {upperFirst} from 'lodash-es'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    errorText: upperFirst(state.entities.teams.channelCreationError),
+    errorText: upperFirst(state.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
   }
 }
@@ -53,7 +53,7 @@ export default compose(
     },
   }),
   lifecycle({
-    componentDidMount: function() {
+    componentDidMount() {
       this.props._onSetChannelCreationError('')
     },
   })

@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react' // eslint-disable-line
-import pickBy from 'lodash/pickBy'
+import {pickBy} from 'lodash-es'
 
 const ProvablePlatformsMap = {
   twitter: true,

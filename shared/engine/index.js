@@ -307,7 +307,7 @@ class Engine {
 
     // Make a new session and start the request
     const session = this.createSession(incomingCallMap, waitingHandler)
-    // Dont make outgoing calls immediately since components can do this when they mount
+    // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
       session.start(method, param, callback)
     })
@@ -405,6 +405,7 @@ class Engine {
     this._incomingActionCreators[method] = actionCreator
   }
 
+  // DEPRECATED - use setIncomingActionCreator instead
   setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
       rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})
@@ -429,7 +430,7 @@ class Engine {
       throw new Error('Null callback sent to listenOnDisconnect')
     }
 
-    // If we've actually connected and are now disconnected lets call this immediately
+    // If we've actually connected and are now disconnected let's call this immediately
     if (this._hasConnected && this._rpcClient.transport.needsConnect) {
       f()
     }
@@ -441,7 +442,7 @@ class Engine {
 
   // Register a named callback when we fail to connect. Call if we're already disconnected
   hasEverConnected() {
-    // If we've actually failed to connect already lets call this immediately
+    // If we've actually failed to connect already let's call this immediately
     return this._hasConnected
   }
 

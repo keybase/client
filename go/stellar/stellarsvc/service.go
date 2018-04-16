@@ -3,6 +3,8 @@ package stellarsvc
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -17,12 +19,14 @@ type UISource interface {
 type Server struct {
 	libkb.Contextified
 	uiSource UISource
+	remoter  remote.Remoter
 }
 
-func New(g *libkb.GlobalContext, uiSource UISource) *Server {
+func New(g *libkb.GlobalContext, uiSource UISource, remoter remote.Remoter) *Server {
 	return &Server{
 		Contextified: libkb.NewContextified(g),
 		uiSource:     uiSource,
+		remoter:      remoter,
 	}
 }
 
@@ -38,15 +42,14 @@ func (s *Server) logTag(ctx context.Context) context.Context {
 	return libkb.WithLogTag(ctx, "WA")
 }
 
-func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
-	var err error
+func (s *Server) BalancesLocal(ctx context.Context, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "BalancesLocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
 
-	return remote.Balances(ctx, s.G(), accountID)
+	return s.remoter.Balances(ctx, accountID)
 }
 
 func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSecretKeyLocalArg) (err error) {
@@ -77,8 +80,10 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	if err = s.assertLoggedIn(ctx); err != nil {
 		return stellar1.PaymentResult{}, err
 	}
-
-	return stellar.SendPayment(ctx, s.G(), stellar.RecipientInput(arg.Recipient), arg.Amount)
+	if !arg.Asset.IsNativeXLM() {
+		return stellar1.PaymentResult{}, fmt.Errorf("sending non-XLM assets is not supported")
+	}
+	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
 }
 
 func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.RecentPaymentCLILocal, err error) {
@@ -96,60 +101,7 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 	} else {
 		selectAccountID = *accountID
 	}
-	payments, err := remote.RecentPayments(ctx, s.G(), selectAccountID, 0)
-	if err != nil {
-		return nil, err
-	}
-	for _, x := range payments {
-		y := stellar1.RecentPaymentCLILocal{
-			StellarTxID: x.StellarTxID,
-			Status:      "pending",
-			Amount:      x.Amount,
-			Asset:       x.Asset,
-			FromStellar: x.From,
-			ToStellar:   x.To,
-		}
-		if x.Stellar != nil {
-			y.Status = "completed"
-		}
-		if x.Keybase != nil {
-			y.Time = x.Keybase.Ctime
-			switch x.Keybase.Status {
-			case stellar1.TransactionStatus_PENDING:
-				y.Status = "pending"
-			case stellar1.TransactionStatus_SUCCESS:
-				y.Status = "completed"
-			case stellar1.TransactionStatus_ERROR_TRANSIENT:
-				y.Status = "error"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			case stellar1.TransactionStatus_ERROR_PERMANENT:
-				y.Status = "error"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			default:
-				y.Status = "unknown"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			}
-			y.DisplayAmount = x.Keybase.DisplayAmount
-			y.DisplayCurrency = x.Keybase.DisplayCurrency
-			fromUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, x.Keybase.FromUID)
-			if err == nil {
-				tmp := fromUsername.String()
-				y.FromUsername = &tmp
-			}
-			if x.Keybase.ToUID != nil {
-				toUsername, err := s.G().GetUPAKLoader().LookupUsername(ctx, *x.Keybase.ToUID)
-				if err == nil {
-					tmp := toUsername.String()
-					y.ToUsername = &tmp
-				}
-			}
-		}
-		if x.Stellar != nil {
-			y.Time = x.Stellar.Ctime
-		}
-		res = append(res, y)
-	}
-	return res, nil
+	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
 }
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
@@ -205,4 +157,109 @@ func (s *Server) WalletInitLocal(ctx context.Context) (err error) {
 	}
 	_, err = stellar.CreateWallet(ctx, s.G())
 	return err
+}
+
+func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplayCurrencyArg) (err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("SetDisplayCurrency(%s, %s)", arg.AccountID, arg.Currency),
+		func() error { return err })()
+
+	if err := s.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
+}
+
+type exchangeRateMap map[string]remote.XLMExchangeRate
+
+// getLocalCurrencyAndExchangeRate gets display currency setting
+// for accountID and fetches exchange rate is set.
+//
+// Arguments `account` and `exchangeRates` may end up mutated.
+func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.LocalOwnAccount, exchangeRates exchangeRateMap) error {
+	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
+	if err != nil {
+		return err
+	}
+
+	if displayCurrency == "" {
+		return nil
+	}
+
+	rate, ok := exchangeRates[displayCurrency]
+	if !ok {
+		var err error
+		rate, err = remote.ExchangeRate(ctx, g, displayCurrency)
+		if err != nil {
+			return err
+		}
+		exchangeRates[displayCurrency] = rate
+	}
+
+	account.LocalCurrency = stellar1.LocalCurrencyCode(rate.Currency)
+	account.LocalExchangeRate = stellar1.LocalExchangeRate(rate.Price)
+	return nil
+}
+
+func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.LocalOwnAccount, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "WalletGetLocalAccounts", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	dump, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		return nil, err
+	}
+
+	var accountError error
+	exchangeRates := make(exchangeRateMap)
+	for _, account := range dump.Accounts {
+		accID := account.AccountID
+		acc := stellar1.LocalOwnAccount{
+			AccountID: accID,
+			IsPrimary: account.IsPrimary,
+			Name:      account.Name,
+		}
+
+		balances, err := remote.Balances(ctx, s.G(), accID)
+		if err != nil {
+			accountError = err
+			s.G().Log.Warning("Could not load balance for %q", accID)
+			continue
+		}
+
+		acc.Balance = balances
+
+		if err := getLocalCurrencyAndExchangeRate(ctx, s.G(), &acc, exchangeRates); err != nil {
+			s.G().Log.Warning("Could not load local currency exchange rate for %q", accID)
+		}
+
+		ret = append(ret, acc)
+	}
+
+	// Put the primary account first
+	sort.SliceStable(ret, func(i, j int) bool {
+		if ret[i].IsPrimary {
+			return true
+		}
+		if ret[j].IsPrimary {
+			return false
+		}
+		return i < j
+	})
+
+	return ret, accountError
+}
+
+func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.LocalCurrencyCode) (res stellar1.LocalExchangeRate, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)), func() error { return err })()
+	rate, err := remote.ExchangeRate(ctx, s.G(), string(currency))
+	if err != nil {
+		return res, err
+	}
+	return stellar1.LocalExchangeRate(rate.Price), nil
 }

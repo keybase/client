@@ -43,9 +43,11 @@ export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
+export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
+export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -81,6 +83,7 @@ export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
@@ -89,9 +92,13 @@ export const updateTypers = 'chat2:updateTypers'
  */
 export const createCancelPendingConversation = () => ({error: false, payload: undefined, type: cancelPendingConversation})
 /**
- * Consume a service notification that a conversation's retention policy has been updated and update the conversation metaMap
+ * Consume a service notification that a conversation's retention policy has been updated
  */
 export const createUpdateConvRetentionPolicy = (payload: $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>) => ({error: false, payload, type: updateConvRetentionPolicy})
+/**
+ * Consume a service notification that a team retention policy was updated
+ */
+export const createUpdateTeamRetentionPolicy = (payload: $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>) => ({error: false, payload, type: updateTeamRetentionPolicy})
 /**
  * Retries sending the pending message that is currently stored in the metaMap
  */
@@ -110,7 +117,7 @@ export const createSetPendingMessageSubmitState = (
  */
 export const createSetPendingStatus = (payload: $ReadOnly<{|pendingStatus: Types.PendingStatus|}>) => ({error: false, payload, type: setPendingStatus})
 /**
- * Sets the retention policy for a conversation. Valid operation for big team channels only.
+ * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (
   payload: $ReadOnly<{|
@@ -263,6 +270,12 @@ export const createMessageErrored = (
     outboxID: Types.OutboxID,
   |}>
 ) => ({error: false, payload, type: messageErrored})
+export const createMessageReplyPrivately = (
+  payload: $ReadOnly<{|
+    sourceConversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  |}>
+) => ({error: false, payload, type: messageReplyPrivately})
 export const createMessageRetry = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -282,6 +295,13 @@ export const createMessageSetEditing = (
     editLastUser?: string,
   |}>
 ) => ({error: false, payload, type: messageSetEditing})
+export const createMessageSetQuoting = (
+  payload: $ReadOnly<{|
+    sourceConversationIDKey: Types.ConversationIDKey,
+    targetConversationIDKey: string,
+    ordinal: ?Types.Ordinal,
+  |}>
+) => ({error: false, payload, type: messageSetQuoting})
 export const createMessageWasEdited = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -343,6 +363,8 @@ export const createMetasReceived = (
   payload: $ReadOnly<{|
     metas: Array<Types.ConversationMeta>,
     neverCreate?: boolean,
+    clearExistingMetas?: boolean,
+    clearExistingMessages?: boolean,
   |}>
 ) => ({error: false, payload, type: metasReceived})
 export const createMuteConversation = (
@@ -456,9 +478,11 @@ export type MessageDeleteHistoryPayload = More.ReturnType<typeof createMessageDe
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
 export type MessageErroredPayload = More.ReturnType<typeof createMessageErrored>
+export type MessageReplyPrivatelyPayload = More.ReturnType<typeof createMessageReplyPrivately>
 export type MessageRetryPayload = More.ReturnType<typeof createMessageRetry>
 export type MessageSendPayload = More.ReturnType<typeof createMessageSend>
 export type MessageSetEditingPayload = More.ReturnType<typeof createMessageSetEditing>
+export type MessageSetQuotingPayload = More.ReturnType<typeof createMessageSetQuoting>
 export type MessageWasEditedPayload = More.ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = More.ReturnType<typeof createMessagesAdd>
 export type MessagesWereDeletedPayload = More.ReturnType<typeof createMessagesWereDeleted>
@@ -494,6 +518,7 @@ export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHan
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateNotificationSettingsPayload = More.ReturnType<typeof createUpdateNotificationSettings>
+export type UpdateTeamRetentionPolicyPayload = More.ReturnType<typeof createUpdateTeamRetentionPolicy>
 export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 
 // All Actions
@@ -531,9 +556,11 @@ export type Actions =
   | More.ReturnType<typeof createMessageDeleteHistory>
   | More.ReturnType<typeof createMessageEdit>
   | More.ReturnType<typeof createMessageErrored>
+  | More.ReturnType<typeof createMessageReplyPrivately>
   | More.ReturnType<typeof createMessageRetry>
   | More.ReturnType<typeof createMessageSend>
   | More.ReturnType<typeof createMessageSetEditing>
+  | More.ReturnType<typeof createMessageSetQuoting>
   | More.ReturnType<typeof createMessageWasEdited>
   | More.ReturnType<typeof createMessagesAdd>
   | More.ReturnType<typeof createMessagesWereDeleted>
@@ -569,5 +596,6 @@ export type Actions =
   | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createUpdateConvRetentionPolicy>
   | More.ReturnType<typeof createUpdateNotificationSettings>
+  | More.ReturnType<typeof createUpdateTeamRetentionPolicy>
   | More.ReturnType<typeof createUpdateTypers>
   | {type: 'common:resetStore', payload: void}

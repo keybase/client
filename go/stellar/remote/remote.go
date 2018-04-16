@@ -181,11 +181,7 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	err = pukring.Sync(ctx)
-	if err != nil {
-		return res, 0, err
-	}
-	puk, err := pukring.GetSeedByGeneration(ctx, decodeRes.Enc.Gen)
+	puk, err := pukring.GetSeedByGenerationOrSync(ctx, decodeRes.Enc.Gen)
 	if err != nil {
 		return res, 0, err
 	}
@@ -304,4 +300,76 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 	var apiRes recentPaymentsResult
 	err = g.API.GetDecode(apiArg, &apiRes)
 	return apiRes.Result, err
+}
+
+type tickerResult struct {
+	Status     libkb.AppStatus `json:"status"`
+	Price      float64         `json:"price"`
+	PriceInBTC float64         `json:"xlm_btc"`
+	CachedAt   keybase1.Time   `json:"cached_at"`
+	URL        string          `json:"url"`
+	Currency   string          `json:"currency"`
+}
+
+func (b *tickerResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+type XLMExchangeRate struct {
+	Price    float64
+	Currency string
+}
+
+func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (XLMExchangeRate, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/ticker",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"currency": libkb.S{Val: currency},
+		},
+		NetContext: ctx,
+	}
+	var apiRes tickerResult
+	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return XLMExchangeRate{}, err
+	}
+	return XLMExchangeRate{Price: apiRes.Price, Currency: apiRes.Currency}, nil
+}
+
+type accountCurrencyResult struct {
+	Status                    libkb.AppStatus `json:"status"`
+	CurrencyDisplayPreference string          `json:"currency_display_preference"`
+}
+
+func (b *accountCurrencyResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (string, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountcurrency",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+		},
+		NetContext: ctx,
+	}
+	var apiRes accountCurrencyResult
+	err := g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.CurrencyDisplayPreference, err
+}
+
+func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID,
+	currency string) error {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountcurrency",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+			"currency":   libkb.S{Val: currency},
+		},
+		NetContext: ctx,
+	}
+	_, err := g.API.Post(apiArg)
+	return err
 }

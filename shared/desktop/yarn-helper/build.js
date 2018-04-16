@@ -15,7 +15,9 @@ const commands = {
   'build-prod': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true', STATS: outputStats ? 'true' : 'false'},
     help: 'Make a production build of the js code',
-    shell: `${webpackCmd} --mode production --progress ${outputStats ? '--json > webpack-stats.json' : ''}`,
+    shell: `${webpackCmd} --mode production --progress ${
+      outputStats ? '--profile --json > webpack-stats.json' : ''
+    }`,
   },
   'hot-server': {
     code: hotServer,

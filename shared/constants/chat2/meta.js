@@ -216,6 +216,12 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     retentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.convRetention)
   }
 
+  // default for team-wide policy is 'retain'
+  let teamRetentionPolicy = makeRetentionPolicy()
+  if (i.teamRetention) {
+    teamRetentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+  }
+
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
@@ -234,6 +240,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : null,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
+    teamRetentionPolicy,
     timestamp: i.time,
     tlfname: i.name,
     trustedState: 'trusted',
@@ -263,6 +270,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   supersedes: null,
   teamType: 'adhoc',
   teamname: '',
+  teamRetentionPolicy: makeRetentionPolicy(),
   timestamp: 0,
   tlfname: '',
   trustedState: 'untrusted',
@@ -309,7 +317,7 @@ export const getConversationIDKeyMetasToLoad = (
 
 export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
   meta.participants
-    // Filter out ourselves unless its our 1:1 conversation
+    // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))
 
 export const timestampToString = (meta: Types.ConversationMeta) =>

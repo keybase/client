@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 
-// I put a lot of FlowIssues here so i could get this checked in. The typing of this isn't perfect, but its getting closer
+// I put a lot of FlowIssues here so I could get this checked in. The typing of this isn't perfect, but it's getting closer
 
 type _LeafTags = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
@@ -206,7 +206,7 @@ function _routeSet(
     // $FlowIssue
     const childDef = routeDef.getChild(childName)
     if (!childDef) {
-      throw new Error(`RT: Invalid route child: ${childName}`)
+      throw new Error(`Invalid route child: ${childName}`)
     }
 
     newRouteState = newRouteState.updateChild(childName, childState => {
@@ -267,7 +267,7 @@ export function routeSetState(
   // $FlowIssue
   return routeState.updateChild(name, childState => {
     if (!childState) {
-      throw new Error(`RT: Missing state child: ${name || 'undefined'}`)
+      throw new Error(`Missing state child: ${name || 'undefined'}`)
     }
     return routeSetState(routeDef, childState, pathSeq.skip(1), partialState)
   })

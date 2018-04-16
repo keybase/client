@@ -7,8 +7,7 @@ import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import clipboard from '../../../../desktop/clipboard'
-import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
+import {debounce} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
@@ -77,7 +76,7 @@ class Thread extends React.Component<Props, State> {
     }
   }
 
-  _updateBottomLock = throttle((clientHeight: number, scrollHeight: number, scrollTop: number) => {
+  _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
       this.setState(prevState => {
@@ -85,7 +84,7 @@ class Thread extends React.Component<Props, State> {
         return isLockedToBottom !== prevState.isLockedToBottom ? {isLockedToBottom} : null
       })
     }
-  }, 500)
+  }
 
   _maybeLoadMoreMessages = debounce((clientHeight: number, scrollHeight: number, scrollTop: number) => {
     if (clientHeight && scrollHeight && scrollTop <= 20) {
@@ -123,7 +122,13 @@ class Thread extends React.Component<Props, State> {
               <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
             )
           } else if (index === 0) {
-            content = <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
+            content = (
+              <SpecialTopMessage
+                onToggleInfoPanel={this.props.onToggleInfoPanel}
+                conversationIDKey={this.props.conversationIDKey}
+                measure={measure}
+              />
+            )
           } else {
             const ordinalIndex = index - 1
             const ordinal = this.props.messageOrdinals.get(ordinalIndex)

@@ -1,12 +1,12 @@
 // @flow
 import {NativeModules} from 'react-native'
 import type {NativeLogDump} from './logger'
-import debounce from 'lodash/debounce'
+import {debounce} from 'lodash-es'
 
 export type RealNativeLog = (tagsAndLogs: Array<Array<string>>) => void
 const _log: RealNativeLog = __STORYBOOK__ ? tagsAndLogs => {} : NativeModules.KBNativeLogger.log
 
-// don't send over the wire immediately. That has horrible performance
+// Don't send over the wire immediately. That has horrible performance
 const actuallyLog = debounce(() => {
   _log(toSend)
   toSend = []

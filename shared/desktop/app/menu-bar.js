@@ -36,6 +36,7 @@ const getIcon = invertColors => {
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
     index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
+    nodeIntegration: false,
     width: 320,
     height: 350,
     resizable: false,
@@ -69,6 +70,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
 
   mb.on('ready', () => {
     menubarWindowIDCallback(mb.window.id)
+
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e, bounds) => {
       e.preventDefault()
@@ -90,22 +92,37 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
 
     mb.on('show', () => {
       // Account for different taskbar positions on Windows
-      if (isWindows) {
+      if (isWindows && mb.window && mb.tray) {
         const cursorPoint = electronScreen.getCursorScreenPoint()
         const screenSize = electronScreen.getDisplayNearestPoint(cursorPoint).workArea
-        if (screenSize.x > 0) {
-          // start menu on left
-          mb.setOption('windowPosition', 'trayBottomLeft')
-        } else if (screenSize.y > 0) {
-          // start menu on top
-          mb.setOption('windowPosition', 'trayRight')
-        } else if (cursorPoint.x > screenSize.x) {
-          // start menu on right
-          mb.setOption('windowPosition', 'bottomRight')
+        let menuBounds = mb.window.getBounds()
+        console.log('Showing menu:', cursorPoint, screenSize)
+        let iconBounds = mb.tray.getBounds()
+        let x = iconBounds.x
+        let y = iconBounds.y - iconBounds.height - menuBounds.height
+
+        // rough guess where the menu bar is, since it's not
+        // available on electron
+        if (cursorPoint.x < screenSize.width / 2) {
+          if (cursorPoint.y > screenSize.height / 2) {
+            console.log('- start menu on left -')
+            // start menu on left
+            x += iconBounds.width
+          }
         } else {
-          // start menu on bottom
-          mb.setOption('windowPosition', 'trayBottomCenter')
+          // start menu on top or bottom
+          x -= menuBounds.width
+          if (cursorPoint.y < screenSize.height / 2) {
+            console.log('- start menu on top -')
+            // start menu on top
+            y = iconBounds.y + iconBounds.height
+          } else {
+            // start menu on right/bottom
+            console.log('- start menu on bottom -')
+          }
         }
+        mb.setOption('x', x)
+        mb.setOption('y', y)
       }
 
       isDarwin && updateIcon(!isDarkMode())

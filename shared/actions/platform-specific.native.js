@@ -162,7 +162,7 @@ function configurePush() {
         } else {
           dispatch(
             PushGen.createRegistrationError({
-              error: new Error(`Unrecognized os for token: ${token}`),
+              error: new Error(`Unrecognized OS for token: ${token}`),
             })
           )
         }

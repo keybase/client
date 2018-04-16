@@ -43,10 +43,11 @@ class Input extends Component<Props, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  componentWillReceiveProps(nextProps: Props) {
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (nextProps.hasOwnProperty('value')) {
-      this.setState({value: nextProps.value || ''})
+      return {value: nextProps.value || ''}
     }
+    return null
   }
 
   _onContentSizeChange = event => {
@@ -260,6 +261,10 @@ class Input extends Component<Props, State> {
       secureTextEntry: this.props.type === 'password',
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
+    }
+
+    if (this.props.uncontrolled) {
+      delete commonProps['value']
     }
 
     const singlelineProps = {

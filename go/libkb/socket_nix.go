@@ -41,7 +41,7 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 
 	// Path can't be longer than N characters.
 	// In this case Chdir to the file directory first and use a local path.
-	// On many linuxes, N=108, on some N=106, and on macOS N=104.
+	// On many Linuxes, N=108, on some N=106, and on macOS N=104.
 	// N=104 is the lowest I know of.
 	// It's the length of the path buffer in sockaddr_un.
 	// And there may be a null-terminator in there, not sure, so make it 103 for good luck.

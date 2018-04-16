@@ -255,19 +255,20 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 }
 
 type ProofMetadata struct {
-	Me             *User
-	SigningUser    UserBasic
-	Seqno          keybase1.Seqno
-	PrevLinkID     LinkID
-	LinkType       LinkType
-	SigningKey     GenericKey
-	Eldest         keybase1.KID
-	CreationTime   int64
-	ExpireIn       int
-	IncludePGPHash bool
-	SigVersion     SigVersion
-	SeqType        keybase1.SeqType
-	MerkleRoot     *MerkleRoot
+	Me                  *User
+	SigningUser         UserBasic
+	Seqno               keybase1.Seqno
+	PrevLinkID          LinkID
+	LinkType            LinkType
+	SigningKey          GenericKey
+	Eldest              keybase1.KID
+	CreationTime        int64
+	ExpireIn            int
+	IncludePGPHash      bool
+	SigVersion          SigVersion
+	SeqType             keybase1.SeqType
+	MerkleRoot          *MerkleRoot
+	IgnoreIfUnsupported SigIgnoreIfUnsupported
 }
 
 func (arg ProofMetadata) merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
@@ -329,6 +330,10 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	ret.SetKey("expire_in", jsonw.NewInt(ei))
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
+
+	if arg.IgnoreIfUnsupported {
+		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+	}
 
 	eldest := arg.Eldest
 	if eldest == "" {
@@ -789,10 +794,11 @@ func StellarProof(me *User, walletAddress stellar1.AccountID,
 	walletKID := walletPubKey.GetKID()
 
 	ret, err := ProofMetadata{
-		Me:         me,
-		LinkType:   LinkTypeWalletStellar,
-		SigningKey: signingKey,
-		SigVersion: KeybaseSignatureV2,
+		Me:                  me,
+		LinkType:            LinkTypeWalletStellar,
+		SigningKey:          signingKey,
+		SigVersion:          KeybaseSignatureV2,
+		IgnoreIfUnsupported: SigIgnoreIfUnsupported(true),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -855,7 +861,7 @@ func StellarProofReverseSigned(me *User, walletAddress stellar1.AccountID,
 		innerJSON,
 		SigHasRevokes(false),
 		keybase1.SeqType_PUBLIC,
-		SigIgnoreIfUnsupported(false),
+		SigIgnoreIfUnsupported(true),
 		me,
 		KeybaseSignatureV2,
 	)

@@ -8,7 +8,7 @@ import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/
 import {globalStyles, globalColors, desktopStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {remote} from 'electron'
-import throttle from 'lodash/throttle'
+import {throttle} from 'lodash-es'
 
 export type Props = {
   folderProps: ?FolderProps,

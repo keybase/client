@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
-    componentWillMount: function() {
+    componentDidMount() {
       this.props.onRefresh()
     },
   })
