@@ -28,4 +28,4 @@ const baseTeamname = (teamname: Teamname): ?Teamname => {
   return teamname.substring(0, i)
 }
 
-export {validTeamname, baseTeamname}
+export {validTeamnamePart, validTeamname, baseTeamname}

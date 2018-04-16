@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
     const destSubPath = sourceSubPath.butLast()
     dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
   },
-  _onSetTeamCreationError: (error: string) => {
+  onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
@@ -32,7 +32,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSubteam = ownProps.routeProps.get('makeSubteam') || false
-  const routeName = ownProps.routeProps.get('name') || ''
+  let routeName = ownProps.routeProps.get('name') || ''
+  if (isSubteam) {
+    routeName += '.'
+  }
   const baseTeam = baseTeamname(routeName)
   return {
     ...stateProps,
@@ -54,7 +57,7 @@ export default compose(
   }),
   lifecycle({
     componentDidMount() {
-      this.props._onSetTeamCreationError('')
+      this.props.onSetTeamCreationError('')
     },
   })
 )(NewTeamDialog)

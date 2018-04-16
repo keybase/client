@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {validTeamnamePart} from '../../constants/teamname'
 
 type Props = {
   baseTeam: string,
@@ -21,7 +22,10 @@ type Props = {
   onBack: () => void,
   onJoinSubteamChange: () => void,
   onNameChange: (n: string) => void,
+  onSetTeamCreationError: (err: string) => void,
   onSubmit: (fullName: string) => void,
+  // hasSubmitted: boolean,
+  // setHasSubmitted: () => void,
   pending: boolean,
 }
 
@@ -40,39 +44,71 @@ type Props = {
 // }
 
 class Contents extends React.Component<Props> {
+  _onSubmit = () => {
+    if (!validTeamnamePart(this.props.name)) {
+      this.props.onSetTeamCreationError(
+        'Teamnames must be between 2 and 16 characters long, can only contain letters and underscores, and cannot begin with an underscore.'
+      )
+      return
+    }
+    this.props.onSetTeamCreationError('')
+    this.props.onSubmit(this._fullName())
+  }
+
+  _errorText = () => {
+    if (this.props.errorText) {
+      return this.props.errorText
+    }
+    return null
+  }
+
   _headerText = () => {
-    // TODO invalid checking
     if (this.props.isSubteam) {
       return `You are creating a subteam of ${this.props.baseTeam}`
     }
     return "For security reasons, team names are unique and can't be changed, so choose carefully."
   }
 
-  _fullName = () => this.props.baseTeam.concat(`.${this.props.name}`)
+  _fullName = () =>
+    this.props.isSubteam ? this.props.baseTeam.concat(`.${this.props.name}`) : this.props.name
 
   render() {
-    const {
-      errorText,
-      isSubteam,
-      joinSubteam,
-      name,
-      onJoinSubteamChange,
-      onNameChange,
-      onSubmit,
-      pending,
-    } = this.props
+    const {isSubteam, joinSubteam, name, onJoinSubteamChange, onNameChange, pending} = this.props
     return (
       <ScrollView>
         <Box style={globalStyles.flexBoxColumn}>
-          <Box style={{...styleContainer, backgroundColor: errorText ? globalColors.red : globalColors.blue}}>
+          <Box
+            style={{
+              ...styleContainer,
+              backgroundColor: globalColors.blue,
+            }}
+          >
             <Text
               style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
               type="BodySemibold"
-              backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
+              backgroundMode="Announcements"
             >
               {this._headerText()}
             </Text>
           </Box>
+          {this._errorText() && (
+            <Box
+              style={{
+                ...styleContainer,
+                backgroundColor: globalColors.red,
+                borderTopLeftRadius: 0,
+                borderTopRightRadius: 0,
+              }}
+            >
+              <Text
+                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                type="BodySemibold"
+                backgroundMode="HighRisk"
+              >
+                {this._errorText()}
+              </Text>
+            </Box>
+          )}
 
           <Box
             style={{
@@ -89,10 +125,20 @@ class Contents extends React.Component<Props> {
                 hintText="Name your team"
                 value={name}
                 onChangeText={onNameChange}
-                onEnterKeyDown={() => onSubmit(this._fullName())}
+                onEnterKeyDown={this._onSubmit}
                 disabled={pending}
               />
             </Box>
+
+            {isSubteam && (
+              <Box
+                style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium, opacity: name ? 1 : 0}}
+              >
+                <Text type="Body">
+                  This team will be named <Text type="BodySemibold">{this._fullName()}</Text>
+                </Text>
+              </Box>
+            )}
 
             {isSubteam && (
               <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
@@ -108,7 +154,7 @@ class Contents extends React.Component<Props> {
               <Button
                 type="Primary"
                 style={{marginLeft: globalMargins.tiny}}
-                onClick={() => onSubmit(this._fullName())}
+                onClick={this._onSubmit}
                 label="Create team"
                 disabled={pending}
               />
