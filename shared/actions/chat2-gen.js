@@ -88,7 +88,7 @@ export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
 /**
- * Cancels the pending conversation, clears out all pending data from the store, and navigatac to the inbox
+ * Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox
  */
 export const createCancelPendingConversation = () => ({error: false, payload: undefined, type: cancelPendingConversation})
 /**

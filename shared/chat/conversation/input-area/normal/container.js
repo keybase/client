@@ -35,7 +35,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
-  const quote = Constants.getQuotingOrdinal(
+  const quote = Constants.getQuotingOrdinalAndSource(
     state,
     state.chat2.pendingSelected ? 'pending' : conversationIDKey
   )
@@ -67,8 +67,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const injectedInput =
     injectedInputMessage && injectedInputMessage.type === 'text' && injectedInputMessage.text.stringValue()
 
-  console.warn('quoting', _quotingMessage)
-  console.warn('inj', injectedInput)
   return {
     _editingMessage,
     _meta: Constants.getMeta(state, conversationIDKey),

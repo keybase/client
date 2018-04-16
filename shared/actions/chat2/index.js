@@ -918,10 +918,8 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
 
 const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
   const {sourceConversationIDKey, ordinal} = action.payload
-  console.warn('in messageReplyPrivately')
   const you = state.config.username
   const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
-  console.warn('message', message)
   if (!message) {
     logger.warn("Can't find message to reply to", ordinal)
     return
@@ -930,11 +928,7 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
   // Do we already have a convo for this author?
   const newConversationIDKey =
     you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
-  if (newConversationIDKey) {
-    console.warn('found convo', newConversationIDKey)
-  } else {
-    console.warn("didn't find convo")
-  }
+
   return Saga.sequentially([
     Saga.put(
       Chat2Gen.createMessageSetQuoting({

@@ -137,7 +137,7 @@
       "submitState": ["'failed'", "'pending'"]
     },
     "cancelPendingConversation": {
-      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigatac to the inbox"
+      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
     },
     "retryPendingConversation": {
       "_description": "Retries sending the pending message that is currently stored in the metaMap"
