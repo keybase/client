@@ -150,7 +150,8 @@
     },
     // Start quoting a message / or clear quoting
     "messageSetQuoting": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "targetConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
     // Reply privately to a message with quoting

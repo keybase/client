@@ -35,15 +35,14 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
-  const quotingOrdinal = Constants.getQuotingOrdinal(state, conversationIDKey)
-  console.warn({quotingOrdinal})
+  const quote = Constants.getQuotingOrdinal(state, conversationIDKey)
+  const quotingOrdinal = quote && quote.ordinal
+  const sourceConversationIDKey = quote && quote.sourceConversationIDKey
   const _quotingMessage = quotingOrdinal
-    ? Constants.getMessageMap(state, conversationIDKey).get(quotingOrdinal)
+    ? Constants.getMessageMap(state, sourceConversationIDKey).get(quotingOrdinal)
     : null
-  console.warn({_quotingMessage})
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
-
   return {
     _editingMessage,
     _quotingMessage,
@@ -62,7 +61,8 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     ),
   _onCancelEditing: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null})),
-  _onCancelQuoting: () => dispatch(Chat2Gen.createMessageSetQuoting({quotedMessage: null})),
+  _onCancelQuoting: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(Chat2Gen.createMessageSetQuoting({conversationIDKey, ordinal: null})),
   _onEditLastMessage: (conversationIDKey: Types.ConversationIDKey, you: string) =>
     dispatch(
       Chat2Gen.createMessageSetEditing({
@@ -175,6 +175,7 @@ export default compose(
       }
     },
     componentWillReceiveProps(nextProps) {
+      console.warn('quotedMessage is', nextProps.quotedMessage)
       // Fill in the input with an edit, quote, or unsent text
       if (this.props._editingMessage !== nextProps._editingMessage) {
         const text =

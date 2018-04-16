@@ -297,7 +297,8 @@ export const createMessageSetEditing = (
 ) => ({error: false, payload, type: messageSetEditing})
 export const createMessageSetQuoting = (
   payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
+    sourceConversationIDKey: Types.ConversationIDKey,
+    targetConversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
   |}>
 ) => ({error: false, payload, type: messageSetQuoting})
