@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
@@ -53,7 +54,7 @@ type Service struct {
 	logForwarder         *logFwd
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
-	attachmentstore      *chat.AttachmentStore
+	attachmentstore      *attachments.Store
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -77,7 +78,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  chat.NewAttachmentStore(g.GetLog(), g.Env.GetRuntimeDir()),
+		attachmentstore:  attachments.NewStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),

@@ -11,65 +11,65 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type assetSource interface {
+type AssetSource interface {
 	FileSize() int
 	Basename() string
 	Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error)
 	Close() error
 }
 
-type streamSource struct {
+type StreamSource struct {
 	chat1.LocalSource
 	buf *libkb.RemoteStreamBuffered
 }
 
-func newStreamSource(s chat1.LocalSource) *streamSource {
-	return &streamSource{LocalSource: s}
+func NewStreamSource(s chat1.LocalSource) *StreamSource {
+	return &StreamSource{LocalSource: s}
 }
 
-func (s *streamSource) FileSize() int {
+func (s *StreamSource) FileSize() int {
 	return s.Size
 }
 
-func (s *streamSource) Basename() string {
+func (s *StreamSource) Basename() string {
 	return filepath.Base(s.Filename)
 }
 
-func (s *streamSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
+func (s *StreamSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
 	s.buf = libkb.NewRemoteStreamBuffered(s.Source, cli, sessionID)
 	return s.buf, nil
 }
 
-func (s *streamSource) Close() error {
+func (s *StreamSource) Close() error {
 	return s.buf.Close()
 }
 
-type fileSource struct {
+type FileSource struct {
 	chat1.LocalFileSource
 	info os.FileInfo
 	buf  *fileReadResetter
 }
 
-func newFileSource(s chat1.LocalFileSource) (*fileSource, error) {
+func NewFileSource(s chat1.LocalFileSource) (*FileSource, error) {
 	i, err := os.Stat(s.Filename)
 	if err != nil {
 		return nil, err
 	}
-	return &fileSource{
+	return &FileSource{
 		LocalFileSource: s,
 		info:            i,
 	}, nil
 }
 
-func (f *fileSource) FileSize() int {
+func (f *FileSource) FileSize() int {
 	return int(f.info.Size())
 }
 
-func (f *fileSource) Basename() string {
+func (f *FileSource) Basename() string {
 	return f.info.Name()
 }
 
-func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
+func (f *FileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
 	buf, err := newFileReadResetter(f.Filename)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadRese
 	return f.buf, nil
 }
 
-func (f *fileSource) Close() error {
+func (f *FileSource) Close() error {
 	if f.buf != nil {
 		return f.buf.Close()
 	}

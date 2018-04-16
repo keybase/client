@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
@@ -54,7 +55,7 @@ type Server struct {
 	serverConn    ServerConnection
 	uiSource      UISource
 	boxer         *Boxer
-	store         *AttachmentStore
+	store         *attachments.Store
 	identNotifier types.IdentifyNotifier
 	clock         clockwork.Clock
 
@@ -67,7 +68,7 @@ type Server struct {
 
 var _ chat1.LocalInterface = (*Server)(nil)
 
-func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConnection,
+func NewServer(g *globals.Context, store *attachments.Store, serverConn ServerConnection,
 	uiSource UISource) *Server {
 	return &Server{
 		Contextified:  globals.NewContextified(g),
@@ -1220,7 +1221,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	src, err := newFileSource(arg.Attachment)
+	src, err := attachments.NewFileSource(arg.Attachment)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -1285,7 +1286,7 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 		ConversationID:   arg.ConversationID,
 		TlfName:          arg.TlfName,
 		Visibility:       arg.Visibility,
-		Attachment:       newStreamSource(arg.Attachment),
+		Attachment:       attachments.NewStreamSource(arg.Attachment),
 		Title:            arg.Title,
 		Metadata:         arg.Metadata,
 		IdentifyBehavior: arg.IdentifyBehavior,
@@ -1296,7 +1297,7 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 	if arg.Preview != nil {
 		parg.Preview = new(attachmentPreview)
 		if arg.Preview.Filename != nil {
-			parg.Preview.source, err = newFileSource(chat1.LocalFileSource{
+			parg.Preview.source, err = attachments.NewFileSource(chat1.LocalFileSource{
 				Filename: *arg.Preview.Filename,
 			})
 			if err != nil {
@@ -1331,7 +1332,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 		IdentifyBehavior: arg.IdentifyBehavior,
 		OutboxID:         arg.OutboxID,
 	}
-	asrc, err := newFileSource(arg.Attachment)
+	asrc, err := attachments.NewFileSource(arg.Attachment)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
@@ -1341,7 +1342,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	if arg.Preview != nil {
 		parg.Preview = new(attachmentPreview)
 		if arg.Preview.Filename != nil && *arg.Preview.Filename != "" {
-			parg.Preview.source, err = newFileSource(chat1.LocalFileSource{
+			parg.Preview.source, err = attachments.NewFileSource(chat1.LocalFileSource{
 				Filename: *arg.Preview.Filename,
 			})
 			if err != nil {
@@ -1362,7 +1363,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 }
 
 type attachmentPreview struct {
-	source   assetSource
+	source   attachments.AssetSource
 	mimeType string
 	md       *chat1.AssetMetadata
 	baseMd   *chat1.AssetMetadata
@@ -1374,7 +1375,7 @@ type postAttachmentArg struct {
 	ConversationID   chat1.ConversationID
 	TlfName          string
 	Visibility       keybase1.TLFVisibility
-	Attachment       assetSource
+	Attachment       attachments.AssetSource
 	Preview          *attachmentPreview
 	Title            string
 	Metadata         []byte
@@ -1931,7 +1932,7 @@ func (d *dimension) Encode() string {
 
 type preprocess struct {
 	ContentType        string
-	Preview            *BufferSource
+	Preview            *attachments.BufferSource
 	PreviewContentType string
 	BaseDim            *dimension
 	BaseDurationMs     int
@@ -1959,7 +1960,8 @@ func (p *preprocess) PreviewMetadata() chat1.AssetMetadata {
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height})
 }
 
-func (h *Server) preprocessAsset(ctx context.Context, sessionID int, attachment assetSource, preview *attachmentPreview) (*preprocess, error) {
+func (h *Server) preprocessAsset(ctx context.Context, sessionID int, attachment attachments.AssetSource,
+	preview *attachmentPreview) (*preprocess, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src, err := attachment.Open(sessionID, cli)
@@ -1983,7 +1985,8 @@ func (h *Server) preprocessAsset(ctx context.Context, sessionID int, attachment 
 	if preview == nil {
 		h.Debug(ctx, "no attachment preview included by client, seeing if possible to generate")
 		src.Reset()
-		previewRes, err := Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename(), attachment.FileSize())
+		previewRes, err := attachments.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename(),
+			attachment.FileSize())
 		if err != nil {
 			h.Debug(ctx, "error making preview: %s", err)
 			return nil, err
@@ -2039,7 +2042,7 @@ func (h *Server) preprocessAsset(ctx context.Context, sessionID int, attachment 
 	return &p, nil
 }
 
-func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress ProgressReporter) (chat1.Asset, error) {
+func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local attachments.AssetSource, conversationID chat1.ConversationID, progress attachments.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src, err := local.Open(sessionID, cli)
@@ -2047,7 +2050,7 @@ func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3
 		return chat1.Asset{}, err
 	}
 
-	task := UploadTask{
+	task := attachments.UploadTask{
 		S3Params:       params,
 		Filename:       local.Basename(),
 		FileSize:       local.FileSize(),

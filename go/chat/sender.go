@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
@@ -26,13 +27,13 @@ type BlockingSender struct {
 	utils.DebugLabeler
 
 	boxer *Boxer
-	store *AttachmentStore
+	store *attachments.Store
 	getRi func() chat1.RemoteInterface
 }
 
 var _ types.Sender = (*BlockingSender)(nil)
 
-func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
+func NewBlockingSender(g *globals.Context, boxer *Boxer, store *attachments.Store,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified: globals.NewContextified(g),

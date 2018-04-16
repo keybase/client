@@ -36,7 +36,7 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func (a *AttachmentStore) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
+func (a *Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
 	region := a.regionFromParams(task.S3Params)
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
@@ -66,7 +66,7 @@ func (a *AttachmentStore) PutS3(ctx context.Context, r io.Reader, size int64, ta
 // putSingle uploads data in r to S3 with the Put API.  It has to be
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
-func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params, b s3.BucketInt, progress ProgressReporter) (err error) {
+func (a *Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params, b s3.BucketInt, progress ProgressReporter) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
 	// In order to be able to retry the upload, need to read in the entire
 	// attachment.  But putSingle is only called for attachments <= 5MB, so
@@ -114,7 +114,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 // Each block is 5MB. It returns the object key if no errors.  putMultiPipeline
 // will return a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
-func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (res string, err error) {
+func (a *Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (res string, err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putMultiPipeline(size=%d)", size))()
 
 	var multi s3.MultiInt
@@ -228,7 +228,7 @@ func (j job) etag() string {
 // makeBlockJobs reads ciphertext chunks from r and creates jobs that it puts onto blockCh.
 // If this is a resumed upload, it verifies the blocks against the local stash before
 // creating jobs.
-func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job, stashKey StashKey, previous *AttachmentInfo) error {
+func (a *Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job, stashKey StashKey, previous *AttachmentInfo) error {
 	var partNumber int
 	for {
 		partNumber++
@@ -275,7 +275,7 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 }
 
 // addJob creates a job and puts it on blockCh, unless the blockCh isn't ready and the context has been canceled.
-func (a *AttachmentStore) addJob(ctx context.Context, blockCh chan job, block []byte, partNumber int, hash string) error {
+func (a *Store) addJob(ctx context.Context, blockCh chan job, block []byte, partNumber int, hash string) error {
 	// Create a job, unless the context has been canceled.
 	select {
 	case blockCh <- job{block: block, index: partNumber, hash: hash}:
@@ -288,7 +288,7 @@ func (a *AttachmentStore) addJob(ctx context.Context, blockCh chan job, block []
 // uploadPart handles uploading a job to S3.  The job `b` has already passed local stash verification.
 // If this is a resumed upload, it checks the previous parts reported by S3 and will skip uploading
 // any that already exist.
-func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) (err error) {
+func (a *Store) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("uploadPart(%d)", b.index))()
 
 	// check to see if this part has already been uploaded.
@@ -347,7 +347,7 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 }
 
 // putRetry sends a block to S3, retrying retryAttempts times w/ backoff.
-func (a *AttachmentStore) putRetry(ctx context.Context, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
+func (a *Store) putRetry(ctx context.Context, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
 	var lastErr error
 	for i := 0; i < retryAttempts; i++ {
 		select {
