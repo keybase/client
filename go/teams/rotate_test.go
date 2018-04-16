@@ -272,7 +272,7 @@ func TestRotateRace(t *testing.T) {
 	}
 }
 
-func TestRotateOpenTeam(t *testing.T) {
+func testRotateTeamSweeping(t *testing.T, open bool) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -287,11 +287,13 @@ func TestRotateOpenTeam(t *testing.T) {
 	require.NoError(t, SetRoleAdmin(context.Background(), tc.G, name, otherB.Username))
 	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherC.Username))
 
-	err = ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
-		Open:   true,
-		JoinAs: keybase1.TeamRole_READER,
-	})
-	require.NoError(t, err)
+	if open {
+		err = ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+			Open:   true,
+			JoinAs: keybase1.TeamRole_READER,
+		})
+		require.NoError(t, err)
+	}
 
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
@@ -311,7 +313,8 @@ func TestRotateOpenTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, members.AllUIDs(), 4)
 
-	// Reset otherA (writer) and otherB (admin). otherA should be removed.
+	// Reset otherA (writer) and otherB (admin). otherA should be
+	// removed if the team is open.
 	for _, u := range []*kbtest.FakeUser{otherA, otherB} {
 		tc.G.Logout()
 		require.NoError(t, u.Login(tc.G))
@@ -325,22 +328,31 @@ func TestRotateOpenTeam(t *testing.T) {
 
 	tc.G.UIDMapper.SetTestingNoCachingMode(true)
 
-	// Rotate - should trigger sweeping path.
+	// Rotate - should trigger sweeping path if the team is open.
 	err = HandleRotateRequest(context.Background(), tc.G, team.ID, team.Generation())
 	require.NoError(t, err)
 
-	// Reload team and check results. otherA should be gone.
+	// Reload team and check results.
 	team, err = GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
 
-	members, err = team.Members()
+	members2, err := team.Members()
 	require.NoError(t, err)
-	allUids := members.AllUIDs()
-	require.Len(t, allUids, 3)
+	if open {
+		allUids := members2.AllUIDs()
+		require.Len(t, allUids, 3)
 
-	require.Contains(t, allUids, owner.User.GetUID())
-	require.Contains(t, allUids, otherB.User.GetUID())
-	require.Contains(t, allUids, otherC.User.GetUID())
+		require.Contains(t, allUids, owner.User.GetUID())
+		require.Contains(t, allUids, otherB.User.GetUID())
+		require.Contains(t, allUids, otherC.User.GetUID())
 
-	require.NotContains(t, allUids, otherA.User.GetUID())
+		require.NotContains(t, allUids, otherA.User.GetUID())
+	} else {
+		require.ElementsMatch(t, members2.AllUserVersions(), members.AllUserVersions())
+	}
+}
+
+func TestRotateTeamSweeping(t *testing.T) {
+	testRotateTeamSweeping(t, false /* open */)
+	testRotateTeamSweeping(t, true /* open */)
 }
