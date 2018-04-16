@@ -3777,11 +3777,11 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-40.png') 1x, url('icons/icon-placeholder-avatar-40@2x.png') 2x);
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-48.png') 1x, url('icons/icon-placeholder-avatar-48@2x.png') 2x);
   border-radius: 50%;
-  height: 40px;
-  max-width: 40px;
-  min-width: 40px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
   opacity: 1;
 }
 
@@ -3804,11 +3804,11 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-40.png') 1x, url('icons/icon-team-placeholder-avatar-40@2x.png') 2x);
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-48.png') 1x, url('icons/icon-team-placeholder-avatar-48@2x.png') 2x);
   border-radius: 6px;
-  height: 40px;
-  max-width: 40px;
-  min-width: 40px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
   opacity: 1;
 }
 
@@ -3914,8 +3914,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -3924,8 +3924,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               style={
                 Object {
                   "height": "100%",
-                  "maxWidth": 40,
-                  "minWidth": 40,
+                  "maxWidth": 48,
+                  "minWidth": 48,
                   "paddingBottom": 4,
                   "paddingTop": 4,
                   "position": "relative",
@@ -4104,8 +4104,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -4114,8 +4114,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               style={
                 Object {
                   "height": "100%",
-                  "maxWidth": 40,
-                  "minWidth": 40,
+                  "maxWidth": 48,
+                  "minWidth": 48,
                   "paddingBottom": 4,
                   "paddingTop": 4,
                   "position": "relative",
@@ -4138,10 +4138,10 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                   style={
                     Object {
                       "backgroundColor": undefined,
-                      "height": 40,
-                      "maxWidth": 40,
-                      "minHeight": 40,
-                      "minWidth": 40,
+                      "height": 48,
+                      "maxWidth": 48,
+                      "minHeight": 48,
+                      "minWidth": 48,
                       "position": "relative",
                       "userSelect": "none",
                     }
@@ -4257,8 +4257,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -4267,10 +4267,10 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -4383,8 +4383,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -4393,10 +4393,10 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -4473,8 +4473,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -4483,10 +4483,10 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -4563,8 +4563,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -4573,10 +4573,10 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -4653,8 +4653,8 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -4663,10 +4663,10 @@ exports[`Storyshots Chat/Inbox Filtered 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -4737,11 +4737,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-40.png') 1x, url('icons/icon-team-placeholder-avatar-40@2x.png') 2x);
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-48.png') 1x, url('icons/icon-team-placeholder-avatar-48@2x.png') 2x);
   border-radius: 6px;
-  height: 40px;
-  max-width: 40px;
-  min-width: 40px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
   opacity: 1;
 }
 
@@ -4832,11 +4832,11 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-40.png') 1x, url('icons/icon-placeholder-avatar-40@2x.png') 2x);
+  background-image: -webkit-image-set(url('icons/icon-placeholder-avatar-48.png') 1x, url('icons/icon-placeholder-avatar-48@2x.png') 2x);
   border-radius: 50%;
-  height: 40px;
-  max-width: 40px;
-  min-width: 40px;
+  height: 48px;
+  max-width: 48px;
+  min-width: 48px;
   opacity: 1;
 }
 
@@ -5013,8 +5013,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -5023,10 +5023,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -5243,8 +5243,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -5253,8 +5253,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
               style={
                 Object {
                   "height": "100%",
-                  "maxWidth": 40,
-                  "minWidth": 40,
+                  "maxWidth": 48,
+                  "minWidth": 48,
                   "paddingBottom": 4,
                   "paddingTop": 4,
                   "position": "relative",
@@ -5277,10 +5277,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   style={
                     Object {
                       "backgroundColor": undefined,
-                      "height": 40,
-                      "maxWidth": 40,
-                      "minHeight": 40,
-                      "minWidth": 40,
+                      "height": 48,
+                      "maxWidth": 48,
+                      "minHeight": 48,
+                      "minWidth": 48,
                       "position": "relative",
                       "userSelect": "none",
                     }
@@ -5485,8 +5485,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -5495,8 +5495,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
               style={
                 Object {
                   "height": "100%",
-                  "maxWidth": 40,
-                  "minWidth": 40,
+                  "maxWidth": 48,
+                  "minWidth": 48,
                   "paddingBottom": 4,
                   "paddingTop": 4,
                   "position": "relative",
@@ -5519,10 +5519,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                   style={
                     Object {
                       "backgroundColor": undefined,
-                      "height": 40,
-                      "maxWidth": 40,
-                      "minHeight": 40,
-                      "minWidth": 40,
+                      "height": 48,
+                      "maxWidth": 48,
+                      "minHeight": 48,
+                      "minWidth": 48,
                       "position": "relative",
                       "userSelect": "none",
                     }
@@ -5704,8 +5704,8 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
                 "justifyContent": "flex-start",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "maxWidth": 40,
-                "minWidth": 40,
+                "maxWidth": 48,
+                "minWidth": 48,
                 "position": "relative",
               }
             }
@@ -5714,10 +5714,10 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
               onClick={undefined}
               style={
                 Object {
-                  "height": 40,
-                  "maxWidth": 40,
-                  "minHeight": 40,
-                  "minWidth": 40,
+                  "height": 48,
+                  "maxWidth": 48,
+                  "minHeight": 48,
+                  "minWidth": 48,
                   "position": "relative",
                   "userSelect": "none",
                 }
@@ -5904,10 +5904,10 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   cursor: pointer;
   align-items: center;
   flex-shrink: 0;
-  max-height: 24px;
-  min-height: 24px;
+  max-height: 32px;
+  min-height: 32px;
   padding-left: 8px;
-  padding-right: 4px;
+  padding-right: 8px;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
   -webkit-flex-direction: row;
@@ -5934,7 +5934,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   right: 1px;
   top: 1px;
   background-color: #f0f0f0;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 .css-3,
@@ -5945,11 +5945,11 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   position: absolute;
   right: 0;
   top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-16.png') 1x, url('icons/icon-team-placeholder-avatar-16@2x.png') 2x);
-  border-radius: 4px;
-  height: 16px;
-  max-width: 16px;
-  min-width: 16px;
+  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-32.png') 1x, url('icons/icon-team-placeholder-avatar-32@2x.png') 2x);
+  border-radius: 5px;
+  height: 32px;
+  max-width: 32px;
+  min-width: 32px;
   opacity: 1;
 }
 
@@ -6054,10 +6054,10 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
           onClick={undefined}
           style={
             Object {
-              "height": 16,
-              "maxWidth": 16,
-              "minHeight": 16,
-              "minWidth": 16,
+              "height": 32,
+              "maxWidth": 32,
+              "minHeight": 32,
+              "minWidth": 32,
               "position": "relative",
               "userSelect": "none",
             }
@@ -6148,7 +6148,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6210,7 +6210,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6272,7 +6272,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6334,7 +6334,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6372,10 +6372,10 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
           onClick={undefined}
           style={
             Object {
-              "height": 16,
-              "maxWidth": 16,
-              "minHeight": 16,
-              "minWidth": 16,
+              "height": 32,
+              "maxWidth": 32,
+              "minHeight": 32,
+              "minWidth": 32,
               "position": "relative",
               "userSelect": "none",
             }
@@ -6469,7 +6469,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "borderTopLeftRadius": 3,
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6531,7 +6531,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6596,7 +6596,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "borderTopLeftRadius": 3,
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
@@ -6674,7 +6674,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "borderTopLeftRadius": 3,
                 "display": "flex",
                 "flexDirection": "row",
-                "marginLeft": 24,
+                "marginLeft": 40,
                 "paddingLeft": 8,
                 "paddingRight": 8,
                 "width": "100%",
