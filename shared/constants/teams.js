@@ -15,6 +15,9 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 export const teamWaitingKey = (teamname: string) => `team:${teamname}`
 export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
+export const addMemberWaitingKey = (teamname: string, username: string) => `teamAdd:${teamname};${username}`
+// also for pending invites, hence id rather than username
+export const removeMemberWaitingKey = (teamname: string, id: string) => `teamRemove:${teamname};${id}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,

@@ -59,7 +59,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
         username,
         role: role,
         sendChatNotification: false,
-        email: '',
       })
     )
   },
