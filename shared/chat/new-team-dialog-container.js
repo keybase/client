@@ -34,8 +34,8 @@ export default compose(
     {name: ''},
     {
       onNameChange: () => (name: string) => ({name}),
-      onSubmit: ({name}, {_onCreateNewTeam}) => () => {
-        _onCreateNewTeam(name)
+      onSubmit: (_, {_onCreateNewTeam}) => teamname => {
+        _onCreateNewTeam(teamname)
       },
     }
   ),

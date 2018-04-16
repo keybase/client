@@ -83,7 +83,7 @@ class Contents extends React.Component<Props> {
               backgroundColor: globalColors.blue,
             }}
           >
-            <Text type="BodySemibold" backgroundMode="Announcements">
+            <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
               {this._headerText()}
             </Text>
             {this.props.isSubteam && (

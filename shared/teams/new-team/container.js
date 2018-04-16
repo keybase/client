@@ -32,10 +32,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSubteam = ownProps.routeProps.get('makeSubteam') || false
-  let routeName = ownProps.routeProps.get('name') || ''
-  if (isSubteam) {
-    routeName += '.'
-  }
+  const routeName = ownProps.routeProps.get('name') || ''
   const baseTeam = baseTeamname(routeName)
   return {
     ...stateProps,
