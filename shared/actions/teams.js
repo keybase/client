@@ -1,6 +1,6 @@
 // @flow
 import logger from '../logger'
-import {map, keyBy, last} from 'lodash-es'
+import {map, last} from 'lodash-es'
 import * as I from 'immutable'
 import * as GregorGen from './gregor-gen'
 import * as TeamsGen from './teams-gen'
@@ -659,8 +659,12 @@ function _checkRequestedAccessSuccess(result) {
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
   const {teamname, channelState} = action.payload
-  const convIDs: I.Set<ChatTypes.ConversationIDKey> = Constants.getTeamConvIDs(state, teamname)
-  const channelnameToConvID = keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
+  const channelInfos = Constants.getTeamChannelInfos(state, teamname)
+  const channelnameToConvID = channelInfos
+    .mapEntries(([convID, info]) => {
+      return [info ? info.channelname : '', convID]
+    })
+    .toObject()
   const waitingKey = {key: `saveChannel:${teamname}`}
 
   const calls = map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
