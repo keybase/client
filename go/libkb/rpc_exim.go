@@ -403,7 +403,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCNotFound:
 		return NotFoundError{Msg: s.Desc}
 	case SCDeleted:
-		return DeletedError{Msg: s.Desc}
+		return UserDeletedError{Msg: s.Desc}
 	case SCDecryptionError:
 		return DecryptionError{}
 	case SCKeyRevoked:
@@ -1835,7 +1835,7 @@ func (e NotFoundError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e DeletedError) ToStatus() keybase1.Status {
+func (e UserDeletedError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDeleted,
 		Name: "SC_DELETED",
