@@ -24,8 +24,6 @@ type Props = {
   onNameChange: (n: string) => void,
   onSetTeamCreationError: (err: string) => void,
   onSubmit: (fullName: string) => void,
-  // hasSubmitted: boolean,
-  // setHasSubmitted: () => void,
   pending: boolean,
 }
 
@@ -40,13 +38,6 @@ class Contents extends React.Component<Props> {
     this.props.onSubmit(this._fullName())
   }
 
-  _errorText = () => {
-    if (this.props.errorText) {
-      return this.props.errorText
-    }
-    return null
-  }
-
   _headerText = () => {
     if (this.props.isSubteam) {
       return `You are creating a subteam of ${this.props.baseTeam}`
@@ -59,7 +50,7 @@ class Contents extends React.Component<Props> {
 
   render() {
     const {isSubteam, joinSubteam, name, onJoinSubteamChange, onNameChange, pending} = this.props
-    const errorText = this._errorText()
+    const errorText = this.props.errorText
     return (
       <ScrollView>
         <Box style={globalStyles.flexBoxColumn}>
