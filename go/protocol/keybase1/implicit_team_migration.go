@@ -12,8 +12,13 @@ type StartMigrationArg struct {
 	Folder Folder `codec:"folder" json:"folder"`
 }
 
+type FinalizeMigrationArg struct {
+	Folder Folder `codec:"folder" json:"folder"`
+}
+
 type ImplicitTeamMigrationInterface interface {
 	StartMigration(context.Context, Folder) error
+	FinalizeMigration(context.Context, Folder) error
 }
 
 func ImplicitTeamMigrationProtocol(i ImplicitTeamMigrationInterface) rpc.Protocol {
@@ -36,6 +41,22 @@ func ImplicitTeamMigrationProtocol(i ImplicitTeamMigrationInterface) rpc.Protoco
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"finalizeMigration": {
+				MakeArg: func() interface{} {
+					ret := make([]FinalizeMigrationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FinalizeMigrationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FinalizeMigrationArg)(nil), args)
+						return
+					}
+					err = i.FinalizeMigration(ctx, (*typedArgs)[0].Folder)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -47,5 +68,11 @@ type ImplicitTeamMigrationClient struct {
 func (c ImplicitTeamMigrationClient) StartMigration(ctx context.Context, folder Folder) (err error) {
 	__arg := StartMigrationArg{Folder: folder}
 	err = c.Cli.Call(ctx, "keybase.1.implicitTeamMigration.startMigration", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ImplicitTeamMigrationClient) FinalizeMigration(ctx context.Context, folder Folder) (err error) {
+	__arg := FinalizeMigrationArg{Folder: folder}
+	err = c.Cli.Call(ctx, "keybase.1.implicitTeamMigration.finalizeMigration", []interface{}{__arg}, nil)
 	return
 }
