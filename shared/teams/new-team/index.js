@@ -51,7 +51,6 @@ class Contents extends React.Component<Props> {
       )
       return
     }
-    this.props.onSetTeamCreationError('')
     this.props.onSubmit(this._fullName())
   }
 
@@ -74,6 +73,7 @@ class Contents extends React.Component<Props> {
 
   render() {
     const {isSubteam, joinSubteam, name, onJoinSubteamChange, onNameChange, pending} = this.props
+    const errorText = this._errorText()
     return (
       <ScrollView>
         <Box style={globalStyles.flexBoxColumn}>
@@ -83,15 +83,21 @@ class Contents extends React.Component<Props> {
               backgroundColor: globalColors.blue,
             }}
           >
-            <Text
-              style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
-              type="BodySemibold"
-              backgroundMode="Announcements"
-            >
+            <Text type="BodySemibold" backgroundMode="Announcements">
               {this._headerText()}
             </Text>
+            {this.props.isSubteam && (
+              <Text
+                type="BodyPrimaryLink"
+                style={{...globalStyles.fontSemibold}}
+                backgroundMode="Announcements"
+                onClickURL="https://keybase.io/docs/teams/design"
+              >
+                Learn more
+              </Text>
+            )}
           </Box>
-          {this._errorText() && (
+          {errorText && (
             <Box
               style={{
                 ...styleContainer,
@@ -101,11 +107,11 @@ class Contents extends React.Component<Props> {
               }}
             >
               <Text
-                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                style={{textAlign: 'center', width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
-                {this._errorText()}
+                {errorText}
               </Text>
             </Box>
           )}
@@ -173,11 +179,14 @@ const PopupWrapped = (props: Props) => (
 )
 
 const styleContainer = {
+  ...globalStyles.flexBoxColumn,
   ...globalStyles.flexBoxCenter,
   ...(isMobile ? {} : {cursor: 'default'}),
   minHeight: 40,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   borderTopLeftRadius: isMobile ? 0 : 4,
   borderTopRightRadius: isMobile ? 0 : 4,
 }

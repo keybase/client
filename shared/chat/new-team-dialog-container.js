@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       })
     )
   },
-  _onSetTeamCreationError: (error: string) => {
+  onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
@@ -41,7 +41,7 @@ export default compose(
   ),
   lifecycle({
     componentDidMount() {
-      this.props._onSetTeamCreationError('')
+      this.props.onSetTeamCreationError('')
     },
   })
 )(NewTeamDialog)
