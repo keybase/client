@@ -5,23 +5,38 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (err error) {
-
+func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	generation keybase1.PerTeamKeyGeneration) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
+
+	var needRepoll bool
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: true,
+	})
+
+	if team.IsOpen() {
+		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team); err == nil {
+			needRepoll = needRP
+		}
+	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
 			Public:      teamID.IsPublic(),
-			ForceRepoll: true,
+			ForceRepoll: needRepoll,
 		})
+		needRepoll = true // subsequent calls to Load here need repoll.
 		if err != nil {
 			return err
 		}
@@ -40,6 +55,59 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 		g.Log.CDebugf(ctx, "success rotating team %s (%s)", team.Name(), teamID)
 		return nil
 	})
+}
+
+func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
+	team *Team) (needRepoll bool, err error) {
+	// When CLKR is invoked because of account reset and it's an open team,
+	// we go ahead and boot reset readers and writers out of the team. Key
+	// is also rotated in the process (in the same ChangeMembership link).
+	defer g.CTrace(ctx, "sweepOpenTeamResetMembers", func() error { return err })()
+
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		members, err := team.Members()
+		if err != nil {
+			return err
+		}
+
+		// Only consider Readers and Writers.
+		var uvs []keybase1.UserVersion
+		uvs = append(members.Readers, members.Writers...)
+		uids := make([]keybase1.UID, len(uvs), len(uvs))
+		for i, uv := range uvs {
+			uids[i] = uv.Uid
+		}
+		packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 1*time.Minute, 0, true)
+		if err != nil {
+			return err
+		}
+
+		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
+		for i, uv := range uvs {
+			pkg := packages[i]
+			if pkg.FullName != nil {
+				if pkg.FullName.EldestSeqno != uv.EldestSeqno {
+					g.Log.CDebugf(ctx, "Booting %v from open team. Their EldestSeqno is %d", uv, pkg.FullName.EldestSeqno)
+					changeReq.None = append(changeReq.None, uv)
+				}
+			}
+		}
+
+		if len(changeReq.None) == 0 {
+			// no one to kick out
+			return nil
+		}
+
+		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d Nones", len(changeReq.None))
+		if err := team.ChangeMembershipPermanent(ctx, changeReq, false /* permanent */); err != nil {
+			return err
+		}
+
+		needRepoll = true
+		return nil
+	})
+
+	return needRepoll, err
 }
 
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
