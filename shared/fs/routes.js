@@ -8,7 +8,7 @@ import FinderPopupMenu from './finder-popup'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import RowPopupMenu from './popups/row-action-popup-container'
-import TransferPopup from './popups/transfer-container.js'
+import TransferPopup from './popups/transfer-container'
 import SecurityPrefs from './common/security-prefs-container'
 
 const _commonChildren = {

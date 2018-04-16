@@ -10,6 +10,8 @@ type Props = {
   needAction: boolean,
 }
 
+const securityPreferenceIllustration = require('../../images/install/security-preferences.png')
+
 const InstallSecurityPrefs = (props: Props) =>
   props.needAction ? (
     <Box style={stylesContainer}>
@@ -22,11 +24,7 @@ const InstallSecurityPrefs = (props: Props) =>
       </Text>
       <Box style={{...globalStyles.flexBoxRow, marginRight: 20}}>
         <Box style={{position: 'relative'}}>
-          <img
-            width={500}
-            height={437}
-            src={/* TODO: fix image sourcing */ require('../../images/install/security-preferences.png')}
-          />
+          <img width={500} height={437} src={securityPreferenceIllustration} />
           <Box
             style={{...styleHighlight, height: 30, left: 42, position: 'absolute', top: 350, width: 162}}
           />

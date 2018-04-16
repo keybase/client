@@ -1,7 +1,7 @@
 // @flow
 import {connect, compose, lifecycle, type TypedState, type Dispatch} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
-import InstallSecurityPrefs from './security-prefs'
+import InstallSecurityPrefs from './security-prefs.desktop'
 import {navigateUp} from '../../actions/route-tree'
 import {isLinux} from '../../constants/platform'
 

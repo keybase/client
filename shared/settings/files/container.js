@@ -3,7 +3,7 @@ import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import {isLinux} from '../../constants/platform'
-import {SecurityPrefsPromptingHoc} from '../../fs/common/hocs'
+import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
 import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => {
