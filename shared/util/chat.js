@@ -11,8 +11,7 @@ to:
 const formatTextForQuoting = (text: string) =>
   text
     .split('\n')
-    .map(line => `> ${line}`)
-    .join('\n')
-    .concat('\n')
+    .map(line => `> ${line}\n`)
+    .join('')
 
 export {formatTextForQuoting}

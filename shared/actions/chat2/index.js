@@ -934,7 +934,7 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
       Chat2Gen.createMessageSetQuoting({
         ordinal,
         sourceConversationIDKey,
-        targetConversationIDKey: newConversationIDKey || 'pending',
+        targetConversationIDKey: newConversationIDKey || Constants.pendingConversationIDKey,
       })
     ),
     Saga.put(

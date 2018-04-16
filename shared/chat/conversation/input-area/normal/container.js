@@ -37,7 +37,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     : null
   const quote = Constants.getQuotingOrdinalAndSource(
     state,
-    state.chat2.pendingSelected ? 'pending' : conversationIDKey
+    state.chat2.pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
   )
   let _quotingMessage = null
   if (quote) {
