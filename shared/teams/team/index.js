@@ -7,10 +7,11 @@ import {globalStyles, globalMargins, isMobile} from '../../styles'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
 import MemberRow from './member-row/container'
-import InviteRow from './invites/invite-row/container'
-import RequestRow from './invites/request-row/container'
-import InviteDividerRow from './invites/divider-row'
-import InviteEmptyRow from './invites/empty-row'
+import InviteRow from './invite-row/container'
+import RequestRow from './request-row/container'
+import InviteDividerRow from './divider-row'
+import InviteEmptyRow from './empty-row'
+import SubteamIntro from './subteam-intro/container'
 
 export type Props = {
   teamname: Types.Teamname,
@@ -51,13 +52,18 @@ class Team extends React.Component<Props> {
       case 'request':
         return <RequestRow teamname={this.props.teamname} username={row.username} key={row.username} />
       case 'divider':
-        return <InviteDividerRow key={String(index)} />
+        return <InviteDividerRow key={row.label} label={row.label} />
       case 'none':
-        return <InviteEmptyRow />
+        return <InviteEmptyRow key="empty" />
+      case 'subteam-intro':
+        return <SubteamIntro key={row.key} teamname={this.props.teamname} />
+      // case 'subteam-add':
+      // return <AddSubTeam key={row.key} row={row} />
+      // case 'subteam-none':
+      // return <NoSubteams key={row.key} row={row} />
+      // case 'subteam-subteam':
+      // return <SubteamRowRender key={row.key} row={row} />
 
-      // case 'subteam': {
-      // return renderSubteamsRow(index, row)
-      // }
       // case 'settings': {
       // return <Settings key="settings" teamname={row.teamname} />
       // }

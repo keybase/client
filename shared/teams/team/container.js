@@ -40,6 +40,8 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     _you: state.config.username || '',
     _invites: Constants.getTeamInvites(state, teamname),
     _requests: Constants.getTeamRequests(state, teamname),
+    _subteams: Constants.getTeamSubteams(state, teamname),
+    sawSubteamsBanner: state.teams.getIn(['sawSubteamsBanner'], false),
   }
 }
 
@@ -99,33 +101,43 @@ const mergeProps = (stateProps, dispatchProps): Props => {
         username: i.username,
       }))
       break
-    case 'invites': {
-      const requests = stateProps._requests.map(r => ({
-        type: 'request',
-        username: r.username,
-      }))
-      const invites = stateProps._invites.map(i => ({id: i.id, type: 'invite'}))
-      tabSpecificRows = [
-        ...requests,
-        ...(requests.length ? [{type: 'divider'}] : []),
-        ...invites,
-        ...(invites.length ? [{type: 'divider'}] : []),
-        ...(requests.length + invites.length === 0 ? [{type: 'none'}] : []),
-      ]
-    }
+    case 'invites':
+      {
+        const requests = stateProps._requests.map(r => ({
+          type: 'request',
+          username: r.username,
+        }))
+        const invites = stateProps._invites.map(i => ({id: i.id, type: 'invite'}))
+        tabSpecificRows = [
+          ...(requests.size ? [{label: 'Requests', type: 'divider'}] : []),
+          ...requests,
+          ...(invites.size ? [{label: 'Invites', type: 'divider'}] : []),
+          ...invites,
+          ...(requests.size + invites.size === 0 ? [{type: 'none'}] : []),
+        ]
+      }
+      break
+    case 'subteams':
+      {
+        const subteams = stateProps._subteams.sort()
+        const noSubteams = subteams.isEmpty()
+        tabSpecificRows = [
+          ...(!stateProps.sawSubteamsBanner ? [{type: 'subteam-intro'}] : []),
+          ...(stateProps._yourOperations.manageSubteams ? [{type: 'subteam-add'}] : []),
+          ...subteams.map(subteam => ({teamname: subteam, type: 'subteam-subteam'})),
+          ...(noSubteams ? [{type: 'subteam-none'}] : []),
+        ]
+      }
+      break
   }
   const rows = [{type: 'header'}, {type: 'tabs'}, ...tabSpecificRows]
   return {
-    teamname: stateProps.teamname,
     _loadTeam: dispatchProps._loadTeam,
-    // ...stateProps,
-    // ...dispatchProps,
+    onBack: dispatchProps.onBack,
     rows,
     selectedTab: stateProps.selectedTab,
     setSelectedTab: dispatchProps.setSelectedTab,
-    onBack: dispatchProps.onBack,
-    // customComponent,
-    // newTeamRequests: stateProps._newTeamRequests.toArray(),
+    teamname: stateProps.teamname,
   }
 }
 
@@ -142,10 +154,5 @@ export default compose(
       }
     },
   }),
-  // TODO remove these branches, let's not send all these props to all possible outcomes
-  // branch(props => props.selectedTab === 'members', membersListItemsConnector),
-  // // $FlowIssue passing extra props
-  // branch(props => props.selectedTab === 'subteams', subteamsListItemsConnector),
-  // branch(props => props.selectedTab === 'invites', requestsAndInvitesListItemsConnector),
   HeaderHoc
 )(Team)
