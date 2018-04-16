@@ -1232,30 +1232,42 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 }
 
 const startConversationAfterFindExisting = (
-  results: RPCChatTypes.FindConversationsLocalRes,
+  _fromStartConversation,
   action: Chat2Gen.StartConversationPayload
 ) => {
+  const results: RPCChatTypes.FindConversationsLocalRes = _fromStartConversation[0]
+  const users: Array<string> = _fromStartConversation[1]
+
   if (results.conversations && results.conversations.length > 0) {
-    const conversationIDKey = Types.keyToConversationID(results.conversations[0].info.id)
+    const conversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+
+    // There is an existing conversation, select it
+    if (conversationIDKey) {
+      return Saga.sequentially([
+        Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
+        Saga.put(Chat2Gen.createNavigateToThread()),
+      ])
+    }
   }
-  console.log('aaa', results)
 
-  // There is an existing conversation, select it
-  // if (conversationIDKey) {
-  // return Saga.sequentially([
-  // Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
-  // Saga.put(Chat2Gen.createNavigateToThread()),
-  // ])
-  // }
+  let fromAReset = false
+  if (action.type === Chat2Gen.startConversation) {
+    fromAReset = action.payload.fromAReset
+  } else if (action.type === Chat2Gen.setPendingConversationUsers) {
+  }
 
-  // return Saga.sequentially([
-  // // its a fixed set of users so it's not a search (aka you can't add people to it)
-  // Saga.put(
-  // Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
-  // ),
-  // Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
-  // Saga.put(Chat2Gen.createNavigateToThread()),
-  // ])
+  if (users) {
+    return Saga.sequentially([
+      // its a fixed set of users so it's not a search (aka you can't add people to it)
+      Saga.put(
+        Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
+      ),
+      Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
+      Saga.put(Chat2Gen.createNavigateToThread()),
+    ])
+  } else {
+    throw new Error('Tried to start a conversation w/ no users')
+  }
 }
 
 // Start a conversation, or select an existing one
@@ -1273,22 +1285,16 @@ const startConversationFindExisting = (
   }
   const you = state.config.username || ''
 
-  const commonParams = {
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    membersTypes: RPCChatTypes.commonConversationMembersType.impteamnative,
-    oneChatPerTLF: true,
-    topicName: '',
-    topicType: RPCChatTypes.commonTopicType.chat,
-    visibility: RPCTypes.commonTLFVisibility.private,
-  }
+  let params
+  let users
 
   // we handled participants or tlfs
   if (participants) {
     const toFind = I.Set(participants).concat([you])
-    return Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-      ...commonParams,
+    users = toFind.toArray()
+    params = {
       tlfName: toFind.join(','),
-    })
+    }
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
@@ -1298,16 +1304,16 @@ const startConversationFindExisting = (
         const toFind = I.Set(
           names === you ? [] : parseFolderNameToUsers('', names).map(u => u.username)
         ).concat([you])
-        return Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-          ...commonParams,
+        params = {
           tlfName: toFind.join(','),
-        })
+        }
+        users = toFind.toArray()
       } else if (type === 'team') {
-        return Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
-          ...commonParams,
+        params = {
+          membersType: RPCChatTypes.commonConversationMembersType.team,
           tlfName: names,
           topicName: 'general',
-        })
+        }
       } else {
         throw new Error('Start conversation called w/ bad tlf type')
       }
@@ -1317,6 +1323,19 @@ const startConversationFindExisting = (
   } else {
     throw new Error('Start conversation called w/ no participants or tlf')
   }
+
+  return Saga.sequentially([
+    Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.commonConversationMembersType.impteamnative,
+      oneChatPerTLF: true,
+      topicName: '',
+      topicType: RPCChatTypes.commonTopicType.chat,
+      visibility: RPCTypes.commonTLFVisibility.private,
+      ...params,
+    }),
+    Saga.identity(users),
+  ])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
