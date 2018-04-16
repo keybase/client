@@ -10,7 +10,15 @@ import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
+  if (!conversationIDKey) {
+    throw new Error('conversationIDKey unexpectedly empty')
+  }
+
   const teamname = routeProps.get('teamname')
+  if (!teamname) {
+    throw new Error('teamname unexpectedly empty')
+  }
+
   const waitingForGetInfo = anyWaiting(state, `getChannels:${teamname}`)
   const waitingForUpdate = anyWaiting(
     state,
