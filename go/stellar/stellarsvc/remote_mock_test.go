@@ -169,8 +169,18 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 	}
 
 	summary := stellar1.PaymentSummary{
-		From: stellar1.AccountID(tx.SourceAccount.Address()),
-		To:   destination,
+		Keybase: &stellar1.PaymentSummaryKeybase{
+			Status:          stellar1.TransactionStatus_SUCCESS,
+			From:            post.Members.From,
+			FromDeviceID:    post.Members.FromDeviceID,
+			To:              &post.Members.To,
+			DisplayAmount:   &post.DisplayAmount,
+			DisplayCurrency: &post.DisplayCurrency,
+		},
+		From:   stellar1.AccountID(tx.SourceAccount.Address()),
+		To:     destination,
+		Amount: amount,
+		Asset:  asset,
 	}
 	r.addTransaction(summary)
 

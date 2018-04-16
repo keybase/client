@@ -299,13 +299,22 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	_, err = srvSender.SendLocal(context.Background(), arg)
 	require.NoError(t, err)
 
+	checkPayment := func(payment stellar1.RecentPaymentCLILocal) {
+		require.Equal(t, accountIDSender, payment.FromStellar)
+		require.Equal(t, accountIDRecip, payment.ToStellar)
+		require.NotNil(t, payment.ToUsername)
+		require.Equal(t, fus[1].Username, *(payment.ToUsername))
+		require.Equal(t, "100.0000000", payment.Amount)
+	}
 	senderPayments, err := srvSender.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, senderPayments, 1)
+	checkPayment(senderPayments[0])
 
 	recipPayments, err := srvRecip.RecentPaymentsCLILocal(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
+	checkPayment(recipPayments[0])
 }
 
 // Create n TestContexts with logged in users
