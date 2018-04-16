@@ -47,34 +47,33 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
-  const conversationIDKey = routeProps.get('conversationIDKey')
-
   return {
     _loadChannels: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
-    onCancel: () => dispatch(navigateUp()),
-    _updateChannelName: (teamname: string, newChannelName: string) =>
-      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName, teamname})),
-    _updateTopic: (newTopic: string, teamname) =>
-      dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic, teamname})),
-    onConfirmedDelete: (channelName: string, teamname: string) => {
-      dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, channelName, teamname}))
+    _updateChannelName: (teamname: string, conversationIDKey: ConversationIDKey, newChannelName: string) =>
+      dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
+    _updateTopic: (teamname: string, conversationIDKey: ConversationIDKey, newTopic: string) =>
+      dispatch(TeamsGen.createUpdateTopic({teamname, conversationIDKey, newTopic})),
+    _onConfirmedDelete: (teamname: string, conversationIDKey: ConversationIDKey, channelName: string) => {
+      dispatch(TeamsGen.createDeleteChannelConfirmed({teamname, conversationIDKey, channelName}))
       dispatch(navigateUp())
     },
+    onCancel: () => dispatch(navigateUp()),
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
-  const deleteRenameDisabled = stateProps.channelName === 'general'
+  const {teamname, conversationIDKey, channelName} = stateProps
+  const deleteRenameDisabled = channelName === 'general'
   return {
-    teamname: stateProps.teamname,
-    channelName: stateProps.channelName,
+    teamname,
+    channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
     onConfirmedDelete: () => {
-      if (!stateProps.channelName) {
+      if (!channelName) {
         return
       }
-      dispatchProps.onConfirmedDelete(stateProps.channelName, stateProps.teamname)
+      dispatchProps._onConfirmedDelete(teamname, conversationIDKey, channelName)
     },
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
@@ -83,12 +82,12 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {
         if (newChannelName !== stateProps.channelName) {
-          dispatchProps._updateChannelName(newChannelName, stateProps.teamname)
+          dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)
         }
       }
 
       if (newTopic !== stateProps.topic) {
-        dispatchProps._updateTopic(newTopic, stateProps.teamname)
+        dispatchProps._updateTopic(teamname, conversationIDKey, newTopic)
       }
 
       dispatchProps.onCancel() // nav back up

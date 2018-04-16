@@ -125,9 +125,9 @@ export const createCreateNewTeamFromConversation = (
 ) => ({error: false, payload, type: createNewTeamFromConversation})
 export const createDeleteChannelConfirmed = (
   payload: $ReadOnly<{|
+    teamname: Types.Teamname,
     conversationIDKey: ChatTypes.ConversationIDKey,
     channelName: string,
-    teamname: Types.Teamname,
   |}>
 ) => ({error: false, payload, type: deleteChannelConfirmed})
 export const createEditMembership = (
@@ -276,15 +276,15 @@ export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: und
 export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
 export const createUpdateChannelName = (
   payload: $ReadOnly<{|
-    conversationIDKey: ChatTypes.ConversationIDKey,
     teamname: Types.Teamname,
+    conversationIDKey: ChatTypes.ConversationIDKey,
     newChannelName: string,
   |}>
 ) => ({error: false, payload, type: updateChannelName})
 export const createUpdateTopic = (
   payload: $ReadOnly<{|
-    conversationIDKey: ChatTypes.ConversationIDKey,
     teamname: Types.Teamname,
+    conversationIDKey: ChatTypes.ConversationIDKey,
     newTopic: string,
   |}>
 ) => ({error: false, payload, type: updateTopic})

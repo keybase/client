@@ -174,19 +174,19 @@
     "setTeamSawSubteamsBanner": {},
     "setupTeamHandlers": {},
     "updateChannelName": {
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
       "teamname": "Types.Teamname",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newChannelName": "string"
     },
     "updateTopic": {
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
       "teamname": "Types.Teamname",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newTopic": "string"
     },
     "deleteChannelConfirmed": {
+      "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "channelName": "string",
-      "teamname": "Types.Teamname"
+      "channelName": "string"
     },
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",
