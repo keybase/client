@@ -29,20 +29,6 @@ type Props = {
   pending: boolean,
 }
 
-// This logic is copied from go/protocol/keybase1/extras.go.
-
-// const headerText = (baseTeam: string, errorText: string, isSubteam: boolean): string => {
-//   if (errorText) {
-//     return errorText
-//   }
-
-//   // TODO: Display an error and disable the submit button if name
-//   // isn't a valid teamname.
-//   return isSubteam
-//     ? `You're creating a subteam of ${baseTeam}.`
-//     : "For security reasons, team names are unique and can't be changed, so choose carefully."
-// }
-
 class Contents extends React.Component<Props> {
   _onSubmit = () => {
     if (!validTeamnamePart(this.props.name)) {
