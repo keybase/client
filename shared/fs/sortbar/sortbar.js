@@ -21,7 +21,6 @@ const stylesSortSetting = {
 
 const stylesIcon = {
   marginRight: globalMargins.xtiny,
-  fontSize: 11,
 }
 
 const iconBoxStyle = {
@@ -49,7 +48,7 @@ const SortBar = (props: SortBarProps) => {
       <Box style={stylesSortBar}>
         <ClickableBox onClick={props.onOpenSortSettingPopup} style={stylesSortSetting}>
           <Box style={iconBoxStyle}>
-            <Icon type={sortSettingIconType} style={stylesIcon} />
+            <Icon type={sortSettingIconType} style={stylesIcon} fontSize="11" />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>

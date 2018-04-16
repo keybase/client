@@ -25,7 +25,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
       <DeviceBox onClick={onClick}>
         <Box style={stylesIconName}>
           <Box style={stylesIconContainer}>
-            <Icon style={stylesIcon} type={iconType} />
+            <Icon style={stylesIcon} type={iconType} color={colorIcon} />
           </Box>
           <Text type="BodySemiboldItalic" onClick={onClick}>
             {name}
@@ -48,14 +48,7 @@ const ResetOption = ({onReset}) => (
             alignSelf: 'flex-start',
           }}
         >
-          <Icon
-            style={{
-              ...stylesIcon,
-              fontSize: 16,
-              color: globalColors.black_40,
-            }}
-            type="iconfont-exclamation"
-          />
+          <Icon style={stylesIcon} color={globalColors.black_40} type="iconfont-exclamation" fontSize="16" />
         </Box>
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">
@@ -118,11 +111,13 @@ const stylesIconContainer = {
   alignItems: 'center',
 }
 const stylesIcon = {
-  color: globalColors.black,
   marginLeft: 32,
   marginRight: 22,
   maxHeight: 60,
 }
+
+const colorIcon = globalColors.black
+
 const stylesWont = {
   marginTop: globalMargins.medium,
   alignSelf: 'center',

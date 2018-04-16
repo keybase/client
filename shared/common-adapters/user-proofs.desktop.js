@@ -30,7 +30,9 @@ function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.No
       <Box style={iconContainer}>
         <Icon
           className="user-proof-row__icon"
-          style={collapseStyles([styleService, {color: missingColor}])}
+          style={styleService}
+          color={missingColor}
+          textAlign="center"
           type={shared.iconNameForProof(missingProof)}
           hint={missingProof.type}
         />
@@ -86,7 +88,6 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
     const menuButtonVisible = this.state.hovering || showingMenu
     const iconStyle = platformStyles({
       common: {
-        color: proofStatusIconType && defaultColor(proofStatusIconType),
         marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
         opacity: menuButtonVisible ? 1 : 0,
       },
@@ -102,6 +103,8 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
         <Box style={iconContainer}>
           <Icon
             style={styleService}
+            color={globalColors.black_75}
+            textAlign="center"
             type={shared.iconNameForProof(proof)}
             hint={proof.type}
             onClick={() => onClickProfile(proof)}
@@ -144,9 +147,15 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType && (
-            <Icon type={proofStatusIconType} style={{fontSize: 20, color: shared.proofColor(proof, true)}} />
+            <Icon type={proofStatusIconType} fontSize="20" color={shared.proofColor(proof, true)} />
           )}
-          {hasMenu && <Icon type="iconfont-caret-down" style={iconStyle} />}
+          {hasMenu && (
+            <Icon
+              type="iconfont-caret-down"
+              style={iconStyle}
+              color={(proofStatusIconType && defaultColor(proofStatusIconType)) || ''}
+            />
+          )}
         </Box>
       </Box>
     )
@@ -164,10 +173,13 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
         </Box>
       </Box>
       <Icon
-        style={collapseStyles([
-          styleStatusIcon,
-          {color: globalStyles.loadingTextStyle.backgroundColor, fontSize: 20},
-        ])}
+        style={styleStatusIcon}
+        color={
+          globalStyles.loadingTextStyle.backgroundColor
+            ? globalStyles.loadingTextStyle.backgroundColor
+            : undefined
+        }
+        fontSize="20"
         type={'iconfont-proof-placeholder'}
       />
     </Box>
@@ -296,13 +308,11 @@ const iconContainer = {
 const styleService: StylesCrossPlatform = collapseStyles([
   desktopStyles.clickable,
   {
-    color: globalColors.black_75,
     marginRight: globalMargins.tiny,
     height: 16,
     minHeight: 16,
     minWidth: 16,
     width: 16,
-    textAlign: 'center',
     transition: '0.15s color',
   },
 ])

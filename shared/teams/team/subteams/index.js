@@ -30,7 +30,7 @@ const AddSubTeam = ({row}) => (
       onClick={row.onCreateSubteam}
       style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
     >
-      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Icon type="iconfont-new" color={globalColors.blue} />
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Create subteam
       </Text>

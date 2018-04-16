@@ -68,7 +68,7 @@ const Banner = isMobile
           <Box style={bannerTextContentStyle}>{bannerContent}</Box>
           {!!onDismiss && (
             <Box style={dismissContainerStyle}>
-              <Icon type="iconfont-close" style={dismissIconStyle} onClick={onDismiss} />
+              <Icon type="iconfont-close" onClick={onDismiss} color={globalColors.white_40} fontSize="16" />
             </Box>
           )}
         </Box>
@@ -100,10 +100,4 @@ const dismissContainerStyle = {
   paddingTop: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
 }
-
-const dismissIconStyle = {
-  color: globalColors.white_40,
-  fontSize: 16,
-}
-
 export default Banner

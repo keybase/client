@@ -38,8 +38,10 @@ const stylesPopup = !isMobile
       width: '100%',
     }
 
-const stylesIcon = {
-  marginRight: globalMargins.tiny,
+const propsIcon = {
+  style: {
+    marginRight: globalMargins.tiny,
+  },
   color: globalColors.black_75,
   fontSize: 13,
 }
@@ -59,7 +61,7 @@ const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
       view: (
         <Box style={stylesSortSetting}>
           <Box style={iconBoxStyle}>
-            <Icon type={sortSettingIconType} style={stylesIcon} />
+            <Icon type={sortSettingIconType} {...propsIcon} />
           </Box>
           <Text type="Body">{sortSettingText}</Text>
         </Box>

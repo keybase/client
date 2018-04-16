@@ -21,7 +21,14 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
 
   return (
     <Box style={styleContainer}>
-      {!isWaiting && <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />}
+      {!isWaiting && (
+        <Icon
+          style={styleClose}
+          type="iconfont-close"
+          onClick={() => onCancel()}
+          color={globalColors.black_10}
+        />
+      )}
       {errorMessage && (
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
@@ -74,7 +81,6 @@ const styleClose: StylesCrossPlatform = collapseStyles([
     position: 'absolute',
     top: globalMargins.small,
     right: globalMargins.small,
-    color: globalColors.black_10,
   },
   desktopStyles.clickable,
 ])

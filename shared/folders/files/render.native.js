@@ -165,9 +165,9 @@ class FilesRender extends Component<Props> {
                 style={{
                   marginRight: 6,
                   alignSelf: 'center',
-                  fontSize: 10,
-                  ...styleSectionTextThemed[this.props.theme],
                 }}
+                color={styleSectionTextThemed[this.props.theme].color}
+                fontSize="10"
               />
             )}
             <Text type="BodySmallSemibold" style={styleSectionTextThemed[this.props.theme]}>

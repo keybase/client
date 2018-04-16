@@ -80,8 +80,8 @@ const TeamHeader = (props: Props) => (
               type="iconfont-chat"
               style={{
                 marginRight: 8,
-                color: globalColors.white,
               }}
+              color={globalColors.white}
             />
           </Button>
         )}
@@ -101,10 +101,10 @@ const TeamHeader = (props: Props) => (
             <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
             <Icon
               style={{
-                color: globalColors.black_10,
                 paddingLeft: globalMargins.tiny,
                 paddingRight: globalMargins.tiny,
               }}
+              color={globalColors.black_10}
               type="iconfont-info"
             />
             <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />

@@ -59,6 +59,7 @@ export const Row = (props: RowProps) => (
             <Icon
               type="iconfont-finder"
               style={rowActionIconStyle}
+              fontSize={rowActionIconFontSize}
               onClick={props.openInFileUI}
               className="fs-path-item-hover-icon"
             />
@@ -66,6 +67,7 @@ export const Row = (props: RowProps) => (
           <Icon
             type="iconfont-ellipsis"
             style={rowActionIconStyle}
+            fontSize={rowActionIconFontSize}
             onClick={props.onAction}
             className="fs-path-item-hover-icon"
           />
@@ -79,7 +81,7 @@ export const Row = (props: RowProps) => (
 export const Placeholder = () => (
   <Box style={stylesCommonRow}>
     <Box style={stylesRowBox}>
-      <Icon type={placeholderIcon} style={stylePlaceholderIcon} />
+      <Icon type={placeholderIcon} style={stylePlaceholderIcon} fontSize="32" />
       <Box style={folderBoxStyle}>
         <Box style={placeholderTextStyle} />
       </Box>
@@ -109,9 +111,10 @@ const folderBoxStyle = {
 }
 
 const rowActionIconStyle = {
-  fontSize: 16,
   marginLeft: globalMargins.small,
 }
+
+const rowActionIconFontSize = 16
 
 const stylesRowDivider = {
   marginLeft: isMobile ? 48 : 48,
@@ -145,7 +148,6 @@ const stylesRowRightBox = {
 }
 
 const stylePlaceholderIcon = {
-  fontSize: 32,
   marginRight: globalMargins.small,
 }
 

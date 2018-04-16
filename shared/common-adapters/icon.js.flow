@@ -15,7 +15,8 @@ export type Props = {
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
-  iconStyle?: StylesCrossPlatform, // style directly for the icon and not the box. the way this works currently isn't great. we shouldn't be stripping out styles like we do now
+  iconStyle?: StylesCrossPlatform,
+  color?: string,
   hoverColor?: string,
   // its totally not compatible with stylesheet
 }

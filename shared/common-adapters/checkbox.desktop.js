@@ -47,6 +47,8 @@ class Checkbox extends Component<Props> {
             type="iconfont-check"
             style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}}
             hoverColor={globalColors.white}
+            color={globalColors.white}
+            fontSize="9"
           />
         </div>
         <Text type="Body" style={{color: globalColors.black_75}}>
@@ -64,11 +66,9 @@ const styleContainer = {
 
 const styleIcon = {
   ...transition('opacity'),
-  color: globalColors.white,
   position: 'absolute',
   left: 1,
   top: 1,
-  fontSize: 9,
 }
 
 export default Checkbox

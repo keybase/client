@@ -27,7 +27,11 @@ export const PeoplePageSearchBar = (
 ) => (
   <Box style={{...styleRowContainer, ...props.styleRowContainer}}>
     <ClickableBox onClick={props.onSearch} style={{...styleSearchContainer, ...props.styleSearchContainer}}>
-      <Icon style={{...styleSearch, ...props.styleSearch}} type="iconfont-search" />
+      <Icon
+        style={{...styleSearch, ...props.styleSearch}}
+        type="iconfont-search"
+        color={globalColors.black_20}
+      />
       <Text style={{...styleSearchText, ...props.styleSearchText}} type="Body">
         Search people
       </Text>
@@ -67,7 +71,6 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.black_20,
   padding: globalMargins.xtiny,
 }
 

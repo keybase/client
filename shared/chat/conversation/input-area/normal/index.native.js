@@ -142,13 +142,13 @@ const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker,
         onClick={insertMentionMarker}
         type="iconfont-mention"
         style={styles.mentionMarkerStyle}
-        iconStyle={styles.actionButtonIcon}
+        ifontSize={styles.actionButtonIcon.fontSize}
       />
       <Icon
         onClick={openFilePicker}
         type="iconfont-camera"
         style={styles.actionButton}
-        iconStyle={styles.actionButtonIcon}
+        fontSize={styles.actionButtonIcon.fontSize}
       />
     </Box>
   )

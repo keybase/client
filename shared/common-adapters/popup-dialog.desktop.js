@@ -24,7 +24,7 @@ export function PopupDialog({
     <EscapeHandler onESC={onClose}>
       <Box style={{...coverStyle, ...styleCover}} onClick={onClose}>
         <Box style={{...containerStyle, ...(fill ? containerFillStyle : null), ...styleContainer}}>
-          <Icon type="iconfont-close" style={{...closeStyle, ...styleClose}} />
+          <Icon type="iconfont-close" style={{...closeStyle, ...styleClose}} color={globalColors.white} />
           <Box
             style={{...clipContainerStyle, ...styleClipContainer}}
             onClick={allowClipBubbling ? undefined : stopBubbling}
@@ -78,7 +78,6 @@ const clipContainerStyle = {
 const closeStyle = {
   position: 'absolute',
   right: -16 - globalMargins.tiny + 2, // FIXME: 2px fudge since icon isn't sized to 16px extents
-  color: globalColors.white,
   cursor: 'pointer',
 }
 

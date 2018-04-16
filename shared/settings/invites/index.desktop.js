@@ -173,11 +173,11 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
       <Icon
         type="iconfont-link"
         style={{
-          color: globalColors.black_20,
-          fontSize: 13,
           marginRight: globalMargins.tiny,
           marginTop: 3,
         }}
+        color={globalColors.black_20}
+        fontSize="13"
       />
       <Text type="Body" selectable={true} style={{color: globalColors.blue}}>
         {invite.url}

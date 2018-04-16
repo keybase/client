@@ -54,7 +54,7 @@ const AddPeople = ({onClick}: {onClick: (?Element) => void}) => (
         }}
       >
         <Box style={{width: isMobile ? 40 : 32, height: isMobile ? 40 : 32, ...globalStyles.flexBoxCenter}}>
-          <Icon type="iconfont-new" style={{fontSize: isMobile ? 24 : 16, color: globalColors.blue}} />
+          <Icon type="iconfont-new" fontSize={isMobile ? 24 : 16} color={globalColors.blue} />
         </Box>
         <Text type="BodyPrimaryLink" style={{marginLeft: globalMargins.small}}>
           Add someone

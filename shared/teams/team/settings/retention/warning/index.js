@@ -124,11 +124,9 @@ const containerStyle = platformStyles({
   },
 })
 
-const iconStyle = platformStyles({
-  common: {
-    marginBottom: 48,
-  },
-})
+const iconStyle = {
+  marginBottom: 48,
+}
 
 const headerStyle = platformStyles({
   common: {

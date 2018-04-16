@@ -22,7 +22,13 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
     <div className="register-row" style={{...stylesRowContainer, ...style}} onClick={onClick}>
       <div style={stylesIconContainer}>
         <div className="register-background" style={stylesIconBackground} />
-        <Icon className="register-icon" type={icon} style={stylesIcon} />
+        <Icon
+          className="register-icon"
+          type={icon}
+          style={stylesIcon}
+          color={globalColors.black_75}
+          fontSize="35"
+        />
       </div>
       <div>
         <Text type="Header" style={stylesHeader}>
@@ -60,11 +66,9 @@ const stylesIconContainer = {
 }
 const stylesIcon = {
   ...transition('transform'),
-  fontSize: 35,
   textAlign: 'center',
   height: 'inherit',
   width: 'inherit',
-  color: globalColors.black_75,
   zIndex: 1,
 }
 const stylesIconBackground = {

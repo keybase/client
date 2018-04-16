@@ -73,10 +73,10 @@ export const TeamMember = (props: Props) => {
               <Icon
                 type={roleIconMap[user.type]}
                 style={{
-                  fontSize: isMobile ? 28 : 28,
                   margin: globalMargins.tiny,
                   alignSelf: 'center',
                 }}
+                fontSize="28"
               />
             )}
           <Avatar
@@ -107,8 +107,8 @@ export const TeamMember = (props: Props) => {
             type="iconfont-chat"
             style={{
               marginRight: 8,
-              color: globalColors.white,
             }}
+            color={globalColors.white}
           />
         </Button>
         {admin && <Button type="Secondary" label="Edit role" onClick={onEditMembership} />}

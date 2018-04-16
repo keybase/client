@@ -79,7 +79,8 @@ const Fullscreen = (props: Props) => {
       <AttachmentView isZoomed={props.isZoomed} onToggleZoom={props.onToggleZoom} path={props.path} />
       <Icon
         type="iconfont-ellipsis"
-        style={{...styleHeaderFooter, color: globalColors.white}}
+        style={{...styleHeaderFooter}}
+        color={globalColors.white}
         onClick={() => props.onShowMenu(null)}
       />
     </Box>

@@ -27,7 +27,7 @@ const DeviceHeader = ({onAddNew, waiting}) => (
       {waiting && (
         <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />
       )}
-      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Icon type="iconfont-new" color={globalColors.blue} />
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Add new...
       </Text>
@@ -44,7 +44,9 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         </Text>
         <Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          style={{color: globalColors.black_60, fontSize: 10, padding: 5}}
+          style={{padding: 5}}
+          color={globalColors.black_60}
+          fontSize="10"
         />
       </Box>
     </ClickableBox>

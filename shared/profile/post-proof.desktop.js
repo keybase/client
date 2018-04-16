@@ -48,7 +48,12 @@ const PostProof = (props: Props) => {
         clipboard.writeText(proofText)
       }}
     >
-      <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />
+      <Icon
+        style={styleClose}
+        type="iconfont-close"
+        color={globalColors.black_10}
+        onClick={() => onCancel()}
+      />
       {!!errorMessage && (
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
@@ -134,7 +139,6 @@ const styleClose: StylesCrossPlatform = collapseStyles([
     position: 'absolute',
     top: globalMargins.small,
     right: globalMargins.small,
-    color: globalColors.black_10,
   },
   desktopStyles.clickable,
 ])

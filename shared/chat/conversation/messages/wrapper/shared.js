@@ -46,7 +46,7 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 
 const MenuButton = ({onClick}) => (
   <Box className="menu-button">
-    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} />
+    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} fontSize="16" />
   </Box>
 )
 
@@ -129,7 +129,14 @@ class MessageWrapper extends React.PureComponent<Props> {
                   {props.isEdited && <EditedMark />}
                 </Box>
                 {!isMobile && <MenuButton onClick={props.onShowMenu} />}
-                {props.isRevoked && <Icon type="iconfont-exclamation" style={styles.exclamation} />}
+                {props.isRevoked && (
+                  <Icon
+                    type="iconfont-exclamation"
+                    style={styles.exclamation}
+                    color={globalColors.blue}
+                    fontSize="11"
+                  />
+                )}
               </Box>
               {!!props.failureDescription && (
                 <Failure
@@ -150,10 +157,8 @@ class MessageWrapper extends React.PureComponent<Props> {
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn},
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
-  ellipsis: {fontSize: 16, marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
+  ellipsis: {marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
   exclamation: {
-    color: globalColors.blue,
-    fontSize: 11,
     paddingBottom: globalMargins.xtiny,
     paddingTop: globalMargins.xtiny,
   },

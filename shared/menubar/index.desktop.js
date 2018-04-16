@@ -55,7 +55,7 @@ class MenubarRender extends Component<Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = collapseStyles([desktopStyles.clickable, {color: menuColor}])
+    const menuStyle = collapseStyles([desktopStyles.clickable])
 
     return (
       <Box style={styles.container}>
@@ -64,13 +64,14 @@ class MenubarRender extends Component<Props, State> {
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
           <Icon
             style={menuStyle}
+            color={menuColor}
             hoverColor={menuColor}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} />
+          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={globalColors.yellow} />
           <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Text>
@@ -169,11 +170,11 @@ class MenubarRender extends Component<Props, State> {
             style={collapseStyles([
               desktopStyles.clickable,
               {
-                color: globalColors.black_40,
                 width: 16,
                 marginLeft: 8,
               },
             ])}
+            color={globalColors.black_40}
             hoverColor={globalColors.black}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
@@ -264,10 +265,7 @@ const BadgeIcon = ({
       style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon
-        style={{color: count ? globalColors.blue : globalColors.lightGrey2, fontSize: 20}}
-        type={iconType}
-      />
+      <Icon color={count ? globalColors.blue : globalColors.lightGrey2} fontSize="20" type={iconType} />
       {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 18, top: 0}} />}
     </Box>
   )
@@ -313,7 +311,6 @@ const stylesPublic = {
 
 const stylesLogo = {
   alignSelf: 'center',
-  color: globalColors.yellow,
   marginBottom: 12,
 }
 

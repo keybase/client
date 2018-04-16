@@ -27,7 +27,8 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
         {inviteLink && (
           <Box style={stylesLinkBox}>
             <Icon
-              style={{color: globalColors.black_10, marginTop: 3}}
+              style={{marginTop: 3}}
+              color={globalColors.black_10}
               type="iconfont-link"
               onClick={() => {
                 textRef && textRef.highlightText()

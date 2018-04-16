@@ -189,7 +189,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}
         onClick={this.props.onClick}
       >
-        <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
+        <Icon type={this.props.source.icon} style={{...stylesIcon, ...this.props.styleIcon}} color={color} />
         {!!this.props.label && (
           <Text
             type="BodySemibold"

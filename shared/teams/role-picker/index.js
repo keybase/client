@@ -57,17 +57,17 @@ const makeRoleOption = (
     }}
     onClick={() => setSelected(role)}
   >
-    <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white}} />
+    <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
     <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
       <Box style={globalStyles.flexBoxRow}>
         {!!roleIconMap[role] && (
           <Icon
             type={roleIconMap[role]}
             style={{
-              color: selected === role ? globalColors.white : roleIconColorMap[role],
-              fontSize: 16,
               marginRight: globalMargins.xtiny,
             }}
+            color={selected === role ? globalColors.white : roleIconColorMap[role]}
+            fontSize="16"
           />
         )}
         <Text style={{color: selected === role ? globalColors.white : globalColors.black_75}} type="BodyBig">
@@ -140,7 +140,8 @@ const PermissionRow = (props: {can: boolean, permission: string}) => (
   >
     <Icon
       type={props.can ? 'iconfont-check' : 'iconfont-close'}
-      style={{color: props.can ? globalColors.green : globalColors.red, alignSelf: 'center'}}
+      style={{alignSelf: 'center'}}
+      color={props.can ? globalColors.green : globalColors.red}
     />
     <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
       {props.permission}

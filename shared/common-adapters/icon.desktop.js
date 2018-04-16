@@ -47,9 +47,7 @@ class Icon extends Component<Exact<Props>, void> {
       hoverColor = 'inherit'
     } else {
       color =
-        (this.props.style && this.props.style.color) ||
-        color ||
-        (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
+        this.props.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
@@ -85,8 +83,6 @@ class Icon extends Component<Exact<Props>, void> {
         },
         this.props.style,
       ])
-      // We have to blow these styles away else FontIcon gets confused and will overwrite what it calculates
-      delete cleanStyle.color
 
       return (
         <Box>

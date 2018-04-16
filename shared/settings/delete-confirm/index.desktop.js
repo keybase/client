@@ -17,7 +17,7 @@ function DeleteConfirm(props: Props) {
       }}
     >
       <Avatar size={48} username={props.username}>
-        <Icon type="iconfont-remove" style={iconStyle} />
+        <Icon type="iconfont-remove" style={iconStyle} color={globalColors.red} />
       </Avatar>
       <Text
         type="BodyError"
@@ -42,7 +42,6 @@ function DeleteConfirm(props: Props) {
 }
 
 const iconStyle = {
-  color: globalColors.red,
   position: 'absolute',
   bottom: 0,
   right: -4,

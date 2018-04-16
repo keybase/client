@@ -42,7 +42,7 @@ const CaptionedDangerIcon = ({
     }}
     onClick={onClick}
   >
-    <Icon type={icon} style={{color: globalColors.red, marginRight: globalMargins.tiny}} />
+    <Icon type={icon} style={{marginRight: globalMargins.tiny}} color={globalColors.red} />
     <Text type="BodySemibold" style={{color: globalColors.red}} className="hover-underline">
       {caption}
     </Text>

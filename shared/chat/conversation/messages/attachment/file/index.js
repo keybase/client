@@ -37,7 +37,7 @@ class FileAttachment extends React.PureComponent<Props> {
           </Box>
           {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-download" style={{color: this.props.arrowColor, maxHeight: 14}} />
+              <Icon type="iconfont-download" style={{maxHeight: 14}} color={this.props.arrowColor} />
             </Box>
           )}
           {!!this.props.progressLabel && (

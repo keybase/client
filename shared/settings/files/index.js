@@ -35,7 +35,12 @@ const Files = isMobile
             <Box>
               <Box style={contentHeaderStyle}>
                 <Text type="BodySmallSemibold">{fileUIName} integration</Text>
-                <Icon type="iconfont-finder" style={contentHeaderIconStyle} />
+                <Icon
+                  type="iconfont-finder"
+                  style={contentHeaderIconStyle}
+                  fontSize="16"
+                  color={globalColors.black_20}
+                />
               </Box>
               <Checkbox
                 onCheck={kbfsEnabled ? onUninstall : onInstall}
@@ -62,8 +67,6 @@ const contentHeaderStyle = {
 }
 
 const contentHeaderIconStyle = {
-  fontSize: 16,
-  color: globalColors.black_20,
   paddingLeft: globalMargins.tiny,
 }
 

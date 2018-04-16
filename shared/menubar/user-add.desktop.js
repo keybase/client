@@ -63,10 +63,8 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
       <Icon
         type={'iconfont-folder-open'}
         onClick={onSubmit}
-        style={collapseStyles([
-          desktopStyles.clickable,
-          {color: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2},
-        ])}
+        style={collapseStyles([desktopStyles.clickable])}
+        color={isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}
       />
     </Box>
   )

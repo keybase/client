@@ -130,7 +130,13 @@ const ManageChannels = (props: Props) => {
         </ScrollView>
         {props.canCreateChannels && (
           <Box style={_createStyle}>
-            <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} hoverColor={_hoverColor} />
+            <Icon
+              style={_createIcon}
+              type="iconfont-new"
+              onClick={props.onCreate}
+              hoverColor={_hoverColor}
+              color={globalColors.blue}
+            />
             <Text type="BodyBigLink" onClick={props.onCreate}>
               New chat channel
             </Text>
@@ -166,7 +172,6 @@ const _boxStyle = {
 
 const _createIcon = platformStyles({
   common: {
-    color: globalColors.blue,
     marginRight: globalMargins.xtiny,
   },
   isElectron: {

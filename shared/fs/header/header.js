@@ -40,9 +40,9 @@ const FolderHeader = ({
             {!!dropdownPath && (
               <Box style={folderBreadcrumbStyle}>
                 <ClickableBox style={styleBreadcrumbDropdownIconBox} onClick={onOpenBreadcrumbDropdown}>
-                  <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} />
+                  <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} fontSize="16" />
                 </ClickableBox>
-                <Icon type="iconfont-arrow-right" style={iconStyle} />
+                <Icon type="iconfont-arrow-right" style={iconStyle} fontSize="11" />
               </Box>
             )}
             {breadcrumbItems.map(i => (
@@ -60,14 +60,14 @@ const FolderHeader = ({
                         {i.name}
                       </Text>
                     </ClickableBox>
-                    <Icon type="iconfont-arrow-right" style={iconStyle} />
+                    <Icon type="iconfont-arrow-right" style={iconStyle} fontSize="11" />
                   </Box>
                 )}
               </Box>
             ))}
           </Box>
           <Box style={styleFolderHeaderEnd}>
-            <Icon type="iconfont-finder" style={rowActionIconStyle} onClick={openInFileUI} />
+            <Icon type="iconfont-finder" {...rowActionIconProps} onClick={openInFileUI} />
           </Box>
         </Box>
       )}
@@ -130,14 +130,12 @@ const styleParentBreadcrumb = {
 const styleTailBreadcrumb = {}
 
 const iconStyle = {
-  fontSize: 11,
   marginLeft: globalMargins.xtiny,
   marginRight: globalMargins.xtiny,
 }
 
 const styleBreadcrumbDropdownIcon = {
   ...iconStyle,
-  fontSize: 16,
   marginLeft: 0,
 }
 
@@ -149,7 +147,7 @@ const styleTeamAvatar = {
   marginRight: globalMargins.xtiny,
 }
 
-const rowActionIconStyle = {
+const rowActionIconProps = {
   color: globalColors.black_40,
   fontSize: 16,
 }
