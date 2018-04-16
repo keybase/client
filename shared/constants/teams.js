@@ -173,9 +173,6 @@ const userIsActiveInTeamHelper = (
   return member && member.active
 }
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.teamNameToConvIDs.get(teamname, I.Set())
-
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
 
@@ -361,7 +358,6 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
-  getConvIdsFromTeamName,
   getRole,
   getCanPerform,
   hasCanPerform,

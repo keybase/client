@@ -17,12 +17,7 @@ import {
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
-import {
-  getCanPerform,
-  getConvIdsFromTeamName,
-  getChannelInfoFromConvID,
-  hasCanPerform,
-} from '../../constants/teams'
+import {getCanPerform, getChannelInfoFromConvID, getTeamConvIDs, hasCanPerform} from '../../constants/teams'
 import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
@@ -30,7 +25,7 @@ type ChannelMembershipState = {[channelname: string]: boolean}
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
   const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
-  const convIDs = getConvIdsFromTeamName(state, teamname)
+  const convIDs = getTeamConvIDs(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
   // We can get here without loading team operations
