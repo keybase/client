@@ -3,14 +3,14 @@ import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../util/container'
-import {isLinux} from '../../constants/platform'
+import * as StateMappers from '../utils/state-mappers'
 
 type OwnProps = {
   path?: Types.Path,
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
   return {
     kbfsEnabled,
     showBanner: state.fs.flags.showBanner,

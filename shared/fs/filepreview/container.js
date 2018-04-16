@@ -11,7 +11,8 @@ import FilePreview from '.'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import {navigateUp} from '../../actions/route-tree'
+import * as DispatchMappers from '../utils/dispatch-mappers'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
@@ -29,43 +30,36 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
   onBack: () => dispatch(navigateUp()),
   _download: (path: Types.Path) => dispatch(FsGen.createDownload({path, intent: 'none'})),
-  _showInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _share: path => {
-    dispatch(
-      navigateAppend([
-        {
-          props: {path, isShare: true},
-          selected: 'pathItemAction',
-        },
-      ])
-    )
-  },
-  _save: (path: Types.Path) => {
-    dispatch(FsGen.createDownload({path, intent: 'camera-roll'}))
-    dispatch(
-      navigateAppend([
-        {
-          props: {path, isShare: true},
-          selected: 'transferPopup',
-        },
-      ])
-    )
-  },
+  _showInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
+  _onAction: DispatchMappers.mapDispatchToOnAction(dispatch),
+  _openFinderPopup: DispatchMappers.mapDispatchToOpenFinderPopup(dispatch),
+  _share: DispatchMappers.mapDispatchToShare(dispatch),
+  _save: DispatchMappers.mapDispatchToSave(dispatch),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {fileUIEnabled, path, pathItem, _username} = stateProps
-  const {loadFilePreview, onBack, _download, _save, _share, _showInFileUI} = dispatchProps
+  const {
+    loadFilePreview,
+    onBack,
+    _onAction,
+    _download,
+    _openFinderPopup,
+    _save,
+    _share,
+    _showInFileUI,
+  } = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(path), pathItem.type, _username)
   return {
     fileUIEnabled,
+    itemStyles,
+    loadFilePreview,
     path,
     pathItem,
-    loadFilePreview,
-    itemStyles,
+    onAction: (event: SyntheticEvent<>) => _onAction(path, pathItem.type, event),
     onShare: () => _share(path),
     onDownload: () => _download(path),
-    onShowInFileUI: () => _showInFileUI(path),
+    onShowInFileUI: fileUIEnabled ? () => _showInFileUI(path) : _openFinderPopup,
     onSave: () => _save(path),
     onBack,
   }
