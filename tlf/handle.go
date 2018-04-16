@@ -415,9 +415,10 @@ func (h *Handle) DeepEqual(other Handle) bool {
 	return true
 }
 
+// checkUIDEquality returns true if `a` and `b` contain the same IDs,
+// regardless of order.  However, if `a` contains duplicates, this
+// function may return an incorrect value.
 func checkUIDEquality(a, b []keybase1.UserOrTeamID) bool {
-	// Assume `a` doesn't contain any duplicates (or that we don't
-	// care if `b` matches the exact number of duplicates).
 	aMap := make(map[keybase1.UserOrTeamID]bool)
 	for _, u := range a {
 		aMap[u] = true
