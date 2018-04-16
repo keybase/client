@@ -196,13 +196,11 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
         titleType: 'BodySemibold',
       }
     case 'large':
-      if (isUser) {
-        return {
-          iconSize: 112,
-          metaMargin: 8,
-          metaOneType: 'BodySemibold',
-          titleType: 'HeaderBig',
-        }
+      return {
+        iconSize: 112,
+        metaMargin: 8,
+        metaOneType: 'BodySemibold',
+        titleType: 'HeaderBig',
       }
   }
   // default

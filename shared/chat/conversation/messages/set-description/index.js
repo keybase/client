@@ -30,10 +30,17 @@ const SetDescription = (props: Props) => {
             usernames={[props.author]}
             style={props.setUsernameBlack ? {color: globalColors.black_75} : undefined}
           />{' '}
-          {props.description ? 'set the channel description' : 'cleared the channel description'}
         </Text>
       }
-      bottomLine={props.description ? <Text type="BodySmallItalic">{props.description}</Text> : null}
+      bottomLine={
+        props.description ? (
+          <Text type="BodySmall">
+            set the channel description: <Text type="BodySmallSemiboldItalic">{props.description}</Text>
+          </Text>
+        ) : (
+          <Text type="BodySmall">cleared the channel description.</Text>
+        )
+      }
     />
   )
 }
