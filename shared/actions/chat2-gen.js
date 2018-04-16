@@ -272,7 +272,7 @@ export const createMessageErrored = (
 ) => ({error: false, payload, type: messageErrored})
 export const createMessageReplyPrivately = (
   payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
+    sourceConversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
   |}>
 ) => ({error: false, payload, type: messageReplyPrivately})
@@ -298,8 +298,8 @@ export const createMessageSetEditing = (
 export const createMessageSetQuoting = (
   payload: $ReadOnly<{|
     sourceConversationIDKey: Types.ConversationIDKey,
-    targetConversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
+    targetConversationIDKey: string,
+    ordinal: ?Types.Ordinal,
   |}>
 ) => ({error: false, payload, type: messageSetQuoting})
 export const createMessageWasEdited = (

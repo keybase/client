@@ -151,12 +151,13 @@
     // Start quoting a message / or clear quoting
     "messageSetQuoting": {
       "sourceConversationIDKey": "Types.ConversationIDKey",
-      "targetConversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      // Has to be a string because it can be "pending".
+      "targetConversationIDKey": "string",
+      "ordinal": "?Types.Ordinal"
     },
     // Reply privately to a message with quoting
     "messageReplyPrivately": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "sourceConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
      },
     // Submit an edit to the daemon

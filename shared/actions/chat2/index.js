@@ -916,7 +916,7 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
-const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivately, state: TypedState) => {
+const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
   const {sourceConversationIDKey, ordinal} = action.payload
   console.warn('in messageReplyPrivately')
   const you = state.config.username
@@ -928,7 +928,8 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivately, state: Ty
   }
 
   // Do we already have a convo for this author?
-  const newConversationIDKey = Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
+  const newConversationIDKey =
+    you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
   if (newConversationIDKey) {
     console.warn('found convo', newConversationIDKey)
   } else {
