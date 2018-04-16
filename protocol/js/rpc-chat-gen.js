@@ -1019,7 +1019,7 @@ export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, mes
 
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time, explodedByUID?: ?Gregor1.UID}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time}>
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 

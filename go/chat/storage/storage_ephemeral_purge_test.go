@@ -52,17 +52,6 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		})
 	}
 
-	unsetExpected := func(name string) {
-		var idx int
-		for i, x := range expectedState {
-			if x.Name == name {
-				idx = i
-				break
-			}
-		}
-		expectedState = append(expectedState[:idx], expectedState[idx+1:]...)
-	}
-
 	assertState := func(maxMsgID chat1.MessageID) {
 		var rc ResultCollector
 		res, err := storage.Fetch(context.Background(), makeConversationAt(convID, maxMsgID), uid, rc, nil, nil)
@@ -152,7 +141,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// We sleep for `lifetime`, so we expect C to get purged on fetch (msg H is
 	// not yet merged in)
 	time.Sleep(sleepLifetime)
-	unsetExpected("C")
+	setExpected("C", msgC, false, dontCare)
 	assertState(msgG.GetMessageID())
 	// We don't update the  tracker state is updated from a fetch
 	verifyTrackerState(expectedPurgeInfo)
@@ -170,7 +159,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// the min.
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgH}))
 	verifyTrackerState(expectedPurgeInfo)
-	// We never set H in expected, since it's already gone..
+	// H should have it's body nuked off the bat.
+	setExpected("H", msgH, false, dontCare)
 	assertState(msgH.GetMessageID())
 	verifyTrackerState(expectedPurgeInfo)
 
@@ -181,13 +171,13 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		MinUnexplodedID: msgE.GetMessageID(),
 	}
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
-	unsetExpected("F")
+	setExpected("F", msgF, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	// we've slept for ~ lifetime*3, E's lifetime is up
 	time.Sleep(sleepLifetime)
 	ephemeralPurgeAndVerify(nil)
-	unsetExpected("E")
+	setExpected("E", msgE, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("purge with no effect")

@@ -291,7 +291,6 @@
     MessageID messageID;
     MessageID supersededBy;
     gregor1.Time ctime;
-    union { null, gregor1.UID } explodedByUID;
   }
 
   record MessagePreviousPointer {
