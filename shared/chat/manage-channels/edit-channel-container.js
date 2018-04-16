@@ -52,11 +52,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   return {
     _loadChannels: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
     onCancel: () => dispatch(navigateUp()),
-    _updateChannelName: (newChannelName: string) =>
-      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName})),
-    _updateTopic: (newTopic: string) => dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic})),
-    onConfirmedDelete: () => {
-      dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey}))
+    _updateChannelName: (teamname: string, newChannelName: string) =>
+      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName, teamname})),
+    _updateTopic: (newTopic: string, teamname) =>
+      dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic, teamname})),
+    onConfirmedDelete: (channelName: string, teamname: string) => {
+      dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, channelName, teamname}))
       dispatch(navigateUp())
     },
   }
@@ -69,7 +70,12 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     channelName: stateProps.channelName,
     topic: stateProps.topic,
     onCancel: dispatchProps.onCancel,
-    onConfirmedDelete: dispatchProps.onConfirmedDelete,
+    onConfirmedDelete: () => {
+      if (!stateProps.channelName) {
+        return
+      }
+      dispatchProps.onConfirmedDelete(stateProps.channelName, stateProps.teamname)
+    },
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     _needsLoad: stateProps._needsLoad,
@@ -77,12 +83,12 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled) {
         if (newChannelName !== stateProps.channelName) {
-          dispatchProps._updateChannelName(newChannelName)
+          dispatchProps._updateChannelName(newChannelName, stateProps.teamname)
         }
       }
 
       if (newTopic !== stateProps.topic) {
-        dispatchProps._updateTopic(newTopic)
+        dispatchProps._updateTopic(newTopic, stateProps.teamname)
       }
 
       dispatchProps.onCancel() // nav back up

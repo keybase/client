@@ -123,7 +123,13 @@ export const createCreateNewTeamFromConversation = (
     teamname: string,
   |}>
 ) => ({error: false, payload, type: createNewTeamFromConversation})
-export const createDeleteChannelConfirmed = (payload: $ReadOnly<{|conversationIDKey: ChatTypes.ConversationIDKey|}>) => ({error: false, payload, type: deleteChannelConfirmed})
+export const createDeleteChannelConfirmed = (
+  payload: $ReadOnly<{|
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    channelName: string,
+    teamname: Types.Teamname,
+  |}>
+) => ({error: false, payload, type: deleteChannelConfirmed})
 export const createEditMembership = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -271,12 +277,14 @@ export const createSetupTeamHandlers = () => ({error: false, payload: undefined,
 export const createUpdateChannelName = (
   payload: $ReadOnly<{|
     conversationIDKey: ChatTypes.ConversationIDKey,
+    teamname: Types.Teamname,
     newChannelName: string,
   |}>
 ) => ({error: false, payload, type: updateChannelName})
 export const createUpdateTopic = (
   payload: $ReadOnly<{|
     conversationIDKey: ChatTypes.ConversationIDKey,
+    teamname: Types.Teamname,
     newTopic: string,
   |}>
 ) => ({error: false, payload, type: updateTopic})

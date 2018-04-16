@@ -175,14 +175,18 @@
     "setupTeamHandlers": {},
     "updateChannelName": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "teamname": "Types.Teamname",
       "newChannelName": "string"
     },
     "updateTopic": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "teamname": "Types.Teamname",
       "newTopic": "string"
     },
     "deleteChannelConfirmed": {
-      "conversationIDKey": "ChatTypes.ConversationIDKey"
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "channelName": "string",
+      "teamname": "Types.Teamname"
     },
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",
