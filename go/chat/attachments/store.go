@@ -1,4 +1,4 @@
-package chat
+package attachments
 
 import (
 	"crypto/hmac"
@@ -242,7 +242,7 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 		return err
 	}
 
-	a.Debug(ctx, "DownloasAsset: downloaded and decrypted to %d plaintext bytes", n)
+	a.Debug(ctx, "DownloadAsset: downloaded and decrypted to %d plaintext bytes", n)
 	progWriter.Finish()
 
 	// validate the EncHash
