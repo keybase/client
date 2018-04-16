@@ -1,10 +1,9 @@
 // @flow
 import * as React from 'react'
 
-// headerIndex, sectionHeaderIndex, bodyStartIndex for mobile only sectionlist
 export type Props = {
   rows: Array<*>,
-  renderRow: (index: number, row: *) => React.Node,
+  renderRow: (row: *) => React.Node,
 }
 
 export default (props: Props): React.Node => null

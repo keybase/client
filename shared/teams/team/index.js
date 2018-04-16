@@ -7,7 +7,8 @@ import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
-import {Box, List} from '../../common-adapters'
+import {Box} from '../../common-adapters'
+import List from './list'
 import {globalStyles} from '../../styles'
 
 export type Props = {
@@ -29,7 +30,7 @@ export type Props = {
 }
 
 class Team extends React.Component<Props> {
-  _renderItem = (index, row) => {
+  _renderItem = row => {
     switch (row.type) {
       case 'header':
         return <TeamHeader key="header" teamname={this.props.teamname} />
@@ -77,7 +78,7 @@ class Team extends React.Component<Props> {
           width: '100%',
         }}
       >
-        <List items={this.props.rows} renderItem={this._renderItem} windowsSize={10} />
+        <List rows={this.props.rows} renderRow={this._renderItem} />
       </Box>
     )
   }
