@@ -116,6 +116,20 @@ func (r *root) getMountedVolumes() ([]gomounts.Volume, error) {
 	return gomounts.GetMountedVolumes()
 }
 
+// mountpointMatchesRunmode returns true if `mp` contains `runmode` at
+// the end of a component of the path, or followed by a space.
+func mountpointMatchesRunmode(mp, runmode string) bool {
+	i := strings.Index(mp, runmode)
+	if i < 0 {
+		return false
+	}
+	if len(mp) == i+len(runmode) || mp[i+len(runmode)] == '/' ||
+		mp[i+len(runmode)] == ' ' {
+		return true
+	}
+	return false
+}
+
 func (r *root) findKBFSMount(ctx context.Context) (
 	mountpoint string, err error) {
 	// Get the UID, and crash intentionally if it's not set, because
@@ -178,20 +192,12 @@ func (r *root) findKBFSMount(ctx context.Context) (
 	// path.
 	sort.Strings(fuseMountPoints)
 	for _, mp := range fuseMountPoints {
-		// Find mountpoints like "/home/user/.local/share/keybase/fs", or
-		// "/home/user/keybase", and make sure it doesn't match mounts for
-		// another run mode, say "/home/user/keybase.staging".
-		i := strings.Index(mp, r.runmodeStr)
-		str := r.runmodeStr
-		if i < 0 {
-			i = strings.Index(mp, r.runmodeStrFancy)
-			str = r.runmodeStrFancy
-		}
-		if i < 0 {
-			continue
-		}
-		if len(mp) == i+len(str) || mp[i+len(str)] == '/' ||
-			mp[i+len(str)] == ' ' {
+		// Find mountpoints like "/home/user/.local/share/keybase/fs",
+		// or "/Volumes/Keybase (user)", and make sure it doesn't
+		// match mounts for another run mode, say
+		// "/Volumes/KeybaseStaging (user)".
+		if mountpointMatchesRunmode(mp, r.runmodeStr) ||
+			mountpointMatchesRunmode(mp, r.runmodeStrFancy) {
 			return mp, nil
 		}
 	}
