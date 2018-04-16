@@ -25,6 +25,7 @@ import nameWithIcon from '../common-adapters/name-with-icon.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
 import retention from '../teams/team/settings/retention/index.stories'
 import roles from '../teams/role-picker/index.stories'
+import saveIndicator from '../common-adapters/save-indicator.stories'
 import search from '../search/search.stories'
 import teams from '../teams/index.stories'
 import text from '../common-adapters/text.stories'
@@ -64,6 +65,7 @@ const stories = {
   radiobutton,
   retention,
   roles,
+  saveIndicator,
   search,
   teams,
   text,

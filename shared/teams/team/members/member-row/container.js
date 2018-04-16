@@ -28,7 +28,7 @@ const mapStateToProps = (
   following: amIFollowing(state, username),
   fullName: state.config.username === username ? 'You' : fullName,
   you: state.config.username,
-  youCanManageMembers: getCanPerform(state, 'teamname').manageMembers,
+  youCanManageMembers: getCanPerform(state, teamname).manageMembers,
 })
 
 type DispatchProps = {

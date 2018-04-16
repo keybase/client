@@ -977,6 +977,8 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
   return Saga.sequentially([
     // Disable sending more into a pending conversation
     Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'waiting'})),
+    // Disable searching for more people once you've tried to send
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
     // Try to make the conversation
     Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,

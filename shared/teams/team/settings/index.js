@@ -279,6 +279,7 @@ export class Settings extends React.Component<Props, State> {
             type="simple"
             containerStyle={{marginTop: globalMargins.small}}
             onSelect={this._onSelectRetentionPolicy}
+            showSaveIndicator={false}
             teamname={this.props.teamname}
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
