@@ -189,12 +189,15 @@ const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
 const getTeamChannelInfos = (state: TypedState, teamname: Types.Teamname) => {
   const channels = getTeamConvIDs(state, teamname)
     .toMap()
-    .map(convID => getChannelInfoFromConvID(state, convID))
+    .map(convID => getChannelInfoFromConvID(state, teamname, convID))
   return channels
 }
 
-const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.get(conversationIDKey, null)
+const getChannelInfoFromConvID = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey
+) => state.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)

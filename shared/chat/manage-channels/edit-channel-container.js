@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     throw new Error('teamname unexpectedly empty')
   }
 
-  const channelInfo = Constants.getChannelInfoFromConvID(state, conversationIDKey)
+  const channelInfo = Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey)
   const _needsLoad = !channelInfo
 
   const waitingForGetInfo = _needsLoad || anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
