@@ -194,7 +194,7 @@ const styles = styleSheetCreate({
     justifyContent: 'flex-end',
     width: 40,
   },
-  userAvatar: {width: 32},
+  userAvatar: {width: 40},
   username: {
     alignSelf: 'flex-start',
     backgroundColor: globalColors.fastBlank,
