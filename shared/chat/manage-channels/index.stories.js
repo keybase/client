@@ -135,7 +135,42 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
+          waitingForGetInfo={false}
           waitingForSave={false}
+        />
+      </Box>
+    ))
+    .add('EditChannel - waiting for get info', () => (
+      <Box style={toPlatformStyle(editChannelStyle)}>
+        <EditChannel
+          onBack={action('onBack')}
+          teamname={'stripe.usa'}
+          channelName={'takeover'}
+          topic={''}
+          onCancel={action('onCancel')}
+          onSave={action('onSave')}
+          onConfirmedDelete={action('onConfirmedDelete')}
+          showDelete={true}
+          deleteRenameDisabled={false}
+          waitingForGetInfo={true}
+          waitingForSave={true}
+        />
+      </Box>
+    ))
+    .add('EditChannel - waiting for save', () => (
+      <Box style={toPlatformStyle(editChannelStyle)}>
+        <EditChannel
+          onBack={action('onBack')}
+          teamname={'stripe.usa'}
+          channelName={'takeover'}
+          topic={''}
+          onCancel={action('onCancel')}
+          onSave={action('onSave')}
+          onConfirmedDelete={action('onConfirmedDelete')}
+          showDelete={true}
+          deleteRenameDisabled={false}
+          waitingForGetInfo={false}
+          waitingForSave={true}
         />
       </Box>
     ))
@@ -151,6 +186,7 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
+          waitingForGetInfo={false}
           waitingForSave={false}
         />
       </Box>

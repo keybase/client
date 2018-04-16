@@ -14,6 +14,7 @@ type Props = {
   onConfirmedDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
+  waitingForGetInfo: boolean,
   waitingForSave: boolean,
 }
 

@@ -11,12 +11,13 @@ import {anyWaiting} from '../../constants/waiting'
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
   const teamname = routeProps.get('teamname')
-  const waitingForSave = anyWaiting(
+  const waitingForGetInfo = anyWaiting(state, `getChannels:${teamname}`)
+  const waitingForUpdate = anyWaiting(
     state,
     `updateTopic:${conversationIDKey}`,
-    `updateChannelName:${conversationIDKey}`,
-    `getChannels:${teamname}`
+    `updateChannelName:${conversationIDKey}`
   )
+  const waitingForSave = waitingForGetInfo || waitingForUpdate
   const channelInfo = Constants.getChannelInfoFromConvID(state, conversationIDKey)
   const _needsLoad = !channelInfo
   const channelName = channelInfo ? channelInfo.channelname : ''
@@ -30,6 +31,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     channelName,
     topic,
     canDelete,
+    waitingForGetInfo,
     waitingForSave,
   }
 }
