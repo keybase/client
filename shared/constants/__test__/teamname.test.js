@@ -22,7 +22,7 @@ describe('teamname', () => {
   })
 
   it('baseTeamname', () => {
-    expect(baseTeamname('team')).toBe(null)
+    expect(baseTeamname('team')).toBe('team')
     expect(baseTeamname('team.sub')).toBe('team')
     expect(baseTeamname('team.sub.sub')).toBe('team.sub')
   })
