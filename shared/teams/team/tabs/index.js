@@ -87,19 +87,18 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
-  const publicityLabel = 'SETTINGS'
   tabs.push(
     isMobile ? (
-      <Icon key="publicity" type="iconfont-nav-settings" />
+      <Icon key="settings" type="iconfont-nav-settings" />
     ) : (
       <Text
-        key="publicity"
+        key="settings"
         type="BodySmallSemibold"
         style={{
           color: globalColors.black_75,
         }}
       >
-        {publicityLabel}
+        SETTINGS
       </Text>
     )
   )

@@ -1,17 +1,20 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
-import {Box, Icon, List} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
-// import List, {type TeamRows} from './list'
-import TeamHeader from './header/container'
-import TeamTabs from './tabs/container'
-import MemberRow from './member-row/container'
-import InviteRow from './invite-row/container'
-import RequestRow from './request-row/container'
 import InviteDividerRow from './divider-row'
 import InviteEmptyRow from './empty-row'
+import InviteRow from './invite-row/container'
+import MemberRow from './member-row/container'
+import RequestRow from './request-row/container'
+import Settings from './settings/container'
+import SubteamAdd from './subteam-add/container'
 import SubteamIntro from './subteam-intro/container'
+import SubteamNone from './subteam-none'
+import SubteamSubteam from './subteam-subteam/container'
+import TeamHeader from './header/container'
+import TeamTabs from './tabs/container'
+import {Box, List} from '../../common-adapters'
+import {globalStyles} from '../../styles'
 
 export type Props = {
   teamname: Types.Teamname,
@@ -54,56 +57,26 @@ class Team extends React.Component<Props> {
       case 'divider':
         return <InviteDividerRow key={row.label} label={row.label} />
       case 'none':
-        return <InviteEmptyRow key="empty" />
+        return <InviteEmptyRow key="invite-empty" />
       case 'subteam-intro':
-        return <SubteamIntro key={row.key} teamname={this.props.teamname} />
-      // case 'subteam-add':
-      // return <AddSubTeam key={row.key} row={row} />
-      // case 'subteam-none':
-      // return <NoSubteams key={row.key} row={row} />
-      // case 'subteam-subteam':
-      // return <SubteamRowRender key={row.key} row={row} />
-
-      // case 'settings': {
-      // return <Settings key="settings" teamname={row.teamname} />
-      // }
-      // default: {
-      // // eslint-disable-next-line no-unused-expressions
-      // ;(row.type: empty)
-      // throw new Error(`Impossible case encountered in team page list: ${row.type}`)
-      // }
-      default:
-        return <Box style={{width: 10, height: 10, backgroundColor: 'red'}} />
+        return <SubteamIntro key="subteam-intro" teamname={this.props.teamname} />
+      case 'subteam-add':
+        return <SubteamAdd key="subteam-add" teamname={this.props.teamname} />
+      case 'subteam-none':
+        return <SubteamNone key="subteam-none" />
+      case 'subteam-subteam':
+        return <SubteamSubteam key={row.teamname} teamname={row.teamname} />
+      case 'settings':
+        return <Settings key="settings" teamname={this.props.teamname} />
+      default: {
+        // eslint-disable-next-line no-unused-expressions
+        ;(row.type: empty)
+        throw new Error(`Impossible case encountered in team page list: ${row.type}`)
+      }
     }
   }
 
   render() {
-    // const {teamname} = props
-
-    // const rows: TeamRows = [{type: 'header', teamname, key: 'headerKey'}]
-    // rows.push({
-    // type: 'tabs',
-    // key: 'tabs',
-    // admin: props.yourOperations.manageMembers,
-    // memberCount: props.memberCount,
-    // teamname,
-    // newTeamRequests: props.newTeamRequests,
-    // numInvites: props.numInvites,
-    // numRequests: props.numRequests,
-    // numSubteams: props.numSubteams,
-    // loading: props.loading,
-    // resetUserCount: props.resetUserCount,
-    // selectedTab: props.selectedTab,
-    // setSelectedTab: props.setSelectedTab,
-    // yourOperations: props.yourOperations,
-    // })
-
-    // if (props.selectedTab === 'publicity') {
-    // rows.push({type: 'settings', teamname, key: 'settings'})
-    // } else if (props.listItems) {
-    // rows.push(...props.listItems)
-    // }
-
     return (
       <Box
         style={{
@@ -120,42 +93,5 @@ class Team extends React.Component<Props> {
     )
   }
 }
-// <List headerRow={rows[0]} bodyRows={rows.splice(1)} />
+
 export default Team
-
-type CustomProps = {
-  onOpenFolder: () => void,
-  onChat: () => void,
-  onShowMenu: any => void,
-  canChat: boolean,
-  canViewFolder: boolean,
-}
-
-const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFolder}: CustomProps) => (
-  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 0}}>
-    {canChat && (
-      <Icon
-        onClick={onChat}
-        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-        type="iconfont-chat"
-      />
-    )}
-    {!isMobile &&
-      canViewFolder && (
-        <Icon
-          onClick={onOpenFolder}
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-          type="iconfont-folder-private"
-        />
-      )}
-    <Icon
-      onClick={evt => onShowMenu(isMobile ? undefined : evt.target)}
-      type="iconfont-ellipsis"
-      style={{
-        fontSize: isMobile ? 20 : 16,
-        marginRight: globalMargins.tiny,
-      }}
-    />
-  </Box>
-)
-export {CustomComponent}
