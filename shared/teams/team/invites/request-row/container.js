@@ -59,8 +59,4 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-const ConnectedRequestRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
-
-export default function(i: number, props: OwnProps) {
-  return <ConnectedRequestRow {...props} />
-}
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)

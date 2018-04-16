@@ -50,11 +50,11 @@ const mapDispatchToProps = (
   return {
     _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
     setSelectedTab: selectedTab => setRouteState({selectedTab}),
+    onBack: () => dispatch(navigateUp()),
   }
   // const teamname = routeProps.get('teamname')
   // return {
   // onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
-  // onBack: () => dispatch(navigateUp()),
   // onShowMenu: target =>
   // dispatch(
   // navigateAppend(
@@ -123,6 +123,7 @@ const mergeProps = (stateProps, dispatchProps): Props => {
     rows,
     selectedTab: stateProps.selectedTab,
     setSelectedTab: dispatchProps.setSelectedTab,
+    onBack: dispatchProps.onBack,
     // customComponent,
     // newTeamRequests: stateProps._newTeamRequests.toArray(),
   }

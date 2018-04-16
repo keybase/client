@@ -1,71 +1,66 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
-import * as I from 'immutable'
-import * as React from 'react'
-import * as Types from '../../../../constants/types/teams'
 import {getTeamInvites, getTeamMembers} from '../../../../constants/teams'
-import {amIFollowing} from '../../../../constants/selectors'
 import {TeamInviteRow} from '.'
 import {connect, type TypedState} from '../../../../util/container'
 
 type OwnProps = {
-  email?: string,
   id: string,
-  name?: string,
-  teamname: string,
-  username: string,
 }
 
-type StateProps = {
-  following: boolean,
-  you: ?string,
-  _invites: I.Set<Types.InviteInfo>,
-  _members: I.Map<string, Types.MemberInfo>,
+const mapStateToProps = (state: TypedState, {teamname, id}: OwnProps) => {
+  return {
+    _invites: getTeamInvites(state, teamname),
+    _members: getTeamMembers(state, teamname),
+  }
 }
-
-const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
-  _invites: getTeamInvites(state, teamname),
-  _members: getTeamMembers(state, teamname),
-  following: amIFollowing(state, username || ''),
-  you: state.config.username,
-})
 
 type DispatchProps = {
   onCancelInvite: () => void,
 }
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  {email, name, id, teamname, username}: OwnProps
-): DispatchProps => ({
-  onCancelInvite: () => {
-    if (email) {
-      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, teamname, username: '', inviteID: ''}))
-    } else if (username) {
-      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', teamname, username, inviteID: ''}))
-    } else if (name) {
-      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', teamname, username: '', inviteID: id}))
-    }
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _onCancelInvite: ({email, teamname, username, inviteID}) => {
+    dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, inviteID, teamname, username}))
   },
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
-  const user =
-    stateProps._invites &&
-    stateProps._invites.find(
-      invite => invite.username === ownProps.username || invite.email === ownProps.email
-    )
-  const role = user.get('role')
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const user = stateProps._invites.find(invite => invite.id === ownProps.id) || {}
+
+  let onCancelInvite
+  if (user.email) {
+    onCancelInvite = () =>
+      dispatchProps._onCancelInvite({
+        email: user.email,
+        inviteID: '',
+        teamname: ownProps.teamname,
+        username: '',
+      })
+  } else if (user.username) {
+    onCancelInvite = () =>
+      dispatchProps._onCancelInvite({
+        email: '',
+        inviteID: '',
+        teamname: ownProps.teamname,
+        username: user.username,
+      })
+  } else if (user.name) {
+    onCancelInvite = () =>
+      dispatchProps._onCancelInvite({
+        email: '',
+        inviteID: ownProps.id,
+        teamname: ownProps.teamname,
+        username: '',
+      })
+  }
+
   return {
-    ...dispatchProps,
     ...stateProps,
-    label: ownProps.email || ownProps.username || ownProps.name,
-    role,
+    label: user.email || user.username || user.name,
+    onCancelInvite,
+    role: user.role,
   }
 }
 
-const ConnectedInviteRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
-
-export default function(i: number, props: OwnProps) {
-  return <ConnectedInviteRow {...props} />
-}
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamInviteRow)
