@@ -199,9 +199,6 @@ const getChannelInfoFromConvID = (
   conversationIDKey: ChatTypes.ConversationIDKey
 ) => state.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
-const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
-
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')
 
@@ -387,7 +384,6 @@ export {
   userIsActiveInTeamHelper,
   getTeamChannelInfos,
   getChannelInfoFromConvID,
-  getChannelNameFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
