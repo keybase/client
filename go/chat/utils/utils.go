@@ -461,6 +461,22 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 	return res
 }
 
+// Filter messages that are both exploded that are no longer shown in the GUI
+// (as ash lines)
+func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	now := time.Now()
+	for _, msg := range msgs {
+		if msg.IsValid() {
+			mvalid := msg.Valid()
+			if mvalid.IsExploding() && mvalid.HideExplosion(now) {
+				continue
+			}
+		}
+		res = append(res, msg)
+	}
+	return msgs
+}
+
 // GetSupersedes must be called with a valid msg
 func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	if !msg.IsValidFull() {

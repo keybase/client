@@ -1,5 +1,6 @@
 // @flow
 import avatar from '../common-adapters/avatar.stories'
+import meta from '../common-adapters/meta.stories'
 import buttonBar from '../common-adapters/button-bar.stories'
 import button from '../common-adapters/button.stories'
 import box from '../common-adapters/box.stories'
@@ -23,7 +24,7 @@ import input from '../common-adapters/input.stories'
 import login from '../login/index.stories'
 import nameWithIcon from '../common-adapters/name-with-icon.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
-import retention from '../teams/team/settings/retention/index.stories'
+import retention from '../teams/team/settings-tab/retention/index.stories'
 import roles from '../teams/role-picker/index.stories'
 import saveIndicator from '../common-adapters/save-indicator.stories'
 import search from '../search/search.stories'
@@ -58,6 +59,7 @@ const stories = {
   icon,
   input,
   login,
+  meta,
   nameWithIcon,
   peopleTask,
   peopleFollowNotification,

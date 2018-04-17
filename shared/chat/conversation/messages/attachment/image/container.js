@@ -6,6 +6,7 @@ import * as Route from '../../../../../actions/route-tree'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
+import {imgMaxWidth} from './image-render'
 
 const mapStateToProps = (state: TypedState) => ({})
 
@@ -74,7 +75,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     progress: message.transferProgress,
     progressLabel,
     title: message.title || message.fileName,
-    width: message.previewWidth,
+    width: Math.min(message.previewWidth, imgMaxWidth()),
   }
 }
 

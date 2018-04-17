@@ -49,7 +49,7 @@ const TeamHeader = (props: Props) => (
         metaOne={
           <Box style={globalStyles.flexBoxRow}>
             <Text type="BodySmall">TEAM</Text>
-            {props.openTeam && <Meta style={stylesMeta} title="OPEN" />}
+            {props.openTeam && <Meta style={stylesMeta} title="open" backgroundColor={globalColors.green} />}
           </Box>
         }
         metaTwo={getTeamSubtitle(props.memberCount, props.role)}
@@ -178,7 +178,6 @@ const stylesTeamHeader = {
 
 const stylesMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
   borderRadius: 1,
   marginLeft: globalMargins.tiny,
   marginTop: 1,

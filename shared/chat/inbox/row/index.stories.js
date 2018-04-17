@@ -66,6 +66,17 @@ const mocks = [
   },
   {
     ...simpleCommon,
+    conversationIDKey: '5',
+    hasBadge: false,
+    hasResetUsers: true,
+    hasUnread: false,
+    participants: ['jzila'],
+    showBold: false,
+    snippet: 'I don\t know that I would want.',
+    timestamp: '5:12 pm',
+  },
+  {
+    ...simpleCommon,
     backgroundColor: globalColors.blue,
     conversationIDKey: '4',
     hasUnread: false,

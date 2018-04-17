@@ -85,7 +85,7 @@ const ShowcasedTeamRow = ({
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
         {team.fqName}
       </Text>
-      {team.open && <Meta style={styleMeta} title="OPEN" />}
+      {team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
     </Box>
   </Box>
 )
@@ -557,8 +557,6 @@ const styleFolderIcon = {
 
 const styleMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
-  borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
 }

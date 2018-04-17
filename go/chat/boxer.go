@@ -89,38 +89,45 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 	})
 }
 
-func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
+func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) UnboxingError {
 	// Banned folders are only detectable by the error string currently, hopefully
 	// we can do something better in the future.
 	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
-		return true
+		return NewPermanentUnboxingError(err)
 	}
 
 	// Check for team not exist error that is in raw form
 	if aerr, ok := err.(libkb.AppStatusError); ok {
 		switch keybase1.StatusCode(aerr.Code) {
 		case keybase1.StatusCode_SCTeamNotFound:
-			return true
+			return NewPermanentUnboxingError(err)
 		case keybase1.StatusCode_SCTeamReadError:
 			// These errors get obfuscated by the server on purpose. Just mark this as permanent error
 			// since it likely means the team is in bad shape.
-			return aerr.Error() == "You are not a member of this team (error 2623)"
+			if aerr.Error() == "You are not a member of this team (error 2623)" {
+				return NewPermanentUnboxingError(err)
+			}
+			return NewTransientUnboxingError(err)
 		}
 	}
 
-	switch err.(type) {
-	case libkb.DeletedError:
-		return true
+	switch err := err.(type) {
+	case libkb.UserDeletedError:
+		if len(err.Msg) == 0 {
+			err.Msg = fmt.Sprintf("user deleted in chat '%v'", tlfName)
+		}
+		return NewPermanentUnboxingError(err)
 	case teams.TeamDoesNotExistError:
-		return true
+		return NewPermanentUnboxingError(err)
 	}
 
 	// Check for no space left on device errors
 	if libkb.IsNoSpaceOnDeviceError(err) {
-		return true
+		return NewPermanentUnboxingError(err)
 	}
 
-	return false
+	// transient error. Rekey errors come through here
+	return NewTransientUnboxingError(err)
 }
 
 type basicUnboxConversationInfo struct {
@@ -248,11 +255,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
-		if b.detectKBFSPermanentServerError(err) {
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
-		}
-		// transient error. Rekey errors come through here
-		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
+		return chat1.MessageUnboxed{}, b.detectKBFSPermanentServerError(err, tlfName)
 	}
 	var encryptionKey types.CryptKey
 	keys := nameInfo.CryptKeys[keyMembersType]
@@ -749,6 +752,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
+			EphemeralMetadata: hp.EphemeralMetadata, // TODO only for v3
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
@@ -859,6 +863,12 @@ func (b *Boxer) compareHeadersMBV2(ctx context.Context, hServer chat1.MessageCli
 	// OutboxInfo
 	if !hServer.OutboxInfo.Eq(hSigned.OutboxInfo) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxInfo"))
+	}
+
+	// TODO only enforce this for v3
+	// EphemeralMetadata
+	if !hServer.EphemeralMetadata.Eq(hSigned.EphemeralMetadata) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("EphemeralMetadata"))
 	}
 
 	return nil
@@ -1286,6 +1296,7 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
 		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
+		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata, // TODO only for v3
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

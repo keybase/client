@@ -249,9 +249,8 @@ func TestSendLocalKeybase(t *testing.T) {
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
-	res, err := srvSender.SendLocal(context.Background(), arg)
+	_, err = srvSender.SendLocal(context.Background(), arg)
 	require.NoError(t, err)
-	_ = res
 
 	balances, err := srvSender.BalancesLocal(context.Background(), accountIDSender)
 	if err != nil {
@@ -264,6 +263,58 @@ func TestSendLocalKeybase(t *testing.T) {
 		t.Fatal(err)
 	}
 	require.Equal(t, balances[0].Amount, "10100.0000000")
+}
+
+func TestRecentPaymentsLocal(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
+	require.NoError(t, err)
+
+	srvSender, rm := newTestServer(tcs[0].G)
+	accountIDSender := rm.AddAccount(t)
+	accountIDRecip := rm.AddAccount(t)
+
+	srvRecip, _ := newTestServer(tcs[1].G)
+
+	argImport := stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(t, accountIDSender),
+		MakePrimary: true,
+	}
+	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	argImport.SecretKey = rm.SecretKey(t, accountIDRecip)
+	err = srvRecip.ImportSecretKeyLocal(context.Background(), argImport)
+	require.NoError(t, err)
+
+	arg := stellar1.SendLocalArg{
+		Recipient: fus[1].Username,
+		Amount:    "100",
+		Asset:     stellar1.Asset{Type: "native"},
+	}
+	_, err = srvSender.SendLocal(context.Background(), arg)
+	require.NoError(t, err)
+
+	checkPayment := func(payment stellar1.RecentPaymentCLILocal) {
+		require.Equal(t, accountIDSender, payment.FromStellar)
+		require.Equal(t, accountIDRecip, payment.ToStellar)
+		require.NotNil(t, payment.ToUsername)
+		require.Equal(t, fus[1].Username, *(payment.ToUsername))
+		require.Equal(t, "100.0000000", payment.Amount)
+	}
+	senderPayments, err := srvSender.RecentPaymentsCLILocal(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, senderPayments, 1)
+	checkPayment(senderPayments[0])
+
+	recipPayments, err := srvRecip.RecentPaymentsCLILocal(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, recipPayments, 1)
+	checkPayment(recipPayments[0])
 }
 
 // Create n TestContexts with logged in users

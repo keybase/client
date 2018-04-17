@@ -11,6 +11,7 @@ export function* installFuseSaga(): Saga.SagaGenerator<any, any> {}
 export function installDokanSaga() {}
 export function installKBFS() {}
 export function installKBFSSuccess(payload: RPCTypes.InstallResult) {}
+export function openSecurityPreferences() {}
 export function uninstallKBFSConfirmSaga(): Promise<*> {
   return new Promise((resolve, reject) => reject(new Error('unimplemented')))
 }

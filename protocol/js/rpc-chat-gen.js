@@ -665,11 +665,9 @@ export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomi
 
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConvEphemeralMetadata = $ReadOnly<{lastKtime: Gregor1.Time}>
-
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, ephemeralMetadata?: ?ConvEphemeralMetadata}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 
@@ -753,7 +751,7 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
-export type EphemeralPurgePayload = $ReadOnly<{Action: String, convMetadata: {[key: string]: ConvEphemeralMetadata}, inboxVers: InboxVers}>
+export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
@@ -832,7 +830,7 @@ export type HeaderPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
 
 export type HeaderPlaintextUnsupported = $ReadOnly<{mi: HeaderPlaintextMetaInfo}>
 
-export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot}>
+export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type HeaderPlaintextVersion =
   | 1 // V1_1
@@ -1023,7 +1021,7 @@ export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, mes
 
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time, explodedByUID?: ?Gregor1.UID}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time}>
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 

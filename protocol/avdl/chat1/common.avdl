@@ -210,10 +210,6 @@
   }
 
   @mpackkey("em") @jsonkey("em")
-  record ConvEphemeralMetadata {
-    gregor1.Time lastKtime;
-  }
-
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -281,10 +277,6 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-
-    // The last message id that was exploded.
-    @mpackkey("em") @jsonkey("em")
-    union { null, ConvEphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageSummary {
@@ -299,7 +291,6 @@
     MessageID messageID;
     MessageID supersededBy;
     gregor1.Time ctime;
-    union { null, gregor1.UID } explodedByUID;
   }
 
   record MessagePreviousPointer {
@@ -318,6 +309,16 @@
     gregor1.DurationSec lifetime; // used to computed etime
     @mpackkey("gen") @jsonkey("gen")
     keybase1.EkGeneration generation;
+  }
+
+  @mpackkey("pi") @jsonkey("pi")
+  record EphemeralPurgeInfo {
+    @mpackkey("a") @jsonkey("a")
+    boolean isActive;
+    @mpackkey("n") @jsonkey("n")
+    gregor1.Time nextPurgeTime;
+    @mpackkey("e") @jsonkey("e")
+    MessageID minUnexplodedID;
   }
 
   // The Boxer's compareHeaders* functions checks each of these fields.

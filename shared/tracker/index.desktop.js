@@ -152,7 +152,9 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                       }}
                     >
                       <Text type="BodySemibold">{team.fqName}</Text>
-                      {team.open && <Meta title="OPEN" style={styleMeta} />}
+                      {team.open && (
+                        <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />
+                      )}
                     </Box>
                   </Box>
                 ))}
@@ -227,8 +229,6 @@ const styleFooter = {
 
 const styleMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
-  borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
 }

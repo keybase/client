@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../constants/types/devices'
 import React, {PureComponent} from 'react'
-import {Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
+import {Box2, Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {OLDPopupMenu} from '../common-adapters/popup-menu'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
@@ -102,20 +102,15 @@ class Devices extends PureComponent<Props> {
     ]
 
     return (
-      <Box style={stylesContainer}>
+      <Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <DeviceHeader onAddNew={this.props.showMenu} waiting={this.props.waiting} />
         <List items={items} renderItem={this._renderRow} />
         {this.props.showingMenu && (
           <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />
         )}
-      </Box>
+      </Box2>
     )
   }
-}
-
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.fullHeight,
 }
 
 const stylesCommonCore = {

@@ -376,7 +376,10 @@ func (b *BackgroundConvLoader) loop() {
 				return
 			}
 			if nextTask != nil {
-				b.enqueue(bgctx, *nextTask)
+				if err := b.enqueue(bgctx, *nextTask); err != nil {
+					b.Debug(bgctx, "enqueue error %s", err)
+				}
+
 			}
 		case ch := <-b.suspendCh:
 			b.Debug(bgctx, "loop: received suspend")
@@ -409,7 +412,6 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	b.Debug(ictx, "load: loading conversation %s", task.job)
 	b.Lock()
-	job := task.job
 	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(
 		Context(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
@@ -426,6 +428,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 		b.Unlock()
 	}()
 
+	job := task.job
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := job.Pagination
 	if pagination == nil {
