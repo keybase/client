@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -33,7 +34,7 @@ type UploadTask struct {
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
 	UserID         keybase1.UID
-	Progress       ProgressReporter
+	Progress       types.ProgressReporter
 }
 
 func (u *UploadTask) computePlaintextHash() error {
@@ -212,7 +213,7 @@ func (a *Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset
 }
 
 func (a *Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
-	progress ProgressReporter) error {
+	progress types.ProgressReporter) error {
 	// compute hash
 	hash := sha256.New()
 	verify := io.TeeReader(body, hash)
@@ -249,7 +250,8 @@ func (a *Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, a
 }
 
 // DownloadAsset gets an object from S3 as described in asset.
-func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
+func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer,
+	signer s3.Signer, progress types.ProgressReporter) error {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}

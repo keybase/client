@@ -1739,15 +1739,14 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
+	fetcher := h.G().AttachmentURLSrv.GetAttachmentFetcher()
+	if err := fetcher.FetchAttachment(ctx, arg.Sink, obj, params, h, progress); err != nil {
 		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
-
 	if err := arg.Sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
-
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
 	return chat1.DownloadAttachmentLocalRes{
@@ -2013,7 +2012,8 @@ func (h *Server) preprocessAsset(ctx context.Context, sessionID int, attachment 
 	return &p, nil
 }
 
-func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local attachments.AssetSource, conversationID chat1.ConversationID, progress attachments.ProgressReporter) (chat1.Asset, error) {
+func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params,
+	local attachments.AssetSource, conversationID chat1.ConversationID, progress types.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src, err := local.Open(sessionID, cli)

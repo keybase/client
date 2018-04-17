@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/sync/errgroup"
@@ -66,7 +67,8 @@ func (a *Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Upload
 // putSingle uploads data in r to S3 with the Put API.  It has to be
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
-func (a *Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params, b s3.BucketInt, progress ProgressReporter) (err error) {
+func (a *Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
+	b s3.BucketInt, progress types.ProgressReporter) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
 	// In order to be able to retry the upload, need to read in the entire
 	// attachment.  But putSingle is only called for attachments <= 5MB, so

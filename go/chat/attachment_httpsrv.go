@@ -25,11 +25,6 @@ import (
 
 var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
-type AttachmentFetcher interface {
-	FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset, s3params chat1.S3Params,
-		signer s3.Signer) error
-}
-
 type AttachmentHTTPSrv struct {
 	sync.Mutex
 	globals.Contextified
@@ -38,13 +33,13 @@ type AttachmentHTTPSrv struct {
 	endpoint string
 	httpSrv  *libkb.HTTPSrv
 	urlMap   *lru.Cache
-	fetcher  AttachmentFetcher
+	fetcher  types.AttachmentFetcher
 	ri       func() chat1.RemoteInterface
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
 
-func NewAttachmentHTTPSrv(g *globals.Context, fetcher AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
+func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
 	l, err := lru.New(10000)
 	if err != nil {
 		panic(err)
@@ -85,6 +80,10 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 			r.httpSrv.Stop()
 		}
 	}
+}
+
+func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
+	return r.fetcher
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -156,7 +155,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		makeError(500, "failed to get S3 params: %s", err)
 		return
 	}
-	if err := r.fetcher.FetchAttachment(ctx, w, asset, params, r); err != nil {
+	if err := r.fetcher.FetchAttachment(ctx, w, asset, params, r, blankProgress); err != nil {
 		makeError(500, "failed to fetch attachment: %s", err)
 		return
 	}
@@ -177,7 +176,7 @@ type RemoteAttachmentFetcher struct {
 	store *attachments.Store
 }
 
-var _ AttachmentFetcher = (*RemoteAttachmentFetcher)(nil)
+var _ types.AttachmentFetcher = (*RemoteAttachmentFetcher)(nil)
 
 func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *RemoteAttachmentFetcher {
 	return &RemoteAttachmentFetcher{
@@ -188,9 +187,9 @@ func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *R
 }
 
 func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
-	s3params chat1.S3Params, signer s3.Signer) (err error) {
+	s3params chat1.S3Params, signer s3.Signer, progress types.ProgressReporter) (err error) {
 	defer r.Trace(ctx, func() error { return err }, "FetchAttachment")()
-	return r.store.DownloadAsset(ctx, s3params, asset, w, signer, blankProgress)
+	return r.store.DownloadAsset(ctx, s3params, asset, w, signer, progress)
 }
 
 type CachingAttachmentFetcher struct {
@@ -200,6 +199,8 @@ type CachingAttachmentFetcher struct {
 	store   *attachments.Store
 	diskLRU *disklru.DiskLRU
 }
+
+var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
 
 func NewCachingAttachmentFetcher(g *globals.Context, store *attachments.Store, size int) *CachingAttachmentFetcher {
 	return &CachingAttachmentFetcher{
@@ -239,7 +240,8 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 }
 
 func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
-	s3params chat1.S3Params, signer s3.Signer) (err error) {
+	s3params chat1.S3Params, signer s3.Signer, progress types.ProgressReporter) (err error) {
+
 	defer c.Trace(ctx, func() error { return err }, "FetchAttachment")()
 
 	// Check for a disk cache hit, and decrypt that onto the response stream
@@ -259,7 +261,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 			found = false
 		}
 		if found {
-			return c.store.DecryptAsset(ctx, w, fileReader, asset, blankProgress)
+			return c.store.DecryptAsset(ctx, w, fileReader, asset, progress)
 		}
 	}
 
@@ -280,7 +282,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	// Read out the ciphertext into the decryption copier, and simultaneously write
 	// into the cached file (the ciphertext)
 	teeReader := io.TeeReader(remoteReader, fileWriter)
-	if err := c.store.DecryptAsset(ctx, w, teeReader, asset, blankProgress); err != nil {
+	if err := c.store.DecryptAsset(ctx, w, teeReader, asset, progress); err != nil {
 		c.Debug(ctx, "FetchAttachment: error reading asset: %s", err)
 		c.closeFile(fileWriter)
 		os.Remove(fileWriter.Name())
