@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {BackButton, Box, Text} from '../../common-adapters'
-import {globalStyles, globalColors, platformStyles} from '../../styles'
+import {globalStyles, globalMargins, globalColors, platformStyles} from '../../styles'
 import {fileUIName} from '../../constants/platform'
 
 type Props = {
@@ -15,8 +15,10 @@ const securityPreferenceIllustration = require('../../images/install/security-pr
 const InstallSecurityPrefs = (props: Props) =>
   props.needAction ? (
     <Box style={stylesContainer}>
-      <BackButton key="back" onClick={props.back} style={stylesClose} />
-      <Text type="HeaderBig" style={{paddingBottom: 13, paddingTop: 10}}>
+      <Box style={stylesHeader}>
+        <BackButton key="back" onClick={props.back} style={stylesClose} />
+      </Box>
+      <Text type="HeaderBig" style={stylesTitle}>
         Ghhh. Try this.
       </Text>
       <Text type="Body" style={{paddingBottom: 24}}>
@@ -67,11 +69,14 @@ const InstallSecurityPrefs = (props: Props) =>
     </Box>
   ) : (
     <Box style={stylesContainer}>
-      <BackButton key="back" onClick={props.back} style={stylesClose} />
-      <Text type="HeaderBig" style={{paddingBottom: 13, paddingTop: 10}}>
-        Success! Your Keybase folders will appear in your {fileUIName} now.
-        {/* TODO: implement the rest of design */}
+      <Box style={stylesHeader}>
+        <BackButton key="back" onClick={props.back} style={stylesClose} />
+      </Box>
+      <Text type="HeaderBig" style={stylesTitleSuccess}>
+        Success!
       </Text>
+      <Text type="Body">Your Keybase folders will now appear in your {fileUIName}.</Text>
+      {/* TODO: implement the rest of design */}
     </Box>
   )
 
@@ -80,7 +85,7 @@ const stylesContainer = {
   alignItems: 'center',
   flex: 1,
   height: '100%',
-  justifyContent: 'center',
+  justifyContent: 'start',
   overflowY: 'auto',
   position: 'relative',
 }
@@ -112,10 +117,25 @@ const styleHighlight = {
   borderWidth: 2,
 }
 
+const stylesHeader = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'start',
+  width: '100%',
+  height: 48,
+}
+
 const stylesClose = {
-  left: 10,
-  position: 'absolute',
-  top: 10,
+  marginLeft: globalMargins.tiny,
+}
+
+const stylesTitle = {
+  marginTop: globalMargins.tiny,
+  marginBottom: globalMargins.small,
+}
+
+const stylesTitleSuccess = {
+  ...stylesTitle,
+  color: globalColors.green2,
 }
 
 export default InstallSecurityPrefs
