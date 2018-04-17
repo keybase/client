@@ -53,13 +53,13 @@ class Pinentry extends Component<Props, State> {
 
   render() {
     const isPaperKey = this.props.type === RPCTypes.passphraseCommonPassphraseType.paperKey
-    const typeStyle: $Shape<{
+    const typeStyle: {|
       hintText: string,
       style: Object,
       multiline: boolean,
       rowsMax: number,
       floatingHintTextOverride: string,
-    }> = {
+    |} = {
       [RPCTypes.passphraseCommonPassphraseType.verifyPassPhrase]: {
         hintText: 'Verify Passphrase',
         style: {marginBottom: 0},
@@ -115,7 +115,6 @@ class Pinentry extends Component<Props, State> {
                       checked: this.state.showTyping,
                       key: 'showTyping',
                       label: this.props.showTyping.label,
-                      name: 'showTyping',
                       onCheck: this._onCheck,
                       style: checkboxStyle,
                     },

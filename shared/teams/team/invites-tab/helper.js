@@ -9,9 +9,9 @@ import InviteEmptyRow from './empty-row'
 import InviteRow from './invite-row/container'
 import RequestRow from './request-row/container'
 
-export type OwnProps = {
+export type OwnProps = {|
   teamname: string,
-}
+|}
 
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>,
@@ -19,7 +19,7 @@ type StateProps = {
 }
 
 /* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
-export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StateProps => ({
+export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): $Exact<StateProps> => ({
   _invites: Constants.getTeamInvites(state, teamname),
   _requests: Constants.getTeamRequests(state, teamname),
 })

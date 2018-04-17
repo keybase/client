@@ -208,26 +208,29 @@ class ProfileRender extends PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
-    // $FlowIssue
-    const target = findDOMNode(this._proofList.getRow(idx))
-    // $FlowIssue
+    // $ForceType
+    const target: ?Element = findDOMNode(this._proofList.getRow(idx))
+    if (!target) {
+      return
+    }
     const targetBox = target.getBoundingClientRect()
 
     if (!this._scrollContainer) {
       return
     }
 
-    const base = findDOMNode(this._scrollContainer)
-    // $FlowIssue
+    // $ForceType
+    const base: ?Element = findDOMNode(this._scrollContainer)
+    if (!base) {
+      return
+    }
     const baseBox = base.getBoundingClientRect()
 
     this.setState({
       proofMenuIndex: idx,
       popupMenuPosition: {
         position: 'absolute',
-        // $FlowIssue
         top: targetBox.bottom - baseBox.top + base.scrollTop,
-        // $FlowIssue
         right: base.clientWidth - (targetBox.right - baseBox.left),
       },
     })
@@ -461,7 +464,10 @@ class ProfileRender extends PureComponent<Props, State> {
             )}
           {proofMenuContent && (
             <PopupMenu
-              style={{...styleProofMenu, ...this.state.popupMenuPosition}}
+              style={
+                // $FlowIssue
+                {...styleProofMenu, ...this.state.popupMenuPosition}
+              }
               {...proofMenuContent}
               onHidden={() => this.handleHideMenu()}
             />

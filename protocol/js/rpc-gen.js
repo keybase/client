@@ -4269,7 +4269,7 @@ type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
-export type IncomingCallMapType = {
+export type IncomingCallMapType = {|
   'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
   'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
@@ -4359,4 +4359,4 @@ export type IncomingCallMapType = {
   'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: $ReadOnly<{sessionID: Int, teamName: String}>, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: $ReadOnly<{sessionID: Int, teamName: String}>, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,
   'keybase.1.ui.promptYesNo'?: (params: $ReadOnly<{sessionID: Int, text: Text, promptDefault: PromptDefault}>, response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void,
-}
+|}

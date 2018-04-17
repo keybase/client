@@ -4,12 +4,15 @@ import * as TeamsGen from '../../actions/teams-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
 import {HeaderHoc} from '../../common-adapters'
-import {connect, lifecycle, compose, type TypedState} from '../../util/container'
+import {connect, lifecycle, compose, type TypedState, type Dispatch} from '../../util/container'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
+import type {RouteProps} from '../../route-tree/render-route'
 
-const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
+type OwnProps = RouteProps<{teamname: string}, {selectedTab: ?string}>
+
+const mapStateToProps = (state: TypedState, {routeProps, routeState}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
@@ -25,14 +28,11 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   }
 }
 
-const mapDispatchToProps = (
-  dispatch: Dispatch,
-  {navigateUp, newOpenTeamRole, setOpenTeamRole, setRouteState, routeProps}
-) => {
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, routeProps}: OwnProps) => {
   return {
-    _loadTeam: teamname => dispatch(TeamsGen.createGetDetails({teamname})),
+    _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),
-    setSelectedTab: selectedTab => setRouteState({selectedTab}),
+    setSelectedTab: (selectedTab: string) => setRouteState({selectedTab}),
   }
 }
 
