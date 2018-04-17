@@ -43,7 +43,7 @@ export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: num
 export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
 
 export type _ChannelInfo = {
-  channelname: ?string,
+  channelname: string,
   description: ?string,
   participants: I.Set<string>,
 }
