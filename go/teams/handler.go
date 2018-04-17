@@ -72,6 +72,11 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 	// Go through resetUsers and fetch non-cached latest EldestSeqnos.
 	resetUserSeqnos := make(map[keybase1.UID]keybase1.Seqno)
 	for _, u := range resetUsers {
+		if _, found := resetUserSeqnos[u.Uid]; found {
+			// User was in the list more than once.
+			continue
+		}
+
 		arg := libkb.NewLoadUserArg(g).
 			WithNetContext(ctx).
 			WithUID(u.Uid).

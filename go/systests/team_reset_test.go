@@ -557,7 +557,7 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	bob.readChats(team, 1)
 }
 
-func TestTeamOpenReset(t *testing.T) {
+func TestTeamResetOpen(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
