@@ -25,7 +25,7 @@ import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
-import {tmpDir, downloadFilePath, copy} from '../../util/file'
+import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
@@ -1354,7 +1354,7 @@ const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => 
     state.chat2.pendingConversationUsers
   )
   return Saga.sequentially([
-    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatggSearch'})),
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
@@ -1412,6 +1412,29 @@ const updatePendingSelected = (
   }
 }
 
+function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {
+  // Start downloading
+  const downloadFileRpc = new EngineRpc.EngineRpcCall(
+    {
+      'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentDownloadProgress': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentDownloadStart': EngineRpc.passthroughResponseSaga,
+    },
+    RPCChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
+    fileName,
+    {
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      filename: fileName,
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      messageID: message.id,
+    }
+  )
+  const result = yield Saga.call(downloadFileRpc.run)
+  if (EngineRpc.isFinished(result)) {
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
+  }
+}
+
 // Download an attachment to your device
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   const {conversationIDKey, ordinal} = action.payload
@@ -1428,16 +1451,9 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
     return
   }
 
-  // Copy it over
+  // Download it
   const destPath = yield Saga.call(downloadFilePath, message.fileName)
-  yield Saga.call(copy, message.deviceFilePath, destPath)
-  yield Saga.put(
-    Chat2Gen.createAttachmentDownloaded({
-      conversationIDKey,
-      ordinal,
-      path: destPath,
-    })
-  )
+  yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
 }
 
 // Upload an attachment
