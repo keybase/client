@@ -62,17 +62,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 }
 
 const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
-  const {teamname, conversationIDKey, channelName} = stateProps
+  const {teamname, conversationIDKey, channelName, topic} = stateProps
   const deleteRenameDisabled = channelName === 'general'
   return {
     teamname,
     channelName,
-    topic: stateProps.topic,
+    topic,
     onCancel: dispatchProps.onCancel,
     onConfirmedDelete: () => {
       if (!channelName) {
         return
       }
+
       dispatchProps._onConfirmedDelete(teamname, conversationIDKey, channelName)
     },
     showDelete: stateProps.canDelete,
@@ -80,14 +81,14 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     _needsLoad: stateProps._needsLoad,
     _loadChannels: () => dispatchProps._loadChannels(stateProps.teamname),
     onSave: (newChannelName: string, newTopic: string) => {
-      if (!deleteRenameDisabled) {
-        if (newChannelName !== stateProps.channelName) {
+      if (channelName && !deleteRenameDisabled) {
+        if (newChannelName !== channelName) {
           dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)
         }
-      }
 
-      if (newTopic !== stateProps.topic) {
-        dispatchProps._updateTopic(teamname, conversationIDKey, newTopic)
+        if (newTopic !== topic) {
+          dispatchProps._updateTopic(teamname, conversationIDKey, newTopic)
+        }
       }
 
       dispatchProps.onCancel() // nav back up
