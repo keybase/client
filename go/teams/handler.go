@@ -17,12 +17,13 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 
 	teamID := msg.TeamID
 
-	var needRepoll bool
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+	var needTeamReload bool
+	loadTeamArg := keybase1.LoadTeamArg{
 		ID:          teamID,
 		Public:      teamID.IsPublic(),
 		ForceRepoll: true,
-	})
+	}
+	team, err := Load(ctx, g, loadTeamArg)
 
 	if len(msg.ResetUsers) > 0 && team.IsOpen() {
 		for _, uv := range msg.ResetUsers {
@@ -30,20 +31,19 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		}
 
 		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsers); err == nil {
-			needRepoll = needRP
+			needTeamReload = needRP
 		}
 	}
 
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		team, err := Load(ctx, g, keybase1.LoadTeamArg{
-			ID:          teamID,
-			Public:      teamID.IsPublic(),
-			ForceRepoll: needRepoll,
-		})
-		needRepoll = true // subsequent calls to Load here need repoll.
-		if err != nil {
-			return err
+		if needTeamReload {
+			team2, err := Load(ctx, g, loadTeamArg)
+			if err != nil {
+				return err
+			}
+			team = team2
 		}
+		needTeamReload = true // subsequent calls to Load here need repoll.
 
 		if team.Generation() > msg.Generation {
 			g.Log.CDebugf(ctx, "current team generation %d > team.clkr generation %d, not rotating",
@@ -90,7 +90,22 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		}
 	}
 
+	var needTeamReload bool
+
 	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		if needTeamReload {
+			team2, err := Load(ctx, g, keybase1.LoadTeamArg{
+				ID:          team.ID,
+				Public:      team.ID.IsPublic(),
+				ForceRepoll: true,
+			})
+			if err != nil {
+				return err
+			}
+			team = team2
+		}
+		needTeamReload = true
+
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
 		for _, u := range resetUsers {
 			eldestSeqno, found := resetUserSeqnos[u.Uid]
