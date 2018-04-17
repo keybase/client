@@ -253,9 +253,14 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		fileReader, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
 		defer c.closeFile(fileReader)
 		if err != nil {
-			return err
+			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
+			os.Remove(path)
+			c.diskLRU.Remove(ctx, c.G(), asset.Path)
+			found = false
 		}
-		return c.store.DecryptAsset(ctx, w, fileReader, asset, blankProgress)
+		if found {
+			return c.store.DecryptAsset(ctx, w, fileReader, asset, blankProgress)
+		}
 	}
 
 	// Create a reader to the remote ciphertext
