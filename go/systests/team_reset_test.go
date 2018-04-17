@@ -586,6 +586,7 @@ func TestTeamOpenReset(t *testing.T) {
 	teamObj := ann.loadTeam(team.name, false)
 	_, err := teamObj.UserVersionByUID(context.Background(), bob.uid())
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "did not find user")
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
