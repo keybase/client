@@ -18,6 +18,7 @@ export type Props = {
   iconStyle?: StylesCrossPlatform,
   color?: string,
   hoverColor?: string,
+  fontSize?: number,
   // its totally not compatible with stylesheet
 }
 
