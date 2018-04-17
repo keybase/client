@@ -1701,6 +1701,10 @@ func (u UserVersion) IsNil() bool {
 	return u.Uid.IsNil()
 }
 
+func IsUserVersionEldestStale(current Seqno, new Seqno) bool {
+	return (current < new || (current != 0 && new == 0))
+}
+
 type ByUserVersionID []UserVersion
 
 func (b ByUserVersionID) Len() int      { return len(b) }

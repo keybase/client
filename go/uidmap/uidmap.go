@@ -302,7 +302,7 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 	if ok {
 		if tmp, ok := voidp.(keybase1.FullNamePackage); !ok {
 			g.GetLog().CDebugf(ctx, "Found non-FullNamePackage in LRU cache for uid=%s", uid)
-		} else if tmp.EldestSeqno < uv.EldestSeqno {
+		} else if keybase1.IsUserVersionEldestStale(tmp.EldestSeqno, uv.EldestSeqno) {
 			g.GetLog().CDebugf(ctx, "Stale eldest memory mapping for uid=%s; we had %d, but latest is %d", uid, tmp.EldestSeqno, uv.EldestSeqno)
 			u.fullNameCache.Remove(uid)
 			isCurrent = false
@@ -323,7 +323,7 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 			g.GetLog().CDebugf(ctx, "Error reading %s from UID map disk-backed cache: %s", uid, err)
 			err = nil // don't break the return
 		}
-		if found && tmp.EldestSeqno < uv.EldestSeqno {
+		if found && keybase1.IsUserVersionEldestStale(tmp.EldestSeqno, uv.EldestSeqno) {
 			g.GetLog().CDebugf(ctx, "Stale eldest disk mapping for uid=%s; we had %d, but latest is %d", uid, tmp.EldestSeqno, uv.EldestSeqno)
 			g.GetKVStore().Delete(key)
 			isCurrent = false
