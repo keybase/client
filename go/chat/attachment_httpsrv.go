@@ -243,6 +243,7 @@ func (c *CachingAttachmentFetcher) closeFile(f io.Closer) {
 }
 
 func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
+	os.MkdirAll(c.getCacheDir(), os.ModePerm)
 	file, err := ioutil.TempFile(c.getCacheDir(), "att")
 	file.Close()
 	if err != nil {
