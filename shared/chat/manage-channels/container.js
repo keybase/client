@@ -17,14 +17,20 @@ import {
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
-import {getCanPerform, getChannelInfoFromConvID, getTeamConvIDs, hasCanPerform} from '../../constants/teams'
+import {
+  getChannelsWaitingKey,
+  getCanPerform,
+  getChannelInfoFromConvID,
+  getTeamConvIDs,
+  hasCanPerform,
+} from '../../constants/teams'
 import '../../constants/route-tree'
 
 type ChannelMembershipState = {[channelname: string]: boolean}
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
-  const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
+  const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, getChannelsWaitingKey(teamname))
   const convIDs = getTeamConvIDs(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)

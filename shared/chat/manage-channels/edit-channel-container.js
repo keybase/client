@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   const channelInfo = Constants.getChannelInfoFromConvID(state, conversationIDKey)
   const _needsLoad = !channelInfo
 
-  const waitingForGetInfo = _needsLoad || anyWaiting(state, `getChannels:${teamname}`)
+  const waitingForGetInfo = _needsLoad || anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
   const waitingForUpdate = anyWaiting(
     state,
     `updateTopic:${conversationIDKey}`,

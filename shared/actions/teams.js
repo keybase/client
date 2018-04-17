@@ -529,7 +529,7 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
 
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
   const teamname = action.payload.teamname
-  const waitingKey = {key: `getChannels:${teamname}`}
+  const waitingKey = {key: Constants.getChannelsWaitingKey(teamname)}
   return Saga.all([
     Saga.call(RPCChatTypes.localGetTLFConversationsLocalRpcPromise, {
       membersType: RPCChatTypes.commonConversationMembersType.team,
