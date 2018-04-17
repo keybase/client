@@ -78,6 +78,8 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
     roleType: stateProps.roleType,
     username: stateProps.username,
+    waitingForAdd: stateProps.waitingForAdd,
+    waitingForRemove: stateProps.waitingForRemove,
     you: stateProps.you,
     youCanManageMembers: stateProps.youCanManageMembers,
   }
