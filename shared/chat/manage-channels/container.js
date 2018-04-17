@@ -37,7 +37,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
       description: info.description,
       convID,
       name: info.channelname,
-      selected: you && !!info.participants.get(you),
+      selected: you && info.participants.has(you),
     }))
     .toSet()
     .toArray()
