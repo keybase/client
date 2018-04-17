@@ -801,6 +801,32 @@
     },
     {
       "type": "record",
+      "name": "EphemeralPurgeInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isActive",
+          "mpackkey": "a",
+          "jsonkey": "a"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "nextPurgeTime",
+          "mpackkey": "n",
+          "jsonkey": "n"
+        },
+        {
+          "type": "MessageID",
+          "name": "minUnexplodedID",
+          "mpackkey": "e",
+          "jsonkey": "e"
+        }
+      ],
+      "mpackkey": "pi",
+      "jsonkey": "pi"
+    },
+    {
+      "type": "record",
       "name": "MessageClientHeader",
       "fields": [
         {

@@ -751,6 +751,8 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
+export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
+
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
 export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
@@ -828,7 +830,7 @@ export type HeaderPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
 
 export type HeaderPlaintextUnsupported = $ReadOnly<{mi: HeaderPlaintextMetaInfo}>
 
-export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot}>
+export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type HeaderPlaintextVersion =
   | 1 // V1_1

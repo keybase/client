@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,8 +23,10 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// G delete --^    ___  deletes F     <not deletable>
 	// H text           |                 <ephemeral with 1 "lifetime">
 
-	_, storage, uid := setupStorageTest(t, "delh")
+	_, storage, uid := setupStorageTest(t, "ephemeral purge")
 
+	clock := clockwork.NewFakeClockAt(time.Now())
+	storage.SetClock(clock)
 	convID := makeConvID()
 
 	type expectedM struct {
@@ -84,7 +87,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		}
 	}
 
-	verifyTrackerState := func(expectedPurgeInfo *EphemeralPurgeInfo) {
+	verifyTrackerState := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
 		purgeInfo, err := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
 		if expectedPurgeInfo == nil {
 			require.Error(t, err)
@@ -95,7 +98,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
-	ephemeralPurgeAndVerify := func(expectedPurgeInfo *EphemeralPurgeInfo) {
+	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
 		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
 		newPurgeInfo, err := storage.EphemeralPurge(context.Background(), convID, uid, purgeInfo)
 		require.NoError(t, err)
@@ -117,9 +120,10 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("initial merge")
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
 	// We set the initial tracker info when we merge in
-	expectedPurgeInfo := &EphemeralPurgeInfo{
+	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgC.Valid().Etime(),
 		MinUnexplodedID: msgC.GetMessageID(),
+		IsActive:        true,
 	}
 	verifyTrackerState(expectedPurgeInfo)
 	// Running purge has not effect since nothing is expired
@@ -140,16 +144,17 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("sleep and fetch")
 	// We sleep for `lifetime`, so we expect C to get purged on fetch (msg H is
 	// not yet merged in)
-	time.Sleep(sleepLifetime)
+	clock.Advance(sleepLifetime)
 	setExpected("C", msgC, false, dontCare)
 	assertState(msgG.GetMessageID())
 	// We don't update the  tracker state is updated from a fetch
 	verifyTrackerState(expectedPurgeInfo)
 	// Once we run EphemeralPurge and sweep all messages, we update our tracker
 	// state
-	expectedPurgeInfo = &EphemeralPurgeInfo{
+	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgF.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
+		IsActive:        true,
 	}
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
 
@@ -165,26 +170,32 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	verifyTrackerState(expectedPurgeInfo)
 
 	// we've slept for ~ lifetime*2, F's lifetime is up
-	time.Sleep(sleepLifetime)
-	expectedPurgeInfo = &EphemeralPurgeInfo{
+	clock.Advance(sleepLifetime)
+	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
+		IsActive:        true,
 	}
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	setExpected("F", msgF, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	// we've slept for ~ lifetime*3, E's lifetime is up
-	time.Sleep(sleepLifetime)
-	ephemeralPurgeAndVerify(nil)
+	clock.Advance(sleepLifetime)
+	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
+		NextPurgeTime:   0,
+		MinUnexplodedID: msgH.GetMessageID(),
+		IsActive:        false,
+	}
+	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	setExpected("E", msgE, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("purge with no effect")
-	ephemeralPurgeAndVerify(nil)
+	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("another purge with no effect")
-	ephemeralPurgeAndVerify(nil)
+	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	assertState(msgH.GetMessageID())
 }

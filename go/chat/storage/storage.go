@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
@@ -36,6 +37,7 @@ type Storage struct {
 	breakTracker     *breakTracker
 	delhTracker      *delhTracker
 	ephemeralTracker *ephemeralTracker
+	clock            clockwork.Clock
 }
 
 type storageEngine interface {
@@ -55,12 +57,17 @@ func New(g *globals.Context) *Storage {
 		breakTracker:     newBreakTracker(g),
 		delhTracker:      newDelhTracker(g),
 		ephemeralTracker: newEphemeralTracker(g),
+		clock:            clockwork.NewRealClock(),
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
 }
 
 func (s *Storage) setEngine(engine storageEngine) {
 	s.engine = engine
+}
+
+func (s *Storage) SetClock(clock clockwork.Clock) {
+	s.clock = clock
 }
 
 func makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {

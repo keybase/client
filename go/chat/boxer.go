@@ -752,6 +752,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
+			EphemeralMetadata: hp.EphemeralMetadata, // TODO only for v3
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
@@ -862,6 +863,12 @@ func (b *Boxer) compareHeadersMBV2(ctx context.Context, hServer chat1.MessageCli
 	// OutboxInfo
 	if !hServer.OutboxInfo.Eq(hSigned.OutboxInfo) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxInfo"))
+	}
+
+	// TODO only enforce this for v3
+	// EphemeralMetadata
+	if !hServer.EphemeralMetadata.Eq(hSigned.EphemeralMetadata) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("EphemeralMetadata"))
 	}
 
 	return nil
@@ -1289,6 +1296,7 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
 		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
+		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata, // TODO only for v3
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

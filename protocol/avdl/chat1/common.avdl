@@ -311,6 +311,16 @@
     keybase1.EkGeneration generation;
   }
 
+  @mpackkey("pi") @jsonkey("pi")
+  record EphemeralPurgeInfo {
+    @mpackkey("a") @jsonkey("a")
+    boolean isActive;
+    @mpackkey("n") @jsonkey("n")
+    gregor1.Time nextPurgeTime;
+    @mpackkey("e") @jsonkey("e")
+    MessageID minUnexplodedID;
+  }
+
   // The Boxer's compareHeaders* functions checks each of these fields.
   // If we add a field here, that method needs to be updated.
   record MessageClientHeader {
