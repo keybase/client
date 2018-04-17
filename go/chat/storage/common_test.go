@@ -5,12 +5,13 @@ import (
 
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/kbtest/insecure"
 	"github.com/keybase/client/go/libkb"
 )
 
 func setupCommonTest(t testing.TB, name string) libkb.TestContext {
 	tc := externalstest.SetupTest(t, name, 2)
 
-	kbtest.InstallInsecureTriplesec(tc.G)
+	insecure.InstallInsecureTriplesec(tc.G)
 	return tc
 }

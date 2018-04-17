@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/kbtest/insecure"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -69,7 +70,7 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) {
 	tc := externalstest.SetupTest(t, name, 2)
 
-	kbtest.InstallInsecureTriplesec(tc.G)
+	insecure.InstallInsecureTriplesec(tc.G)
 	ctc := kbtest.ChatTestContext{
 		TestContext: tc,
 		ChatG:       &globals.ChatContext{},

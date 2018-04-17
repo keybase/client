@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/client"
-	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/kbtest/insecure"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -223,7 +223,7 @@ func (s *testDeviceSet) newDevice(nm string) *testDevice {
 		s.log = tctx.G.Log
 	}
 
-	kbtest.InstallInsecureTriplesec(tctx.G)
+	insecure.InstallInsecureTriplesec(tctx.G)
 
 	ret := &testDevice{t: s.t, tctx: tctx, deviceName: nm}
 	s.devices = append(s.devices, ret)

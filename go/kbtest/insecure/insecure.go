@@ -1,4 +1,4 @@
-package kbtest
+package insecure
 
 import (
 	"github.com/keybase/client/go/libkb"

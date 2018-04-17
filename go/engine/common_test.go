@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externalstest"
-	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/kbtest/insecure"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ import (
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 	tc := externalstest.SetupTest(tb, name, 2)
 
-	kbtest.InstallInsecureTriplesec(tc.G)
+	insecure.InstallInsecureTriplesec(tc.G)
 	return tc
 }
 

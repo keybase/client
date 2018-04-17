@@ -9,7 +9,7 @@ import (
 
 	client "github.com/keybase/client/go/client"
 	engine "github.com/keybase/client/go/engine"
-	kbtest "github.com/keybase/client/go/kbtest"
+	insecure "github.com/keybase/client/go/kbtest/insecure"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
@@ -182,7 +182,7 @@ func (smc *smuContext) setupDeviceHelper(u *smuUser, puk bool) *smuDeviceWrapper
 	tctx := setupTest(smc.t, u.usernamePrefix)
 	tctx.Tp.DisableUpgradePerUserKey = !puk
 	tctx.G.SetClock(smc.fakeClock)
-	kbtest.InstallInsecureTriplesec(tctx.G)
+	insecure.InstallInsecureTriplesec(tctx.G)
 	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
 	u.devices = append(u.devices, ret)
 	if u.primary == nil {
