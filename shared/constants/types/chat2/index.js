@@ -28,15 +28,13 @@ export type _State = {
   loadingMap: I.Map<string, number>, // reasons why we're loading
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
-  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread
+  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
   quotingMap: I.Map<string, _quotedOrdConv>, // current message being quoted
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
-  pendingConversationUsers: I.Set<string>, // users we're trying to start a conversation with
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
-  pendingSelected: boolean, // did we select the pending conversation or not
   pendingStatus: PendingStatus, // where are we at in submitting the conversation
 }
 

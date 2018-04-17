@@ -1233,7 +1233,7 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
 
 const startConversationAfterFindExisting = (
   _fromStartConversation,
-  action: Chat2Gen.StartConversationPayload
+  action: Chat2Gen.StartConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
 ) => {
   const results: RPCChatTypes.FindConversationsLocalRes = _fromStartConversation[0]
   const users: Array<string> = _fromStartConversation[1]
@@ -1354,8 +1354,13 @@ const selectTheNewestConversation = (
       return
     }
   } else if (action.type === Chat2Gen.metasReceived) {
+    const conversationIDKey = Constants.getSelectedConversation(state)
     // already something?
-    if (Constants.getSelectedConversation(state) || !state.chat2.pendingConversationUsers.isEmpty()) {
+    if (conversationIDKey) {
+      return
+    }
+
+    if (conversationIDKey === Constants.pendingConversationIDKey) {
       return
     }
   }
@@ -1402,6 +1407,16 @@ const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
   return Saga.put(KBFSGen.createOpen({path}))
 }
 
+const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload) =>
+  action.payload.pendingMode !== 'none'
+    ? Saga.put(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey: Constants.pendingConversationIDKey,
+          reason: 'pendingModeChange',
+        })
+      )
+    : null
+
 const searchUpdated = (
   action: Chat2Gen.SetPendingModePayload | SearchGen.UserInputItemsUpdatedPayload,
   state: TypedState
@@ -1421,21 +1436,6 @@ const searchUpdated = (
       ? [Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}))]
       : [Saga.put(SearchGen.createSearchSuggestions({searchKey: 'chatSearch'}))]),
   ])
-}
-
-const updatePendingSelected = (
-  action: Chat2Gen.SetPendingModePayload | Chat2Gen.SelectConversationPayload,
-  state: TypedState
-) => {
-  let selected
-  if (action.type === Chat2Gen.setPendingMode) {
-    selected = action.payload.pendingMode !== 'none'
-  } else {
-    selected = !action.payload.conversationIDKey
-  }
-  if (selected !== state.chat2.pendingSelected) {
-    return Saga.put(Chat2Gen.createSetPendingSelected({selected}))
-  }
 }
 
 // We keep a set of attachment previews to load
@@ -2114,8 +2114,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
 
   // Search handling
-  // If you select a convo or change modes lets change selected
-  yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.setPendingMode], updatePendingSelected)
   // If search is exited clean stuff up
   yield Saga.safeTakeEveryPure(Chat2Gen.exitSearch, onExitSearch)
   // Update our search items
@@ -2123,6 +2121,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
     searchUpdated
   )
+  // Changing pending mode selects the special pending conversationidkey
+  yield Saga.safeTakeEveryPure(Chat2Gen.setPendingMode, selectPendingConversation)
 
   yield Saga.safeTakeEveryPure(
     Chat2Gen.sendToPendingConversation,

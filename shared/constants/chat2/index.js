@@ -61,7 +61,7 @@ export const isUserActivelyLookingAtThisThread = (
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
-export const pendingConversationIDKey = Types.stringToConversationIDKey('')
+export const pendingConversationIDKey = Types.stringToConversationIDKey('PENDING')
 
 export {
   findConversationFromParticipants,

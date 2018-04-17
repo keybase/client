@@ -77,7 +77,6 @@ export const setLoading = 'chat2:setLoading'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
-export const setPendingSelected = 'chat2:setPendingSelected'
 export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
 export const startConversation = 'chat2:startConversation'
@@ -392,7 +391,7 @@ export const createResetLetThemIn = (
 export const createSelectConversation = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
-    reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+    reason: 'clearSelected' | 'desktopNotification' | 'existingSearch' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'pendingModeChange' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
   |}>
 ) => ({error: false, payload, type: selectConversation})
 export const createSendToPendingConversation = (
@@ -427,7 +426,6 @@ export const createSetPendingConversationUsers = (
   |}>
 ) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: $ReadOnly<{|pendingMode: Types.PendingMode|}>) => ({error: false, payload, type: setPendingMode})
-export const createSetPendingSelected = (payload: $ReadOnly<{|selected: boolean|}>) => ({error: false, payload, type: setPendingSelected})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createStartConversation = (
   payload: $ReadOnly<{|
@@ -512,7 +510,6 @@ export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
 export type SetPendingMessageSubmitStatePayload = More.ReturnType<typeof createSetPendingMessageSubmitState>
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
-export type SetPendingSelectedPayload = More.ReturnType<typeof createSetPendingSelected>
 export type SetPendingStatusPayload = More.ReturnType<typeof createSetPendingStatus>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
 export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
@@ -590,7 +587,6 @@ export type Actions =
   | More.ReturnType<typeof createSetPendingConversationUsers>
   | More.ReturnType<typeof createSetPendingMessageSubmitState>
   | More.ReturnType<typeof createSetPendingMode>
-  | More.ReturnType<typeof createSetPendingSelected>
   | More.ReturnType<typeof createSetPendingStatus>
   | More.ReturnType<typeof createSetupChatHandlers>
   | More.ReturnType<typeof createStartConversation>

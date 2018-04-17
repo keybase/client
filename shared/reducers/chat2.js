@@ -325,8 +325,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
-    case Chat2Gen.setPendingSelected:
-      return state.set('pendingSelected', action.payload.selected)
     case Chat2Gen.setPendingMode:
       return state.set('pendingMode', action.payload.pendingMode)
     case Chat2Gen.setPendingConversationUsers:

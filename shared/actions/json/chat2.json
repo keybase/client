@@ -15,10 +15,6 @@
     "clearLoading": {
       "key": "string",
     },
-    // Select the pending conversation (building a search or a set of users from a folder)
-    "setPendingSelected": {
-      "selected": "boolean"
-    },
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -32,11 +28,13 @@
           "'inboxFilterArrow'", // arrow keys in inbox filter
           "'inboxFilterChanged'", // inbox filter made first one selected
           "'inboxSmall'", // inbox row
+          "'inboxNewConversation'", // new conversation row
           "'jumpFromReset'", // from older reset convo
           "'jumpToReset'", // going to an older reset convo
           "'justCreated'", // just made it and select it
           "'manageView'", // clicked from manage screen
           "'messageLink'", // link in a message
+          "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
           "'preview'", // preview from manage screen
           "'push'", // from a push
           "'savedLastState'", // last seen chat tab

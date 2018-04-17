@@ -74,7 +74,6 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [Chat2Gen.metaUpdatePagination]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
   [ConfigGen.globalError]: fullOutput,
-  [Chat2Gen.setPendingSelected]: fullOutput,
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
 
