@@ -3,6 +3,7 @@ import * as React from 'react'
 import {Box, Text, ClickableBox, Icon, ProgressBar} from '../../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors, fileUIName, platformStyles} from '../../../../../styles'
 import {ImageRender} from './image-render'
+import {isMobile} from '../../../../../util/container'
 
 type Props = {
   arrowColor: string,
@@ -74,7 +75,12 @@ class ImageAttachment extends React.PureComponent<Props> {
           </Box>
         )}
         {this.props.onShowInFinder && (
-          <Text type="BodySmallPrimaryLink" onClick={this.props.onShowInFinder} style={linkStyle}>
+          <Text
+            type="BodySmallPrimaryLink"
+            onClick={this.props.onShowInFinder}
+            style={linkStyle}
+            className={!isMobile ? 'hover-underline' : undefined}
+          >
             Show in {fileUIName}
           </Text>
         )}
