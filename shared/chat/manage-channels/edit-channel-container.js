@@ -48,6 +48,9 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   return {
+    // TODO: Ideally this would dispatch an action to load the data
+    // for a particular conversationIDKey. Then we'd be able to remove
+    // the dependence on teamname.
     _loadChannels: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
     _updateChannelName: (teamname: string, conversationIDKey: ConversationIDKey, newChannelName: string) =>
       dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
