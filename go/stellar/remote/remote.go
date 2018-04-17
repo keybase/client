@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"strconv"
 
 	"github.com/keybase/client/go/libkb"
@@ -314,12 +313,6 @@ type tickerResult struct {
 
 func (b *tickerResult) GetAppStatus() *libkb.AppStatus {
 	return &b.Status
-}
-
-type XLMExchangeRate struct {
-	Currency   string
-	PriceFloat float64
-	PriceRat   big.Rat
 }
 
 func ExchangeRate(ctx context.Context, g *libkb.GlobalContext, currency string) (stellar1.OutsideExchangeRate, error) {
