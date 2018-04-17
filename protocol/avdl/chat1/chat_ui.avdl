@@ -94,7 +94,7 @@ protocol chatUi {
     string convID;
   }
 
-  record UIMessageAssetUrlInfo {
+  record UIAssetUrlInfo {
     string previewUrl;
     string fullUrl;
   }
@@ -108,7 +108,7 @@ protocol chatUi {
     string senderDeviceName;
     string senderDeviceType;
     boolean superseded;
-    union { null, UIMessageAssetUrlInfo } assetUrlInfo;
+    union { null, UIAssetUrlInfo } assetUrlInfo;
     union { null, gregor1.Time } senderDeviceRevokedAt;
     array<string> atMentions;
     ChannelMention channelMention;

@@ -225,6 +225,6 @@ type UPAKFinder interface {
 }
 
 type AttachmentURLSrv interface {
-	GetURLs(ctx context.Context, ats []chat1.ConversationIDMessageIDPair,
-		preview bool) ([]string, error)
+	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+		preview bool) string
 }

@@ -374,13 +374,13 @@ func (o UIChannelNameMention) DeepCopy() UIChannelNameMention {
 	}
 }
 
-type UIMessageAssetUrlInfo struct {
+type UIAssetUrlInfo struct {
 	PreviewUrl string `codec:"previewUrl" json:"previewUrl"`
 	FullUrl    string `codec:"fullUrl" json:"fullUrl"`
 }
 
-func (o UIMessageAssetUrlInfo) DeepCopy() UIMessageAssetUrlInfo {
-	return UIMessageAssetUrlInfo{
+func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
+	return UIAssetUrlInfo{
 		PreviewUrl: o.PreviewUrl,
 		FullUrl:    o.FullUrl,
 	}
@@ -395,7 +395,7 @@ type UIMessageValid struct {
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
 	Superseded            bool                   `codec:"superseded" json:"superseded"`
-	AssetUrlInfo          *UIMessageAssetUrlInfo `codec:"assetUrlInfo,omitempty" json:"assetUrlInfo,omitempty"`
+	AssetUrlInfo          *UIAssetUrlInfo        `codec:"assetUrlInfo,omitempty" json:"assetUrlInfo,omitempty"`
 	SenderDeviceRevokedAt *gregor1.Time          `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
@@ -418,7 +418,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
 		Superseded:       o.Superseded,
-		AssetUrlInfo: (func(x *UIMessageAssetUrlInfo) *UIMessageAssetUrlInfo {
+		AssetUrlInfo: (func(x *UIAssetUrlInfo) *UIAssetUrlInfo {
 			if x == nil {
 				return nil
 			}

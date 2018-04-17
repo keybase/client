@@ -581,7 +581,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			var err error
 
 			localSentThread = resThread
-			pt := utils.PresentThreadView(ctx, uid, *resThread, h.G().TeamChannelSource)
+			pt := utils.PresentThreadView(ctx, h.G(), uid, *resThread, arg.ConversationID)
 			if jsonPt, err = json.Marshal(pt); err != nil {
 				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
 				return
@@ -624,7 +624,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			return
 		}
 		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(rthread.Messages))
-		uires := utils.PresentThreadView(bctx, uid, rthread, h.G().TeamChannelSource)
+		uires := utils.PresentThreadView(bctx, h.G(), uid, rthread, arg.ConversationID)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)

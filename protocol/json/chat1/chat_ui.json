@@ -374,7 +374,7 @@
     },
     {
       "type": "record",
-      "name": "UIMessageAssetUrlInfo",
+      "name": "UIAssetUrlInfo",
       "fields": [
         {
           "type": "string",
@@ -428,7 +428,7 @@
         {
           "type": [
             null,
-            "UIMessageAssetUrlInfo"
+            "UIAssetUrlInfo"
           ],
           "name": "assetUrlInfo"
         },

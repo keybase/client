@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -58,30 +57,36 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher AttachmentFetcher, ri func
 	return r
 }
 
-func (r *AttachmentHTTPSrv) GetURLs(ctx context.Context, ats []chat1.ConversationIDMessageIDPair,
-	preview bool) (res []string, err error) {
+func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	preview bool) string {
 	r.Lock()
 	defer r.Unlock()
+	defer r.Trace(ctx, func() error { return nil }, "GetURL(%s,%d)", convID, msgID)()
 	if !r.httpSrv.Active() {
-		return nil, errors.New("http server failed to start earlier")
+		r.Debug(ctx, "GetURL: http server failed to start earlier")
+		return ""
 	}
 	addr, err := r.httpSrv.Addr()
 	if err != nil {
-		return nil, err
+		r.Debug(ctx, "GetURL: failed to get HTTP server address: %s", err)
+		return ""
 	}
-	for _, at := range ats {
-		key, err := libkb.RandHexString("at", 8)
-		if err != nil {
-			return nil, err
-		}
-		r.urlMap[key] = at
-		url := fmt.Sprintf("http://%s/%s?key=%s&prev=%v", addr, r.endpoint, key, preview)
-		res = append(res, url)
+	key, err := libkb.RandHexString("at", 8)
+	if err != nil {
+		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
+		return ""
 	}
-	return res, nil
+	r.urlMap[key] = chat1.ConversationIDMessageIDPair{
+		ConvID: convID,
+		MsgID:  msgID,
+	}
+	return fmt.Sprintf("http://%s/%s?key=%s&prev=%v", addr, r.endpoint, key, preview)
 }
 
 func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Request) {
+	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "servePreview")()
 	key := req.URL.Query().Get("key")
 	preview := false
 	if len(req.URL.Query().Get("prev")) > 0 {
@@ -94,8 +99,7 @@ func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Reques
 		w.WriteHeader(404)
 		return
 	}
-	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
