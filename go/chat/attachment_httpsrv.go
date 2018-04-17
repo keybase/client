@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
-	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -23,6 +22,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
+
+var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
 type AttachmentFetcher interface {
 	FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset, s3params chat1.S3Params,
@@ -189,8 +190,7 @@ func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *R
 func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
 	s3params chat1.S3Params, signer s3.Signer) (err error) {
 	defer r.Trace(ctx, func() error { return err }, "FetchAttachment")()
-	return r.store.DownloadAsset(ctx, s3params, asset, w, signer,
-		func(bytesComplete, bytesTotal int64) {})
+	return r.store.DownloadAsset(ctx, s3params, asset, w, signer, blankProgress)
 }
 
 type CachingAttachmentFetcher struct {
@@ -212,24 +212,6 @@ func NewCachingAttachmentFetcher(g *globals.Context, store *attachments.Store, s
 
 func (c *CachingAttachmentFetcher) getCacheDir() string {
 	return filepath.Join(c.G().GetCacheDir(), "attachments")
-}
-
-func (c *CachingAttachmentFetcher) decrypt(ctx context.Context, sink io.Writer, source io.Reader,
-	asset chat1.Asset) error {
-	dec := attachments.NewSignDecrypter()
-	var decBody io.Reader
-	if asset.Nonce != nil {
-		var nonce [signencrypt.NonceSize]byte
-		copy(nonce[:], asset.Nonce)
-		decBody = dec.DecryptWithNonce(source, &nonce, asset.Key, asset.VerifyKey)
-	} else {
-		decBody = dec.Decrypt(source, asset.Key, asset.VerifyKey)
-	}
-	_, err := io.Copy(sink, decBody)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (c *CachingAttachmentFetcher) getFullFilename(name string) string {
@@ -273,7 +255,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if err != nil {
 			return err
 		}
-		return c.decrypt(ctx, w, fileReader, asset)
+		return c.store.DecryptAsset(ctx, w, fileReader, asset, blankProgress)
 	}
 
 	// Create a reader to the remote ciphertext
@@ -293,7 +275,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	// Read out the ciphertext into the decryption copier, and simultaneously write
 	// into the cached file (the ciphertext)
 	teeReader := io.TeeReader(remoteReader, fileWriter)
-	if err := c.decrypt(ctx, w, teeReader, asset); err != nil {
+	if err := c.store.DecryptAsset(ctx, w, teeReader, asset, blankProgress); err != nil {
 		c.Debug(ctx, "FetchAttachment: error reading asset: %s", err)
 		c.closeFile(fileWriter)
 		os.Remove(fileWriter.Name())

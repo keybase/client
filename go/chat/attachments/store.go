@@ -211,22 +211,8 @@ func (a *Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset
 	return b.GetReader(ctx, asset.Path)
 }
 
-// DownloadAsset gets an object from S3 as described in asset.
-func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
-	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
-		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
-	}
-	body, err := a.GetAssetReader(ctx, params, asset, signer)
-	defer func() {
-		if body != nil {
-			body.Close()
-		}
-	}()
-	if err != nil {
-		return err
-	}
-	a.Debug(ctx, "DownloadAsset: downloading %s from s3", asset.Path)
-
+func (a *Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
+	progress ProgressReporter) error {
 	// compute hash
 	hash := sha256.New()
 	verify := io.TeeReader(body, hash)
@@ -251,16 +237,33 @@ func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset 
 		return err
 	}
 
-	a.Debug(ctx, "DownloadAsset: downloaded and decrypted to %d plaintext bytes", n)
+	a.Debug(ctx, "DecryptAsset: downloaded and decrypted to %d plaintext bytes", n)
 	progWriter.Finish()
 
 	// validate the EncHash
 	if !hmac.Equal(asset.EncHash, hash.Sum(nil)) {
 		return fmt.Errorf("invalid attachment content hash")
 	}
-	a.Debug(ctx, "DownloadAsset: attachment content hash is valid")
-
+	a.Debug(ctx, "DecryptAsset: attachment content hash is valid")
 	return nil
+}
+
+// DownloadAsset gets an object from S3 as described in asset.
+func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
+	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
+		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
+	}
+	body, err := a.GetAssetReader(ctx, params, asset, signer)
+	defer func() {
+		if body != nil {
+			body.Close()
+		}
+	}()
+	if err != nil {
+		return err
+	}
+	a.Debug(ctx, "DownloadAsset: downloading %s from s3", asset.Path)
+	return a.DecryptAsset(ctx, w, body, asset, progress)
 }
 
 func (a *Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {
