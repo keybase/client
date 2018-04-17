@@ -801,12 +801,6 @@ func (s *Deliverer) IsOffline(ctx context.Context) bool {
 	return !s.connected
 }
 
-func (s *Deliverer) EphemeralPurge(ctx context.Context) {
-	if err := s.outbox.EphemeralPurge(ctx); err != nil {
-		s.Debug(ctx, "EphemeralPurge error: %s", err)
-	}
-}
-
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
