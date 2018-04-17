@@ -27,7 +27,7 @@ export const updateChannelNameWaitingKey = (conversationIDKey: ChatTypes.Convers
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
-  description: null,
+  description: '',
   participants: I.Set(),
 })
 

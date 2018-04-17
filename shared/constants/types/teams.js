@@ -44,7 +44,7 @@ export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
 
 export type _ChannelInfo = {
   channelname: string,
-  description: ?string,
+  description: string,
   participants: I.Set<string>,
 }
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
