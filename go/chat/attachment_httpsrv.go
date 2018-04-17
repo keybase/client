@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
@@ -30,7 +31,7 @@ type AttachmentHTTPSrv struct {
 
 	endpoint string
 	httpSrv  *libkb.HTTPSrv
-	urlMap   map[string]chat1.ConversationIDMessageIDPair
+	urlMap   *lru.Cache
 	fetcher  AttachmentFetcher
 	ri       func() chat1.RemoteInterface
 }
@@ -38,18 +39,24 @@ type AttachmentHTTPSrv struct {
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
 
 func NewAttachmentHTTPSrv(g *globals.Context, fetcher AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
+	l, err := lru.New(10000)
+	if err != nil {
+		panic(err)
+	}
 	r := &AttachmentHTTPSrv{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentHTTPSrv", false),
 		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(7000, 8000)),
 		endpoint:     "at",
 		ri:           ri,
+		urlMap:       l,
+		fetcher:      fetcher,
 	}
 	if err := r.httpSrv.Start(); err != nil {
 		r.Debug(context.TODO(), "NewRemoteAttachmentHTTPSrv: failed to start HTTP server: %", err)
 		return r
 	}
-	r.httpSrv.HandleFunc(r.endpoint, r.servePreview)
+	r.httpSrv.HandleFunc("/"+r.endpoint, r.servePreview)
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
 		return nil
@@ -76,11 +83,13 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
 		return ""
 	}
-	r.urlMap[key] = chat1.ConversationIDMessageIDPair{
+	r.urlMap.Add(key, chat1.ConversationIDMessageIDPair{
 		ConvID: convID,
 		MsgID:  msgID,
-	}
-	return fmt.Sprintf("http://%s/%s?key=%s&prev=%v", addr, r.endpoint, key, preview)
+	})
+	url := fmt.Sprintf("http://%s/%s?key=%s&prev=%v", addr, r.endpoint, key, preview)
+	r.Debug(ctx, "GetURL: handler URL: convID: %s msgID: %d %s", convID, msgID, url)
+	return url
 }
 
 func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Request) {
@@ -89,17 +98,18 @@ func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Reques
 	defer r.Trace(ctx, func() error { return nil }, "servePreview")()
 	key := req.URL.Query().Get("key")
 	preview := false
-	if len(req.URL.Query().Get("prev")) > 0 {
+	if "true" == req.URL.Query().Get("prev") {
 		preview = true
 	}
 	r.Lock()
-	pair, ok := r.urlMap[key]
+	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
 	if !ok {
 		w.WriteHeader(404)
 		return
 	}
 
+	pair := pairInt.(chat1.ConversationIDMessageIDPair)
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
