@@ -18,7 +18,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         if (item.type !== 'folder') return item
         const original = state.pathItems.get(path)
         if (!original || original.type !== 'folder') return item
-        if (original.progress === 'loaded' && item.progress !== 'pending') {
+        if (original.progress === 'loaded' && item.progress === 'pending') {
           // Don't override a loaded item into pending. This is specifically
           // for the case where user goes back out of a folder where we could
           // override the folder into an empty one. With this, next user

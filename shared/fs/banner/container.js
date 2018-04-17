@@ -1,9 +1,10 @@
 // @flow
-import Files from './index'
+import Banner from './index'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../util/container'
 import * as StateMappers from '../utils/state-mappers'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   path?: Types.Path,
@@ -37,12 +38,16 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   path,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('FilesBanner'),
-  lifecycle({
-    componentDidMount() {
-      this.props.getFuseStatus()
-    },
-  })
-)(Files)
+const ConnectedBanner = isMobile
+  ? () => null
+  : compose(
+      connect(mapStateToProps, mapDispatchToProps, mergeProps),
+      setDisplayName('FilesBanner'),
+      lifecycle({
+        componentDidMount() {
+          this.props.getFuseStatus()
+        },
+      })
+    )(Banner)
+
+export default ConnectedBanner

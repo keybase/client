@@ -381,6 +381,16 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         }
         return editingMap
       })
+    case Chat2Gen.messageSetQuoting:
+      return state.update('quotingMap', quotingMap => {
+        const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
+        // clearing
+        if (!ordinal) {
+          return quotingMap.delete(targetConversationIDKey)
+        }
+        // quoting a specific message
+        return quotingMap.set(targetConversationIDKey, {sourceConversationIDKey, ordinal})
+      })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
 
@@ -676,6 +686,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.loadOlderMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
+    case Chat2Gen.messageReplyPrivately:
     case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
