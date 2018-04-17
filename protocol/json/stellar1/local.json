@@ -83,18 +83,6 @@
     },
     {
       "type": "record",
-      "name": "LocalCurrencyCode",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "LocalExchangeRate",
-      "fields": [],
-      "typedef": "float"
-    },
-    {
-      "type": "record",
       "name": "LocalOwnAccount",
       "fields": [
         {
@@ -117,12 +105,11 @@
           "name": "balance"
         },
         {
-          "type": "LocalCurrencyCode",
-          "name": "localCurrency"
-        },
-        {
-          "type": "LocalExchangeRate",
-          "name": "localExchangeRate"
+          "type": [
+            null,
+            "OutsideExchangeRate"
+          ],
+          "name": "exchangeRate"
         }
       ]
     }
@@ -230,10 +217,10 @@
       "request": [
         {
           "name": "currency",
-          "type": "LocalCurrencyCode"
+          "type": "OutsideCurrencyCode"
         }
       ],
-      "response": "LocalExchangeRate"
+      "response": "OutsideExchangeRate"
     }
   },
   "namespace": "stellar.1"

@@ -204,10 +204,11 @@ class ZoomableBox extends React.Component<Props, State> {
     )
 
   render() {
+    const panHandlers = this._panResponder ? this._panResponder.panHandlers : {}
     return (
       <Box
         {...this.props}
-        {...this._panResponder.panHandlers}
+        {...panHandlers}
         onLayout={this._onLayout}
         style={{
           ...this.props.style,

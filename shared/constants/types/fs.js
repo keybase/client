@@ -131,6 +131,7 @@ export type _Flags = {
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
   kextPermissionError: boolean,
+  securityPrefsPropmted: boolean,
   showBanner: boolean,
   syncing: boolean,
 }

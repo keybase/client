@@ -68,25 +68,12 @@ func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
 	}
 }
 
-type LocalCurrencyCode string
-
-func (o LocalCurrencyCode) DeepCopy() LocalCurrencyCode {
-	return o
-}
-
-type LocalExchangeRate float32
-
-func (o LocalExchangeRate) DeepCopy() LocalExchangeRate {
-	return o
-}
-
 type LocalOwnAccount struct {
-	AccountID         AccountID         `codec:"accountID" json:"accountID"`
-	IsPrimary         bool              `codec:"isPrimary" json:"isPrimary"`
-	Name              string            `codec:"name" json:"name"`
-	Balance           []Balance         `codec:"balance" json:"balance"`
-	LocalCurrency     LocalCurrencyCode `codec:"localCurrency" json:"localCurrency"`
-	LocalExchangeRate LocalExchangeRate `codec:"localExchangeRate" json:"localExchangeRate"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	IsPrimary    bool                 `codec:"isPrimary" json:"isPrimary"`
+	Name         string               `codec:"name" json:"name"`
+	Balance      []Balance            `codec:"balance" json:"balance"`
+	ExchangeRate *OutsideExchangeRate `codec:"exchangeRate,omitempty" json:"exchangeRate,omitempty"`
 }
 
 func (o LocalOwnAccount) DeepCopy() LocalOwnAccount {
@@ -105,8 +92,13 @@ func (o LocalOwnAccount) DeepCopy() LocalOwnAccount {
 			}
 			return ret
 		})(o.Balance),
-		LocalCurrency:     o.LocalCurrency.DeepCopy(),
-		LocalExchangeRate: o.LocalExchangeRate.DeepCopy(),
+		ExchangeRate: (func(x *OutsideExchangeRate) *OutsideExchangeRate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ExchangeRate),
 	}
 }
 
@@ -149,7 +141,7 @@ type SetDisplayCurrencyArg struct {
 }
 
 type ExchangeRateLocalArg struct {
-	Currency LocalCurrencyCode `codec:"currency" json:"currency"`
+	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
 type LocalInterface interface {
@@ -162,7 +154,7 @@ type LocalInterface interface {
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
-	ExchangeRateLocal(context.Context, LocalCurrencyCode) (LocalExchangeRate, error)
+	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -370,7 +362,7 @@ func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCur
 	return
 }
 
-func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency LocalCurrencyCode) (res LocalExchangeRate, err error) {
+func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
 	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
 	return

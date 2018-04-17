@@ -29,17 +29,13 @@ protocol local {
 
   Bundle walletDumpLocal();
 
-  @typedef("string") record LocalCurrencyCode {}
-  @typedef("float") record LocalExchangeRate {}
-
   // Account balance and its current value in selected currency.
   record LocalOwnAccount {
     AccountID accountID;
     boolean isPrimary;
     string name;
     array<Balance> balance;
-    LocalCurrencyCode localCurrency;
-    LocalExchangeRate localExchangeRate;
+    union { null, OutsideExchangeRate } exchangeRate;
   }
 
   array<LocalOwnAccount> walletGetLocalAccounts();
@@ -51,5 +47,5 @@ protocol local {
 
   void setDisplayCurrency(AccountID accountID, string currency);
 
-  LocalExchangeRate exchangeRateLocal(LocalCurrencyCode currency);
+  OutsideExchangeRate exchangeRateLocal(OutsideCurrencyCode currency);
 }

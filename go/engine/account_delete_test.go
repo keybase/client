@@ -40,15 +40,15 @@ func TestAccountDelete(t *testing.T) {
 	err = tmp.GetError()
 	require.Error(t, err)
 
-	if _, ok := err.(libkb.DeletedError); !ok {
-		t.Fatal("expected a libkb.DeletedError")
+	if _, ok := err.(libkb.UserDeletedError); !ok {
+		t.Fatal("expected a libkb.UserDeletedError")
 	}
 
 	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
 	require.Error(t, err)
 
-	if _, ok := err.(libkb.DeletedError); !ok {
-		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
+	if _, ok := err.(libkb.UserDeletedError); !ok {
+		t.Errorf("loading deleted user error type: %T, expected libkb.UserDeletedError", err)
 	}
 }
 
@@ -103,7 +103,7 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	err = RunEngine(ieng, ictx)
 	require.Error(t, err)
 
-	if _, ok := err.(libkb.DeletedError); !ok {
-		t.Errorf("identify2 error: %T, expected libkb.DeletedError", err)
+	if _, ok := err.(libkb.UserDeletedError); !ok {
+		t.Errorf("identify2 error: %T, expected libkb.UserDeletedError", err)
 	}
 }

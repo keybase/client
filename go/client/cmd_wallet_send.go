@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
 	"golang.org/x/net/context"
 )
 
@@ -71,17 +72,17 @@ func (c *cmdWalletSend) Run() error {
 	amountDesc := fmt.Sprintf("%s XLM", amount)
 
 	if c.localCurrency != "" && c.localCurrency != "XLM" {
-		exchangeRate, err := cli.ExchangeRateLocal(context.Background(), stellar1.LocalCurrencyCode(c.localCurrency))
+		exchangeRate, err := cli.ExchangeRateLocal(context.Background(), stellar1.OutsideCurrencyCode(c.localCurrency))
 		if err != nil {
 			return fmt.Errorf("Unable to get exchange rate for %q: %s", c.localCurrency, err)
 		}
 
-		amount, err = exchangeRate.ConvertLocalToXLM(c.amount, 4)
+		amount, err = stellar.ConvertLocalToXLM(c.amount, exchangeRate)
 		if err != nil {
 			return err
 		}
 
-		ui.Printf("Current exchange rate for XLM%s is: ~%s\n", c.localCurrency, exchangeRate.Format('f', 4))
+		ui.Printf("Current exchange rate: ~ %s %s / XLM\n", exchangeRate.Rate, c.localCurrency)
 		amountDesc = fmt.Sprintf("%s XLM (~%s %s)", amount, c.amount, c.localCurrency)
 	}
 

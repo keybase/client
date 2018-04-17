@@ -13,6 +13,7 @@ import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const itemDetail = state.fs.pathItems.get(path)
@@ -31,12 +32,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  loadFolderList: (path: Types.Path) => dispatch(FsGen.createFolderListLoad({path})),
-  loadFavorites: () => dispatch(FsGen.createFavoritesLoad()),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = stateProps => {
   const itemNames = stateProps._itemChildren.union(stateProps._itemFavoriteChildren)
   const pathItems = itemNames.map(name => {
     return (
@@ -53,16 +49,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     items,
     progress: stateProps.progress,
     path: stateProps.path,
-
-    loadFolderList: dispatchProps.loadFolderList,
-    loadFavorites: dispatchProps.loadFavorites,
   }
 }
 
-const ConnectedFiles = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Files')
-)(Files)
+const ConnectedFiles = compose(connect(mapStateToProps, undefined, mergeProps), setDisplayName('Files'))(
+  Files
+)
 
 const FilesLoadingHoc = compose(
   connect(undefined, (dispatch: Dispatch) => ({
@@ -79,16 +71,11 @@ const FilesLoadingHoc = compose(
       this.props.loadFolderList(this.props.path)
       this.props.loadFavorites()
     },
-    componentDidUpdate(prevProps) {
-      // This check is needed since otherwise when e.g. user clicks a popup
-      // menu, we'd end up triggering loadFolderList too even though we didn't
-      // navigate to a different path.
-      if (this.props.path !== prevProps.path) {
-        this.props.loadFolderList(this.props.path)
-      }
+    componentDidUpdate() {
+      this.props.loadFolderList(this.props.path)
     },
   }),
   setDisplayName('FilesLoadingHoc')
 )(ConnectedFiles)
 
-export default FilesLoadingHoc
+export default SecurityPrefsPromptingHoc(FilesLoadingHoc)

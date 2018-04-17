@@ -181,6 +181,24 @@ func (o NoteContents) DeepCopy() NoteContents {
 	}
 }
 
+type OutsideCurrencyCode string
+
+func (o OutsideCurrencyCode) DeepCopy() OutsideCurrencyCode {
+	return o
+}
+
+type OutsideExchangeRate struct {
+	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
+	Rate     string              `codec:"rate" json:"rate"`
+}
+
+func (o OutsideExchangeRate) DeepCopy() OutsideExchangeRate {
+	return OutsideExchangeRate{
+		Currency: o.Currency.DeepCopy(),
+		Rate:     o.Rate,
+	}
+}
+
 type CommonInterface interface {
 }
 
