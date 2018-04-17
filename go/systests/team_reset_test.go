@@ -580,9 +580,12 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
+	// Expecting that CLKR handler will remove bob from the team.
 	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 	t.Logf("details from poll: %+v", details)
-	ann.assertMemberInactive(team, bob)
+	teamObj := ann.loadTeam(team.name, false)
+	_, err := teamObj.UserVersionByUID(context.Background(), bob.uid())
+	require.Error(t, err)
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
@@ -590,8 +593,14 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.requestAccess(team)
 	divDebug(ctx, "Bob requested access to open team after reset")
 
-	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3), nil)
+	ann.pollForTeamSeqnoLink(team, teamObj.NextSeqno())
 	ann.assertMemberActive(team, bob)
+
+	// Generation should still be 2 - expecting just one rotate when
+	// bob is kicked out, and after he requests access again, he is
+	// just added in.
+	teamObj = ann.loadTeam(team.name, false)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), teamObj.Generation())
 }
 
 func TestTeamListAfterReset(t *testing.T) {
