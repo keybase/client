@@ -12,13 +12,14 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
 // Waiting keys
 // Add granularity as necessary
-export const teamWaitingKey = (teamname: string) => `team:${teamname}`
-export const getChannelsWaitingKey = (teamname: string) => `getChannels:${teamname}`
-export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
-export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
-export const addMemberWaitingKey = (teamname: string, username: string) => `teamAdd:${teamname};${username}`
+export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
+export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
+export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
+export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
+  `teamAdd:${teamname};${username}`
 // also for pending invites, hence id rather than username
-export const removeMemberWaitingKey = (teamname: string, id: string) => `teamRemove:${teamname};${id}`
+export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,
