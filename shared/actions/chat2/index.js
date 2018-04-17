@@ -1021,10 +1021,10 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
 
 // Now actually send
 const sendToPendingConversationSuccess = (
-  results: [any, RPCChatTypes.NewConversationLocalRes],
+  results: [any, any, RPCChatTypes.NewConversationLocalRes],
   action: Chat2Gen.SendToPendingConversationPayload
 ) => {
-  const conversationIDKey = Types.conversationIDToKey(results[1].conv.info.id)
+  const conversationIDKey = Types.conversationIDToKey(results[2].conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
     return

@@ -1,12 +1,13 @@
 // @flow
+import * as Constants from '../../../../constants/teams'
 import * as Types from '../../../../constants/types/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Constants from '../../../../constants/teams'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
 import {connect, type TypedState} from '../../../../util/container'
+import {anyWaiting} from '../../../../constants/waiting'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 
 type OwnProps = {
@@ -26,6 +27,8 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
     fullName: state.config.username === username ? 'You' : info.fullName,
     roleType: info.type,
     username: info.username,
+    waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),
+    waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
     you: state.config.username,
     youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
   }
@@ -43,7 +46,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
   _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
-        email: '',
         role: role,
         sendChatNotification: false,
         teamname,

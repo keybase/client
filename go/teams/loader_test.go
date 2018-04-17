@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"sort"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -523,14 +522,7 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	assertImpAdmins := func(as *libkb.GlobalContext, teamID keybase1.TeamID, expectedSet []keybase1.UserVersion) {
 		impAdmins, err := as.GetTeamLoader().ImplicitAdmins(context.TODO(), teamID)
 		require.NoError(t, err)
-		require.Len(t, impAdmins, len(expectedSet), "number of implicit admins")
-		sort.SliceStable(impAdmins, func(i, j int) bool {
-			return impAdmins[i].String() < impAdmins[j].String()
-		})
-		sort.SliceStable(expectedSet, func(i, j int) bool {
-			return expectedSet[i].String() < expectedSet[j].String()
-		})
-		require.Equal(t, expectedSet, impAdmins, "assertImpAdmins")
+		require.ElementsMatch(t, impAdmins, expectedSet)
 	}
 
 	t.Logf("U0 sees the 2 implicit admins")
