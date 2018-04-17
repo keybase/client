@@ -13,7 +13,7 @@ import (
 )
 
 func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
-	generation keybase1.PerTeamKeyGeneration) (err error) {
+	generation keybase1.PerTeamKeyGeneration, hasResetUsers bool) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
 
@@ -24,7 +24,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 		ForceRepoll: true,
 	})
 
-	if team.IsOpen() {
+	if hasResetUsers && team.IsOpen() {
 		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team); err == nil {
 			needRepoll = needRP
 		}

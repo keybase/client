@@ -821,6 +821,27 @@
     },
     {
       "type": "record",
+      "name": "TeamCLKRResetUser",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "userEldestSeqno",
+          "jsonkey": "user_eldest"
+        },
+        {
+          "type": "Seqno",
+          "name": "memberEldestSeqno",
+          "jsonkey": "member_eldest"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TeamCLKRMsg",
       "fields": [
         {
@@ -835,6 +856,14 @@
         {
           "type": "int",
           "name": "score"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamCLKRResetUser"
+          },
+          "name": "resetUsers",
+          "jsonkey": "reset_users"
         }
       ],
       "lint": "ignore"

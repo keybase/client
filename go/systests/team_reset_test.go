@@ -568,8 +568,8 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
-	ann.setUIDMapperNoCachingMode(true)
-	bob.setUIDMapperNoCachingMode(true)
+	// ann.setUIDMapperNoCachingMode(true)
+	// bob.setUIDMapperNoCachingMode(true)
 
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)

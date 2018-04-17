@@ -326,7 +326,7 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
-	tc.G.UIDMapper.SetTestingNoCachingMode(true)
+	//tc.G.UIDMapper.SetTestingNoCachingMode(true)
 
 	// Rotate - should trigger sweeping path if the team is open.
 	err = HandleRotateRequest(context.Background(), tc.G, team.ID, team.Generation())
