@@ -35,19 +35,14 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const canCreateChannels = yourOperations.createChannel
 
   const channels = channelInfos
-    .map((info, convID) => {
-      return info.channelname
-        ? {
-            description: info.description,
-            convID,
-            name: info.channelname,
-            selected: you && !!info.participants.get(you),
-          }
-        : null
-    })
+    .map((info, convID) => ({
+      description: info.description,
+      convID,
+      name: info.channelname,
+      selected: you && !!info.participants.get(you),
+    }))
     .toSet()
     .toArray()
-    .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
   return {
