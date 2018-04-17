@@ -252,7 +252,7 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, tea
 	case TeamDoesNotExistError:
 		// Replace the not found error so that it has a name instead of team ID.
 		// If subteams are involved the name might not correspond to the ID
-		// but it's better to have this undertandable error message that's accurate
+		// but it's better to have this understandable error message that's accurate
 		// most of the time than one with an ID that's always accurate.
 		g.Log.CDebugf(ctx, "replacing error: %v", e)
 		return NewTeamDoesNotExistError(publicTeam, teamDescriptor)

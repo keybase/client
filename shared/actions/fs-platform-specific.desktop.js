@@ -206,6 +206,26 @@ export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
   app.exit(0)
 }
 
+export function openSecurityPreferences() {
+  return Saga.call(
+    () =>
+      new Promise((resolve, reject) => {
+        Electron.shell.openExternal(
+          'x-apple.systempreferences:com.apple.preference.security?General',
+          {},
+          err => {
+            if (err) {
+              reject(err)
+              return
+            }
+            logger.info('Opened Security Preferences')
+            resolve()
+          }
+        )
+      })
+  )
+}
+
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.

@@ -2,10 +2,8 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
-import {userIsActiveInTeam} from './selectors'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
-import {invert} from 'lodash-es'
 
 import type {Service} from './types/search'
 import {type TypedState} from './reducer'
@@ -17,6 +15,9 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 export const teamWaitingKey = (teamname: string) => `team:${teamname}`
 export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
+export const addMemberWaitingKey = (teamname: string, username: string) => `teamAdd:${teamname};${username}`
+// also for pending invites, hence id rather than username
+export const removeMemberWaitingKey = (teamname: string, id: string) => `teamRemove:${teamname};${id}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,
@@ -27,7 +28,7 @@ export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
 export const makeMemberInfo: I.RecordFactory<Types._MemberInfo> = I.Record({
   active: true,
   fullName: '',
-  type: null,
+  type: 'reader',
   username: '',
 })
 
@@ -43,11 +44,21 @@ export const makeRequestInfo: I.RecordFactory<Types._RequestInfo> = I.Record({
   username: '',
 })
 
-export const teamRoleByEnum = invert(RPCTypes.teamsTeamRole)
+export const teamRoleByEnum = ((m: {[Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
+  const mInv: {[RPCTypes.TeamRole]: Types.MaybeTeamRoleType} = {}
+  for (const roleStr in m) {
+    // roleStr is typed as string; see
+    // https://github.com/facebook/flow/issues/1736 .
+    // $ForceType
+    const role: Types.TeamRoleType = roleStr
+    const e = m[role]
+    mInv[e] = role
+  }
+  return mInv
+})(RPCTypes.teamsTeamRole)
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
-  none: 'None',
   owner: 'Owner',
   reader: 'Reader',
   writer: 'Writer',
@@ -55,7 +66,7 @@ export const typeToLabel: Types.TypeMap = {
 
 export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
   open: false,
-  joinAs: 1,
+  joinAs: RPCTypes.teamsTeamRole.reader,
 })
 
 export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Record({
@@ -88,7 +99,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamNameToRole: I.Map(),
   teamNameToSubteams: I.Map(),
   teamNameToCanPerform: I.Map(),
-  teamNameToTeamSettings: I.Map(),
+  teamNameToSettings: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teamNameToAllowPromote: I.Map(),
   teamNameToIsShowcasing: I.Map(),
@@ -143,41 +154,57 @@ const retentionPolicies = {
   policyYear,
 }
 
-const userIsActiveInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
-  service === 'Keybase' ? userIsActiveInTeam(state, teamname, username) : false
+const userIsActiveInTeamHelper = (
+  state: TypedState,
+  username: string,
+  service: Service,
+  teamname: string
+) => {
+  if (service !== 'Keybase') {
+    return false
+  }
+
+  const members = state.teams.teamNameToMembers.get(teamname)
+  if (!members) {
+    return false
+  }
+
+  const member = members.get(username)
+  return member && member.active
+}
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  state.entities.teams.teamNameToConvIDs.get(teamname, I.Set())
+  state.teams.teamNameToConvIDs.get(teamname, I.Set())
 
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+  state.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
 
 const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.teams.convIDToChannelInfo.get(conversationIDKey, null)
+  state.teams.convIDToChannelInfo.get(conversationIDKey, null)
 
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
+  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
 
 const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.entities.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
+  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
-const getRole = (state: TypedState, teamname: Types.Teamname): ?Types.TeamRoleType =>
-  state.entities.getIn(['teams', 'teamNameToRole', teamname], null)
+const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
+  state.teams.getIn(['teamNameToRole', teamname], 'none')
 
 const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
-  state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], initialCanUserPerform)
+  state.teams.getIn(['teamNameToCanPerform', teamname], initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.entities.hasIn(['teams', 'teamNameToCanPerform', teamname])
+  state.teams.hasIn(['teamNameToCanPerform', teamname])
 
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
-  state.entities.getIn(['teams', 'teammembercounts', teamname], 0)
+  state.teams.getIn(['teammembercounts', teamname], 0)
 
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
-  state.entities.getIn(['teams', 'teamNameToID', teamname], '')
+  state.teams.getIn(['teamNameToID', teamname], '')
 
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
-  state.entities.getIn(['teams', 'teamNameToRetentionPolicy', teamname], null)
+  state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
 
 /**
  * Gets whether the team is big or small for teams you are a member of
@@ -199,8 +226,71 @@ const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'smal
 const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
-const isAdmin = (type: ?Types.TeamRoleType) => type === 'admin'
-const isOwner = (type: ?Types.TeamRoleType) => type === 'owner'
+const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
+  state.teams.getIn(['teamNameToMembers', teamname], I.Map())
+
+const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): Types._PublicitySettings =>
+  state.teams.getIn(['teamNameToPublicitySettings', teamname], {
+    anyMemberShowcase: false,
+    description: '',
+    ignoreAccessRequests: false,
+    member: false,
+    team: false,
+  })
+
+const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
+  state.teams.getIn(['teamNameToInvites', teamname], I.Set())
+
+// Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
+// since that may contain subteams you're not a member of.
+
+const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean => getRole(state, teamname) !== 'none'
+
+const isInSomeTeam = (state: TypedState): boolean =>
+  !!state.teams.teamNameToRole.find(role => role !== 'none')
+
+const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
+
+const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
+  state.teams.getIn(['teamNameToSubteams', teamname], I.Set())
+
+const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
+  state.teams.getIn(['teamNameToSettings', teamname], makeTeamSettings())
+
+const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
+  state.teams.getIn(['teamNameToResetUsers', teamname], I.Set())
+
+const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
+  state.teams.getIn(['teamNameToLoadingInvites', teamname], I.Map())
+
+const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
+  state.teams.getIn(['teamNameToRequests', teamname], I.Set())
+
+const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
+  state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
+
+// Sorts teamnames canonically.
+function sortTeamnames(a: string, b: string) {
+  const aName = a.toUpperCase()
+  const bName = b.toUpperCase()
+  if (aName < bName) {
+    return -1
+  } else if (aName > bName) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
+const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
+  let teamnames = state.teams.teamnames.toArray()
+  teamnames.sort(sortTeamnames)
+  return teamnames
+}
+
+const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
+const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
 
 // TODO make this check for only valid subteam names
 const isSubteam = (maybeTeamname: string) => {
@@ -285,6 +375,19 @@ export {
   getChannelNameFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
+  getTeamMembers,
+  getTeamPublicitySettings,
+  getTeamInvites,
+  isInTeam,
+  isInSomeTeam,
+  isAccessRequestPending,
+  getTeamSubteams,
+  getTeamSettings,
+  getTeamResetUsers,
+  getTeamLoadingInvites,
+  getTeamRequests,
+  getTeamConvIDs,
+  getSortedTeamnames,
   getTopicFromConvID,
   getTeamType,
   isAdmin,

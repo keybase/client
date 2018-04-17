@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type Props, default as Login} from './login'
+import Login, {type Props} from './login'
 import {action, storiesOf} from '../stories/storybook'
 
 const commonProps: Props = {

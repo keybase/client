@@ -81,13 +81,22 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 		}
 		dui.Printf("Balances for account %s:\n", accountName)
 
+		if len(acc.Balance) == 0 {
+			// If there are no balance entries the account is not on the network.
+			// Make a fake entry of 0 XLM to display.
+			acc.Balance = []stellar1.Balance{{
+				Asset:  stellar1.AssetNative(),
+				Amount: "0",
+				Limit:  "",
+			}}
+		}
 		for _, balance := range acc.Balance {
 			localAmountStr := ""
 			if balance.Asset.IsNativeXLM() {
 				if acc.LocalCurrency != "" {
-					localAmount, err := acc.LocalExchangeRate.ConvertXLM(balance.Amount)
+					localAmount, err := acc.LocalExchangeRate.ConvertXLMToLocal(balance.Amount, 2)
 					if err == nil {
-						localAmountStr = fmt.Sprintf(" (%s %s)", localAmount, string(acc.LocalCurrency))
+						localAmountStr = fmt.Sprintf(" (~%s %s)", localAmount, string(acc.LocalCurrency))
 					} else {
 						c.G().Log.Warning("Unable to convert to local currency: %s", err)
 					}

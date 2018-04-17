@@ -13,8 +13,8 @@ import {
 import {baseTeamname} from '../../constants/teamname'
 
 const mapStateToProps = (state: TypedState) => ({
-  errorText: upperFirst(state.entities.teams.teamCreationError),
-  pending: state.entities.teams.teamCreationPending,
+  errorText: upperFirst(state.teams.teamCreationError),
+  pending: state.teams.teamCreationPending,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({

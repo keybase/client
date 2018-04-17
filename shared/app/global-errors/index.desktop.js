@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import logger from '../../logger'
-import {Box, Text, Icon, HOCTimers} from '../../common-adapters'
+import {Box, Text, Icon} from '../../common-adapters'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
@@ -15,11 +16,11 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & {clearTimeout: number => void, setTimeout: (() => void, number) => number}
+type Props = _Props & TimerProps
 
 class GlobalError extends Component<Props, State> {
   state: State
-  timerID: any
+  timerID: ?TimeoutID
   _mounted: boolean = true
 
   constructor(props: Props) {
@@ -47,7 +48,9 @@ class GlobalError extends Component<Props, State> {
   }
 
   _clearCountdown() {
-    this.props.clearTimeout(this.timerID)
+    if (this.timerID) {
+      this.props.clearTimeout(this.timerID)
+    }
     this.timerID = null
   }
 
@@ -79,7 +82,7 @@ class GlobalError extends Component<Props, State> {
             cachedSummary: this._summaryForError(this.props.error),
           })
         }
-      }, this.props.error ? 0 : 7000) // if its set, do it immediately, if its cleared set it in a bit
+      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
     if (prevProps.debugDump !== this.props.debugDump) {

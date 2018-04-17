@@ -20,6 +20,8 @@ protocol local {
     AccountID toStellar;
     union { null, string } fromUsername;
     union { null, string } toUsername;
+    string note;
+    string noteErr;
   }
   array<RecentPaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
@@ -48,4 +50,6 @@ protocol local {
   void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
 
   void setDisplayCurrency(AccountID accountID, string currency);
+
+  LocalExchangeRate exchangeRateLocal(LocalCurrencyCode currency);
 }

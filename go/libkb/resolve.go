@@ -105,7 +105,7 @@ func (res *ResolveResult) GetDeleted() bool {
 
 func (res ResolveResult) FailOnDeleted() ResolveResult {
 	if res.deleted {
-		res.err = DeletedError{Msg: fmt.Sprintf("user %q deleted", res.uid)}
+		res.err = UserDeletedError{Msg: fmt.Sprintf("user %q deleted", res.uid)}
 	}
 	return res
 }

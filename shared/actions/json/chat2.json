@@ -94,6 +94,8 @@
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>",
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
+      "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
+      "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -146,6 +148,18 @@
       "ordinal": "?Types.Ordinal",
       "editLastUser?": "string"
     },
+    // Start quoting a message / or clear quoting
+    "messageSetQuoting": {
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      // Has to be a string because it can be "pending".
+      "targetConversationIDKey": "string",
+      "ordinal": "?Types.Ordinal"
+    },
+    // Reply privately to a message with quoting
+    "messageReplyPrivately": {
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+     },
     // Submit an edit to the daemon
     "messageEdit": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -250,7 +264,7 @@
       "More.ReturnType<typeof createAttachmentUpload>"
       ]
     },
-    // We've made a new conversation successfully and want to cleanup the pending info now
+    // We've made a new conversation successfully and want to clean up the pending info now
     "clearPendingConversation": {
     },
     // We want to ensure we have an attachment preview

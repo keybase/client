@@ -16,6 +16,7 @@ import {
 } from '../../util/container'
 import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
+import {getTeamInvites, getTeamLoadingInvites} from '../../constants/teams'
 import {getContacts} from './permissions'
 
 const cleanPhoneNumber: string => string = (dirty: string) => {
@@ -32,10 +33,8 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   return {
     name: teamname,
-    _pendingInvites: teamname ? state.entities.getIn(['teams', 'teamNameToInvites', teamname], Set()) : Set(),
-    loadingInvites: teamname
-      ? state.entities.getIn(['teams', 'teamNameToLoadingInvites', teamname], Map())
-      : Map(),
+    _pendingInvites: teamname ? getTeamInvites(state, teamname) : Set(),
+    loadingInvites: teamname ? getTeamLoadingInvites(state, teamname) : Map(),
   }
 }
 

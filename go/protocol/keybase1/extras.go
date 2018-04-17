@@ -1078,7 +1078,7 @@ func WrapError(e error) interface{} {
 var _ rpc.WrapErrorFunc = WrapError
 
 // ErrorUnwrapper is converter that take a Status object off the wire and convert it
-// into an Error that Go can understand, and you can descriminate on in your code.
+// into an Error that Go can understand, and you can discriminate on in your code.
 // Though status object can act as Go errors, you can further convert them into
 // typed errors via the Upcaster function if specified. An Upcaster takes a Status
 // and returns something that obeys the Error interface, but can be anything your
@@ -1984,6 +1984,20 @@ func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 		return &u.PerUserKeys[len(u.PerUserKeys)-1]
 	}
 	return nil
+}
+
+// Can return nil.
+func (u UserPlusKeysV2) GetPerUserKeyByGen(gen PerUserKeyGeneration) *PerUserKey {
+	genint := int(gen)
+	if genint <= 0 || genint > len(u.PerUserKeys) {
+		return nil
+	}
+	puk := u.PerUserKeys[genint-1]
+	if puk.Gen != genint {
+		// The PerUserKeys field of this object is malformed
+		return nil
+	}
+	return &puk
 }
 
 func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }

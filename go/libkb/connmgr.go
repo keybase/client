@@ -22,7 +22,7 @@ type ConnectionID int
 // true to keep going and false to stop.
 type ApplyFn func(i ConnectionID, xp rpc.Transporter) bool
 
-// LabelCb is a callback to be run when a client connections and labels itself.
+// LabelCb is a callback to be run when a client connects and labels itself.
 type LabelCb func(typ keybase1.ClientType)
 
 type rpcConnection struct {
@@ -30,7 +30,7 @@ type rpcConnection struct {
 	details     *keybase1.ClientDetails
 }
 
-// ConnectionManager manages all connections active for a given service.
+// ConnectionManager manages all active connections for a given service.
 // It can be called from multiple goroutines.
 type ConnectionManager struct {
 	sync.Mutex

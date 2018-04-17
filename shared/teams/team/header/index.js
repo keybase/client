@@ -14,7 +14,7 @@ export type Props = {
   loading?: boolean,
   memberCount: number,
   openTeam: boolean,
-  role: ?Types.TeamRoleType,
+  role: Types.MaybeTeamRoleType,
   teamname: Types.Teamname,
   onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
@@ -128,7 +128,7 @@ const TeamHeader = (props: Props) => (
   </Box>
 )
 
-const getTeamSubtitle = (memberCount: number, role: ?(Types.TeamRoleType | 'none')): string => {
+const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   let res = `${memberCount} member`
   if (memberCount !== 1) {
     res += 's'

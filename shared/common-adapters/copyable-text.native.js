@@ -1,8 +1,7 @@
 // @flow
-import HOCTimers from './hoc-timers'
 import React, {Component} from 'react'
 import type {Props as PropsCommon} from './copyable-text'
-import type {TimerProps} from './hoc-timers'
+import HOCTimers, {type TimerProps} from './hoc-timers'
 import Text from './text'
 import Box from './box'
 import {Clipboard, TouchableHighlight} from 'react-native'
@@ -19,7 +18,7 @@ type State = {
 
 class CopyableText<P: Props & TimerProps> extends Component<P, State> {
   state: State
-  lastCopyTimeoutId: ?number
+  lastCopyTimeoutId: TimeoutID
 
   constructor(props: P) {
     super(props)

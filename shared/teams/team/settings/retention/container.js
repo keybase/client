@@ -31,7 +31,7 @@ export type OwnProps = {
   containerStyle?: StylesCrossPlatform,
   dropdownStyle?: StylesCrossPlatform,
   entityType: RetentionEntityType,
-  showSaveState?: boolean,
+  showSaveIndicator: boolean,
   teamname?: string,
   type: 'simple' | 'auto',
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
@@ -161,10 +161,10 @@ const mapDispatchToProps = (
       )
     )
   },
-  setRetentionPolicy: (policy: RetentionPolicy) => {
+  saveRetentionPolicy: (policy: RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       // we couldn't get here without throwing an error for !teamname
-      teamname && dispatch(TeamsGen.createSetTeamRetentionPolicy({policy, teamname}))
+      teamname && dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname}))
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
       conversationIDKey && dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))

@@ -48,7 +48,7 @@
  * depending on where you are running your code.
  *
  * As described in the "Getting Started" page,
- * the traditional NSLog() function directs it's output to two places:
+ * the traditional NSLog() function directs its output to two places:
  *
  * - Apple System Log (so it shows up in Console.app)
  * - StdErr (if stderr is a TTY, so log statements show up in Xcode console)
@@ -131,11 +131,11 @@
  * Just like setForegroundColor:backgroundColor:flag, but allows you to specify a particular logging context.
  *
  * A logging context is often used to identify log messages coming from a 3rd party framework,
- * although logging context's can be used for many different functions.
+ * although logging contexts can be used for many different functions.
  *
- * Use LOG_CONTEXT_ALL to set the deafult color for all contexts that have no specific color set defined.
+ * Use LOG_CONTEXT_ALL to set the default color for all contexts that have no specific color set defined.
  *
- * Logging context's are explained in further detail here:
+ * Logging contexts are explained in further detail here:
  * Documentation/CustomContext.md
  **/
 - (void)setForegroundColor:(DDColor *)txtColor backgroundColor:(DDColor *)bgColor forFlag:(DDLogFlag)mask context:(NSInteger)ctxt;

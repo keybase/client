@@ -6,4 +6,5 @@ protocol implicitTeamMigration {
     import idl "favorite.avdl";
 
     void startMigration(Folder folder);
+    void finalizeMigration(Folder folder);
 }

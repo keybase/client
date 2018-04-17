@@ -4,6 +4,7 @@
 // RemoteTracker is a single tracker popup
 import * as React from 'react'
 import * as Constants from '../constants/tracker'
+import {isAccessRequestPending, isInTeam} from '../constants/teams'
 import {parsePublicAdmins} from '../util/teams'
 
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
@@ -35,16 +36,16 @@ const trackerMapStateToProps = (state: TypedState, {name}) => {
     description: showTeam && showTeam.description,
     following: state.config.following,
     loggedIn: state.config.loggedIn,
-    teamJoinError: state.entities.teams.teamJoinError,
-    teamJoinSuccess: state.entities.teams.teamJoinSuccess,
+    teamJoinError: state.teams.teamJoinError,
+    teamJoinSuccess: state.teams.teamJoinSuccess,
     memberCount: showTeam && showTeam.numMembers,
     openTeam: showTeam && showTeam.open,
     publicAdmins,
     publicAdminsOthers,
     showTeam: showTeam || '',
     teamname,
-    youAreInTeam: !!state.entities.getIn(['teams', 'teamnames', teamname], false),
-    youHaveRequestedAccess: !!state.entities.getIn(['teams', 'teamAccessRequestsPending', teamname], false),
+    youAreInTeam: isInTeam(state, teamname),
+    youHaveRequestedAccess: isAccessRequestPending(state, teamname),
   }
 }
 

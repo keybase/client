@@ -29,7 +29,7 @@ const _labels = {
   [Tabs.settingsTab]: 'Settings',
   [Tabs.teamsTab]: 'Teams',
   [Tabs.gitTab]: 'Git',
-  [Tabs.fsTab]: 'Fs',
+  [Tabs.fsTab]: 'Files',
 }
 
 const _tabs = [

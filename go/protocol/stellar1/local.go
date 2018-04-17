@@ -21,6 +21,8 @@ type RecentPaymentCLILocal struct {
 	ToStellar       AccountID     `codec:"toStellar" json:"toStellar"`
 	FromUsername    *string       `codec:"fromUsername,omitempty" json:"fromUsername,omitempty"`
 	ToUsername      *string       `codec:"toUsername,omitempty" json:"toUsername,omitempty"`
+	Note            string        `codec:"note" json:"note"`
+	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 }
 
 func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
@@ -61,6 +63,8 @@ func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToUsername),
+		Note:    o.Note,
+		NoteErr: o.NoteErr,
 	}
 }
 
@@ -144,6 +148,10 @@ type SetDisplayCurrencyArg struct {
 	Currency  string    `codec:"currency" json:"currency"`
 }
 
+type ExchangeRateLocalArg struct {
+	Currency LocalCurrencyCode `codec:"currency" json:"currency"`
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
@@ -154,6 +162,7 @@ type LocalInterface interface {
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
+	ExchangeRateLocal(context.Context, LocalCurrencyCode) (LocalExchangeRate, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -289,6 +298,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"exchangeRateLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ExchangeRateLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ExchangeRateLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ExchangeRateLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ExchangeRateLocal(ctx, (*typedArgs)[0].Currency)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -342,5 +367,11 @@ func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecre
 
 func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCurrencyArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency LocalCurrencyCode) (res LocalExchangeRate, err error) {
+	__arg := ExchangeRateLocalArg{Currency: currency}
+	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
 	return
 }

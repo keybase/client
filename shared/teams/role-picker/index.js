@@ -21,7 +21,6 @@ import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index
 export type RolePickerProps = {
   confirm: boolean,
   controlled?: boolean,
-  currentType: ?TeamRoleType,
   username: string,
   selectedRole: TeamRoleType,
   allowAdmin?: boolean,
@@ -85,7 +84,6 @@ const makeRoleOption = (
 // 1. Display roles for user to pick from
 export const RoleOptions = ({
   controlled,
-  currentType,
   username,
   selectedRole,
   setSelectedRole,
@@ -129,7 +127,7 @@ export const RoleOptions = ({
   </Box>
 )
 
-// 2. Confirm screen with role permissions details
+// 2. Confirm screen with role permission details
 // Permission renderer
 const PermissionRow = (props: {can: boolean, permission: string}) => (
   <Box

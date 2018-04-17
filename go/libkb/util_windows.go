@@ -284,7 +284,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 	return nil
 }
 
-// RemoteSettingsRepairman does a one-time move of everyting from the roaming
+// RemoteSettingsRepairman does a one-time move of everything from the roaming
 // target directory to local. We depend on the .exe files having been uninstalled from
 // there first.
 // Note that Chromium still insists on keeping some stuff in roaming,

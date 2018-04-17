@@ -22,7 +22,7 @@ type Log interface {
 	Errorf(s string, args ...interface{})
 }
 
-// Context is the enviroment for install package.
+// Context is the environment for install package.
 type Context interface {
 	GetConfigDir() string
 	GetCacheDir() string

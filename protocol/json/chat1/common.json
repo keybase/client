@@ -568,7 +568,9 @@
           },
           "name": "resetList"
         }
-      ]
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
     },
     {
       "type": "record",
@@ -746,13 +748,6 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
-        },
-        {
-          "type": [
-            null,
-            "gregor1.UID"
-          ],
-          "name": "explodedByUID"
         }
       ]
     },
@@ -786,11 +781,11 @@
     },
     {
       "type": "record",
-      "name": "EphemeralMetadata",
+      "name": "MsgEphemeralMetadata",
       "fields": [
         {
           "type": "gregor1.DurationSec",
-          "name": "ephemeralLifetime",
+          "name": "lifetime",
           "mpackkey": "life",
           "jsonkey": "life"
         },
@@ -888,7 +883,7 @@
         {
           "type": [
             null,
-            "EphemeralMetadata"
+            "MsgEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",
@@ -962,7 +957,7 @@
         {
           "type": [
             null,
-            "EphemeralMetadata"
+            "MsgEphemeralMetadata"
           ],
           "name": "ephemeralMetadata",
           "mpackkey": "em",

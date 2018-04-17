@@ -15,7 +15,7 @@ import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import {retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
+import {hasCanPerform, retentionPolicyToServiceRetentionPolicy} from '../../constants/teams'
 import type {NavigateActions} from '../../constants/types/route-tree'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -58,8 +58,13 @@ const inboxRefresh = (
         const metas = items
           .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
           .filter(Boolean)
-
-        yield Saga.put(Chat2Gen.createMetasReceived({metas}))
+        // Check if some of our existing stored metas might no longer be valid
+        const clearExistingMetas =
+          action.type === Chat2Gen.inboxRefresh &&
+          ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+        const clearExistingMessages =
+          action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
         return EngineRpc.rpcResult()
       },
     },
@@ -436,7 +441,10 @@ const onChatThreadStale = updates => {
     return arr
   }, [])
   if (conversationIDKeys.length > 0) {
-    return [Chat2Gen.createMarkConversationsStale({conversationIDKeys})]
+    return [
+      Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
+      Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'onChatThreadStale'}),
+    ]
   }
 }
 
@@ -590,7 +598,6 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
   switch (key) {
     case 'edit': // daemon filters this out for us so we can ignore
     case 'delete':
-    case 'headline':
     case 'attachmentuploaded':
       break
     default:
@@ -609,7 +616,8 @@ const loadMoreMessages = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.SetPendingConversationUsersPayload
-    | Chat2Gen.MarkConversationsStalePayload,
+    | Chat2Gen.MarkConversationsStalePayload
+    | Chat2Gen.MetasReceivedPayload,
   state: TypedState
 ) => {
   const numMessagesOnInitialLoad = isMobile ? 20 : 50
@@ -634,6 +642,12 @@ const loadMoreMessages = (
   } else if (action.type === Chat2Gen.selectConversation) {
     key = action.payload.conversationIDKey
     reason = action.payload.reason || 'selected'
+  } else if (action.type === Chat2Gen.metasReceived) {
+    if (!action.payload.clearExistingMessages) {
+      // we didn't clear anything out, we don't need to fetch anything
+      return
+    }
+    key = Constants.getSelectedConversation(state)
   } else {
     key = action.payload.conversationIDKey
   }
@@ -800,7 +814,7 @@ const loadMoreMessagesSuccess = (results: ?Array<any>) => {
 
 // If we're previewing a conversation we tell the service so it injects it into the inbox with a flag to tell us its a preview
 const previewConversation = (action: Chat2Gen.SelectConversationPayload) =>
-  action.payload.reason === 'preview'
+  action.payload.reason === 'preview' || action.payload.reason === 'messageLink'
     ? Saga.call(RPCChatTypes.localPreviewConversationByIDLocalRpcPromise, {
         convID: Types.keyToConversationID(action.payload.conversationIDKey),
       })
@@ -902,6 +916,35 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const you = state.config.username
+  const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
+  }
+
+  // Do we already have a convo for this author?
+  const newConversationIDKey =
+    you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
+
+  return Saga.sequentially([
+    Saga.put(
+      Chat2Gen.createMessageSetQuoting({
+        ordinal,
+        sourceConversationIDKey,
+        targetConversationIDKey: newConversationIDKey || Constants.pendingConversationIDKey,
+      })
+    ),
+    Saga.put(
+      Chat2Gen.createStartConversation({
+        participants: [message.author],
+      })
+    ),
+  ])
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -963,6 +1006,8 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
   return Saga.sequentially([
     // Disable sending more into a pending conversation
     Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'waiting'})),
+    // Disable searching for more people once you've tried to send
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
     // Try to make the conversation
     Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -976,10 +1021,10 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
 
 // Now actually send
 const sendToPendingConversationSuccess = (
-  results: [any, RPCChatTypes.NewConversationLocalRes],
+  results: [any, any, RPCChatTypes.NewConversationLocalRes],
   action: Chat2Gen.SendToPendingConversationPayload
 ) => {
-  const conversationIDKey = Types.conversationIDToKey(results[1].conv.info.id)
+  const conversationIDKey = Types.conversationIDToKey(results[2].conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
     return
@@ -1045,7 +1090,7 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
   ])
 
 const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
-  const pendingMessages = state.chat2.messageMap.get(Types.stringToConversationIDKey(''))
+  const pendingMessages = state.chat2.messageMap.get(Constants.pendingConversationIDKey)
   if (!(pendingMessages && !pendingMessages.isEmpty())) {
     logger.warn('retryPendingConversation: found no pending messages; aborting')
     return
@@ -1197,6 +1242,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // we handled participants or tlfs
   if (participants) {
     users = participants
+    conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
@@ -1239,7 +1285,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   }
 
   return Saga.sequentially([
-    // its a fixed set of users so it's not a search (aka you can't add people to it)
+    // it's a fixed set of users so it's not a search (aka you can't add people to it)
     Saga.put(
       Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
     ),
@@ -1781,8 +1827,7 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
   if (!teamname) {
     return
   }
-  const canPerform = state.entities.getIn(['teams', 'teamNameToCanPerform', teamname], null)
-  if (!canPerform) {
+  if (!hasCanPerform(state, teamname)) {
     return Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   }
 }
@@ -1995,6 +2040,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.loadOlderMessagesDueToScroll,
       Chat2Gen.setPendingConversationUsers,
       Chat2Gen.markConversationsStale,
+      Chat2Gen.metasReceived,
     ],
     loadMoreMessages,
     loadMoreMessagesSuccess
@@ -2073,6 +2119,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
 }
 
 export default chat2Saga

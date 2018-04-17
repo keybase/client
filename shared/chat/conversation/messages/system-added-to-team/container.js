@@ -2,13 +2,20 @@
 import * as RouteTree from '../../../../actions/route-tree'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../actions/tracker-gen'
+import {getMeta} from '../../../../constants/chat2/'
+import {getRole, isAdmin} from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
 import {teamsTab} from '../../../../constants/tabs'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
-  you: state.config.username || '',
-})
+const mapStateToProps = (state: TypedState, ownProps) => {
+  const teamname = getMeta(state, ownProps.message.conversationIDKey).teamname
+  return {
+    isAdmin: isAdmin(getRole(state, teamname)),
+    teamname,
+    you: state.config.username || '',
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onManageChannels: (teamname: string) =>
@@ -24,10 +31,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  isAdmin: stateProps.isAdmin,
   message: ownProps.message,
   onClickUserAvatar: dispatchProps.onClickUserAvatar,
-  onManageChannels: () => dispatchProps._onManageChannels(ownProps.message.team),
-  onViewTeam: () => dispatchProps._onViewTeam(ownProps.message.team),
+  onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
+  onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
+  teamname: stateProps.teamname,
   you: stateProps.you,
 })
 

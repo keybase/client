@@ -489,7 +489,7 @@ const styleHeader = {
   height: HEADER_SIZE,
 }
 
-// Two sticky header elements to accomodate overlay and space-consuming scrollbars:
+// Two sticky header elements to accommodate overlay and space-consuming scrollbars:
 
 // styleScrollHeaderBg sits beneath the content and colors the background under the overlay scrollbar.
 const styleScrollHeaderBg = {

@@ -221,9 +221,9 @@ func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb
 // by doing a LookupUser on some arbitrary user.
 func (s *PvlSourceImpl) refreshRoot(ctx context.Context) error {
 	q := libkb.NewHTTPArgs()
-	// The user lookup here is unecessary. It is done because that is what
+	// The user lookup here is unnecessary. It is done because that is what
 	// is easy with MerkleClient.
-	// The user lookuped up is you if known, otherwise arbitrarily t_alice.
+	// The user looked up is you if known, otherwise arbitrarily t_alice.
 	// If t_alice is removed, this path will break.
 	uid := s.G().GetMyUID()
 	if len(uid) == 0 {

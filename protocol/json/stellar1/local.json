@@ -70,6 +70,14 @@
             "string"
           ],
           "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "string",
+          "name": "noteErr"
         }
       ]
     },
@@ -217,6 +225,15 @@
         }
       ],
       "response": null
+    },
+    "exchangeRateLocal": {
+      "request": [
+        {
+          "name": "currency",
+          "type": "LocalCurrencyCode"
+        }
+      ],
+      "response": "LocalExchangeRate"
     }
   },
   "namespace": "stellar.1"

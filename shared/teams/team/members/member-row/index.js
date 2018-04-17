@@ -25,13 +25,14 @@ export type Props = {
   onReAddToTeam: () => void,
   onRemoveFromTeam: () => void,
   onShowTracker: () => void,
-  roleType: ?TeamRoleType,
+  roleType: TeamRoleType,
   username: string,
+  waitingForAdd: boolean,
+  waitingForRemove: boolean,
   you: ?string,
 }
 
 const showCrown: BoolTypeMap = {
-  reset: false,
   admin: true,
   owner: true,
   reader: false,
@@ -127,8 +128,22 @@ export const TeamMemberRow = (props: Props) => {
           props.youCanManageMembers && (
             <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
               <ButtonBar>
-                <Button small={true} label="Re-Admit" onClick={props.onReAddToTeam} type="PrimaryGreen" />
-                <Button small={true} label="Remove" onClick={props.onRemoveFromTeam} type="Secondary" />
+                <Button
+                  small={true}
+                  label="Re-Admit"
+                  onClick={props.onReAddToTeam}
+                  type="PrimaryGreen"
+                  waiting={props.waitingForAdd}
+                  disabled={props.waitingForRemove}
+                />
+                <Button
+                  small={true}
+                  label="Remove"
+                  onClick={props.onRemoveFromTeam}
+                  type="Secondary"
+                  waiting={props.waitingForRemove}
+                  disabled={props.waitingForAdd}
+                />
               </ButtonBar>
             </Box>
           )}
@@ -149,8 +164,22 @@ export const TeamMemberRow = (props: Props) => {
         props.youCanManageMembers && (
           <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
             <ButtonBar direction="row">
-              <Button small={true} label="Re-Admit" onClick={props.onReAddToTeam} type="PrimaryGreen" />
-              <Button small={true} label="Remove" onClick={props.onRemoveFromTeam} type="Secondary" />
+              <Button
+                small={true}
+                label="Re-Admit"
+                onClick={props.onReAddToTeam}
+                type="PrimaryGreen"
+                waiting={props.waitingForAdd}
+                disabled={props.waitingForRemove}
+              />
+              <Button
+                small={true}
+                label="Remove"
+                onClick={props.onRemoveFromTeam}
+                type="Secondary"
+                waiting={props.waitingForRemove}
+                disabled={props.waitingForAdd}
+              />
             </ButtonBar>
           </Box>
         )}

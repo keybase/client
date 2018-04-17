@@ -364,7 +364,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			res.Invited = append(res.Invited, addr.Address)
 		}
 		if len(invites) == 0 {
-			g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
+			g.Log.CDebugf(ctx, "team %s: after existing filter, no one to invite", teamname)
 			// return value assign to escape closure
 			resOuter = res
 			return nil
@@ -384,7 +384,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			return fmt.Errorf("unknown team role: %s", role)
 		}
 
-		g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
+		g.Log.CDebugf(ctx, "team %s: after existing filter, inviting %d emails as %s", teamname, len(invites), role)
 		err = t.postTeamInvites(ctx, teamInvites)
 		if err != nil {
 			return err

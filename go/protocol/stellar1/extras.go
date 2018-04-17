@@ -61,7 +61,7 @@ func (a AccountID) LossyAbbreviation() string {
 	if len(a) != 56 {
 		return "[invalid account id]"
 	}
-	return fmt.Sprintf("%v...%v", a[:2], a[len(a)-5:len(a)-1])
+	return fmt.Sprintf("%v...%v", a[:2], a[len(a)-4:len(a)])
 }
 
 func (s SecretKey) String() string {
@@ -121,12 +121,26 @@ func AssetNative() Asset {
 	}
 }
 
-func (b LocalExchangeRate) ConvertXLM(XLMAmount string) (localAmount string, err error) {
+func (b LocalExchangeRate) ConvertXLMToLocal(XLMAmount string, precision int) (localAmount string, err error) {
 	local, err := strconv.ParseFloat(XLMAmount, 64)
 	if err != nil {
 		return "", err
 	}
 
-	localAmount = strconv.FormatFloat(float64(b)*local, 'f', 2, 64)
+	localAmount = strconv.FormatFloat(local*float64(b), 'f', precision, 64)
 	return localAmount, nil
+}
+
+func (b LocalExchangeRate) ConvertLocalToXLM(localAmount string, precision int) (XLMAmount string, err error) {
+	local, err := strconv.ParseFloat(localAmount, 64)
+	if err != nil {
+		return "", err
+	}
+
+	XLMAmount = strconv.FormatFloat(local/float64(b), 'f', precision, 64)
+	return XLMAmount, nil
+}
+
+func (b LocalExchangeRate) Format(fmt byte, precision int) string {
+	return strconv.FormatFloat(float64(b), fmt, precision, 32)
 }

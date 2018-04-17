@@ -534,7 +534,7 @@ func TestSaltpackEncryptForceVersion(t *testing.T) {
 		sink := libkb.NewBufferCloser()
 		arg := &SaltpackEncryptArg{
 			Opts: keybase1.SaltpackEncryptOptions{
-				// Encryption only mode is require to set version 1.
+				// Encryption only mode is required to set version 1.
 				EncryptionOnlyMode: true,
 				Recipients:         []string{u1.Username},
 				Binary:             true,

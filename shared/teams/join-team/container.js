@@ -16,9 +16,9 @@ import {type RouteProps} from '../../route-tree/render-route'
 type OwnProps = RouteProps<*, *>
 
 const mapStateToProps = (state: TypedState) => ({
-  errorText: upperFirst(state.entities.teams.teamJoinError),
-  success: state.entities.teams.teamJoinSuccess,
-  successTeamName: state.entities.teams.teamJoinSuccessTeamName,
+  errorText: upperFirst(state.teams.teamJoinError),
+  success: state.teams.teamJoinSuccess,
+  successTeamName: state.teams.teamJoinSuccessTeamName,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({

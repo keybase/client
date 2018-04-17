@@ -128,7 +128,7 @@ func main() {
 			break
 		}
 		if err != nil {
-			exit(1, "stream processig error: %s", err)
+			exit(1, "stream processing error: %s", err)
 		}
 	}
 }

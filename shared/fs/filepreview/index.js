@@ -1,78 +1,107 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {humanReadableFileSize} from '../../constants/fs'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
-import {Box, Button, Icon, Text} from '../../common-adapters'
-import {formatTimeForMessages} from '../../util/timestamp'
-import FolderHeader from '../header/container'
-
-type FilePreviewHeaderProps = {
-  title: string,
-  desc: string,
-}
-
-const FilePreviewHeader = ({title, desc}: FilePreviewHeaderProps) => (
-  <Box>
-    <Box style={filePreviewHeaderStyle}>
-      <Text type="BodyBig">{title}</Text>
-      <Text type="BodySmall">{desc}</Text>
-    </Box>
-  </Box>
-)
+import * as Constants from '../../constants/fs'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {Box, Button, Text, BackButton} from '../../common-adapters'
+import PathItemInfo from '../common/path-item-info'
+import PathItemIcon from '../common/path-item-icon'
+import Footer from '../footer/container'
+import memoize from 'lodash/memoize'
+import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
 type FilePreviewProps = {
-  path: Types.Path,
-  meta: Types.PathItemMetadata,
+  fileUIEnabled: boolean,
+  pathItem: Types.PathItemMetadata,
+  itemStyles: Types.ItemStyles,
+  onAction: (targetRect?: ?ClientRect) => void,
+  onBack: () => void,
+  onDownload: () => void,
+  onShowInFileUI: () => void,
+  onShare: () => void,
+  onSave: () => void,
 }
 
-class FilePreview extends React.PureComponent<FilePreviewProps> {
-  render() {
-    const {path, meta} = this.props
-    const fileName = Types.getPathName(path)
-    let desc = 'loading'
-    if (meta) {
-      desc = 'Modified on ' + formatTimeForMessages(meta.lastModifiedTimestamp)
-      if (meta.lastWriter.username) desc += ' by ' + meta.lastWriter.username
-    }
-    // Perhaps use PathItemIcon here later...
-    return (
-      <Box style={styleOuterContainer}>
-        <Box style={globalStyles.flexBoxColumn}>
-          <FolderHeader path={path} />
-        </Box>
-        <FilePreviewHeader title={fileName} desc={desc} />
-        <Box style={stylesContainer}>
-          <Icon type={iconTypeName} />
-          <Text type="BodyBig" style={{marginTop: globalMargins.small}}>
-            {fileName}
+const FilePreview = (props: FilePreviewProps) => (
+  <Box style={styleOuterContainer}>
+    <Box style={globalStyles.flexBoxRow}>
+      <BackButton key="back" onClick={props.onBack} style={stylesClose} />
+      <Box style={filePreviewHeaderStyle}>
+        <Text type="BodyBig">{props.pathItem.name}</Text>
+        {!isMobile && (
+          <PathItemInfo
+            lastModifiedTimestamp={props.pathItem.lastModifiedTimestamp}
+            lastWriter={props.pathItem.lastWriter.username}
+            startWithLastModified={true}
+          />
+        )}
+      </Box>
+    </Box>
+    <Box style={stylesGreyContainer}>
+      <Box style={stylesContainer}>
+        <PathItemIcon spec={props.itemStyles.iconSpec} style={{}} />
+        <Text type="BodyBig" style={stylesFilename(props.itemStyles.textColor)}>
+          {props.pathItem.name}
+        </Text>
+        <Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Text>
+        {isMobile && (
+          <PathItemInfo
+            lastModifiedTimestamp={props.pathItem.lastModifiedTimestamp}
+            lastWriter={props.pathItem.lastWriter.username}
+            startWithLastModified={true}
+          />
+        )}
+        {isMobile && (
+          <Text type="BodySmall" style={stylesNoOpenMobile}>
+            This document can not be opened on mobile. You can still interact with it using the ••• menu.
           </Text>
-          <Text type="BodySmall">{humanReadableFileSize(meta)}</Text>
+        )}
+        {// Enable this button for desktop when we have in-app sharing.
+        isMobile && (
           <Button
             key="share"
             type="Primary"
             label="Share"
             style={{marginTop: globalMargins.medium}}
-            onClick={notImplemented}
+            onClick={props.onShare}
           />
+        )}
+        {isIOS ? (
+          Constants.isImage(props.pathItem.name) && (
+            <Button
+              key="open"
+              type="Secondary"
+              label={'Save'}
+              style={{marginTop: globalMargins.small}}
+              onClick={props.onSave}
+            />
+          )
+        ) : props.fileUIEnabled ? (
           <Button
             key="open"
             type="Secondary"
-            label="Open file"
+            label={'Show in ' + fileUIName}
             style={{marginTop: globalMargins.small}}
-            onClick={notImplemented}
+            onClick={props.onShowInFileUI}
           />
-        </Box>
+        ) : (
+          <Button
+            key="open"
+            type="Secondary"
+            label="Download a copy"
+            style={{marginTop: globalMargins.small}}
+            onClick={props.onDownload}
+          />
+        )}
       </Box>
-    )
-  }
-}
+    </Box>
+    <Footer />
+  </Box>
+)
 
-const notImplemented = event => {
-  console.log('Not implemented yet, FIXME')
+const stylesClose = {
+  marginLeft: globalMargins.tiny,
 }
-
-const iconTypeName = 'icon-folder-private-48'
 
 const stylesCommonCore = {
   alignItems: 'center',
@@ -87,18 +116,55 @@ const stylesCommonColumn = {
   minHeight: isMobile ? 64 : 40,
 }
 
-const filePreviewHeaderStyle = {...stylesCommonColumn, alignItems: 'center', borderBottomWidth: 0}
+const filePreviewHeaderStyle = {
+  ...stylesCommonColumn,
+  ...globalStyles.flexGrow,
+  alignItems: 'center',
+  borderBottomWidth: 0,
+  height: 48,
+}
 
-const stylesContainer = {
+const stylesGreyContainer = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.fullHeight,
+  ...globalStyles.flexGrow,
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
+  backgroundColor: globalColors.blue5,
+  ...(isMobile
+    ? {
+        paddingTop: 32,
+      }
+    : {
+        padding: globalMargins.medium,
+      }),
 }
+
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  ...globalStyles.flexGrow,
+  width: '100%',
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: globalColors.white,
+}
+
 const styleOuterContainer = {
+  ...globalStyles.flexBoxColumn,
   height: '100%',
   position: 'relative',
+}
+
+const stylesFilename = memoize(color => ({
+  marginTop: globalMargins.small,
+  marginBottom: globalMargins.tiny,
+  color: color,
+}))
+
+const stylesNoOpenMobile = {
+  marginTop: globalMargins.medium,
+  width: 295,
 }
 
 export default FilePreview

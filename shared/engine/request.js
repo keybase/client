@@ -63,7 +63,7 @@ class IncomingRequest extends Request {
   handle() {
     this.updateWaiting(false) // we just got a response from the server so we're no longer waiting
 
-    // Note we pass ourself to the handler and not the raw response. This allows us to cleanup
+    // Note we pass ourself to the handler and not the raw response. This allows us to clean up
     this._handler(this.param, this)
   }
 }

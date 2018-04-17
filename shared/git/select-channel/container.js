@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
+import {getTeamConvIDs} from '../../constants/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import {PopupDialog, HeaderHoc} from '../../common-adapters'
 import {
@@ -24,8 +25,8 @@ export type SelectChannelProps = {
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
-  const _convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', teamname], I.Set())
-  const _channelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map())
+  const _convIDs = getTeamConvIDs(state, teamname)
+  const _channelInfo = state.teams.getIn(['convIDToChannelInfo'], I.Map())
   return {
     _channelInfo,
     _convIDs,
