@@ -300,6 +300,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h.boxer = NewBoxer(g)
 
 	chatStorage := storage.New(g)
+	chatStorage.SetClock(c.world.Fc)
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	g.InboxSource = NewHybridInboxSource(g, func() chat1.RemoteInterface { return ri })
@@ -328,7 +329,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.FetchRetrier.Connected(context.TODO())
 	g.FetchRetrier.Start(context.TODO(), uid)
 
-	g.ConvLoader = NewBackgroundConvLoader(g, chatStorage)
+	g.ConvLoader = NewBackgroundConvLoader(g)
 
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)

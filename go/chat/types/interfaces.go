@@ -178,7 +178,6 @@ type ConvLoader interface {
 	Resumable
 
 	Queue(ctx context.Context, job ConvLoaderJob) error
-	QueueEphemeralPurges(ctx context.Context)
 	Suspend(ctx context.Context) bool
 	Resume(ctx context.Context) bool
 }

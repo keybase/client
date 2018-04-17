@@ -377,7 +377,7 @@ func (d *Service) createChatModules() {
 	chatSyncer := chat.NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
-	g.ConvLoader = chat.NewBackgroundConvLoader(g, chatStorage)
+	g.ConvLoader = chat.NewBackgroundConvLoader(g)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -561,8 +561,14 @@ func (d *Service) chatFastChecks() {
 	go func() {
 		for {
 			<-ticker.C
+			uid := d.G().Env.GetUID()
+			if uid.IsNil() {
+				continue
+			}
+			gregorUID := gregor1.UID(uid.ToBytes())
 			d.G().Log.Debug("+ fast chat checks loop")
-			d.ChatG().ConvLoader.QueueEphemeralPurges(context.Background())
+			g := globals.NewContext(d.G(), d.ChatG())
+			storage.New(g).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
 			d.G().Log.Debug("- fast chat checks loop")
 		}
 	}()

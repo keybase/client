@@ -188,8 +188,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
 	g.FetchRetrier.Connected(context.TODO())
 	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
-	convLoader := NewBackgroundConvLoader(g, chatStorage)
-	convLoader.loadTestCh = listener.bgConvLoads
+	convLoader := NewBackgroundConvLoader(g)
+	convLoader.loads = listener.bgConvLoads
 	convLoader.setTestingNameInfoSource(tlf)
 	g.ConvLoader = convLoader
 	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())

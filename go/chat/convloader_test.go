@@ -323,15 +323,23 @@ func TestBackgroundPurge(t *testing.T) {
 	ctx, tc, world, _, baseSender, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
+	g := globals.NewContext(tc.G, tc.ChatG)
+	u := world.GetUsers()[0]
+	uid := gregor1.UID(u.GetUID().ToBytes())
+	trip := newConvTriple(ctx, t, tc, u.Username)
+	chatStorage := storage.New(g)
+	chatStorage.SetClock(world.Fc)
+
 	// setup a ticker since we don't run the service's fastChatChecks ticker here.
 	tickerLifetime := 500 * time.Millisecond
 	ticker := time.NewTicker(tickerLifetime)
 	defer ticker.Stop()
+
 	go func() {
 		for {
 			<-ticker.C
 			world.Fc.Advance(tickerLifetime)
-			tc.Context().ConvLoader.QueueEphemeralPurges(context.Background())
+			chatStorage.QueueEphemeralBackgroundPurges(context.Background(), uid)
 		}
 	}()
 
@@ -344,9 +352,6 @@ func TestBackgroundPurge(t *testing.T) {
 		}
 	}
 
-	u := world.GetUsers()[0]
-	uid := gregor1.UID(u.GetUID().ToBytes())
-	trip := newConvTriple(ctx, t, tc, u.Username)
 	sendEphemeral := func(lifetime gregor1.DurationSec) *chat1.MessageBoxed {
 		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -365,12 +370,8 @@ func TestBackgroundPurge(t *testing.T) {
 		return msgBoxed
 	}
 
-	g := globals.NewContext(tc.G, tc.ChatG)
-	storage := storage.New(g)
-	storage.SetClock(world.Fc)
-
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
-		allPurgeInfo, err := storage.GetAllPurgeInfo(ctx, uid)
+		allPurgeInfo, err := chatStorage.GetAllPurgeInfo(ctx, uid)
 		require.NoError(t, err)
 		require.Len(t, allPurgeInfo, 1)
 		purgeInfo, ok := allPurgeInfo[convID.String()]
@@ -381,6 +382,7 @@ func TestBackgroundPurge(t *testing.T) {
 	// Load our conv with the initial tlf msg
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+	t.Logf("assert listener 0")
 	assertListener(res.ConvID)
 
 	// Nothing is up for purging yet
@@ -397,6 +399,7 @@ func TestBackgroundPurge(t *testing.T) {
 	msgBoxed2 := sendEphemeral(lifetime * 3)
 
 	// Make sure we can queue up a task and execute it, setting our initial tracker state
+	t.Logf("assert listener 1")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: msgBoxed1.GetMessageID(),
@@ -404,6 +407,7 @@ func TestBackgroundPurge(t *testing.T) {
 		IsActive:        true,
 	})
 
+	t.Logf("assert listener 2")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: msgBoxed2.GetMessageID(),
@@ -411,6 +415,7 @@ func TestBackgroundPurge(t *testing.T) {
 		IsActive:        true,
 	})
 
+	t.Logf("assert listener 3")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: msgBoxed2.GetMessageID(),

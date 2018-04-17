@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,6 +25,8 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	_, storage, uid := setupStorageTest(t, "ephemeral purge")
 
+	clock := clockwork.NewFakeClockAt(time.Now())
+	storage.SetClock(clock)
 	convID := makeConvID()
 
 	type expectedM struct {
@@ -120,6 +123,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgC.Valid().Etime(),
 		MinUnexplodedID: msgC.GetMessageID(),
+		IsActive:        true,
 	}
 	verifyTrackerState(expectedPurgeInfo)
 	// Running purge has not effect since nothing is expired
@@ -140,7 +144,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("sleep and fetch")
 	// We sleep for `lifetime`, so we expect C to get purged on fetch (msg H is
 	// not yet merged in)
-	time.Sleep(sleepLifetime)
+	clock.Advance(sleepLifetime)
 	setExpected("C", msgC, false, dontCare)
 	assertState(msgG.GetMessageID())
 	// We don't update the  tracker state is updated from a fetch
@@ -150,6 +154,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgF.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
+		IsActive:        true,
 	}
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
 
@@ -165,26 +170,32 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	verifyTrackerState(expectedPurgeInfo)
 
 	// we've slept for ~ lifetime*2, F's lifetime is up
-	time.Sleep(sleepLifetime)
+	clock.Advance(sleepLifetime)
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
+		IsActive:        true,
 	}
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	setExpected("F", msgF, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	// we've slept for ~ lifetime*3, E's lifetime is up
-	time.Sleep(sleepLifetime)
-	ephemeralPurgeAndVerify(nil)
+	clock.Advance(sleepLifetime)
+	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
+		NextPurgeTime:   0,
+		MinUnexplodedID: msgH.GetMessageID(),
+		IsActive:        false,
+	}
+	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	setExpected("E", msgE, false, dontCare)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("purge with no effect")
-	ephemeralPurgeAndVerify(nil)
+	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	assertState(msgH.GetMessageID())
 
 	t.Logf("another purge with no effect")
-	ephemeralPurgeAndVerify(nil)
+	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	assertState(msgH.GetMessageID())
 }
