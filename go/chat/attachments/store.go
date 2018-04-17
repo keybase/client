@@ -203,16 +203,20 @@ func (a *Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncr
 	return asset, nil
 }
 
+func (a *Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	signer s3.Signer) (io.ReadCloser, error) {
+	region := a.regionFromAsset(asset)
+	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+
+	return b.GetReader(ctx, asset.Path)
+}
+
 // DownloadAsset gets an object from S3 as described in asset.
 func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
-	region := a.regionFromAsset(asset)
-	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
-
-	a.Debug(ctx, "DownloadAsset: downloading %s from s3", asset.Path)
-	body, err := b.GetReader(ctx, asset.Path)
+	body, err := a.GetAssetReader(ctx, params, asset, signer)
 	defer func() {
 		if body != nil {
 			body.Close()
@@ -221,6 +225,7 @@ func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset 
 	if err != nil {
 		return err
 	}
+	a.Debug(ctx, "DownloadAsset: downloading %s from s3", asset.Path)
 
 	// compute hash
 	hash := sha256.New()

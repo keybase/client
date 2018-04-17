@@ -3,16 +3,21 @@ package chat
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
+	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -176,12 +181,134 @@ var _ AttachmentFetcher = (*RemoteAttachmentFetcher)(nil)
 func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *RemoteAttachmentFetcher {
 	return &RemoteAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentFetcher", false),
 		store:        store,
 	}
 }
 
 func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
-	s3params chat1.S3Params, signer s3.Signer) error {
+	s3params chat1.S3Params, signer s3.Signer) (err error) {
+	defer r.Trace(ctx, func() error { return err }, "FetchAttachment")()
 	return r.store.DownloadAsset(ctx, s3params, asset, w, signer,
 		func(bytesComplete, bytesTotal int64) {})
+}
+
+type CachingAttachmentFetcher struct {
+	globals.Contextified
+	utils.DebugLabeler
+
+	store   *attachments.Store
+	diskLRU *disklru.DiskLRU
+}
+
+func NewCachingAttachmentFetcher(g *globals.Context, store *attachments.Store, size int) *CachingAttachmentFetcher {
+	return &CachingAttachmentFetcher{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),
+		store:        store,
+		diskLRU:      disklru.NewDiskLRU("attachments", 1, size),
+	}
+}
+
+func (c *CachingAttachmentFetcher) getCacheDir() string {
+	return filepath.Join(c.G().GetCacheDir(), "attachments")
+}
+
+func (c *CachingAttachmentFetcher) decrypt(ctx context.Context, sink io.Writer, source io.Reader,
+	asset chat1.Asset) error {
+	dec := attachments.NewSignDecrypter()
+	var decBody io.Reader
+	if asset.Nonce != nil {
+		var nonce [signencrypt.NonceSize]byte
+		copy(nonce[:], asset.Nonce)
+		decBody = dec.DecryptWithNonce(source, &nonce, asset.Key, asset.VerifyKey)
+	} else {
+		decBody = dec.Decrypt(source, asset.Key, asset.VerifyKey)
+	}
+	_, err := io.Copy(sink, decBody)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CachingAttachmentFetcher) getFullFilename(name string) string {
+	return name + ".attachment"
+}
+
+func (c *CachingAttachmentFetcher) closeFile(f io.Closer) {
+	if f != nil {
+		f.Close()
+	}
+}
+
+func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
+	file, err := ioutil.TempFile(c.getCacheDir(), "att")
+	file.Close()
+	if err != nil {
+		return nil, err
+	}
+	path := c.getFullFilename(file.Name())
+	if err := os.Rename(file.Name(), path); err != nil {
+		return nil, err
+	}
+	return os.OpenFile(path, os.O_RDWR, os.ModeAppend)
+}
+
+func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
+	s3params chat1.S3Params, signer s3.Signer) (err error) {
+	defer c.Trace(ctx, func() error { return err }, "FetchAttachment")()
+
+	// Check for a disk cache hit, and decrypt that onto the response stream
+	found, entry, err := c.diskLRU.Get(ctx, c.G(), asset.Path)
+	if err != nil {
+		return err
+	}
+	if found {
+		path := entry.Value.(string)
+		c.Debug(ctx, "FetchAttachment: cache hit for: %s filepath: %s", asset.Path, path)
+		fileReader, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
+		defer c.closeFile(fileReader)
+		if err != nil {
+			return err
+		}
+		return c.decrypt(ctx, w, fileReader, asset)
+	}
+
+	// Create a reader to the remote ciphertext
+	remoteReader, err := c.store.GetAssetReader(ctx, s3params, asset, signer)
+	defer c.closeFile(remoteReader)
+	if err != nil {
+		return err
+	}
+
+	// Create a file we can write the ciphertext into
+	fileWriter, err := c.createAttachmentFile(ctx)
+	defer c.closeFile(fileWriter)
+	if err != nil {
+		return err
+	}
+
+	// Read out the ciphertext into the decryption copier, and simultaneously write
+	// into the cached file (the ciphertext)
+	teeReader := io.TeeReader(remoteReader, fileWriter)
+	if err := c.decrypt(ctx, w, teeReader, asset); err != nil {
+		c.Debug(ctx, "FetchAttachment: error reading asset: %s", err)
+		c.closeFile(fileWriter)
+		os.Remove(fileWriter.Name())
+		return err
+	}
+
+	// Add an entry to the disk LRU mapping the asset path to the local path, and remove
+	// the remnants of any evicted attachments.
+	evicted, err := c.diskLRU.Put(ctx, c.G(), asset.Path, fileWriter.Name())
+	if err != nil {
+		return err
+	}
+	if evicted != nil {
+		path := evicted.Value.(string)
+		os.Remove(path)
+	}
+
+	return nil
 }
