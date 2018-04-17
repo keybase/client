@@ -39,7 +39,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
       name: info.channelname,
       selected: you && info.participants.has(you),
     }))
-    .toSet()
+    .valueSeq()
     .toArray()
     .sort((a, b) => a.name.localeCompare(b.name))
 
