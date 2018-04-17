@@ -1298,7 +1298,11 @@ const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bo
 
 // Various things can cause us to lose our selection so this reselects the newest conversation
 const selectTheNewestConversation = (
-  action: Chat2Gen.MetasReceivedPayload | Chat2Gen.LeaveConversationPayload | Chat2Gen.MetaDeletePayload,
+  action:
+    | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.LeaveConversationPayload
+    | Chat2Gen.MetaDeletePayload
+    | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.metaDelete) {
@@ -1316,15 +1320,29 @@ const selectTheNewestConversation = (
     }
   }
 
-  const meta = state.chat2.metaMap
+  const metas = state.chat2.metaMap
     .filter(meta => meta.teamType !== 'big')
     .sort((a, b) => b.timestamp - a.timestamp)
-    .first()
+  let meta
+  if (action.type === TeamsGen.leaveTeam) {
+    // make sure we don't reselect the team chat if it happens to be first in the list
+    meta = metas.filter(meta => meta.teamname !== action.payload.teamname).first()
+  } else {
+    meta = metas.first()
+  }
   if (meta) {
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: meta.conversationIDKey,
         reason: 'findNewestConversation',
+      })
+    )
+  } else if (action.type === TeamsGen.leaveTeam) {
+    // the team we left is the only chat we had
+    return Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Types.stringToConversationIDKey(''),
+        reason: 'clearSelected',
       })
     )
   }
@@ -2016,7 +2034,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
     // Auto select the latest convo
     yield Saga.safeTakeEveryPure(
-      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation, Chat2Gen.metaDelete],
+      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation, Chat2Gen.metaDelete, TeamsGen.leaveTeam],
       selectTheNewestConversation
     )
   }
