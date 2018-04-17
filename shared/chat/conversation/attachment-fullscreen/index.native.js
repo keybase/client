@@ -7,6 +7,7 @@ import {
   ProgressIndicator,
   NativeImage,
   ZoomableBox,
+  NativeDimensions,
 } from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
 
@@ -23,7 +24,8 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
     this._mounted = true
     NativeImage.getSize(this.props.source.uri, (width, height) => {
       if (this._mounted) {
-        this.setState({height, width})
+        const {width: maxWidth, height: maxHeight} = NativeDimensions.get('window')
+        this.setState({height: Math.min(height, maxHeight), width: Math.min(width, maxWidth)})
       }
     })
   }
@@ -37,7 +39,8 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
       >
         <NativeImage
           {...this.props}
-          style={{flex: 1, resizeMode: 'contain', maxHeight: this.state.height, maxWidth: this.state.width}}
+          resizeMode="contain"
+          style={{flex: 1, height: this.state.height, width: this.state.width, alignSelf: 'center'}}
         />
       </ZoomableBox>
     )
