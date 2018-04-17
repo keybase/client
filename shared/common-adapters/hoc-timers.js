@@ -21,7 +21,7 @@ const HOCTimers = <T: TimerProps>(
     _intervalIds: Array<IntervalID>
     _timerFuncs: TimerProps
 
-    constructor(props: any) {
+    constructor(props: T) {
       super(props)
       this._timeoutIds = []
       this._intervalIds = []
