@@ -13,6 +13,8 @@ import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../sty
 
 import type {Props} from './'
 
+const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
+
 class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
   state = {height: 0, width: 0}
   _mounted: boolean = false
@@ -30,7 +32,6 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
   }
 
   render() {
-    const {width: maxWidth, height: maxHeight} = NativeDimensions.get('window')
     return (
       <ZoomableBox
         contentContainerStyle={{flex: 1, position: 'relative'}}
@@ -44,8 +45,8 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
           resizeMode="contain"
           style={{
             flex: 1,
-            height: Math.min(this.state.height, maxHeight),
-            width: Math.min(this.state.width, maxWidth),
+            height: Math.min(this.state.height, screenHeight),
+            width: Math.min(this.state.width, screenWidth),
             alignSelf: 'center',
           }}
         />
