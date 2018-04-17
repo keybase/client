@@ -92,12 +92,12 @@ const ManageChannels = (props: Props) => (
       )}
       {props.channels.map(c => (
         <Row
-          key={c.name}
+          key={c.convID}
           canEditChannels={props.canEditChannels}
           description={c.description}
           name={c.name}
           selected={props.nextChannelState[c.convID]}
-          onToggle={() => props.onToggle(c.name)}
+          onToggle={() => props.onToggle(c.convID)}
           showEdit={!props.unsavedSubscriptions}
           onEdit={() => props.onEdit(c.convID)}
           onClickChannel={() => props.onClickChannel(c.convID)}
