@@ -56,12 +56,29 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher AttachmentFetcher, ri func
 		r.Debug(context.TODO(), "NewRemoteAttachmentHTTPSrv: failed to start HTTP server: %", err)
 		return r
 	}
-	r.httpSrv.HandleFunc("/"+r.endpoint, r.servePreview)
+	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
 		return nil
 	})
+	go r.monitorAppState()
+
 	return r
+}
+
+func (r *AttachmentHTTPSrv) monitorAppState() {
+	ctx := context.Background()
+	r.Debug(ctx, "monitorAppState: starting up")
+	state := keybase1.AppState_FOREGROUND
+	for {
+		state = <-r.G().AppState.NextUpdate(&state)
+		switch state {
+		case keybase1.AppState_FOREGROUND:
+			r.httpSrv.Start()
+		case keybase1.AppState_BACKGROUND:
+			r.httpSrv.Stop()
+		}
+	}
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -92,10 +109,22 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	return url
 }
 
-func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Request) {
+func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
-	defer r.Trace(ctx, func() error { return nil }, "servePreview")()
+	defer r.Trace(ctx, func() error { return nil }, "serve")()
+
+	var response struct {
+		code int
+		msg  string
+	}
+	makeError := func(code int, msg string, args ...interface{}) {
+		response.code = code
+		response.msg = fmt.Sprintf(msg, args...)
+		r.Debug(ctx, "serve: error code: %d msg %s", response.code, response.msg)
+		w.WriteHeader(response.code)
+	}
+
 	key := req.URL.Query().Get("key")
 	preview := false
 	if "true" == req.URL.Query().Get("prev") {
@@ -105,7 +134,7 @@ func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Reques
 	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
 	if !ok {
-		w.WriteHeader(404)
+		makeError(404, "key not found in URL map")
 		return
 	}
 
@@ -113,16 +142,17 @@ func (r *AttachmentHTTPSrv) servePreview(w http.ResponseWriter, req *http.Reques
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
-		w.WriteHeader(500)
+		makeError(500, "failed to get asset: %s", err)
 		return
 	}
 	params, err := r.ri().GetS3Params(ctx, pair.ConvID)
 	if err != nil {
-		w.WriteHeader(500)
+		makeError(500, "failed to get S3 params: %s", err)
 		return
 	}
 	if err := r.fetcher.FetchAttachment(ctx, w, asset, params, r); err != nil {
-		w.WriteHeader(500)
+		makeError(500, "failed to fetch attachment: %s", err)
+		return
 	}
 }
 

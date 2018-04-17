@@ -205,34 +205,12 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
       })
-    case Chat2Gen.attachmentLoading:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return action.payload.isPreview
-          ? message.set('previewTransferState', 'downloading')
-          : message.set('transferProgress', action.payload.ratio).set('transferState', 'downloading')
-      })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
         return message.set('transferProgress', 0).set('transferState', null)
-      })
-    case Chat2Gen.attachmentLoaded:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        const path = action.error ? '' : action.payload.path
-        return action.payload.isPreview
-          ? message.set('devicePreviewPath', path).set('previewTransferState', null)
-          : message
-              .set('transferProgress', 0)
-              .set('transferState', null)
-              .set('deviceFilePath', path)
       })
     case Chat2Gen.attachmentDownloaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
@@ -655,10 +633,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
-    case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
-    case Chat2Gen.attachmentLoaded:
     case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
@@ -674,9 +650,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     // Saga only actions
     case Chat2Gen.attachmentDownload:
-    case Chat2Gen.attachmentHandleQueue:
-    case Chat2Gen.attachmentLoad:
-    case Chat2Gen.attachmentNeedsUpdating:
     case Chat2Gen.attachmentUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.exitSearch:

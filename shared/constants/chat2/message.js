@@ -337,6 +337,12 @@ const validUIMessagetoMessage = (
           attachmentType = 'image'
         }
       }
+      let devicePreviewPath = ''
+      let deviceFilePath = ''
+      if (m.assetUrlInfo) {
+        devicePreviewPath = m.assetUrlInfo.previewUrl
+        deviceFilePath = m.assetUrlInfo.fullUrl
+      }
 
       return makeMessageAttachment({
         ...common,
@@ -346,6 +352,8 @@ const validUIMessagetoMessage = (
         previewHeight,
         previewWidth,
         title,
+        devicePreviewPath,
+        deviceFilePath,
       })
     }
     case RPCChatTypes.commonMessageType.join:

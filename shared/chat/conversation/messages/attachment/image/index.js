@@ -8,8 +8,6 @@ import {isMobile} from '../../../../../util/container'
 type Props = {
   arrowColor: string,
   height: number,
-  isPreviewLoaded: boolean,
-  loadPreview: null | (() => void),
   onClick: () => void,
   onShowMenu: () => void,
   onShowInFinder: null | (() => void),
@@ -21,18 +19,6 @@ type Props = {
 }
 
 class ImageAttachment extends React.PureComponent<Props> {
-  componentDidMount() {
-    if (this.props.loadPreview) {
-      this.props.loadPreview()
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.loadPreview && !this.props.loadPreview) {
-      nextProps.loadPreview()
-    }
-  }
-
   render() {
     return (
       <ClickableBox
@@ -45,7 +31,7 @@ class ImageAttachment extends React.PureComponent<Props> {
         </Text>
         <Box
           style={{
-            ...(this.props.isPreviewLoaded ? loadedStyle : loadingStyle),
+            ...loadedStyle,
             height: this.props.height,
             width: this.props.width,
           }}
@@ -133,12 +119,6 @@ const imageStyle = {
 
 const loadedStyle = {
   ...imageStyle,
-}
-
-const loadingStyle = {
-  ...imageStyle,
-  backgroundColor: globalColors.black_05,
-  borderRadius: globalMargins.xtiny,
 }
 
 const linkStyle = {
