@@ -187,7 +187,8 @@ const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
   !state.teams.chosenChannelsForTeam.has(teamname)
 
 const getTeamChannelInfos = (state: TypedState, teamname: Types.Teamname) => {
-  const channels = getTeamConvIDs(state, teamname)
+  const channels = state.teams
+    .getIn(['teamNameToConvIDs', teamname], I.Set())
     .toMap()
     .map(convID => getChannelInfoFromConvID(state, teamname, convID))
   return channels
@@ -277,9 +278,6 @@ const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.M
 
 const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
   state.teams.getIn(['teamNameToRequests', teamname], I.Set())
-
-const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
@@ -397,7 +395,6 @@ export {
   getTeamResetUsers,
   getTeamLoadingInvites,
   getTeamRequests,
-  getTeamConvIDs,
   getSortedTeamnames,
   getTeamType,
   isAdmin,
