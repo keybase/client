@@ -123,6 +123,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.uninstallKBFS:
     case FsGen.fsActivity:
     case FsGen.setupFSHandlers:
+    case FsGen.openSecurityPreferences:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

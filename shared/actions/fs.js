@@ -16,6 +16,7 @@ import {
   installKBFSSuccess,
   installFuseSaga,
   installDokanSaga,
+  openSecurityPreferences,
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
@@ -277,7 +278,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
 
   if (!isMobile) {
-    // TODO: enable this when we need it on mobile.
+    yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+
+    // TODO: enable these when we need it on mobile.
     yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
     yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
   }

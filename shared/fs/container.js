@@ -13,6 +13,7 @@ import Files from '.'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import SecurityPrefsPromptingHoc from './common/security-prefs-prompting-hoc'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const itemDetail = state.fs.pathItems.get(path)
@@ -77,4 +78,4 @@ const FilesLoadingHoc = compose(
   setDisplayName('FilesLoadingHoc')
 )(ConnectedFiles)
 
-export default FilesLoadingHoc
+export default SecurityPrefsPromptingHoc(FilesLoadingHoc)
