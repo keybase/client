@@ -330,7 +330,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
-	d.chatFastChecks() // 5 minutes for ephemeral message purging
+	d.chatEphemeralPurgeChecks()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -551,10 +551,10 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
-func (d *Service) chatFastChecks() {
+func (d *Service) chatEphemeralPurgeChecks() {
 	ticker := time.NewTicker(5 * time.Minute)
 	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping chatFastChecks loop")
+		d.G().Log.Debug("stopping chatEphemeralPurgeChecks loop")
 		ticker.Stop()
 		return nil
 	})
@@ -566,10 +566,13 @@ func (d *Service) chatFastChecks() {
 				continue
 			}
 			gregorUID := gregor1.UID(uid.ToBytes())
-			d.G().Log.Debug("+ fast chat checks loop")
+			d.G().Log.Debug("+ chat ephemeral purge loop")
 			g := globals.NewContext(d.G(), d.ChatG())
+			// Purge any conversations that have expired ephemeral messages
 			storage.New(g).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
-			d.G().Log.Debug("- fast chat checks loop")
+			// Check the outbox for stuck ephemeral messages that need purging
+			storage.NewOutbox(g, gregorUID).EphemeralPurge(context.Background())
+			d.G().Log.Debug("- chat ephemeral chat loop")
 		}
 	}()
 }

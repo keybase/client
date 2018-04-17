@@ -343,6 +343,14 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
+func (m MessagePlaintext) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
+}
+
+func (m MessagePlaintext) EphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
 func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 	if o != nil && r != nil {
 		return *o == *r
@@ -356,6 +364,10 @@ func ETime(metadata *MsgEphemeralMetadata, header *MessageServerHeader) gregor1.
 	}
 	etime := header.Ctime.Time().Add(time.Second * time.Duration(metadata.Lifetime))
 	return gregor1.ToTime(etime)
+}
+
+func (m MessageUnboxedValid) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
 }
 
 func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
@@ -385,10 +397,6 @@ func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
 	}
 	etime := m.Etime()
 	return etime.Time().Add(explosionLifetime).Before(now)
-}
-
-func (m MessageUnboxedValid) IsExploding() bool {
-	return m.EphemeralMetadata() != nil
 }
 
 func (b MessageBody) IsNil() bool {
