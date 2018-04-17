@@ -1,9 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
-import {Box, Icon} from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
-import List, {type TeamRows} from './list'
+import {renderItem as renderInvitesItem} from './invites-tab/helper'
+import {renderItem as renderMemberItem} from './members-tab/helper'
+import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
+import Settings from './settings-tab/container'
+import TeamHeader from './header/container'
+import TeamTabs from './tabs/container'
+import {Box} from '../../common-adapters'
+import List from './list'
+import {globalStyles} from '../../styles'
 
 export type Props = {
   teamname: Types.Teamname,
@@ -17,88 +23,65 @@ export type Props = {
   loading: boolean,
   selectedTab: string,
   resetUserCount: number,
+  rows: Array<*>,
   setSelectedTab: (?Types.TabKey) => void,
   yourOperations: Types.TeamOperations,
   onShowMenu: any => void,
 }
 
-const Team = (props: Props) => {
-  const {teamname} = props
-
-  const rows: TeamRows = [{type: 'header', teamname, key: 'headerKey'}]
-  rows.push({
-    type: 'tabs',
-    key: 'tabs',
-    admin: props.yourOperations.manageMembers,
-    memberCount: props.memberCount,
-    teamname,
-    newTeamRequests: props.newTeamRequests,
-    numInvites: props.numInvites,
-    numRequests: props.numRequests,
-    numSubteams: props.numSubteams,
-    loading: props.loading,
-    resetUserCount: props.resetUserCount,
-    selectedTab: props.selectedTab,
-    setSelectedTab: props.setSelectedTab,
-    yourOperations: props.yourOperations,
-  })
-
-  if (props.selectedTab === 'publicity') {
-    rows.push({type: 'settings', teamname, key: 'settings'})
-  } else if (props.listItems) {
-    rows.push(...props.listItems)
+class Team extends React.Component<Props> {
+  _renderItem = row => {
+    switch (row.type) {
+      case 'header':
+        return <TeamHeader key="header" teamname={this.props.teamname} />
+      case 'tabs': {
+        return (
+          <TeamTabs
+            key="tabs"
+            teamname={this.props.teamname}
+            selectedTab={this.props.selectedTab}
+            setSelectedTab={this.props.setSelectedTab}
+          />
+        )
+      }
+      case 'member':
+        return renderMemberItem(this.props.teamname, row)
+      case 'invites-invite':
+      case 'invites-request':
+      case 'invites-divider':
+      case 'invites-none':
+        return renderInvitesItem(this.props.teamname, row)
+      case 'subteam-intro':
+      case 'subteam-add':
+      case 'subteam-none':
+      case 'subteam-subteam':
+        return renderSubteamsItem(this.props.teamname, row)
+      case 'settings':
+        return <Settings key="settings" teamname={this.props.teamname} />
+      default: {
+        // eslint-disable-next-line no-unused-expressions
+        ;(row.type: empty)
+        throw new Error(`Impossible case encountered in team page list: ${row.type}`)
+      }
+    }
   }
 
-  return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flex: 1,
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-      }}
-    >
-      <List headerRow={rows[0]} bodyRows={rows.splice(1)} />
-    </Box>
-  )
+  render() {
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+          flex: 1,
+          height: '100%',
+          position: 'relative',
+          width: '100%',
+        }}
+      >
+        <List rows={this.props.rows} renderRow={this._renderItem} />
+      </Box>
+    )
+  }
 }
+
 export default Team
-
-type CustomProps = {
-  onOpenFolder: () => void,
-  onChat: () => void,
-  onShowMenu: any => void,
-  canChat: boolean,
-  canViewFolder: boolean,
-}
-
-const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFolder}: CustomProps) => (
-  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 0}}>
-    {canChat && (
-      <Icon
-        onClick={onChat}
-        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-        type="iconfont-chat"
-      />
-    )}
-    {!isMobile &&
-      canViewFolder && (
-        <Icon
-          onClick={onOpenFolder}
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-          type="iconfont-folder-private"
-        />
-      )}
-    <Icon
-      onClick={evt => onShowMenu(isMobile ? undefined : evt.target)}
-      type="iconfont-ellipsis"
-      style={{
-        fontSize: isMobile ? 20 : 16,
-        marginRight: globalMargins.tiny,
-      }}
-    />
-  </Box>
-)
-export {CustomComponent}

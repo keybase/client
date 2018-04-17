@@ -1,17 +1,8 @@
 // @flow
 import * as React from 'react'
 import {List} from '../../common-adapters'
-import type {Props} from './list.render'
-
-const styleList = {
-  position: 'absolute',
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-  display: 'flex',
-  alignItems: 'center',
-}
+import type {Props} from './list'
+import {globalStyles} from '../../styles'
 
 export default class extends React.PureComponent<Props> {
   itemSizeEstimator = (index: number, cache: {[index: number]: number}) => {
@@ -21,15 +12,23 @@ export default class extends React.PureComponent<Props> {
     return cache[index]
   }
 
+  _renderItem = (index, item) => this.props.renderRow(item)
+
   render() {
     return (
       <List
         items={this.props.rows}
         itemSizeEstimator={this.itemSizeEstimator}
         style={styleList}
-        renderItem={this.props.renderRow}
+        renderItem={this._renderItem}
         windowsSize={10}
       />
     )
   }
+}
+
+const styleList = {
+  ...globalStyles.fillAbsolute,
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
 }
