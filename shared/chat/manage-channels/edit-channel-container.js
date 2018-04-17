@@ -25,8 +25,8 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   const waitingForGetInfo = _needsLoad || anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
   const waitingForUpdate = anyWaiting(
     state,
-    `updateTopic:${conversationIDKey}`,
-    `updateChannelName:${conversationIDKey}`
+    Constants.updateTopicWaitingKey(conversationIDKey),
+    Constants.updateChannelNameWaitingKey(conversationIDKey)
   )
   const waitingForSave = waitingForGetInfo || waitingForUpdate
 

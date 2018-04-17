@@ -897,7 +897,7 @@ function getLoadCalls(teamname?: string) {
 function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   const {conversationIDKey, newTopic} = action.payload
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
-  const waitingKey = {key: `updateTopic:${conversationIDKey}`}
+  const waitingKey = {key: Constants.updateTopicWaitingKey(conversationIDKey)}
   const param = {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
@@ -921,7 +921,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
   const {conversationIDKey, newChannelName} = action.payload
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
-  const waitingKey = {key: `updateChannelName:${conversationIDKey}`}
+  const waitingKey = {key: Constants.updateChannelNameWaitingKey(conversationIDKey)}
   const param = {
     channelName: newChannelName,
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
