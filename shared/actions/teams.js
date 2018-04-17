@@ -558,13 +558,11 @@ function _afterGetChannels(fromGetChannels: any[]) {
   const results: RPCChatTypes.GetTLFConversationsLocalRes = fromGetChannels[0]
   const teamname: string = fromGetChannels[1]
   const waitingKey: {|key: string|} = fromGetChannels[2]
-  const convIDs = []
-  const channelInfos: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
 
   const convs = results.convs || []
+  const channelInfos: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
   convs.forEach(conv => {
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
-    convIDs.push(convID)
     channelInfos[convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
@@ -573,9 +571,7 @@ function _afterGetChannels(fromGetChannels: any[]) {
   })
 
   return Saga.all([
-    Saga.put(
-      TeamsGen.createSetTeamChannels({teamname, convIDs: I.Set(convIDs), channelInfos: I.Map(channelInfos)})
-    ),
+    Saga.put(TeamsGen.createSetTeamChannels({teamname, channelInfos: I.Map(channelInfos)})),
     Saga.put(createDecrementWaiting(waitingKey)),
   ])
 }

@@ -147,7 +147,6 @@
     },
     "setTeamChannels": {
       "teamname": "string",
-      "convIDs": "I.Set<ChatTypes.ConversationIDKey>",
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>",
     },
     "setLoaded": {

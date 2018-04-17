@@ -83,7 +83,6 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
   chosenChannelsForTeam: I.Set(),
-  convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -93,7 +92,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
-  teamNameToConvIDs: I.Map(),
+  teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
@@ -181,24 +180,23 @@ const userIsActiveInTeamHelper = (
 }
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.teamNameToConvIDs.get(teamname, I.Set())
+  I.Set(getTeamChannelInfos(state, teamname).keys())
 
 const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
   !state.teams.chosenChannelsForTeam.has(teamname)
 
-const getTeamChannelInfos = (state: TypedState, teamname: Types.Teamname) => {
-  const channels = state.teams
-    .getIn(['teamNameToConvIDs', teamname], I.Set())
-    .toMap()
-    .map(convID => getChannelInfoFromConvID(state, teamname, convID))
-  return channels
+const getTeamChannelInfos = (
+  state: TypedState,
+  teamname: Types.Teamname
+): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
+  return state.teams.getIn(['teamNameToChannelInfos', teamname], I.Map())
 }
 
 const getChannelInfoFromConvID = (
   state: TypedState,
   teamname: Types.Teamname,
   conversationIDKey: ChatTypes.ConversationIDKey
-) => state.teams.convIDToChannelInfo.get(conversationIDKey, null)
+): ?Types.ChannelInfo => getTeamChannelInfos(state, teamname).get(conversationIDKey)
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')

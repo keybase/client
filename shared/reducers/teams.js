@@ -60,10 +60,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
 
     case TeamsGen.setTeamChannels:
-      return state.withMutations(s => {
-        s.setIn(['teamNameToConvIDs', action.payload.teamname], I.Set(action.payload.convIDs))
-        s.mergeIn(['convIDToChannelInfo'], I.Map(action.payload.channelInfos))
-      })
+      return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)
 
     case TeamsGen.setLoaded:
       return state.set('loaded', action.payload.loaded)
@@ -86,7 +83,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.withMutations(s => {
         s.set('newTeams', action.payload.newTeams)
         s.set('newTeamRequests', action.payload.newTeamRequests)
-        s.set('teamNameToResetUsers', I.Map(action.payload.teamNameToResetUsers))
+        s.set('teamNameToResetUsers', action.payload.teamNameToResetUsers)
       })
 
     case TeamsGen.setTeamSawChatBanner:
