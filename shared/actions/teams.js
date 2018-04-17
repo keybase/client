@@ -656,30 +656,32 @@ function _checkRequestedAccessSuccess(result) {
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
   const {teamname, channelState} = action.payload
   const channelInfos = Constants.getTeamChannelInfos(state, teamname)
-  const channelnameToConvID = channelInfos
-    .mapEntries(([convID, info]) => [info.channelname, convID])
-    .toObject()
   const waitingKey = {key: `saveChannel:${teamname}`}
 
-  const calls = map(channelState, (wantsToBeInChannel: boolean, channelname: string) => {
-    if (wantsToBeInChannel) {
-      // $FlowIssue doesn't like callAndWrap
-      return Saga.callAndWrap(RPCChatTypes.localJoinConversationLocalRpcPromise, {
-        tlfName: teamname,
-        topicName: channelname,
-        topicType: RPCChatTypes.commonTopicType.chat,
-        visibility: RPCTypes.commonTLFVisibility.private,
-      })
+  const calls = []
+  for (const convIDStr in channelState) {
+    const convID = ChatTypes.stringToConversationIDKey(convIDStr)
+    if (channelState[convID]) {
+      const channelInfo = channelInfos.get(convID)
+      if (channelInfo) {
+        calls.push(
+          // $FlowIssue doesn't like callAndWrap
+          Saga.callAndWrap(RPCChatTypes.localJoinConversationLocalRpcPromise, {
+            tlfName: teamname,
+            topicName: channelInfo.channelname,
+            topicType: RPCChatTypes.commonTopicType.chat,
+            visibility: RPCTypes.commonTLFVisibility.private,
+          })
+        )
+      }
     }
-    const convID =
-      channelnameToConvID[channelname] && ChatTypes.keyToConversationID(channelnameToConvID[channelname])
-    if (convID) {
+    calls.push(
       // $FlowIssue doesn't like callAndWrap
-      return Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
+      Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
         convID,
       })
-    }
-  }).filter(Boolean)
+    )
+  }
 
   return Saga.all([
     Saga.all(calls),

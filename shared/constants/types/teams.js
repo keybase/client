@@ -36,7 +36,7 @@ export type _PublicitySettings = {
 export type _TeamSettings = {...$Exact<RPCTypes.TeamSettings>}
 export type TeamSettings = I.RecordOf<_TeamSettings>
 
-export type ChannelMembershipState = {[channelname: string]: boolean}
+export type ChannelMembershipState = {[ConversationIDKey]: boolean}
 
 // `days` should be left as 0 unless `type` is expire
 export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}

@@ -96,7 +96,7 @@ const ManageChannels = (props: Props) => (
           canEditChannels={props.canEditChannels}
           description={c.description}
           name={c.name}
-          selected={props.nextChannelState[c.name]}
+          selected={props.nextChannelState[c.convID]}
           onToggle={() => props.onToggle(c.name)}
           showEdit={!props.unsavedSubscriptions}
           onEdit={() => props.onEdit(c.convID)}
