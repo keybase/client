@@ -17,8 +17,6 @@ import {
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-// ?
-import '../../constants/route-tree'
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
