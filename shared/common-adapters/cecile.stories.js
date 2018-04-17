@@ -3,11 +3,11 @@ import * as React from 'react'
 import Box from './box'
 import Text from './text'
 import {storiesOf} from '../stories/storybook'
-import {globalMargins, globalStyles, globalColors} from '../styles'
+import {globalStyles} from '../styles'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 
 const avatarSizes = [12, 16, 24, 32, 40, 48, 64, 80, 112, 176]
-const imageSizes = [40, 96, 192, 200, 360, 569]
+const imageSizes = [40, 96, 192, 200, 360, 560]
 
 const beards = imageSizes.map(i => `beard-${i}.jpg`)
 const gals = imageSizes.map(i => `gal-${i}.png`)
