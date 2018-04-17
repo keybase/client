@@ -20,7 +20,7 @@ import {createConfigurePush} from './push-gen'
 import {createGetPeopleData} from './people-gen'
 import {defaultNumFollowSuggestions} from '../constants/people'
 import {getAppState, setAppState} from './platform-specific'
-import {isMobile, isSimulator} from '../constants/platform'
+import {isMobile, isSimulator, version} from '../constants/platform'
 import {loggedInSelector} from '../constants/selectors'
 import {type AsyncAction} from '../constants/types/flux'
 import {type TypedState} from '../constants/reducer'
@@ -115,6 +115,9 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
   if (!bootstrapSetup) {
     bootstrapSetup = true
     logger.info('[bootstrap] registered bootstrap')
+    if (isMobile) {
+      logger.info(`[bootstrap] mobile app version: ${version}`)
+    }
     engine().listenOnConnect('bootstrap', () => {
       dispatch(ConfigGen.createDaemonError({daemonError: null}))
       dispatch(GregorCreators.checkReachabilityOnConnect())
