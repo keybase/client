@@ -568,7 +568,10 @@ func (d *Service) chatFastChecks() {
 			gregorUID := gregor1.UID(uid.ToBytes())
 			d.G().Log.Debug("+ fast chat checks loop")
 			g := globals.NewContext(d.G(), d.ChatG())
+			// Purge any conversations that have expired ephemeral messages
 			storage.New(g).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
+			// Check the outbox for stuck ephemeral messages that need purging
+			d.ChatG().MessageDeliverer.EphemeralPurge(context.Background())
 			d.G().Log.Debug("- fast chat checks loop")
 		}
 	}()
