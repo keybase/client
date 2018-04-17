@@ -1,4 +1,5 @@
-// @flow
+// @noflow
+// // TODO deprecate this
 import File from './files/file/render'
 import Files from './files/render'
 import Folders from '.'
@@ -8,7 +9,7 @@ import type {PropsOf, DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles'
 import {pathFromFolder} from '../constants/favorite'
 
-function createFolder(partialFolder: $Shape<Folder>) {
+function createFolder(partialFolder: $Exact<Folder>) {
   return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 

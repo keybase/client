@@ -13,11 +13,11 @@ export type Invitation = {
   url: string,
 }
 
-export type InvitesState = {
+export type InvitesState = {|
   pendingInvites: Array<PendingInvite>,
   acceptedInvites: Array<AcceptedInvite>,
   error: ?Error,
-}
+|}
 
 export type NotificationsSettingsState = {
   name: string,
@@ -29,6 +29,8 @@ export type NotificationsGroupState = {
   settings: ?Array<NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
+
+export type NotificationGroups = 'email' | 'app_push' | 'sms'
 
 export type NotificationsState = {
   allowEdit: boolean,

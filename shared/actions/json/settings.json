@@ -42,7 +42,7 @@
     },
     "notificationsSaved": {},
     "notificationsToggle": {
-      "group": "string",
+      "group": "Types.NotificationGroups",
       "name?": "?string"
     },
     "onChangeNewEmail": {

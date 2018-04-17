@@ -69,7 +69,7 @@ export const createNotificationsRefreshed = (payload: $ReadOnly<{|notifications:
 export const createNotificationsSaved = () => ({error: false, payload: undefined, type: notificationsSaved})
 export const createNotificationsToggle = (
   payload: $ReadOnly<{|
-    group: string,
+    group: Types.NotificationGroups,
     name?: ?string,
   |}>
 ) => ({error: false, payload, type: notificationsToggle})

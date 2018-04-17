@@ -7,9 +7,9 @@ import {Settings} from '.'
 import {anyWaiting} from '../../../constants/waiting'
 import {navigateAppend} from '../../../actions/route-tree'
 
-export type OwnProps = {
+export type OwnProps = {|
   teamname: string,
-}
+|}
 
 const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)

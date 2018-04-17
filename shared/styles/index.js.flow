@@ -9,22 +9,22 @@ declare export var transition: (...properties: Array<string>) => Object
 // Flow gets very confused if I mark these as CSS._StylesCrossPlatform. This fixes the common pattern of using
 // spread like {...globalStyles.fontBold, width: 123} etc but it breaks using them directly like
 // style={globalStyles.fontBold}. It does work if you do style={{...globalStyles.fontBold}} though
-type _fakeFontDefSeeCommentsOnThisStyle = {fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'}
+type _fakeFontDefSeeCommentsOnThisStyle = {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|}
 declare export var globalStyles: {
-  fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
-  flexBoxCenter: {alignItems: 'center', justifyContent: 'center'},
-  flexBoxColumn: {flexDirection: 'column'},
-  flexBoxRow: {flexDirection: 'row'},
-  flexGrow: {flexGrow: 1},
-  fontBold: {fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'},
+  fillAbsolute: {|bottom: 0, left: 0, position: 'absolute', right: 0, top: 0|},
+  flexBoxCenter: {|alignItems: 'center', justifyContent: 'center'|},
+  flexBoxColumn: {|flexDirection: 'column'|},
+  flexBoxRow: {|flexDirection: 'row'|},
+  flexGrow: {|flexGrow: 1|},
+  fontBold: {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|},
   fontRegular: _fakeFontDefSeeCommentsOnThisStyle,
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle,
   fontTerminal: _fakeFontDefSeeCommentsOnThisStyle,
   fontTerminalSemibold: _fakeFontDefSeeCommentsOnThisStyle,
-  fullHeight: {height: '100%'},
+  fullHeight: {|height: '100%'|},
   italic: _fakeFontDefSeeCommentsOnThisStyle,
   loadingTextStyle: CSS._StylesCrossPlatform,
-  rounded: {borderRadius: 3},
+  rounded: {|borderRadius: 3|},
 }
 declare export var desktopStyles: {
   clickable?: CSS._StylesDesktop,
@@ -35,14 +35,14 @@ declare export var desktopStyles: {
   windowDraggingClickable?: CSS._StylesDesktop,
 }
 declare export var mobileStyles: {}
-declare export var globalMargins: {
+declare export var globalMargins: {|
   xtiny: number,
   tiny: number,
   small: number,
   medium: number,
   large: number,
   xlarge: number,
-}
+|}
 declare export var fileUIName: string
 declare export var statusBarHeight: number
 declare export var hairlineWidth: number

@@ -9,15 +9,8 @@ import {navigateTo} from '../../actions/route-tree'
 import {peopleTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 
-type PgpInfoError = {
-  errorText: ?string,
-  errorEmail1: boolean,
-  errorEmail2: boolean,
-  errorEmail3: boolean,
-}
-
 // This can be replaced with something that makes a call to service to validate
-function _checkPgpInfoForErrors(info: Types.PgpInfo): PgpInfoError {
+function _checkPgpInfoForErrors(info: {...Types.PgpInfo, ...Types.PgpInfoError}): Types.PgpInfoError {
   const errorEmail1 = info.email1 && isValidEmail(info.email1)
   const errorEmail2 = info.email2 && isValidEmail(info.email2)
   const errorEmail3 = info.email3 && isValidEmail(info.email3)
