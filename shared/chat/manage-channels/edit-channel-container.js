@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
-import EditChannel from './edit-channel'
+import EditChannel, {type Props} from './edit-channel'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
@@ -30,8 +30,8 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   )
   const waitingForSave = waitingForGetInfo || waitingForUpdate
 
-  const channelName = channelInfo ? channelInfo.channelname : ''
-  const topic = channelInfo ? channelInfo.description : ''
+  const channelName = channelInfo ? channelInfo.channelname || '' : ''
+  const topic = channelInfo ? channelInfo.description || '' : ''
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
@@ -62,7 +62,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {routeState}) => {
+const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
     teamname: stateProps.teamname,
@@ -87,6 +87,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
 
       dispatchProps.onCancel() // nav back up
     },
+    waitingForGetInfo: stateProps.waitingForGetInfo,
     waitingForSave: stateProps.waitingForSave,
   }
 }

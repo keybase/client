@@ -155,4 +155,5 @@ const _bottomRowStyle = {
   ...(isMobile ? {} : {minWidth: '500px'}),
 }
 
+export type {Props}
 export default EditChannel
