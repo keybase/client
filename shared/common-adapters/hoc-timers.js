@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 
-// duplicating this from the .flow file as we don't pull in those files for rn
 export type TimerProps = {
   setTimeout: (func: () => void, timing: number) => TimeoutID,
   clearTimeout: (id: TimeoutID) => void,
