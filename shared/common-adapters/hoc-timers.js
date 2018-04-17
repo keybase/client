@@ -13,10 +13,10 @@ function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
-// TODO: Put proper types on HOCTimers below.
-
-export default function HOCTimers(ComposedComponent: any) {
-  class TimersComponent extends React.Component<any> {
+const HOCTimers = <T: TimerProps>(
+  ComposedComponent: React.ComponentType<T>
+): React.ComponentType<$Diff<T, TimerProps>> => {
+  class TimersComponent extends React.Component<$Diff<T, TimerProps>> {
     static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
     _timeoutIds: Array<TimeoutID>
     _intervalIds: Array<IntervalID>
@@ -64,3 +64,5 @@ export default function HOCTimers(ComposedComponent: any) {
 
   return TimersComponent
 }
+
+export default HOCTimers
