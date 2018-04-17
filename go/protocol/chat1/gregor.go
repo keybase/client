@@ -221,31 +221,6 @@ func (o ExpungePayload) DeepCopy() ExpungePayload {
 	}
 }
 
-type EphemeralPurgePayload struct {
-	Action       string                           `codec:"Action" json:"Action"`
-	ConvMetadata map[string]ConvEphemeralMetadata `codec:"convMetadata" json:"convMetadata"`
-	InboxVers    InboxVers                        `codec:"inboxVers" json:"inboxVers"`
-}
-
-func (o EphemeralPurgePayload) DeepCopy() EphemeralPurgePayload {
-	return EphemeralPurgePayload{
-		Action: o.Action,
-		ConvMetadata: (func(x map[string]ConvEphemeralMetadata) map[string]ConvEphemeralMetadata {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[string]ConvEphemeralMetadata)
-			for k, v := range x {
-				kCopy := k
-				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.ConvMetadata),
-		InboxVers: o.InboxVers.DeepCopy(),
-	}
-}
-
 type UnreadUpdate struct {
 	ConvID                  ConversationID              `codec:"convID" json:"convID"`
 	UnreadMessages          int                         `codec:"unreadMessages" json:"unreadMessages"`

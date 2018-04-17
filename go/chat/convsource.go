@@ -74,6 +74,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Run type filter if it exists
 	thread.Messages = utils.FilterByType(thread.Messages, q, true)
+	// If we have exploded any messages while fetching them from cache, remove
+	// them now.
+	thread.Messages = utils.FilterExploded(thread.Messages)
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)

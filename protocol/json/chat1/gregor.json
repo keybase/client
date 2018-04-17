@@ -261,29 +261,6 @@
     },
     {
       "type": "record",
-      "name": "EphemeralPurgePayload",
-      "fields": [
-        {
-          "type": "string",
-          "name": "Action",
-          "lint": "ignore"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "ConvEphemeralMetadata",
-            "keys": "string"
-          },
-          "name": "convMetadata"
-        },
-        {
-          "type": "InboxVers",
-          "name": "inboxVers"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "UnreadUpdate",
       "fields": [
         {
