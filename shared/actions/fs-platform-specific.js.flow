@@ -14,3 +14,4 @@ declare export function installKBFSSuccess(RPCTypes.InstallResult): void
 declare export function uninstallKBFSConfirmSaga(): Promise<*>
 declare export function uninstallKBFS(): void
 declare export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult): void
+declare export function openSecurityPreferences(): Saga.SagaGenerator<any, any>
