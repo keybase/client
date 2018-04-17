@@ -1734,7 +1734,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	h.Debug(ctx, "downloadAttachmentLocal: fetching asset from attachment message: convID: %s messageID: %d",
 		arg.ConversationID, arg.MessageID)
 
-	obj, err := h.store.AssetFromMessage(ctx, uid, arg.ConversationID, arg.MessageID, arg.Preview)
+	obj, err := attachments.AssetFromMessage(ctx, h.G(), uid, arg.ConversationID, arg.MessageID, arg.Preview)
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
