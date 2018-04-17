@@ -258,7 +258,7 @@ func TestTeamOpenPuklessRequest(t *testing.T) {
 }
 
 // Consider user that resets their account and tries to re-join.
-func TestTeamOpenResetAndRejoin(t *testing.T) {
+func TestXTeamOpenResetAndRejoin(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

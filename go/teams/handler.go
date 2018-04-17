@@ -5,17 +5,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
-	generation keybase1.PerTeamKeyGeneration, hasResetUsers bool) (err error) {
+func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamCLKRMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", msg.TeamID, msg.Generation), func() error { return err })()
+
+	teamID := msg.TeamID
 
 	var needRepoll bool
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
@@ -24,8 +24,12 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 		ForceRepoll: true,
 	})
 
-	if hasResetUsers && team.IsOpen() {
-		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team); err == nil {
+	if len(msg.ResetUsers) > 0 && team.IsOpen() {
+		for _, uv := range msg.ResetUsers {
+			g.UIDMapper.ClearUIDAtEldestSeqno(ctx, g, uv.Uid, uv.MemberEldestSeqno)
+		}
+
+		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsers); err == nil {
 			needRepoll = needRP
 		}
 	}
@@ -41,8 +45,9 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 			return err
 		}
 
-		if team.Generation() > generation {
-			g.Log.CDebugf(ctx, "current team generation %d > team.clkr generation %d, not rotating", team.Generation(), generation)
+		if team.Generation() > msg.Generation {
+			g.Log.CDebugf(ctx, "current team generation %d > team.clkr generation %d, not rotating",
+				team.Generation(), msg.Generation)
 			return nil
 		}
 
@@ -58,47 +63,55 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 }
 
 func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
-	team *Team) (needRepoll bool, err error) {
+	team *Team, resetUsers []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
 	defer g.CTrace(ctx, "sweepOpenTeamResetMembers", func() error { return err })()
 
+	// Go through resetUsers and fetch non-cached latest EldestSeqnos.
+	resetUserSeqnos := make(map[keybase1.UID]keybase1.Seqno)
+	for _, u := range resetUsers {
+		arg := libkb.NewLoadUserArg(g).
+			WithNetContext(ctx).
+			WithUID(u.Uid).
+			WithPublicKeyOptional().
+			WithForcePoll(true)
+		upak, _, err := g.GetUPAKLoader().LoadV2(arg)
+		if err == nil {
+			resetUserSeqnos[u.Uid] = upak.Current.EldestSeqno
+		} else {
+			g.Log.CDebugf(ctx, "Could not load uid:%s through UPAKLoader: %s", u.Uid)
+		}
+	}
+
 	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		members, err := team.Members()
-		if err != nil {
-			return err
-		}
-
-		// Only consider Readers and Writers.
-		var uvs []keybase1.UserVersion
-		uvs = append(members.Readers, members.Writers...)
-		uids := make([]keybase1.UID, len(uvs), len(uvs))
-		for i, uv := range uvs {
-			uids[i] = uv.Uid
-		}
-		packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 1*time.Minute, 0, true)
-		if err != nil {
-			return err
-		}
-
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
-		for i, uv := range uvs {
-			pkg := packages[i]
-			if pkg.FullName != nil {
-				if pkg.FullName.EldestSeqno != uv.EldestSeqno {
-					g.Log.CDebugf(ctx, "Booting %v from open team. Their EldestSeqno is %d", uv, pkg.FullName.EldestSeqno)
-					changeReq.None = append(changeReq.None, uv)
-				}
+		for _, u := range resetUsers {
+			eldestSeqno, found := resetUserSeqnos[u.Uid]
+			if !found || eldestSeqno == u.MemberEldestSeqno {
+				// Either we couldn't load users EldestSeqno or we
+				// determined that they are not reset.
+				continue
+			}
+			uv := keybase1.NewUserVersion(u.Uid, u.MemberEldestSeqno)
+			role, err := team.MemberRole(ctx, uv)
+			if err != nil {
+				continue
+			}
+			if role == keybase1.TeamRole_READER || role == keybase1.TeamRole_WRITER {
+				changeReq.None = append(changeReq.None, uv)
 			}
 		}
-
 		if len(changeReq.None) == 0 {
 			// no one to kick out
+			g.Log.CDebugf(ctx, "No one to remove from a CLKR list of %d users, after UPAKLoading %d of them",
+				len(resetUsers), len(resetUserSeqnos))
 			return nil
 		}
 
-		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d Nones", len(changeReq.None))
+		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d removals (CLKR list was %d)",
+			len(changeReq.None), len(resetUsers))
 		if err := team.ChangeMembershipPermanent(ctx, changeReq, false /* permanent */); err != nil {
 			return err
 		}

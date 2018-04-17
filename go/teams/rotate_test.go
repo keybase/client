@@ -118,7 +118,11 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 		secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
 		// this shouldn't do anything
-		err = HandleRotateRequest(context.TODO(), tc.G, team.ID, 1, false /* hasResetMembers */)
+		err = HandleRotateRequest(context.TODO(), tc.G, keybase1.TeamCLKRMsg{
+			TeamID:     team.ID,
+			Generation: 1,
+			ResetUsers: nil,
+		})
 		require.NoError(t, err)
 
 		after, err := GetForTestByID(context.TODO(), tc.G, teamID)
@@ -151,7 +155,11 @@ func TestHandleRotateRequest(t *testing.T) {
 		}
 		secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-		err = HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation(), false /* hasResetMembers */)
+		err = HandleRotateRequest(context.TODO(), tc.G, keybase1.TeamCLKRMsg{
+			TeamID:     team.ID,
+			Generation: team.Generation(),
+			ResetUsers: nil,
+		})
 		require.NoError(t, err)
 
 		after, err := GetForTestByID(context.TODO(), tc.G, teamID)
@@ -185,7 +193,12 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	}
 	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation(), false /* hasResetMembers */); err != nil {
+	params := keybase1.TeamCLKRMsg{
+		TeamID:     team.ID,
+		Generation: team.Generation(),
+		ResetUsers: nil,
+	}
+	if err := HandleRotateRequest(context.TODO(), tc.G, params); err != nil {
 		t.Fatal(err)
 	}
 
@@ -247,7 +260,12 @@ func TestRotateRace(t *testing.T) {
 	rotate := func(userIndexOperator int) <-chan error {
 		errCh := make(chan error)
 		go func() {
-			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, rootID, keybase1.PerTeamKeyGeneration(100), false /* hasResetMembers */)
+			params := keybase1.TeamCLKRMsg{
+				TeamID:     rootID,
+				Generation: keybase1.PerTeamKeyGeneration(100),
+				ResetUsers: nil,
+			}
+			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, params)
 			errCh <- err
 		}()
 		return errCh
@@ -304,7 +322,11 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 
 	// Rotate and reload team while members are not reset yet. Member
 	// set should not change.
-	err = HandleRotateRequest(context.Background(), tc.G, team.ID, team.Generation(), false /* hasResetMembers */)
+	err = HandleRotateRequest(context.Background(), tc.G, keybase1.TeamCLKRMsg{
+		TeamID:     team.ID,
+		Generation: team.Generation(),
+		ResetUsers: nil,
+	})
 	require.NoError(t, err)
 	team, err = GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
@@ -326,10 +348,17 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
-	tc.G.UIDMapper.SetTestingNoCachingMode(true)
-
 	// Rotate - should trigger sweeping path if the team is open.
-	err = HandleRotateRequest(context.Background(), tc.G, team.ID, team.Generation(), true /* hasResetMembers */)
+	err = HandleRotateRequest(context.Background(), tc.G, keybase1.TeamCLKRMsg{
+		TeamID:     team.ID,
+		Generation: team.Generation(),
+		ResetUsers: []keybase1.TeamCLKRResetUser{
+			keybase1.TeamCLKRResetUser{
+				Uid:               otherA.User.GetUID(),
+				UserEldestSeqno:   keybase1.Seqno(0),
+				MemberEldestSeqno: keybase1.Seqno(1),
+			}},
+	})
 	require.NoError(t, err)
 
 	// Reload team and check results.

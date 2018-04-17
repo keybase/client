@@ -75,12 +75,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 	}
 	r.G().Log.CDebugf(ctx, "team.clkr unmarshaled: %+v", msg)
 
-	for _, uv := range msg.ResetUsers {
-		r.G().UIDMapper.ClearUIDAtEldestSeqno(ctx, r.G(), uv.Uid, uv.MemberEldestSeqno)
-	}
-
-	hasResetUsers := len(msg.ResetUsers) > 0
-	if err := teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation), hasResetUsers); err != nil {
+	if err := teams.HandleRotateRequest(ctx, r.G(), msg); err != nil {
 		return err
 	}
 
