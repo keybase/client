@@ -1023,7 +1023,7 @@ func TestMemberAddRace(t *testing.T) {
 	rotate := func(userIndexOperator int) <-chan error {
 		errCh := make(chan error)
 		go func() {
-			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, rootID, keybase1.PerTeamKeyGeneration(100))
+			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, rootID, keybase1.PerTeamKeyGeneration(100), false /* hasResetMembers */)
 			errCh <- err
 		}()
 		return errCh
