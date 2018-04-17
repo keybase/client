@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -35,7 +36,9 @@ type AttachmentHTTPSrv struct {
 	ri       func() chat1.RemoteInterface
 }
 
-func NewRemoteAttachmentHTTPSrv(g *globals.Context, fetcher AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
+var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
+
+func NewAttachmentHTTPSrv(g *globals.Context, fetcher AttachmentFetcher, ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
 	r := &AttachmentHTTPSrv{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentHTTPSrv", false),
@@ -116,4 +119,25 @@ func (r *AttachmentHTTPSrv) Sign(payload []byte) ([]byte, error) {
 		Version: 1,
 	}
 	return r.ri().S3Sign(context.Background(), arg)
+}
+
+type RemoteAttachmentFetcher struct {
+	globals.Contextified
+	utils.DebugLabeler
+	store *attachments.Store
+}
+
+var _ AttachmentFetcher = (*RemoteAttachmentFetcher)(nil)
+
+func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *RemoteAttachmentFetcher {
+	return &RemoteAttachmentFetcher{
+		Contextified: globals.NewContextified(g),
+		store:        store,
+	}
+}
+
+func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
+	s3params chat1.S3Params, signer s3.Signer) error {
+	return r.store.DownloadAsset(ctx, s3params, asset, w, signer,
+		func(bytesComplete, bytesTotal int64) {})
 }

@@ -393,6 +393,9 @@ func (d *Service) createChatModules() {
 	// team channel source
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
 
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g,
+		chat.NewRemoteAttachmentFetcher(g, d.attachmentstore), ri)
+
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
 	chatSyncer.RegisterOfflinable(g.ConvSource)
