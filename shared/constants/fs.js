@@ -287,8 +287,15 @@ export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath
 export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
 
-export const isImage = (name: string): boolean => {
-  return (mime.lookup(name) || '').indexOf('image/') !== -1
+const mediaMimePrefixes = ['image', 'audio', 'video']
+
+export const isMedia = (name: string): boolean => {
+  const mimeType = mime.lookup(name)
+  if (!mimeType) return false
+  const firstSlashIndex = mimeType.indexOf('/')
+  if (firstSlashIndex === -1) return false
+  const mimePrefix = mimeType.substring(0, firstSlashIndex)
+  return mediaMimePrefixes.includes(mimePrefix)
 }
 
 export type FavoritesListResult = {

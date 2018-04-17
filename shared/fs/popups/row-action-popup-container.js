@@ -33,7 +33,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
         )
 
   return {
-    mimeType: Constants.mimeTypeFromPathItem(pathItem),
+    _mimeType: Constants.mimeTypeFromPathItem(pathItem),
     path,
     pathItem,
     isShare,
@@ -104,12 +104,11 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => showInFileUI(path),
     })
   isMobile &&
-    Constants.isImage(pathItem.name) &&
+    Constants.isMedia(pathItem.name) &&
     menuItems.push({
       title: 'Save',
       onClick: () => saveImage(path),
     })
-  // We don't support the share sheet on Android yet.
   isMobile &&
     menuItems.push({
       title: 'Share...',
@@ -124,12 +123,12 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
   return menuItems
 }
 
-const getShareMenuItems = ({path, mimeType}, {shareNative}) =>
+const getShareMenuItems = ({path, _mimeType}, {shareNative}) =>
   isMobile
     ? [
         {
           title: 'Send to other app',
-          onClick: () => shareNative(path, mimeType),
+          onClick: () => shareNative(path, _mimeType),
         },
       ]
     : []
