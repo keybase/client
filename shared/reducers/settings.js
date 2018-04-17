@@ -204,6 +204,7 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.onSubmitNewPassphrase:
     case SettingsGen.onUpdatePGPSettings:
     case SettingsGen.trace:
+    case SettingsGen.processorProfile:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

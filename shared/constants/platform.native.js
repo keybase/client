@@ -52,7 +52,7 @@ function logFileName(): string {
   return _logPath
 }
 
-function traceDir(): string {
+function pprofDir(): string {
   return _dir
 }
 
@@ -74,7 +74,7 @@ export {
   isWindows,
   mobileOsVersion,
   runMode,
-  traceDir,
+  pprofDir,
   version,
   logFileName,
   logFileDir,

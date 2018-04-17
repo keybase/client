@@ -76,6 +76,9 @@
     "trace": {
       "durationSeconds": "number",
     },
+    "processorProfile": {
+      "durationSeconds": "number",
+    },
     "waitingForResponse": {
       "waiting": "boolean"
     }
