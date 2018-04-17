@@ -41,7 +41,14 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         }
       }
 
-      const {settings, unsubscribedFromAll} = state.notifications.groups[group]
+      const {settings, unsubscribedFromAll} = state.notifications.groups[group] || {
+        settings: null,
+        unsubscribedFromAll: null,
+      }
+      if (!settings) {
+        logger.warn('Trying to toggle unknown settings')
+        return state
+      }
       const changed = {
         [group]: {
           settings: settings.map(s => updateSubscribe(s, group)),

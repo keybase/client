@@ -40,7 +40,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
   }
 }
 
-type DispatchProps = {
+type DispatchProps = {|
   onOpenProfile: () => void,
   _onEditMembership: (name: string, username: string) => void,
   _onRemoveMember: (name: string, username: string) => void,
@@ -48,7 +48,7 @@ type DispatchProps = {
   _onChat: (string, ?string) => void,
   onBack: () => void,
   // TODO remove member
-}
+|}
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
   onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),

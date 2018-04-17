@@ -1,5 +1,6 @@
 // @flow
 import * as SettingsGen from '../../actions/settings-gen'
+import * as Types from '../../constants/types/settings'
 import {connect, type TypedState, lifecycle, compose} from '../../util/container'
 import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
@@ -12,8 +13,10 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => ({
 
 const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
   onBack: () => dispatch(navigateUp()),
-  onToggle: (group: string, name?: string) => dispatch(SettingsGen.createNotificationsToggle({group, name})),
-  onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
+  onToggle: (group: Types.NotificationGroups, name?: string) =>
+    dispatch(SettingsGen.createNotificationsToggle({group, name})),
+  onToggleUnsubscribeAll: (group: Types.NotificationGroups) =>
+    dispatch(SettingsGen.createNotificationsToggle({group})),
   onRefresh: () => dispatch(SettingsGen.createNotificationsRefresh()),
   title: 'Notifications',
 })
