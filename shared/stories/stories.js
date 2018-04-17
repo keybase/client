@@ -1,5 +1,6 @@
 // @flow
 import avatar from '../common-adapters/avatar.stories'
+import meta from '../common-adapters/meta.stories'
 import buttonBar from '../common-adapters/button-bar.stories'
 import button from '../common-adapters/button.stories'
 import box from '../common-adapters/box.stories'
@@ -58,6 +59,7 @@ const stories = {
   icon,
   input,
   login,
+  meta,
   nameWithIcon,
   peopleTask,
   peopleFollowNotification,

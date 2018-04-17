@@ -176,6 +176,7 @@ const styles = styleSheetCreate({
   actionButtonContainer: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    paddingRight: globalMargins.tiny,
   },
   actionButtonIcon: {
     fontSize: 21,
@@ -189,6 +190,7 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
     paddingBottom: 6,
     paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
   },
   container: {
     ...globalStyles.flexBoxRow,

@@ -6,15 +6,16 @@ import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<
-  {
+  {|
     title?: ?string,
-  },
+  |},
   {}
 >
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   paperkey: state.signup.paperkey,
   waiting: state.signup.waiting,
+  // TODO never do this
   ...routeProps.toObject(),
 })
 

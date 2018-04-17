@@ -82,7 +82,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
           </Text>
           {proof.meta &&
             proof.meta !== metaNone && (
-              <Meta title={proof.meta} style={{marginTop: 1, backgroundColor: shared.metaColor(proof)}} />
+              <Meta title={proof.meta} backgroundColor={shared.metaColor(proof)} style={{marginTop: 1}} />
             )}
         </Box>
       </Box>

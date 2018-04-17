@@ -48,7 +48,7 @@ const TeamRow = ({
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
         <Box style={globalStyles.flexBoxRow}>
           <Text type="BodySemibold">{name}</Text>
-          {isOpen && <Meta title="OPEN" style={styleMeta} />}
+          {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
         </Box>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Text>
@@ -147,7 +147,6 @@ const styleContainer = {
 
 const styleMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
   borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,

@@ -343,6 +343,33 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
+func (m MessagePlaintext) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
+}
+
+func (m MessagePlaintext) EphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
+	if o != nil && r != nil {
+		return *o == *r
+	}
+	return (o == nil) && (r == nil)
+}
+
+func ETime(metadata *MsgEphemeralMetadata, header *MessageServerHeader) gregor1.Time {
+	if metadata == nil || header == nil {
+		return 0
+	}
+	etime := header.Ctime.Time().Add(time.Second * time.Duration(metadata.Lifetime))
+	return gregor1.ToTime(etime)
+}
+
+func (m MessageUnboxedValid) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
+}
+
 func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
@@ -356,26 +383,20 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return gregor1.ToTime(etime)
 }
 
-func (m MessageUnboxedValid) IsEphemeralExpired() bool {
+func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 	if !m.IsExploding() {
 		return false
 	}
 	etime := m.Etime().Time()
-	now := time.Now()
 	return etime.Before(now) || etime.Equal(now)
 }
 
-func (m MessageUnboxedValid) HideExplosion() bool {
+func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
 	if !m.IsExploding() {
 		return false
 	}
-	now := time.Now()
 	etime := m.Etime()
 	return etime.Time().Add(explosionLifetime).Before(now)
-}
-
-func (m MessageUnboxedValid) IsExploding() bool {
-	return m.EphemeralMetadata() != nil
 }
 
 func (b MessageBody) IsNil() bool {
@@ -456,6 +477,11 @@ func (m MessageBoxed) KBFSEncrypted() bool {
 
 func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageBoxed) Etime() gregor1.Time {
+	metadata := m.EphemeralMetadata()
+	return ETime(metadata, m.ServerHeader)
 }
 
 func (m MessageBoxed) IsExploding() bool {

@@ -90,22 +90,17 @@ const RowMeta = ({meta, styles}) => {
     return
   }
 
-  const metaColors = {
+  const color = {
     new: globalColors.white,
     rekey: globalColors.white,
-  }
+  }[meta]
 
-  const metaBGColors = {
+  const backgroundColor = {
     new: globalColors.orange,
     rekey: globalColors.red,
-  }
+  }[meta]
 
-  const metaProps = {
-    title: meta || '',
-    style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {},
-  }
-
-  return <Meta {...metaProps} />
+  return <Meta title={meta || ''} color={color} backgroundColor={backgroundColor} style={{marginTop: 2}} />
 }
 
 const Row = ({

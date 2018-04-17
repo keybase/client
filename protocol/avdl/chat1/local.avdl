@@ -256,6 +256,9 @@ protocol local {
     // Latest merkle root when sent.
     // Nil in MBv1 messages. Non-nil in MBv2 messages.
     union { null, MerkleRoot } merkleRoot;
+
+    @mpackkey("em") @jsonkey("em")
+    union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }
 
   // HeaderPlaintext is a variant container for all the

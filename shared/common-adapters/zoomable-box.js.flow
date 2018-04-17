@@ -1,11 +1,14 @@
 // @flow
 import * as React from 'react'
 
-// TODO type this better (extend react `View` props)
-// for now this is what `Box` does
-export type Props = any & {
+export type Props = {
   maxZoom?: number,
   style?: any,
+  children?: React.Node,
+  key?: React.Key,
+  showsVerticalScrollIndicator?: boolean,
+  showsHorizontalScrollIndicator?: boolean,
+  contentContainerStyle?: any,
 }
 
 export class ZoomableBox extends React.Component<Props> {}

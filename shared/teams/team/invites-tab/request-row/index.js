@@ -39,7 +39,7 @@ export const TeamRequestRow = (props: Props) => {
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
           <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
           <Box style={globalStyles.flexBoxRow}>
-            <Meta title="PLEASE DECIDE" style={styleCharm} />
+            <Meta title="please decide" style={styleCharm} backgroundColor={globalColors.orange} />
           </Box>
         </Box>
       </ClickableBox>
@@ -78,7 +78,5 @@ export const TeamRequestRow = (props: Props) => {
 
 const styleCharm = {
   alignSelf: 'center',
-  backgroundColor: globalColors.orange,
-  borderRadius: 1,
   marginRight: globalMargins.xtiny,
 }

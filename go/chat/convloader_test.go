@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -315,4 +317,109 @@ func TestConvLoaderJobQueue(t *testing.T) {
 	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
 	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
 	require.Error(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
+}
+
+func TestBackgroundPurge(t *testing.T) {
+	ctx, tc, world, _, baseSender, listener, res := setupLoaderTest(t)
+	defer world.Cleanup()
+
+	g := globals.NewContext(tc.G, tc.ChatG)
+	u := world.GetUsers()[0]
+	uid := gregor1.UID(u.GetUID().ToBytes())
+	trip := newConvTriple(ctx, t, tc, u.Username)
+	chatStorage := storage.New(g)
+	chatStorage.SetClock(world.Fc)
+
+	// setup a ticker since we don't run the service's fastChatChecks ticker here.
+	tickerLifetime := 500 * time.Millisecond
+	ticker := time.NewTicker(tickerLifetime)
+	defer ticker.Stop()
+
+	go func() {
+		for {
+			<-ticker.C
+			world.Fc.Advance(tickerLifetime)
+			chatStorage.QueueEphemeralBackgroundPurges(context.Background(), uid)
+		}
+	}()
+
+	assertListener := func(convID chat1.ConversationID) {
+		select {
+		case convID := <-listener.bgConvLoads:
+			require.Equal(t, res.ConvID, convID)
+		case <-time.After(2 * time.Second):
+			t.Fatal("timeout waiting for conversation load")
+		}
+	}
+
+	sendEphemeral := func(lifetime gregor1.DurationSec) *chat1.MessageBoxed {
+		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:              trip,
+				Sender:            uid,
+				TlfName:           u.Username,
+				TlfPublic:         false,
+				MessageType:       chat1.MessageType_TEXT,
+				EphemeralMetadata: &chat1.MsgEphemeralMetadata{Lifetime: lifetime},
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		return msgBoxed
+	}
+
+	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
+		allPurgeInfo, err := chatStorage.GetAllPurgeInfo(ctx, uid)
+		require.NoError(t, err)
+		require.Len(t, allPurgeInfo, 1)
+		purgeInfo, ok := allPurgeInfo[convID.String()]
+		require.True(t, ok)
+		require.Equal(t, expectedPurgeInfo, purgeInfo)
+	}
+
+	// Load our conv with the initial tlf msg
+	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+	t.Logf("assert listener 0")
+	assertListener(res.ConvID)
+
+	// Nothing is up for purging yet
+	expectedPurgeInfo := chat1.EphemeralPurgeInfo{
+		MinUnexplodedID: 1,
+		NextPurgeTime:   0,
+		IsActive:        false,
+	}
+	assertTrackerState(res.ConvID, expectedPurgeInfo)
+
+	// Send two ephemeral messages, and ensure both get purged
+	lifetime := gregor1.DurationSec(1)
+	msgBoxed1 := sendEphemeral(lifetime * 2)
+	msgBoxed2 := sendEphemeral(lifetime * 3)
+
+	// Make sure we can queue up a task and execute it, setting our initial tracker state
+	t.Logf("assert listener 1")
+	assertListener(res.ConvID)
+	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
+		MinUnexplodedID: msgBoxed1.GetMessageID(),
+		NextPurgeTime:   msgBoxed1.Etime(),
+		IsActive:        true,
+	})
+
+	t.Logf("assert listener 2")
+	assertListener(res.ConvID)
+	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
+		MinUnexplodedID: msgBoxed2.GetMessageID(),
+		NextPurgeTime:   msgBoxed2.Etime(),
+		IsActive:        true,
+	})
+
+	t.Logf("assert listener 3")
+	assertListener(res.ConvID)
+	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
+		MinUnexplodedID: msgBoxed2.GetMessageID(),
+		NextPurgeTime:   0,
+		IsActive:        false,
+	})
 }

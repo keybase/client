@@ -141,7 +141,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
             </Text>
             {proof.meta &&
               proof.meta !== metaNone && (
-                <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof), marginTop: 1}} />
+                <Meta title={proof.meta} backgroundColor={shared.metaColor(proof)} style={{marginTop: 1}} />
               )}
           </Box>
         </Box>

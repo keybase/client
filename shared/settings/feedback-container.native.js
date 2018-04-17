@@ -13,7 +13,7 @@ import {
   mobileOsVersion,
   version,
   logFileName,
-  traceDir,
+  pprofDir,
 } from '../constants/platform'
 import HOCTimers, {type TimerProps} from '../common-adapters/hoc-timers'
 import {writeLogLinesToFile} from '../util/forward-logs'
@@ -74,7 +74,7 @@ class FeedbackContainer extends Component<Props, State> {
             this.state.feedback || '',
             this.state.sendLogs,
             logPath,
-            traceDir()
+            pprofDir()
           )
         })
         .then(logSendId => {
