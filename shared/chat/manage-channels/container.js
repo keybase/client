@@ -37,7 +37,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 
   const channels = channelInfos
     .map((info, convID) => {
-      return info && info.channelname
+      return info.channelname
         ? {
             description: info.description,
             convID,

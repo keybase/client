@@ -657,9 +657,7 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
   const {teamname, channelState} = action.payload
   const channelInfos = Constants.getTeamChannelInfos(state, teamname)
   const channelnameToConvID = channelInfos
-    .mapEntries(([convID, info]) => {
-      return [info ? info.channelname : '', convID]
-    })
+    .mapEntries(([convID, info]) => [info.channelname, convID])
     .toObject()
   const waitingKey = {key: `saveChannel:${teamname}`}
 
