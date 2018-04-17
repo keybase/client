@@ -9,12 +9,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/chat/globals"
+
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -56,7 +59,9 @@ func (u *UploadTask) Nonce() signencrypt.Nonce {
 }
 
 type Store struct {
+	globals.Contextified
 	utils.DebugLabeler
+
 	s3signer s3.Signer
 	s3c      s3.Root
 	stash    AttachmentStash
@@ -70,9 +75,10 @@ type Store struct {
 
 // NewStore creates a standard Store that uses a real
 // S3 connection.
-func NewStore(log logger.Logger, runtimeDir string) *Store {
+func NewStore(g *globals.Context, runtimeDir string) *Store {
 	return &Store{
-		DebugLabeler: utils.NewDebugLabeler(log, "Store", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
 	}
@@ -82,9 +88,10 @@ func NewStore(log logger.Logger, runtimeDir string) *Store {
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func newStoreTesting(log logger.Logger, kt func(enc, sig []byte)) *Store {
+func newStoreTesting(g *globals.Context, kt func(enc, sig []byte)) *Store {
 	return &Store{
-		DebugLabeler: utils.NewDebugLabeler(log, "Store", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
@@ -197,6 +204,58 @@ func (a *Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncr
 	}
 
 	return asset, nil
+}
+
+func (a *Store) AssetFromMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, preview bool) (res chat1.Asset, err error) {
+
+	msgs, err := a.G().ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true)
+	if len(msgs) == 0 {
+		return res, libkb.NotFoundError{}
+	}
+	first := msgs[0]
+
+	st, err := first.State()
+	if err != nil {
+		return res, err
+	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		em := first.Error().ErrMsg
+		return res, errors.New(em)
+	}
+
+	msg := first.Valid()
+	body := msg.MessageBody
+	t, err := body.MessageType()
+	if err != nil {
+		return res, err
+	}
+
+	var attachment chat1.MessageAttachment
+	switch t {
+	case chat1.MessageType_ATTACHMENT:
+		attachment = msg.MessageBody.Attachment()
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		uploaded := msg.MessageBody.Attachmentuploaded()
+		attachment = chat1.MessageAttachment{
+			Object:   uploaded.Object,
+			Previews: uploaded.Previews,
+			Metadata: uploaded.Metadata,
+		}
+	default:
+		return res, errors.New("not an attachment message")
+	}
+	res = attachment.Object
+	if preview {
+		if len(attachment.Previews) > 0 {
+			res = attachment.Previews[0]
+		} else if attachment.Preview != nil {
+			res = *attachment.Preview
+		} else {
+			return res, errors.New("no preview in attachment")
+		}
+	}
+	return res, nil
 }
 
 // DownloadAsset gets an object from S3 as described in asset.

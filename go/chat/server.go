@@ -853,43 +853,18 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetMessagesLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	deflt := chat1.GetMessagesLocalRes{}
-
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return deflt, err
+		return res, err
 	}
-
-	var rlimits []chat1.RateLimit
-
-	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
-	// could need expansion.  Look up the conversation metadata.
-	uid := h.G().Env.GetUID()
-	conv, rl, err := GetUnverifiedConv(ctx, h.G(), uid.ToBytes(), arg.ConversationID, true)
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	messages, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID, arg.MessageIDs,
+		!arg.DisableResolveSupersedes)
 	if err != nil {
-		return deflt, err
+		return res, err
 	}
-	if rl != nil {
-		rlimits = append(rlimits, *rl)
-	}
-
-	// use ConvSource to get the messages, to try the cache first
-	messages, err := h.G().ConvSource.GetMessages(ctx, conv, uid.ToBytes(), arg.MessageIDs)
-	if err != nil {
-		return deflt, err
-	}
-
-	// unless arg says not to, transform the superseded messages
-	if !arg.DisableResolveSupersedes {
-		messages, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid.ToBytes(), messages)
-		if err != nil {
-			return deflt, err
-		}
-	}
-
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
 		Offline:          h.G().ConvSource.IsOffline(ctx),
-		RateLimits:       utils.AggRateLimits(rlimits),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -1684,6 +1659,10 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadAttachmentLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
@@ -1694,7 +1673,7 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	cli := h.getStreamUICli()
 	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 
-	return h.downloadAttachmentLocal(ctx, darg)
+	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
@@ -1703,6 +1682,10 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
@@ -1716,7 +1699,7 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	}
 	darg.Sink = sink
 
-	return h.downloadAttachmentLocal(ctx, darg)
+	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
 type downloadAttachmentArg struct {
@@ -1728,7 +1711,7 @@ type downloadAttachmentArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
+func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1748,23 +1731,12 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	h.Debug(ctx, "downloadAttachmentLocal: forming attachment message: convID: %s messageID: %d",
+	h.Debug(ctx, "downloadAttachmentLocal: fetching asset from attachment message: convID: %s messageID: %d",
 		arg.ConversationID, arg.MessageID)
-	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
+
+	obj, err := h.store.AssetFromMessage(ctx, uid, arg.ConversationID, arg.MessageID, arg.Preview)
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-
-	obj := attachment.Object
-	if arg.Preview {
-		if len(attachment.Previews) > 0 {
-			obj = attachment.Previews[0]
-		} else if attachment.Preview != nil {
-			obj = *attachment.Preview
-		} else {
-			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
-		}
-		h.Debug(ctx, "downloadAttachmentLocal: downloading preview attachment asset")
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
@@ -1779,7 +1751,6 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
 	return chat1.DownloadAttachmentLocalRes{
-		RateLimits:       limits,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -2061,55 +2032,6 @@ func (h *Server) uploadAsset(ctx context.Context, sessionID int, params chat1.S3
 		Progress:       progress,
 	}
 	return h.store.UploadAsset(ctx, &task)
-}
-
-func (h *Server) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
-	arg := chat1.GetMessagesLocalArg{
-		ConversationID:   conversationID,
-		MessageIDs:       []chat1.MessageID{msgID},
-		IdentifyBehavior: idBehavior,
-	}
-	msgs, err := h.GetMessagesLocal(ctx, arg)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(msgs.Messages) == 0 {
-		return nil, nil, libkb.NotFoundError{}
-	}
-	first := msgs.Messages[0]
-
-	st, err := first.State()
-	if err != nil {
-		return nil, msgs.RateLimits, err
-	}
-	if st == chat1.MessageUnboxedState_ERROR {
-		em := first.Error().ErrMsg
-		return nil, msgs.RateLimits, errors.New(em)
-	}
-
-	msg := first.Valid()
-	body := msg.MessageBody
-	t, err := body.MessageType()
-	if err != nil {
-		return nil, msgs.RateLimits, err
-	}
-
-	switch t {
-	case chat1.MessageType_ATTACHMENT:
-		attachment := msg.MessageBody.Attachment()
-		return &attachment, msgs.RateLimits, nil
-	case chat1.MessageType_ATTACHMENTUPLOADED:
-		uploaded := msg.MessageBody.Attachmentuploaded()
-		attachment := chat1.MessageAttachment{
-			Object:   uploaded.Object,
-			Previews: uploaded.Previews,
-			Metadata: uploaded.Metadata,
-		}
-		return &attachment, msgs.RateLimits, nil
-	}
-
-	return nil, msgs.RateLimits, errors.New("not an attachment message")
-
 }
 
 func (h *Server) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {
