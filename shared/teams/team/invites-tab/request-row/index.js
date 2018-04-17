@@ -1,26 +1,24 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Icon, Meta, Usernames} from '../../../../common-adapters'
+import {Avatar, Box, Button, ClickableBox, Icon, Meta, ConnectedUsernames} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 export type Props = {
   username: string,
-  following: boolean,
   teamname: string,
-  you: ?string,
   onOpenProfile: (u: string) => void,
   onChat: () => void,
   onIgnoreRequest: () => void,
   onAccept: () => void,
 }
 export const TeamRequestRow = (props: Props) => {
-  const {username, following, onOpenProfile, you, onChat, onIgnoreRequest, onAccept} = props
+  const {username, onOpenProfile, onChat, onIgnoreRequest, onAccept} = props
   return (
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        flexDirection: isMobile ? 'column' : 'row',
         alignItems: 'center',
+        flexDirection: isMobile ? 'column' : 'row',
         flexShrink: 0,
         height: isMobile ? 112 : 48,
         padding: globalMargins.tiny,
@@ -39,11 +37,7 @@ export const TeamRequestRow = (props: Props) => {
       >
         <Avatar username={username} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Usernames
-            type="BodySemibold"
-            colorFollowing={true}
-            users={[{username, following, you: you === username}]}
-          />
+          <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
           <Box style={globalStyles.flexBoxRow}>
             <Meta title="please decide" style={styleCharm} backgroundColor={globalColors.orange} />
           </Box>

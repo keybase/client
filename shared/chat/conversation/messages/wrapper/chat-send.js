@@ -24,8 +24,8 @@ const SendIcon = (props: {status: IconStatus, style: any}) => (
 type Props = {
   sent: boolean,
   failed: boolean,
-  id?: string,
-  style: any,
+  id?: number,
+  style?: any,
 } & TimerProps
 
 type State = {iconStatus: IconStatus, visible: boolean}

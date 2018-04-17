@@ -19,8 +19,8 @@ import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
 import TeamMenu from './team/menu-container'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
-import RetentionDropdown from './team/settings/retention/dropdown'
-import RetentionWarning from './team/settings/retention/warning/container'
+import RetentionDropdown from './team/settings-tab/retention/dropdown'
+import RetentionWarning from './team/settings-tab/retention/warning/container'
 import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
