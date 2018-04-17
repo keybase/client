@@ -217,7 +217,9 @@ class Profile extends Component<Props, State> {
       <Box key={folder.path} style={styleFolderLine}>
         <Icon
           type={shared.folderIconType(folder)}
-          {...propsFolderIconContainer}
+          fontSize={16}
+          color={globalColors.black_75}
+          style={styleFolderIcon}
           onClick={() => this.props.onFolderClick(folder)}
         />
         <Text
@@ -614,13 +616,6 @@ const styleFolderText = {
 
 const styleFolderIcon = {
   marginRight: globalMargins.tiny,
-}
-
-const propsFolderIconContainer = {
-  fontSize: 16,
-  textAlign: 'center',
-  color: globalColors.black_75,
-  style: styleFolderIcon,
 }
 
 const styleMeta = {

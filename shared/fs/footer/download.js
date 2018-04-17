@@ -38,7 +38,7 @@ const Download = (props: DownloadProps) => (
       </Box>
     </ClickableBox>
     <ClickableBox style={stylesIconBox} onClick={props.isDone ? props.dismiss : props.cancel}>
-      <Icon type="iconfont-remove" {...propsIconRight} />
+      <Icon type="iconfont-remove" color={globalColors.white} fontSize={16} />
     </ClickableBox>
   </Box>
 )
@@ -60,11 +60,6 @@ const stylesIconBox = {
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   paddingTop: 4,
-}
-
-const propsIconRight = {
-  color: globalColors.white,
-  fontSize: 16,
 }
 
 const stylesNameAndProgressBox = {

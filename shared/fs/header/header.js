@@ -67,7 +67,7 @@ const FolderHeader = ({
             ))}
           </Box>
           <Box style={styleFolderHeaderEnd}>
-            <Icon type="iconfont-finder" {...rowActionIconProps} onClick={openInFileUI} />
+            <Icon type="iconfont-finder" color={globalColors.black_40} fontSize={16} onClick={openInFileUI} />
           </Box>
         </Box>
       )}
@@ -145,11 +145,6 @@ const styleBreadcrumbDropdownIconBox = {
 
 const styleTeamAvatar = {
   marginRight: globalMargins.xtiny,
-}
-
-const rowActionIconProps = {
-  color: globalColors.black_40,
-  fontSize: 16,
 }
 
 export default FolderHeader

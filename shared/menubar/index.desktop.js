@@ -5,7 +5,7 @@ import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
 import type {IconType} from '../common-adapters/icon'
 import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
-import {globalStyles, globalColors, desktopStyles, collapseStyles} from '../styles'
+import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {remote} from 'electron'
 import {throttle} from 'lodash-es'
@@ -55,7 +55,11 @@ class MenubarRender extends Component<Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = collapseStyles([desktopStyles.clickable])
+    const menuStyle = platformStyles({
+      isElectron: {
+        ...desktopStyles.clickable,
+      },
+    })
 
     return (
       <Box style={styles.container}>

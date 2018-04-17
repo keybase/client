@@ -19,7 +19,6 @@ export type Props = {
   color?: string,
   hoverColor?: string,
   fontSize?: number,
-  // its totally not compatible with stylesheet
 }
 
 declare export default class Icon extends React.Component<Props> {}

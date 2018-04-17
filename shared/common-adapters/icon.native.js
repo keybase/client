@@ -37,10 +37,7 @@ const Text = glamorous.text(
         }
       : null,
   props => {
-    const color =
-      (props.style && props.style.color) ||
-      shared.defaultColor(props.type) ||
-      (props.opacity && globalColors.lightGrey)
+    const color = props.color || shared.defaultColor(props.type) || (props.opacity && globalColors.lightGrey)
     if (color) {
       return {color}
     } else return null
@@ -52,11 +49,8 @@ const Text = glamorous.text(
         }
       : null,
   props => {
-    if (
-      (props.style && props.style.fontSize !== undefined) ||
-      (props.style && props.style.width !== undefined)
-    ) {
-      return {fontSize: props.style.fontSize || props.style.width}
+    if (props.fontSize !== undefined || (props.style && props.style.width !== undefined)) {
+      return {fontSize: props.fontSize || props.style.width}
     }
 
     const temp = shared.fontSize(shared.typeToIconMapper(props.type))
