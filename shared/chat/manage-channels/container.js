@@ -53,21 +53,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   }
 }
 
-const createSaveChannelMembership = (
-  teamname: string,
-  oldChannelState: ChannelMembershipState,
-  nextChannelState: ChannelMembershipState
-) => {
-  const channelsToChange: ChannelMembershipState = {}
-  for (const convIDStr in nextChannelState) {
-    const convID = ChatTypes.stringToConversationIDKey(convIDStr)
-    if (oldChannelState[convID] !== nextChannelState[convID]) {
-      channelsToChange[convID] = nextChannelState[convID]
-    }
-  }
-  return TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange})
-}
-
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
@@ -83,7 +68,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState
     ) => {
-      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
+      dispatch(
+        TeamsGen.createSaveChannelMembership({teamname, oldChannelState, newChannelState: nextChannelState})
+      )
       dispatch(navigateUp())
     },
     _onView: (
@@ -91,8 +78,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       nextChannelState: ChannelMembershipState,
       conversationIDKey: ChatTypes.ConversationIDKey
     ) => {
+      dispatch(
+        TeamsGen.createSaveChannelMembership({teamname, oldChannelState, newChannelState: nextChannelState})
+      )
       const selected = nextChannelState[conversationIDKey]
-      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
       dispatch(
         Chat2Gen.createSelectConversation({conversationIDKey, reason: selected ? 'manageView' : 'preview'})
       )

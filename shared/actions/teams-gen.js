@@ -183,7 +183,8 @@ export const createRemoveMemberOrPendingInvite = (
 export const createSaveChannelMembership = (
   payload: $ReadOnly<{|
     teamname: string,
-    channelState: Types.ChannelMembershipState,
+    oldChannelState: Types.ChannelMembershipState,
+    newChannelState: Types.ChannelMembershipState,
   |}>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})

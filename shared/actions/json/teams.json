@@ -41,7 +41,8 @@
     },
     "saveChannelMembership": {
       "teamname": "string",
-      "channelState": "Types.ChannelMembershipState"
+      "oldChannelState": "Types.ChannelMembershipState",
+      "newChannelState": "Types.ChannelMembershipState"
     },
     "addPeopleToTeam": {
       "teamname": "string",
