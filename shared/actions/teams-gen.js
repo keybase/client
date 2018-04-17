@@ -82,7 +82,6 @@ export const createAddPeopleToTeam = (
 export const createAddToTeam = (
   payload: $ReadOnly<{|
     teamname: string,
-    email: string,
     username: string,
     role: Types.TeamRoleType,
     sendChatNotification: boolean,

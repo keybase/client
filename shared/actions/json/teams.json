@@ -64,7 +64,6 @@
     },
     "addToTeam": {
       "teamname": "string",
-      "email": "string",
       "username": "string",
       "role": "Types.TeamRoleType",
       "sendChatNotification": "boolean"

@@ -205,19 +205,20 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
 }
 
 const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
-  const {teamname, email, username, role, sendChatNotification} = action.payload
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  const {teamname, username, role, sendChatNotification} = action.payload
+  const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
+  yield Saga.put(createIncrementWaiting({key: waitingKeys}))
   try {
     yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
       name: teamname,
-      email,
       username,
+      email: '',
       role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
       sendChatNotification,
     })
   } finally {
     // TODO handle error
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(createDecrementWaiting({key: waitingKeys}))
   }
 }
 
@@ -263,11 +264,16 @@ const _removeMemberOrPendingInvite = function*(action: TeamsGen.RemoveMemberOrPe
     throw new Error(errMsg)
   }
 
-  yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  // only one of (username, email, inviteID) is truth-y
+  const waitingKeys = [
+    Constants.teamWaitingKey(teamname),
+    Constants.removeMemberWaitingKey(teamname, username || email || inviteID),
+  ]
+  yield Saga.put(createIncrementWaiting({key: waitingKeys}))
   try {
     yield Saga.call(RPCTypes.teamsTeamRemoveMemberRpcPromise, {email, name: teamname, username, inviteID})
   } finally {
-    yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(createDecrementWaiting({key: waitingKeys}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
 }
