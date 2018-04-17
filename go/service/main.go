@@ -326,10 +326,11 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
-	d.slowChecks()
+	d.slowChecks() // 6 hours
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
+	d.chatFastChecks() // 5 minutes for ephemeral message purging
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -365,9 +366,10 @@ func (d *Service) createChatModules() {
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
+	chatStorage := storage.New(g)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
-		boxer, storage.New(g), ri)
+		boxer, chatStorage, ri)
 	g.Searcher = chat.NewSearcher(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
@@ -375,7 +377,7 @@ func (d *Service) createChatModules() {
 	chatSyncer := chat.NewSyncer(g)
 	g.Syncer = chatSyncer
 	g.FetchRetrier = chat.NewFetchRetrier(g)
-	g.ConvLoader = chat.NewBackgroundConvLoader(g)
+	g.ConvLoader = chat.NewBackgroundConvLoader(g, chatStorage)
 
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
@@ -547,6 +549,23 @@ func (d *Service) writeServiceInfo() error {
 	// Write runtime info file
 	rtInfo := libkb.KeybaseServiceInfo(d.G())
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
+}
+
+func (d *Service) chatFastChecks() {
+	ticker := time.NewTicker(5 * time.Minute)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping chatFastChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("+ fast chat checks loop")
+			d.ChatG().ConvLoader.QueueEphemeralPurges(context.Background())
+			d.G().Log.Debug("- fast chat checks loop")
+		}
+	}()
 }
 
 func (d *Service) hourlyChecks() {

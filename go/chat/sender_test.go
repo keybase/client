@@ -172,7 +172,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
 	}
-	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
+	chatStorage := storage.New(g)
+	chatStorage.SetClock(world.Fc)
+	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
 	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.SetListener(&listener)
@@ -186,10 +188,10 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
 	g.FetchRetrier.Connected(context.TODO())
 	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
-	bgLoader := NewBackgroundConvLoader(g)
-	bgLoader.loads = listener.bgConvLoads
-	bgLoader.setTestingNameInfoSource(tlf)
-	g.ConvLoader = bgLoader
+	convLoader := NewBackgroundConvLoader(g, chatStorage)
+	convLoader.loadTestCh = listener.bgConvLoads
+	convLoader.setTestingNameInfoSource(tlf)
+	g.ConvLoader = convLoader
 	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())
 	chatSyncer := NewSyncer(g)
 	chatSyncer.isConnected = true

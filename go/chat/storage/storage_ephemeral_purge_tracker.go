@@ -18,12 +18,7 @@ type ephemeralTracker struct {
 	sync.Mutex
 }
 
-type allPurgeInfo map[string]EphemeralPurgeInfo
-
-type EphemeralPurgeInfo struct {
-	NextPurgeTime   gregor1.Time    `codec:"n"`
-	MinUnexplodedID chat1.MessageID `codec:"e"`
-}
+type allPurgeInfo map[string]chat1.EphemeralPurgeInfo
 
 type ephemeralTrackerEntry struct {
 	StorageVersion int `codec:"v"`
@@ -90,7 +85,7 @@ func (t *ephemeralTracker) dbSet(ctx context.Context, uid gregor1.UID, newInfo a
 }
 
 func (t *ephemeralTracker) getPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID) (purgeInfo *EphemeralPurgeInfo, err Error) {
+	convID chat1.ConversationID, uid gregor1.UID) (purgeInfo *chat1.EphemeralPurgeInfo, err Error) {
 	defer t.Trace(ctx, func() error { return err }, "getPurgeInfo")()
 
 	t.Lock()
@@ -117,7 +112,7 @@ func (t *ephemeralTracker) getAllPurgeInfo(ctx context.Context, uid gregor1.UID)
 }
 
 func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) (err Error) {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err Error) {
 	defer t.Trace(ctx, func() error { return err }, "setPurgeInfo")()
 
 	t.Lock()
@@ -134,7 +129,7 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 // When we are filtering new messages coming in/out of storage, we maybe update
 // if they tell us about something older we should be purging.
 func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) (err Error) {
+	convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (err Error) {
 	defer t.Trace(ctx, func() error { return err }, "maybeUpdatePurgeInfo")()
 
 	t.Lock()
@@ -151,6 +146,9 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	curPurgeInfo, ok := allPurgeInfo[convID.String()]
 	t.Debug(ctx, "maybeUpdatePurgeInfo old: %v, ok: %v, new: %v", curPurgeInfo, ok, purgeInfo)
 	if ok { // Throw away our update info if what we already have is more restrictive.
+		if curPurgeInfo.IsActive {
+			purgeInfo.IsActive = true
+		}
 		if purgeInfo.MinUnexplodedID == 0 || curPurgeInfo.MinUnexplodedID < purgeInfo.MinUnexplodedID {
 			purgeInfo.MinUnexplodedID = curPurgeInfo.MinUnexplodedID
 		}
@@ -163,11 +161,9 @@ func (t *ephemeralTracker) maybeUpdatePurgeInfo(ctx context.Context,
 	return t.dbSet(ctx, uid, allPurgeInfo)
 }
 
-// If we run an EphemeralPurge and have nothing in our cache, we remove the
-// tracker.
-func (t *ephemeralTracker) deletePurgeInfo(ctx context.Context,
+func (t *ephemeralTracker) inactivatePurgeInfo(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID) (err Error) {
-	defer t.Trace(ctx, func() error { return err }, "deletePurgeInfo")()
+	defer t.Trace(ctx, func() error { return err }, "inactivatePurgeInfo")()
 
 	t.Lock()
 	defer t.Unlock()
@@ -176,6 +172,10 @@ func (t *ephemeralTracker) deletePurgeInfo(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	delete(allPurgeInfo, convID.String())
+	purgeInfo, ok := allPurgeInfo[convID.String()]
+	if !ok {
+		return nil
+	}
+	purgeInfo.IsActive = false
 	return t.dbSet(ctx, uid, allPurgeInfo)
 }

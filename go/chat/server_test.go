@@ -328,7 +328,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.FetchRetrier.Connected(context.TODO())
 	g.FetchRetrier.Start(context.TODO(), uid)
 
-	g.ConvLoader = NewBackgroundConvLoader(g)
+	g.ConvLoader = NewBackgroundConvLoader(g, chatStorage)
 
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)

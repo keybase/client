@@ -6,10 +6,34 @@ import (
 	context "golang.org/x/net/context"
 )
 
+// For testing
+func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (info allPurgeInfo, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetAllPurgeInfo")()
+	return s.ephemeralTracker.getAllPurgeInfo(ctx, uid)
+}
+
+func (s *Storage) ConvsForEphemeralPurge(ctx context.Context, uid gregor1.UID) (expiredConvs map[string]chat1.EphemeralPurgeInfo, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "ConvsForEphemeralPurge")()
+
+	allPurgeInfo, err := s.ephemeralTracker.getAllPurgeInfo(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	expiredConvs = make(map[string]chat1.EphemeralPurgeInfo)
+	now := s.clock.Now()
+	for convID, purgeInfo := range allPurgeInfo {
+		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
+		if purgeInfo.IsActive && (nextPurgeTime.Before(now) || nextPurgeTime.Equal(now)) {
+			expiredConvs[convID] = purgeInfo
+		}
+	}
+	return expiredConvs, nil
+}
+
 // For a given conversation, purge all ephemeral messages from
 // purgeInfo.MinUnexplodedID to the present, updating bookkeeping for the next
 // time we need to purge this conv.
-func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *EphemeralPurgeInfo) (newPurgeInfo *EphemeralPurgeInfo, err Error) {
+func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
 
 	locks.Storage.Lock()
@@ -52,18 +76,13 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 		s.Debug(ctx, "record-only ephemeralTracker: no local messages")
 		// We don't have these messages in cache, so don't retry this
 		// conversation until further notice.
-		err := s.ephemeralTracker.deletePurgeInfo(ctx, convID, uid)
+		err := s.ephemeralTracker.inactivatePurgeInfo(ctx, convID, uid)
 		return nil, err
 	default:
 		return nil, err
 	}
 	newPurgeInfo, err = s.ephemeralPurgeHelper(ctx, convID, uid, rc.Result())
 	if err != nil {
-		return nil, err
-	}
-	// End of the line
-	if newPurgeInfo.MinUnexplodedID == maxMsgID {
-		err = s.ephemeralTracker.deletePurgeInfo(ctx, convID, uid)
 		return nil, err
 	}
 	err = s.ephemeralTracker.setPurgeInfo(ctx, convID, uid, newPurgeInfo)
@@ -87,7 +106,7 @@ func (s *Storage) explodeExpiredMessages(ctx context.Context, convID chat1.Conve
 // give info for our bookkeeping for the next time we have to purge.
 // requires msgs to be sorted by descending message ID
 func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *EphemeralPurgeInfo, err Error) {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) (purgeInfo *chat1.EphemeralPurgeInfo, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "ephemeralPurgeHelper convID: %v, uid: %v, numMessages %v", convID, uid, len(msgs))()
 
 	if msgs == nil || len(msgs) == 0 {
@@ -97,6 +116,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	nextPurgeTime := gregor1.Time(0)
 	minUnexplodedID := msgs[0].GetMessageID()
 	var exploded []chat1.MessageUnboxed
+	var hasExploding bool
 	for i, msg := range msgs {
 		if !msg.IsValid() {
 			s.Debug(ctx, "skipping invalid msg: %v", msg.GetMessageID())
@@ -104,7 +124,8 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 		}
 		mvalid := msg.Valid()
 		if mvalid.IsExploding() {
-			if !mvalid.IsEphemeralExpired() {
+			if !mvalid.IsEphemeralExpired(s.clock.Now()) {
+				hasExploding = true
 				// Keep track of the minimum ephemeral message that is not yet
 				// exploded.
 				if msg.GetMessageID() < minUnexplodedID {
@@ -132,9 +153,9 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 		s.Debug(ctx, "write messages failed: %v", err)
 		return nil, err
 	}
-
-	return &EphemeralPurgeInfo{
+	return &chat1.EphemeralPurgeInfo{
 		MinUnexplodedID: minUnexplodedID,
 		NextPurgeTime:   nextPurgeTime,
+		IsActive:        hasExploding,
 	}, nil
 }

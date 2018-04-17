@@ -1053,6 +1053,20 @@ func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 	}
 }
 
+type EphemeralPurgeInfo struct {
+	IsActive        bool         `codec:"a" json:"a"`
+	NextPurgeTime   gregor1.Time `codec:"n" json:"n"`
+	MinUnexplodedID MessageID    `codec:"e" json:"e"`
+}
+
+func (o EphemeralPurgeInfo) DeepCopy() EphemeralPurgeInfo {
+	return EphemeralPurgeInfo{
+		IsActive:        o.IsActive,
+		NextPurgeTime:   o.NextPurgeTime.DeepCopy(),
+		MinUnexplodedID: o.MinUnexplodedID.DeepCopy(),
+	}
+}
+
 type MessageClientHeader struct {
 	Conv              ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName           string                   `codec:"tlfName" json:"tlfName"`

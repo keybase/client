@@ -22,7 +22,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	// G delete --^    ___  deletes F     <not deletable>
 	// H text           |                 <ephemeral with 1 "lifetime">
 
-	_, storage, uid := setupStorageTest(t, "delh")
+	_, storage, uid := setupStorageTest(t, "ephemeral purge")
 
 	convID := makeConvID()
 
@@ -84,7 +84,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		}
 	}
 
-	verifyTrackerState := func(expectedPurgeInfo *EphemeralPurgeInfo) {
+	verifyTrackerState := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
 		purgeInfo, err := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
 		if expectedPurgeInfo == nil {
 			require.Error(t, err)
@@ -95,7 +95,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
-	ephemeralPurgeAndVerify := func(expectedPurgeInfo *EphemeralPurgeInfo) {
+	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
 		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
 		newPurgeInfo, err := storage.EphemeralPurge(context.Background(), convID, uid, purgeInfo)
 		require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("initial merge")
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
 	// We set the initial tracker info when we merge in
-	expectedPurgeInfo := &EphemeralPurgeInfo{
+	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgC.Valid().Etime(),
 		MinUnexplodedID: msgC.GetMessageID(),
 	}
@@ -147,7 +147,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	verifyTrackerState(expectedPurgeInfo)
 	// Once we run EphemeralPurge and sweep all messages, we update our tracker
 	// state
-	expectedPurgeInfo = &EphemeralPurgeInfo{
+	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgF.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 	}
@@ -166,7 +166,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	// we've slept for ~ lifetime*2, F's lifetime is up
 	time.Sleep(sleepLifetime)
-	expectedPurgeInfo = &EphemeralPurgeInfo{
+	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
 	}

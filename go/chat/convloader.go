@@ -113,16 +113,17 @@ type BackgroundConvLoader struct {
 	activeLoadCtx      context.Context
 	activeLoadCancelFn context.CancelFunc
 	suspendCount       int
+	storage            *storage.Storage
 
 	// for testing, make this and can check conv load successes
-	loads                 chan chat1.ConversationID
+	loadTestCh            chan chat1.ConversationID
 	testingNameInfoSource types.NameInfoSource
 	appStateCh            chan struct{}
 }
 
 var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 
-func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
+func NewBackgroundConvLoader(g *globals.Context, storage *storage.Storage) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
@@ -131,6 +132,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 		resumeWait:    time.Second,
+		storage:       storage,
 	}
 	b.identNotifier.ResetOnGUIConnect()
 	b.newQueue()
@@ -376,7 +378,10 @@ func (b *BackgroundConvLoader) loop() {
 				return
 			}
 			if nextTask != nil {
-				b.enqueue(bgctx, *nextTask)
+				if err := b.enqueue(bgctx, *nextTask); err != nil {
+					b.Debug(bgctx, "enqueue error %s", err)
+				}
+
 			}
 		case ch := <-b.suspendCh:
 			b.Debug(bgctx, "loop: received suspend")
@@ -409,7 +414,6 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	b.Debug(ictx, "load: loading conversation %s", task.job)
 	b.Lock()
-	job := task.job
 	b.activeLoadCtx, b.activeLoadCancelFn = context.WithCancel(
 		Context(b.makeConvLoaderContext(ictx), b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 			b.identNotifier))
@@ -426,6 +430,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 		b.Unlock()
 	}()
 
+	job := task.job
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := job.Pagination
 	if pagination == nil {
@@ -448,13 +453,44 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 		b.Debug(ctx, "load: invoking post load hook on job: %s", job)
 		job.PostLoadHook(ctx, tv, job)
 	}
-
-	// if testing, put the convID on the loads channel
-	if b.loads != nil {
-		b.Debug(ctx, "load: putting convID %s on loads chan", job.ConvID)
-		b.loads <- job.ConvID
+	// if testing, put the convID on the loadTestCh
+	if b.loadTestCh != nil {
+		b.Debug(ctx, "load: putting convID %s on loadTestCh", job.ConvID)
+		b.loadTestCh <- job.ConvID
 	}
+
 	return nil
+}
+
+// Called periodically by the fastChatChecks ticker in service/main
+func (b *BackgroundConvLoader) QueueEphemeralPurges(ctx context.Context) {
+	expiredConvs, err := b.storage.ConvsForEphemeralPurge(ctx, b.uid)
+	if err != nil {
+		b.Debug(ctx, "QueueEphemeralPurges error: %s", err)
+		return
+	}
+	for convIDStr, purgeInfo := range expiredConvs {
+		convID, err := chat1.MakeConvID(convIDStr)
+		if err != nil {
+			b.Debug(ctx, "invalid convID: %v, error: %s", convIDStr, err)
+			continue
+		}
+		job := types.NewConvLoaderJob(convID, nil, types.ConvLoaderPriorityHigh,
+			newConvLoaderEphemeralPurgeHook(b.G(), b.storage, b.uid, &purgeInfo))
+		task := clTask{job: job}
+		if err := b.enqueue(ctx, task); err != nil {
+			b.Debug(ctx, "enqueue error %s", err)
+		}
+	}
+}
+
+func newConvLoaderEphemeralPurgeHook(g *globals.Context, chatStorage *storage.Storage, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+	return func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+		_, err := chatStorage.EphemeralPurge(ctx, job.ConvID, uid, purgeInfo)
+		if err != nil {
+			g.GetLog().CDebugf(ctx, "ephemeralPurge error: %s", err)
+		}
+	}
 }
 
 func newConvLoaderPagebackHook(g *globals.Context, curCalls, maxCalls int) func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
