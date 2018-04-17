@@ -55,7 +55,7 @@ class Icon extends Component<Exact<Props>, void> {
     }
 
     const isFontIcon = iconType.startsWith('iconfont-')
-    const fontSizeHint = shared.fontSize(iconType)
+    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : shared.fontSize(iconType)
     const onClick = this.props.onClick
       ? e => {
           e.stopPropagation()
@@ -67,6 +67,7 @@ class Icon extends Component<Exact<Props>, void> {
       desktopStyles.noSelect,
       this.props.style,
       onClick ? desktopStyles.clickable : {},
+      this.props.color ? {color: color} : {},
     ])
 
     if (isFontIcon) {

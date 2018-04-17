@@ -56,7 +56,7 @@ const ResetOption = ({onReset}) => (
               ...stylesIcon,
               marginRight: 0,
             }}
-            fontSize="24"
+            fontSize={24}
             color={globalColors.black_40}
             type="iconfont-exclamation"
           />

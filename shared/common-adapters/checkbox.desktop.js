@@ -48,7 +48,7 @@ class Checkbox extends Component<Props> {
             style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}}
             hoverColor={globalColors.white}
             color={globalColors.white}
-            fontSize="9"
+            fontSize={9}
           />
         </div>
         <Text type="Body" style={{color: globalColors.black_75}}>

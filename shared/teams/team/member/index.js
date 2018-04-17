@@ -76,7 +76,7 @@ export const TeamMember = (props: Props) => {
                   margin: globalMargins.tiny,
                   alignSelf: 'center',
                 }}
-                fontSize="28"
+                fontSize={28}
               />
             )}
           <Avatar

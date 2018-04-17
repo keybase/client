@@ -67,7 +67,7 @@ const makeRoleOption = (
               marginRight: globalMargins.xtiny,
             }}
             color={selected === role ? globalColors.white : roleIconColorMap[role]}
-            fontSize="16"
+            fontSize={16}
           />
         )}
         <Text style={{color: selected === role ? globalColors.white : globalColors.black_75}} type="BodyBig">

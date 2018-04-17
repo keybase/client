@@ -35,7 +35,7 @@ class FileRender extends Component<Props> {
                     marginRight: 4,
                     alignSelf: 'center',
                   }}
-                  fontSize="10"
+                  fontSize={10}
                   color={pathStyleThemed[this.props.theme].color}
                 />
               )}

@@ -177,7 +177,7 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
           marginTop: 3,
         }}
         color={globalColors.black_20}
-        fontSize="13"
+        fontSize={13}
       />
       <Text type="Body" selectable={true} style={{color: globalColors.blue}}>
         {invite.url}

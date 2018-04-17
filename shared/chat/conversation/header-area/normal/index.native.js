@@ -55,7 +55,7 @@ const ChannelHeader = (props: Props) => (
     <Icon
       type="iconfont-info"
       style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny}}
-      fontSize="21"
+      fontSize={21}
       onClick={props.onToggleInfoPanel}
     />
   </Box>
@@ -95,7 +95,7 @@ const UsernameHeader = (props: Props) => (
       <Icon
         type="iconfont-info"
         style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny}}
-        fontSize="21"
+        fontSize={21}
         onClick={props.onToggleInfoPanel}
       />
     )}

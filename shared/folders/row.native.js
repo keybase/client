@@ -75,7 +75,7 @@ const Modified = ({styles, modified}) => {
       <Icon
         type="iconfont-thunderbolt"
         style={{alignSelf: 'center', marginLeft: -2, marginRight: 2}}
-        fontSize="10"
+        fontSize={10}
         hint="Modified"
         color={iconColor}
       />

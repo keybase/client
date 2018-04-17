@@ -57,7 +57,7 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
           padding: globalMargins.xtiny,
         }}
         color={globalColors.blue}
-        fontSize="24"
+        fontSize={24}
       />
     )}
 

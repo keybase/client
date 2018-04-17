@@ -46,7 +46,7 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
           style={{padding: 5}}
           color={globalColors.black_60}
-          fontSize="10"
+          fontSize={10}
         />
       </Box>
     </ClickableBox>

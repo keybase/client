@@ -68,7 +68,7 @@ const Banner = isMobile
           <Box style={bannerTextContentStyle}>{bannerContent}</Box>
           {!!onDismiss && (
             <Box style={dismissContainerStyle}>
-              <Icon type="iconfont-close" onClick={onDismiss} color={globalColors.white_40} fontSize="16" />
+              <Icon type="iconfont-close" onClick={onDismiss} color={globalColors.white_40} fontSize={16} />
             </Box>
           )}
         </Box>

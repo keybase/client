@@ -68,7 +68,7 @@ class Modified extends React.PureComponent<any> {
 
     return (
       <Box style={stylesModified}>
-        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" color={iconColor} fontSize="10" />
+        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" color={iconColor} fontSize={10} />
         <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
           Modified {modified.when} by&nbsp;
         </Text>

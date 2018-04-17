@@ -56,7 +56,7 @@ class NewConversation extends React.PureComponent<Props> {
       >
         <Box style={container2Style}>
           <Box style={container3Style}>
-            <Icon type="iconfont-people" color={globalColors.blue} fontSize="24" />
+            <Icon type="iconfont-people" color={globalColors.blue} fontSize={24} />
           </Box>
           {this.props.users.length ? (
             <Text style={this.props.isSelected ? textSelectedStyle : textStyle} type="BodySemibold">

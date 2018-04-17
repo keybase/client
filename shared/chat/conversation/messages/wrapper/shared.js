@@ -46,7 +46,7 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
 
 const MenuButton = ({onClick}) => (
   <Box className="menu-button">
-    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} fontSize="16" />
+    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} fontSize={16} />
   </Box>
 )
 
@@ -133,7 +133,7 @@ class MessageWrapper extends React.PureComponent<Props> {
                     type="iconfont-exclamation"
                     style={styles.exclamation}
                     color={globalColors.blue}
-                    fontSize="11"
+                    fontSize={11}
                   />
                 )}
               </Box>

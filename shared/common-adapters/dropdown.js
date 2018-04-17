@@ -102,7 +102,7 @@ class Dropdown extends React.Component<Props, State> {
           >
             {this.state.selected}
           </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} fontSize="11" />
+          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
         </ButtonBox>
       </Box>
     )

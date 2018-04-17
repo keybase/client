@@ -33,7 +33,7 @@ class FileRender extends Component<Props> {
                   type="iconfont-thunderbolt"
                   style={{marginRight: 1}}
                   color={pathStyleThemed[this.props.theme].color}
-                  fontSize="10"
+                  fontSize={10}
                 />
               )}
               <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>

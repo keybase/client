@@ -27,7 +27,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
           type={icon}
           style={stylesIcon}
           color={globalColors.black_75}
-          fontSize="35"
+          fontSize={35}
         />
       </div>
       <div>

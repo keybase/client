@@ -40,9 +40,9 @@ const FolderHeader = ({
             {!!dropdownPath && (
               <Box style={folderBreadcrumbStyle}>
                 <ClickableBox style={styleBreadcrumbDropdownIconBox} onClick={onOpenBreadcrumbDropdown}>
-                  <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} fontSize="16" />
+                  <Icon type="iconfont-folder-dropdown" style={styleBreadcrumbDropdownIcon} fontSize={16} />
                 </ClickableBox>
-                <Icon type="iconfont-arrow-right" style={iconStyle} fontSize="11" />
+                <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />
               </Box>
             )}
             {breadcrumbItems.map(i => (
@@ -60,7 +60,7 @@ const FolderHeader = ({
                         {i.name}
                       </Text>
                     </ClickableBox>
-                    <Icon type="iconfont-arrow-right" style={iconStyle} fontSize="11" />
+                    <Icon type="iconfont-arrow-right" style={iconStyle} fontSize={11} />
                   </Box>
                 )}
               </Box>

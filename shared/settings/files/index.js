@@ -38,7 +38,7 @@ const Files = isMobile
                 <Icon
                   type="iconfont-finder"
                   style={contentHeaderIconStyle}
-                  fontSize="16"
+                  fontSize={16}
                   color={globalColors.black_20}
                 />
               </Box>

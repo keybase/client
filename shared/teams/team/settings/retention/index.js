@@ -156,7 +156,7 @@ class RetentionPicker extends React.Component<Props, State> {
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
-          <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize="16" />
+          <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
         </Box>
         <ClickableBox
           onClick={this._onShowDropdown}
@@ -166,7 +166,7 @@ class RetentionPicker extends React.Component<Props, State> {
           <Box style={labelStyle}>
             <Text type="BodySemibold">{this._label()}</Text>
           </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} fontSize="7" />
+          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
         </ClickableBox>
         {this.props.showOverrideNotice && (
           <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
@@ -207,7 +207,7 @@ const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
     <Box style={collapseStyles([globalStyles.flexBoxColumn, props.containerStyle])}>
       <Box style={displayHeadingStyle}>
         <Text type="BodySmallSemibold">Message deletion</Text>
-        <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize="16" />
+        <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
       </Box>
       <Text type="BodySmall">{text}</Text>
     </Box>

@@ -22,7 +22,7 @@ const Download = (props: DownloadProps) => (
       <Icon
         type={props.isDone ? 'iconfont-success' : 'iconfont-download'}
         color={globalColors.black_20}
-        fontSize="16"
+        fontSize={16}
       />
     </Box>
     <ClickableBox style={stylesNameAndProgressBox} onClick={props.open}>

@@ -88,7 +88,7 @@ class Login extends Component<Props, State> {
               }}
               style={{backgroundColor: globalColors.white, flex: 1}}
             />
-            <Icon type="iconfont-caret-down" inheritColor={true} fontSize="11" />
+            <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
           </ButtonBox>
           {this.state.open && (
             <PopupDialog

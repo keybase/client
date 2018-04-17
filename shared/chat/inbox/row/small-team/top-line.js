@@ -93,7 +93,7 @@ class SimpleTopLine extends React.Component<Props> {
             className="small-team-gear"
             onClick={this.props.onClickGear}
             color={this.props.subColor}
-            fontSize="14"
+            fontSize={14}
             hoverColor={this.props.iconHoverColor}
           />
         )}

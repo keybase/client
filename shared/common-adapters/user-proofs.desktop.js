@@ -147,7 +147,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType && (
-            <Icon type={proofStatusIconType} fontSize="20" color={shared.proofColor(proof, true)} />
+            <Icon type={proofStatusIconType} fontSize={20} color={shared.proofColor(proof, true)} />
           )}
           {hasMenu && (
             <Icon
@@ -179,7 +179,7 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
             ? globalStyles.loadingTextStyle.backgroundColor
             : undefined
         }
-        fontSize="20"
+        fontSize={20}
         type={'iconfont-proof-placeholder'}
       />
     </Box>

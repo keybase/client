@@ -48,7 +48,7 @@ const ResetOption = ({onReset}) => (
             alignSelf: 'flex-start',
           }}
         >
-          <Icon style={stylesIcon} color={globalColors.black_40} type="iconfont-exclamation" fontSize="16" />
+          <Icon style={stylesIcon} color={globalColors.black_40} type="iconfont-exclamation" fontSize={16} />
         </Box>
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">

@@ -112,7 +112,7 @@ export const Row = (props: RowProps) => (
 export const Placeholder = () => (
   <Box style={stylesCommonRow}>
     <Box style={stylesRowBox}>
-      <Icon type={placeholderIcon} style={stylePlaceholderIcon} fontSize="32" />
+      <Icon type={placeholderIcon} style={stylePlaceholderIcon} fontSize={32} />
       <Box style={folderBoxStyle}>
         <Box style={placeholderTextStyle} />
       </Box>

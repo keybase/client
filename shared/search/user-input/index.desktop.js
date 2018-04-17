@@ -46,7 +46,7 @@ class UserItem extends Component<UserItemProps> {
           type="iconfont-close"
           onClick={this._onRemoveUser}
           style={{marginLeft: globalMargins.tiny}}
-          fontSize="11"
+          fontSize={11}
         />
       </Box>
     )
@@ -170,6 +170,7 @@ class UserInput extends Component<Props, State> {
                     },
                   })}
                   color={globalColors.blue}
+                  fontSize={12}
                 />
               )}
           </Box>

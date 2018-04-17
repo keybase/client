@@ -48,7 +48,7 @@ const SortBar = (props: SortBarProps) => {
       <Box style={stylesSortBar}>
         <ClickableBox onClick={props.onOpenSortSettingPopup} style={stylesSortSetting}>
           <Box style={iconBoxStyle}>
-            <Icon type={sortSettingIconType} style={stylesIcon} fontSize="11" />
+            <Icon type={sortSettingIconType} style={stylesIcon} fontSize={11} />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>

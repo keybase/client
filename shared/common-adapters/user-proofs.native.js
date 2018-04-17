@@ -97,7 +97,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
             (proof.state === proofChecking ? (
               <ProgressIndicator style={styleSpinner} />
             ) : (
-              <Icon type={proofStatusIconType} fontSize="26" color={shared.proofColor(proof, true)} />
+              <Icon type={proofStatusIconType} fontSize={26} color={shared.proofColor(proof, true)} />
             ))}
           {hasMenu && <Icon type="iconfont-caret-down" />}
         </Box>
@@ -115,7 +115,7 @@ function LoadingProofRow({width}: {width: number}): React.Element<any> {
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>
-        <Icon type={'iconfont-proof-placeholder'} color={globalColors.lightGrey} fontSize="26" />
+        <Icon type={'iconfont-proof-placeholder'} color={globalColors.lightGrey} fontSize={26} />
       </Box>
     </Box>
   )
