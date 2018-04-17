@@ -22,7 +22,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
-	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func cryptKey(t *testing.T) *keybase1.CryptKey {
@@ -70,15 +69,7 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) {
 	tc := externalstest.SetupTest(t, name, 2)
 
-	// use an insecure triplesec in tests
-	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
-		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
-		isProduction := func() bool {
-			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
-		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
-	}
-
+	kbtest.InstallInsecureTriplesec(tc.G)
 	ctc := kbtest.ChatTestContext{
 		TestContext: tc,
 		ChatG:       &globals.ChatContext{},

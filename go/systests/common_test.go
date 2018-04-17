@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -14,7 +15,7 @@ import (
 
 func setupTest(t libkb.TestingTB, nm string) *libkb.TestContext {
 	tc := externalstest.SetupTest(t, nm, 2)
-	installInsecureTriplesec(tc.G)
+	kbtest.InstallInsecureTriplesec(tc.G)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
 		t.Fatal(err)

@@ -15,8 +15,6 @@ import (
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-
-	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func TestTeamCreate(t *testing.T) {
@@ -135,16 +133,6 @@ func (tt *teamTester) logUserNames() {
 	}
 }
 
-func installInsecureTriplesec(g *libkb.GlobalContext) {
-	g.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
-		warner := func() { g.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
-		isProduction := func() bool {
-			return g.Env.GetRunMode() == libkb.ProductionRunMode
-		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
-	}
-}
-
 func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
@@ -159,7 +147,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.True(tt.t, libkb.CheckUsername.F(userInfo.username), "username check failed (%v): %v", libkb.CheckUsername.Hint, userInfo.username)
 	tc := u.device.tctx
 	g := tc.G
-	installInsecureTriplesec(g)
+	kbtest.InstallInsecureTriplesec(g)
 
 	signupUI := signupUI{
 		info:         userInfo,
