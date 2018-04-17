@@ -127,7 +127,6 @@ export const createDeleteChannelConfirmed = (
   payload: $ReadOnly<{|
     teamname: Types.Teamname,
     conversationIDKey: ChatTypes.ConversationIDKey,
-    channelName: string,
   |}>
 ) => ({error: false, payload, type: deleteChannelConfirmed})
 export const createEditMembership = (

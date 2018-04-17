@@ -186,7 +186,6 @@
     "deleteChannelConfirmed": {
       "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "channelName": "string"
     },
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",

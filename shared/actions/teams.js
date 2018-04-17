@@ -971,15 +971,15 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
 }
 
 function _deleteChannelConfirmed(action: TeamsGen.DeleteChannelConfirmedPayload, state: TypedState) {
-  const {conversationIDKey, channelName, teamname} = action.payload
-  const param = {
-    convID: ChatTypes.keyToConversationID(conversationIDKey),
-    channelName,
-    confirmed: true,
-  }
-
+  const {conversationIDKey, teamname} = action.payload
   return Saga.sequentially([
-    Saga.call(RPCChatTypes.localDeleteConversationLocalRpcPromise, param),
+    // channelName is only needed for confirmation, so since we handle
+    // confirmation ourselves we don't need to plumb it through.
+    Saga.call(RPCChatTypes.localDeleteConversationLocalRpcPromise, {
+      convID: ChatTypes.keyToConversationID(conversationIDKey),
+      channelName: '',
+      confirmed: true,
+    }),
     Saga.put(TeamsGen.createGetChannels({teamname})),
   ])
 }

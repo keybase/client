@@ -87,7 +87,7 @@ const EditChannelBare = (props: Props & TextState) => (
           <DeleteChannel
             channelName={props.channelName}
             onConfirmedDelete={props.onConfirmedDelete}
-            disabled={props.deleteRenameDisabled || props.waitingForGetInfo}
+            disabled={props.deleteRenameDisabled}
           />
         )}
       <ButtonBar>
