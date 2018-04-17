@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externalstest"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/kbtest/insecure"
 	"github.com/keybase/client/go/libkb"
 )
