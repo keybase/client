@@ -11,14 +11,49 @@ import (
 )
 
 func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
+	// In future PRs, we're going to replace this also with a call to bootstrap.
+	// For now, only change IsProvisioned. The behavior is subtley different
+	// and warrants future invesitagation.
 	return libkb.IsLoggedIn(e.G(), ctx.LoginContext)
 }
 
-func IsProvisioned(e Engine, ctx *Context) (bool, error) {
-	if ctx.LoginContext != nil {
-		return ctx.LoginContext.LoggedInProvisionedCheck()
+// bootstrap will setup an ActiveDevice with a NIST Factory for the engine
+// that's calling us. We are phasing out the notion of LoginSession, so the
+// ability to have an active device will eventually suffice for both the
+// Device and Session Prereq. This is an ongoing work in progress.
+func bootstrap(e Engine, ctx *Context) (keybase1.UID, error) {
+
+	run := func(a libkb.LoginContext) (keybase1.UID, error) {
+		return libkb.BootstrapActiveDeviceFromConfig(ctx.NetContext, e.G(), a, true)
 	}
-	return e.G().LoginState().LoggedInProvisionedCheck()
+	var err error
+	var uid keybase1.UID
+	a := ctx.LoginContext
+	nctx := ctx.NetContext
+	g := e.G()
+	if a == nil {
+		aerr := g.LoginState().Account(func(a *libkb.Account) {
+			uid, err = run(a)
+		}, "BootstrapActiveDevice")
+		if err == nil && aerr != nil {
+			g.Log.CDebugf(nctx, "LoginOffline: LoginState account error: %s", aerr)
+			err = aerr
+		}
+	} else {
+		uid, err = run(a)
+	}
+	return uid, err
+}
+
+func IsProvisioned(e Engine, ctx *Context) (bool, error) {
+	_, err := bootstrap(e, ctx)
+	ret := false
+	if err == nil {
+		ret = true
+	} else if _, ok := err.(libkb.LoginRequiredError); ok {
+		err = nil
+	}
+	return ret, err
 }
 
 type keypair struct {

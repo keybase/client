@@ -109,9 +109,6 @@ func (a *Account) LoggedInProvisionedCheck() (bool, error) {
 // LoggedInProvisioned will load the session file if necessary and return true if the
 // device is provisioned.  It will *not* check the session with the api server.
 func (a *Account) LoggedInProvisioned() (bool, error) {
-	if err := a.LocalSession().Load(); err != nil {
-		return false, err
-	}
 	return a.LocalSession().IsLoggedInAndProvisioned(), nil
 }
 
@@ -144,7 +141,6 @@ func (a *Account) setLoginSession(ls *LoginSession) {
 		// But it probably signifies an error.
 		a.G().Log.Debug("Account: overwriting loginSession")
 	}
-
 	a.loginSession = ls
 }
 

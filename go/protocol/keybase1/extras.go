@@ -1367,6 +1367,40 @@ func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	return nil
 }
 
+func (u UserPlusKeysV2) FindSigningDeviceKey(d DeviceID) (*PublicKeyV2NaCl, string) {
+	for _, k := range u.DeviceKeys {
+		if k.DeviceID.Eq(d) && k.Base.IsSibkey {
+			return &k, k.DeviceDescription
+		}
+	}
+	return nil, ""
+}
+
+func (u UserPlusKeysV2) FindSigningDeviceKID(d DeviceID) (KID, string) {
+	key, name := u.FindSigningDeviceKey(d)
+	if key == nil {
+		return KID(""), name
+	}
+	return key.Base.Kid, name
+}
+
+func (u UserPlusKeysV2) FindEncryptionDeviceKey(parent KID) *PublicKeyV2NaCl {
+	for _, k := range u.DeviceKeys {
+		if !k.Base.IsSibkey && k.Parent != nil && k.Parent.Equal(parent) {
+			return &k
+		}
+	}
+	return nil
+}
+
+func (u UserPlusKeysV2) FindEncryptionDeviceKID(parent KID) KID {
+	key := u.FindEncryptionDeviceKey(parent)
+	if key == nil {
+		return KID("")
+	}
+	return key.Base.Kid
+}
+
 func (s ChatConversationID) String() string {
 	return hex.EncodeToString(s)
 }

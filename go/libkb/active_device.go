@@ -22,17 +22,18 @@ type ActiveDevice struct {
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+func (a *ActiveDevice) set(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
 		return err
 	}
 
 	a.signingKey = sigKey
 	a.encryptionKey = encKey
 	a.deviceName = deviceName
+	a.nistFactory = NewNISTFactory(g, uid, deviceID, sigKey)
 
 	return nil
 }
@@ -40,11 +41,11 @@ func (a *ActiveDevice) set(acct *Account, uid keybase1.UID, deviceID keybase1.De
 // setSigningKey acquires the write lock and sets the signing key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setSigningKey(g *GlobalContext, acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
+func (a *ActiveDevice) setSigningKey(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
 		return err
 	}
 
@@ -56,11 +57,11 @@ func (a *ActiveDevice) setSigningKey(g *GlobalContext, acct *Account, uid keybas
 // setEncryptionKey acquires the write lock and sets the encryption key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setEncryptionKey(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
+func (a *ActiveDevice) setEncryptionKey(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, encKey GenericKey) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
 		return err
 	}
 
@@ -71,7 +72,7 @@ func (a *ActiveDevice) setEncryptionKey(acct *Account, uid keybase1.UID, deviceI
 // setDeviceName acquires the write lock and sets the device name.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setDeviceName(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string) error {
+func (a *ActiveDevice) setDeviceName(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -79,7 +80,7 @@ func (a *ActiveDevice) setDeviceName(acct *Account, uid keybase1.UID, deviceID k
 		return errors.New("no device name specified")
 	}
 
-	if err := a.internalUpdateUIDDeviceID(acct, uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
 		return err
 	}
 
@@ -88,8 +89,8 @@ func (a *ActiveDevice) setDeviceName(acct *Account, uid keybase1.UID, deviceID k
 }
 
 // should only called by the functions in this type, with the write lock.
-func (a *ActiveDevice) internalUpdateUIDDeviceID(acct *Account, uid keybase1.UID, deviceID keybase1.DeviceID) error {
-	if acct == nil {
+func (a *ActiveDevice) internalUpdateUIDDeviceID(lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID) error {
+	if lctx == nil {
 		return errors.New("ActiveDevice.set funcs must be called from inside a LoginState account request")
 	}
 	if uid.IsNil() {
@@ -214,6 +215,21 @@ func (a *ActiveDevice) Valid() bool {
 	defer a.RUnlock()
 
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
+}
+
+func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {
+	a.RLock()
+	defer a.RUnlock()
+	if a.signingKey == nil || a.encryptionKey == nil {
+		return false
+	}
+	if !uid.Equal(a.uid) {
+		return false
+	}
+	if !deviceID.Eq(a.deviceID) {
+		return false
+	}
+	return true
 }
 
 func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
