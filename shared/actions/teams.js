@@ -905,7 +905,7 @@ function getLoadCalls(teamname?: string) {
 }
 
 function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
-  const {conversationIDKey, teamname, newTopic} = action.payload
+  const {teamname, conversationIDKey, newTopic} = action.payload
   const waitingKey = {key: Constants.updateTopicWaitingKey(conversationIDKey)}
   const param = {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
@@ -948,7 +948,7 @@ function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPa
 }
 
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
-  const {conversationIDKey, teamname, newChannelName} = action.payload
+  const {teamname, conversationIDKey, newChannelName} = action.payload
   const waitingKey = {key: Constants.updateChannelNameWaitingKey(conversationIDKey)}
   const param = {
     channelName: newChannelName,
@@ -971,7 +971,7 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
 }
 
 function _deleteChannelConfirmed(action: TeamsGen.DeleteChannelConfirmedPayload, state: TypedState) {
-  const {conversationIDKey, teamname} = action.payload
+  const {teamname, conversationIDKey} = action.payload
   return Saga.sequentially([
     // channelName is only needed for confirmation, so since we handle
     // confirmation ourselves we don't need to plumb it through.
