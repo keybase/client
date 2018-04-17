@@ -170,7 +170,7 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
 }
 
-type exchangeRateMap map[string]remote.XLMExchangeRate
+type exchangeRateMap map[string]stellar1.OutsideExchangeRate
 
 // getLocalCurrencyAndExchangeRate gets display currency setting
 // for accountID and fetches exchange rate is set.
@@ -181,11 +181,9 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 	if err != nil {
 		return err
 	}
-
 	if displayCurrency == "" {
 		return nil
 	}
-
 	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
 		var err error
@@ -195,9 +193,7 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 		}
 		exchangeRates[displayCurrency] = rate
 	}
-
-	account.LocalCurrency = stellar1.LocalCurrencyCode(rate.Currency)
-	account.LocalExchangeRate = stellar1.LocalExchangeRate(rate.Price)
+	account.ExchangeRate = &rate
 	return nil
 }
 
@@ -254,12 +250,8 @@ func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.Loc
 	return ret, accountError
 }
 
-func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.LocalCurrencyCode) (res stellar1.LocalExchangeRate, err error) {
+func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.OutsideCurrencyCode) (res stellar1.OutsideExchangeRate, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)), func() error { return err })()
-	rate, err := remote.ExchangeRate(ctx, s.G(), string(currency))
-	if err != nil {
-		return res, err
-	}
-	return stellar1.LocalExchangeRate(rate.Price), nil
+	return remote.ExchangeRate(ctx, s.G(), string(currency))
 }
