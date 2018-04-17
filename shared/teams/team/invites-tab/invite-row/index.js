@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Text, Usernames} from '../../../../common-adapters'
+import {Avatar, Box, Button, ClickableBox, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
 import {type TeamRoleType} from '../../../../constants/types/teams'
@@ -8,13 +8,11 @@ import {type TeamRoleType} from '../../../../constants/types/teams'
 export type Props = {
   label: string, // email, sbs, or seitan
   onCancelInvite: () => void,
-  following: boolean,
   role: TeamRoleType,
-  you: ?string,
 }
 
 export const TeamInviteRow = (props: Props) => {
-  const {following, onCancelInvite, role, you, label} = props
+  const {onCancelInvite, role, label} = props
   return (
     <ClickableBox
       style={{
@@ -43,11 +41,11 @@ export const TeamInviteRow = (props: Props) => {
             }}
           >
             <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1, marginLeft: globalMargins.small}}>
-              <Usernames
+              <ConnectedUsernames
                 type="BodySemibold"
                 colorFollowing={true}
                 inline={true}
-                users={[{following, username: label, you: you === label}]}
+                usernames={[label]}
               />
               <Box style={globalStyles.flexBoxRow}>
                 <Text type="BodySmall">{role && typeToLabel[role]}</Text>

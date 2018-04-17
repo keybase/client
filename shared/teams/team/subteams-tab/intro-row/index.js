@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
-import type {Teamname} from '../../../constants/types/teams'
+import {Box, Icon, Text} from '../../../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import type {Teamname} from '../../../../constants/types/teams'
 
 export type Props = {
   onReadMore: () => void,
@@ -67,9 +67,9 @@ let closeIconStyle = {
   position: 'absolute',
   ...(isMobile
     ? {
+        height: 14,
         right: globalMargins.small,
         top: globalMargins.small,
-        height: 14,
         width: 14,
       }
     : {

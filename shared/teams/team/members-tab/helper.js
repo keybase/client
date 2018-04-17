@@ -1,10 +1,11 @@
 // @flow
-import * as Constants from '../../../constants/teams'
+import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
+import * as Constants from '../../../constants/teams'
+import {type TypedState} from '../../../util/container'
 import * as I from 'immutable'
-import {type TypedState, connect} from '../../../util/container'
-import {Members} from '.'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import MemberRow from './member-row/container'
 
 export type OwnProps = {
   teamname: string,
@@ -63,32 +64,25 @@ const getOrderedMemberArray = (
   return returnArray
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => ({
-  // Assume teamname exists here because parent throws an error if not.
-  _memberInfo: Constants.getTeamMembers(state, teamname),
-  you: state.config.username,
-  yourOperations: Constants.getCanPerform(state, teamname),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const _members = getOrderedMemberArray(stateProps._memberInfo, stateProps.you, stateProps.yourOperations)
-  return {
-    members: _members.map(member => ({
-      type: 'member',
-      fullName: member.fullName,
-      username: member.username,
-      teamname: ownProps.teamname,
-      active: member.active,
-      key: member.username + member.active.toString(),
-      roleType: member.type,
-    })),
-  }
+type StateProps = {
+  _memberInfo: I.Map<string, Types.MemberInfo>,
+  _you: ?string,
+  _yourOperations: RPCTypes.TeamOperation,
 }
 
-const listMergeProps = (stateProps, dispatchProps, ownProps) => ({
-  listItems: mergeProps(stateProps, dispatchProps, ownProps).members,
-  ...ownProps,
+/* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
+export const mapStateHelper = (state: TypedState, ownProps: {teamname: string}): StateProps => ({
+  _memberInfo: Constants.getTeamMembers(state, ownProps.teamname),
+  _you: state.config.username || '',
+  _yourOperations: Constants.getCanPerform(state, ownProps.teamname),
 })
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Members)
-export const membersListItemsConnector = connect(mapStateToProps, () => ({}), listMergeProps)
+export const getRows = ({_memberInfo, _you, _yourOperations}: StateProps) =>
+  getOrderedMemberArray(_memberInfo, _you, _yourOperations).map(i => ({
+    type: 'member',
+    username: i.username,
+  }))
+
+export const renderItem = (teamname: string, row: {username: string}) => (
+  <MemberRow teamname={teamname} username={row.username} key={row.username} />
+)

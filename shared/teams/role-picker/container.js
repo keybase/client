@@ -46,7 +46,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
     dispatch(
       TeamsGen.createAddToTeam({
         teamname,
-        email: '',
         username,
         role,
         sendChatNotification: sendNotification,
