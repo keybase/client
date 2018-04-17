@@ -155,7 +155,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
           </Text>
           <Text type={'BodySmall'}>({price})</Text>
         </Box>
-        {selected && <Meta title="Your Plan" style={{backgroundColor: globalColors.blue2}} />}
+        {selected && <Meta title="Your Plan" backgroundColor={globalColors.blue2} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type="BodySmall">

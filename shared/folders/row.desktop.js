@@ -89,22 +89,17 @@ class RowMeta extends React.PureComponent<any> {
       return
     }
 
-    const metaColors = {
+    const color = {
       new: globalColors.white,
       rekey: globalColors.white,
-    }
+    }[meta]
 
-    const metaBGColors = {
+    const backgroundColor = {
       new: globalColors.orange,
       rekey: globalColors.red,
-    }
+    }[meta]
 
-    const metaProps = {
-      title: meta || '',
-      style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {},
-    }
-
-    return <Meta {...metaProps} />
+    return <Meta title={meta || ''} color={color} backgroundColor={backgroundColor} />
   }
 }
 

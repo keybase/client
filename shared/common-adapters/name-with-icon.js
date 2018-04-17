@@ -54,7 +54,6 @@ const NameWithIconVertical = (props: Props) => {
           <Icon
             type={props.icon || ''}
             style={{
-              fontSize: adapterProps.iconSize,
               height: adapterProps.iconSize,
               width: adapterProps.iconSize,
             }}
