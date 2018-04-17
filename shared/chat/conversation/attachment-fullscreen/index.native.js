@@ -24,23 +24,30 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
     this._mounted = true
     NativeImage.getSize(this.props.source.uri, (width, height) => {
       if (this._mounted) {
-        const {width: maxWidth, height: maxHeight} = NativeDimensions.get('window')
-        this.setState({height: Math.min(height, maxHeight), width: Math.min(width, maxWidth)})
+        this.setState({height, width})
       }
     })
   }
 
   render() {
+    const {width: maxWidth, height: maxHeight} = NativeDimensions.get('window')
     return (
       <ZoomableBox
         contentContainerStyle={{flex: 1, position: 'relative'}}
         maxZoom={10}
         style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
       >
         <NativeImage
           {...this.props}
           resizeMode="contain"
-          style={{flex: 1, height: this.state.height, width: this.state.width, alignSelf: 'center'}}
+          style={{
+            flex: 1,
+            height: Math.min(this.state.height, maxHeight),
+            width: Math.min(this.state.width, maxWidth),
+            alignSelf: 'center',
+          }}
         />
       </ZoomableBox>
     )
