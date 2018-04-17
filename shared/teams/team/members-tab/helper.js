@@ -70,6 +70,7 @@ type StateProps = {
   _yourOperations: RPCTypes.TeamOperation,
 }
 
+/* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
 export const mapStateHelper = (state: TypedState, ownProps: {teamname: string}): StateProps => ({
   _memberInfo: Constants.getTeamMembers(state, ownProps.teamname),
   _you: state.config.username || '',

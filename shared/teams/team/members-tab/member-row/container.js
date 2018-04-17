@@ -32,67 +32,52 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps) => {
 }
 
 type DispatchProps = {
-  _onChat: () => void,
-  onClick: () => void,
   _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => void,
   _onRemoveFromTeam: (teamname: string, username: string) => void,
   _onShowTracker: (username: string) => void,
+  onChat: () => void,
+  onClick: () => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
-  _onChat: () => {
-    ownProps.username && dispatch(Chat2Gen.createStartConversation({participants: [ownProps.username]}))
-  },
-  onClick: () =>
-    dispatch(
-      navigateAppend([
-        {
-          selected: 'member',
-          props: ownProps,
-        },
-      ])
-    ),
   _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
-        teamname,
-        username,
+        email: '',
         role: role,
         sendChatNotification: false,
-        email: '',
+        teamname,
+        username,
       })
     )
   },
   _onRemoveFromTeam: (teamname: string, username: string) => {
-    dispatch(
-      TeamsGen.createRemoveMemberOrPendingInvite({
-        username,
-        teamname,
-        email: '',
-        inviteID: '',
-      })
-    )
+    dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
   },
   _onShowTracker: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
   },
+  onChat: () => {
+    ownProps.username && dispatch(Chat2Gen.createStartConversation({participants: [ownProps.username]}))
+  },
+  onClick: () => dispatch(navigateAppend([{props: ownProps, selected: 'member'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
     active: stateProps.active,
-    youCanManageMembers: stateProps.youCanManageMembers,
     following: stateProps.following,
     fullName: stateProps.fullName,
-    roleType: stateProps.roleType,
-    username: stateProps.username,
-    you: stateProps.you,
-    onChat: () => dispatchProps._onChat(),
+    onChat: dispatchProps.onChat,
     onClick: dispatchProps.onClick,
     onReAddToTeam: () =>
       dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username, stateProps.roleType),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
+    roleType: stateProps.roleType,
+    username: stateProps.username,
+    you: stateProps.you,
+    youCanManageMembers: stateProps.youCanManageMembers,
   }
 }
 

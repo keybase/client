@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/teams'
 import {renderItem as renderInvitesItem} from './invites-tab/helper'
-import {renderItem as renderMemeberItem} from './members-tab/helper'
+import {renderItem as renderMemberItem} from './members-tab/helper'
 import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
@@ -45,7 +45,7 @@ class Team extends React.Component<Props> {
         )
       }
       case 'member':
-        return renderMemeberItem(this.props.teamname, row)
+        return renderMemberItem(this.props.teamname, row)
       case 'invites-invite':
       case 'invites-request':
       case 'invites-divider':

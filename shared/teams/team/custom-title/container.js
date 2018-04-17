@@ -7,9 +7,13 @@ import {connect, type TypedState} from '../../../util/container'
 import {navigateAppend} from '../../../actions/route-tree'
 import {teamsTab} from '../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {teamname}) => ({
-  _yourOperations: Constants.getCanPerform(state, teamname),
-})
+const mapStateToProps = (state: TypedState, {teamname}) => {
+  const yourOperations = Constants.getCanPerform(state, teamname)
+  return {
+    canChat: !yourOperations.joinTeam,
+    canViewFolder: !yourOperations.joinTeam,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
@@ -33,8 +37,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  canChat: !stateProps._yourOperations.joinTeam,
-  canViewFolder: !stateProps._yourOperations.joinTeam,
+  canChat: stateProps.canChat,
+  canViewFolder: stateProps.canViewFolder,
   onChat: dispatchProps.onChat,
   onOpenFolder: dispatchProps.onOpenFolder,
   onShowMenu: dispatchProps.onShowMenu,

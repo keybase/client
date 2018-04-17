@@ -19,6 +19,7 @@ type StateProps = {
   _yourOperations: Types.TeamOperations,
 }
 
+/* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
 export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StateProps => ({
   _sawSubteamsBanner: state.teams.getIn(['sawSubteamsBanner'], false),
   _subteams: Constants.getTeamSubteams(state, teamname),
@@ -26,14 +27,11 @@ export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StatePr
 })
 
 export const getRows = ({_subteams, _sawSubteamsBanner, _yourOperations}: StateProps) => {
-  const subteams = _subteams.sort()
-  const noSubteams = subteams.isEmpty()
-  return [
-    ...(!_sawSubteamsBanner ? [{type: 'subteam-intro'}] : []),
-    ...(_yourOperations.manageSubteams ? [{type: 'subteam-add'}] : []),
-    ...subteams.map(subteam => ({teamname: subteam, type: 'subteam-subteam'})),
-    ...(noSubteams ? [{type: 'subteam-none'}] : []),
-  ]
+  const bannerRow = _sawSubteamsBanner ? [] : [{type: 'subteam-intro'}]
+  const addMembersRow = _yourOperations.manageSubteams ? [{type: 'subteam-add'}] : []
+  const subTeamsRows = _subteams.sort().map(subteam => ({teamname: subteam, type: 'subteam-subteam'}))
+  const noSubteamsRow = _subteams.isEmpty() ? [{type: 'subteam-none'}] : []
+  return [...bannerRow, ...addMembersRow, ...subTeamsRows, ...noSubteamsRow]
 }
 
 export const renderItem = (teamname: string, row: {teamname: string, type: string}) => {

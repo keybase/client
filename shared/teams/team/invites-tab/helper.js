@@ -18,6 +18,7 @@ type StateProps = {
   _requests: I.Set<Types.RequestInfo>,
 }
 
+/* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
 export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StateProps => ({
   _invites: Constants.getTeamInvites(state, teamname),
   _requests: Constants.getTeamRequests(state, teamname),
