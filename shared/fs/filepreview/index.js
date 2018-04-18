@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Button, Text, BackButton} from '../../common-adapters'
@@ -9,18 +8,8 @@ import PathItemIcon from '../common/path-item-icon'
 import Footer from '../footer/container'
 import memoize from 'lodash/memoize'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
-
-type FilePreviewProps = {
-  fileUIEnabled: boolean,
-  pathItem: Types.PathItemMetadata,
-  itemStyles: Types.ItemStyles,
-  onAction: (targetRect?: ?ClientRect) => void,
-  onBack: () => void,
-  onDownload: () => void,
-  onShowInFileUI: () => void,
-  onShare: () => void,
-  onSave: () => void,
-}
+import renderFileTypeSpecial from './view-file'
+import type {FilePreviewProps} from './common'
 
 const FilePreview = (props: FilePreviewProps) => (
   <Box style={styleOuterContainer}>
@@ -51,11 +40,7 @@ const FilePreview = (props: FilePreviewProps) => (
             startWithLastModified={true}
           />
         )}
-        {isMobile && (
-          <Text type="BodySmall" style={stylesNoOpenMobile}>
-            This document can not be opened on mobile. You can still interact with it using the ••• menu.
-          </Text>
-        )}
+        {renderFileTypeSpecial(props)}
         {// Enable this button for desktop when we have in-app sharing.
         isMobile && (
           <Button
@@ -86,7 +71,7 @@ const FilePreview = (props: FilePreviewProps) => (
           />
         ) : (
           <Button
-            key="open"
+            key="download"
             type="Secondary"
             label="Download a copy"
             style={{marginTop: globalMargins.small}}
@@ -161,10 +146,5 @@ const stylesFilename = memoize(color => ({
   marginBottom: globalMargins.tiny,
   color: color,
 }))
-
-const stylesNoOpenMobile = {
-  marginTop: globalMargins.medium,
-  width: 295,
-}
 
 export default FilePreview

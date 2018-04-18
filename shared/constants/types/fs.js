@@ -162,6 +162,11 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
+export const getNameExtension = (name: string): string => {
+  let idx = name.lastIndexOf('.')
+  return idx < 1 ? '' : name.slice(idx + 1)
+}
+export const getPathExtension = (p: Path): string => getNameExtension(getPathName(p))
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
