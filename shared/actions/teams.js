@@ -865,6 +865,7 @@ function _setupTeamHandlers() {
       if (selectedTeamName && teamID === Constants.getTeamID(state, selectedTeamName)) {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
+      return getLoadCalls()
     }
   )
   engine().setIncomingActionCreators(
@@ -876,6 +877,7 @@ function _setupTeamHandlers() {
       if (selectedTeamName && teamID === Constants.getTeamID(state, selectedTeamName)) {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
+      return getLoadCalls()
     }
   )
 }
