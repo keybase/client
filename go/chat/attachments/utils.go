@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -18,6 +19,11 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 		return res, libkb.NotFoundError{}
 	}
 	first := msgs[0]
+	// XXX: REMOVE ME
+	// XXX: AHHHH
+	// XXX: GET ME OUT OF HERE
+	out, _ := json.Marshal(first)
+	g.GetLog().CDebugf(ctx, "AssetFromMessage: JSON: %s", string(out))
 
 	st, err := first.State()
 	if err != nil {

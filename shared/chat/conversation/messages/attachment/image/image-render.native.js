@@ -5,7 +5,7 @@ import {NativeImage, NativeDimensions} from '../../../../../common-adapters/nati
 import type {ImageRenderProps} from './image-render'
 
 export function ImageRender({style, src}: ImageRenderProps) {
-  const source = typeof src === 'string' ? {uri: 'file://' + src} : src
+  const source = typeof src === 'string' ? {uri: src} : src
   return <NativeImage source={source} style={style} resizeMode="contain" />
 }
 

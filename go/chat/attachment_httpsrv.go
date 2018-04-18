@@ -46,18 +46,14 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	}
 	r := &AttachmentHTTPSrv{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentHTTPSrv", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
 		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(7000, 8000)),
 		endpoint:     "at",
 		ri:           ri,
 		urlMap:       l,
 		fetcher:      fetcher,
 	}
-	if err := r.httpSrv.Start(); err != nil {
-		r.Debug(context.TODO(), "NewRemoteAttachmentHTTPSrv: failed to start HTTP server: %", err)
-		return r
-	}
-	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
+	r.startHTTPSrv()
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
 		return nil
@@ -75,11 +71,19 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 		state = <-r.G().AppState.NextUpdate(&state)
 		switch state {
 		case keybase1.AppState_FOREGROUND:
-			r.httpSrv.Start()
+			r.startHTTPSrv()
 		case keybase1.AppState_BACKGROUND:
 			r.httpSrv.Stop()
 		}
 	}
+}
+
+func (r *AttachmentHTTPSrv) startHTTPSrv() {
+	if err := r.httpSrv.Start(); err != nil {
+		r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %", err)
+		return
+	}
+	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {

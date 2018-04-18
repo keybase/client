@@ -65,7 +65,7 @@ const AttachmentView = ({
   path: ?string,
 }) => (
   <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
-    {!!path && <AutoMaxSizeImage source={{uri: `file://${path}`}} />}
+    {!!path && <AutoMaxSizeImage source={{uri: `${path}`}} />}
     {!path && <ProgressIndicator style={{width: 48}} white={true} />}
   </Box>
 )
