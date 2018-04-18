@@ -132,6 +132,10 @@
             "items": "OutboxRecord"
           },
           "name": "outboxRecords"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralPurge"
         }
       ]
     },
