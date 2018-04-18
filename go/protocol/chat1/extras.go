@@ -358,6 +358,14 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 	return (o == nil) && (r == nil)
 }
 
+func ETime(metadata *MsgEphemeralMetadata, header *MessageServerHeader) gregor1.Time {
+	if metadata == nil || header == nil {
+		return 0
+	}
+	etime := header.Ctime.Time().Add(time.Second * time.Duration(metadata.Lifetime))
+	return gregor1.ToTime(etime)
+}
+
 func (m MessageUnboxedValid) IsExploding() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -371,7 +379,8 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	if metadata == nil {
 		return 0
 	}
-	return metadata.Etime
+	etime := m.ServerHeader.Ctime.Time().Add(time.Second * time.Duration(metadata.Lifetime))
+	return gregor1.ToTime(etime)
 }
 
 func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
@@ -472,10 +481,7 @@ func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
 
 func (m MessageBoxed) Etime() gregor1.Time {
 	metadata := m.EphemeralMetadata()
-	if metadata == nil {
-		return 0
-	}
-	return metadata.Etime
+	return ETime(metadata, m.ServerHeader)
 }
 
 func (m MessageBoxed) IsExploding() bool {

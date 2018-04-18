@@ -327,9 +327,8 @@ func TestBackgroundPurge(t *testing.T) {
 	u := world.GetUsers()[0]
 	uid := gregor1.UID(u.GetUID().ToBytes())
 	trip := newConvTriple(ctx, t, tc, u.Username)
-	clock := world.Fc
 	chatStorage := storage.New(g)
-	chatStorage.SetClock(clock)
+	chatStorage.SetClock(world.Fc)
 
 	// setup a ticker since we don't run the service's fastChatChecks ticker here.
 	tickerLifetime := 500 * time.Millisecond
@@ -353,7 +352,7 @@ func TestBackgroundPurge(t *testing.T) {
 		}
 	}
 
-	sendEphemeral := func(lifetime time.Duration) *chat1.MessageBoxed {
+	sendEphemeral := func(lifetime gregor1.DurationSec) *chat1.MessageBoxed {
 		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:              trip,
@@ -361,7 +360,7 @@ func TestBackgroundPurge(t *testing.T) {
 				TlfName:           u.Username,
 				TlfPublic:         false,
 				MessageType:       chat1.MessageType_TEXT,
-				EphemeralMetadata: &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(clock.Now().Add(lifetime))},
+				EphemeralMetadata: &chat1.MsgEphemeralMetadata{Lifetime: lifetime},
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
@@ -395,7 +394,7 @@ func TestBackgroundPurge(t *testing.T) {
 	assertTrackerState(res.ConvID, expectedPurgeInfo)
 
 	// Send two ephemeral messages, and ensure both get purged
-	lifetime := time.Second
+	lifetime := gregor1.DurationSec(1)
 	msgBoxed1 := sendEphemeral(lifetime * 2)
 	msgBoxed2 := sendEphemeral(lifetime * 3)
 

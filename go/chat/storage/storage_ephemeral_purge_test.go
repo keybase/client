@@ -106,15 +106,16 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		verifyTrackerState(expectedPurgeInfo)
 	}
 
-	lifetime := time.Second
+	lifetime := gregor1.DurationSec(1)
+	sleepLifetime := time.Second * time.Duration(lifetime)
 	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
 	msgB := makeText(2, "some text")
-	msgC := makeEphemeralText(3, "some text", &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(clock.Now().Add(lifetime))})
+	msgC := makeEphemeralText(3, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime})
 	msgD := makeHeadlineMessage(4)
-	msgE := makeEphemeralEdit(5, msgC.GetMessageID(), &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(clock.Now().Add(lifetime * 3))})
-	msgF := makeEphemeralText(6, "some text", &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(clock.Now().Add(lifetime * 2))})
+	msgE := makeEphemeralEdit(5, msgC.GetMessageID(), &chat1.MsgEphemeralMetadata{Lifetime: lifetime * 3})
+	msgF := makeEphemeralText(6, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime * 2})
 	msgG := makeDelete(7, msgF.GetMessageID(), nil)
-	msgH := makeEphemeralText(8, "some text", &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(clock.Now().Add(lifetime))})
+	msgH := makeEphemeralText(8, "some text", &chat1.MsgEphemeralMetadata{Lifetime: lifetime})
 
 	t.Logf("initial merge")
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
@@ -143,7 +144,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("sleep and fetch")
 	// We sleep for `lifetime`, so we expect C to get purged on fetch (msg H is
 	// not yet merged in)
-	clock.Advance(lifetime)
+	clock.Advance(sleepLifetime)
 	setExpected("C", msgC, false, dontCare)
 	assertState(msgG.GetMessageID())
 	// We don't update the  tracker state is updated from a fetch
@@ -169,7 +170,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	verifyTrackerState(expectedPurgeInfo)
 
 	// we've slept for ~ lifetime*2, F's lifetime is up
-	clock.Advance(lifetime)
+	clock.Advance(sleepLifetime)
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgE.Valid().Etime(),
 		MinUnexplodedID: msgE.GetMessageID(),
@@ -180,7 +181,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	assertState(msgH.GetMessageID())
 
 	// we've slept for ~ lifetime*3, E's lifetime is up
-	clock.Advance(lifetime)
+	clock.Advance(sleepLifetime)
 	expectedPurgeInfo = &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   0,
 		MinUnexplodedID: msgH.GetMessageID(),

@@ -1083,7 +1083,7 @@ export type MessageUnboxedState =
 
 export type MessageUnboxedValid = $ReadOnly<{clientHeader: MessageClientHeaderVerified, serverHeader: MessageServerHeader, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, bodyHash: Hash, headerHash: Hash, headerSignature?: ?SignatureInfo, verificationKey?: ?Bytes, senderDeviceRevokedAt?: ?Gregor1.Time, atMentionUsernames?: ?Array<String>, atMentions?: ?Array<Gregor1.UID>, channelMention: ChannelMention, channelNameMentions?: ?Array<ChannelNameMention>}>
 
-export type MsgEphemeralMetadata = $ReadOnly<{etime: Gregor1.Time, generation: Keybase1.EkGeneration}>
+export type MsgEphemeralMetadata = $ReadOnly<{lifetime: Gregor1.DurationSec, generation: Keybase1.EkGeneration}>
 
 export type NameQuery = $ReadOnly<{name: String, membersType: ConversationMembersType}>
 

@@ -1042,13 +1042,13 @@ func (o OutboxInfo) DeepCopy() OutboxInfo {
 }
 
 type MsgEphemeralMetadata struct {
-	Etime      gregor1.Time          `codec:"e" json:"e"`
-	Generation keybase1.EkGeneration `codec:"g" json:"g"`
+	Lifetime   gregor1.DurationSec   `codec:"life" json:"life"`
+	Generation keybase1.EkGeneration `codec:"gen" json:"gen"`
 }
 
 func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 	return MsgEphemeralMetadata{
-		Etime:      o.Etime.DeepCopy(),
+		Lifetime:   o.Lifetime.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
 	}
 }
