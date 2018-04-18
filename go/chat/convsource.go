@@ -133,6 +133,15 @@ func NewRemoteConversationSource(g *globals.Context, b *Boxer, ri func() chat1.R
 	}
 }
 
+func (s *RemoteConversationSource) AcquireConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	return nil
+}
+
+func (s *RemoteConversationSource) ReleaseConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+}
+
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
@@ -413,6 +422,17 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 		lockTab:                newConversationLockTab(g),
 		numExpungeReload:       100,
 	}
+}
+
+func (s *HybridConversationSource) AcquireConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	_, err := s.lockTab.Acquire(ctx, uid, convID)
+	return err
+}
+
+func (s *HybridConversationSource) ReleaseConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+	s.lockTab.Release(ctx, uid, convID)
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
