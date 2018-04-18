@@ -11,6 +11,7 @@ const imageSizes = [40, 96, 192, 200, 360, 560]
 
 const beards = imageSizes.map(i => `beard-${i}.jpg`)
 const gals = imageSizes.map(i => `gal-${i}.png`)
+const ill = imageSizes.map(i => `lll-${i}.jpg`)
 
 const load = () => {
   storiesOf('Cecile', module).add('Images', () =>
@@ -32,10 +33,8 @@ const load = () => {
 }
 
 const Wrap = ({idx, arr, size}) => {
-  const style = {
-    width: size,
-    height: size,
-  }
+  const style = {...globalStyles.flexBoxRow, width: size, height: size, alignItems: 'center'}
+  const styleImage = {width: size}
   return (
     <React.Fragment>
       <Box style={{...wrapperStyle, ...style}}>
@@ -44,8 +43,12 @@ const Wrap = ({idx, arr, size}) => {
       <Box style={{...wrapperStyle, ...style}}>
         <img src={resolveImageAsURL(gals[idx])} />
       </Box>
+      <Box style={{...wrapperStyle, ...style}}>
+        <img src={resolveImageAsURL(ill[idx])} />
+      </Box>
       {avatarSizes.map(a => {
-        const style = {width: a, height: a}
+        const style = {...globalStyles.flexBoxRow, width: a, height: a, alignItems: 'center'}
+        const styleImage = {width: a}
         return (
           <Box key={String(a)}>
             <Text type="BodySmall" style={{marginRight: 5}}>
@@ -53,10 +56,13 @@ const Wrap = ({idx, arr, size}) => {
               {a}{' '}
             </Text>
             <Box style={{...wrapperStyle, ...style}}>
-              <img src={resolveImageAsURL(beards[idx])} style={style} />
+              <img src={resolveImageAsURL(beards[idx])} style={styleImage} />
             </Box>
             <Box style={{...wrapperStyle, ...style}}>
-              <img src={resolveImageAsURL(gals[idx])} style={style} />
+              <img src={resolveImageAsURL(gals[idx])} style={styleImage} />
+            </Box>
+            <Box style={{...wrapperStyle, ...style}}>
+              <img src={resolveImageAsURL(ill[idx])} style={styleImage} />
             </Box>
           </Box>
         )
