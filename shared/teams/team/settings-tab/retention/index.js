@@ -16,6 +16,7 @@ import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/te
 import {daysToLabel} from '../../../../util/timestamp'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 import {type RetentionEntityType} from './container'
+import {Gateway} from 'react-gateway'
 
 export type Props = {
   canSetPolicy: boolean,
@@ -154,12 +155,41 @@ class RetentionPicker extends React.Component<Props, State> {
   render() {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
+        {this.state.showMenu && (
+          <Gateway into="popup-root">
+            <Box style={{width: '100%', height: '100%', position: 'relative'}}>
+              <ClickableBox
+                style={{...globalStyles.fillAbsolute}}
+                onClick={() => this.setState({showMenu: false})}
+              >
+                <Box style={{position: 'relative', height: '100%', width: '100%'}}>
+                  <Box style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
+                    <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
+                      <Box
+                        style={{
+                          ...globalStyles.flexBoxRow,
+                          justifyContent: 'center',
+                          padding: globalMargins.tiny,
+                          borderTopWidth: 1,
+                          borderTopColor: globalColors.black_20,
+                        }}
+                      >
+                        <Text type="HeaderBig">Hi!</Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              </ClickableBox>
+            </Box>
+          </Gateway>
+        )}
+
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
           <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
         </Box>
         <ClickableBox
-          onClick={this._onShowDropdown}
+          onClick={() => this.setState({showMenu: true})}
           style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >
