@@ -83,10 +83,6 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (!isIOS) {
-    goodPath = 'file://' + goodPath
-  }
-  logger.debug('Saving to camera roll: ', goodPath)
   return CameraRoll.saveToCameraRoll(goodPath)
 }
 

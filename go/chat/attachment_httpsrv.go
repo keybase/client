@@ -196,17 +196,24 @@ func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writ
 	return r.store.DownloadAsset(ctx, s3params, asset, w, signer, progress)
 }
 
+type attachmentRemoteStore interface {
+	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
+		progress types.ProgressReporter) error
+	GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+		signer s3.Signer) (io.ReadCloser, error)
+}
+
 type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	store   *attachments.Store
+	store   attachmentRemoteStore
 	diskLRU *disklru.DiskLRU
 }
 
 var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
 
-func NewCachingAttachmentFetcher(g *globals.Context, store *attachments.Store, size int) *CachingAttachmentFetcher {
+func NewCachingAttachmentFetcher(g *globals.Context, store attachmentRemoteStore, size int) *CachingAttachmentFetcher {
 	return &CachingAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),

@@ -4097,7 +4097,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 			})
 			require.NoError(t, err)
 			uid := users[0].User.GetUID().ToBytes()
-			ptv := utils.PresentThreadView(ctx, uid, tv.Thread, ctc.as(t, users[0]).h.G().TeamChannelSource)
+			ptv := utils.PresentThreadView(ctx, ctc.as(t, users[0]).h.G(), uid, tv.Thread,
+				channel.Conv.GetConvID())
 			require.Equal(t, 1, len(ptv.Messages))
 			require.Equal(t, 1, len(ptv.Messages[0].Valid().ChannelNameMentions))
 			require.Equal(t, topicName, ptv.Messages[0].Valid().ChannelNameMentions[0].Name)

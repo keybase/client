@@ -572,12 +572,12 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	// hit notify router with new message
 	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(ctx,
+			Message: utils.PresentMessageUnboxed(ctx, m.world.TcsByID[uid.String()].Context(),
 				chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 					ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 					ServerHeader: *inserted.ServerHeader,
 					MessageBody:  m.createBogusBody(inserted.GetMessageType()),
-				}), uid, dummyChannelSource{}),
+				}), uid, arg.ConversationID),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
 			keybase1.UID(uid.String()), &activity)
