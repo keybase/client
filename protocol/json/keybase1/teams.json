@@ -2146,6 +2146,13 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": {
