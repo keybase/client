@@ -153,7 +153,8 @@ func (o SetAppNotificationSettingsInfo) DeepCopy() SetAppNotificationSettingsInf
 }
 
 type FailedMessageInfo struct {
-	OutboxRecords []OutboxRecord `codec:"outboxRecords" json:"outboxRecords"`
+	OutboxRecords    []OutboxRecord `codec:"outboxRecords" json:"outboxRecords"`
+	IsEphemeralPurge bool           `codec:"isEphemeralPurge" json:"isEphemeralPurge"`
 }
 
 func (o FailedMessageInfo) DeepCopy() FailedMessageInfo {
@@ -169,6 +170,7 @@ func (o FailedMessageInfo) DeepCopy() FailedMessageInfo {
 			}
 			return ret
 		})(o.OutboxRecords),
+		IsEphemeralPurge: o.IsEphemeralPurge,
 	}
 }
 

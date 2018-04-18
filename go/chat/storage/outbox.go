@@ -466,17 +466,19 @@ func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
 		return o.maybeNuke(rerr, o.dbKey())
 	}
 
-	var recs []chat1.OutboxRecord
+	var purged, recs []chat1.OutboxRecord
 	now := o.clock.Now()
 	for _, obr := range obox.Records {
 		if obr.Msg.IsExploding() {
 			st, err := obr.State.State()
 			if err != nil {
 				o.Debug(ctx, "purging ephemeral message from outbox with error getting state: %s", err)
+				purged = append(purged, obr)
 				continue
 			}
 			if st == chat1.OutboxStateType_ERROR && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(now) {
 				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s", ephemeralPurgeCutoff, err)
+				purged = append(purged, obr)
 				continue
 			}
 		}
@@ -491,5 +493,13 @@ func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
+	if len(purged) > 0 {
+		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+			OutboxRecords:    purged,
+			IsEphemeralPurge: true,
+		})
+		o.G().NotifyRouter.HandleNewChatActivity(context.Background(),
+			keybase1.UID(o.GetUID().String()), &act)
+	}
 	return nil
 }

@@ -759,7 +759,7 @@ export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
-export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>}>
+export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
 
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
