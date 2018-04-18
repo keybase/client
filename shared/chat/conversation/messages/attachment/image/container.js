@@ -69,7 +69,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         : () => dispatchProps._loadPreview(message.conversationIDKey, message.ordinal),
     message,
     onClick: () => dispatchProps._onClick(message),
-    onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
+    onShowInFinder:
+      !isMobile && message.downloadPath
+        ? e => {
+            e.preventDefault()
+            e.stopPropagation()
+            dispatchProps._onShowInFinder(message)
+          }
+        : null,
     onShowMenu: () => dispatchProps._onShowMenu(null, message),
     path: message.devicePreviewPath,
     progress: message.transferProgress,
