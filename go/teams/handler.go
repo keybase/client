@@ -24,6 +24,9 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		ForceRepoll: true,
 	}
 	team, err := Load(ctx, g, loadTeamArg)
+	if err != nil {
+		return err
+	}
 
 	if len(msg.ResetUsers) > 0 && team.IsOpen() {
 		for _, uv := range msg.ResetUsers {
