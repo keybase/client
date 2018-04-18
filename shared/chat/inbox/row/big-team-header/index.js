@@ -1,13 +1,7 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, Text, Icon} from '../../../../common-adapters'
-import {
-  desktopStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-} from '../../../../styles'
+import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
 
 type Props = {
   badgeSubscribe: boolean,
@@ -32,7 +26,9 @@ class BigTeamHeader extends React.PureComponent<Props> {
           onClick={isMobile ? () => props.onClickGear() : props.onClickGear}
           style={iconStyle}
         />
-        {props.badgeSubscribe && <Box style={badgeStyle} />}
+        <Box
+          style={{...badgeStyle, backgroundColor: props.badgeSubscribe ? globalColors.orange : undefined}}
+        />
       </Box>
     )
   }
@@ -67,7 +63,6 @@ const teamStyle = {
 }
 
 const badgeStyle = {
-  backgroundColor: globalColors.orange,
   borderRadius: 6,
   height: 8,
   marginTop: 4,

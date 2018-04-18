@@ -922,12 +922,16 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
 function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPayload, state: TypedState) {
   const teamname = action.payload
   const teamList = state.teams.chosenChannelsForTeam.add(teamname)
-  console.warn('teamList', teamList.toJS(), teamList.toJSON())
+  // We'd actually like to do this in one message to avoid having the UI glitch
+  // momentarily inbetween the dismiss (and therefore thinking no teams have
+  // had channels selected) and the re-inject.  This is CORE-7663.
   return Saga.sequentially([
     Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
       category: 'chosenChannelsForTeam',
     }),
-    Saga.put(GregorGen.createInjectItem({body: JSON.stringify(teamList.toJSON()), category: 'chosenChannelsForTeam'}))
+    Saga.put(
+      GregorGen.createInjectItem({body: JSON.stringify(teamList.toJSON()), category: 'chosenChannelsForTeam'})
+    ),
   ])
 }
 

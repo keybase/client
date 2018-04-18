@@ -51,7 +51,9 @@ const InfoPanelMenu = (props: Props) => {
         view: (
           <Box style={globalStyles.flexBoxRow}>
             {props.badgeSubscribe && <Box style={styleBadge} />}
-            <Text style={isMobile ? styleText : {}} type={isMobile ? 'BodyBig' : 'Body'}>Subscribe to channels..</Text>
+            <Text style={isMobile ? styleText : {}} type={isMobile ? 'BodyBig' : 'Body'}>
+              Subscribe to channels...
+            </Text>
           </Box>
         ),
       }
