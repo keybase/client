@@ -24,6 +24,12 @@ func loadAndUnlockKey(ctx context.Context, g *GlobalContext, lctx LoginContext, 
 }
 
 func BootstrapActiveDeviceFromConfig(ctx context.Context, g *GlobalContext, lctx LoginContext, online bool) (uid keybase1.UID, err error) {
+	uid, err = bootstrapActiveDeviceFromConfigReturnRawError(ctx, g, lctx, online)
+	err = fixupBootstrapError(err)
+	return uid, err
+}
+
+func bootstrapActiveDeviceFromConfigReturnRawError(ctx context.Context, g *GlobalContext, lctx LoginContext, online bool) (uid keybase1.UID, err error) {
 	uid = g.Env.GetUID()
 	if uid.IsNil() {
 		return uid, NoUIDError{}
@@ -62,11 +68,11 @@ func fixupBootstrapError(err error) error {
 // nil if everything work, LoginRequiredError if a real "login" in required to
 // make the app work, and various errors on unexpected failures.
 func BootstrapActiveDevice(ctx context.Context, g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) error {
-	err := bootstrapActiveDeviceWithRawError(ctx, g, lctx, uid, deviceID, online)
+	err := bootstrapActiveDeviceReturnRawError(ctx, g, lctx, uid, deviceID, online)
 	return fixupBootstrapError(err)
 }
 
-func bootstrapActiveDeviceWithRawError(ctx context.Context, g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
+func bootstrapActiveDeviceReturnRawError(ctx context.Context, g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (err error) {
 	defer g.CTrace(ctx, "BootstrapActiveDevice", func() error { return err })()
 
 	ad := g.ActiveDevice
