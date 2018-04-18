@@ -23,6 +23,24 @@ import (
 	"golang.org/x/net/context"
 )
 
+type DummyAttachmentFetcher struct{}
+
+func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
+	s3params chat1.S3Params, signer s3.Signer, progress types.ProgressReporter) error {
+	return nil
+}
+
+type DummyAttachmentHTTPSrv struct{}
+
+func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	preview bool) string {
+	return ""
+}
+
+func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
+	return DummyAttachmentFetcher{}
+}
+
 var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
 type AttachmentHTTPSrv struct {

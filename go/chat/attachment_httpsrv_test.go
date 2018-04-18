@@ -81,12 +81,13 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	d, err := libkb.RandHexString("", 8)
 	require.NoError(t, err)
 	fetcher.tempDir = filepath.Join(os.TempDir(), d)
-	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
-		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 
 	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
+
 	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m0",

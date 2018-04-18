@@ -14,6 +14,9 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 	msgID chat1.MessageID, preview bool) (res chat1.Asset, err error) {
 
 	msgs, err := g.ChatHelper.GetMessages(ctx, uid, convID, []chat1.MessageID{msgID}, true)
+	if err != nil {
+		return res, err
+	}
 	if len(msgs) == 0 {
 		return res, libkb.NotFoundError{}
 	}
