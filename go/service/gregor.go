@@ -1222,26 +1222,17 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 		// if we were going to block, then that means we are still alive
 	}
 
-	// Continue on and authenticate
-	g.G().Log.Debug("gregorHandler forceSessionCheck: %v", g.forceSessionCheck)
-	status, err := g.G().LoginState().APIServerSession(g.forceSessionCheck)
-	if err != nil {
-		switch err.(type) {
-		case libkb.LoginRequiredError:
-			return uid, token, loggedInNo
-		case libkb.NoSessionError:
-			return uid, token, loggedInNo
-		default:
-			g.G().Log.Debug("gregorHandler APIServerSessionStatus error (%T): %s", err, err)
-		}
-		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
-		return uid, token, loggedInMaybe
-	}
-	if status == nil {
+	nist, uid, err := g.G().ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		g.G().Log.CDebugf(ctx, "gregorHandler: no NIST for login; user isn't logged in")
 		return uid, token, loggedInNo
 	}
+	if err != nil {
+		g.G().Log.CDebugf(ctx, "gregorHandler: error in generating NIST: %s", err.Error())
+		return uid, token, loggedInMaybe
+	}
 
-	return status.UID, status.SessionToken, loggedInYes
+	return uid, nist.Token().String(), loggedInYes
 }
 
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *gregor1.AuthResult) (err error) {

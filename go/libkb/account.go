@@ -490,7 +490,7 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *D
 	case DeviceSigningKeyType:
 		a.G().Log.Debug("caching secret device signing key")
 
-		if err := a.G().ActiveDevice.setSigningKey(a, uid, deviceID, key); err != nil {
+		if err := a.G().ActiveDevice.setSigningKey(a.G(), a, uid, deviceID, key); err != nil {
 			return err
 		}
 

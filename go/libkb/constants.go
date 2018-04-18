@@ -569,6 +569,7 @@ const (
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
 	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
+	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
 	// Chat prefixes for each MessageBoxedVersion.
 	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
