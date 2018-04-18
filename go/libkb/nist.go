@@ -27,6 +27,7 @@ import (
 const nistExpirationMargin = time.Minute * 5
 const nistLifetime = 28 * time.Hour
 const nistSessionIDLength = 16
+const nistShortHashLen = 19
 
 type nistMode int
 type sessionVersion int
@@ -53,6 +54,9 @@ func (n NISTToken) String() string { return base64.StdEncoding.EncodeToString(n.
 func (n NISTToken) Hash() []byte {
 	tmp := sha256.Sum256(n.Bytes())
 	return tmp[:]
+}
+func (n NISTToken) ShortHash() []byte {
+	return n.Hash()[0:nistShortHashLen]
 }
 
 type NIST struct {
@@ -243,7 +247,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	shortTmp, err = (nistHash{
 		Version: nistVersion,
 		Mode:    nistModeHash,
-		Hash:    longTmp.Hash(),
+		Hash:    longTmp.ShortHash(),
 	}).pack()
 	if err != nil {
 		return err
