@@ -40,9 +40,11 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_EDIT,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
 			MessageID: supersedes,
@@ -64,9 +66,11 @@ func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_DELETE,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: append([]chat1.MessageID{originalMessage}, allEdits...),
@@ -80,9 +84,11 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_TEXT,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: text,
@@ -103,9 +109,11 @@ func makeSystemMessage(id chat1.MessageID) chat1.MessageUnboxed {
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_SYSTEM,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 		MessageBody: chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithComplexteam(
 			chat1.MessageSystemComplexTeam{
@@ -121,9 +129,11 @@ func makeHeadlineMessage(id chat1.MessageID) chat1.MessageUnboxed {
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_HEADLINE,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 		MessageBody: chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
 			Headline: "discus discuss",
@@ -137,9 +147,11 @@ func makeDeleteHistory(id chat1.MessageID, upto chat1.MessageID) chat1.MessageUn
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_DELETEHISTORY,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 		MessageBody: chat1.NewMessageBodyWithDeletehistory(chat1.MessageDeleteHistory{
 			Upto: upto,
@@ -153,9 +165,11 @@ func makeMsgWithType(id chat1.MessageID, typ chat1.MessageType) chat1.MessageUnb
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 			Ctime:     gregor1.ToTime(time.Now()),
+			Now:       gregor1.ToTime(time.Now()),
 		},
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: typ,
+			Rtime:       gregor1.ToTime(time.Now()),
 		},
 	}
 	return chat1.NewMessageUnboxedWithValid(msg)

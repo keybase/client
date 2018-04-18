@@ -999,7 +999,7 @@ export type MessageBoxedVersion =
 
 export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
-export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata, rtime: Gregor1.Time}>
 
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
 
@@ -1023,7 +1023,7 @@ export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, mes
 
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time, now: Gregor1.Time}>
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 

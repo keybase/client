@@ -47,6 +47,7 @@ type storageEngine interface {
 		msgs []chat1.MessageUnboxed) Error
 	ReadMessages(ctx context.Context, res ResultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
+	SetClock(clock clockwork.Clock)
 }
 
 func New(g *globals.Context) *Storage {
@@ -68,6 +69,7 @@ func (s *Storage) setEngine(engine storageEngine) {
 
 func (s *Storage) SetClock(clock clockwork.Clock) {
 	s.clock = clock
+	s.engine.SetClock(clock)
 }
 
 func makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
@@ -333,7 +335,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
-	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
+	s.Debug(ctx, "MergeHelper: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)

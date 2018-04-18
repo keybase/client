@@ -119,6 +119,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 
 	t.Logf("initial merge")
 	mustMerge(t, storage, convID, uid, sortMessagesDesc([]chat1.MessageUnboxed{msgA, msgB, msgC, msgD, msgE, msgF, msgG}))
+
 	// We set the initial tracker info when we merge in
 	expectedPurgeInfo := &chat1.EphemeralPurgeInfo{
 		NextPurgeTime:   msgC.Valid().Etime(),
