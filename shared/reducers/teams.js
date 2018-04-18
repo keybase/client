@@ -115,6 +115,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:
     case TeamsGen.getTeams:
+    case TeamsGen.haveChosenChannelsForTeam:
     case TeamsGen.ignoreRequest:
     case TeamsGen.inviteToTeamByEmail:
     case TeamsGen.inviteToTeamByPhone:
