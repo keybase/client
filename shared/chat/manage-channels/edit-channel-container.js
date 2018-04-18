@@ -4,25 +4,36 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
-import EditChannel from './edit-channel'
+import EditChannel, {type Props} from './edit-channel'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
-  const teamname =
-    routeProps.get('teamname') || Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
-  const waitingForSave = anyWaiting(
+  if (!conversationIDKey) {
+    throw new Error('conversationIDKey unexpectedly empty')
+  }
+
+  const teamname = routeProps.get('teamname')
+  if (!teamname) {
+    throw new Error('teamname unexpectedly empty')
+  }
+
+  const channelInfo = Constants.getChannelInfoFromConvID(state, conversationIDKey)
+  const _needsLoad = !channelInfo
+
+  const waitingForGetInfo = _needsLoad || anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
+  const waitingForUpdate = anyWaiting(
     state,
-    `updateTopic:${conversationIDKey}`,
-    `updateChannelName:${conversationIDKey}`,
-    `getChannels:${teamname}`
+    Constants.updateTopicWaitingKey(conversationIDKey),
+    Constants.updateChannelNameWaitingKey(conversationIDKey)
   )
-  const channelName = Constants.getChannelNameFromConvID(state, conversationIDKey) || ''
-  const _needsLoad = !channelName
-  const topic = Constants.getTopicFromConvID(state, conversationIDKey) || ''
-  const yourRole = Constants.getRole(state, teamname) || 'reader'
-  const canDelete = (yourRole && (Constants.isAdmin(yourRole) || Constants.isOwner(yourRole))) || false
+  const waitingForSave = waitingForGetInfo || waitingForUpdate
+
+  const channelName = channelInfo ? channelInfo.channelname || '' : ''
+  const topic = channelInfo ? channelInfo.description || '' : ''
+  const yourRole = Constants.getRole(state, teamname)
+  const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
     _needsLoad,
     conversationIDKey,
@@ -30,6 +41,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     channelName,
     topic,
     canDelete,
+    waitingForGetInfo,
     waitingForSave,
   }
 }
@@ -50,7 +62,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {routeState}) => {
+const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
   const deleteRenameDisabled = stateProps.channelName === 'general'
   return {
     teamname: stateProps.teamname,
@@ -75,12 +87,13 @@ const mergeProps = (stateProps, dispatchProps, {routeState}) => {
 
       dispatchProps.onCancel() // nav back up
     },
+    waitingForGetInfo: stateProps.waitingForGetInfo,
     waitingForSave: stateProps.waitingForSave,
   }
 }
 const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname?: string}>,
+  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
   routeState: I.RecordOf<{waitingForSave: number}>,
 }> = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

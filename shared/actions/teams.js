@@ -529,7 +529,7 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
 
 function _getChannels(action: TeamsGen.GetChannelsPayload) {
   const teamname = action.payload.teamname
-  const waitingKey = {key: `getChannels:${teamname}`}
+  const waitingKey = {key: Constants.getChannelsWaitingKey(teamname)}
   return Saga.all([
     Saga.call(RPCChatTypes.localGetTLFConversationsLocalRpcPromise, {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -647,7 +647,7 @@ function _checkRequestedAccessSuccess(result) {
 
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
   const {teamname, channelState} = action.payload
-  const convIDs: I.Set<ChatTypes.ConversationIDKey> = Constants.getConvIdsFromTeamName(state, teamname)
+  const convIDs: I.Set<ChatTypes.ConversationIDKey> = Constants.getTeamConvIDs(state, teamname)
   const channelnameToConvID = keyBy(convIDs.toArray(), c => Constants.getChannelNameFromConvID(state, c))
   const waitingKey = {key: `saveChannel:${teamname}`}
 
@@ -897,7 +897,7 @@ function getLoadCalls(teamname?: string) {
 function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   const {conversationIDKey, newTopic} = action.payload
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
-  const waitingKey = {key: `updateTopic:${conversationIDKey}`}
+  const waitingKey = {key: Constants.updateTopicWaitingKey(conversationIDKey)}
   const param = {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
@@ -921,7 +921,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
   const {conversationIDKey, newChannelName} = action.payload
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
-  const waitingKey = {key: `updateChannelName:${conversationIDKey}`}
+  const waitingKey = {key: Constants.updateChannelNameWaitingKey(conversationIDKey)}
   const param = {
     channelName: newChannelName,
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
