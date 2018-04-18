@@ -349,16 +349,21 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 	require.NoError(t, err)
 
 	// Rotate - should trigger sweeping path if the team is open.
-	err = HandleRotateRequest(context.Background(), tc.G, keybase1.TeamCLKRMsg{
+	params := keybase1.TeamCLKRMsg{
 		TeamID:     team.ID,
 		Generation: team.Generation(),
-		ResetUsers: []keybase1.TeamCLKRResetUser{
+	}
+	if open {
+		// If the team is not open, team_rekeyd will not tell us about
+		// reset people.
+		params.ResetUsers = []keybase1.TeamCLKRResetUser{
 			keybase1.TeamCLKRResetUser{
 				Uid:               otherA.User.GetUID(),
 				UserEldestSeqno:   keybase1.Seqno(0),
 				MemberEldestSeqno: keybase1.Seqno(1),
-			}},
-	})
+			}}
+	}
+	err = HandleRotateRequest(context.Background(), tc.G, params)
 	require.NoError(t, err)
 
 	// Reload team and check results.
@@ -379,6 +384,8 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 	} else {
 		require.ElementsMatch(t, members2.AllUserVersions(), members.AllUserVersions())
 	}
+
+	require.Equal(t, keybase1.PerTeamKeyGeneration(3), team.Generation())
 }
 
 func TestRotateTeamSweeping(t *testing.T) {
