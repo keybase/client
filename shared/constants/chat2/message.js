@@ -560,8 +560,6 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       ret.set('ordinal', old.ordinal)
-      ret.set('deviceFilePath', old.deviceFilePath)
-      ret.set('devicePreviewPath', old.devicePreviewPath)
       ret.set('downloadPath', old.downloadPath)
     })
   }

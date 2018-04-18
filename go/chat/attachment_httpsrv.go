@@ -154,6 +154,11 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		makeError(500, "failed to get asset: %s", err)
 		return
 	}
+	if len(asset.Path) == 0 {
+		makeError(404, "attachment not uploaded yet, no path")
+		return
+	}
+
 	params, err := r.ri().GetS3Params(ctx, pair.ConvID)
 	if err != nil {
 		makeError(500, "failed to get S3 params: %s", err)
