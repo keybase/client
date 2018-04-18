@@ -2,6 +2,7 @@
 import logger from '../logger'
 import {map, keyBy, last} from 'lodash-es'
 import * as I from 'immutable'
+import * as GregorGen from './gregor-gen'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
@@ -918,6 +919,18 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   ])
 }
 
+function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPayload, state: TypedState) {
+  const teamname = action.payload
+  const teamList = state.teams.chosenChannelsForTeam.add(teamname)
+  console.warn('teamList', teamList.toJS(), teamList.toJSON())
+  return Saga.sequentially([
+    Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+      category: 'chosenChannelsForTeam',
+    }),
+    Saga.put(GregorGen.createInjectItem({body: JSON.stringify(teamList.toJSON()), category: 'chosenChannelsForTeam'}))
+  ])
+}
+
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
   const {conversationIDKey, newChannelName} = action.payload
   const teamname = Constants.getTeamNameFromConvID(state, conversationIDKey) || ''
@@ -1078,6 +1091,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(TeamsGen.saveTeamRetentionPolicy, _saveTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
+  yield Saga.safeTakeEveryPure(TeamsGen.haveChosenChannelsForTeam, _haveChosenChannelsForTeam)
 }
 
 export default teamsSaga

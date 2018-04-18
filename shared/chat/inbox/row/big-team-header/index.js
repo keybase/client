@@ -2,15 +2,15 @@
 import React from 'react'
 import {Avatar, Box, Text, Icon} from '../../../../common-adapters'
 import {
+  desktopStyles,
   globalStyles,
   globalColors,
   globalMargins,
-  glamorous,
   isMobile,
-  desktopStyles,
 } from '../../../../styles'
 
 type Props = {
+  badgeSubscribe: boolean,
   onClickGear: (evt?: SyntheticEvent<Element>) => void,
   memberCount: number,
   teamname: string,
@@ -21,7 +21,7 @@ class BigTeamHeader extends React.PureComponent<Props> {
     const props = this.props
 
     return (
-      <HeaderBox>
+      <Box style={teamRowContainerStyle}>
         <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>
           {props.teamname}
@@ -32,22 +32,10 @@ class BigTeamHeader extends React.PureComponent<Props> {
           onClick={isMobile ? () => props.onClickGear() : props.onClickGear}
           style={iconStyle}
         />
-      </HeaderBox>
+        {props.badgeSubscribe && <Box style={badgeStyle} />}
+      </Box>
     )
   }
-}
-
-const iconStyle = {
-  color: globalColors.black_20,
-  fontSize: isMobile ? 20 : 16,
-  padding: 4,
-  ...(isMobile
-    ? {
-        backgroundColor: globalColors.fastBlank,
-      }
-    : {
-        hoverColor: globalColors.black_75,
-      }),
 }
 
 const teamRowContainerStyle = {
@@ -61,19 +49,10 @@ const teamRowContainerStyle = {
   paddingRight: isMobile ? 0 : globalMargins.xtiny,
 }
 
-const HeaderBox = glamorous(Box)({
-  ...teamRowContainerStyle,
-  ...(isMobile
-    ? {}
-    : {
-        '& .icon': {
-          display: 'none !important',
-        },
-        ':hover .icon': {
-          display: 'inherit !important',
-        },
-      }),
-})
+const iconStyle = {
+  color: globalColors.black_20,
+  fontSize: isMobile ? 20 : 16,
+}
 
 const teamStyle = {
   color: globalColors.darkBlue,
@@ -85,6 +64,15 @@ const teamStyle = {
         backgroundColor: globalColors.fastBlank,
       }
     : {}),
+}
+
+const badgeStyle = {
+  backgroundColor: globalColors.orange,
+  borderRadius: 6,
+  height: 8,
+  marginTop: 4,
+  marginRight: 4,
+  width: 8,
 }
 
 export {BigTeamHeader}

@@ -8,6 +8,7 @@ import * as GregorGen from './gregor-gen'
 import * as TeamsGen from './teams-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
+import * as I from 'immutable'
 import engine from '../engine'
 import {folderFromPath} from '../constants/favorite.js'
 import {nativeReachabilityEvents} from '../util/reachability'
@@ -117,20 +118,28 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGener
   }
 }
 
-function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
+function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
+  console.warn('in handleBannersAndBadges', items)
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
+  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
+  // Right now we're getting the oldest one..
+  console.warn('chosenChannels is', chosenChannels)
+  const chosenChannelsForTeam = (chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString())|| JSON.stringify([])
   if (sawChatBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawChatBanner())
   }
   if (sawSubteamsBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
+  console.warn('set is', chosenChannelsForTeam)
+  yield Saga.put(TeamsGen.createSetChosenChannelsForTeam({chosenChannelsForTeam}))
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
+    console.warn('in handlePushState', state)
     const nonNullItems = toNonNullGregorItems(state)
     if (nonNullItems.length !== (state.items || []).length) {
       logger.warn('Lost some messages in filtering out nonNull gregor items')
@@ -138,7 +147,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
 
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
-      Saga.call(handleIntroBanners, nonNullItems),
+      Saga.call(handleBannersAndBadges, nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

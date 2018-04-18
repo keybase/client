@@ -2,9 +2,10 @@
 import * as React from 'react'
 import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
 import {Avatar, Box, Text} from '../../../../common-adapters'
-import {globalStyles, isMobile} from '../../../../styles'
+import {globalColors, globalStyles, isMobile} from '../../../../styles'
 
 type Props = {
+  badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,
   memberCount: number,
@@ -38,11 +39,23 @@ const InfoPanelMenu = (props: Props) => {
       onClick: props.onInvite,
     },
   ]
-  const channelItem = {
-    title: props.isSmallTeam ? 'Make chat channels...' : 'Manage chat channels',
-    onClick: props.onManageChannels,
-    subTitle: props.isSmallTeam ? 'Turns this into a big team' : undefined,
-  }
+  const channelItem = props.isSmallTeam
+    ? {
+        onClick: props.onManageChannels,
+        subTitle: 'Turns this into a big team',
+        title: 'Make chat channels...',
+      }
+    : {
+        onClick: props.onManageChannels,
+        title: 'Subscribe to channels...',
+        view: (
+          <Box style={globalStyles.flexBoxRow}>
+            {props.badgeSubscribe && <Box style={styleBadge} />}
+            <Text style={isMobile ? styleText : {}} type={isMobile ? 'BodyBig' : 'Body'}>Subscribe to channels..</Text>
+          </Box>
+        ),
+      }
+
   const items = [
     ...(props.canAddPeople ? addPeopleItems : []),
     {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
@@ -65,6 +78,18 @@ const InfoPanelMenu = (props: Props) => {
       items={items}
     />
   )
+}
+
+const styleBadge = {
+  backgroundColor: globalColors.orange,
+  borderRadius: 6,
+  height: 8,
+  margin: isMobile ? 6 : 4,
+  width: 8,
+}
+
+const styleText = {
+  color: globalColors.blue,
 }
 
 export {InfoPanelMenu}
