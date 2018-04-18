@@ -44,7 +44,8 @@
     "rn-storybook": "storybook start -p 7007",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile",
-    "coverage": "flow-coverage-report -i '**/*.js' -i '**/*.js.flow' -x 'node_modules/**' -x 'markdown/parser.js' -x 'flow-typed/**' -x 'desktop/dist/**' -x 'coverage/**' -f ./node_modules/.bin/flow -o ./coverage -t text -t html"
+    "coverage-report": "flow-coverage-report -i '**/*.js' -i '**/*.js.flow' -x 'node_modules/**' -x 'markdown/parser.js' -x 'flow-typed/**' -x 'desktop/dist/**' -x 'coverage/**' -f ./node_modules/.bin/flow -o ./coverage -t text -t html",
+    "coverage": "flow coverage --color "
   },
   "jest": {
     "modulePaths": [
