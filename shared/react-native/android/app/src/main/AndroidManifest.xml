@@ -63,7 +63,7 @@
       </service>
       <provider
           android:name="io.keybase.ossifrage.util.SharedFileProvider"
-          android:authorities="${applicationId}.fileprovider"
+          android:authorities="io.keybase.ossifrage.fileprovider"
           android:exported="false"
           android:grantUriPermissions="true">
           <meta-data
