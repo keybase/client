@@ -30,8 +30,7 @@ public class ShareFiles extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void share(String uriPath, String mimeType, Promise promise) {
-        Uri uri = Uri.parse(uriPath);
-        File file = new File(reactContext.getCacheDir(), uri.getLastPathSegment());
+        File file = new File(uriPath);
         Uri fileUri = FileProvider.getUriForFile(reactContext, "io.keybase.ossifrage.fileprovider", file);
 
         Intent intent = new Intent(Intent.ACTION_SEND)
