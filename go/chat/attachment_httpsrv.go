@@ -209,6 +209,9 @@ type CachingAttachmentFetcher struct {
 
 	store   attachmentRemoteStore
 	diskLRU *disklru.DiskLRU
+
+	// testing
+	tempDir string
 }
 
 var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
@@ -223,6 +226,9 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachmentRemoteStore
 }
 
 func (c *CachingAttachmentFetcher) getCacheDir() string {
+	if len(c.tempDir) > 0 {
+		return c.tempDir
+	}
 	return filepath.Join(c.G().GetCacheDir(), "attachments")
 }
 
