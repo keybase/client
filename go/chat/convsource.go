@@ -51,7 +51,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	//       rather than only checking the messages we just fetched against
 	//       each other.
 	if checkPrev {
-		_, err = CheckPrevPointersAndGetUnpreved(thread)
+		_, _, err = CheckPrevPointersAndGetUnpreved(thread)
 		if err != nil {
 			return err
 		}

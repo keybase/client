@@ -39,7 +39,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
-	reqs, err := ListRequests(context.Background(), tc.G)
+	reqs, err := ListRequests(context.Background(), tc.G, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(reqs))
 	require.Equal(t, teamName, reqs[0].Name)
@@ -94,7 +94,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	reqs, err := ListRequests(context.Background(), tc.G)
+	reqs, err := ListRequests(context.Background(), tc.G, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 }
 
 func assertNoRequests(tc libkb.TestContext) {
-	reqs, err := ListRequests(context.Background(), tc.G)
+	reqs, err := ListRequests(context.Background(), tc.G, nil)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

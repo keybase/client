@@ -378,6 +378,17 @@ func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID ch
 	return f.Lookup(ctx, tlfName, public)
 }
 
+func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
+func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
 type failingUpak struct {
 	t *testing.T
 }

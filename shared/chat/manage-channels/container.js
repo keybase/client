@@ -18,9 +18,10 @@ import {
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {
+  getChannelsWaitingKey,
   getCanPerform,
-  getConvIdsFromTeamName,
   getChannelInfoFromConvID,
+  getTeamConvIDs,
   hasCanPerform,
 } from '../../constants/teams'
 import '../../constants/route-tree'
@@ -29,8 +30,8 @@ type ChannelMembershipState = {[channelname: string]: boolean}
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
-  const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
-  const convIDs = getConvIdsFromTeamName(state, teamname)
+  const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, getChannelsWaitingKey(teamname))
+  const convIDs = getTeamConvIDs(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
   // We can get here without loading team operations
@@ -88,7 +89,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
     onEdit: conversationIDKey =>
-      dispatch(navigateAppend([{selected: 'editChannel', props: {conversationIDKey}}])),
+      dispatch(navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
     onCreate: () =>
       dispatch(navigateTo([{selected: 'createChannel', props: {teamname}}], routePath.butLast())),
     _saveSubscriptions: (

@@ -596,9 +596,10 @@ const (
 	DeriveReasonPUKStellarBundle   DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
 	DeriveReasonPUKStellarNoteSelf DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
 
-	DeriveReasonDeviceEKEncryption DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
-	DeriveReasonUserEKEncryption   DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
-	DeriveReasonTeamEKEncryption   DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
+	DeriveReasonDeviceEKEncryption  DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
+	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
+	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
+	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
 )
 
 // Not a DeriveReason because it is not used in the same way.

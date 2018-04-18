@@ -100,6 +100,17 @@ func (t *KBFSNameInfoSource) DecryptionKeys(ctx context.Context, tlfName string,
 	return t.Lookup(ctx, tlfName, public)
 }
 
+func (t *KBFSNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (teamEK keybase1.TeamEk, err error) {
+	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
+}
+
+func (t *KBFSNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	return teamEK, fmt.Errorf("KBFSNameInfoSource doesn't support ephemeral keys")
+}
+
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
 	identBehavior, _, ok := IdentifyMode(ctx)
 	if !ok {

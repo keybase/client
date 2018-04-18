@@ -3859,7 +3859,7 @@ export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean
 
 export type TeamsTeamListMyAccessRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamListRequestsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamListSubteamsRecursiveRpcParam = $ReadOnly<{parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

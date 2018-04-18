@@ -4,8 +4,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import {connect, type TypedState} from '../../util/container'
 import ReallyLeaveTeam, {Spinner, type Props as RenderProps} from '.'
 import LastOwnerDialog from './last-owner'
-import {navigateTo} from '../../actions/route-tree'
-import {chatTab} from '../../constants/tabs'
 import {getCanPerform, hasCanPerform} from '../../constants/teams'
 import {type Teamname} from '../../constants/types/teams'
 
@@ -31,7 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
-    dispatch(navigateTo([chatTab]))
+    dispatch(navigateUp())
     dispatch(TeamsGen.createGetTeams())
   },
 })

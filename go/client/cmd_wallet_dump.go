@@ -20,7 +20,8 @@ func newCmdWalletDump(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name: "dump",
+		Name:  "dump",
+		Usage: "Display wallet account keys",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "dump", c)
 		},

@@ -2126,7 +2126,8 @@ type TeamAcceptInviteOrRequestAccessArg struct {
 }
 
 type TeamListRequestsArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	TeamName  *string `codec:"teamName,omitempty" json:"teamName,omitempty"`
 }
 
 type TeamListMyAccessRequestsArg struct {
@@ -2263,7 +2264,7 @@ type TeamsInterface interface {
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
 	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) (TeamAcceptOrRequestResult, error)
-	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
+	TeamListRequests(context.Context, TeamListRequestsArg) ([]TeamJoinRequest, error)
 	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
@@ -2578,7 +2579,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamListRequestsArg)(nil), args)
 						return
 					}
-					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3028,8 +3029,7 @@ func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg 
 	return
 }
 
-func (c TeamsClient) TeamListRequests(ctx context.Context, sessionID int) (res []TeamJoinRequest, err error) {
-	__arg := TeamListRequestsArg{SessionID: sessionID}
+func (c TeamsClient) TeamListRequests(ctx context.Context, __arg TeamListRequestsArg) (res []TeamJoinRequest, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
 	return
 }

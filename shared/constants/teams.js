@@ -12,12 +12,18 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
 // Waiting keys
 // Add granularity as necessary
-export const teamWaitingKey = (teamname: string) => `team:${teamname}`
-export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
-export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
-export const addMemberWaitingKey = (teamname: string, username: string) => `teamAdd:${teamname};${username}`
+export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
+export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
+export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
+export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
+  `teamAdd:${teamname};${username}`
 // also for pending invites, hence id rather than username
-export const removeMemberWaitingKey = (teamname: string, id: string) => `teamRemove:${teamname};${id}`
+export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
+export const updateTopicWaitingKey = (conversationIDKey: ChatTypes.ConversationIDKey) =>
+  `updateTopic:${conversationIDKey}`
+export const updateChannelNameWaitingKey = (conversationIDKey: ChatTypes.ConversationIDKey) =>
+  `updateChannelName:${conversationIDKey}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: null,
@@ -173,9 +179,6 @@ const userIsActiveInTeamHelper = (
   return member && member.active
 }
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.teamNameToConvIDs.get(teamname, I.Set())
-
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
 
@@ -184,9 +187,6 @@ const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatType
 
 const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
-
-const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')
@@ -364,7 +364,6 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
-  getConvIdsFromTeamName,
   getRole,
   getCanPerform,
   hasCanPerform,
@@ -388,7 +387,6 @@ export {
   getTeamRequests,
   getTeamConvIDs,
   getSortedTeamnames,
-  getTopicFromConvID,
   getTeamType,
   isAdmin,
   isBigTeam,
