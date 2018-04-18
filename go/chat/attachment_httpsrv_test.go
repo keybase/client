@@ -102,7 +102,7 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	uiMsg2 := utils.PresentMessageUnboxed(context.TODO(), tc.Context(), tv.Messages[1], uid, conv.Id)
 	require.NotNil(t, uiMsg.Valid().AssetUrlInfo)
 
-	waitTime := 2 * time.Second
+	waitTime := 20 * time.Second
 	readAsset := func(msg chat1.UIMessage, cacheHit bool) {
 		httpRes, err := http.Get(msg.Valid().AssetUrlInfo.FullUrl)
 		require.NoError(t, err)
