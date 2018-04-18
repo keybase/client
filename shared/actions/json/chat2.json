@@ -273,6 +273,13 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
+    // Update the loading bars
+    "attachmentLoading": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "ratio": "number", // 0-1
+      "isPreview": "boolean"
+    },
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "conversationIDKey": "Types.ConversationIDKey",

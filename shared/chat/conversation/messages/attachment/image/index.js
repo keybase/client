@@ -31,7 +31,7 @@ class ImageAttachment extends React.PureComponent<Props> {
         </Text>
         <Box
           style={{
-            ...loadedStyle,
+            ...loadingStyle,
             height: this.props.height,
             width: this.props.width,
           }}
@@ -117,8 +117,10 @@ const imageStyle = {
   position: 'relative',
 }
 
-const loadedStyle = {
+const loadingStyle = {
   ...imageStyle,
+  backgroundColor: globalColors.black_05,
+  borderRadius: globalMargins.xtiny,
 }
 
 const linkStyle = {

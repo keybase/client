@@ -1414,10 +1414,21 @@ const updatePendingSelected = (
 
 function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {
   // Start downloading
+  let lastRatioSent = 0
   const downloadFileRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentDownloadProgress': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentDownloadProgress': function*({bytesComplete, bytesTotal}) {
+        const ratio = bytesComplete / bytesTotal
+        // Don't spam ourselves with updates
+        if (ratio - lastRatioSent > 0.05) {
+          lastRatioSent = ratio
+          yield Saga.put(
+            Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, ordinal, ratio})
+          )
+        }
+        return EngineRpc.rpcResult()
+      },
       'chat.1.chatUi.chatAttachmentDownloadStart': EngineRpc.passthroughResponseSaga,
     },
     RPCChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,

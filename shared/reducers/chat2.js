@@ -205,6 +205,15 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
       })
+    case Chat2Gen.attachmentLoading:
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return action.payload.isPreview
+          ? message.set('previewTransferState', 'downloading')
+          : message.set('transferProgress', action.payload.ratio).set('transferState', 'downloading')
+      })
     case Chat2Gen.attachmentUploaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
@@ -218,7 +227,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           return message
         }
         const path = action.error ? '' : action.payload.path
-        return message.set('downloadPath', path)
+        return message
+          .set('downloadPath', path)
+          .set('transferProgress', 0)
+          .set('transferState', null)
       })
     case Chat2Gen.metasReceived:
       const existingPending = messageMap.get(Constants.pendingConversationIDKey)
@@ -633,6 +645,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
     case Chat2Gen.metasReceived:
+    case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
     case Chat2Gen.attachmentDownloaded:
