@@ -1224,14 +1224,13 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 
 	nist, uid, err := g.G().ActiveDevice.NISTAndUID(ctx)
 	if nist == nil {
-		g.G().Log.CDebugf(ctx, "no NIST for login; user isn't logged in")
+		g.G().Log.CDebugf(ctx, "gregorHandler: no NIST for login; user isn't logged in")
 		return uid, token, loggedInNo
 	}
 	if err != nil {
-		g.G().Log.CDebugf(ctx, "error in generating NIST: %s", err.Error())
+		g.G().Log.CDebugf(ctx, "gregorHandler: error in generating NIST: %s", err.Error())
 		return uid, token, loggedInNo
 	}
-	g.G().Log.CDebugf(ctx, "NIST %s", nist.Token().String())
 
 	return uid, nist.Token().String(), loggedInYes
 }
