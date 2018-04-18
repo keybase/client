@@ -26,7 +26,7 @@ func newCmdWalletImport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	return cli.Command{
 		Name:         "import",
 		Description:  "Import a stellar account",
-		Usage:        "Import keys of a Stellar account",
+		Usage:        "Import stellar account keys",
 		ArgumentHelp: "[--primary]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "import", c)
