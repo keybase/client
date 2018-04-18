@@ -1229,7 +1229,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 	if err != nil {
 		g.G().Log.CDebugf(ctx, "gregorHandler: error in generating NIST: %s", err.Error())
-		return uid, token, loggedInNo
+		return uid, token, loggedInMaybe
 	}
 
 	return uid, nist.Token().String(), loggedInYes
