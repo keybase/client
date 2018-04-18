@@ -29,6 +29,12 @@ const (
 // user-created directory entry name.
 var disallowedPrefixes = [...]string{".kbfs"}
 
+type revokedKeyInfo struct {
+	// Fields are exported so they can be copied by the codec.
+	Time       keybase1.Time
+	MerkleRoot keybase1.MerkleRootV2
+}
+
 // UserInfo contains all the info about a keybase user that kbfs cares
 // about.
 type UserInfo struct {
@@ -40,8 +46,8 @@ type UserInfo struct {
 	EldestSeqno     keybase1.Seqno
 
 	// Revoked keys, and the time at which they were revoked.
-	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]keybase1.Time
-	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]keybase1.Time
+	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]revokedKeyInfo
+	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]revokedKeyInfo
 }
 
 // TeamInfo contains all the info about a keybase team that kbfs cares

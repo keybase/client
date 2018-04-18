@@ -185,30 +185,33 @@ func filterKeys(keys map[keybase1.KID]keybase1.PublicKeyV2NaCl) (
 func filterRevokedKeys(
 	keys map[keybase1.KID]keybase1.PublicKeyV2NaCl,
 	reset *keybase1.ResetSummary) (
-	map[kbfscrypto.VerifyingKey]keybase1.Time,
-	map[kbfscrypto.CryptPublicKey]keybase1.Time,
+	map[kbfscrypto.VerifyingKey]revokedKeyInfo,
+	map[kbfscrypto.CryptPublicKey]revokedKeyInfo,
 	map[keybase1.KID]string, error) {
-	verifyingKeys := make(map[kbfscrypto.VerifyingKey]keybase1.Time)
-	cryptPublicKeys := make(map[kbfscrypto.CryptPublicKey]keybase1.Time)
+	verifyingKeys := make(map[kbfscrypto.VerifyingKey]revokedKeyInfo)
+	cryptPublicKeys := make(map[kbfscrypto.CryptPublicKey]revokedKeyInfo)
 	var kidNames = map[keybase1.KID]string{}
 	var parents = map[keybase1.KID]keybase1.KID{}
 
 	for _, key := range keys {
-		var revokedTime keybase1.Time
+		var info revokedKeyInfo
 		if key.Base.Revocation != nil {
-			revokedTime = key.Base.Revocation.Time
+			info.Time = key.Base.Revocation.Time
+			info.MerkleRoot = key.Base.Revocation.PrevMerkleRootSigned
 		} else if reset != nil {
-			revokedTime = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
+			info.Time = keybase1.ToTime(keybase1.FromUnixTime(reset.Ctime))
+			info.MerkleRoot.Seqno = reset.MerkleRoot.Seqno
+			info.MerkleRoot.HashMeta = reset.MerkleRoot.HashMeta
 		} else {
 			// Not revoked.
 			continue
 		}
 
 		addVerifyingKey := func(key kbfscrypto.VerifyingKey) {
-			verifyingKeys[key] = revokedTime
+			verifyingKeys[key] = info
 		}
 		addCryptPublicKey := func(key kbfscrypto.CryptPublicKey) {
-			cryptPublicKeys[key] = revokedTime
+			cryptPublicKeys[key] = info
 		}
 		err := processKey(key, addVerifyingKey, addCryptPublicKey,
 			kidNames, parents)

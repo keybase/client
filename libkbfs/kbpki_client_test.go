@@ -51,8 +51,8 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
 		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
-		user.RevokedVerifyingKeys = map[kbfscrypto.VerifyingKey]keybase1.Time{
-			newVerifyingKey: keybase1.ToTime(revokeTime),
+		user.RevokedVerifyingKeys = map[kbfscrypto.VerifyingKey]revokedKeyInfo{
+			newVerifyingKey: {Time: keybase1.ToTime(revokeTime)},
 		}
 		users[i] = user
 	}
