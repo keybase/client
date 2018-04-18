@@ -27421,7 +27421,7 @@ exports[`Storyshots Common Name with icon 1`] = `
                 Object {
                   "WebkitFontSmoothing": "antialiased",
                   "fontFamily": "kb",
-                  "fontSize": 16,
+                  "fontSize": 64,
                   "fontStyle": "normal",
                   "fontVariant": "normal",
                   "fontWeight": "normal",
