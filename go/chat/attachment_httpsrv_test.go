@@ -7,10 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
@@ -64,6 +66,9 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
+	defer func() {
+		useRemoteMock = true
+	}()
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
 	decryptCh := make(chan struct{}, 10)
@@ -73,7 +78,9 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 		assetReaderCh: assetReaderCh,
 	}
 	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 1)
-	fetcher.tempDir = os.TempDir()
+	d, err := libkb.RandHexString("", 8)
+	require.NoError(t, err)
+	fetcher.tempDir = filepath.Join(os.TempDir(), d)
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
 		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 
