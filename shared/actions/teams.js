@@ -920,8 +920,8 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
 }
 
 function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPayload, state: TypedState) {
-  const teamname = action.payload
-  if (state.teams.chosenChannelsforTeam && state.teams.chosenChannelsForTeam.has(teamname)) {
+  const {teamname} = action.payload
+  if (state.teams.chosenChannelsForTeam && state.teams.chosenChannelsForTeam.has(teamname)) {
     return
   }
   const teamList = state.teams.chosenChannelsForTeam.add(teamname)

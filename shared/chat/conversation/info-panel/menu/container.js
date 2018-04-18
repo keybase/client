@@ -57,7 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
     onManageChannels: () => {
       !isMobile && dispatch(navigateUp())
       dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
-      dispatch(createHaveChosenChannelsForTeam(teamname))
+      dispatch(createHaveChosenChannelsForTeam({teamname}))
     },
     onViewTeam: () => {
       !isMobile && dispatch(navigateUp())
