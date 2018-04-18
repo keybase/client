@@ -50,6 +50,7 @@ func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.Global
 
 func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
+		newCmdWalletDump(cl, g),
 		newCmdWalletInit(cl, g),
 	}
 }
