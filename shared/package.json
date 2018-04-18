@@ -118,6 +118,7 @@
     "re-reselect": "1.0.1",
     "react": "16.3.1",
     "react-dom": "16.3.1",
+    "react-gateway": "3.0.0",
     "react-list": "0.8.8",
     "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-543",
     "react-native-camera": "0.10.0",
