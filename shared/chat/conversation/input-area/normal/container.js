@@ -31,13 +31,15 @@ type OwnProps = {
 const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+  const pendingSelected = conversationIDKey === Constants.pendingConversationIDKey
+  const meta = Constants.getMeta(state, conversationIDKey)
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
   const _editingMessage = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const quote = Constants.getQuotingOrdinalAndSource(
     state,
-    state.chat2.pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
+    pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
   )
   let _quotingMessage = null
   if (quote) {
@@ -46,22 +48,13 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 
   // Sanity check -- is this quoted-pending message for the right person?
-  if (
-    state.chat2.pendingSelected &&
-    _quotingMessage &&
-    !isEqual([_quotingMessage.author], state.chat2.pendingConversationUsers.toArray())
-  ) {
-    console.warn(
-      'Should never happen:',
-      state.chat2.pendingConversationUsers.toArray(),
-      'vs',
-      _quotingMessage.author
-    )
+  if (pendingSelected && _quotingMessage && !isEqual([_quotingMessage.author], meta.participants.toArray())) {
+    console.warn('Should never happen:', meta.participants.toArray(), 'vs', _quotingMessage.author)
     _quotingMessage = null
   }
 
   const _you = state.config.username || ''
-  const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
+  const pendingWaiting = pendingSelected && state.chat2.pendingStatus === 'waiting'
 
   const injectedInputMessage = _editingMessage || _quotingMessage || null
   const injectedInput =
@@ -69,7 +62,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
 
   return {
     _editingMessage,
-    _meta: Constants.getMeta(state, conversationIDKey),
+    _meta: meta,
     _quotingMessage,
     _you,
     conversationIDKey,

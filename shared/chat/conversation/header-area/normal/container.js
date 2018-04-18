@@ -17,17 +17,13 @@ import {chatTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  let _participants
-  if (state.chat2.pendingSelected) {
-    _participants = state.chat2.pendingConversationUsers.toSet()
-  } else {
-    _participants = meta.teamname ? I.Set() : meta.participants
-  }
+  const _participants = meta.teamname ? I.Set() : meta.participants
+
   return {
     _conversationIDKey: conversationIDKey,
     _participants,
     badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
-    canOpenInfoPanel: !state.chat2.pendingSelected,
+    canOpenInfoPanel: conversationIDKey !== Constants.pendingConversationIDKey,
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,

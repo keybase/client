@@ -10,19 +10,19 @@ type Props = {
   shouldShow: boolean,
   isSelected: boolean,
   onClick: () => void,
-  users: I.Set<string>,
+  users: I.OrderedSet<string>,
 }
 
 const mapStateToProps = (state: TypedState): * => {
-  const users = state.chat2.pendingConversationUsers
   const _you = state.config.username
   const conversationIDKey = Constants.getSelectedConversation(state)
+  const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
 
   return {
     _you,
     isSelected: conversationIDKey === Constants.pendingConversationIDKey,
     shouldShow: state.chat2.pendingMode !== 'none',
-    users,
+    users: meta.participants,
   }
 }
 

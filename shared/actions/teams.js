@@ -330,12 +330,8 @@ const _createNewTeamFromConversation = function*(
   const me = usernameSelector(state)
   let participants: Array<string> = []
 
-  if (state.chat2.pendingSelected) {
-    participants = state.chat2.pendingConversationUsers.toArray()
-  } else {
-    const meta = ChatConstants.getMeta(state, conversationIDKey)
-    participants = meta.participants.toArray()
-  }
+  const meta = ChatConstants.getMeta(state, conversationIDKey)
+  participants = meta.participants.toArray()
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -357,10 +353,11 @@ const _createNewTeamFromConversation = function*(
         }
       }
       yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
-      if (state.chat2.pendingSelected) {
-        yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
-        yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
-      }
+      // TODO saga should do this and not require external ppl to remove this nojima
+      // if (state.chat2.pendingSelected) {
+      // yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
+      // yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+      // }
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {

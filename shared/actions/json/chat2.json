@@ -140,6 +140,10 @@
     "retryPendingConversation": {
       "_description": "Retries sending the pending message that is currently stored in the metaMap"
     },
+    "setPendingConversationExistingConversationIDKey": {
+      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
+      "conversationIDKey": "Types.ConversationIDKey",
+    },
     // Start editing a message / or edit the last message / or clear editing
     "messageSetEditing": {
       "conversationIDKey": "Types.ConversationIDKey",

@@ -108,7 +108,9 @@ const metaMapReducer = (metaMap, action) => {
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
         if (action.payload.clearExistingMetas) {
-          map.clear()
+          // keep pending conversation
+          const pending = map.get(Constants.pendingConversationIDKey)
+          map.clear().set(Constants.pendingConversationIDKey, pending)
         }
         const neverCreate = !!action.payload.neverCreate
         action.payload.metas.forEach(meta => {
@@ -328,7 +330,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setPendingMode:
       return state.set('pendingMode', action.payload.pendingMode)
     case Chat2Gen.setPendingConversationUsers:
-      return state.set('pendingConversationUsers', I.Set(action.payload.users))
+      return state.setIn(
+        ['metaMap', Constants.pendingConversationIDKey, 'participants'],
+        I.OrderedSet(action.payload.users)
+      )
+    case Chat2Gen.setPendingConversationExistingConversationIDKey:
+      return state.setIn(
+        ['metaMap', Constants.pendingConversationIDKey, 'conversationIDKey'],
+        action.payload.conversationIDKey
+      )
     case Chat2Gen.badgesUpdated: {
       const badgeMap = I.Map(
         action.payload.conversations.map(({convID, badgeCounts}) => [

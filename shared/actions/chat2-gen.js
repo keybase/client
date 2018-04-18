@@ -74,6 +74,7 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setLoading = 'chat2:setLoading'
+export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
@@ -124,6 +125,10 @@ export const createSetConvRetentionPolicy = (
     policy: RetentionPolicy,
   |}>
 ) => ({error: false, payload, type: setConvRetentionPolicy})
+/**
+ * When the search changes we need to find any existing conversations to stash into the metaMap
+ */
+export const createSetPendingConversationExistingConversationIDKey = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
 export const createAttachmentDownload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -507,6 +512,7 @@ export type SetConvRetentionPolicyPayload = More.ReturnType<typeof createSetConv
 export type SetConversationOfflinePayload = More.ReturnType<typeof createSetConversationOffline>
 export type SetInboxFilterPayload = More.ReturnType<typeof createSetInboxFilter>
 export type SetLoadingPayload = More.ReturnType<typeof createSetLoading>
+export type SetPendingConversationExistingConversationIDKeyPayload = More.ReturnType<typeof createSetPendingConversationExistingConversationIDKey>
 export type SetPendingConversationUsersPayload = More.ReturnType<typeof createSetPendingConversationUsers>
 export type SetPendingMessageSubmitStatePayload = More.ReturnType<typeof createSetPendingMessageSubmitState>
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
@@ -584,6 +590,7 @@ export type Actions =
   | More.ReturnType<typeof createSetConversationOffline>
   | More.ReturnType<typeof createSetInboxFilter>
   | More.ReturnType<typeof createSetLoading>
+  | More.ReturnType<typeof createSetPendingConversationExistingConversationIDKey>
   | More.ReturnType<typeof createSetPendingConversationUsers>
   | More.ReturnType<typeof createSetPendingMessageSubmitState>
   | More.ReturnType<typeof createSetPendingMode>

@@ -628,10 +628,11 @@ const loadMoreMessages = (
   let reason: string = ''
 
   if (action.type === Chat2Gen.setPendingConversationUsers) {
-    if (state.chat2.pendingSelected) {
-      key = Constants.findConversationFromParticipants(state, I.Set(action.payload.users))
-      reason = 'building a search'
+    key = Constants.getSelectedConversation(state)
+    if (key !== Constants.pendingConversationIDKey) {
+      return
     }
+    reason = 'building a search'
   } else if (action.type === Chat2Gen.markConversationsStale) {
     key = Constants.getSelectedConversation(state)
     // not mentioned?
@@ -1095,7 +1096,7 @@ const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPaylo
     logger.warn('retryPendingConversation: found no pending messages; aborting')
     return
   }
-  const pendingUsers = state.chat2.pendingConversationUsers
+  const pendingUsers = Constants.getMeta(state, Constants.pendingConversationIDKey).participants
   if (pendingUsers.isEmpty()) {
     logger.warn('retryPendingConversation: found no pending conv users; aborting')
     return
@@ -1104,8 +1105,12 @@ const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPaylo
   if (pendingMessages.size > 1) {
     logger.warn('retryPendingConversation: found more than one pending message; only resending the first')
   }
-  // $FlowIssue thinks message can be null
-  const message: Types.Message = pendingMessages.first()
+  const message: ?Types.Message = pendingMessages.first()
+  if (!message) {
+    // impossible, helps flow
+    return
+  }
+
   const you = state.config.username
   if (!you) {
     logger.warn('retryPendingConversation: found no currently logged in username; aborting')
@@ -1154,9 +1159,11 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   const {conversationIDKey, text} = action.payload
   const outboxID = Constants.generateOutboxID()
 
+  let participants
   // Sending to pending
-  if (!conversationIDKey) {
-    if (state.chat2.pendingConversationUsers.isEmpty()) {
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
+    participants = Constants.getMeta(state, Constants.pendingConversationIDKey).participants
+    if (participants.isEmpty()) {
       logger.warn('Sending to pending w/ no pending?')
       return
     }
@@ -1184,20 +1191,21 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       Saga.put(
         Chat2Gen.createSendToPendingConversation({
           sendingAction: action,
-          users: state.chat2.pendingConversationUsers.concat([you]).toArray(),
+          users: participants.concat([you]).toArray(),
         })
       ),
     ])
   }
 
   // Did we search for an existing conversation? if so exit it
-  const exitSearch = state.chat2.pendingSelected
-    ? [
-        Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'existingSearch'})),
-        Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-        Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
-      ]
-    : []
+  const exitSearch =
+    Constants.getSelectedConversation(state) === Constants.pendingConversationIDKey
+      ? [
+          Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'existingSearch'})),
+          Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+          Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
+        ]
+      : []
 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
@@ -1243,10 +1251,17 @@ const startConversationAfterFindExisting = (
 
     // There is an existing conversation, select it
     if (conversationIDKey) {
-      return Saga.sequentially([
-        Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
-        Saga.put(Chat2Gen.createNavigateToThread()),
-      ])
+      if (action.type === Chat2Gen.startConversation) {
+        return Saga.sequentially([
+          Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
+          Saga.put(Chat2Gen.createNavigateToThread()),
+        ])
+      } else if (action.type === Chat2Gen.setPendingConversationUsers) {
+        return Saga.sequentially([
+          Saga.put(Chat2Gen.createSetPendingConversationExistingConversationIDKey({conversationIDKey})),
+          Saga.put(Chat2Gen.createNavigateToThread()),
+        ])
+      }
     }
   }
 
@@ -1360,7 +1375,7 @@ const selectTheNewestConversation = (
   } else if (action.type === Chat2Gen.metasReceived) {
     const conversationIDKey = Constants.getSelectedConversation(state)
     // already something?
-    if (conversationIDKey) {
+    if (conversationIDKey !== Constants.noConversationIDKey) {
       return
     }
 
@@ -1398,22 +1413,23 @@ const selectTheNewestConversation = (
 }
 
 const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
-  const conversationIDKey = Constants.findConversationFromParticipants(
-    state,
-    state.chat2.pendingConversationUsers
-  )
-  return Saga.sequentially([
-    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
-    Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
-    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
-    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-    Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
-    // We may have some failed pending messages sitting around, clear out that data
-    Saga.put(Chat2Gen.createClearPendingConversation()),
-    ...(action.payload.canceled || !conversationIDKey
-      ? []
-      : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
-  ])
+  // TODO clean this up
+  // const conversationIDKey = Constants.findConversationFromParticipants(
+  // state,
+  // state.chat2.pendingConversationUsers
+  // )
+  // return Saga.sequentially([
+  // Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
+  // Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
+  // Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
+  // Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  // Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
+  // // We may have some failed pending messages sitting around, clear out that data
+  // Saga.put(Chat2Gen.createClearPendingConversation()),
+  // ...(action.payload.canceled || !conversationIDKey
+  // ? []
+  // : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
+  // ])
 }
 
 const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
@@ -1653,8 +1669,9 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const outboxID = Constants.generateOutboxID()
 
   // Sending to pending
-  if (!conversationIDKey) {
-    if (state.chat2.pendingConversationUsers.isEmpty()) {
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
+    const participants = Constants.getMeta(state, Constants.pendingConversationIDKey).participants
+    if (participants.isEmpty()) {
       logger.warn('Sending to pending w/ no pending?')
       return
     }
@@ -1683,7 +1700,7 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
       Saga.put(
         Chat2Gen.createSendToPendingConversation({
           sendingAction: action,
-          users: state.chat2.pendingConversationUsers.concat([you]).toArray(),
+          users: participants.concat([you]).toArray(),
         })
       ),
     ])

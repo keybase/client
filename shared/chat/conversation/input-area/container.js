@@ -10,7 +10,7 @@ import type {TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const isPendingConversation = state.chat2.pendingSelected
+  const isPendingConversation = conversationIDKey === Constants.pendingConversationIDKey
   const pendingStatus = state.chat2.pendingStatus
   return {
     conversationIDKey,

@@ -6,6 +6,7 @@ import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
 import {pendingConversationIDKey, noConversationIDKey} from '../types/chat2/common'
+import {makeConversationMeta} from './meta'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -14,7 +15,14 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
-  metaMap: I.Map(),
+  metaMap: I.Map([
+    [
+      pendingConversationIDKey,
+      makeConversationMeta({
+        conversationIDKey: pendingConversationIDKey,
+      }),
+    ],
+  ]),
   pendingConversationUsers: I.Set(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
