@@ -582,7 +582,7 @@ func TestTeamResetOpen(t *testing.T) {
 	t.Logf("details from poll: %+v", details)
 	teamObj := ann.loadTeam(team.name, false)
 	_, err := teamObj.UserVersionByUID(context.Background(), bob.uid())
-	require.Error(t, err)
+	require.Error(t, err, "expecting reset user to be removed from the team")
 	require.Contains(t, err.Error(), "did not find user")
 
 	bob.loginAfterReset(10)
