@@ -849,7 +849,7 @@ function _setupTeamHandlers() {
       const state = getState()
       logger.info(`Got teamChanged for ${args.teamName} from service`)
       const selectedTeamName = Constants.getSelectedTeamName(state)
-      if (!!selectedTeamName && selectedTeamName === args.teamName) {
+      if (selectedTeamName && selectedTeamName === args.teamName) {
         // only reload if that team is selected
         return getLoadCalls(selectedTeamName)
       }
@@ -862,7 +862,7 @@ function _setupTeamHandlers() {
       const state = getState()
       const {teamID} = args
       const selectedTeamName = Constants.getSelectedTeamName(state)
-      if (teamID === state.teams.teamNameToID.get(selectedTeamName)) {
+      if (selectedTeamName && teamID === Constants.getTeamID(state, selectedTeamName)) {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
     }
@@ -873,7 +873,7 @@ function _setupTeamHandlers() {
       const state = getState()
       const {teamID} = args
       const selectedTeamName = Constants.getSelectedTeamName(state)
-      if (teamID === state.teams.teamNameToID.get(selectedTeamName)) {
+      if (selectedTeamName && teamID === Constants.getTeamID(state, selectedTeamName)) {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
     }
