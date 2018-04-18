@@ -1354,7 +1354,7 @@ const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => 
     state.chat2.pendingConversationUsers
   )
   return Saga.sequentially([
-    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatggSearch'})),
+    Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
