@@ -221,3 +221,10 @@ func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	defer a.RUnlock()
 	return a.nistFactory.NIST(ctx)
 }
+
+func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, error) {
+	a.RLock()
+	defer a.RUnlock()
+	nist, err := a.nistFactory.NIST(ctx)
+	return nist, a.uid, err
+}
