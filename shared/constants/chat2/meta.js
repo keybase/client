@@ -12,6 +12,7 @@ import {isIOS, isAndroid} from '../platform'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {toByteArray} from 'base64-js'
 import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
+import {noConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -34,6 +35,11 @@ export const unverifiedInboxUIItemToConversationMeta = (
 ) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
+    return null
+  }
+
+  // Should be impossible
+  if (!i.convID) {
     return null
   }
 
@@ -250,7 +256,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: noConversationIDKey,
   description: '',
   inboxVersion: -1,
   isMuted: false,

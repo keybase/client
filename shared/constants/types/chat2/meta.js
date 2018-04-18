@@ -34,8 +34,8 @@ export type _ConversationMeta = {
   resetParticipants: I.Set<string>,
   retentionPolicy: RetentionPolicy,
   snippet: string,
-  supersededBy: ?Common.ConversationIDKey,
-  supersedes: ?Common.ConversationIDKey,
+  supersededBy: Common.ConversationIDKey,
+  supersedes: Common.ConversationIDKey,
   teamType: TeamType,
   teamname: string,
   // We have a place in the team store that also stores `teamRetentionPolicy`.

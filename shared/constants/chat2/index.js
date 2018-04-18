@@ -5,6 +5,7 @@ import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
+import {pendingConversationIDKey, noConversationIDKey} from '../types/chat2/common'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -20,7 +21,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingSelected: false,
   pendingStatus: 'none',
   quotingMap: I.Map(),
-  selectedConversation: Types.stringToConversationIDKey(''),
+  selectedConversation: noConversationIDKey,
   typingMap: I.Map(),
   unreadMap: I.Map(),
 })
@@ -61,7 +62,6 @@ export const isUserActivelyLookingAtThisThread = (
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
-export const pendingConversationIDKey = Types.stringToConversationIDKey('PENDING')
 
 export {
   findConversationFromParticipants,
@@ -90,3 +90,5 @@ export {
   uiMessageToMessage,
   upgradeMessage,
 } from './message'
+
+export {pendingConversationIDKey, noConversationIDKey}

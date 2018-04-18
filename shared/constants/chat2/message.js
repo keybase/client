@@ -10,10 +10,11 @@ import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
+import {noConversationIDKey} from '../types/chat2/common'
 
 const makeMessageMinimum = {
   author: '',
-  conversationIDKey: Types.stringToConversationIDKey(''),
+  conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
   timestamp: 0,
