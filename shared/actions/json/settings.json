@@ -42,7 +42,7 @@
     },
     "notificationsSaved": {},
     "notificationsToggle": {
-      "group": "string",
+      "group": "Types.NotificationGroups",
       "name?": "?string"
     },
     "onChangeNewEmail": {
@@ -74,6 +74,9 @@
       "allow": "boolean"
     },
     "trace": {
+      "durationSeconds": "number",
+    },
+    "processorProfile": {
       "durationSeconds": "number",
     },
     "waitingForResponse": {

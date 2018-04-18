@@ -7,11 +7,11 @@ import * as I from 'immutable'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import MemberRow from './member-row/container'
 
-export type OwnProps = {
+export type OwnProps = {|
   teamname: string,
-}
+|}
 
-const order = {owner: 0, admin: 1, writer: 2, reader: 3}
+const order = {admin: 1, owner: 0, reader: 3, writer: 2}
 
 const getOrderedMemberArray = (
   memberInfo: I.Map<string, Types.MemberInfo>,
@@ -71,13 +71,14 @@ type StateProps = {
 }
 
 /* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
-export const mapStateHelper = (state: TypedState, ownProps: {teamname: string}): StateProps => ({
+export const mapStateHelper = (state: TypedState, ownProps: {teamname: string}): $Exact<StateProps> => ({
   _memberInfo: Constants.getTeamMembers(state, ownProps.teamname),
   _you: state.config.username || '',
   _yourOperations: Constants.getCanPerform(state, ownProps.teamname),
 })
 
 export const getRows = ({_memberInfo, _you, _yourOperations}: StateProps) =>
+  // $FlowIssue not sure
   getOrderedMemberArray(_memberInfo, _you, _yourOperations).map(i => ({
     type: 'member',
     username: i.username,

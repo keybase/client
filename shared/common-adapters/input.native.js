@@ -208,9 +208,10 @@ class Input extends Component<Props, State> {
 
     const multilineStyle = {
       ...commonInputStyle,
-      paddingTop: 0,
-      paddingBottom: 0,
+      height: undefined,
       minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+      paddingBottom: 0,
+      paddingTop: 0,
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : null),
     }
 
