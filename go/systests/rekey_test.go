@@ -132,7 +132,7 @@ func (rkt *rekeyTester) setup(nm string) *deviceWrapper {
 func (rkt *rekeyTester) setupDevice(nm string) *deviceWrapper {
 	tctx := setupTest(rkt.t, nm)
 	tctx.G.SetClock(rkt.fakeClock)
-	tctx.G.Env.Test.DisableNISTs = true
+	tctx.G.Env.Test.UseTimeClockForNISTs = true
 	ret := &deviceWrapper{tctx: tctx}
 	rkt.devices = append(rkt.devices, ret)
 	return ret

@@ -222,12 +222,6 @@ func getNIST(ctx context.Context, g *GlobalContext, sessType APISessionType) *NI
 		return nil
 	}
 
-	// We're almost always using NISTs, unless we're some whacky tests like
-	// TestRekey.
-	if g.Env.DisableNISTs() {
-		return nil
-	}
-
 	if !g.Env.GetTorMode().UseSession() {
 		return nil
 	}

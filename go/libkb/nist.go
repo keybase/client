@@ -201,7 +201,17 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		return errors.New("cannot generate a NIST without a NaCl key")
 	}
 
-	generated := n.G().Clock().Now()
+	var generated time.Time
+
+	// For some tests we ignore the clock in n.G().Clock() and just use the standard
+	// time.Now() clock, because otherwise, the server would start to reject our
+	// NISTs.
+	if n.G().Env.UseTimeClockForNISTs() {
+		generated = time.Now()
+	} else {
+		generated = n.G().Clock().Now()
+	}
+
 	expires := generated.Add(nistLifetime)
 
 	payload := nistPayload{

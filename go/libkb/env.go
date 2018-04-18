@@ -169,10 +169,9 @@ type TestParameters struct {
 	// On if, in test, we want to skip sending system chat messages
 	SkipSendingSystemChatMessages bool
 
-	// On if we can't use NIST-style sessions. Mainly in tests that aggressively
-	// push the clock forward (since the server will start to reject NISTs for
-	// clocks too far broken).
-	DisableNISTs bool
+	// If we need to use the real clock for NIST generation (as in really
+	// whacky tests liks TestRekey).
+	UseTimeClockForNISTs bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -313,8 +312,8 @@ func (e *Env) SendSystemChatMessages() bool {
 	return !e.Test.SkipSendingSystemChatMessages
 }
 
-func (e *Env) DisableNISTs() bool {
-	return e.Test.DisableNISTs
+func (e *Env) UseTimeClockForNISTs() bool {
+	return e.Test.UseTimeClockForNISTs
 }
 
 func (e *Env) GetRuntimeDir() string {
