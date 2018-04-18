@@ -118,12 +118,9 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGener
 }
 
 function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
-  console.warn('in handleBannersAndBadges', items)
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
-  // Right now we're getting the oldest one..
-  console.warn('chosenChannels is', chosenChannels)
   const chosenChannelsForTeam =
     (chosenChannels &&
       chosenChannels.item &&
@@ -136,14 +133,12 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
   if (sawSubteamsBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
-  console.warn('set is', chosenChannelsForTeam)
   yield Saga.put(TeamsGen.createSetChosenChannelsForTeam({chosenChannelsForTeam}))
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
-    console.warn('in handlePushState', state)
     const nonNullItems = toNonNullGregorItems(state)
     if (nonNullItems.length !== (state.items || []).length) {
       logger.warn('Lost some messages in filtering out nonNull gregor items')

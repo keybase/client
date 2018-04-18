@@ -39,6 +39,7 @@ export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChosenChannelsForTeam = 'teams:setChosenChannelsForTeam'
 export const setLoaded = 'teams:setLoaded'
+export const setLoadingChosenChannels = 'teams:setLoadingChosenChannels'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -183,6 +184,7 @@ export const createSaveChannelMembership = (
 export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
 export const createSetChosenChannelsForTeam = (payload: $ReadOnly<{|chosenChannelsForTeam: string|}>) => ({error: false, payload, type: setChosenChannelsForTeam})
 export const createSetLoaded = (payload: $ReadOnly<{|loaded: boolean|}>) => ({error: false, payload, type: setLoaded})
+export const createSetLoadingChosenChannels = (payload: $ReadOnly<{|loading: boolean|}>) => ({error: false, payload, type: setLoadingChosenChannels})
 export const createSetMemberPublicity = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -311,6 +313,7 @@ export type SaveTeamRetentionPolicyPayload = More.ReturnType<typeof createSaveTe
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
 export type SetChosenChannelsForTeamPayload = More.ReturnType<typeof createSetChosenChannelsForTeam>
 export type SetLoadedPayload = More.ReturnType<typeof createSetLoaded>
+export type SetLoadingChosenChannelsPayload = More.ReturnType<typeof createSetLoadingChosenChannels>
 export type SetMemberPublicityPayload = More.ReturnType<typeof createSetMemberPublicity>
 export type SetNewTeamInfoPayload = More.ReturnType<typeof createSetNewTeamInfo>
 export type SetPublicityPayload = More.ReturnType<typeof createSetPublicity>
@@ -364,6 +367,7 @@ export type Actions =
   | More.ReturnType<typeof createSetChannelCreationError>
   | More.ReturnType<typeof createSetChosenChannelsForTeam>
   | More.ReturnType<typeof createSetLoaded>
+  | More.ReturnType<typeof createSetLoadingChosenChannels>
   | More.ReturnType<typeof createSetMemberPublicity>
   | More.ReturnType<typeof createSetNewTeamInfo>
   | More.ReturnType<typeof createSetPublicity>

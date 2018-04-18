@@ -90,6 +90,9 @@
       "teamname": "string",
       "username": "string"
     },
+    "setLoadingChosenChannels": {
+      "loading": "boolean"
+    },
     "setMemberPublicity": {
       "teamname": "string",
       "showcase": "boolean"
