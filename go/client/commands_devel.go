@@ -31,7 +31,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamGenerateSeitan(cl, g),
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
-		newCmdWallet(cl, g),
 	}
 }
 
@@ -52,7 +51,6 @@ func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.Global
 func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		newCmdWalletInit(cl, g),
-		newCmdWalletDump(cl, g),
 	}
 }
 
