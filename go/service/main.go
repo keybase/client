@@ -78,7 +78,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  attachments.NewStore(allG, g.Env.GetRuntimeDir()),
+		attachmentstore:  attachments.NewStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),

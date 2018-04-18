@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/logger"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -57,7 +57,6 @@ func (u *UploadTask) Nonce() signencrypt.Nonce {
 }
 
 type Store struct {
-	globals.Contextified
 	utils.DebugLabeler
 
 	s3signer s3.Signer
@@ -73,10 +72,9 @@ type Store struct {
 
 // NewStore creates a standard Store that uses a real
 // S3 connection.
-func NewStore(g *globals.Context, runtimeDir string) *Store {
+func NewStore(logger logger.Logger, runtimeDir string) *Store {
 	return &Store{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
+		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
 	}
@@ -86,10 +84,9 @@ func NewStore(g *globals.Context, runtimeDir string) *Store {
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func newStoreTesting(g *globals.Context, kt func(enc, sig []byte)) *Store {
+func newStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *Store {
 	return &Store{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
+		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
