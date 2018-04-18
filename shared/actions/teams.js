@@ -393,7 +393,9 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }
 
     // Get requests to join
-    const requests: RPCTypes.TeamJoinRequest[] = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise)
+    const requests: RPCTypes.TeamJoinRequest[] = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise, {
+      teamName: teamname,
+    })
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
     const requestMap = requests.reduce((reqMap, req) => {
