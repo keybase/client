@@ -7,7 +7,7 @@ import type {Props} from './link-with-icon'
 const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
   <ClickableBox style={style} onClick={onClick}>
     <Box style={styleContainer}>
-      <Icon style={{...styleIcon}} type={icon} color={color} />
+      <Icon style={styleIcon} type={icon} color={color} />
       <Text style={{...styleLabel, color}} type="BodyPrimaryLink">
         {label}
       </Text>
