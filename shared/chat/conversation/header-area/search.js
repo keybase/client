@@ -17,8 +17,8 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClearSearch: () => dispatch(Chat2Gen.createExitSearch({canceled: true})),
-  onExitSearch: () => dispatch(Chat2Gen.createExitSearch({canceled: false})),
+  onClearSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
+  onExitSearch: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
 })
 
 export default compose(

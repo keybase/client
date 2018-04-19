@@ -328,7 +328,15 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
-      return state.set('pendingMode', action.payload.pendingMode)
+      return state.withMutations(s => {
+        s.set('pendingMode', action.payload.pendingMode)
+        if (action.payload.pendingMode === 'none') {
+          s.set('pendingStatus', 'none')
+          s.deleteIn(['messageOrdinals', Constants.pendingConversationIDKey])
+          s.deleteIn(['pendingOutboxToOrdinal', Constants.pendingConversationIDKey])
+          s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
+        }
+      })
     case Chat2Gen.setPendingConversationUsers:
       return state.setIn(
         ['metaMap', Constants.pendingConversationIDKey, 'participants'],
@@ -582,14 +590,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       const {pendingStatus} = action.payload
       return state.set('pendingStatus', pendingStatus)
     }
-    case Chat2Gen.clearPendingConversation: {
-      return state.withMutations(s => {
-        const conversationIDKey = Constants.pendingConversationIDKey
-        s.deleteIn(['messageOrdinals', conversationIDKey])
-        s.deleteIn(['pendingOutboxToOrdinal', conversationIDKey])
-        s.deleteIn(['messageMap', conversationIDKey])
-      })
-    }
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
@@ -687,7 +687,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentNeedsUpdating:
     case Chat2Gen.attachmentUpload:
     case Chat2Gen.desktopNotification:
-    case Chat2Gen.exitSearch:
     case Chat2Gen.inboxRefresh:
     case Chat2Gen.joinConversation:
     case Chat2Gen.leaveConversation:

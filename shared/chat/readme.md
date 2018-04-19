@@ -43,3 +43,6 @@ If i sent a message after the already sent {MessageID: 123}  the oridinal would 
 The ordinal is only used to ensure this client is seeing messages in order from their perspective. If you reload the thread those ordinals can be resolved into their real sent ids (aka 123.001 -> 124)
 We keep the original ordinal if we can so the ordering of the thread from our perspective is static, even if the 'real' order is different. This means if you reload 123.001 -> 124 but during the session it will remain 123.001
 
+## Pending
+
+When we build a search for users we want to preview the conversation. We have a special conversationIDKey for this Constants.pendingConversationIDKey. This always exists in the metaMap. The users go into the participants property. Usually the convesationIDKey inside the meta is the same as the key in the metaMap but in this special instance the key of the preview conversation goes in there depending on the participants

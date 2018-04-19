@@ -48,14 +48,18 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
   let conversationToShow = conversationIDKey
   if (conversationIDKey === Constants.pendingConversationIDKey) {
     // Special case we stash the 'preview' of the chat if it exists in here
-    conversationToShow = Constants.getMeta(state, Constants.pendingConversationIDKey).conversationIDKey
+    const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+    conversationToShow = meta.conversationIDKey
   }
+
+  const showSearchResults =
+    Constants.getSelectedConversation(state) === Constants.pendingConversationIDKey &&
+    state.chat2.pendingMode === 'searchingForUsers' &&
+    !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
+
   return {
     conversationIDKey: conversationToShow,
-    showSearchResults:
-      Constants.getSelectedConversation(state) === Constants.pendingConversationIDKey &&
-      state.chat2.pendingMode === 'searchingForUsers' &&
-      !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'}),
+    showSearchResults,
   }
 }
 

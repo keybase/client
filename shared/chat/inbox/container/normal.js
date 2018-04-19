@@ -9,6 +9,7 @@ import {
   createSelectorCreator,
   defaultMemoize,
 } from '../../../util/container'
+import * as Constants from '../../../constants/chat2'
 
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, shallowEqual)
 
@@ -19,7 +20,9 @@ const smallTeamsCollapsedMaxShown = 5
 // and the order isn't changing
 
 // Get small/adhoc teams
-const getSmallMetas = createSelector([getMetaMap], metaMap => metaMap.filter(meta => meta.teamType !== 'big'))
+const getSmallMetas = createSelector([getMetaMap], metaMap =>
+  metaMap.filter((meta, id) => meta.teamType !== 'big' && Constants.isValidConversationIDKey(id))
+)
 
 // Sort by timestamp
 const getSortedSmallIDs = createSelector([getSmallMetas], smallMap =>
@@ -33,7 +36,9 @@ const getSortedSmallIDs = createSelector([getSmallMetas], smallMap =>
 const getCachedSortedSmallIDs = createShallowEqualSelector([getSortedSmallIDs], smallMap => smallMap)
 
 // Alphabetical teams / channels
-const getBigMetas = createSelector([getMetaMap], metaMap => metaMap.filter(meta => meta.teamType === 'big'))
+const getBigMetas = createSelector([getMetaMap], metaMap =>
+  metaMap.filter((meta, id) => meta.teamType === 'big' && Constants.isValidConversationIDKey(id))
+)
 
 const getBigRowItems = createImmutableEqualSelector([getBigMetas], bigMetaMap => {
   let lastTeam: ?string

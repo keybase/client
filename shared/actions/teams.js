@@ -353,11 +353,6 @@ const _createNewTeamFromConversation = function*(
         }
       }
       yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
-      // TODO saga should do this and not require external ppl to remove this nojima
-      // if (state.chat2.pendingSelected) {
-      // yield Saga.put(Chat2Gen.createExitSearch({canceled: true}))
-      // yield Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
-      // }
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {

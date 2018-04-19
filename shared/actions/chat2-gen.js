@@ -27,9 +27,7 @@ export const blockConversation = 'chat2:blockConversation'
 export const cancelPendingConversation = 'chat2:cancelPendingConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
-export const clearPendingConversation = 'chat2:clearPendingConversation'
 export const desktopNotification = 'chat2:desktopNotification'
-export const exitSearch = 'chat2:exitSearch'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -209,7 +207,6 @@ export const createBlockConversation = (
 ) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: clearLoading})
 export const createClearOrdinals = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: clearOrdinals})
-export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDesktopNotification = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -217,7 +214,6 @@ export const createDesktopNotification = (
     body: string,
   |}>
 ) => ({error: false, payload, type: desktopNotification})
-export const createExitSearch = (payload: $ReadOnly<{|canceled: boolean|}>) => ({error: false, payload, type: exitSearch})
 export const createInboxRefresh = (payload: $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (
@@ -465,9 +461,7 @@ export type BlockConversationPayload = More.ReturnType<typeof createBlockConvers
 export type CancelPendingConversationPayload = More.ReturnType<typeof createCancelPendingConversation>
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
-export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
-export type ExitSearchPayload = More.ReturnType<typeof createExitSearch>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
 export type LeaveConversationPayload = More.ReturnType<typeof createLeaveConversation>
@@ -543,9 +537,7 @@ export type Actions =
   | More.ReturnType<typeof createCancelPendingConversation>
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
-  | More.ReturnType<typeof createClearPendingConversation>
   | More.ReturnType<typeof createDesktopNotification>
-  | More.ReturnType<typeof createExitSearch>
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createJoinConversation>
   | More.ReturnType<typeof createLeaveConversation>
