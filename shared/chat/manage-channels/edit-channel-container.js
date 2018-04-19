@@ -7,7 +7,6 @@ import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
 import {connect, type TypedState} from '../../util/container'
-import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
@@ -29,13 +28,6 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey) ||
     getMeta(state, conversationIDKey)
 
-  const waitingForUpdate = anyWaiting(
-    state,
-    Constants.updateTopicWaitingKey(conversationIDKey),
-    Constants.updateChannelNameWaitingKey(conversationIDKey)
-  )
-  const waitingForSave = waitingForUpdate
-
   const channelName = channelInfo ? channelInfo.channelname : ''
   const topic = channelInfo ? channelInfo.description : ''
   const yourRole = Constants.getRole(state, teamname)
@@ -46,7 +38,6 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     channelName,
     topic,
     canDelete,
-    waitingForSave,
   }
 }
 
@@ -90,7 +81,6 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
 
       dispatchProps.onCancel() // nav back up
     },
-    waitingForSave: stateProps.waitingForSave,
   }
 }
 const ConnectedEditChannel: React.ComponentType<{

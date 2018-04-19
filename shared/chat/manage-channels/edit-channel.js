@@ -14,7 +14,6 @@ type Props = {
   onConfirmedDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
-  waitingForSave: boolean,
 }
 
 type TextState = {
@@ -76,7 +75,6 @@ const EditChannelBare = (props: Props & TextState) => (
         <Button
           type="Primary"
           label="Save"
-          waiting={props.waitingForSave}
           disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
           onClick={() => props.onSave(props.newChannelName, props.newTopic)}
           style={{marginLeft: globalMargins.tiny}}

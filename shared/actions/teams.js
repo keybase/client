@@ -912,7 +912,6 @@ function getLoadCalls(teamname?: string) {
 
 function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   const {teamname, conversationIDKey, newTopic} = action.payload
-  const waitingKey = {key: Constants.updateTopicWaitingKey(conversationIDKey)}
   const param = {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     tlfName: teamname,
@@ -921,15 +920,9 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   }
 
-  return Saga.all([
-    Saga.put(createIncrementWaiting(waitingKey)),
+  return Saga.sequentially([
     Saga.call(RPCChatTypes.localPostHeadlineRpcPromise, param),
-    Saga.identity(
-      Saga.all([
-        Saga.put(createDecrementWaiting(waitingKey)),
-        Saga.put(TeamsGen.createSetUpdatedTopic({teamname, conversationIDKey, newTopic})),
-      ])
-    ),
+    Saga.put(TeamsGen.createSetUpdatedTopic({teamname, conversationIDKey, newTopic})),
   ])
 }
 
@@ -955,7 +948,6 @@ function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPa
 
 function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: TypedState) {
   const {teamname, conversationIDKey, newChannelName} = action.payload
-  const waitingKey = {key: Constants.updateChannelNameWaitingKey(conversationIDKey)}
   const param = {
     channelName: newChannelName,
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
@@ -964,15 +956,9 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
   }
 
-  return Saga.all([
-    Saga.put(createIncrementWaiting(waitingKey)),
+  return Saga.sequentially([
     Saga.call(RPCChatTypes.localPostMetadataRpcPromise, param),
-    Saga.identity(
-      Saga.all([
-        Saga.put(createDecrementWaiting(waitingKey)),
-        Saga.put(TeamsGen.createSetUpdatedChannelName({teamname, conversationIDKey, newChannelName})),
-      ])
-    ),
+    Saga.put(TeamsGen.createSetUpdatedChannelName({teamname, conversationIDKey, newChannelName})),
   ])
 }
 
