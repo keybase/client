@@ -69,10 +69,8 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
-      if (channelName && !deleteRenameDisabled) {
-        if (newChannelName !== channelName) {
-          dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)
-        }
+      if (!deleteRenameDisabled && newChannelName !== channelName) {
+        dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)
       }
 
       if (newTopic !== topic) {
