@@ -1,14 +1,18 @@
 package stellarnet
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/pkg/errors"
 	samount "github.com/stellar/go/amount"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
+	snetwork "github.com/stellar/go/network"
+	"github.com/stellar/go/xdr"
 )
 
 var client = horizon.DefaultPublicNetClient
@@ -130,17 +134,11 @@ func (a *Account) RecentPayments() ([]horizon.Payment, error) {
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.HTTP.Get(link + "?order=desc&limit=10")
+	var page PaymentsPage
+	err = getDecodeJSONStrict(link+"?order=desc&limit=10", client.HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
-
-	var page PaymentsPage
-	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
-		return nil, err
-	}
-
 	return page.Embedded.Records, nil
 }
 
@@ -151,14 +149,9 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.HTTP.Get(link + "?order=desc&limit=10")
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
 	var page TransactionsPage
-	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
+	err = getDecodeJSONStrict(link+"?order=desc&limit=10", client.HTTP.Get, &page)
+	if err != nil {
 		return nil, err
 	}
 
@@ -180,17 +173,49 @@ func (a *Account) RecentTransactions() ([]Transaction, error) {
 
 func (a *Account) loadOperations(tx Transaction) ([]Operation, error) {
 	link := a.linkHref(tx.Internal.Links.Operations)
-	res, err := client.HTTP.Get(link)
+	var page OperationsPage
+	err := getDecodeJSONStrict(link, client.HTTP.Get, &page)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	return page.Embedded.Records, nil
+}
 
-	var page OperationsPage
-	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
+// TxPayments returns payment operations in a transaction.
+// Note: may not return all payments as the backing response is paginated.
+func TxPayments(txID string) ([]horizon.Payment, error) {
+	txID, err := CheckTxID(txID)
+	if err != nil {
+		return nil, err
+	}
+	var page PaymentsPage
+	err = getDecodeJSONStrict(client.URL+"/transactions/"+txID+"/payments", client.HTTP.Get, &page)
+	if err != nil {
 		return nil, err
 	}
 	return page.Embedded.Records, nil
+}
+
+// HashTx returns the hex transaction ID using the active network passphrase.
+func HashTx(tx xdr.Transaction) (string, error) {
+	bs, err := snetwork.HashTransaction(&tx, network.Passphrase)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bs[:]), nil
+}
+
+// CheckTxID validates and canonicalizes a transaction ID
+// Transaction IDs are lowercase hex-encoded 32-byte strings.
+func CheckTxID(txID string) (string, error) {
+	bs, err := hex.DecodeString(txID)
+	if err != nil {
+		return "", fmt.Errorf("error decoding transaction ID: %v", err)
+	}
+	if len(bs) != 32 {
+		return "", fmt.Errorf("unexpected transaction ID length: %v bytes", len(bs))
+	}
+	return hex.EncodeToString(bs), nil
 }
 
 func isOpNoDestination(inErr error) bool {
@@ -395,4 +420,27 @@ func minBytes(bs []byte, deflt byte) byte {
 		}
 	}
 	return res
+}
+
+// getDecodeJSONStrict gets from a url and decodes the response.
+// Returns errors on non-200 response codes.
+// Inspired by: https://github.com/stellar/go/blob/4c8cfd0/clients/horizon/internal.go#L16
+func getDecodeJSONStrict(url string, getter func(string) (*http.Response, error), dest interface{}) error {
+	resp, err := getter(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		horizonError := &horizon.Error{
+			Response: resp,
+		}
+		err := json.NewDecoder(resp.Body).Decode(&horizonError.Problem)
+		if err != nil {
+			return fmt.Errorf("horizon http error: %v %v", resp.StatusCode, resp.Status)
+		}
+		return horizonError
+	}
+	err = json.NewDecoder(resp.Body).Decode(dest)
+	return err
 }
