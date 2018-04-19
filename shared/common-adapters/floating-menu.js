@@ -8,6 +8,7 @@ import {isMobile} from '../constants/platform'
 export type Props = {
   closeOnSelect?: boolean,
   items: Array<MenuItem | 'Divider' | null>,
+  header?: MenuItem,
   onHidden: () => void,
   visible: boolean,
   attachTo?: ?React.Component<*, *>,
@@ -15,6 +16,9 @@ export type Props = {
 }
 
 export default (props: Props) => {
+  if (!props.visible) {
+    return null
+  }
   const PopupComponent = isMobile ? PopupMenu : ModalLessPopupMenu
   return (
     <FloatingBox
@@ -23,7 +27,12 @@ export default (props: Props) => {
       visible={props.visible}
       attachTo={props.attachTo}
     >
-      <PopupComponent onHidden={props.onHidden} items={props.items} closeOnClick={!!props.closeOnSelect} />
+      <PopupComponent
+        header={props.header}
+        onHidden={props.onHidden}
+        items={props.items}
+        closeOnClick={!!props.closeOnSelect}
+      />
     </FloatingBox>
   )
 }
