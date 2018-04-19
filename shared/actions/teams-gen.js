@@ -10,6 +10,7 @@ import * as Types from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer
+export const addParticipant = 'teams:addParticipant'
 export const addPeopleToTeam = 'teams:addPeopleToTeam'
 export const addToTeam = 'teams:addToTeam'
 export const badgeAppForTeams = 'teams:badgeAppForTeams'
@@ -35,6 +36,7 @@ export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
+export const removeParticipant = 'teams:removeParticipant'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setChannelCreationError = 'teams:setChannelCreationError'
@@ -77,6 +79,13 @@ export const createSaveTeamRetentionPolicy = (
     policy: Types.RetentionPolicy,
   |}>
 ) => ({error: false, payload, type: saveTeamRetentionPolicy})
+export const createAddParticipant = (
+  payload: $ReadOnly<{|
+    teamname: string,
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    participant: string,
+  |}>
+) => ({error: false, payload, type: addParticipant})
 export const createAddPeopleToTeam = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -188,11 +197,19 @@ export const createRemoveMemberOrPendingInvite = (
     inviteID: string,
   |}>
 ) => ({error: false, payload, type: removeMemberOrPendingInvite})
+export const createRemoveParticipant = (
+  payload: $ReadOnly<{|
+    teamname: string,
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    participant: string,
+  |}>
+) => ({error: false, payload, type: removeParticipant})
 export const createSaveChannelMembership = (
   payload: $ReadOnly<{|
     teamname: string,
     oldChannelState: Types.ChannelMembershipState,
     newChannelState: Types.ChannelMembershipState,
+    you: string,
   |}>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
@@ -312,6 +329,7 @@ export const createUpdateTopic = (
 ) => ({error: false, payload, type: updateTopic})
 
 // Action Payloads
+export type AddParticipantPayload = More.ReturnType<typeof createAddParticipant>
 export type AddPeopleToTeamPayload = More.ReturnType<typeof createAddPeopleToTeam>
 export type AddToTeamPayload = More.ReturnType<typeof createAddToTeam>
 export type BadgeAppForTeamsPayload = More.ReturnType<typeof createBadgeAppForTeams>
@@ -337,6 +355,7 @@ export type InviteToTeamByPhonePayload = More.ReturnType<typeof createInviteToTe
 export type JoinTeamPayload = More.ReturnType<typeof createJoinTeam>
 export type LeaveTeamPayload = More.ReturnType<typeof createLeaveTeam>
 export type RemoveMemberOrPendingInvitePayload = More.ReturnType<typeof createRemoveMemberOrPendingInvite>
+export type RemoveParticipantPayload = More.ReturnType<typeof createRemoveParticipant>
 export type SaveChannelMembershipPayload = More.ReturnType<typeof createSaveChannelMembership>
 export type SaveTeamRetentionPolicyPayload = More.ReturnType<typeof createSaveTeamRetentionPolicy>
 export type SetChannelCreationErrorPayload = More.ReturnType<typeof createSetChannelCreationError>
@@ -368,6 +387,7 @@ export type UpdateTopicPayload = More.ReturnType<typeof createUpdateTopic>
 // All Actions
 // prettier-ignore
 export type Actions =
+  | More.ReturnType<typeof createAddParticipant>
   | More.ReturnType<typeof createAddPeopleToTeam>
   | More.ReturnType<typeof createAddToTeam>
   | More.ReturnType<typeof createBadgeAppForTeams>
@@ -393,6 +413,7 @@ export type Actions =
   | More.ReturnType<typeof createJoinTeam>
   | More.ReturnType<typeof createLeaveTeam>
   | More.ReturnType<typeof createRemoveMemberOrPendingInvite>
+  | More.ReturnType<typeof createRemoveParticipant>
   | More.ReturnType<typeof createSaveChannelMembership>
   | More.ReturnType<typeof createSaveTeamRetentionPolicy>
   | More.ReturnType<typeof createSetChannelCreationError>

@@ -66,20 +66,32 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       dispatch(navigateTo([{selected: 'createChannel', props: {teamname}}], routePath.butLast())),
     _saveSubscriptions: (
       oldChannelState: ChannelMembershipState,
-      nextChannelState: ChannelMembershipState
+      nextChannelState: ChannelMembershipState,
+      you: string
     ) => {
       dispatch(
-        TeamsGen.createSaveChannelMembership({teamname, oldChannelState, newChannelState: nextChannelState})
+        TeamsGen.createSaveChannelMembership({
+          teamname,
+          oldChannelState,
+          newChannelState: nextChannelState,
+          you,
+        })
       )
       dispatch(navigateUp())
     },
     _onView: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
+      you: string,
       conversationIDKey: ChatTypes.ConversationIDKey
     ) => {
       dispatch(
-        TeamsGen.createSaveChannelMembership({teamname, oldChannelState, newChannelState: nextChannelState})
+        TeamsGen.createSaveChannelMembership({
+          teamname,
+          oldChannelState,
+          newChannelState: nextChannelState,
+          you,
+        })
       )
       const selected = nextChannelState[conversationIDKey]
       dispatch(
@@ -113,9 +125,9 @@ export default compose(
         [convID]: !props.nextChannelState[convID],
       }),
     onSaveSubscriptions: props => () =>
-      props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
+      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props.you),
     onClickChannel: props => (conversationIDKey: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, conversationIDKey)
+      props._onView(props.oldChannelState, props.nextChannelState, props.you, conversationIDKey)
     },
   }),
   lifecycle({

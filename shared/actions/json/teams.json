@@ -42,7 +42,18 @@
     "saveChannelMembership": {
       "teamname": "string",
       "oldChannelState": "Types.ChannelMembershipState",
-      "newChannelState": "Types.ChannelMembershipState"
+      "newChannelState": "Types.ChannelMembershipState",
+      "you": "string"
+    },
+    "addParticipant": {
+      "teamname": "string",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "participant": "string"
+    },
+    "removeParticipant": {
+      "teamname": "string",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "participant": "string"
     },
     "addPeopleToTeam": {
       "teamname": "string",

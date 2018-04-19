@@ -119,6 +119,21 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         action.payload.conversationIDKey,
       ])
 
+    case TeamsGen.addParticipant:
+      return state.mergeIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
+        {participants: I.Set(action.payload.participant)}
+      )
+
+    case TeamsGen.removeParticipant:
+      return state.deleteIn([
+        'teamNameToChannelInfos',
+        action.payload.teamname,
+        action.payload.conversationIDKey,
+        'participants',
+        action.payload.participant,
+      ])
+
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addToTeam:
