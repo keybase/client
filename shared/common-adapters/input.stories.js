@@ -15,11 +15,11 @@ const commonProps: Props = {
 }
 
 const load = () => {
-  storiesOf('Common', module)
-    .add('Input (single line)', () => <Input {...commonProps} />)
-    .add('Input (multiline)', () => <Input {...commonProps} multiline={true} />)
-    .add('Input (password)', () => <Input {...commonProps} type="password" />)
-    .add('Input (visible password)', () => <Input {...commonProps} type="passwordVisible" />)
+  storiesOf('Common/Input', module)
+    .add('Single line', () => <Input {...commonProps} />)
+    .add('Multiline', () => <Input {...commonProps} multiline={true} />)
+    .add('Password', () => <Input {...commonProps} type="password" />)
+    .add('Visible password', () => <Input {...commonProps} type="passwordVisible" />)
 }
 
 export default load
