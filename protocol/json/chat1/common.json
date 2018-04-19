@@ -784,16 +784,16 @@
       "name": "MsgEphemeralMetadata",
       "fields": [
         {
-          "type": "gregor1.DurationSec",
-          "name": "lifetime",
-          "mpackkey": "life",
-          "jsonkey": "life"
+          "type": "gregor1.Time",
+          "name": "etime",
+          "mpackkey": "e",
+          "jsonkey": "e"
         },
         {
           "type": "keybase1.EkGeneration",
           "name": "generation",
-          "mpackkey": "gen",
-          "jsonkey": "gen"
+          "mpackkey": "g",
+          "jsonkey": "g"
         }
       ],
       "mpackkey": "em",

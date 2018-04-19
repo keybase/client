@@ -234,6 +234,21 @@ func (m *TlfMock) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat
 	return m.Lookup(ctx, tlfName, public)
 }
 
+func (m *TlfMock) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	// Returns a totally zero teamEK. That's enough to get some very simple
+	// round trip tests to pass.
+	return keybase1.TeamEk{}, nil
+}
+
+func (m *TlfMock) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	// Returns a totally zero teamEK. That's enough to get some very simple
+	// round trip tests to pass.
+	return keybase1.TeamEk{}, nil
+}
+
 func (m *TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, err error) {
 	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {

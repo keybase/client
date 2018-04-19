@@ -701,7 +701,7 @@ protocol teams {
   // Accept an invite or request to join a team, try both.
   TeamAcceptOrRequestResult teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
 
-  array<TeamJoinRequest> teamListRequests(int sessionID);
+  array<TeamJoinRequest> teamListRequests(int sessionID, union { null, string } teamName);
 
   // List TeamAccessRequests from current user. Optionally can provide
   // a teamname, and API server will only return request for that team,

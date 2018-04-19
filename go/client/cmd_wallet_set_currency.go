@@ -23,7 +23,7 @@ func newCmdWalletSetCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	}
 	return cli.Command{
 		Name:  "set-currency",
-		Usage: "Sets default display currency of Stellar account.",
+		Usage: "Set stellar account display currency",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "set-currency", c)
 		},

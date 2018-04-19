@@ -48,6 +48,7 @@ protocol NotifyChat {
 
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
+    boolean isEphemeralPurge;
   }
 
   record MembersUpdateInfo {

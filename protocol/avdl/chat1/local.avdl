@@ -257,6 +257,9 @@ protocol local {
     // Nil in MBv1 messages. Non-nil in MBv2 messages.
     union { null, MerkleRoot } merkleRoot;
 
+    // Extra ephemeral key metadata, if the message is exploding. Never
+    // supplied in V1. When supplied with V2, the message is encoded as V3.
+    // This is the only difference between V2 and V3.
     @mpackkey("em") @jsonkey("em")
     union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }

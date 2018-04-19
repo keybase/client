@@ -73,7 +73,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     } else {
       type = 'normal'
     }
-  } else if (stateProps._pendingConversationUsers && stateProps._pendingConversationUsers.size) {
+  } else if (stateProps._pendingConversationUsers) {
     type = 'normal'
   } else {
     type = 'noConvo'

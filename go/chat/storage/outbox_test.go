@@ -148,7 +148,7 @@ func TestChatOutboxEphemeralPurge(t *testing.T) {
 	conv := makeConvo(gregor1.Time(5), 1, 1)
 
 	prevOrdinal := 1
-	ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
+	ephemeralMetadata := &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(ob.clock.Now())}
 	for i := 0; i < 5; i++ {
 		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintextEphemeral("hi", uid, ephemeralMetadata),
 			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)

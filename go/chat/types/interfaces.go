@@ -36,6 +36,11 @@ type NameInfoSource interface {
 	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
+	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool,
+		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 }
 
 type UnboxConversationInfo interface {
