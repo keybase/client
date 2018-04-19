@@ -501,8 +501,8 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			// Try to remove as an invite
-			if ierr := removeMemberInvite(ctx, g, t, username, uv); ierr == nil {
+			// Try to remove as an keybase-invite
+			if ierr := removeKeybaseTypeInviteForUID(ctx, g, t, uv.Uid); ierr == nil {
 				return nil
 			}
 			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username,
@@ -1154,6 +1154,23 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 
 	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
 
+	return libkb.NotFoundError{}
+}
+
+func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) error {
+	g.Log.CDebugf(ctx, "looking for active or obsolete keybase-type invite in %s for %s", team.Name(), uid)
+
+	allInvites := team.GetActiveAndObsoleteInvites()
+	for _, invite := range allInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid.Equal(uid) {
+				g.Log.CDebugf(ctx, "found keybase-type invite %s for %s, removing it", invite.Id, invite.Name)
+				return removeInviteID(ctx, team, invite.Id)
+			}
+		}
+	}
+
+	g.Log.CDebugf(ctx, "no keybase-invites found to remove %s", uid)
 	return libkb.NotFoundError{}
 }
 

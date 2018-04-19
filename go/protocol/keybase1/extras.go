@@ -2238,6 +2238,11 @@ func (t TLFVisibility) Eq(r TLFVisibility) bool {
 func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 	parts := strings.Split(string(s), "%")
 	if len(parts) == 1 {
+		// NOTE: We have to keep it the way it is, even though we
+		// never save UIDs without EldestSeqno anywhere. There may be
+		// team chain which have UVs encoded with assumed default=1 in
+		// the wild.
+
 		// default to seqno 1
 		parts = append(parts, "1")
 	}
