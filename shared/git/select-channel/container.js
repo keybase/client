@@ -23,29 +23,32 @@ export type SelectChannelProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
+  const {teamname, selected} = routeProps.get('teamname')
   const _channelInfos = getTeamChannelInfos(state, teamname)
   return {
     _channelInfos,
     waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
     loaded: !!_channelInfos.size,
-    _selected: routeProps.get('selected'),
+    _selected: selected,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  _onSubmit: (channelName: string) =>
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        chatDisabled: false,
-        channelName,
-        teamname: routeProps.get('teamname'),
-        repoID: routeProps.get('repoID'),
-      })
-    ),
-  onCancel: () => dispatch(navigateUp()),
-  onLoad: () => dispatch(TeamsGen.createGetChannels({teamname: routeProps.get('teamname')})),
-})
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
+  const {teamname, repoID} = routeProps.get('teamname')
+  return {
+    _onSubmit: (channelName: string) =>
+      dispatch(
+        GitGen.createSetTeamRepoSettings({
+          chatDisabled: false,
+          channelName,
+          teamname: teamname,
+          repoID: repoID,
+        })
+      ),
+    onCancel: () => dispatch(navigateUp()),
+    onLoad: () => dispatch(TeamsGen.createGetChannels({teamname})),
+  }
+}
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const channelNames = stateProps._channelInfos
