@@ -28,6 +28,10 @@ func (k KeybaseTransactionID) String() string {
 	return string(k)
 }
 
+func (t TransactionID) String() string {
+	return string(t)
+}
+
 func ToTimeMs(t time.Time) TimeMs {
 	// the result of calling UnixNano on the zero Time is undefined.
 	// https://golang.org/pkg/time/#Time.UnixNano

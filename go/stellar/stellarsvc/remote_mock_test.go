@@ -191,6 +191,10 @@ func (r *RemoteMock) RecentPayments(ctx context.Context, accountID stellar1.Acco
 	return txLog.Filter(accountID, limit), nil
 }
 
+func (r *RemoteMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
+	return res, fmt.Errorf("TODO (CORE-7554)")
+}
+
 func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
 	full, err := keypair.Random()
 	if err != nil {

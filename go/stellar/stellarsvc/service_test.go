@@ -300,7 +300,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	_, err = srvSender.SendLocal(context.Background(), arg)
 	require.NoError(t, err)
 
-	checkPayment := func(payment stellar1.RecentPaymentCLILocal) {
+	checkPayment := func(payment stellar1.PaymentCLILocal) {
 		require.Equal(t, accountIDSender, payment.FromStellar)
 		require.Equal(t, accountIDRecip, payment.ToStellar)
 		require.NotNil(t, payment.ToUsername)

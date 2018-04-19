@@ -86,7 +86,7 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
 }
 
-func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.RecentPaymentCLILocal, err error) {
+func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLILocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "RecentPaymentsCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
@@ -102,6 +102,15 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 		selectAccountID = *accountID
 	}
 	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
+}
+
+func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "PaymentDetailCLILocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	return stellar.PaymentDetailCLILocal(ctx, s.G(), s.remoter, txID)
 }
 
 func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
