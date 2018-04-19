@@ -34,8 +34,10 @@ import editTeamDescription from '../teams/edit-team-description/index.stories'
 import peopleTask from '../people/task/index.stories'
 import peopleFollowNotification from '../people/follow-notification/index.stories'
 import peopleFollowSuggestions from '../people/follow-suggestions/index.stories'
+import cecile from '../common-adapters/cecile.stories.js'
 
 const stories = {
+  cecile,
   avatar,
   box,
   button,
