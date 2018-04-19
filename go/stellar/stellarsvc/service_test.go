@@ -60,6 +60,7 @@ func TestCreateWallet(t *testing.T) {
 	require.NoError(t, err)
 	addr := u0.StellarWalletAddress()
 	t.Logf("Found account: %v", addr)
+	require.NotNil(t, addr)
 	_, err = libkb.MakeNaclSigningKeyPairFromStellarAccountID(*addr)
 	require.NoError(t, err, "stellar key should be nacl pubable")
 	require.Equal(t, bundle.Accounts[0].AccountID.String(), addr.String(), "addr looked up should match secret bundle")
