@@ -79,7 +79,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   chosenChannelsForTeam: I.Set(),
   convIDToChannelInfo: I.Map(),
   loaded: false,
-  loadingChosenChannels: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
   teamCreationError: '',

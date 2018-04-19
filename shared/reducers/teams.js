@@ -96,12 +96,12 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.set('sawSubteamsBanner', true)
 
     case TeamsGen.setChosenChannelsForTeam:
-      return state.get('loadingChosenChannels')
-        ? state
-        : state.set('chosenChannelsForTeam', I.Set(JSON.parse(action.payload.chosenChannelsForTeam)))
-
-    case TeamsGen.setLoadingChosenChannels:
-      return state.set('loadingChosenChannels', action.payload.loading)
+      const chosenChannels = I.Set(JSON.parse(action.payload.chosenChannelsForTeam))
+      // If this is coming in as the clear before a set, just ignore it.
+      if (chosenChannels.count() === 0) {
+        return state
+      }
+      return state.set('chosenChannelsForTeam', chosenChannels)
 
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:

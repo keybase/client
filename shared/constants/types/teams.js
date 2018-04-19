@@ -100,7 +100,6 @@ export type _State = {
   channelCreationError: string,
   chosenChannelsForTeam: I.Set<Teamname>,
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
-  loadingChosenChannels: boolean,
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,
   teamAccessRequestsPending: I.Set<Teamname>,

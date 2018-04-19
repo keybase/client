@@ -930,11 +930,9 @@ function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPa
   // had channels selected) and the re-inject.  For now, set a flag to ignore
   // changes in the interim.  This is CORE-7663.
   return Saga.sequentially([
-    Saga.put(TeamsGen.createSetLoadingChosenChannels({loading: true})),
     Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
       category: 'chosenChannelsForTeam',
     }),
-    Saga.put(TeamsGen.createSetLoadingChosenChannels({loading: false})),
     Saga.put(
       GregorGen.createInjectItem({body: JSON.stringify(teamList.toJSON()), category: 'chosenChannelsForTeam'})
     ),
