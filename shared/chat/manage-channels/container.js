@@ -15,12 +15,10 @@ import {
   withPropsOnChange,
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
-import {anyWaiting} from '../../constants/waiting'
-import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
+import {getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
-  const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, getChannelsWaitingKey(teamname))
   const channelInfos = getTeamChannelInfos(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
@@ -49,7 +47,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     canEditChannels,
     channels,
     teamname: routeProps.get('teamname'),
-    waitingForSave,
   }
 }
 

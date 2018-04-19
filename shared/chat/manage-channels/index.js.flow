@@ -20,7 +20,6 @@ export type Props = {
   teamname: string,
   unsavedSubscriptions: boolean,
   onSaveSubscriptions: () => void,
-  waitingForSave: boolean,
   nextChannelState: ChannelMembershipState,
 }
 

@@ -115,7 +115,6 @@ const ManageChannels = (props: Props) => (
         <Button
           type="Primary"
           label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
-          waiting={props.waitingForSave}
           disabled={!props.unsavedSubscriptions}
           onClick={props.onSaveSubscriptions}
           style={{marginLeft: globalMargins.tiny}}

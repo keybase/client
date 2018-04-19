@@ -656,9 +656,52 @@ function _checkRequestedAccessSuccess(result) {
   return Saga.put(TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)}))
 }
 
+const _joinConversation = function*(
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  participant: string
+) {
+  try {
+    const convID = ChatTypes.keyToConversationID(conversationIDKey)
+    yield Saga.call(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
+      convID,
+    })
+    yield Saga.put(
+      TeamsGen.createAddParticipant({
+        teamname,
+        conversationIDKey,
+        participant,
+      })
+    )
+  } catch (error) {
+    yield Saga.put(createGlobalError({globalError: convertToError(error)}))
+  }
+}
+
+const _leaveConversation = function*(
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey,
+  participant: string
+) {
+  try {
+    const convID = ChatTypes.keyToConversationID(conversationIDKey)
+    yield Saga.call(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
+      convID,
+    })
+    yield Saga.put(
+      TeamsGen.createRemoveParticipant({
+        teamname,
+        conversationIDKey,
+        participant,
+      })
+    )
+  } catch (error) {
+    yield Saga.put(createGlobalError({globalError: convertToError(error)}))
+  }
+}
+
 const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPayload, state: TypedState) {
   const {teamname, oldChannelState, newChannelState} = action.payload
-  const waitingKey = {key: `saveChannel:${teamname}`}
 
   const calls = []
   for (const convIDKeyStr in newChannelState) {
@@ -667,37 +710,14 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
       continue
     }
 
-    const convID = ChatTypes.keyToConversationID(convIDKey)
     if (newChannelState[convIDKey]) {
-      calls.push(
-        // $FlowIssue doesn't like callAndWrap
-        Saga.callAndWrap(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
-          convID,
-        })
-      )
+      calls.push(Saga.put(_joinConversation(teamname, convIDKey, action.payload.you)))
     } else {
-      calls.push(
-        // $FlowIssue doesn't like callAndWrap
-        Saga.callAndWrap(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
-          convID,
-        })
-      )
+      calls.push(Saga.put(_leaveConversation(teamname, convIDKey, action.payload.you)))
     }
   }
 
-  return Saga.all([
-    Saga.all(calls),
-    Saga.put(createIncrementWaiting(waitingKey)),
-    Saga.identity(
-      Saga.all([
-        Saga.put(createDecrementWaiting(waitingKey)),
-        // TODO: Ideally, we'd just update the channel info in the
-        // teams store ourselves; we'd have to keep track of which
-        // calls succeeded, though.
-        Saga.put(TeamsGen.createGetChannels({teamname})),
-      ])
-    ),
-  ])
+  return Saga.all(calls)
 }
 
 const _afterSaveCalls = results => {
@@ -1067,7 +1087,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
   yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
-  yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership, _afterSaveCalls)
+  yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
   yield Saga.safeTakeEveryPure(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
