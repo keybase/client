@@ -2,10 +2,11 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
+import {getMeta} from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import {type ConversationIDKey} from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
+import {connect, type TypedState} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
@@ -19,10 +20,11 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     throw new Error('teamname unexpectedly empty')
   }
 
-  const channelInfo = Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey)
-  const _needsLoad = !channelInfo
+  const channelInfo =
+    Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey) ||
+    getMeta(state, conversationIDKey)
 
-  const waitingForGetInfo = _needsLoad || anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
+  const waitingForGetInfo = anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
   const waitingForUpdate = anyWaiting(
     state,
     Constants.updateTopicWaitingKey(conversationIDKey),
@@ -35,7 +37,6 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
-    _needsLoad,
     conversationIDKey,
     teamname,
     channelName,
@@ -77,7 +78,6 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     },
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
-    _needsLoad: stateProps._needsLoad,
     _loadChannels: () => dispatchProps._loadChannels(stateProps.teamname),
     onSave: (newChannelName: string, newTopic: string) => {
       if (channelName && !deleteRenameDisabled) {
@@ -99,15 +99,5 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
 const ConnectedEditChannel: React.ComponentType<{
   navigateUp: Function,
   routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
-  routeState: I.RecordOf<{waitingForSave: number}>,
-}> = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  lifecycle({
-    componentDidMount() {
-      if (this.props._needsLoad) {
-        this.props._loadChannels()
-      }
-    },
-  })
-)(EditChannel)
+}> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditChannel)
 export default ConnectedEditChannel
