@@ -36,8 +36,7 @@ type LoginState struct {
 // the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
-	LoggedInProvisioned() (bool, error)
-	LoggedInProvisionedCheck() (bool, error)
+	LoggedInProvisioned(context.Context) (bool, error)
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
@@ -1227,20 +1226,10 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	return lin, err
 }
 
-func (s *LoginState) LoggedInProvisioned() (lin bool, err error) {
+func (s *LoginState) LoggedInProvisioned(ctx context.Context) (lin bool, err error) {
 	aerr := s.Account(func(a *Account) {
-		lin, err = a.LoggedInProvisioned()
+		lin, err = a.LoggedInProvisioned(ctx)
 	}, "LoggedInProvisioned")
-	if aerr != nil {
-		return false, aerr
-	}
-	return
-}
-
-func (s *LoginState) LoggedInProvisionedCheck() (lin bool, err error) {
-	aerr := s.Account(func(a *Account) {
-		lin, err = a.LoggedInProvisionedCheck()
-	}, "LoggedInProvisionedCheck")
 	if aerr != nil {
 		return false, aerr
 	}
@@ -1289,70 +1278,6 @@ func (s *LoginState) SessionLoadAndCheck(force bool) (bool, error) {
 		return false, err
 	}
 	return sessionValid, nil
-}
-
-type APIServerSessionStatus struct {
-	Username     NormalizedUsername
-	UID          keybase1.UID
-	SessionToken string
-}
-
-func (s *LoginState) APIServerSession(force bool) (*APIServerSessionStatus, error) {
-	if !s.G().ActiveDevice.Valid() {
-		return nil, LoginRequiredError{}
-	}
-
-	sessionValid, err := s.SessionLoadAndCheck(force)
-	if err != nil {
-		return nil, err
-	}
-
-	if !sessionValid {
-		// pubkey login to refresh session
-		username := s.G().Env.GetUsername()
-		if err := s.LoginWithStoredSecret(username.String(), nil); err != nil {
-			if _, ok := err.(NoKeyError); ok {
-				s.G().Log.Debug("APIServerSession: ActiveDevice is valid, but no key in LoginWithStoredSecret (reset or revoked): Logging out")
-				if logoutErr := s.G().Logout(); logoutErr != nil {
-					return nil, logoutErr
-				}
-				return nil, err
-
-			}
-			return nil, err
-		}
-	}
-
-	var status APIServerSessionStatus
-	err = s.LocalSession(func(session *Session) {
-		sessionValid = session.IsValid()
-		if !sessionValid {
-			return
-		}
-		status.SessionToken = session.GetToken()
-		status.UID = session.GetUID()
-		username := session.GetUsername()
-		if username != nil {
-			status.Username = *username
-		}
-	}, "APIServerSession")
-	if err != nil {
-		return nil, err
-	}
-	if !sessionValid {
-		return nil, NoSessionError{}
-	}
-
-	// safety checks
-	uid := s.G().ActiveDevice.UID()
-	if uid != status.UID {
-		return nil, errors.New("uid mismatch between session and ActiveDevice")
-	}
-	if status.Username == "" {
-		return nil, errors.New("no username in session")
-	}
-
-	return &status, nil
 }
 
 func IsLoggedIn(g *GlobalContext, lih LoggedInHelper) (ret bool, uid keybase1.UID, err error) {

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
@@ -248,7 +249,7 @@ func (fu *FakeUser) NewCountSecretUI() *libkb.TestCountSecretUI {
 }
 
 func AssertProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
+	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -259,7 +260,7 @@ func AssertProvisioned(tc libkb.TestContext) error {
 }
 
 func AssertNotProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
+	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
 	if err != nil {
 		return err
 	}

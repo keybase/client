@@ -2475,7 +2475,11 @@ func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool 
 
 func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs []string) {
 	// Get session token
-	status, err := h.G().LoginState().APIServerSession(false)
+	nist, _, err := h.G().ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		h.Debug(ctx, "sendRemoteNotificationSuccessful: got a nil NIST, is the user logged out?")
+		return
+	}
 	if err != nil {
 		h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to get logged in session: %s", err.Error())
 		return
@@ -2511,7 +2515,7 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
 	if err = cli.RemoteNotificationSuccessful(ctx,
 		chat1.RemoteNotificationSuccessfulArg{
-			AuthToken:        gregor1.SessionToken(status.SessionToken),
+			AuthToken:        gregor1.SessionToken(nist.Token().String()),
 			CompanionPushIDs: pushIDs,
 		}); err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to invoke remote notification success: %",
