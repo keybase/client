@@ -145,7 +145,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
-	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
+	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	clock.BlockUntil(1)
@@ -181,7 +181,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 	t.Logf("testing foreground/background")
 	// Test that background/foreground works
-	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
+	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}

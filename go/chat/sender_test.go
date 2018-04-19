@@ -941,7 +941,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, conv.GetConvID(), uid))
+	require.NoError(t, storage.New(tc.Context()).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 
 	// Fetch a subset into the cache
 	_, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{
