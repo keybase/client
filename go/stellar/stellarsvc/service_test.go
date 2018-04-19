@@ -2,6 +2,7 @@ package stellarsvc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
@@ -31,7 +32,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 }
 
 func TestCreateWallet(t *testing.T) {
-	_, tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -67,7 +68,7 @@ func TestCreateWallet(t *testing.T) {
 }
 
 func TestUpkeep(t *testing.T) {
-	_, tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
 	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -105,14 +106,36 @@ func TestUpkeep(t *testing.T) {
 	require.Equal(t, 2, int(bundle.Revision))
 }
 
-func TestImport(t *testing.T) {
-	_, tcs, cleanup := setupNTests(t, 2)
+func TestImportExport(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	srv, _ := newTestServer(tcs[0].G)
+	srv := tcs[0].Srv
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
+
+	mustAskForPassphrase := func(f func()) {
+		ui := tcs[0].Fu.NewSecretUI()
+		tcs[0].Srv.uiSource.(*testUISource).secret = ui
+		f()
+		require.True(t, ui.CalledGetPassphrase, "operation should ask for passphrase")
+		tcs[0].Srv.uiSource.(*testUISource).secret = nullSecretUI{}
+	}
+
+	mustAskForPassphrase(func() {
+		_, err = srv.ExportSecretKeyLocal(context.Background(), stellar1.AccountID(""))
+		require.Error(t, err, "export empty specifier")
+	})
+
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	mustAskForPassphrase(func() {
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), bundle.Accounts[0].AccountID)
+		require.NoError(t, err)
+		require.Equal(t, bundle.Accounts[0].Signers[0], exported)
+	})
 
 	a1, s1 := randomStellarKeypair()
 	argS1 := stellar1.ImportSecretKeyLocalArg{
@@ -121,6 +144,21 @@ func TestImport(t *testing.T) {
 	}
 	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
 	require.NoError(t, err)
+
+	mustAskForPassphrase(func() {
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), bundle.Accounts[0].AccountID)
+		require.NoError(t, err)
+		require.Equal(t, bundle.Accounts[0].Signers[0], exported)
+	})
+
+	mustAskForPassphrase(func() {
+		exported, err := srv.ExportSecretKeyLocal(context.Background(), a1)
+		require.NoError(t, err)
+		require.Equal(t, s1, exported)
+	})
+
+	_, err = srv.ExportSecretKeyLocal(context.Background(), stellar1.AccountID(s1))
+	require.Error(t, err, "export confusing secret and public")
 
 	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
 	require.Error(t, err)
@@ -157,19 +195,18 @@ func TestImport(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, own)
 
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, err = remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 	require.Len(t, bundle.Accounts, 3)
 }
 
 func TestBalances(t *testing.T) {
-	_, tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	srv, rm := newTestServer(tcs[0].G)
-	accountID := rm.AddAccount(t)
+	accountID := tcs[0].Remote.AddAccount(t)
 
-	balances, err := srv.BalancesLocal(context.Background(), accountID)
+	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,13 +217,14 @@ func TestBalances(t *testing.T) {
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
-	_, tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	srv, rm := newTestServer(tcs[0].G)
+	srv := tcs[0].Srv
+	rm := tcs[0].Remote
 	accountIDSender := rm.AddAccount(t)
 	accountIDRecip := rm.AddAccount(t)
 
@@ -220,7 +258,7 @@ func TestSendLocalStellarAddress(t *testing.T) {
 }
 
 func TestSendLocalKeybase(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -228,11 +266,12 @@ func TestSendLocalKeybase(t *testing.T) {
 	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
 	require.NoError(t, err)
 
-	srvSender, rm := newTestServer(tcs[0].G)
+	srvSender := tcs[0].Srv
+	rm := tcs[0].Remote
 	accountIDSender := rm.AddAccount(t)
 	accountIDRecip := rm.AddAccount(t)
 
-	srvRecip, _ := newTestServer(tcs[1].G)
+	srvRecip := tcs[1].Srv
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(t, accountIDSender),
@@ -246,7 +285,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := stellar1.SendLocalArg{
-		Recipient: fus[1].Username,
+		Recipient: tcs[1].Fu.Username,
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
@@ -267,7 +306,7 @@ func TestSendLocalKeybase(t *testing.T) {
 }
 
 func TestRecentPaymentsLocal(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
+	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
 	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
@@ -275,11 +314,12 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	_, err = stellar.CreateWallet(context.Background(), tcs[1].G)
 	require.NoError(t, err)
 
-	srvSender, rm := newTestServer(tcs[0].G)
+	srvSender := tcs[0].Srv
+	rm := tcs[0].Remote
 	accountIDSender := rm.AddAccount(t)
 	accountIDRecip := rm.AddAccount(t)
 
-	srvRecip, _ := newTestServer(tcs[1].G)
+	srvRecip := tcs[1].Srv
 
 	argImport := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(t, accountIDSender),
@@ -293,7 +333,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := stellar1.SendLocalArg{
-		Recipient: fus[1].Username,
+		Recipient: tcs[1].Fu.Username,
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
@@ -304,7 +344,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 		require.Equal(t, accountIDSender, payment.FromStellar)
 		require.Equal(t, accountIDRecip, payment.ToStellar)
 		require.NotNil(t, payment.ToUsername)
-		require.Equal(t, fus[1].Username, *(payment.ToUsername))
+		require.Equal(t, tcs[1].Fu.Username, *(payment.ToUsername))
 		require.Equal(t, "100.0000000", payment.Amount)
 	}
 	senderPayments, err := srvSender.RecentPaymentsCLILocal(context.Background(), nil)
@@ -318,36 +358,47 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	checkPayment(recipPayments[0])
 }
 
+type TestContext struct {
+	libkb.TestContext
+	Fu     *kbtest.FakeUser
+	Srv    *Server
+	Remote *RemoteMock
+}
+
 // Create n TestContexts with logged in users
 // Returns (FakeUsers, TestContexts, CleanupFunction)
-func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
+func setupNTests(t *testing.T, n int) ([]*TestContext, func()) {
 	return setupNTestsWithPukless(t, n, 0)
 }
 
-func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
+func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*TestContext, func()) {
 	require.True(t, n > 0, "must create at least 1 tc")
 	require.True(t, n >= nPukless, "more pukless users than total users requested")
-	var fus []*kbtest.FakeUser
-	var tcs []*libkb.TestContext
+	var tcs []*TestContext
 	for i := 0; i < n; i++ {
 		tc := SetupTest(t, "wall", 1)
-		tcs = append(tcs, &tc)
 		if i >= n-nPukless {
 			tc.Tp.DisableUpgradePerUserKey = true
 		}
 		fu, err := kbtest.CreateAndSignupFakeUser("wall", tc.G)
 		require.NoError(t, err)
-		fus = append(fus, fu)
+		srv, rm := newTestServer(tc.G)
+		tcs = append(tcs, &TestContext{
+			TestContext: tc,
+			Fu:          fu,
+			Srv:         srv,
+			Remote:      rm,
+		})
 	}
 	cleanup := func() {
 		for _, tc := range tcs {
 			tc.Cleanup()
 		}
 	}
-	for i, fu := range fus {
-		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
+	for i, tc := range tcs {
+		t.Logf("U%d: %v %v", i, tc.Fu.Username, tc.Fu.GetUserVersion())
 	}
-	return fus, tcs, cleanup
+	return tcs, cleanup
 }
 
 func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
@@ -361,16 +412,18 @@ func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {
 type nullSecretUI struct{}
 
 func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, nil
+	return keybase1.GetPassphraseRes{}, fmt.Errorf("nullSecretUI.GetPassphrase")
 }
 
-type testUISource struct{}
+type testUISource struct {
+	secret libkb.SecretUI
+}
 
 func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.SecretUI {
-	return nullSecretUI{}
+	return t.secret
 }
 
 func newTestServer(g *libkb.GlobalContext) (*Server, *RemoteMock) {
 	m := NewRemoteMock(g)
-	return New(g, &testUISource{}, m), m
+	return New(g, &testUISource{nullSecretUI{}}, m), m
 }
