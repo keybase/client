@@ -139,6 +139,10 @@ type ImportSecretKeyLocalArg struct {
 	MakePrimary bool      `codec:"makePrimary" json:"makePrimary"`
 }
 
+type ExportSecretKeyLocalArg struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type SetDisplayCurrencyArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 	Currency  string    `codec:"currency" json:"currency"`
@@ -158,6 +162,7 @@ type LocalInterface interface {
 	WalletGetLocalAccounts(context.Context) ([]LocalOwnAccount, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
+	ExportSecretKeyLocal(context.Context, AccountID) (SecretKey, error)
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 }
@@ -295,6 +300,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"exportSecretKeyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ExportSecretKeyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ExportSecretKeyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ExportSecretKeyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ExportSecretKeyLocal(ctx, (*typedArgs)[0].AccountID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"setDisplayCurrency": {
 				MakeArg: func() interface{} {
 					ret := make([]SetDisplayCurrencyArg, 1)
@@ -381,6 +402,12 @@ func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (
 
 func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecretKeyLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ExportSecretKeyLocal(ctx context.Context, accountID AccountID) (res SecretKey, err error) {
+	__arg := ExportSecretKeyLocalArg{AccountID: accountID}
+	err = c.Cli.Call(ctx, "stellar.1.local.exportSecretKeyLocal", []interface{}{__arg}, &res)
 	return
 }
 
