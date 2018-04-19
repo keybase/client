@@ -9,8 +9,8 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
 } from '../../../../styles'
-import {Box, ClickableBox, FloatingBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
-import {type MenuItem, ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
+import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
@@ -155,46 +155,14 @@ class RetentionPicker extends React.Component<Props, State> {
   render() {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
-        {/* {this.state.showMenu && (
-          <Gateway into="popup-root">
-            <Box style={{width: '100%', height: '100%', position: 'relative'}}>
-              <ClickableBox
-                style={{...globalStyles.fillAbsolute}}
-                onClick={() => this.setState({showMenu: false})}
-              >
-                <Box style={{position: 'relative', height: '100%', width: '100%'}}>
-                  <Box style={{position: 'absolute', bottom: 0, left: 0, right: 0}}>
-                    <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
-                      <Box
-                        style={{
-                          ...globalStyles.flexBoxRow,
-                          justifyContent: 'center',
-                          padding: globalMargins.tiny,
-                          borderTopWidth: 1,
-                          borderTopColor: globalColors.black_20,
-                        }}
-                      >
-                        <Text type="HeaderBig">Hi!</Text>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
-              </ClickableBox>
-            </Box>
-          </Gateway>
-        )} */}
-        <FloatingBox
+        <FloatingMenu
           attachTo={this._dropdownRef}
+          closeOnSelect={true}
           visible={this.state.showMenu}
           onHidden={() => this.setState({showMenu: false})}
+          items={this.state.items}
           position="top center"
-        >
-          <ModalLessPopupMenu
-            onHidden={() => this.setState({showMenu: false})}
-            items={this.state.items}
-            closeOnClick={true}
-          />
-        </FloatingBox>
+        />
 
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>

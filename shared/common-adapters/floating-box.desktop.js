@@ -14,7 +14,7 @@ type State = {
 class FloatingMenu extends React.Component<Props, State> {
   state = {targetRect: null}
 
-  static getDerivedStateFromProps(nextProps, prevState) {
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (!nextProps.attachTo) {
       return {targetRect: null}
     }
