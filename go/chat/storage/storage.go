@@ -277,15 +277,16 @@ func (h *HoleyResultCollector) Holes() int {
 	return h.holes
 }
 
-func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {
+func (s *Storage) MaybeNuke(ctx context.Context, force bool, err Error, convID chat1.ConversationID,
+	uid gregor1.UID) Error {
 	// Clear index
 	if force || err.ShouldClear() {
-		s.G().Log.Warning("chat local storage corrupted: clearing")
+		s.Debug(ctx, "chat local storage corrupted: clearing")
 		if err := s.G().LocalChatDb.Delete(makeBlockIndexKey(convID, uid)); err != nil {
-			s.G().Log.Error("failed to delete chat index, clearing entire local storage (delete error: %s)",
+			s.Debug(ctx, "failed to delete chat index, clearing entire local storage (delete error: %s)",
 				err)
 			if _, err = s.G().LocalChatDb.Nuke(); err != nil {
-				s.G().Log.Error("failed to delete chat local storage: %s", err)
+				s.Debug(ctx, "failed to delete chat local storage: %s", err)
 			}
 		}
 	}
@@ -298,7 +299,7 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return maxMsgID, s.MaybeNuke(false, err, convID, uid)
+		return maxMsgID, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 	return maxMsgID, nil
 }
@@ -347,33 +348,33 @@ func (s *Storage) MergeHelper(ctx context.Context,
 
 	// Write out new data into blocks
 	if err = s.engine.WriteMessages(ctx, convID, uid, msgs); err != nil {
-		return res, s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Update supersededBy pointers
 	if err = s.updateAllSupersededBy(ctx, convID, uid, msgs); err != nil {
-		return res, s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	if err = s.updateMinDeletableMessage(ctx, convID, uid, msgs); err != nil {
-		return res, s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Process any DeleteHistory messages
 	expunged, err := s.handleDeleteHistory(ctx, convID, uid, msgs, expunge)
 	if err != nil {
-		return res, s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 	res.Expunged = expunged
 
 	if err = s.explodeExpiredMessages(ctx, convID, uid, msgs); err != nil {
-		return res, s.MaybeNuke(false, err, convID, uid)
+		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Update max msg ID if needed
 	if len(msgs) > 0 {
 		if err := s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgs[0].GetMessageID()); err != nil {
-			return res, s.MaybeNuke(false, err, convID, uid)
+			return res, s.MaybeNuke(ctx, false, err, convID, uid)
 		}
 	}
 
@@ -675,7 +676,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	// Init storage engine first
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
+		return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
@@ -692,14 +693,14 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
+				return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 			maxID = pid - 1
 			s.Debug(ctx, "Fetch: next pagination: pid: %d", pid)
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
+				return chat1.ThreadView{}, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 			s.Debug(ctx, "Fetch: prev pagination: pid: %d", pid)
@@ -799,7 +800,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	// Init storage engine first
 	ctx, err = s.engine.Init(ctx, key, convID, uid)
 	if err != nil {
-		return nil, s.MaybeNuke(false, err, convID, uid)
+		return nil, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
 
 	// Run seek looking for each message
@@ -811,7 +812,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 				res = append(res, nil)
 				continue
 			} else {
-				return nil, s.MaybeNuke(false, err, convID, uid)
+				return nil, s.MaybeNuke(ctx, false, err, convID, uid)
 			}
 		}
 		sres = rc.Result()

@@ -193,7 +193,7 @@ func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
-func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
+func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
 }
 
@@ -767,8 +767,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return tv, nil
 }
 
-func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.MaybeNuke(true, nil, convID, uid)
+func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return s.storage.MaybeNuke(ctx, true, nil, convID, uid)
 }
 
 type ByMsgID []chat1.MessageUnboxed
