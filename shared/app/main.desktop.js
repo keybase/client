@@ -3,13 +3,12 @@ import {hot} from 'react-hot-loader'
 // Uncomment to get more info on hot loading
 // import { setConfig } from 'react-hot-loader'
 // setConfig({ logLevel: 'debug' })
-import React, {Component, Fragment} from 'react'
+import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import {connect, type TypedState} from '../util/container'
 import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
-import {GatewayDest} from 'react-gateway'
 
 type Props = {
   widgetBadge: boolean,
@@ -41,14 +40,11 @@ class Main extends Component<Props> {
 
   render() {
     return (
-      <Fragment>
-        <RenderRoute
-          routeDef={this.props.routeDef}
-          routeState={this.props.routeState}
-          setRouteState={this.props.setRouteState}
-        />
-        <GatewayDest name="popup-root" />
-      </Fragment>
+      <RenderRoute
+        routeDef={this.props.routeDef}
+        routeState={this.props.routeState}
+        setRouteState={this.props.setRouteState}
+      />
     )
   }
 }

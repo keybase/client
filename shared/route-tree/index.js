@@ -15,7 +15,6 @@ type _LeafTags = {
   keepKeyboardOnLeave: boolean,
   root: boolean,
   title: ?string,
-  gatewayID: string, // if you want the route tree to insert a gateway as a sibling to this route
 }
 
 export type LeafTags = I.RecordOf<_LeafTags>
@@ -30,7 +29,6 @@ export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
   keepKeyboardOnLeave: false,
   root: false, // only used by the root shim to allow special padding logic as its the root container
   title: null,
-  gatewayID: '',
 })
 
 // TODO type this properly. component and container component are mutually exclusive
