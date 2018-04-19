@@ -62,7 +62,6 @@ type fstatus struct {
 	StoredSecret           bool
 	SecretPromptSkip       bool
 	SessionIsValid         bool
-	SessionStatus          string
 	ConfigPath             string
 
 	Client struct {
@@ -165,7 +164,6 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
 	}
 
-	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
 	status.TsecCached = extStatus.TsecCached
 	status.DeviceSigKeyCached = extStatus.DeviceSigKeyCached
@@ -247,7 +245,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 		dui.Printf("    ID:        %s\n", status.Device.DeviceID)
 		dui.Printf("    status:    %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
 	}
-	dui.Printf("Session:       %s\n", status.SessionStatus)
+	dui.Printf("Session:\n")
 	dui.Printf("    is valid:  %s\n", BoolString(status.SessionIsValid, "yes", "no"))
 
 	var deviceKeysLockStatus string
@@ -338,17 +336,6 @@ func (c *CmdStatus) GetUsage() libkb.Usage {
 		Config: true,
 		API:    true,
 	}
-}
-
-func (c *CmdStatus) sessionStatus(s *keybase1.SessionStatus) string {
-	if s == nil {
-		return "no session"
-	}
-	if s.SaltOnly {
-		return fmt.Sprintf("%s [salt only]", s.SessionFor)
-	}
-
-	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.SessionFor, BoolString(s.Loaded, "yes", "no"), BoolString(s.Cleared, "yes", "no"), BoolString(s.Expired, "yes", "no"))
 }
 
 // execToString returns the space-trimmed output of a command or an error.

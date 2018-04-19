@@ -39,9 +39,9 @@ func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalC
 	}
 }
 
-func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
+func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
-	if cs, err = libkb.GetCurrentStatus(h.G()); err == nil {
+	if cs, err = libkb.GetCurrentStatus(ctx, h.G()); err == nil {
 		res = cs.Export()
 	}
 	return

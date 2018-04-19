@@ -4,8 +4,6 @@
 package service
 
 import (
-	"os"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -35,23 +33,21 @@ func NewSessionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionHandl
 //
 // This does do a full call to sesscheck and ensures that the
 // session token is valid.
-func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keybase1.Session, error) {
+func (h *SessionHandler) CurrentSession(ctx context.Context, sessionID int) (keybase1.Session, error) {
 	var s keybase1.Session
 
-	status, err := h.G().LoginState().APIServerSession(true /* force session check with server */)
+	nist, uid, err := h.G().ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		return s, libkb.NoSessionError{}
+	}
 	if err != nil {
-		if _, ok := err.(libkb.LoginRequiredError); ok {
-			return s, libkb.NoSessionError{}
-		}
-		if os.IsNotExist(err) {
-			return s, libkb.NoSessionError{}
-		}
-		if _, ok := err.(libkb.NotFoundError); ok {
-			return s, libkb.NoSessionError{}
-		}
 		return s, err
 	}
 
+	un, err := h.G().GetUPAKLoader().LookupUsername(ctx, uid)
+	if err != nil {
+		return s, err
+	}
 	sibkey, err := h.G().ActiveDevice.SigningKey()
 	if err != nil {
 		return s, err
@@ -61,9 +57,9 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 		return s, err
 	}
 
-	s.Uid = status.UID
-	s.Username = status.Username.String()
-	s.Token = status.SessionToken
+	s.Uid = uid
+	s.Username = un.String()
+	s.Token = nist.Token().String()
 	s.DeviceSubkeyKid = subkey.GetKID()
 	s.DeviceSibkeyKid = sibkey.GetKID()
 
