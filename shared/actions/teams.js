@@ -711,9 +711,9 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
     }
 
     if (newChannelState[convIDKey]) {
-      calls.push(Saga.put(_joinConversation(teamname, convIDKey, action.payload.you)))
+      calls.push(Saga.call(_joinConversation, teamname, convIDKey, action.payload.you))
     } else {
-      calls.push(Saga.put(_leaveConversation(teamname, convIDKey, action.payload.you)))
+      calls.push(Saga.call(_leaveConversation, teamname, convIDKey, action.payload.you))
     }
   }
 

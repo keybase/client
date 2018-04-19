@@ -96,7 +96,7 @@ const _rowBox = {
 
 const ManageChannels = (props: Props) => {
   let channelDisplay
-  if (props.channels.length === 0) {
+  if (props.channels.length === 0 || props.waitingForGet) {
     channelDisplay = <ProgressIndicator style={{width: 48}} />
   } else {
     channelDisplay = (
@@ -142,6 +142,7 @@ const ManageChannels = (props: Props) => {
             <Button
               type="Primary"
               label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
+              waiting={props.waitingForGet}
               disabled={!props.unsavedSubscriptions}
               onClick={props.onSaveSubscriptions}
               style={{marginLeft: globalMargins.tiny}}

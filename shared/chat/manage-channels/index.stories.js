@@ -76,6 +76,7 @@ const load = () => {
           onSaveSubscriptions={action('onSaveSubscriptions')}
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
+          waitingForGet={false}
         />
       </Box>
     ))
@@ -95,6 +96,7 @@ const load = () => {
           onSaveSubscriptions={action('onSaveSubscriptions')}
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
+          waitingForGet={false}
         />
       </Box>
     ))
@@ -114,6 +116,7 @@ const load = () => {
           onSaveSubscriptions={action('onSaveSubscriptions')}
           onClickChannel={action('onClickChannel')}
           nextChannelState={channelState}
+          waitingForGet={false}
         />
       </Box>
     ))

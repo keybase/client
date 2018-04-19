@@ -15,10 +15,12 @@ import {
   withPropsOnChange,
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
-import {getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
+import {anyWaiting} from '../../constants/waiting'
+import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
+  const waitingForGet = anyWaiting(state, getChannelsWaitingKey(teamname))
   const channelInfos = getTeamChannelInfos(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
@@ -43,10 +45,12 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
 
   return {
     _hasOperations,
+    _you: you,
     canCreateChannels,
     canEditChannels,
     channels,
-    teamname: routeProps.get('teamname'),
+    teamname,
+    waitingForGet,
   }
 }
 
@@ -122,9 +126,9 @@ export default compose(
         [convID]: !props.nextChannelState[convID],
       }),
     onSaveSubscriptions: props => () =>
-      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props.you),
+      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),
     onClickChannel: props => (conversationIDKey: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, props.you, conversationIDKey)
+      props._onView(props.oldChannelState, props.nextChannelState, props._you, conversationIDKey)
     },
   }),
   lifecycle({
