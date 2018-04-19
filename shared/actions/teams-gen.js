@@ -19,6 +19,7 @@ export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
+export const deleteChannelInfo = 'teams:deleteChannelInfo'
 export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
@@ -56,6 +57,8 @@ export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
+export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
+export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const setupTeamHandlers = 'teams:setupTeamHandlers'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
@@ -129,6 +132,12 @@ export const createDeleteChannelConfirmed = (
     conversationIDKey: ChatTypes.ConversationIDKey,
   |}>
 ) => ({error: false, payload, type: deleteChannelConfirmed})
+export const createDeleteChannelInfo = (
+  payload: $ReadOnly<{|
+    teamname: Types.Teamname,
+    conversationIDKey: ChatTypes.ConversationIDKey,
+  |}>
+) => ({error: false, payload, type: deleteChannelInfo})
 export const createEditMembership = (
   payload: $ReadOnly<{|
     teamname: string,
@@ -272,6 +281,20 @@ export const createSetTeamRetentionPolicy = (
 ) => ({error: false, payload, type: setTeamRetentionPolicy})
 export const createSetTeamSawChatBanner = () => ({error: false, payload: undefined, type: setTeamSawChatBanner})
 export const createSetTeamSawSubteamsBanner = () => ({error: false, payload: undefined, type: setTeamSawSubteamsBanner})
+export const createSetUpdatedChannelName = (
+  payload: $ReadOnly<{|
+    teamname: Types.Teamname,
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    newChannelName: string,
+  |}>
+) => ({error: false, payload, type: setUpdatedChannelName})
+export const createSetUpdatedTopic = (
+  payload: $ReadOnly<{|
+    teamname: Types.Teamname,
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    newTopic: string,
+  |}>
+) => ({error: false, payload, type: setUpdatedTopic})
 export const createSetupTeamHandlers = () => ({error: false, payload: undefined, type: setupTeamHandlers})
 export const createUpdateChannelName = (
   payload: $ReadOnly<{|
@@ -298,6 +321,7 @@ export type CreateChannelPayload = More.ReturnType<typeof createCreateChannel>
 export type CreateNewTeamFromConversationPayload = More.ReturnType<typeof createCreateNewTeamFromConversation>
 export type CreateNewTeamPayload = More.ReturnType<typeof createCreateNewTeam>
 export type DeleteChannelConfirmedPayload = More.ReturnType<typeof createDeleteChannelConfirmed>
+export type DeleteChannelInfoPayload = More.ReturnType<typeof createDeleteChannelInfo>
 export type EditMembershipPayload = More.ReturnType<typeof createEditMembership>
 export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDescription>
 export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
@@ -335,6 +359,8 @@ export type SetTeamPublicitySettingsPayload = More.ReturnType<typeof createSetTe
 export type SetTeamRetentionPolicyPayload = More.ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamSawChatBannerPayload = More.ReturnType<typeof createSetTeamSawChatBanner>
 export type SetTeamSawSubteamsBannerPayload = More.ReturnType<typeof createSetTeamSawSubteamsBanner>
+export type SetUpdatedChannelNamePayload = More.ReturnType<typeof createSetUpdatedChannelName>
+export type SetUpdatedTopicPayload = More.ReturnType<typeof createSetUpdatedTopic>
 export type SetupTeamHandlersPayload = More.ReturnType<typeof createSetupTeamHandlers>
 export type UpdateChannelNamePayload = More.ReturnType<typeof createUpdateChannelName>
 export type UpdateTopicPayload = More.ReturnType<typeof createUpdateTopic>
@@ -351,6 +377,7 @@ export type Actions =
   | More.ReturnType<typeof createCreateNewTeam>
   | More.ReturnType<typeof createCreateNewTeamFromConversation>
   | More.ReturnType<typeof createDeleteChannelConfirmed>
+  | More.ReturnType<typeof createDeleteChannelInfo>
   | More.ReturnType<typeof createEditMembership>
   | More.ReturnType<typeof createEditTeamDescription>
   | More.ReturnType<typeof createGetChannels>
@@ -388,6 +415,8 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamRetentionPolicy>
   | More.ReturnType<typeof createSetTeamSawChatBanner>
   | More.ReturnType<typeof createSetTeamSawSubteamsBanner>
+  | More.ReturnType<typeof createSetUpdatedChannelName>
+  | More.ReturnType<typeof createSetUpdatedTopic>
   | More.ReturnType<typeof createSetupTeamHandlers>
   | More.ReturnType<typeof createUpdateChannelName>
   | More.ReturnType<typeof createUpdateTopic>

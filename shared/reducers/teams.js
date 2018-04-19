@@ -100,6 +100,25 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       }
       return state.set('chosenChannelsForTeam', chosenChannels)
 
+    case TeamsGen.setUpdatedChannelName:
+      return state.mergeIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'channelname'],
+        action.payload.newChannelName
+      )
+
+    case TeamsGen.setUpdatedTopic:
+      return state.mergeIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'description'],
+        action.payload.newTopic
+      )
+
+    case TeamsGen.deleteChannelInfo:
+      return state.deleteIn([
+        'teamNameToChannelInfos',
+        action.payload.teamname,
+        action.payload.conversationIDKey,
+      ])
+
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addToTeam:
