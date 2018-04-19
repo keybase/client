@@ -121,8 +121,10 @@ func TestKeybaseInviteMalformed(t *testing.T) {
 	tc, owner, other, teamname := setupPuklessInviteTest(t)
 	defer tc.Cleanup()
 
+	// Pretend it's an old client.
 	invite := SCTeamInvite{
 		Type: "keybase",
+		// Use name that is not "uid%seqno" but just "uid" instead.
 		Name: keybase1.TeamInviteName(other.User.GetUID()),
 		ID:   NewInviteID(),
 	}
