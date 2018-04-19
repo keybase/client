@@ -1474,6 +1474,18 @@ const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload, state
   )
 }
 
+// Did we select a real conversation and yet have an empty search?
+const hideEmptySearch = (action: Chat2Gen.SelectConversationPayload, state: TypedState) => {
+  if (action.payload.conversationIDKey === Constants.pendingConversationIDKey) {
+    return
+  }
+
+  const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+  if (meta.participants.isEmpty()) {
+    return Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'}))
+  }
+}
+
 const getRecommendations = (
   action: Chat2Gen.SelectConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
@@ -2204,6 +2216,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     [Chat2Gen.setPendingConversationUsers, Chat2Gen.selectConversation],
     getRecommendations
   )
+  yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, hideEmptySearch)
 
   yield Saga.safeTakeEveryPure(
     Chat2Gen.sendToPendingConversation,
