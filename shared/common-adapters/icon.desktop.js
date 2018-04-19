@@ -63,14 +63,28 @@ class Icon extends Component<Exact<Props>, void> {
         }
       : null
 
+    const hasContainer = (this.props.onClick && this.props.style) || isFontIcon
+
     const imgStyle = collapseStyles([
       desktopStyles.noSelect,
-      this.props.style,
+      !hasContainer ? this.props.style : {},
+      this.props.iconStyle,
       onClick ? desktopStyles.clickable : {},
       this.props.color ? {color: color} : {},
     ])
 
-    if (isFontIcon) {
+    const iconElement = (
+      <img
+        className={this.props.className}
+        draggable="false"
+        title={this.props.hint}
+        style={imgStyle}
+        onClick={onClick}
+        srcSet={iconTypeToSrcSet(iconType)}
+      />
+    )
+
+    if (hasContainer) {
       const cleanStyle = collapseStyles([
         {
           fontFamily: 'kb',
@@ -103,21 +117,13 @@ class Icon extends Component<Exact<Props>, void> {
             hoverColor={onClick ? hoverColor : null}
             onClick={onClick}
           >
-            {String.fromCharCode(iconMeta[iconType].charCode || 0)}
+            {isFontIcon && String.fromCharCode(iconMeta[iconType].charCode || 0)}
+            {!isFontIcon && iconElement}
           </StyledSpan>
         </Box>
       )
     } else {
-      return (
-        <img
-          className={this.props.className}
-          draggable="false"
-          title={this.props.hint}
-          style={imgStyle}
-          onClick={onClick}
-          srcSet={iconTypeToSrcSet(iconType)}
-        />
-      )
+      return iconElement
     }
   }
 }

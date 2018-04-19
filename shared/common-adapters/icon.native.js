@@ -3,7 +3,7 @@ import logger from '../logger'
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
-import {globalColors, glamorous} from '../styles'
+import {globalColors, glamorous, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 import type {IconType, Props} from './icon'
@@ -43,9 +43,9 @@ const Text = glamorous.text(
     } else return null
   },
   props =>
-    props.style && props.style.textAlign !== undefined
+    props.textAlign !== undefined
       ? {
-          textAlign: props.style.textAlign,
+          textAlign: props.textAlign,
         }
       : null,
   props => {
@@ -86,6 +86,8 @@ const Image = glamorous.image(
 class Icon extends React.PureComponent<Props> {
   render() {
     const props = this.props
+    const hasContainer = props.onClick && props.style
+    const iconStyle = hasContainer ? props.iconStyle : collapseStyles([props.style, props.iconStyle])
     let iconType = shared.typeToIconMapper(props.type)
 
     if (!iconType) {
@@ -103,12 +105,12 @@ class Icon extends React.PureComponent<Props> {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
 
       icon = (
-        <Text style={[props.style, props.iconStyle]} type={props.type}>
+        <Text style={iconStyle} type={props.type}>
           {code}
         </Text>
       )
     } else {
-      icon = <Image source={iconMeta[iconType].require} style={props.style} />
+      icon = <Image source={iconMeta[iconType].require} style={iconStyle} />
     }
 
     return props.onClick ? (
