@@ -245,11 +245,21 @@ function ModalPositionRelative<PP>(
     }
 
     render() {
+      // React will complain if WrappedComponent is a HTMLElement and we try to attach these props
+      const noPassProps = ['targetRect', 'position', 'onClosePopup']
+      // $ForceType thinks {} is invalid for PP, we're filtering out the HOC's props
+      const passProps: PP = Object.keys(this.props)
+        .filter(k => !noPassProps.includes(k))
+        .reduce((res, k) => {
+          res[k] = this.props[k]
+          return res
+        }, {})
+
       return (
         <Modal setNode={this._setRef}>
           <Box style={this.state.style}>
             <EscapeHandler onESC={this.props.onClosePopup}>
-              <WrappedComponent {...(this.props: PP)} />
+              <WrappedComponent {...(passProps: PP)} />
             </EscapeHandler>
           </Box>
         </Modal>
