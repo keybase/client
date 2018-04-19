@@ -157,9 +157,10 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   }
 
   Object.keys(multsMap).forEach(mult => {
-    const ideal = parseInt(mult, 10) * targetSize
+    // const ideal = parseInt(mult, 10) * targetSize
     // Find a larger than ideal size or just the largest possible
-    const size = sizes.find(size => size >= ideal)
+    // const size = sizes.find(size => size >= ideal)
+    const size = 360
     multsMap[mult] = size || sizes[sizes.length - 1]
   })
 
