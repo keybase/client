@@ -87,7 +87,7 @@ class Icon extends React.PureComponent<Props> {
   render() {
     const props = this.props
     const hasContainer = props.onClick && props.style
-    const iconStyle = hasContainer ? props.iconStyle : collapseStyles([props.style, props.iconStyle])
+    let iconStyle = hasContainer ? props.iconStyle : collapseStyles([props.style, props.iconStyle])
     let iconType = shared.typeToIconMapper(props.type)
 
     if (!iconType) {
@@ -103,7 +103,11 @@ class Icon extends React.PureComponent<Props> {
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-
+      // glamorous.text color just doesn't work? Put color
+      // back into the style here
+      if (props.color) {
+        iconStyle = collapseStyles([iconStyle, {color: props.color}])
+      }
       icon = (
         <Text style={iconStyle} type={props.type}>
           {code}
