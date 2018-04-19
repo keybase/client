@@ -102,14 +102,14 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
 
     case TeamsGen.setUpdatedChannelName:
       return state.mergeIn(
-        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'channelname'],
-        action.payload.newChannelName
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
+        {channelname: action.payload.newChannelName}
       )
 
     case TeamsGen.setUpdatedTopic:
       return state.mergeIn(
-        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'description'],
-        action.payload.newTopic
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
+        {description: action.payload.newTopic}
       )
 
     case TeamsGen.deleteChannelInfo:
