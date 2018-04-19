@@ -690,6 +690,9 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
     Saga.identity(
       Saga.all([
         Saga.put(createDecrementWaiting(waitingKey)),
+        // TODO: Ideally, we'd just update the channel info in the
+        // teams store ourselves; we'd have to keep track of which
+        // calls succeeded, though.
         Saga.put(TeamsGen.createGetChannels({teamname})),
       ])
     ),
