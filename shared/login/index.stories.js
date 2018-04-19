@@ -1,36 +1,10 @@
 // @flow
 import * as React from 'react'
-import Login, {type Props} from './login'
-import {action, storiesOf} from '../stories/storybook'
-
-const commonProps: Props = {
-  users: ['awendland'],
-  passphrase: '',
-  onForgotPassphrase: action('onForgotPassphrase'),
-  onSignup: action('onSignup'),
-  onBack: action('onBack'),
-  onSomeoneElse: action('onSomeoneElse'),
-  error: null,
-  waitingForResponse: false,
-  showTyping: false,
-  saveInKeychain: false,
-  selectedUser: null,
-  selectedUserChange: action('selectedUserChange'),
-  passphraseChange: action('passphraseChange'),
-  showTypingChange: action('showTypingChange'),
-  saveInKeychainChange: action('saveInKeychainChange'),
-  onSubmit: action('onSubmit'),
-  onLogin: action('onLogin'),
-  onFeedback: action('onFeedback'),
-}
+import {Text} from '../common-adapters'
+import {storiesOf} from '../stories/storybook'
 
 const load = () => {
-  storiesOf('Login', module)
-    .add('Single previous user', () => <Login {...commonProps} />)
-    .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
-    .add('Multiple previous users', () => (
-      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />
-    ))
+  storiesOf('Login', module).add('Error', () => <Text>TODO</Text>)
 }
 
 export default load
