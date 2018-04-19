@@ -36,7 +36,7 @@ func runPrereqs(e Engine, ctx *Context) error {
 	}
 
 	if prq.Device {
-		ok, _, err := IsLoggedIn(e, ctx)
+		ok, _, err := IsLoggedInWithError(e, ctx)
 		if err != nil {
 			return err
 		}

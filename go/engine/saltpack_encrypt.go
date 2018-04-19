@@ -93,7 +93,7 @@ func (e *SaltpackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
 }
 
 func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
-	loggedIn, uid, err := IsLoggedIn(e, ctx)
+	loggedIn, uid, err := IsLoggedInWithError(e, ctx)
 	if err != nil && !e.arg.Opts.NoSelfEncrypt {
 		return err
 	}

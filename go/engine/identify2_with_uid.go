@@ -889,7 +889,7 @@ func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 	var loadMeErr, loadThemErr error
 
 	var selfLoad bool
-	loggedIn, myUID, _ := IsLoggedIn(e, ctx)
+	loggedIn, myUID := IsLoggedIn(e, ctx)
 
 	var wg sync.WaitGroup
 	if loggedIn {

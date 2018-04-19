@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// IsLoggedIn conveys if the user is in a logged-in state or not.
+// IsLoggedInWithError conveys if the user is in a logged-in state or not.
 // If this function returns `true`, it's because the user is logged in,
 // is on a provisioned device, and has an unlocked device key, If this
 // function returns `false`, it's because either no one has ever logged onto
@@ -24,9 +24,14 @@ import (
 // Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
 // flow and therefore will try its best to unlocked locked keys if it can
 // without user interaction.
-func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
+func IsLoggedInWithError(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
 	ret, uid, err = bootstrap(e, ctx)
 	return ret, uid, err
+}
+
+func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID) {
+	ret, uid, _ = IsLoggedInWithError(e, ctx)
+	return ret, uid
 }
 
 // bootstrap will setup an ActiveDevice with a NIST Factory for the engine
@@ -69,7 +74,7 @@ type keypair struct {
 // findDeviceKeys looks for device keys and unlocks them.
 func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
 	// need to be logged in to get a device key (unlocked)
-	lin, _, _ := IsLoggedIn(e, ctx)
+	lin, _ := IsLoggedIn(e, ctx)
 	if !lin {
 		return nil, libkb.LoginRequiredError{}
 	}

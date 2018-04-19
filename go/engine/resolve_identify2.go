@@ -70,7 +70,7 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 
 	// if no uid and no assertion, then if logged in use self uid:
 	if len(e.arg.UserAssertion) == 0 && e.arg.AllowEmptySelfID {
-		ok, uid, _ := IsLoggedIn(e, ctx)
+		ok, uid := IsLoggedIn(e, ctx)
 		if ok {
 			e.arg.Uid = uid
 			return nil

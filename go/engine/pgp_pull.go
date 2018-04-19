@@ -188,7 +188,7 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	if ok, _, _ := IsLoggedIn(e, ctx); !ok {
+	if ok, _ := IsLoggedIn(e, ctx); !ok {
 		return e.runLoggedOut(ctx)
 	}
 
