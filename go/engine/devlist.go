@@ -29,7 +29,7 @@ func (d *DevList) Name() string {
 }
 
 func (d *DevList) Prereqs() Prereqs {
-	return Prereqs{Session: true}
+	return Prereqs{Device: true}
 }
 
 func (d *DevList) RequiredUIs() []libkb.UIKind {
