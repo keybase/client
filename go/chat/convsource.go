@@ -151,6 +151,11 @@ func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return chat1.MessageUnboxed{}, true, nil
 }
 
+func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msg chat1.MessageUnboxed) (bool, error) {
+	return true, nil
+}
+
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
 
@@ -435,6 +440,20 @@ func (s *HybridConversationSource) ReleaseConversationLock(ctx context.Context, 
 	s.lockTab.Release(ctx, uid, convID)
 }
 
+func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID) (continuousUpdate bool, err error) {
+	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
+	switch err.(type) {
+	case storage.MissError:
+		continuousUpdate = true
+	case nil:
+		continuousUpdate = maxMsgID >= msgID-1
+	default:
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -450,14 +469,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	// Check to see if we are "appending" this message to the current record.
-	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
-	switch err.(type) {
-	case storage.MissError:
-		continuousUpdate = true
-	case nil:
-		continuousUpdate = maxMsgID >= msg.GetMessageID()-1
-	default:
-		return chat1.MessageUnboxed{}, continuousUpdate, err
+	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
+		return decmsg, continuousUpdate, err
 	}
 
 	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv)
@@ -480,6 +493,25 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	return decmsg, continuousUpdate, nil
+}
+
+func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "PushUnboxed")()
+	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return continuousUpdate, err
+	}
+	defer s.lockTab.Release(ctx, uid, convID)
+
+	// Check to see if we are "appending" this message to the current record.
+	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
+		return continuousUpdate, err
+	}
+	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
+		return continuousUpdate, err
+	}
+
+	return continuousUpdate, nil
 }
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.UnboxConversationInfo,

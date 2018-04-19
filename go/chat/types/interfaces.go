@@ -59,6 +59,8 @@ type ConversationSource interface {
 
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
+	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+		uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
