@@ -1,0 +1,14 @@
+// @flow
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles/css'
+
+export type Props = {
+  onHidden: () => void,
+  visible: boolean,
+  gatewayID: string,
+  attachTo?: React.Node,
+  containerStyle?: StylesCrossPlatform,
+}
+
+// Export this as a function - we don't need to expose anything about the component state
+export default (props: Props) => React.Node
