@@ -29,13 +29,12 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey) ||
     getMeta(state, conversationIDKey)
 
-  const waitingForGetInfo = anyWaiting(state, Constants.getChannelsWaitingKey(teamname))
   const waitingForUpdate = anyWaiting(
     state,
     Constants.updateTopicWaitingKey(conversationIDKey),
     Constants.updateChannelNameWaitingKey(conversationIDKey)
   )
-  const waitingForSave = waitingForGetInfo || waitingForUpdate
+  const waitingForSave = waitingForUpdate
 
   const channelName = channelInfo ? channelInfo.channelname : ''
   const topic = channelInfo ? channelInfo.description : ''
@@ -47,7 +46,6 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     channelName,
     topic,
     canDelete,
-    waitingForGetInfo,
     waitingForSave,
   }
 }
@@ -97,7 +95,6 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
 
       dispatchProps.onCancel() // nav back up
     },
-    waitingForGetInfo: stateProps.waitingForGetInfo,
     waitingForSave: stateProps.waitingForSave,
   }
 }
