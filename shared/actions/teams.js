@@ -929,8 +929,8 @@ function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPa
   const teamList = state.teams.chosenChannelsForTeam.add(teamname)
   // We'd actually like to do this in one message to avoid having the UI glitch
   // momentarily inbetween the dismiss (and therefore thinking no teams have
-  // had channels selected) and the re-inject.  For now, set a flag to ignore
-  // changes in the interim.  This is CORE-7663.
+  // had channels selected) and the re-inject.  For now, we have a workaround
+  // of ignoring empty updates from the clearing in the reducer.  (CORE-7663.)
   return Saga.sequentially([
     Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
       category: 'chosenChannelsForTeam',
