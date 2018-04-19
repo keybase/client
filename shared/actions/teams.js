@@ -69,7 +69,11 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
       })
     )
   } catch (error) {
-    yield Saga.put(TeamsGen.createSetTeamJoinError({error: error.desc}))
+    const desc =
+      error.code === RPCTypes.constantsStatusCode.scteaminvitebadtoken
+        ? 'Sorry, that team name or token is not valid.'
+        : error.desc
+    yield Saga.put(TeamsGen.createSetTeamJoinError({error: desc}))
   }
 }
 
