@@ -21,23 +21,19 @@ type Props = {
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
     'Divider',
-    ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
-    ...(props.onDownload ? [{onClick: props.onDownload, title: 'Download'}] : []),
-    ...(props.onSaveAttachment ? [{onClick: props.onSaveAttachment, title: 'Save'}] : []),
-    ...(props.onShareAttachment ? [{onClick: props.onShareAttachment, title: 'Share'}] : []),
     ...(props.yourMessage
       ? [
           {
             danger: true,
             disabled: !props.onDelete,
             onClick: props.onDelete,
+            subTitle: 'Deletes this attachment for everyone',
             title: 'Delete',
           },
         ]
       : []),
     ...(props.onDeleteMessageHistory
       ? [
-          'Divider',
           {
             danger: true,
             disabled: !props.onDeleteMessageHistory,
@@ -46,6 +42,11 @@ const AttachmentPopupMenu = (props: Props) => {
           },
         ]
       : []),
+    'Divider',
+    ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
+    ...(props.onSaveAttachment ? [{onClick: props.onSaveAttachment, title: 'Save'}] : []),
+    ...(props.onShareAttachment ? [{onClick: props.onShareAttachment, title: 'Share'}] : []),
+    ...(props.onDownload ? [{onClick: props.onDownload, title: 'Download'}] : []),
   ]
 
   const header = {
