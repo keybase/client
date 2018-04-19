@@ -6,31 +6,10 @@ protocol remote {
 
   record Members {
     AccountID fromStellar;
-    string fromKeybase;
     keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
     AccountID toStellar;
-    string toKeybase;
     keybase1.UserVersion to;
-  }
-
-  record TransactionSummary {
-    TransactionID stellarID;
-    KeybaseTransactionID keybaseID;
-    TransactionStatus status;
-    string errMsg;
-
-    string noteB64; // b64-encoded EncryptedNote or empty string.
-
-    Asset asset;
-    string amount;
-    string displayAmount;
-    string displayCurrency;
-
-    Members members;
-
-    TimeMs ctime;
-    TimeMs rtime;
   }
 
   record Operation {
