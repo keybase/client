@@ -855,18 +855,11 @@ func (e *Identify2WithUID) isSelfLoad() bool {
 	return e.me != nil && e.them != nil && e.me.Equal(e.them)
 }
 
-func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
+func (e *Identify2WithUID) loadMe(ctx *Context, uid keybase1.UID) (err error) {
 
 	// Short circuit loadMe for testing
 	if e.testArgs != nil && e.testArgs.noMe {
 		return nil
-	}
-
-	var ok bool
-	var uid keybase1.UID
-	ok, uid, err = IsLoggedIn(e, ctx)
-	if err != nil || !ok {
-		return err
 	}
 	e.me, err = loadIdentifyUser(ctx, e.G(), libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), uid), e.getCache())
 	return err
@@ -894,17 +887,26 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 
 func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 	var loadMeErr, loadThemErr error
+
+	var selfLoad bool
+	loggedIn, myUID, _ := IsLoggedIn(e, ctx)
+
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		loadMeErr = e.loadMe(ctx)
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
-		loadThemErr = e.loadThem(ctx)
-		wg.Done()
-	}()
+	if loggedIn {
+		selfLoad = myUID.Equal(e.arg.Uid)
+		wg.Add(1)
+		go func() {
+			loadMeErr = e.loadMe(ctx, myUID)
+			wg.Done()
+		}()
+	}
+	if !selfLoad {
+		wg.Add(1)
+		go func() {
+			loadThemErr = e.loadThem(ctx)
+			wg.Done()
+		}()
+	}
 	wg.Wait()
 
 	if loadMeErr != nil {
@@ -912,6 +914,10 @@ func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 	}
 	if loadThemErr != nil {
 		return loadThemErr
+	}
+
+	if selfLoad {
+		e.them = e.me
 	}
 
 	return nil

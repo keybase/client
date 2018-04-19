@@ -5,15 +5,13 @@ package engine
 
 import (
 	"fmt"
-	"net/url"
-	"runtime/debug"
-
 	"github.com/keybase/client/go/libkb"
+	"runtime/debug"
 )
 
 type Prereqs struct {
-	Session bool
-	Device  bool
+	TemporarySession bool
+	Device           bool
 }
 
 type Engine interface {
@@ -30,17 +28,8 @@ type UIDelegateWanter interface {
 func runPrereqs(e Engine, ctx *Context) (err error) {
 	prq := e.Prereqs()
 
-	if prq.Session {
-		var ok bool
-		ok, _, err = IsLoggedIn(e, ctx)
-		if !ok {
-			urlError, isURLError := err.(*url.Error)
-			context := ""
-			if isURLError {
-				context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
-			}
-			err = libkb.LoginRequiredError{Context: context}
-		}
+	if prq.TemporarySession {
+		err := e.G().AssertTemporarySession(ctx.LoginContext)
 		if err != nil {
 			return err
 		}

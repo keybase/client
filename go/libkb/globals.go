@@ -746,6 +746,14 @@ func (g *GlobalContext) GetGpgClient() *GpgCLI {
 func (g *GlobalContext) GetMyUID() keybase1.UID {
 	var uid keybase1.UID
 
+	// Prefer ActiveDevice, that's the prefered way
+	// to figure out what the current user's UID is.
+	// We are phasing out LoginState().
+	uid = g.ActiveDevice.UID()
+	if uid.Exists() {
+		return uid
+	}
+
 	g.LoginState().LocalSession(func(s *Session) {
 		uid = s.GetUID()
 	}, "G - GetMyUID - GetUID")
@@ -1255,4 +1263,32 @@ func (g *GlobalContext) SetSecretStoreNilForTests(t *testing.T) {
 	defer g.secretStoreMu.Unlock()
 
 	g.secretStore = nil
+}
+
+// AssertTemporarySession asserts that the user has an old-fashioned
+// session token. Should only be necessary on login/provisioning flow.
+func (g *GlobalContext) AssertTemporarySession(lctx LoginContext) error {
+
+	run := func(lctx LoginContext) error {
+		sess := lctx.LocalSession()
+		if sess == nil {
+			return LoginRequiredError{"no session object loaded"}
+		}
+		if !sess.IsValid() {
+			return LoginRequiredError{"session isn't valid"}
+		}
+		return nil
+	}
+
+	if lctx != nil {
+		return run(lctx)
+	}
+	var gerr error
+	aerr := g.LoginState().Account(func(a *Account) {
+		gerr = run(a)
+	}, "AssertTemporarySession")
+	if aerr != nil {
+		return aerr
+	}
+	return gerr
 }
