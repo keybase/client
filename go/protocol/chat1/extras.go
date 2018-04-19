@@ -377,7 +377,7 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
 	// from the message.
-	if remainingLifetime > originalLifetime || remainingLifetime < 0 {
+	if remainingLifetime > originalLifetime {
 		remainingLifetime = originalLifetime
 	}
 	etime := m.ClientHeader.Rtime.Time().Add(remainingLifetime)

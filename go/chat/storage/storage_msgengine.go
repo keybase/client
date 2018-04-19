@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/clockwork"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 )
@@ -16,8 +15,6 @@ import (
 type msgEngine struct {
 	globals.Contextified
 	utils.DebugLabeler
-
-	clock clockwork.Clock
 }
 
 type boxedLocalMessage struct {
@@ -40,12 +37,7 @@ func newMsgEngine(g *globals.Context) *msgEngine {
 	return &msgEngine{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "MessageEngine", true),
-		clock:        clockwork.NewRealClock(),
 	}
-}
-
-func (ms *msgEngine) SetClock(clock clockwork.Clock) {
-	ms.clock = clock
 }
 
 func (ms *msgEngine) fetchSecretKey(ctx context.Context) (key [32]byte, err Error) {
@@ -73,18 +65,7 @@ func (ms *msgEngine) WriteMessages(ctx context.Context, convID chat1.Conversatio
 	}
 
 	// Write out all the messages
-	for index, msg := range msgs {
-
-		// Set the received time when we write this into storage if it is not
-		// already set
-		if msg.IsValid() {
-			mvalid := msg.Valid()
-			if mvalid.ClientHeader.Rtime == 0 {
-				mvalid.ClientHeader.Rtime = gregor1.ToTime(ms.clock.Now())
-				msg = chat1.NewMessageUnboxedWithValid(mvalid)
-				msgs[index] = msg
-			}
-		}
+	for _, msg := range msgs {
 
 		// Encode message
 		dat, err := encode(msg)

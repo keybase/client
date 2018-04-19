@@ -47,7 +47,6 @@ type storageEngine interface {
 		msgs []chat1.MessageUnboxed) Error
 	ReadMessages(ctx context.Context, res ResultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
-	SetClock(clock clockwork.Clock)
 }
 
 func New(g *globals.Context) *Storage {
@@ -69,7 +68,6 @@ func (s *Storage) setEngine(engine storageEngine) {
 
 func (s *Storage) SetClock(clock clockwork.Clock) {
 	s.clock = clock
-	s.engine.SetClock(clock)
 }
 
 func makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {

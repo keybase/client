@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/clockwork"
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 )
@@ -19,15 +18,12 @@ const blockSize = 100
 type blockEngine struct {
 	globals.Contextified
 	utils.DebugLabeler
-
-	clock clockwork.Clock
 }
 
 func newBlockEngine(g *globals.Context) *blockEngine {
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),
-		clock:        clockwork.NewRealClock(),
 	}
 }
 
@@ -49,10 +45,6 @@ type boxedBlock struct {
 	V int
 	N [24]byte
 	E []byte
-}
-
-func (be *blockEngine) SetClock(clock clockwork.Clock) {
-	be.clock = clock
 }
 
 func (be *blockEngine) makeBlockKey(convID chat1.ConversationID, uid gregor1.UID, blockID int) libkb.DbKey {
@@ -355,16 +347,6 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 	// Append to the block
 	newBlock = maxB
 	for index, msg := range msgs {
-		// Set the received time when we write this into storage if it is not
-		// already set
-		if msg.IsValid() {
-			mvalid := msg.Valid()
-			if mvalid.ClientHeader.Rtime == 0 {
-				mvalid.ClientHeader.Rtime = gregor1.ToTime(be.clock.Now())
-				msg = chat1.NewMessageUnboxedWithValid(mvalid)
-				msgs[index] = msg
-			}
-		}
 		msgID := msg.GetMessageID()
 		if be.getBlockNumber(msgID) != newBlock.BlockID {
 			be.Debug(ctx, "writeMessages: crossed block boundary, aborting and writing out: msgID: %d", msgID)
