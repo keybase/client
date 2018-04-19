@@ -559,9 +559,6 @@ function _afterGetChannels(fromGetChannels: any[]) {
   const teamname: string = fromGetChannels[1]
   const waitingKey: {|key: string|} = fromGetChannels[2]
 
-  // TODO: This throws away a lot of info. We could instead update
-  // chat2.meta, and have everything look up chat2.meta instead.
-
   const convs = results.convs || []
   const channelInfos: {[ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
   convs.forEach(conv => {
