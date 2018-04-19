@@ -4,24 +4,24 @@ import Login, {type Props} from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
 const commonProps: Props = {
-  users: ['awendland'],
-  passphrase: '',
-  onForgotPassphrase: action('onForgotPassphrase'),
-  onSignup: action('onSignup'),
-  onBack: action('onBack'),
-  onSomeoneElse: action('onSomeoneElse'),
   error: null,
-  waitingForResponse: false,
-  showTyping: false,
+  onBack: action('onBack'),
+  onFeedback: action('onFeedback'),
+  onForgotPassphrase: action('onForgotPassphrase'),
+  onLogin: action('onLogin'),
+  onSignup: action('onSignup'),
+  onSomeoneElse: action('onSomeoneElse'),
+  onSubmit: action('onSubmit'),
+  passphrase: '',
+  passphraseChange: action('passphraseChange'),
   saveInKeychain: false,
+  saveInKeychainChange: action('saveInKeychainChange'),
   selectedUser: null,
   selectedUserChange: action('selectedUserChange'),
-  passphraseChange: action('passphraseChange'),
+  showTyping: false,
   showTypingChange: action('showTypingChange'),
-  saveInKeychainChange: action('saveInKeychainChange'),
-  onSubmit: action('onSubmit'),
-  onLogin: action('onLogin'),
-  onFeedback: action('onFeedback'),
+  users: ['awendland'],
+  waitingForResponse: false,
 }
 
 const load = () => {

@@ -5,9 +5,9 @@ import {storiesOf} from '../../stories/storybook'
 
 const load = () => {
   storiesOf('Login/Forms', module)
-    .add('Intro', () => <Text>TODO</Text>)
-    .add('Splash', () => <Text>TODO</Text>)
-    .add('Failure', () => <Text>TODO</Text>)
+    .add('Intro', () => <Text type="Body">TODO</Text>)
+    .add('Splash', () => <Text type="Body">TODO</Text>)
+    .add('Failure', () => <Text type="Body">TODO</Text>)
 }
 
 export default load
