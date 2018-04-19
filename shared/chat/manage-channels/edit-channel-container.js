@@ -30,8 +30,8 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   )
   const waitingForSave = waitingForGetInfo || waitingForUpdate
 
-  const channelName = channelInfo ? channelInfo.channelname || '' : ''
-  const topic = channelInfo ? channelInfo.description || '' : ''
+  const channelName = channelInfo ? channelInfo.channelname : ''
+  const topic = channelInfo ? channelInfo.description : ''
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
