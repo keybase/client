@@ -393,9 +393,14 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     }
 
     // Get requests to join
-    const requests: RPCTypes.TeamJoinRequest[] = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise, {
-      teamName: teamname,
-    })
+    let requests: RPCTypes.TeamJoinRequest[] = []
+    const state = yield Saga.select()
+    if (Constants.getCanPerform(state, teamname).manageMembers) {
+      // TODO (DESKTOP-6478) move this somewhere else
+      requests = yield Saga.call(RPCTypes.teamsTeamListRequestsRpcPromise, {
+        teamName: teamname,
+      })
+    }
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
     const requestMap = requests.reduce((reqMap, req) => {
