@@ -120,9 +120,9 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       ])
 
     case TeamsGen.addParticipant:
-      return state.mergeIn(
-        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
-        {participants: I.Set(action.payload.participant)}
+      return state.updateIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'participants'],
+        set => set.add(action.payload.participant)
       )
 
     case TeamsGen.removeParticipant:
