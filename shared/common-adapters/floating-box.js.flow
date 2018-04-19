@@ -8,10 +8,12 @@ export type Props = {
   onHidden: () => void, // will be triggered automatically only on click/tap outside the menu
   visible: boolean,
   // gatewayID: string, TODO
-  attachTo?: React.Node, // Desktop only - the node that we should aim for
+  // Desktop only - the node that we should aim for
+  // optional because desktop only, nullable because refs always are
+  attachTo?: ?React.Component<*, *>, 
   containerStyle?: StylesCrossPlatform,
   position?: Position,
 }
 
 // Export this as a function - we don't need to expose anything about the component state
-export default (props: Props) => React.Node
+declare export default class FloatingBox extends React.Component<Props> {}

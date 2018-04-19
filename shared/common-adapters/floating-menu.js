@@ -10,7 +10,7 @@ export type Props = {
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   visible: boolean,
-  attachTo?: React.Node,
+  attachTo?: ?React.Component<*, *>,
   position?: Position,
 }
 

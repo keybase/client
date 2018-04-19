@@ -3,15 +3,15 @@ import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import {Box} from './box'
 import {ModalPositionRelative} from './relative-popup-hoc.desktop'
-import type {Props} from './floating-menu'
+import type {Props} from './floating-box'
 
-const RelativeFloatingMenu = ModalPositionRelative(Box)
+const RelativeFloatingBox = ModalPositionRelative(Box)
 
 type State = {
   targetRect: ?ClientRect,
 }
 
-class FloatingMenu extends React.Component<Props, State> {
+class FloatingBox extends React.Component<Props, State> {
   state = {targetRect: null}
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
@@ -19,7 +19,9 @@ class FloatingMenu extends React.Component<Props, State> {
       return {targetRect: null}
     }
     const node = findDOMNode(nextProps.attachTo)
-    return {targetRect: node.getBoundingClientRect()}
+    return node instanceof window.HTMLElement
+      ? {targetRect: node.getBoundingClientRect()}
+      : {targetRect: null}
   }
 
   render() {
@@ -27,15 +29,15 @@ class FloatingMenu extends React.Component<Props, State> {
       return null
     }
     return (
-      <RelativeFloatingMenu
+      <RelativeFloatingBox
         position={this.props.position || 'bottom center'}
         targetRect={this.state.targetRect}
         onClosePopup={this.props.onHidden}
       >
         {this.props.children}
-      </RelativeFloatingMenu>
+      </RelativeFloatingBox>
     )
   }
 }
 
-export default FloatingMenu
+export default FloatingBox
