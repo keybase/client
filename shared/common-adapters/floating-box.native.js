@@ -6,7 +6,7 @@ import type {Props} from './floating-box'
 
 export default (props: Props) => {
   return (
-    <Gateway into="popup-root">
+    <Gateway into={props.gatewayName}>
       <Box style={[{position: 'relative', width: '100%', height: '100%'}, props.containerStyle]}>
         {props.children}
       </Box>

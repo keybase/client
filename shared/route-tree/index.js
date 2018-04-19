@@ -15,6 +15,7 @@ type _LeafTags = {
   keepKeyboardOnLeave: boolean,
   root: boolean,
   title: ?string,
+  gatewayName: string,
 }
 
 export type LeafTags = I.RecordOf<_LeafTags>
@@ -29,6 +30,7 @@ export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
   keepKeyboardOnLeave: false,
   root: false, // only used by the root shim to allow special padding logic as its the root container
   title: null,
+  gatewayName: '',
 })
 
 // TODO type this properly. component and container component are mutually exclusive

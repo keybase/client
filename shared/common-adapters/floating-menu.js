@@ -13,6 +13,7 @@ export type Props = {
   visible: boolean,
   attachTo?: ?React.Component<*, *>,
   position?: Position,
+  gatewayName: string,
 }
 
 export default (props: Props) => {
@@ -26,6 +27,7 @@ export default (props: Props) => {
       onHidden={props.onHidden}
       visible={props.visible}
       attachTo={props.attachTo}
+      gatewayName={props.gatewayName}
     >
       <PopupComponent
         header={props.header}
