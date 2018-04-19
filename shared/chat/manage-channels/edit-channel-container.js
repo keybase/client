@@ -43,15 +43,13 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
   return {
+    _navigateUp: () => dispatch(navigateUp()),
     _updateChannelName: (teamname: string, conversationIDKey: ConversationIDKey, newChannelName: string) =>
       dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
     _updateTopic: (teamname: string, conversationIDKey: ConversationIDKey, newTopic: string) =>
       dispatch(TeamsGen.createUpdateTopic({teamname, conversationIDKey, newTopic})),
-    _onConfirmedDelete: (teamname: string, conversationIDKey: ConversationIDKey) => {
-      dispatch(TeamsGen.createDeleteChannelConfirmed({teamname, conversationIDKey}))
-      dispatch(navigateUp())
-    },
-    onCancel: () => dispatch(navigateUp()),
+    _onConfirmedDelete: (teamname: string, conversationIDKey: ConversationIDKey) =>
+      dispatch(TeamsGen.createDeleteChannelConfirmed({teamname, conversationIDKey})),
   }
 }
 
@@ -62,9 +60,10 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
     teamname,
     channelName,
     topic,
-    onCancel: dispatchProps.onCancel,
+    onCancel: dispatchProps._navigateUp,
     onConfirmedDelete: () => {
       dispatchProps._onConfirmedDelete(teamname, conversationIDKey)
+      dispatchProps._navigateUp()
     },
     showDelete: stateProps.canDelete,
     deleteRenameDisabled,
@@ -77,7 +76,7 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
         dispatchProps._updateTopic(teamname, conversationIDKey, newTopic)
       }
 
-      dispatchProps.onCancel() // nav back up
+      dispatchProps._navigateUp()
     },
   }
 }
