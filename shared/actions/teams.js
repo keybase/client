@@ -924,7 +924,7 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
     Saga.identity(
       Saga.all([
         Saga.put(createDecrementWaiting(waitingKey)),
-        Saga.put(TeamsGen.createGetChannels({teamname})),
+        Saga.put(TeamsGen.createSetUpdatedTopic({teamname, conversationIDKey, newTopic})),
       ])
     ),
   ])
@@ -967,7 +967,7 @@ function _updateChannelname(action: TeamsGen.UpdateChannelNamePayload, state: Ty
     Saga.identity(
       Saga.all([
         Saga.put(createDecrementWaiting(waitingKey)),
-        Saga.put(TeamsGen.createGetChannels({teamname})),
+        Saga.put(TeamsGen.createSetUpdatedChannelName({teamname, conversationIDKey, newChannelName})),
       ])
     ),
   ])
@@ -983,7 +983,7 @@ function _deleteChannelConfirmed(action: TeamsGen.DeleteChannelConfirmedPayload,
       channelName: '',
       confirmed: true,
     }),
-    Saga.put(TeamsGen.createGetChannels({teamname})),
+    Saga.put(TeamsGen.createDeleteChannelInfo({teamname, conversationIDKey})),
   ])
 }
 
