@@ -12,4 +12,5 @@ type Remoter interface {
 	Balances(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error)
 	SubmitTransaction(ctx context.Context, payload libkb.JSONPayload) (stellar1.PaymentResult, error)
 	RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error)
+	PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error)
 }
