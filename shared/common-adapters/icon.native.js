@@ -86,6 +86,7 @@ const Image = glamorous.image(
 class Icon extends React.PureComponent<Props> {
   render() {
     const props = this.props
+    // Only apply props.style to icon if there is no onClick
     const hasContainer = props.onClick && props.style
     let iconStyle = hasContainer ? props.iconStyle : collapseStyles([props.style, props.iconStyle])
     let iconType = shared.typeToIconMapper(props.type)
