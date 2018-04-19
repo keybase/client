@@ -9,14 +9,13 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
 } from '../../../../styles'
-import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
-import {type MenuItem} from '../../../../common-adapters/popup-menu'
+import {Box, ClickableBox, FloatingBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import {type MenuItem, ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 import {type RetentionEntityType} from './container'
-import {Gateway} from 'react-gateway'
 
 export type Props = {
   canSetPolicy: boolean,
@@ -51,6 +50,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
+  _dropdownRef: React.Node
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -155,7 +155,7 @@ class RetentionPicker extends React.Component<Props, State> {
   render() {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
-        {this.state.showMenu && (
+        {/* {this.state.showMenu && (
           <Gateway into="popup-root">
             <Box style={{width: '100%', height: '100%', position: 'relative'}}>
               <ClickableBox
@@ -182,7 +182,19 @@ class RetentionPicker extends React.Component<Props, State> {
               </ClickableBox>
             </Box>
           </Gateway>
-        )}
+        )} */}
+        <FloatingBox
+          attachTo={this._dropdownRef}
+          visible={this.state.showMenu}
+          onHidden={() => this.setState({showMenu: false})}
+          position="top center"
+        >
+          <ModalLessPopupMenu
+            onHidden={() => this.setState({showMenu: false})}
+            items={this.state.items}
+            closeOnClick={true}
+          />
+        </FloatingBox>
 
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
@@ -190,6 +202,7 @@ class RetentionPicker extends React.Component<Props, State> {
         </Box>
         <ClickableBox
           onClick={() => this.setState({showMenu: true})}
+          ref={r => (this._dropdownRef = r)}
           style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >

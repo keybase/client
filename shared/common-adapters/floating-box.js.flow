@@ -1,13 +1,16 @@
 // @flow
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles/css'
+import type {Position} from './relative-popup-hoc'
 
 export type Props = {
-  onHidden: () => void,
+  children?: React.Node, 
+  onHidden: () => void, // will be triggered automatically only on click/tap outside the menu
   visible: boolean,
-  gatewayID: string,
-  attachTo?: React.Node,
+  // gatewayID: string, TODO
+  attachTo?: React.Node, // Desktop only - the node that we should aim for
   containerStyle?: StylesCrossPlatform,
+  position?: Position,
 }
 
 // Export this as a function - we don't need to expose anything about the component state
