@@ -20,6 +20,11 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
     throw new Error('teamname unexpectedly empty')
   }
 
+  // If we're being loaded from the manage channels page, then
+  // getChannelInfoFromConvID should return a non-null ChannelInfo
+  // object. Otherwise, we're being loaded from the info pane of a
+  // channel we belong to, so fetch the meta from the chat store
+  // instead.
   const channelInfo =
     Constants.getChannelInfoFromConvID(state, teamname, conversationIDKey) ||
     getMeta(state, conversationIDKey)
