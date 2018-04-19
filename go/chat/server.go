@@ -489,6 +489,14 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: result obtained offline")
 		}
 	}()
+
+	// Lock conversation while this is running
+	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
+		return res, err
+	}
+	defer h.G().ConvSource.ReleaseConversationLock(ctx, uid, arg.ConversationID)
+	h.Debug(ctx, "GetThreadNonblock: conversation lock obtained")
+
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
