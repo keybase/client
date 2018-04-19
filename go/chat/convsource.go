@@ -89,9 +89,10 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	return nil
 }
 
-func (s *baseConversationSource) TransformSupersedes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
+	unboxInfo types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 	transform := newBasicSupersedesTransform(s.G())
-	return transform.Run(ctx, conv, uid, msgs)
+	return transform.Run(ctx, unboxInfo, uid, msgs)
 }
 
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
