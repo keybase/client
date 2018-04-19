@@ -1378,8 +1378,8 @@ const startConversationFindExisting = (
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
 
-// Various things can cause us to lose our selection so this reselects the newest conversation
-const selectTheNewestConversation = (
+// Various things can cause us to lose our selection so this selects the newest conversation
+const desktopSelectTheNewestConversation = (
   action:
     | Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
@@ -1395,16 +1395,12 @@ const selectTheNewestConversation = (
     if (Constants.getSelectedConversation(state) !== action.payload.conversationIDKey) {
       return
     }
-  } else if (action.type === Chat2Gen.metasReceived) {
-    const conversationIDKey = Constants.getSelectedConversation(state)
-    // already something?
-    if (conversationIDKey !== Constants.noConversationIDKey) {
-      return
-    }
+  }
 
-    if (conversationIDKey === Constants.pendingConversationIDKey) {
-      return
-    }
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  if (Constants.isValidConversationIDKey(conversationIDKey)) {
+    // already something?
+    return
   }
 
   const metas = state.chat2.metaMap
@@ -1464,15 +1460,19 @@ const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
   return Saga.put(KBFSGen.createOpen({path}))
 }
 
-const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload) =>
-  action.payload.pendingMode !== 'none'
-    ? Saga.put(
-        Chat2Gen.createSelectConversation({
-          conversationIDKey: Constants.pendingConversationIDKey,
-          reason: 'pendingModeChange',
-        })
-      )
-    : null
+// either select the special pending converationidkey or select the preview conversation
+const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload, state: TypedState) => {
+  const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+  return Saga.put(
+    Chat2Gen.createSelectConversation({
+      conversationIDKey:
+        action.payload.pendingMode === 'none' && Constants.isValidConversationIDKey(meta.conversationIDKey)
+          ? meta.conversationIDKey
+          : Constants.pendingConversationIDKey,
+      reason: 'pendingModeChange',
+    })
+  )
+}
 
 const getRecommendations = (
   action: Chat2Gen.SelectConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
@@ -1509,7 +1509,10 @@ const updatePendingParticipants = (
     users = action.payload.userInputItemIds || []
   }
 
-  return Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users}))
+  return Saga.sequentially([
+    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users})),
+    Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: users})),
+  ])
 }
 
 // We keep a set of attachment previews to load
@@ -1982,7 +1985,7 @@ const mobileClearSelectedConversation = (_: any, state: TypedState) => {
 }
 
 // Native share sheet for attachments
-function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
+function* mobileMessageAttachmentShare(action: Chat2Gen.MessageAttachmentNativeSharePayload) {
   const {conversationIDKey, ordinal} = action.payload
   let state: TypedState = yield Saga.select()
   let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -2008,7 +2011,7 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
 }
 
 // Native save to camera roll
-function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
+function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSavePayload) {
   const {conversationIDKey, ordinal} = action.payload
   let state: TypedState = yield Saga.select()
   let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -2124,8 +2127,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   if (isMobile) {
     // Push us into the conversation
     yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, navigateToThread)
-    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, messageAttachmentNativeShare)
-    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, messageAttachmentNativeSave)
+    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
+    yield Saga.safeTakeEvery(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
     // Unselect the conversation when we go to the inbox
     yield Saga.safeTakeEveryPure(
       a => typeof a.type === 'string' && a.type.startsWith('routeTree:'),
@@ -2133,10 +2136,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     )
   } else {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
-    // Auto select the latest convo
+    // Auto select the newest conversation
     yield Saga.safeTakeEveryPure(
       [Chat2Gen.metasReceived, Chat2Gen.leaveConversation, Chat2Gen.metaDelete, TeamsGen.leaveTeam],
-      selectTheNewestConversation
+      desktopSelectTheNewestConversation
     )
   }
 
@@ -2190,13 +2193,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.bootstrapSuccess, bootstrapSuccess)
 
   // Search handling
-  // If search is exited clean stuff up
-  // yield Saga.safeTakeEveryPure(Chat2Gen.exitSearch, onExitSearch)
-  // Update our search items
-  // yield Saga.safeTakeEveryPure(
-  // [Chat2Gen.setPendingMode, SearchConstants.isUserInputItemsUpdated('chatSearch')],
-  // searchUpdated
-  // )
   // Changing pending mode selects the special pending conversationidkey
   yield Saga.safeTakeEveryPure(Chat2Gen.setPendingMode, selectPendingConversation)
   yield Saga.safeTakeEveryPure(
