@@ -70,7 +70,7 @@ func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 					err = i.PushState(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"pushOutOfBandMessages": {
 				MakeArg: func() interface{} {
@@ -86,7 +86,7 @@ func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 					err = i.PushOutOfBandMessages(ctx, (*typedArgs)[0].Oobm)
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 		},
 	}
@@ -97,12 +97,12 @@ type GregorUIClient struct {
 }
 
 func (c GregorUIClient) PushState(ctx context.Context, __arg PushStateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushState", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushState", []interface{}{__arg})
 	return
 }
 
 func (c GregorUIClient) PushOutOfBandMessages(ctx context.Context, oobm []gregor1.OutOfBandMessage) (err error) {
 	__arg := PushOutOfBandMessagesArg{Oobm: oobm}
-	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []interface{}{__arg})
 	return
 }
