@@ -661,13 +661,14 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
   const waitingKey = {key: `saveChannel:${teamname}`}
 
   const calls = []
-  for (const convIDStr in newChannelState) {
-    const convID = ChatTypes.stringToConversationIDKey(convIDStr)
-    if (oldChannelState[convID] === newChannelState[convID]) {
+  for (const convIDKeyStr in newChannelState) {
+    const convIDKey = ChatTypes.stringToConversationIDKey(convIDKeyStr)
+    if (oldChannelState[convIDKey] === newChannelState[convIDKey]) {
       continue
     }
 
-    if (newChannelState[convID]) {
+    const convID = ChatTypes.keyToConversationID(convIDKey)
+    if (newChannelState[convIDKey]) {
       calls.push(
         // $FlowIssue doesn't like callAndWrap
         Saga.callAndWrap(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
