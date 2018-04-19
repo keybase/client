@@ -33,7 +33,7 @@ func (e *ListTrackers2Engine) Prereqs() Prereqs {
 	if len(e.arg.Assertion) == 0 {
 		session = true
 	}
-	return Prereqs{Session: session}
+	return Prereqs{Device: session}
 }
 
 func (e *ListTrackers2Engine) RequiredUIs() []libkb.UIKind {

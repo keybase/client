@@ -45,7 +45,7 @@ func (e *PaperKeyPrimary) Name() string {
 // GetPrereqs returns the engine prereqs.
 func (e *PaperKeyPrimary) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

@@ -37,7 +37,7 @@ type PGPKeyExportEngine struct {
 
 func (e *PGPKeyExportEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

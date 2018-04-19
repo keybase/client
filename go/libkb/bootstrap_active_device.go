@@ -95,6 +95,11 @@ func bootstrapActiveDeviceReturnRawError(ctx context.Context, g *GlobalContext, 
 		return err
 	}
 
+	if upak.Current.Status == keybase1.StatusCode_SCDeleted {
+		g.Log.CDebugf(ctx, "User %s was deleted", uid)
+		return UserDeletedError{}
+	}
+
 	// find the sibkey
 	sibkeyKID, deviceName := upak.Current.FindSigningDeviceKID(deviceID)
 	if sibkeyKID.IsNil() {

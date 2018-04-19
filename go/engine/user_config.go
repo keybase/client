@@ -32,9 +32,7 @@ func (e *UserConfigEngine) Name() string {
 }
 
 func (e *UserConfigEngine) Prereqs() Prereqs {
-	return Prereqs{
-		Session: true,
-	}
+	return Prereqs{Device: true}
 }
 
 func (e *UserConfigEngine) RequiredUIs() []libkb.UIKind {

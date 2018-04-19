@@ -10,24 +10,39 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
-	// In future PRs, we're going to replace this also with a call to bootstrap.
-	// For now, only change IsProvisioned. The behavior is subtley different
-	// and warrants future invesitagation.
-	return libkb.IsLoggedIn(e.G(), ctx.LoginContext)
+// IsLoggedInWithError conveys if the user is in a logged-in state or not.
+// If this function returns `true`, it's because the user is logged in,
+// is on a provisioned device, and has an unlocked device key, If this
+// function returns `false`, it's because either no one has ever logged onto
+// this device, or someone has, and then clicked `logout`. If the return
+// value is `false`, and `err` is `nil`, then the service is in one of
+// those expected "logged out" states.  If the the return value is `false`
+// and `err` is non-`nil`, then something went wrong, and the app is in some
+// sort of unexpected state. If `ret` is `true`, then `uid` will convey
+// which user is logged in.
+//
+// Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
+// flow and therefore will try its best to unlocked locked keys if it can
+// without user interaction.
+func IsLoggedInWithError(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
+	ret, uid, err = bootstrap(e, ctx)
+	return ret, uid, err
+}
+
+func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID) {
+	ret, uid, _ = IsLoggedInWithError(e, ctx)
+	return ret, uid
 }
 
 // bootstrap will setup an ActiveDevice with a NIST Factory for the engine
-// that's calling us. We are phasing out the notion of LoginSession, so the
-// ability to have an active device will eventually suffice for both the
-// Device and Session Prereq. This is an ongoing work in progress.
-func bootstrap(e Engine, ctx *Context) (keybase1.UID, error) {
+// that's calling us. The LoginContext passed through isn't really needed
+// for anything aside from assertions, but as we phase out LoginState, we'll
+// leave it here so that assertions in LoginState can still pass.
+func bootstrap(e Engine, ctx *Context) (ok bool, uid keybase1.UID, err error) {
 
 	run := func(a libkb.LoginContext) (keybase1.UID, error) {
 		return libkb.BootstrapActiveDeviceFromConfig(ctx.NetContext, e.G(), a, true)
 	}
-	var err error
-	var uid keybase1.UID
 	a := ctx.LoginContext
 	nctx := ctx.NetContext
 	g := e.G()
@@ -42,18 +57,13 @@ func bootstrap(e Engine, ctx *Context) (keybase1.UID, error) {
 	} else {
 		uid, err = run(a)
 	}
-	return uid, err
-}
-
-func IsProvisioned(e Engine, ctx *Context) (bool, error) {
-	_, err := bootstrap(e, ctx)
-	ret := false
+	ok = false
 	if err == nil {
-		ret = true
-	} else if _, ok := err.(libkb.LoginRequiredError); ok {
+		ok = true
+	} else if _, isLRE := err.(libkb.LoginRequiredError); isLRE {
 		err = nil
 	}
-	return ret, err
+	return ok, uid, err
 }
 
 type keypair struct {
@@ -64,10 +74,7 @@ type keypair struct {
 // findDeviceKeys looks for device keys and unlocks them.
 func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
 	// need to be logged in to get a device key (unlocked)
-	lin, _, err := IsLoggedIn(e, ctx)
-	if err != nil {
-		return nil, err
-	}
+	lin, _ := IsLoggedIn(e, ctx)
 	if !lin {
 		return nil, libkb.LoginRequiredError{}
 	}

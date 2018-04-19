@@ -46,7 +46,7 @@ func (e *ListTrackersEngine) Prereqs() Prereqs {
 	if e.uid.IsNil() && len(e.username) == 0 {
 		session = true
 	}
-	return Prereqs{Session: session}
+	return Prereqs{Device: session}
 }
 
 // RequiredUIs returns the required UIs.

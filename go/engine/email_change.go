@@ -31,7 +31,7 @@ func (c *EmailChange) Name() string {
 
 // Prereqs returns engine prereqs
 func (c *EmailChange) Prereqs() Prereqs {
-	return Prereqs{Session: true}
+	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs.

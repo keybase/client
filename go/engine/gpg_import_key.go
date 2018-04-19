@@ -20,13 +20,14 @@ import (
 )
 
 type GPGImportKeyArg struct {
-	Query      string
-	Signer     libkb.GenericKey
-	AllowMulti bool
-	SkipImport bool
-	OnlyImport bool
-	Me         *libkb.User
-	Lks        *libkb.LKSec
+	Query                string
+	Signer               libkb.GenericKey
+	AllowMulti           bool
+	SkipImport           bool
+	OnlyImport           bool
+	HasProvisionedDevice bool
+	Me                   *libkb.User
+	Lks                  *libkb.LKSec
 }
 
 type GPGImportKeyEngine struct {
@@ -44,9 +45,10 @@ func NewGPGImportKeyEngine(arg *GPGImportKeyArg, g *libkb.GlobalContext) *GPGImp
 }
 
 func (e *GPGImportKeyEngine) Prereqs() Prereqs {
-	return Prereqs{
-		Session: true,
+	if !e.arg.HasProvisionedDevice {
+		return Prereqs{TemporarySession: true}
 	}
+	return Prereqs{Device: true}
 }
 
 func (e *GPGImportKeyEngine) Name() string {

@@ -68,6 +68,12 @@ func (fu FakeUser) NormalizedUsername() libkb.NormalizedUsername {
 	return libkb.NewNormalizedUsername(fu.Username)
 }
 
+func (fu *FakeUser) LoadUser(tc libkb.TestContext) error {
+	var err error
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	return err
+}
+
 func (fu FakeUser) UID() keybase1.UID {
 	// All new-style names will have a 1-to-1 mapping
 	return libkb.UsernameToUID(fu.Username)

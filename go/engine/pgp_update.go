@@ -35,7 +35,7 @@ func (e *PGPUpdateEngine) Name() string {
 
 func (e *PGPUpdateEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 
