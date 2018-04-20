@@ -346,7 +346,7 @@ protocol teams {
     PerTeamKeyGeneration generation;
     int score;
     @jsonkey("reset_users")
-    array<TeamCLKRResetUser> resetUsers;
+    array<TeamCLKRResetUser> resetUsersUntrusted;
   }
 
   record TeamResetUser {

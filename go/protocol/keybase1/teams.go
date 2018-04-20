@@ -1051,10 +1051,10 @@ func (o TeamCLKRResetUser) DeepCopy() TeamCLKRResetUser {
 }
 
 type TeamCLKRMsg struct {
-	TeamID     TeamID               `codec:"teamID" json:"team_id"`
-	Generation PerTeamKeyGeneration `codec:"generation" json:"generation"`
-	Score      int                  `codec:"score" json:"score"`
-	ResetUsers []TeamCLKRResetUser  `codec:"resetUsers" json:"reset_users"`
+	TeamID              TeamID               `codec:"teamID" json:"team_id"`
+	Generation          PerTeamKeyGeneration `codec:"generation" json:"generation"`
+	Score               int                  `codec:"score" json:"score"`
+	ResetUsersUntrusted []TeamCLKRResetUser  `codec:"resetUsersUntrusted" json:"reset_users"`
 }
 
 func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
@@ -1062,7 +1062,7 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 		TeamID:     o.TeamID.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
 		Score:      o.Score,
-		ResetUsers: (func(x []TeamCLKRResetUser) []TeamCLKRResetUser {
+		ResetUsersUntrusted: (func(x []TeamCLKRResetUser) []TeamCLKRResetUser {
 			if x == nil {
 				return nil
 			}
@@ -1072,7 +1072,7 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.ResetUsers),
+		})(o.ResetUsersUntrusted),
 	}
 }
 

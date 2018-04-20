@@ -28,8 +28,8 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		return err
 	}
 
-	if len(msg.ResetUsers) > 0 && team.IsOpen() {
-		for _, uv := range msg.ResetUsers {
+	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() {
+		for _, uv := range msg.ResetUsersUntrusted {
 			// We don't use UIDMapper in sweepOpenTeamResetMembers, but
 			// since server just told us that these users have reset, we
 			// might as well use that knowledge to refresh cache.
@@ -42,7 +42,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 			g.UIDMapper.ClearUIDAtEldestSeqno(ctx, g, uv.Uid, uv.MemberEldestSeqno)
 		}
 
-		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsers); err == nil {
+		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
 			// If sweepOpenTeamResetMembers does not do anything to
 			// the team, do not load team again later.
 			needTeamReload = needRP
@@ -84,15 +84,16 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 }
 
 func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
-	team *Team, resetUsers []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
+	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
 	// When CLKR is invoked because of account reset and it's an open team,
 	// we go ahead and boot reset readers and writers out of the team. Key
 	// is also rotated in the process (in the same ChangeMembership link).
 	defer g.CTrace(ctx, "sweepOpenTeamResetMembers", func() error { return err })()
 
-	// Go through resetUsers and fetch non-cached latest EldestSeqnos.
+	// Go through resetUsersUntrusted and fetch non-cached latest
+	// EldestSeqnos.
 	resetUserSeqnos := make(map[keybase1.UID]keybase1.Seqno)
-	for _, u := range resetUsers {
+	for _, u := range resetUsersUntrusted {
 		if _, found := resetUserSeqnos[u.Uid]; found {
 			// User was in the list more than once.
 			continue
@@ -125,7 +126,7 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		}
 
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
-		for _, u := range resetUsers {
+		for _, u := range resetUsersUntrusted {
 			eldestSeqno, found := resetUserSeqnos[u.Uid]
 			if !found || eldestSeqno == u.MemberEldestSeqno {
 				// Either we couldn't load users EldestSeqno or we
@@ -144,12 +145,12 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		if len(changeReq.None) == 0 {
 			// no one to kick out
 			g.Log.CDebugf(ctx, "No one to remove from a CLKR list of %d users, after UPAKLoading %d of them",
-				len(resetUsers), len(resetUserSeqnos))
+				len(resetUsersUntrusted), len(resetUserSeqnos))
 			return nil
 		}
 
 		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d removals (CLKR list was %d)",
-			len(changeReq.None), len(resetUsers))
+			len(changeReq.None), len(resetUsersUntrusted))
 		if err := team.ChangeMembershipPermanent(ctx, changeReq, false /* permanent */); err != nil {
 			return err
 		}

@@ -862,7 +862,7 @@
             "type": "array",
             "items": "TeamCLKRResetUser"
           },
-          "name": "resetUsers",
+          "name": "resetUsersUntrusted",
           "jsonkey": "reset_users"
         }
       ],

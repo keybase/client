@@ -1024,9 +1024,9 @@ func TestMemberAddRace(t *testing.T) {
 		errCh := make(chan error)
 		go func() {
 			params := keybase1.TeamCLKRMsg{
-				TeamID:     rootID,
-				Generation: keybase1.PerTeamKeyGeneration(100),
-				ResetUsers: nil,
+				TeamID:              rootID,
+				Generation:          keybase1.PerTeamKeyGeneration(100),
+				ResetUsersUntrusted: nil,
 			}
 			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, params)
 			errCh <- err

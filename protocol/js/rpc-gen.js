@@ -3677,7 +3677,7 @@ export type TeamApplication =
 
 export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
 
-export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int, resetUsers?: ?Array<TeamCLKRResetUser>}>
+export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
 
 export type TeamCLKRResetUser = $ReadOnly<{uid: UID, userEldestSeqno: Seqno, memberEldestSeqno: Seqno}>
 
