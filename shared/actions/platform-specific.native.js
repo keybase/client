@@ -68,14 +68,17 @@ function setAppState(toMerge: Object) {
 function showShareActionSheet(options: {
   url?: ?any,
   message?: ?any,
+  mimeType?: ?string,
 }): Promise<{completed: boolean, method: string}> {
   if (isIOS) {
     return new Promise((resolve, reject) =>
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
-    logger.warn('Sharing action not implemented in android')
-    return Promise.resolve({completed: false, method: ''})
+    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
+      () => ({completed: true, method: ''}),
+      () => ({completed: false, method: ''})
+    )
   }
 }
 
