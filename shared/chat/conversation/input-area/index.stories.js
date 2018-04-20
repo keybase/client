@@ -1,14 +1,18 @@
 // @flow
 import React from 'react'
 import {Set} from 'immutable'
+import {Box2} from '../../../common-adapters/box'
 import {storiesOf, action} from '../../../stories/storybook'
-import mentionHoc from './mention-handler-hoc'
-import {type PreMentionHocProps, default as _Input} from './normal'
+import mentionHoc, {type PropsFromContainer} from './mention-handler-hoc'
+import {default as _Input} from './normal'
 import {stringToConversationIDKey} from '../../../constants/types/chat2'
 
 const Input = mentionHoc(_Input)
 
-const defaultProps: PreMentionHocProps = {
+const defaultProps: PropsFromContainer = {
+  _inputSetRef: action('inputSetRef'),
+  _onKeyDown: action('_onKeyDown'),
+
   conversationIDKey: stringToConversationIDKey('fake conversation id key'),
   channelName: 'somechannel',
   isEditing: false,
@@ -36,7 +40,11 @@ const defaultProps: PreMentionHocProps = {
 }
 
 const load = () => {
-  storiesOf('Chat/Conversation/Input', module).add('Basic', () => <Input {...defaultProps} />)
+  storiesOf('Chat/Conversation/Input', module).add('Basic', () => (
+    <Box2 direction="horizontal" style={{width: 500}}>
+      <Input {...defaultProps} />
+    </Box2>
+  ))
 }
 
 export default load
