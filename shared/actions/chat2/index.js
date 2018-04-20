@@ -24,7 +24,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -1754,7 +1754,8 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  yield Saga.call(showShareActionSheet, {url: message.fileURL})
+  const res = yield Saga.call(downloadAndShowShareActionSheet, message.fileURL)
+  console.log(res)
 }
 
 // Native save to camera roll
