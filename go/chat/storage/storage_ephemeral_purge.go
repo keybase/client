@@ -155,7 +155,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				if nextPurgeTime == 0 || mvalid.Etime() < nextPurgeTime {
 					nextPurgeTime = mvalid.Etime()
 				}
-				s.Debug(ctx, "skipping unexpired ephemeral msg: %v", msg.GetMessageID())
+				s.Debug(ctx, "skipping unexpired ephemeral msg: %v, etime: %v", msg.GetMessageID(), mvalid.Etime().Time())
 			} else {
 				var emptyBody chat1.MessageBody
 				mvalid.MessageBody = emptyBody

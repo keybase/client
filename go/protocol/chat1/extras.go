@@ -367,11 +367,21 @@ func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
 }
 
 func (m MessageUnboxedValid) Etime() gregor1.Time {
+	// The server sends us (untrusted) ctime of the message and server's view
+	// of now. We use these to calculate the remaining lifetime on an ephemeral
+	// message, returning an etime based on our received time.
 	metadata := m.EphemeralMetadata()
-	if metadata == nil {
-		return 0
+	header := m.ServerHeader
+	originalLifetime := time.Second * time.Duration(metadata.Lifetime)
+	elapsedLifetime := header.Ctime.Time().Sub(header.Now.Time())
+	remainingLifetime := originalLifetime - elapsedLifetime
+	// If the server's view doesn't make sense, just use the signed lifetime
+	// from the message.
+	if remainingLifetime > originalLifetime {
+		remainingLifetime = originalLifetime
 	}
-	return metadata.Etime
+	etime := m.ClientHeader.Rtime.Time().Add(remainingLifetime)
+	return gregor1.ToTime(etime)
 }
 
 func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
@@ -468,14 +478,6 @@ func (m MessageBoxed) KBFSEncrypted() bool {
 
 func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
-}
-
-func (m MessageBoxed) Etime() gregor1.Time {
-	metadata := m.EphemeralMetadata()
-	if metadata == nil {
-		return 0
-	}
-	return metadata.Etime
 }
 
 func (m MessageBoxed) IsExploding() bool {
