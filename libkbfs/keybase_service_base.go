@@ -785,23 +785,6 @@ func (k *KeybaseServiceBase) processUserPlusKeys(
 	return u, nil
 }
 
-// LoadUnverifiedKeys implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	[]keybase1.PublicKey, error) {
-	if keys, ok := k.getCachedUnverifiedKeys(uid); ok {
-		return keys, nil
-	}
-
-	arg := keybase1.LoadAllPublicKeysUnverifiedArg{Uid: uid}
-	keys, err := k.userClient.LoadAllPublicKeysUnverified(ctx, arg)
-	if err != nil {
-		return nil, err
-	}
-
-	k.setCachedUnverifiedKeys(uid, keys)
-	return keys, nil
-}
-
 func (k *KeybaseServiceBase) getCachedCurrentSessionOrInProgressCh() (
 	cachedSession SessionInfo, inProgressCh chan struct{}, doRPC bool) {
 	k.sessionCacheLock.Lock()
@@ -954,14 +937,6 @@ func (k *KeybaseServiceBase) FlushUserFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
 	k.log.CDebugf(ctx, "Flushing cache for user %s", uid)
 	k.setCachedUserInfo(uid, UserInfo{})
-}
-
-// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseService interface for
-// KeybaseServiceBase.
-func (k *KeybaseServiceBase) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context,
-	uid keybase1.UID) {
-	k.log.CDebugf(ctx, "Flushing cache of unverified keys for user %s", uid)
-	k.clearCachedUnverifiedKeys(uid)
 }
 
 // CtxKeybaseServiceTagKey is the type used for unique context tags

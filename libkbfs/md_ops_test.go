@@ -191,14 +191,8 @@ func verifyMDForPrivateHelper(
 		gomock.Any(), kbfscrypto.TLFCryptKey{}).
 		MinTimes(minTimes).MaxTimes(maxTimes).Return(pmd, nil)
 
-	if rmds.MD.IsFinal() || forceFinal {
-		config.mockKbpki.EXPECT().HasUnverifiedVerifyingKey(
-			gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
-
-	} else {
-		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
-			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
-	}
+	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
+		gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
 }
 

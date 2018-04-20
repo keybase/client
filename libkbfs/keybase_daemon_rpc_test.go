@@ -214,21 +214,6 @@ func testLoadUserPlusKeys(
 	assert.Equal(t, expectedCalled, client.loadUserPlusKeysCalled)
 }
 
-func testLoadUnverifiedKeys(
-	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
-	uid keybase1.UID, expectedName libkb.NormalizedUsername,
-	expectedCalled bool) {
-	client.loadAllPublicKeysUnverified = false
-
-	ctx := context.Background()
-	keys, err := c.LoadUnverifiedKeys(ctx, uid)
-	require.NoError(t, err)
-
-	assert.Equal(t, 1, len(keys))
-	assert.Equal(t, keys[0].KID, kbfscrypto.MakeFakeVerifyingKeyOrBust("foo").KID())
-	assert.Equal(t, expectedCalled, client.loadAllPublicKeysUnverified)
-}
-
 func testIdentify(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
 	uid keybase1.UID, expectedName libkb.NormalizedUsername,
@@ -275,18 +260,6 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should not be cached.
 	testIdentify(t, client, c, uid2, name2, expectCall)
 
-	// Should fill cache.
-	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCall)
-
-	// Should be cached.
-	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCached)
-
-	// Should fill cache.
-	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCall)
-
-	// Should be cached.
-	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
-
 	// Should invalidate cache for uid1.
 	err := c.KeyfamilyChanged(context.Background(), uid1)
 	require.NoError(t, err)
@@ -296,18 +269,6 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Should be cached again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCached)
-
-	// Should fill cache again.
-	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCall)
-
-	// Should still be cached.
-	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCached)
-
-	// Should still be cached.
-	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)
-
-	// Should still be cached.
-	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
 
 	// Should invalidate cache for uid2.
 	err = c.KeyfamilyChanged(context.Background(), uid2)
@@ -319,20 +280,12 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should be cached again.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)
 
-	// Should fill cache again.
-	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCall)
-
-	// Should still be cached.
-	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
-
 	// Should invalidate cache for all users.
 	c.OnDisconnected(context.Background(), rpc.UsingExistingConnection)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)
-	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCall)
-	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCall)
 
 	// Test that CheckForRekey gets called only if the logged-in user
 	// changes.

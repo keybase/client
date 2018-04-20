@@ -492,22 +492,6 @@ func (k *KeybaseDaemonLocal) GetTeamSettings(
 	return k.localTeamSettings[teamID], nil
 }
 
-// LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	[]keybase1.PublicKey, error) {
-	if err := checkContext(ctx); err != nil {
-		return nil, err
-	}
-
-	k.lock.Lock()
-	defer k.lock.Unlock()
-	u, err := k.localUsers.getLocalUser(uid)
-	if err != nil {
-		return nil, err
-	}
-	return u.UnverifiedKeys, nil
-}
-
 // GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) GetCurrentMerkleRoot(ctx context.Context) (
@@ -859,13 +843,6 @@ func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
-	uid keybase1.UID) {
-	// Do nothing.
-}
-
-// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseDaemon interface for
-// KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
 	// Do nothing.
 }

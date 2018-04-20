@@ -1589,19 +1589,6 @@ func (mr *MockKeybaseServiceMockRecorder) LoadUserPlusKeys(ctx, uid, pollForKID 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUserPlusKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadUserPlusKeys), ctx, uid, pollForKID)
 }
 
-// LoadUnverifiedKeys mocks base method
-func (m *MockKeybaseService) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) ([]keybase1.PublicKey, error) {
-	ret := m.ctrl.Call(m, "LoadUnverifiedKeys", ctx, uid)
-	ret0, _ := ret[0].([]keybase1.PublicKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LoadUnverifiedKeys indicates an expected call of LoadUnverifiedKeys
-func (mr *MockKeybaseServiceMockRecorder) LoadUnverifiedKeys(ctx, uid interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadUnverifiedKeys", reflect.TypeOf((*MockKeybaseService)(nil).LoadUnverifiedKeys), ctx, uid)
-}
-
 // LoadTeamPlusKeys mocks base method
 func (m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen kbfsmd.KeyGen, desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (TeamInfo, error) {
 	ret := m.ctrl.Call(m, "LoadTeamPlusKeys", ctx, tid, desiredKeyGen, desiredUser, desiredRole)
@@ -1697,16 +1684,6 @@ func (m *MockKeybaseService) FlushUserFromLocalCache(ctx context.Context, uid ke
 // FlushUserFromLocalCache indicates an expected call of FlushUserFromLocalCache
 func (mr *MockKeybaseServiceMockRecorder) FlushUserFromLocalCache(ctx, uid interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlushUserFromLocalCache", reflect.TypeOf((*MockKeybaseService)(nil).FlushUserFromLocalCache), ctx, uid)
-}
-
-// FlushUserUnverifiedKeysFromLocalCache mocks base method
-func (m *MockKeybaseService) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID) {
-	m.ctrl.Call(m, "FlushUserUnverifiedKeysFromLocalCache", ctx, uid)
-}
-
-// FlushUserUnverifiedKeysFromLocalCache indicates an expected call of FlushUserUnverifiedKeysFromLocalCache
-func (mr *MockKeybaseServiceMockRecorder) FlushUserUnverifiedKeysFromLocalCache(ctx, uid interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FlushUserUnverifiedKeysFromLocalCache", reflect.TypeOf((*MockKeybaseService)(nil).FlushUserUnverifiedKeysFromLocalCache), ctx, uid)
 }
 
 // EstablishMountDir mocks base method
@@ -2346,18 +2323,6 @@ func (m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verif
 // HasVerifyingKey indicates an expected call of HasVerifyingKey
 func (mr *MockKBPKIMockRecorder) HasVerifyingKey(ctx, uid, verifyingKey, atServerTime interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasVerifyingKey", reflect.TypeOf((*MockKBPKI)(nil).HasVerifyingKey), ctx, uid, verifyingKey, atServerTime)
-}
-
-// HasUnverifiedVerifyingKey mocks base method
-func (m *MockKBPKI) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) error {
-	ret := m.ctrl.Call(m, "HasUnverifiedVerifyingKey", ctx, uid, verifyingKey)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HasUnverifiedVerifyingKey indicates an expected call of HasUnverifiedVerifyingKey
-func (mr *MockKBPKIMockRecorder) HasUnverifiedVerifyingKey(ctx, uid, verifyingKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasUnverifiedVerifyingKey", reflect.TypeOf((*MockKBPKI)(nil).HasUnverifiedVerifyingKey), ctx, uid, verifyingKey)
 }
 
 // GetCryptPublicKeys mocks base method

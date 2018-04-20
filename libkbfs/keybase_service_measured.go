@@ -23,7 +23,6 @@ type KeybaseServiceMeasured struct {
 	resolveImplicitTeamByIDTimer     metrics.Timer
 	loadUserPlusKeysTimer            metrics.Timer
 	loadTeamPlusKeysTimer            metrics.Timer
-	loadUnverifiedKeysTimer          metrics.Timer
 	createTeamTLFTimer               metrics.Timer
 	getTeamSettingsTimer             metrics.Timer
 	getCurrentMerkleRootTimer        metrics.Timer
@@ -48,7 +47,6 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		"KeybaseService.ResolveImplicitTeamByID", r)
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUserPlusKeys", r)
 	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
-	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
 	createTeamTLFTimer := metrics.GetOrRegisterTimer("KeybaseService.CreateTeamTLF", r)
 	getTeamSettingsTimer := metrics.GetOrRegisterTimer("KeybaseService.GetTeamSettings", r)
 	getCurrentMerkleRootTimer := metrics.GetOrRegisterTimer("KeybaseService.GetCurrentMerkleRoot", r)
@@ -67,7 +65,6 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		resolveImplicitTeamByIDTimer:     resolveImplicitTeamByIDTimer,
 		loadUserPlusKeysTimer:            loadUserPlusKeysTimer,
 		loadTeamPlusKeysTimer:            loadTeamPlusKeysTimer,
-		loadUnverifiedKeysTimer:          loadUnverifiedKeysTimer,
 		createTeamTLFTimer:               createTeamTLFTimer,
 		getTeamSettingsTimer:             getTeamSettingsTimer,
 		getCurrentMerkleRootTimer:        getCurrentMerkleRootTimer,
@@ -171,15 +168,6 @@ func (k KeybaseServiceMeasured) GetCurrentMerkleRoot(ctx context.Context) (
 	return root, err
 }
 
-// LoadUnverifiedKeys implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	keys []keybase1.PublicKey, err error) {
-	k.loadUnverifiedKeysTimer.Time(func() {
-		keys, err = k.delegate.LoadUnverifiedKeys(ctx, uid)
-	})
-	return keys, err
-}
-
 // CurrentSession implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) CurrentSession(ctx context.Context, sessionID int) (
@@ -241,13 +229,6 @@ func (k KeybaseServiceMeasured) NotifySyncStatus(ctx context.Context,
 func (k KeybaseServiceMeasured) FlushUserFromLocalCache(
 	ctx context.Context, uid keybase1.UID) {
 	k.delegate.FlushUserFromLocalCache(ctx, uid)
-}
-
-// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseService interface for
-// KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) FlushUserUnverifiedKeysFromLocalCache(
-	ctx context.Context, uid keybase1.UID) {
-	k.delegate.FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
 }
 
 // EstablishMountDir implements the KeybaseDaemon interface for KeybaseDaemonLocal.

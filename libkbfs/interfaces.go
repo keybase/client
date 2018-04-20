@@ -499,12 +499,6 @@ type KeybaseService interface {
 	LoadUserPlusKeys(ctx context.Context,
 		uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error)
 
-	// LoadUnverifiedKeys returns a list of unverified public keys.  They are the union
-	// of all known public keys associated with the account and the currently verified
-	// keys currently part of the user's sigchain.
-	LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-		[]keybase1.PublicKey, error)
-
 	// LoadTeamPlusKeys returns a TeamInfo struct for a team with the
 	// specified TeamID.  The caller can specify `desiredKeyGen` to
 	// force a server check if that particular key gen isn't yet
@@ -544,10 +538,6 @@ type KeybaseService interface {
 	// just to force future calls loading this user to fall through to
 	// the daemon itself, rather than being served from the cache.
 	FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID)
-
-	// FlushUserUnverifiedKeysFromLocalCache instructs this layer to clear any
-	// KBFS-side, locally-cached unverified keys for the given user.
-	FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID)
 
 	// TODO: Add CryptoClient methods, too.
 
@@ -681,15 +671,6 @@ type KBPKI interface {
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey kbfscrypto.VerifyingKey,
 		atServerTime time.Time) error
-
-	// HasUnverifiedVerifyingKey returns nil if the given user has the given
-	// unverified VerifyingKey, and an error otherwise.  Note that any match
-	// is with a key not verified to be currently connected to the user via
-	// their sigchain.  This is currently only used to verify finalized or
-	// reset TLFs.  Further note that unverified keys is a super set of
-	// verified keys.
-	HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
-		verifyingKey kbfscrypto.VerifyingKey) error
 
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).

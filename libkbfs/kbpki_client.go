@@ -168,26 +168,6 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	return false, nil
 }
 
-func (k *KBPKIClient) hasUnverifiedVerifyingKey(
-	ctx context.Context, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
-	keys, err := k.loadUnverifiedKeys(ctx, uid)
-	if err != nil {
-		return false, err
-	}
-
-	for _, key := range keys {
-		if !verifyingKey.KID().Equal(key.KID) {
-			continue
-		}
-		k.log.CDebugf(ctx, "Trusting potentially unverified key %s for user %s",
-			verifyingKey.KID(), uid)
-		return true, nil
-	}
-
-	return false, nil
-}
-
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {
@@ -205,28 +185,6 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	k.serviceOwner.KeybaseService().FlushUserFromLocalCache(ctx, uid)
 
 	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return VerifyingKeyNotFoundError{verifyingKey}
-	}
-	return nil
-}
-
-// HasUnverifiedVerifyingKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) HasUnverifiedVerifyingKey(
-	ctx context.Context, uid keybase1.UID,
-	verifyingKey kbfscrypto.VerifyingKey) error {
-	ok, err := k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
-	if err != nil {
-		return err
-	}
-	if ok {
-		return nil
-	}
-	k.serviceOwner.KeybaseService().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
-	ok, err = k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
 	}
@@ -401,11 +359,6 @@ func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, erro
 // Notify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return k.serviceOwner.KeybaseService().Notify(ctx, notification)
-}
-
-func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	[]keybase1.PublicKey, error) {
-	return k.serviceOwner.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
 
 // PutGitMetadata implements the KBPKI interface for KBPKIClient.
