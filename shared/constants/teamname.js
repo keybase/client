@@ -22,10 +22,10 @@ type Teamname = string
 const baseTeamname = (teamname: Teamname): ?Teamname => {
   const i = teamname.lastIndexOf('.')
   if (i < 0) {
-    return null
+    return teamname
   }
 
   return teamname.substring(0, i)
 }
 
-export {validTeamname, baseTeamname}
+export {validTeamnamePart, validTeamname, baseTeamname}
