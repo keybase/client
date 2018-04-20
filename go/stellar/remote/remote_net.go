@@ -2,7 +2,6 @@ package remote
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -35,5 +34,5 @@ func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.Accou
 }
 
 func (r *RemoteNet) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
-	return res, fmt.Errorf("TODO (CORE-7554)")
+	return PaymentDetail(ctx, r.G(), txID)
 }
