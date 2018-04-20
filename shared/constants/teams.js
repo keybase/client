@@ -177,9 +177,6 @@ const userIsActiveInTeamHelper = (
   return member && member.active
 }
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  I.Set(getTeamChannelInfos(state, teamname).keys())
-
 const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
   !state.teams.chosenChannelsForTeam.has(teamname)
 
@@ -384,7 +381,6 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 
 export {
   getBadgeSubscribe,
-  getConvIdsFromTeamName,
   getRole,
   getCanPerform,
   hasCanPerform,
