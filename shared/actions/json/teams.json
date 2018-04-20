@@ -37,7 +37,7 @@
     "getTeamPublicity": {
       "teamname": "string"
     },
-    "haveChosenChannelsForTeam": {
+    "addTeamWithChosenChannels": {
       "teamname": "string"
     },
     "saveChannelMembership": {
@@ -114,8 +114,8 @@
     "setChannelCreationError": {
       "error": "string"
     },
-    "setChosenChannelsForTeam": {
-      "chosenChannelsForTeam": "I.Set<Types.Teamname>"
+    "setTeamsWithChosenChannels": {
+      "teamsWithChosenChannels": "I.Set<Types.Teamname>"
     },
     "setTeamCreationError": {
       "error": "string"

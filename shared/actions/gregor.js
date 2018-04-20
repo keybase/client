@@ -130,10 +130,12 @@ function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.Sa
   }
 
   const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
-  const chosenChannelsForTeamStr =
+  const teamsWithChosenChannelsStr =
     chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
-  const chosenChannelsForTeam = chosenChannelsForTeamStr ? Set(JSON.parse(chosenChannelsForTeamStr)) : Set()
-  yield Saga.put(TeamsGen.createSetChosenChannelsForTeam({chosenChannelsForTeam}))
+  const teamsWithChosenChannels = teamsWithChosenChannelsStr
+    ? Set(JSON.parse(teamsWithChosenChannelsStr))
+    : Set()
+  yield Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {

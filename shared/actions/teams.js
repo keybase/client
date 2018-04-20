@@ -943,12 +943,12 @@ function _updateTopic(action: TeamsGen.UpdateTopicPayload, state: TypedState) {
   ])
 }
 
-function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPayload, state: TypedState) {
+function _addTeamWithChosenChannels(action: TeamsGen.AddTeamWithChosenChannelsPayload, state: TypedState) {
   const {teamname} = action.payload
-  if (state.teams.chosenChannelsForTeam.has(teamname)) {
+  if (state.teams.teamsWithChosenChannels.has(teamname)) {
     return
   }
-  const teamList = state.teams.chosenChannelsForTeam.add(teamname)
+  const newTeamsWithChosenChannels = state.teams.teamsWithChosenChannels.add(teamname)
   // We'd actually like to do this in one message to avoid having the UI glitch
   // momentarily inbetween the dismiss (and therefore thinking no teams have
   // had channels selected) and the re-inject.  For now, we have a workaround
@@ -958,7 +958,10 @@ function _haveChosenChannelsForTeam(action: TeamsGen.HaveChosenChannelsForTeamPa
       category: 'chosenChannelsForTeam',
     }),
     Saga.put(
-      GregorGen.createInjectItem({body: JSON.stringify(teamList.toJSON()), category: 'chosenChannelsForTeam'})
+      GregorGen.createInjectItem({
+        body: JSON.stringify(newTeamsWithChosenChannels.toJSON()),
+        category: 'chosenChannelsForTeam',
+      })
     ),
   ])
 }
@@ -1109,7 +1112,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.getTeamRetentionPolicy, _getTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(TeamsGen.saveTeamRetentionPolicy, _saveTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
-  yield Saga.safeTakeEveryPure(TeamsGen.haveChosenChannelsForTeam, _haveChosenChannelsForTeam)
+  yield Saga.safeTakeEveryPure(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
 }
 
 export default teamsSaga

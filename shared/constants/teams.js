@@ -80,7 +80,7 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
-  chosenChannelsForTeam: I.Set(),
+  teamsWithChosenChannels: I.Set(),
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -178,7 +178,7 @@ const userIsActiveInTeamHelper = (
 }
 
 const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
-  !state.teams.chosenChannelsForTeam.has(teamname)
+  !state.teams.teamsWithChosenChannels.has(teamname)
 
 const getTeamChannelInfos = (
   state: TypedState,
