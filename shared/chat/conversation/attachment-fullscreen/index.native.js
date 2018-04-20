@@ -62,7 +62,6 @@ class Fullscreen extends React.Component<Props, {loaded: boolean}> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
-    const props = this.props
     return (
       <Box
         style={{
@@ -74,15 +73,15 @@ class Fullscreen extends React.Component<Props, {loaded: boolean}> {
       >
         <Text
           type="Body"
-          onClick={props.onClose}
+          onClick={this.props.onClose}
           style={{color: globalColors.white, padding: globalMargins.small}}
         >
           Close
         </Text>
         <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
-          {props.path && (
+          {this.props.path && (
             <AutoMaxSizeImage
-              source={{uri: `${props.path}`}}
+              source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}
               opacity={this.state.loaded ? 1 : 0}
             />
@@ -94,7 +93,7 @@ class Fullscreen extends React.Component<Props, {loaded: boolean}> {
         <Icon
           type="iconfont-ellipsis"
           style={{...styleHeaderFooter, color: globalColors.white}}
-          onClick={() => props.onShowMenu(null)}
+          onClick={() => this.props.onShowMenu(null)}
         />
       </Box>
     )
