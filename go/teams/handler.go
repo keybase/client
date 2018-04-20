@@ -111,11 +111,10 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		}
 	}
 
-	var needTeamReload bool
-
-	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		if needTeamReload {
-			team2, err := Load(ctx, g, keybase1.LoadTeamArg{
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+		if attempt > 0 {
+			var err error
+			team, err = Load(ctx, g, keybase1.LoadTeamArg{
 				ID:          team.ID,
 				Public:      team.ID.IsPublic(),
 				ForceRepoll: true,
@@ -123,9 +122,7 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 			if err != nil {
 				return err
 			}
-			team = team2
 		}
-		needTeamReload = true
 
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
 		for _, u := range resetUsers {
@@ -157,6 +154,8 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 			return err
 		}
 
+		// Notify the caller that we posted a sig and they have to
+		// load team again.
 		needRepoll = true
 		return nil
 	})
