@@ -20,14 +20,10 @@ export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) 
   `teamAdd:${teamname};${username}`
 // also for pending invites, hence id rather than username
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
-export const updateTopicWaitingKey = (conversationIDKey: ChatTypes.ConversationIDKey) =>
-  `updateTopic:${conversationIDKey}`
-export const updateChannelNameWaitingKey = (conversationIDKey: ChatTypes.ConversationIDKey) =>
-  `updateChannelName:${conversationIDKey}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
-  channelname: null,
-  description: null,
+  channelname: '',
+  description: '',
   participants: I.Set(),
 })
 
@@ -83,7 +79,6 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
   chosenChannelsForTeam: I.Set(),
-  convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -93,7 +88,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
-  teamNameToConvIDs: I.Map(),
+  teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
@@ -181,19 +176,23 @@ const userIsActiveInTeamHelper = (
 }
 
 const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.teamNameToConvIDs.get(teamname, I.Set())
+  I.Set(getTeamChannelInfos(state, teamname).keys())
 
 const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
   !state.teams.chosenChannelsForTeam.has(teamname)
 
-const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+const getTeamChannelInfos = (
+  state: TypedState,
+  teamname: Types.Teamname
+): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
+  return state.teams.getIn(['teamNameToChannelInfos', teamname], I.Map())
+}
 
-const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.get(conversationIDKey, null)
-
-const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
+const getChannelInfoFromConvID = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey
+): ?Types.ChannelInfo => getTeamChannelInfos(state, teamname).get(conversationIDKey)
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')
@@ -273,9 +272,6 @@ const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.M
 
 const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
   state.teams.getIn(['teamNameToRequests', teamname], I.Set())
-
-const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
@@ -378,9 +374,8 @@ export {
   hasCanPerform,
   getTeamMemberCount,
   userIsActiveInTeamHelper,
-  getTeamNameFromConvID,
+  getTeamChannelInfos,
   getChannelInfoFromConvID,
-  getChannelNameFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
@@ -394,7 +389,6 @@ export {
   getTeamResetUsers,
   getTeamLoadingInvites,
   getTeamRequests,
-  getTeamConvIDs,
   getSortedTeamnames,
   getTeamType,
   isAdmin,
