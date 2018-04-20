@@ -286,7 +286,6 @@ type recentPaymentsResult struct {
 
 func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 	accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	payload := make(libkb.JSONPayload)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -294,10 +293,29 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 			"account_id": libkb.S{Val: accountID.String()},
 			"limit":      libkb.I{Val: limit},
 		},
-		JSONPayload: payload,
-		NetContext:  ctx,
+		NetContext: ctx,
 	}
 	var apiRes recentPaymentsResult
+	err = g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
+type paymentDetailResult struct {
+	libkb.AppStatusEmbed
+	Result stellar1.PaymentSummary `json:"res"`
+}
+
+func PaymentDetail(ctx context.Context, g *libkb.GlobalContext,
+	txID string) (res stellar1.PaymentSummary, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/paymentdetail",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"txID": libkb.S{Val: txID},
+		},
+		NetContext: ctx,
+	}
+	var apiRes paymentDetailResult
 	err = g.API.GetDecode(apiArg, &apiRes)
 	return apiRes.Result, err
 }

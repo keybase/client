@@ -159,6 +159,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		ri = gh.GetClient()
 	}
 	boxer := NewBoxer(g)
+	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
 	sender := NewNonblockingSender(g, baseSender)

@@ -333,7 +333,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
-	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
+	s.Debug(ctx, "MergeHelper: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)

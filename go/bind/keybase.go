@@ -197,7 +197,8 @@ func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, c
 func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (string, error) {
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
-	return logSendContext.LogSend(status, feedback, sendLogs, 5*1024*1024)
+	env := kbCtx.Env
+	return logSendContext.LogSend(status, feedback, sendLogs, 5*1024*1024, env.GetUID(), env.GetInstallID())
 }
 
 // WriteB64 sends a base64 encoded msgpack rpc payload

@@ -6,7 +6,7 @@ protocol local {
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
-  record RecentPaymentCLILocal {
+  record PaymentCLILocal {
     TransactionID stellarTxID;
     TimeMs time;
     string status;
@@ -23,7 +23,10 @@ protocol local {
     string note;
     string noteErr;
   }
-  array<RecentPaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+
+  // txID can be either a keybase or stellar transaction ID.
+  PaymentCLILocal paymentDetailCLILocal(string txID);
 
   void walletInitLocal();
 

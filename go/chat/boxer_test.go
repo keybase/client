@@ -1531,7 +1531,7 @@ func TestExplodingMessageUnbox(t *testing.T) {
 
 	// Set the ephemeral metadata, to indicate that the messages is exploding.
 	msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-		Etime: 99999,
+		Lifetime: 99999,
 	}
 
 	// Box it! Note that we pass in the ephemeral/exploding key, and also set
@@ -1566,5 +1566,5 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	require.NotNil(t, unboxed.BodyHash)
 	require.True(t, unboxed.IsExploding())
 	require.NotNil(t, unboxed.EphemeralMetadata())
-	require.Equal(t, msg.EphemeralMetadata().Etime, unboxed.EphemeralMetadata().Etime)
+	require.Equal(t, msg.EphemeralMetadata().Lifetime, unboxed.EphemeralMetadata().Lifetime)
 }

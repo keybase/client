@@ -40,9 +40,10 @@ export const createCancelTransfer = (payload: $ReadOnly<{|key: string|}>) => ({e
 export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: dismissTransfer})
 export const createDownload = (
   payload: $ReadOnly<{|
+    intent: Types.TransferIntent,
+    mimeType?: string,
     path: Types.Path,
     localPath?: string,
-    intent: Types.TransferIntent,
   |}>
 ) => ({error: false, payload, type: download})
 export const createDownloadFinished = (

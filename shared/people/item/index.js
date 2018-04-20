@@ -83,8 +83,8 @@ const childrenContainerStyle = {
 
 const timestampContainerStyle = {
   ...globalStyles.flexBoxRow,
-  position: 'absolute',
   alignItems: 'center',
+  position: 'absolute',
   right: 8,
   top: 12,
 }

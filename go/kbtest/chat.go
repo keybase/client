@@ -829,6 +829,7 @@ func (m *ChatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat
 func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
 	msg.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(m.world.Fc.Now()),
+		Now:       gregor1.ToTime(m.world.Fc.Now()),
 		MessageID: chat1.MessageID(len(m.world.Msgs[convID.String()]) + 1),
 	}
 	m.world.Msgs[convID.String()] = append(m.world.Msgs[convID.String()], &msg)

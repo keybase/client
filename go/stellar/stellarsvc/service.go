@@ -2,7 +2,6 @@ package stellarsvc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -86,7 +85,7 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
 }
 
-func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.RecentPaymentCLILocal, err error) {
+func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLILocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "RecentPaymentsCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
@@ -104,45 +103,13 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
 }
 
-func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
+func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
 	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletDumpLocal", func() error { return err })()
-	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return dump, errors.New("WalletDump only supported in devel run mode")
+	defer s.G().CTraceTimed(ctx, "PaymentDetailCLILocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
 	}
-
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletDump", func() error { return err })()
-	err = s.assertLoggedIn(ctx)
-	if err != nil {
-		return dump, err
-	}
-
-	// verify passphrase
-	username := s.G().GetEnv().GetUsername().String()
-
-	arg := libkb.DefaultPassphrasePromptArg(s.G(), username)
-	secretUI := s.uiSource.SecretUI(s.G(), 0)
-	res, err := secretUI.GetPassphrase(arg, nil)
-	if err != nil {
-		return dump, err
-	}
-	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
-		pwdOk = true
-
-		return nil
-	})
-	if err != nil {
-		return dump, err
-	}
-	if !pwdOk {
-		return dump, libkb.PassphraseError{}
-	}
-
-	dump, _, err = remote.Fetch(ctx, s.G())
-
-	return dump, err
+	return stellar.PaymentDetailCLILocal(ctx, s.G(), s.remoter, txID)
 }
 
 // WalletInitLocal creates and posts an initial stellar bundle for a user.

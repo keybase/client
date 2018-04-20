@@ -300,7 +300,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	_, err = srvSender.SendLocal(context.Background(), arg)
 	require.NoError(t, err)
 
-	checkPayment := func(payment stellar1.RecentPaymentCLILocal) {
+	checkPayment := func(payment stellar1.PaymentCLILocal) {
 		require.Equal(t, accountIDSender, payment.FromStellar)
 		require.Equal(t, accountIDRecip, payment.ToStellar)
 		require.NotNil(t, payment.ToUsername)
@@ -316,6 +316,13 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, recipPayments, 1)
 	checkPayment(recipPayments[0])
+
+	payment, err := srvSender.PaymentDetailCLILocal(context.Background(), senderPayments[0].StellarTxID.String())
+	require.NoError(t, err)
+	checkPayment(payment)
+	payment, err = srvRecip.PaymentDetailCLILocal(context.Background(), senderPayments[0].StellarTxID.String())
+	require.NoError(t, err)
+	checkPayment(payment)
 }
 
 // Create n TestContexts with logged in users

@@ -291,6 +291,9 @@
     MessageID messageID;
     MessageID supersededBy;
     gregor1.Time ctime;
+    // server's view of now(), used to calculate ephemeral lifetimes
+    @mpackkey("n") @jsonkey("n")
+    gregor1.Time now;
   }
 
   record MessagePreviousPointer {
@@ -305,8 +308,8 @@
 
   @mpackkey("em") @jsonkey("em")
   record MsgEphemeralMetadata {
-    @mpackkey("e") @jsonkey("e")
-    gregor1.Time etime;
+    @mpackkey("l") @jsonkey("l")
+    gregor1.DurationSec lifetime; // used to computed etime
     @mpackkey("g") @jsonkey("g")
     keybase1.EkGeneration generation;
   }
@@ -381,6 +384,11 @@
 
     @mpackkey("em") @jsonkey("em")
     union { null, MsgEphemeralMetadata } ephemeralMetadata;
+
+    // When putting a message in local storage we set the receivedTime
+    // ephemeral lifetime calculations
+    @mpackkey("rt") @jsonkey("rt")
+    gregor1.Time rtime;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
