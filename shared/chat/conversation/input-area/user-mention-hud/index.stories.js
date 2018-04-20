@@ -9,7 +9,7 @@ import {storiesOf, action} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
-  MentionHud: props => ({
+  UserMentionHud: props => ({
     ...props,
     following: I.Set(),
     you: 'chris',
