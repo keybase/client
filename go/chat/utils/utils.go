@@ -905,9 +905,16 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	}
 	switch typ {
 	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
+		var mimeType string
+		if typ == chat1.MessageType_ATTACHMENT {
+			mimeType = body.Attachment().Object.MimeType
+		} else {
+			mimeType = body.Attachmentuploaded().Object.MimeType
+		}
 		return &chat1.UIAssetUrlInfo{
 			PreviewUrl: g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true),
 			FullUrl:    g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false),
+			MimeType:   mimeType,
 		}
 	}
 	return nil

@@ -377,12 +377,14 @@ func (o UIChannelNameMention) DeepCopy() UIChannelNameMention {
 type UIAssetUrlInfo struct {
 	PreviewUrl string `codec:"previewUrl" json:"previewUrl"`
 	FullUrl    string `codec:"fullUrl" json:"fullUrl"`
+	MimeType   string `codec:"mimeType" json:"mimeType"`
 }
 
 func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 	return UIAssetUrlInfo{
 		PreviewUrl: o.PreviewUrl,
 		FullUrl:    o.FullUrl,
+		MimeType:   o.MimeType,
 	}
 }
 

@@ -97,6 +97,7 @@ protocol chatUi {
   record UIAssetUrlInfo {
     string previewUrl;
     string fullUrl;
+    string mimeType;
   }
 
   record UIMessageValid {

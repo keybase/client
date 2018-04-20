@@ -1352,7 +1352,7 @@ export type TopicType =
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
 
-export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String}>
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mimeType: String}>
 
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 

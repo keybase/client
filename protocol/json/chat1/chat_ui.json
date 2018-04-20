@@ -383,6 +383,10 @@
         {
           "type": "string",
           "name": "fullUrl"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
         }
       ]
     },
