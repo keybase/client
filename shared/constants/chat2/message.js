@@ -49,6 +49,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   attachmentType: 'file',
   fileURL: '',
   previewURL: '',
+  fileType: '',
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -339,9 +340,11 @@ const validUIMessagetoMessage = (
       }
       let previewURL = ''
       let fileURL = ''
+      let fileType = ''
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
+        fileType = m.assetUrlInfo.mimeType
       }
 
       return makeMessageAttachment({
@@ -354,6 +357,7 @@ const validUIMessagetoMessage = (
         title,
         previewURL,
         fileURL,
+        fileType,
       })
     }
     case RPCChatTypes.commonMessageType.join:
