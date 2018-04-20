@@ -5589,7 +5589,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": undefined,
               "borderRadius": 6,
               "height": 8,
               "marginRight": 4,
@@ -5930,7 +5929,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         <div
           style={
             Object {
-              "backgroundColor": undefined,
               "borderRadius": 6,
               "height": 8,
               "marginRight": 4,
