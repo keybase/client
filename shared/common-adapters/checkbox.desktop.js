@@ -45,7 +45,7 @@ class Checkbox extends Component<Props> {
         <div style={boxStyle}>
           <Icon
             type="iconfont-check"
-            style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}}
+            style={collapseStyles([styleIcon, this.props.checked ? {} : {opacity: 0}])}
             hoverColor={globalColors.white}
             color={globalColors.white}
             fontSize={9}

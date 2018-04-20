@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from './icon.constants'
-import {type StylesCrossPlatform} from '../styles'
+import {type StylesCrossPlatform, type Color} from '../styles'
 
 export type Props = {
   type: IconType,
@@ -16,7 +16,7 @@ export type Props = {
   underlayColor?: string,
   className?: string,
   iconStyle?: StylesCrossPlatform,
-  color?: string,
+  color?: Color,
   hoverColor?: string,
   fontSize?: number,
 }

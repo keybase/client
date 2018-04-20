@@ -174,11 +174,7 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
       </Box>
       <Icon
         style={styleStatusIcon}
-        color={
-          globalStyles.loadingTextStyle.backgroundColor
-            ? globalStyles.loadingTextStyle.backgroundColor
-            : undefined
-        }
+        color={globalStyles.loadingTextStyle.backgroundColor}
         fontSize={20}
         type={'iconfont-proof-placeholder'}
       />

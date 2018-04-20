@@ -73,7 +73,9 @@ class Icon extends Component<Exact<Props>, void> {
       this.props.color ? {color: color} : {},
     ])
 
-    const iconElement = (
+    const iconElement = isFontIcon ? (
+      String.fromCharCode(iconMeta[iconType].charCode || 0)
+    ) : (
       <img
         className={this.props.className}
         draggable="false"
@@ -117,8 +119,7 @@ class Icon extends Component<Exact<Props>, void> {
             hoverColor={onClick ? hoverColor : null}
             onClick={onClick}
           >
-            {isFontIcon && String.fromCharCode(iconMeta[iconType].charCode || 0)}
-            {!isFontIcon && iconElement}
+            {iconElement}
           </StyledSpan>
         </Box>
       )

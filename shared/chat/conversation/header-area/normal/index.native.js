@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, BackButton, Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, collapseStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
@@ -54,7 +54,7 @@ const ChannelHeader = (props: Props) => (
     </Box>
     <Icon
       type="iconfont-info"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny}}
+      style={collapseStyles([styleLeft, {flexShrink: 0, padding: globalMargins.tiny}])}
       fontSize={21}
       onClick={props.onToggleInfoPanel}
     />
@@ -94,7 +94,7 @@ const UsernameHeader = (props: Props) => (
     {props.canOpenInfoPanel && (
       <Icon
         type="iconfont-info"
-        style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny}}
+        style={collapseStyles([styleLeft, {flexShrink: 0, padding: globalMargins.tiny}])}
         fontSize={21}
         onClick={props.onToggleInfoPanel}
       />

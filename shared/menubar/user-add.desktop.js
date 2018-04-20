@@ -64,9 +64,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
         type={'iconfont-folder-open'}
         onClick={onSubmit}
         style={platformStyles({
-          isElectron: {
-            ...desktopStyles.clickable,
-          },
+          isElectron: desktopStyles.clickable,
         })}
         color={isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}
       />

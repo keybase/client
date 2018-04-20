@@ -142,14 +142,9 @@ const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker,
         onClick={insertMentionMarker}
         type="iconfont-mention"
         style={styles.mentionMarkerStyle}
-        fontSize={styles.actionButtonIcon.fontSize}
+        fontSize={21}
       />
-      <Icon
-        onClick={openFilePicker}
-        type="iconfont-camera"
-        style={styles.actionButton}
-        fontSize={styles.actionButtonIcon.fontSize}
-      />
+      <Icon onClick={openFilePicker} type="iconfont-camera" style={styles.actionButton} fontSize={21} />
     </Box>
   )
 
@@ -177,9 +172,6 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     paddingRight: globalMargins.tiny,
-  },
-  actionButtonIcon: {
-    fontSize: 21,
   },
   actionLoading: {
     color: globalColors.grey,
