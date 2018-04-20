@@ -1,5 +1,5 @@
 // @flow
-import Render from './render'
+import Render from '.'
 import {
   compose,
   withHandlers,
