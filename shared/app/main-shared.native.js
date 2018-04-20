@@ -9,6 +9,8 @@ import hello from '../util/hello'
 import {connect, type TypedState} from '../util/container'
 import {debounce} from 'lodash-es'
 import {navigateUp, setRouteState} from '../actions/route-tree'
+import {GatewayDest} from 'react-gateway'
+import {View} from 'react-native'
 
 type Props = {
   folderBadge: number,
@@ -66,6 +68,7 @@ class Main extends Component<any> {
           routeState={this.props.routeState}
           setRouteState={this.props.setRouteState}
         />
+        <GatewayDest name="popup-root" component={View} />
       </Fragment>
     )
   }
