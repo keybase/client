@@ -29,7 +29,6 @@ type Team struct {
 
 	keyManager *TeamKeyManager
 
-	me      *libkb.User
 	rotated bool
 }
 
@@ -1145,16 +1144,8 @@ func (t *Team) currentUserUV(ctx context.Context) (keybase1.UserVersion, error) 
 	return getCurrentUserUV(ctx, t.G())
 }
 
-func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
-	if t.me == nil {
-		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, t.G()))
-		if err != nil {
-			return nil, err
-		}
-		t.me = me
-	}
-
-	return t.me, nil
+func loadMeForSignatures(ctx context.Context, g *libkb.GlobalContext) (libkb.UserForSignatures, error) {
+	return libkb.LoadSelfForTeamSignatures(ctx, g)
 }
 
 func usesPerTeamKeys(linkType libkb.LinkType) bool {
@@ -1185,7 +1176,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 }
 
 func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, nextSeqno keybase1.Seqno, lastLinkID keybase1.LinkID, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, keybase1.LinkID, error) {
-	me, err := t.loadMe(ctx)
+	me, err := loadMeForSignatures(ctx, t.G())
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}
@@ -1198,7 +1189,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		return libkb.SigMultiItem{}, "", err
 	}
 
-	sig, err := ChangeSig(me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot)
+	sig, err := ChangeSig(t.G(), me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}

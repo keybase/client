@@ -509,7 +509,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 				teamname)}
 		}
 
-		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+		me, err := loadMeForSignatures(ctx, g)
 		if err != nil {
 			return err
 		}
