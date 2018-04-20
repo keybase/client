@@ -3,7 +3,7 @@ import * as React from 'react'
 import {action, storiesOf} from '../../stories/storybook'
 import {Intro, Splash, Failure} from '.'
 
-const props: Props = {
+const props = {
   bootStatus: 'bootStatusLoading',
   justDeletedSelf: null,
   justLoginFromRevokedDevice: null,

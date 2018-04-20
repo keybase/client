@@ -26,12 +26,6 @@ import Screenprotector from './screenprotector-container.native'
 
 import * as Constants from '../constants/settings'
 
-// Defer making this until we route there
-const DumbWrapper = () => {
-  const DumbSheet = require('../dev/dumb-sheet').default
-  return <DumbSheet />
-}
-
 const routeTree = makeRouteDefNode({
   component: Settings,
   children: {
@@ -80,8 +74,6 @@ const routeTree = makeRouteDefNode({
     [Constants.devMenuTab]: {
       component: DevMenu,
       children: {
-        // Defer loading this
-        dumbSheet: {component: DumbWrapper},
         push: {
           component: () => <Push prompt={true} />,
         },

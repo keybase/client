@@ -2,19 +2,23 @@
 import * as React from 'react'
 import UserInput from '.'
 import {Box} from '../../common-adapters'
-import {compose, withHandlers, withStateHandlers} from 'recompose'
+import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
 import {storiesOf, action} from '../../stories/storybook'
 
 const inputCommon = {
+  autoFocus: false,
   onAddSelectedUser: action('Add selected user'),
   onCancel: action('Cancel'),
   onChangeText: action('Change text'),
+  onClearSearch: action('Clear search'),
   onClickAddButton: action('Add button click'),
+  onEnterEmptyText: action('onEnterEmptyText'),
   onMoveSelectDown: action('Move select down'),
   onMoveSelectUp: action('Move select up'),
   onRemoveUser: action('Remove user'),
   placeholder: 'Type someone',
+  selectedSearchId: null,
 }
 
 const maxUsers = [
@@ -134,14 +138,11 @@ const load = () => {
     })
     .add('Editable', () => {
       const UserInputEditable = compose(
-        withStateHandlers(props => ({usernameText: '', userItems: props.userItems}), {
+        withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
           onChangeText: () => usernameText => ({usernameText}),
-          setUserItems: () => userItems => ({userItems}),
-        }),
-        withHandlers({
-          onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
-            setUserItems(userItems.filter(i => i.id !== id))
-          },
+          onRemoveUser: ({userItems}) => (id: string) => ({
+            userItems: userItems.filter(i => i.id !== id),
+          }),
         })
       )(UserInput)
 

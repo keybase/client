@@ -1,5 +1,6 @@
 // @flow
-import * as shared from './index.shared'
+import * as shared from './shared'
+import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
@@ -28,7 +29,6 @@ import {usernameText} from '../common-adapters/usernames'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
-import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
 const HEADER_TOP_SPACE = 96
@@ -37,7 +37,7 @@ export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
-  currentFriendshipsTab: FriendshipsTab,
+  currentFriendshipsTab: Types.FriendshipsTab,
   activeMenuProof: ?Proof,
 }
 

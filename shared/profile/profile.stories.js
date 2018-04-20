@@ -18,6 +18,7 @@ import {pathFromFolder} from '../constants/favorite'
 // TODO this is a ton of stuff thats ported over from the dumb component. We could reduce this by making a provider and feeding the container
 
 function createFolder(partialFolder) {
+  // $FlowIssue spreading inexact
   return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 
@@ -38,7 +39,7 @@ const following = [
   {following: true, followsYou: false, fullname: 'Jeremy Stribling', uid: '0', username: 'strib'},
 ]
 
-const mockUserInfo: {username: string, userInfo: UserInfo} = {
+const mockUserInfo = {
   userInfo: {
     avatar: 'https://keybase.io/chris/picture',
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
@@ -113,6 +114,7 @@ const proofsDefault = [
 const baseFolder = {
   ignored: false,
   isPublic: true,
+  isTeam: false,
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
 }

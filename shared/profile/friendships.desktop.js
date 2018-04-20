@@ -4,12 +4,23 @@ import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {Avatar, Box, ProgressIndicator, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import * as Types from '../constants/types/profile'
 
-import type {Props, FriendshipUserInfo} from './friendships'
+type Props = {
+  username: string,
+  isYou: boolean,
+  style?: ?Object,
+  currentTab: Types.FriendshipsTab,
+  onSwitchTab?: (selected: Types.FriendshipsTab) => void,
+  onUserClick?: (username: string) => void,
+  followersLoaded: boolean,
+  followers: Array<Types.FriendshipUserInfo>,
+  following: Array<Types.FriendshipUserInfo>,
+}
 
 type UserEntryProps = {
   onClick: (username: string, uid: ?string) => void,
-  ...FriendshipUserInfo,
+  ...Types.FriendshipUserInfo,
 }
 
 class UserEntry extends PureComponent<UserEntryProps> {

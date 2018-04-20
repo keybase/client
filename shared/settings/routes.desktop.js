@@ -64,6 +64,13 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
+    ...(__DEV__
+      ? {
+          [Constants.devMenuTab]: {
+            component: DevMenu,
+          },
+        }
+      : {}),
     [Constants.advancedTab]: {
       component: AdvancedContainer,
       children: {

@@ -17,7 +17,9 @@ const scrollViewDecorator = story => [
 ]
 
 // Stories w/ their own scrolling views
-const noScrollBars = [/* 'chatList', */ 'chatManageChannels']
+// const noScrollBars = [[> 'chatList', <] 'chatManageChannels']
+// TODO figure out a better way to do this
+const noScrollBars = []
 
 // Load common-adapter stories
 const load = () => {
