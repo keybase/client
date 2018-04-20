@@ -93,15 +93,6 @@ const chrisUsers = [
   },
 ]
 
-const commonRow = {
-  id: 'result',
-  onClick: action('On click'),
-  onShowTracker: action('Show tracker'),
-  selected: false,
-  showTrackerButton: false,
-  userIsInTeam: false,
-}
-
 const load = () => {
   storiesOf('Search', module)
     .add('User Input', () => {
