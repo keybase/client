@@ -41,7 +41,7 @@ const Fullscreen = (props: Props) => {
               </Text>
             )}
           {props.onShowInFinder && (
-            <Text type="BodySmall" style={linkStyle} onClick={props.onShowInFinder}>
+            <Text type="BodySmallPrimaryLink" style={linkStyle} onClick={props.onShowInFinder}>
               Show in {fileUIName}
             </Text>
           )}
