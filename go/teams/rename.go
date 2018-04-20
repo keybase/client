@@ -54,8 +54,6 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		if err != nil {
 			return err
 		}
-		parent.meForSignature = me
-		subteam.meForSignature = me
 
 		deviceSigningKey, err := g.ActiveDevice.SigningKey()
 		if err != nil {

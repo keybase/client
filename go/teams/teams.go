@@ -29,8 +29,7 @@ type Team struct {
 
 	keyManager *TeamKeyManager
 
-	meForSignature libkb.UserForSignatures
-	rotated        bool
+	rotated bool
 }
 
 func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData) *Team {

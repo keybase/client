@@ -339,8 +339,6 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	// Reuse the `me` getting loaded
-	parentTeam.meForSignature = me
 	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
 		return nil, err
