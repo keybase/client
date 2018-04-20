@@ -36,6 +36,11 @@ type NameInfoSource interface {
 	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
+	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool,
+		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 }
 
 type UnboxConversationInfo interface {
@@ -49,8 +54,13 @@ type UnboxConversationInfo interface {
 type ConversationSource interface {
 	Offlinable
 
+	AcquireConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
+	ReleaseConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
+	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+		uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
@@ -58,8 +68,8 @@ type ConversationSource interface {
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
-	Clear(convID chat1.ConversationID, uid gregor1.UID) error
-	TransformSupersedes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
+	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error

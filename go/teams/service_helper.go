@@ -509,7 +509,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 				teamname)}
 		}
 
-		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+		me, err := loadMeForSignatures(ctx, g)
 		if err != nil {
 			return err
 		}
@@ -979,8 +979,14 @@ func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJoinRequest, error) {
-	arg := apiArg(ctx, "team/laar")
+func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) ([]keybase1.TeamJoinRequest, error) {
+	var arg libkb.APIArg
+	if teamName != nil {
+		arg = apiArg(ctx, "team/access_requests")
+		arg.Args.Add("team", libkb.S{Val: *teamName})
+	} else {
+		arg = apiArg(ctx, "team/laar")
+	}
 
 	var arList accessRequestList
 	if err := g.API.GetDecode(arg, &arList); err != nil {

@@ -53,9 +53,9 @@ func (e *PaperKeyGen) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PaperKeyGen) Prereqs() Prereqs {
-	// only need session if pushing keys
+	// only need a device if pushing keys
 	return Prereqs{
-		Session: !e.arg.SkipPush,
+		Device: !e.arg.SkipPush,
 	}
 }
 

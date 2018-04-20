@@ -33,6 +33,7 @@ func newCmdWalletSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 	}
 	return cli.Command{
 		Name:         "send",
+		Usage:        "Send XLM to a keybase user or stellar address",
 		ArgumentHelp: "<recipient> <amount> <local currency> [-m message]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "send", c)

@@ -3,7 +3,8 @@ import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as I from 'immutable'
-import {getTeamConvIDs} from '../../constants/teams'
+import {getChannelsWaitingKey, getTeamConvIDs} from '../../constants/teams'
+import {anyWaiting} from '../../constants/waiting'
 import * as ChatTypes from '../../constants/types/chat2'
 import {PopupDialog, HeaderHoc} from '../../common-adapters'
 import {
@@ -30,7 +31,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     _channelInfo,
     _convIDs,
-    waiting: !!state.waiting.get(`getChannels:${teamname}`),
+    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
     loaded: !!_convIDs.size,
     _selected: routeProps.get('selected'),
   }

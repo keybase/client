@@ -1462,7 +1462,7 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		// make evil hello evil
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		require.NoError(t, tc.Context().ConvSource.Clear(created.Id, uid))
+		require.NoError(t, tc.Context().ConvSource.Clear(context.TODO(), created.Id, uid))
 
 		ri := ctc.as(t, users[0]).ri
 		sabRemote := messageSabotagerRemote{RemoteInterface: ri}
@@ -2408,7 +2408,8 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
-		require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
+		require.NoError(t,
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].ChatG
 		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
@@ -2460,7 +2461,8 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
-		require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
+		require.NoError(t,
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].Context()
 		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {

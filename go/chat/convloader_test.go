@@ -145,7 +145,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
-	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
+	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	clock.BlockUntil(1)
@@ -181,7 +181,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 	t.Logf("testing foreground/background")
 	// Test that background/foreground works
-	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(res.ConvID, uid)
+	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	tc.ChatG.ConvSource.(*HybridConversationSource).ri = func() chat1.RemoteInterface {
 		return slowRi
 	}
@@ -327,8 +327,9 @@ func TestBackgroundPurge(t *testing.T) {
 	u := world.GetUsers()[0]
 	uid := gregor1.UID(u.GetUID().ToBytes())
 	trip := newConvTriple(ctx, t, tc, u.Username)
+	clock := world.Fc
 	chatStorage := storage.New(g)
-	chatStorage.SetClock(world.Fc)
+	chatStorage.SetClock(clock)
 
 	// setup a ticker since we don't run the service's fastChatChecks ticker here.
 	tickerLifetime := 500 * time.Millisecond
@@ -352,8 +353,8 @@ func TestBackgroundPurge(t *testing.T) {
 		}
 	}
 
-	sendEphemeral := func(lifetime gregor1.DurationSec) *chat1.MessageBoxed {
-		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	sendEphemeral := func(lifetime gregor1.DurationSec) {
+		_, _, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:              trip,
 				Sender:            uid,
@@ -367,7 +368,6 @@ func TestBackgroundPurge(t *testing.T) {
 			}),
 		}, 0, nil)
 		require.NoError(t, err)
-		return msgBoxed
 	}
 
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
@@ -395,30 +395,38 @@ func TestBackgroundPurge(t *testing.T) {
 
 	// Send two ephemeral messages, and ensure both get purged
 	lifetime := gregor1.DurationSec(1)
-	msgBoxed1 := sendEphemeral(lifetime * 2)
-	msgBoxed2 := sendEphemeral(lifetime * 3)
+	sendEphemeral(lifetime * 2)
+	sendEphemeral(lifetime * 3)
 
-	// Make sure we can queue up a task and execute it, setting our initial tracker state
+	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
+		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+	}, nil)
+	require.NoError(t, err)
+	msgs := thread.Messages
+	require.Len(t, msgs, 2)
+	msgUnboxed2 := msgs[0]
+	msgUnboxed1 := msgs[1]
+
 	t.Logf("assert listener 1")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgBoxed1.GetMessageID(),
-		NextPurgeTime:   msgBoxed1.Etime(),
+		MinUnexplodedID: msgUnboxed1.GetMessageID(),
+		NextPurgeTime:   msgUnboxed1.Valid().Etime(),
 		IsActive:        true,
 	})
 
 	t.Logf("assert listener 2")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgBoxed2.GetMessageID(),
-		NextPurgeTime:   msgBoxed2.Etime(),
+		MinUnexplodedID: msgUnboxed2.GetMessageID(),
+		NextPurgeTime:   msgUnboxed2.Valid().Etime(),
 		IsActive:        true,
 	})
 
 	t.Logf("assert listener 3")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgBoxed2.GetMessageID(),
+		MinUnexplodedID: msgUnboxed2.GetMessageID(),
 		NextPurgeTime:   0,
 		IsActive:        false,
 	})

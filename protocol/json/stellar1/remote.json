@@ -132,70 +132,6 @@
     },
     {
       "type": "record",
-      "name": "TransactionDetails",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "stellarID"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "keybaseID"
-        },
-        {
-          "type": "string",
-          "name": "Hash"
-        },
-        {
-          "type": "int",
-          "name": "ledger"
-        },
-        {
-          "type": "int",
-          "name": "ledgerCloseTime"
-        },
-        {
-          "type": "AccountID",
-          "name": "sourceAccount"
-        },
-        {
-          "type": "string",
-          "name": "sourceAccountSequence"
-        },
-        {
-          "type": "int",
-          "name": "feePaid"
-        },
-        {
-          "type": "Members",
-          "name": "members"
-        },
-        {
-          "type": "string",
-          "name": "noteB64"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "signatures"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Operation"
-          },
-          "name": "operations"
-        },
-        {
-          "type": "TimeMs",
-          "name": "ctime"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "PaymentPost",
       "fields": [
         {
@@ -375,18 +311,18 @@
         "items": "PaymentSummary"
       }
     },
-    "transaction": {
+    "paymentDetail": {
       "request": [
         {
           "name": "caller",
           "type": "keybase1.UserVersion"
         },
         {
-          "name": "id",
-          "type": "TransactionID"
+          "name": "txID",
+          "type": "string"
         }
       ],
-      "response": "TransactionDetails"
+      "response": "PaymentSummary"
     },
     "accountSeqno": {
       "request": [

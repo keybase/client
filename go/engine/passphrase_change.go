@@ -42,7 +42,7 @@ func (c *PassphraseChange) Prereqs() Prereqs {
 		return Prereqs{}
 	}
 
-	return Prereqs{Session: true}
+	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs.

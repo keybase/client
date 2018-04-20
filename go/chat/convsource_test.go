@@ -378,6 +378,17 @@ func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID ch
 	return f.Lookup(ctx, tlfName, public)
 }
 
+func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
+func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
 type failingUpak struct {
 	t *testing.T
 }
@@ -487,7 +498,7 @@ func TestGetThreadCaching(t *testing.T) {
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 
-	tc.ChatG.ConvSource.Clear(res.ConvID, u.User.GetUID().ToBytes())
+	tc.ChatG.ConvSource.Clear(context.TODO(), res.ConvID, u.User.GetUID().ToBytes())
 	tc.ChatG.ConvSource.Disconnected(ctx)
 	tc.ChatG.InboxSource.Disconnected(ctx)
 	t.Logf("make sure we get offline error")
@@ -614,7 +625,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	require.Equal(t, "MIKE: 2", thread.Messages[0].Valid().MessageBody.Text().Body)
 
 	// Make sure we don't consider it a hit if we end the fetch with a hole
-	require.NoError(t, tc.Context().ConvSource.Clear(convID, uid))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, convID, uid))
 	_, _, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.Error(t, err)
 }
@@ -868,7 +879,7 @@ func TestExpungeFromDelete(t *testing.T) {
 		require.Fail(t, "no conv loader")
 	}
 
-	require.NoError(t, hcs.storage.MaybeNuke(true, nil, conv.GetConvID(), uid))
+	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2})
 	require.NoError(t, err)
 	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)

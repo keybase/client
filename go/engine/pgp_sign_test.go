@@ -26,7 +26,15 @@ var signTests = []signTest{
 func TestPGPSign(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_sign")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
+
+	if err := fu.LoadUser(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	if fu.User == nil {
+		t.Fatal("got a nil User")
+	}
 
 	skb, err := fu.User.GetSyncedSecretKey()
 	if err != nil {

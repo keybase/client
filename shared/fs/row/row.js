@@ -197,19 +197,20 @@ const rowTextStyles = memoize(color =>
 
 const styleBadgeContainer = {
   position: 'absolute',
-  left: 24,
-  top: -1,
+  left: isMobile ? -24 : 24,
+  top: isMobile ? -20 : -1,
+  zIndex: 200,
 }
 
 const styleBadgeContainerNew = {
   ...styleBadgeContainer,
-  left: 16,
+  left: isMobile ? -32 : 16,
 }
 
 const styleBadgeContainerRekey = {
   ...styleBadgeContainer,
-  top: 24,
-  left: 8,
+  top: isMobile ? 5 : 24,
+  left: isMobile ? -40 : 16,
 }
 
 const badgeStyleCount = {

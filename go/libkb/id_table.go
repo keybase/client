@@ -915,9 +915,12 @@ func ParseWalletStellarChainLink(b GenericChainLink) (ret *WalletStellarChainLin
 	if err != nil {
 		return nil, mkErr("Can't get address network: %v", err)
 	}
-	ret.name, err = walletSection.AtKey("name").GetString()
-	if err != nil {
-		return nil, mkErr("Can't get account name: %v", err)
+	nameOption := walletSection.AtKey("name")
+	if !nameOption.IsNil() {
+		ret.name, err = nameOption.GetString()
+		if err != nil {
+			return nil, mkErr("Can't get account name: %v", err)
+		}
 	}
 
 	// Check the network and that the keys match.

@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
-import {createGetTeamOperations} from '../../../../actions/teams-gen'
+import {createGetTeamOperations, createHaveChosenChannelsForTeam} from '../../../../actions/teams-gen'
 import {compose, connect, isMobile, lifecycle, type TypedState} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
@@ -12,12 +12,14 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const _hasCanPerform = Constants.hasCanPerform(state, teamname)
+  const badgeSubscribe = Constants.getBadgeSubscribe(state, teamname)
   return {
     _hasCanPerform,
+    badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
     isSmallTeam,
-    teamname,
     memberCount: Constants.getTeamMemberCount(state, teamname),
+    teamname,
   }
 }
 
@@ -55,6 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
     onManageChannels: () => {
       !isMobile && dispatch(navigateUp())
       dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
+      dispatch(createHaveChosenChannelsForTeam({teamname}))
     },
     onViewTeam: () => {
       !isMobile && dispatch(navigateUp())

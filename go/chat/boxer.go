@@ -31,6 +31,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/ed25519"
 )
@@ -52,7 +53,7 @@ type Boxer struct {
 	utils.DebugLabeler
 	globals.Contextified
 
-	boxWithVersion chat1.MessageBoxedVersion
+	boxVersionForTesting *chat1.MessageBoxedVersion
 
 	// Replaceable for testing.
 	// Normally set to normal implementations.
@@ -64,15 +65,21 @@ type Boxer struct {
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
 	// Post-process signatures and signencrypts
 	testingSignatureMangle func([]byte) []byte
+
+	clock clockwork.Clock
 }
 
 func NewBoxer(g *globals.Context) *Boxer {
 	return &Boxer{
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Boxer", false),
-		boxWithVersion: CurrentMessageBoxedVersion,
-		hashV1:         hashSha256V1,
-		Contextified:   globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Boxer", false),
+		hashV1:       hashSha256V1,
+		Contextified: globals.NewContextified(g),
+		clock:        clockwork.NewRealClock(),
 	}
+}
+
+func (b *Boxer) SetClock(clock clockwork.Clock) {
+	b.clock = clock
 }
 
 func (b *Boxer) log() logger.Logger {
@@ -271,7 +278,19 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
-	unboxed, ierr := b.unbox(ctx, boxed, conv.GetMembersType(), encryptionKey)
+	// If the message is exploding, load the ephemeral key.
+	var ephemeralSeed *keybase1.TeamEk
+	if boxed.IsExploding() {
+		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
+			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
+			boxed.EphemeralMetadata().Generation)
+		if err != nil {
+			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+		}
+		ephemeralSeed = &ek
+	}
+
+	unboxed, ierr := b.unbox(ctx, boxed, conv.GetMembersType(), encryptionKey, ephemeralSeed)
 	if ierr == nil {
 		ierr = b.checkInvariants(ctx, conv.GetConvID(), boxed, unboxed)
 	}
@@ -364,7 +383,8 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 }
 
 func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
-	membersType chat1.ConversationMembersType, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+	membersType chat1.ConversationMembersType, encryptionKey types.CryptKey,
+	ephemeralSeed *keybase1.TeamEk) (*chat1.MessageUnboxedValid, UnboxingError) {
 	switch boxed.Version {
 	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
 		res, err := b.unboxV1(ctx, boxed, membersType, encryptionKey)
@@ -372,8 +392,9 @@ func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed,
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
 		}
 		return res, err
-	case chat1.MessageBoxedVersion_V2:
-		res, err := b.unboxV2(ctx, boxed, membersType, encryptionKey)
+	// V3 is the same as V2, except that it indicates exploding message support.
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
+		res, err := b.unboxV2orV3(ctx, boxed, membersType, encryptionKey, ephemeralSeed)
 		if err != nil {
 			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
 		}
@@ -527,6 +548,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
+			Rtime:             gregor1.ToTime(b.clock.Now()),
 		}
 	default:
 		return nil,
@@ -593,16 +615,26 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	}, nil
 }
 
-func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
-	membersType chat1.ConversationMembersType, baseEncryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unboxV2orV3(ctx context.Context, boxed chat1.MessageBoxed,
+	membersType chat1.ConversationMembersType, baseEncryptionKey types.CryptKey,
+	ephemeralSeed *keybase1.TeamEk) (*chat1.MessageUnboxedValid, UnboxingError) {
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
-	derivedEncryptionKey, err := libkb.DeriveSymmetricKey(
+	// Regular messages use the same encryption key for the header and for the
+	// body. Exploding messages use a derived ephemeral key for the body.
+	headerEncryptionKey, err := libkb.DeriveSymmetricKey(
 		libkb.NaclSecretBoxKey(baseEncryptionKey.Material()), libkb.EncryptionReasonChatMessage)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
+	}
+	bodyEncryptionKey := headerEncryptionKey
+	if boxed.IsExploding() {
+		bodyEncryptionKey, err = libkb.DeriveFromSecret(ephemeralSeed.Seed, libkb.DeriveReasonTeamEKExplodingChat)
+		if err != nil {
+			return nil, NewPermanentUnboxingError(err)
+		}
 	}
 
 	// Validate verification key against unverified sender id.
@@ -625,7 +657,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 	}
 
 	// Open header and verify against VerifyKey
-	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), derivedEncryptionKey,
+	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), headerEncryptionKey,
 		boxed.VerifyKey, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
@@ -663,7 +695,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 
 	// Compare the signed and unsigned header.
 	// Checks that [Sender, SenderDevice] match, and other things.
-	ierr = b.compareHeadersMBV2(ctx, boxed.ClientHeader, clientHeader)
+	ierr = b.compareHeadersMBV2orV3(ctx, boxed.ClientHeader, clientHeader, boxed.Version)
 	if ierr != nil {
 		return nil, ierr
 	}
@@ -672,7 +704,7 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed,
 	// If the body is deleted, this is left blank.
 	var body chat1.MessageBody
 	if !isBodyDeleted {
-		bodyPacked, err := b.open(boxed.BodyCiphertext, derivedEncryptionKey)
+		bodyPacked, err := b.open(boxed.BodyCiphertext, bodyEncryptionKey)
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
 		}
@@ -752,7 +784,8 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
-			EphemeralMetadata: hp.EphemeralMetadata, // TODO only for v3
+			EphemeralMetadata: hp.EphemeralMetadata,
+			Rtime:             gregor1.ToTime(b.clock.Now()),
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,
@@ -801,7 +834,7 @@ func (b *Boxer) verifyBodyHash(ctx context.Context, bodyEncrypted chat1.Encrypte
 // need to check it.
 // The most important check here is that the Sender and SenderDevice match.
 // That is the only thing that gives the verification key used credibility.
-func (b *Boxer) compareHeadersMBV2(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified) UnboxingError {
+func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified, version chat1.MessageBoxedVersion) UnboxingError {
 	// Conv
 	if !hServer.Conv.Eq(hSigned.Conv) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("Conv"))
@@ -865,9 +898,8 @@ func (b *Boxer) compareHeadersMBV2(ctx context.Context, hServer chat1.MessageCli
 		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxInfo"))
 	}
 
-	// TODO only enforce this for v3
-	// EphemeralMetadata
-	if !hServer.EphemeralMetadata.Eq(hSigned.EphemeralMetadata) {
+	// EphemeralMetadata (only present in V3 and greater)
+	if version > chat1.MessageBoxedVersion_V2 && !hServer.EphemeralMetadata.Eq(hSigned.EphemeralMetadata) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("EphemeralMetadata"))
 	}
 
@@ -1077,6 +1109,15 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
+	version := CurrentMessageBoxedVersion
+	if b.boxVersionForTesting != nil {
+		version = *b.boxVersionForTesting
+	}
+
+	if msg.IsExploding() && version == chat1.MessageBoxedVersion_V1 {
+		return nil, fmt.Errorf("cannot use exploding messages with V1")
+	}
+
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
@@ -1100,7 +1141,27 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, NewBoxingError(msg, false)
 	}
 
-	err = b.attachMerkleRoot(ctx, &msg)
+	// If the message is exploding, load the ephemeral key, and tweak the
+	// version. Make sure we're not using MessageBoxedVersion_V1, since that
+	// doesn't support exploding messages.
+	var ephemeralSeed *keybase1.TeamEk
+	if msg.IsExploding() {
+		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
+			ctx, tlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
+		if err != nil {
+			return nil, NewBoxingCryptKeysError(err)
+		}
+		ephemeralSeed = &ek
+		// V3 is "V2 plus support for exploding messages". Thus we'll bump all
+		// exploding messages from V2 to V3. When futures versions are
+		// introduced (V4 etc.), they'll have exploding messages support from
+		// the get-go, and this version distinction will go away.
+		if version == chat1.MessageBoxedVersion_V2 {
+			version = chat1.MessageBoxedVersion_V3
+		}
+	}
+
+	err = b.attachMerkleRoot(ctx, &msg, version)
 	if err != nil {
 		return nil, err
 	}
@@ -1111,7 +1172,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, NewBoxingError(msg, true)
 	}
 
-	boxed, err := b.box(ctx, msg, encryptionKey, signingKeyPair, b.boxWithVersion)
+	boxed, err := b.box(ctx, msg, encryptionKey, ephemeralSeed, signingKeyPair, version)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -1123,13 +1184,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 // Modifies msg.
 // For MessageBoxedV1 makes sure there is no MR.
 // For MessageBoxedV2 attaches a MR that is no more out of date than ChatBoxerMerkleFreshness.
-func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintext) error {
-	switch b.boxWithVersion {
+func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintext, version chat1.MessageBoxedVersion) error {
+	switch version {
 	case chat1.MessageBoxedVersion_V1:
 		if msg.ClientHeader.MerkleRoot != nil {
 			return NewBoxingError("cannot send v1 message with merkle root", true)
 		}
-	case chat1.MessageBoxedVersion_V2:
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
 		merkleRoot, err := b.latestMerkleRoot(ctx)
 		if err != nil {
 			return NewBoxingError(err.Error(), false)
@@ -1171,7 +1232,7 @@ func (b *Boxer) preBoxCheck(ctx context.Context, messagePlaintext chat1.MessageP
 }
 
 func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
-	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
+	ephemeralSeed *keybase1.TeamEk, signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
 	err := b.preBoxCheck(ctx, messagePlaintext)
 	if err != nil {
 		return nil, err
@@ -1184,8 +1245,9 @@ func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext
 			b.Debug(ctx, "error boxing message version: %v", version)
 		}
 		return res, err
-	case chat1.MessageBoxedVersion_V2:
-		res, err := b.boxV2(messagePlaintext, encryptionKey, signingKeyPair)
+	// V3 is the same as V2, except that it indicates exploding message support.
+	case chat1.MessageBoxedVersion_V2, chat1.MessageBoxedVersion_V3:
+		res, err := b.boxV2orV3(messagePlaintext, encryptionKey, ephemeralSeed, signingKeyPair, version)
 		if err != nil {
 			b.Debug(ctx, "error boxing message version: %v", version)
 		}
@@ -1256,23 +1318,39 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key types.CryptKe
 	return boxed, nil
 }
 
-func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey types.CryptKey,
-	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+// V3 is just V2 but with exploding messages support. All future versions after
+// V3 will support exploding messages without a version distinction.
+func (b *Boxer) boxV2orV3(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey types.CryptKey,
+	ephemeralSeed *keybase1.TeamEk, signingKeyPair libkb.NaclSigningKeyPair,
+	version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
 
 	if messagePlaintext.ClientHeader.MerkleRoot == nil {
 		return nil, NewBoxingError("cannot send message without merkle root", false)
 	}
 
-	derivedEncryptionKey, err := libkb.DeriveSymmetricKey(
+	headerEncryptionKey, err := libkb.DeriveSymmetricKey(
 		libkb.NaclSecretBoxKey(baseEncryptionKey.Material()), libkb.EncryptionReasonChatMessage)
 	if err != nil {
 		return nil, err
 	}
 
+	// Regular messages use the same encryption key for the header and for the
+	// body. Exploding messages use a derived ephemeral key for the body.
+	bodyEncryptionKey := headerEncryptionKey
+	if messagePlaintext.IsExploding() {
+		bodyEncryptionKey, err = libkb.DeriveFromSecret(ephemeralSeed.Seed, libkb.DeriveReasonTeamEKExplodingChat)
+		if err != nil {
+			return nil, err
+		}
+		// The MessagePlaintext supplied by the caller has a Lifetime, but we
+		// expect the Generation is left uninitialized, and we set it here.
+		messagePlaintext.ClientHeader.EphemeralMetadata.Generation = ephemeralSeed.Metadata.Generation
+	}
+
 	bodyVersioned := chat1.NewBodyPlaintextWithV1(chat1.BodyPlaintextV1{
 		MessageBody: messagePlaintext.MessageBody,
 	})
-	bodyEncrypted, err := b.seal(bodyVersioned, derivedEncryptionKey)
+	bodyEncrypted, err := b.seal(bodyVersioned, bodyEncryptionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -1302,7 +1380,7 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 	})
 
 	// signencrypt the header
-	headerSealed, err := b.signEncryptMarshal(headerVersioned, derivedEncryptionKey,
+	headerSealed, err := b.signEncryptMarshal(headerVersioned, headerEncryptionKey,
 		signingKeyPair, libkb.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, err
@@ -1312,7 +1390,7 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 	verifyKey := signingKeyPair.GetBinaryKID()
 
 	boxed := &chat1.MessageBoxed{
-		Version:          chat1.MessageBoxedVersion_V2,
+		Version:          version,
 		ServerHeader:     nil,
 		ClientHeader:     messagePlaintext.ClientHeader,
 		HeaderCiphertext: headerSealed.AsSealed(),
@@ -1622,7 +1700,7 @@ func hashSha256V1(data []byte) chat1.Hash {
 	return sum[:]
 }
 
-// See note on compareHeadersMBV2.
+// See note on compareHeadersMBV2orV3.
 func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified) UnboxingError {
 	// Conv
 	if !hServer.Conv.Eq(hSigned.Conv) {

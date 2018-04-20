@@ -45,7 +45,12 @@ protocol remote {
 
     // V2: SignEncrypted header, encrypted body.
     // Hash of body inside header.
-    V2_2
+    V2_2,
+
+    // V3: Exactly as V2, except that the message
+    // may be exploding, meaning the body is
+    // encrypted with a separate ephemeral key.
+    V3_3
   }
 
   record ThreadViewBoxed {

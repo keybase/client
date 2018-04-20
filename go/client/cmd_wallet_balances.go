@@ -23,6 +23,7 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 	return cli.Command{
 		Name:        "balances",
+		Usage:       "Show account balances",
 		Description: "Show account balances",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)

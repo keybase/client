@@ -312,13 +312,13 @@ func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg 
 	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
 }
 
-func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) (res []keybase1.TeamJoinRequest, err error) {
+func (h *TeamsHandler) TeamListRequests(ctx context.Context, arg keybase1.TeamListRequestsArg) (res []keybase1.TeamJoinRequest, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, "TeamListRequests", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return nil, err
 	}
-	return teams.ListRequests(ctx, h.G().ExternalG())
+	return teams.ListRequests(ctx, h.G().ExternalG(), arg.TeamName)
 }
 
 func (h *TeamsHandler) TeamListMyAccessRequests(ctx context.Context, arg keybase1.TeamListMyAccessRequestsArg) (res []keybase1.TeamName, err error) {

@@ -83,60 +83,6 @@ func (o Operation) DeepCopy() Operation {
 	}
 }
 
-type TransactionDetails struct {
-	StellarID             TransactionID        `codec:"stellarID" json:"stellarID"`
-	KeybaseID             KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Hash                  string               `codec:"Hash" json:"Hash"`
-	Ledger                int                  `codec:"ledger" json:"ledger"`
-	LedgerCloseTime       int                  `codec:"ledgerCloseTime" json:"ledgerCloseTime"`
-	SourceAccount         AccountID            `codec:"sourceAccount" json:"sourceAccount"`
-	SourceAccountSequence string               `codec:"sourceAccountSequence" json:"sourceAccountSequence"`
-	FeePaid               int                  `codec:"feePaid" json:"feePaid"`
-	Members               Members              `codec:"members" json:"members"`
-	NoteB64               string               `codec:"noteB64" json:"noteB64"`
-	Signatures            []string             `codec:"signatures" json:"signatures"`
-	Operations            []Operation          `codec:"operations" json:"operations"`
-	Ctime                 TimeMs               `codec:"ctime" json:"ctime"`
-}
-
-func (o TransactionDetails) DeepCopy() TransactionDetails {
-	return TransactionDetails{
-		StellarID:             o.StellarID.DeepCopy(),
-		KeybaseID:             o.KeybaseID.DeepCopy(),
-		Hash:                  o.Hash,
-		Ledger:                o.Ledger,
-		LedgerCloseTime:       o.LedgerCloseTime,
-		SourceAccount:         o.SourceAccount.DeepCopy(),
-		SourceAccountSequence: o.SourceAccountSequence,
-		FeePaid:               o.FeePaid,
-		Members:               o.Members.DeepCopy(),
-		NoteB64:               o.NoteB64,
-		Signatures: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			var ret []string
-			for _, v := range x {
-				vCopy := v
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.Signatures),
-		Operations: (func(x []Operation) []Operation {
-			if x == nil {
-				return nil
-			}
-			var ret []Operation
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.Operations),
-		Ctime: o.Ctime.DeepCopy(),
-	}
-}
-
 type PaymentPost struct {
 	StellarAccountSeqno uint64  `codec:"stellarAccountSeqno" json:"stellarAccountSeqno"`
 	Members             Members `codec:"members" json:"members"`
@@ -262,9 +208,9 @@ type RecentPaymentsArg struct {
 	Limit     int                  `codec:"limit" json:"limit"`
 }
 
-type TransactionArg struct {
+type PaymentDetailArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
-	Id     TransactionID        `codec:"id" json:"id"`
+	TxID   string               `codec:"txID" json:"txID"`
 }
 
 type AccountSeqnoArg struct {
@@ -285,7 +231,7 @@ type IsMasterKeyActiveArg struct {
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
-	Transaction(context.Context, TransactionArg) (TransactionDetails, error)
+	PaymentDetail(context.Context, PaymentDetailArg) (PaymentSummary, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
@@ -327,18 +273,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"transaction": {
+			"paymentDetail": {
 				MakeArg: func() interface{} {
-					ret := make([]TransactionArg, 1)
+					ret := make([]PaymentDetailArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TransactionArg)
+					typedArgs, ok := args.(*[]PaymentDetailArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]TransactionArg)(nil), args)
+						err = rpc.NewTypeError((*[]PaymentDetailArg)(nil), args)
 						return
 					}
-					ret, err = i.Transaction(ctx, (*typedArgs)[0])
+					ret, err = i.PaymentDetail(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -409,8 +355,8 @@ func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsAr
 	return
 }
 
-func (c RemoteClient) Transaction(ctx context.Context, __arg TransactionArg) (res TransactionDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.transaction", []interface{}{__arg}, &res)
+func (c RemoteClient) PaymentDetail(ctx context.Context, __arg PaymentDetailArg) (res PaymentSummary, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetail", []interface{}{__arg}, &res)
 	return
 }
 

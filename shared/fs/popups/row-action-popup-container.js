@@ -33,6 +33,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
         )
 
   return {
+    _mimeType: Constants.mimeTypeFromPathItem(pathItem),
     path,
     pathItem,
     isShare,
@@ -68,17 +69,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
               },
             ])
           ),
-      }
-    : {
-        showInFileUI: (path: Types.Path) =>
-          dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
-      }),
-
-  // We don't support share sheet on Android yet.
-  ...(isIOS
-    ? {
-        shareNative: (path: Types.Path) => {
-          dispatch(FSGen.createDownload({path, intent: 'share'}))
+        shareNative: (path: Types.Path, mimeType: string) => {
+          dispatch(FSGen.createDownload({intent: 'share', mimeType, path}))
           dispatch(
             navigateAppend([
               {
@@ -89,7 +81,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           )
         },
       }
-    : {}),
+    : {
+        showInFileUI: (path: Types.Path) =>
+          dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
+      }),
 
   ...(!isIOS
     ? {
@@ -109,13 +104,12 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => showInFileUI(path),
     })
   isMobile &&
-    Constants.isImage(pathItem.name) &&
+    Constants.isMedia(pathItem.name) &&
     menuItems.push({
       title: 'Save',
       onClick: () => saveImage(path),
     })
-  // We don't support the share sheet on Android yet.
-  isIOS &&
+  isMobile &&
     menuItems.push({
       title: 'Share...',
       onClick: () => share(path),
@@ -129,12 +123,12 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
   return menuItems
 }
 
-const getShareMenuItems = ({path}, {shareNative}) =>
+const getShareMenuItems = ({path, _mimeType}, {shareNative}) =>
   isMobile
     ? [
         {
           title: 'Send to other app',
-          onClick: () => shareNative(path),
+          onClick: () => shareNative(path, _mimeType),
         },
       ]
     : []

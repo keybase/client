@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type timedGenericKey struct {
@@ -101,18 +102,17 @@ func (a *Account) LoggedInLoad() (bool, error) {
 	return a.LocalSession().loadAndCheck()
 }
 
-// LoggedInProvisionedCheck will load and check the session with the api server if necessary.
-func (a *Account) LoggedInProvisionedCheck() (bool, error) {
-	return a.LocalSession().loadAndCheckProvisioned()
-}
-
-// LoggedInProvisioned will load the session file if necessary and return true if the
-// device is provisioned.  It will *not* check the session with the api server.
-func (a *Account) LoggedInProvisioned() (bool, error) {
-	if err := a.LocalSession().Load(); err != nil {
-		return false, err
+// LoggedInProvisioned will check if the user is logged in and provisioned on this
+// device. It will do so by bootstrapping the ActiveDevice.
+func (a *Account) LoggedInProvisioned(ctx context.Context) (bool, error) {
+	_, err := BootstrapActiveDeviceFromConfig(context.TODO(), a.G(), a, true)
+	if err == nil {
+		return true, nil
 	}
-	return a.LocalSession().IsLoggedInAndProvisioned(), nil
+	if _, isLRE := err.(LoginRequiredError); isLRE {
+		return false, nil
+	}
+	return false, err
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {
@@ -144,7 +144,6 @@ func (a *Account) setLoginSession(ls *LoginSession) {
 		// But it probably signifies an error.
 		a.G().Log.Debug("Account: overwriting loginSession")
 	}
-
 	a.loginSession = ls
 }
 
@@ -490,7 +489,7 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *D
 	case DeviceSigningKeyType:
 		a.G().Log.Debug("caching secret device signing key")
 
-		if err := a.G().ActiveDevice.setSigningKey(a, uid, deviceID, key); err != nil {
+		if err := a.G().ActiveDevice.setSigningKey(a.G(), a, uid, deviceID, key); err != nil {
 			return err
 		}
 

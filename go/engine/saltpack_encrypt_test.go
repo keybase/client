@@ -331,8 +331,8 @@ func TestSaltpackEncryptSelfNoKey(t *testing.T) {
 	eng := NewSaltpackEncrypt(arg, tc.G)
 	eng.skipTLFKeysForTesting = true
 	err := RunEngine(eng, ctx)
-	if _, ok := err.(libkb.NoKeyError); !ok {
-		t.Fatalf("expected error type libkb.NoKeyError, got %T (%s)", err, err)
+	if _, ok := err.(libkb.NoDeviceError); !ok {
+		t.Fatalf("expected error type libkb.NoDeviceError, got %T (%s)", err, err)
 	}
 }
 

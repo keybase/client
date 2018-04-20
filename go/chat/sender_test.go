@@ -159,6 +159,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		ri = gh.GetClient()
 	}
 	boxer := NewBoxer(g)
+	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
 	sender := NewNonblockingSender(g, baseSender)
@@ -941,7 +942,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, conv.GetConvID(), uid))
+	require.NoError(t, storage.New(tc.Context()).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 
 	// Fetch a subset into the cache
 	_, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{

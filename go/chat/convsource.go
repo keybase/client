@@ -51,7 +51,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	//       rather than only checking the messages we just fetched against
 	//       each other.
 	if checkPrev {
-		_, err = CheckPrevPointersAndGetUnpreved(thread)
+		_, _, err = CheckPrevPointersAndGetUnpreved(thread)
 		if err != nil {
 			return err
 		}
@@ -89,9 +89,10 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	return nil
 }
 
-func (s *baseConversationSource) TransformSupersedes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+func (s *baseConversationSource) TransformSupersedes(ctx context.Context,
+	unboxInfo types.UnboxConversationInfo, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 	transform := newBasicSupersedesTransform(s.G())
-	return transform.Run(ctx, conv, uid, msgs)
+	return transform.Run(ctx, unboxInfo, uid, msgs)
 }
 
 // patchPaginationLast turns on page.Last if the messages are before InboxSource's view of Expunge.
@@ -133,6 +134,15 @@ func NewRemoteConversationSource(g *globals.Context, b *Boxer, ri func() chat1.R
 	}
 }
 
+func (s *RemoteConversationSource) AcquireConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	return nil
+}
+
+func (s *RemoteConversationSource) ReleaseConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+}
+
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
@@ -140,6 +150,11 @@ func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.Conver
 	// The bool param here is to indicate the update given is continuous to our current state,
 	// which for this source is not relevant, so we just return true
 	return chat1.MessageUnboxed{}, true, nil
+}
+
+func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msg chat1.MessageUnboxed) (bool, error) {
+	return true, nil
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
@@ -193,7 +208,7 @@ func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
-func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
+func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
 }
 
@@ -415,6 +430,31 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 	}
 }
 
+func (s *HybridConversationSource) AcquireConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	_, err := s.lockTab.Acquire(ctx, uid, convID)
+	return err
+}
+
+func (s *HybridConversationSource) ReleaseConversationLock(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+	s.lockTab.Release(ctx, uid, convID)
+}
+
+func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID) (continuousUpdate bool, err error) {
+	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
+	switch err.(type) {
+	case storage.MissError:
+		continuousUpdate = true
+	case nil:
+		continuousUpdate = maxMsgID >= msgID-1
+	default:
+		return false, err
+	}
+	return continuousUpdate, nil
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -430,14 +470,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	// Check to see if we are "appending" this message to the current record.
-	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
-	switch err.(type) {
-	case storage.MissError:
-		continuousUpdate = true
-	case nil:
-		continuousUpdate = maxMsgID >= msg.GetMessageID()-1
-	default:
-		return chat1.MessageUnboxed{}, continuousUpdate, err
+	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
+		return decmsg, continuousUpdate, err
 	}
 
 	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv)
@@ -460,6 +494,25 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	return decmsg, continuousUpdate, nil
+}
+
+func (s *HybridConversationSource) PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "PushUnboxed")()
+	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return continuousUpdate, err
+	}
+	defer s.lockTab.Release(ctx, uid, convID)
+
+	// Check to see if we are "appending" this message to the current record.
+	if continuousUpdate, err = s.isContinuousPush(ctx, convID, uid, msg.GetMessageID()); err != nil {
+		return continuousUpdate, err
+	}
+	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{msg}); err != nil {
+		return continuousUpdate, err
+	}
+
+	return continuousUpdate, nil
 }
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv types.UnboxConversationInfo,
@@ -767,8 +820,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	return tv, nil
 }
 
-func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.MaybeNuke(true, nil, convID, uid)
+func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return s.storage.MaybeNuke(ctx, true, nil, convID, uid)
 }
 
 type ByMsgID []chat1.MessageUnboxed

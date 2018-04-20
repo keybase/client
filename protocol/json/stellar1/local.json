@@ -9,7 +9,7 @@
   "types": [
     {
       "type": "record",
-      "name": "RecentPaymentCLILocal",
+      "name": "PaymentCLILocal",
       "fields": [
         {
           "type": "TransactionID",
@@ -160,8 +160,17 @@
       ],
       "response": {
         "type": "array",
-        "items": "RecentPaymentCLILocal"
+        "items": "PaymentCLILocal"
       }
+    },
+    "paymentDetailCLILocal": {
+      "request": [
+        {
+          "name": "txID",
+          "type": "string"
+        }
+      ],
+      "response": "PaymentCLILocal"
     },
     "walletInitLocal": {
       "request": [],
@@ -199,6 +208,15 @@
         }
       ],
       "response": null
+    },
+    "exportSecretKeyLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "SecretKey"
     },
     "setDisplayCurrency": {
       "request": [
