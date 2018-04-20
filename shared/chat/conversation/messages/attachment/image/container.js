@@ -57,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           }
         : null,
     onShowMenu: () => dispatchProps._onShowMenu(null, message),
-    path: message.devicePreviewPath,
+    path: message.previewURL,
     progress: message.transferProgress,
     progressLabel,
     title: message.title || message.fileName,

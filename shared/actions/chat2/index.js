@@ -1120,7 +1120,7 @@ const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPaylo
   } else if (message.type === 'attachment') {
     retryAction = Chat2Gen.createAttachmentUpload({
       conversationIDKey: message.conversationIDKey,
-      path: message.devicePreviewPath,
+      path: message.previewURL,
       title: message.title,
     })
   }
@@ -1754,7 +1754,7 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  yield Saga.call(showShareActionSheet, {url: message.deviceFilePath})
+  yield Saga.call(showShareActionSheet, {url: message.fileURL})
 }
 
 // Native save to camera roll
@@ -1767,7 +1767,7 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
   }
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
+    yield Saga.call(saveAttachmentDialog, message.fileURL)
   } catch (err) {
     logger.info('Failed to save attachment: ' + err)
     throw new Error('Save attachment failed. Enable photo access in privacy settings.')

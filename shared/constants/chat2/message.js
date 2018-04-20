@@ -47,8 +47,8 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
   attachmentType: 'file',
-  deviceFilePath: '',
-  devicePreviewPath: '',
+  fileURL: '',
+  previewURL: '',
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -337,11 +337,11 @@ const validUIMessagetoMessage = (
           attachmentType = 'image'
         }
       }
-      let devicePreviewPath = ''
-      let deviceFilePath = ''
+      let previewURL = ''
+      let fileURL = ''
       if (m.assetUrlInfo) {
-        devicePreviewPath = m.assetUrlInfo.previewUrl
-        deviceFilePath = m.assetUrlInfo.fullUrl
+        previewURL = m.assetUrlInfo.previewUrl
+        fileURL = m.assetUrlInfo.fullUrl
       }
 
       return makeMessageAttachment({
@@ -352,8 +352,8 @@ const validUIMessagetoMessage = (
         previewHeight,
         previewWidth,
         title,
-        devicePreviewPath,
-        deviceFilePath,
+        previewURL,
+        fileURL,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -514,7 +514,7 @@ export const makePendingAttachmentMessage = (
   conversationIDKey: Types.ConversationIDKey,
   attachmentType: Types.AttachmentType,
   title: string,
-  devicePreviewPath: string,
+  previewURL: string,
   outboxID: Types.OutboxID
 ) => {
   const lastOrindal =
@@ -526,7 +526,7 @@ export const makePendingAttachmentMessage = (
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
-    devicePreviewPath,
+    previewURL,
     deviceType: isMobile ? 'mobile' : 'desktop',
     id: Types.numberToMessageID(0),
     ordinal,
