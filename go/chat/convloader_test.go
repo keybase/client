@@ -353,22 +353,21 @@ func TestBackgroundPurge(t *testing.T) {
 		}
 	}
 
-	sendEphemeral := func(lifetime time.Duration) *chat1.MessageBoxed {
-		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+	sendEphemeral := func(lifetime gregor1.DurationSec) {
+		_, _, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:              trip,
 				Sender:            uid,
 				TlfName:           u.Username,
 				TlfPublic:         false,
 				MessageType:       chat1.MessageType_TEXT,
-				EphemeralMetadata: &chat1.MsgEphemeralMetadata{Etime: gregor1.ToTime(clock.Now().Add(lifetime))},
+				EphemeralMetadata: &chat1.MsgEphemeralMetadata{Lifetime: lifetime},
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
 			}),
 		}, 0, nil)
 		require.NoError(t, err)
-		return msgBoxed
 	}
 
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
@@ -395,31 +394,39 @@ func TestBackgroundPurge(t *testing.T) {
 	assertTrackerState(res.ConvID, expectedPurgeInfo)
 
 	// Send two ephemeral messages, and ensure both get purged
-	lifetime := time.Second
-	msgBoxed1 := sendEphemeral(lifetime * 2)
-	msgBoxed2 := sendEphemeral(lifetime * 3)
+	lifetime := gregor1.DurationSec(1)
+	sendEphemeral(lifetime * 2)
+	sendEphemeral(lifetime * 3)
 
-	// Make sure we can queue up a task and execute it, setting our initial tracker state
+	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid, &chat1.GetThreadQuery{
+		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+	}, nil)
+	require.NoError(t, err)
+	msgs := thread.Messages
+	require.Len(t, msgs, 2)
+	msgUnboxed2 := msgs[0]
+	msgUnboxed1 := msgs[1]
+
 	t.Logf("assert listener 1")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgBoxed1.GetMessageID(),
-		NextPurgeTime:   msgBoxed1.Etime(),
+		MinUnexplodedID: msgUnboxed1.GetMessageID(),
+		NextPurgeTime:   msgUnboxed1.Valid().Etime(),
 		IsActive:        true,
 	})
 
 	t.Logf("assert listener 2")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgBoxed2.GetMessageID(),
-		NextPurgeTime:   msgBoxed2.Etime(),
+		MinUnexplodedID: msgUnboxed2.GetMessageID(),
+		NextPurgeTime:   msgUnboxed2.Valid().Etime(),
 		IsActive:        true,
 	})
 
 	t.Logf("assert listener 3")
 	assertListener(res.ConvID)
 	assertTrackerState(res.ConvID, chat1.EphemeralPurgeInfo{
-		MinUnexplodedID: msgBoxed2.GetMessageID(),
+		MinUnexplodedID: msgUnboxed2.GetMessageID(),
 		NextPurgeTime:   0,
 		IsActive:        false,
 	})

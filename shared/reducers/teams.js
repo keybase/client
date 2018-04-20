@@ -95,6 +95,14 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamSawSubteamsBanner:
       return state.set('sawSubteamsBanner', true)
 
+    case TeamsGen.setChosenChannelsForTeam:
+      const chosenChannels = I.Set(JSON.parse(action.payload.chosenChannelsForTeam))
+      // If this is coming in as the clear before a set, just ignore it.
+      if (chosenChannels.count() === 0) {
+        return state
+      }
+      return state.set('chosenChannelsForTeam', chosenChannels)
+
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addToTeam:
@@ -112,6 +120,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:
     case TeamsGen.getTeams:
+    case TeamsGen.haveChosenChannelsForTeam:
     case TeamsGen.ignoreRequest:
     case TeamsGen.inviteToTeamByEmail:
     case TeamsGen.inviteToTeamByPhone:

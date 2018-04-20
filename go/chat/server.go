@@ -2580,23 +2580,39 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 
-	// Let's just take this whole message and add it to the message body cache. Alternatively,
-	// we can try to just unbox if this fails, since it will need the convo in cache.
-	msgUnboxed, _, err := h.G().ConvSource.Push(ctx, convID, uid, msgBoxed)
+	// Unbox first
+	vis := keybase1.TLFVisibility_PRIVATE
+	if msgBoxed.ClientHeader.TlfPublic {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil, vis)
+	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo)
 	if err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
-		// Try to just unbox without pushing
-		vis := keybase1.TLFVisibility_PRIVATE
-		if msgBoxed.ClientHeader.TlfPublic {
-			vis = keybase1.TLFVisibility_PUBLIC
-		}
-		unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil, vis)
-		if msgUnboxed, err = NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo); err != nil {
-			h.Debug(ctx, "UnboxMobilePushNotification: failed simple unbox as well, bailing: %s", err.Error())
-			return res, err
-		}
+		h.Debug(ctx, "UnboxMobilePushNotification: unbox failed, bailing: %s", err.Error())
+		return res, err
 	}
 
+	// Check to see if this will be a strict append before adding to the body cache
+	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
+		return res, err
+	}
+	maxMsgID, err := storage.New(h.G()).GetMaxMsgID(ctx, convID, uid)
+	if err == nil {
+		if msgUnboxed.GetMessageID() > maxMsgID {
+			if _, err = h.G().ConvSource.PushUnboxed(ctx, convID, uid, msgUnboxed); err != nil {
+				h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s",
+					err.Error())
+			}
+		} else {
+			h.Debug(ctx, "UnboxMobilePushNotification: message from the past, skipping insert: msgID: %d maxMsgID: %d", msgUnboxed.GetMessageID(), maxMsgID)
+
+		}
+	} else {
+		h.Debug(ctx, "UnboxMobilePushNotification: failed to fetch max msg ID: %s", err)
+	}
+	h.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
+
+	// Form the push notification message
 	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
 		res = h.formatPushText(ctx, uid, convID, arg.MembersType, msgUnboxed)
 		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox")

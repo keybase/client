@@ -36,6 +36,9 @@
     "getTeamPublicity": {
       "teamname": "string"
     },
+    "haveChosenChannelsForTeam": {
+      "teamname": "string"
+    },
     "saveChannelMembership": {
       "teamname": "string",
       "channelState": "Types.ChannelMembershipState"
@@ -97,6 +100,9 @@
     },
     "setChannelCreationError": {
       "error": "string"
+    },
+    "setChosenChannelsForTeam": {
+      "chosenChannelsForTeam": "string"
     },
     "setTeamCreationError": {
       "error": "string"

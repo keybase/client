@@ -826,3 +826,34 @@ func ValidateNormalizedUsername(username string) (NormalizedUsername, error) {
 	}
 	return res, nil
 }
+
+type UserForSignatures struct {
+	uid         keybase1.UID
+	name        NormalizedUsername
+	eldestKID   keybase1.KID
+	eldestSeqno keybase1.Seqno
+	latestPUK   *keybase1.PerUserKey
+}
+
+func (u UserForSignatures) GetUID() keybase1.UID                  { return u.uid }
+func (u UserForSignatures) GetName() string                       { return u.name.String() }
+func (u UserForSignatures) GetEldestKID() keybase1.KID            { return u.eldestKID }
+func (u UserForSignatures) GetNormalizedName() NormalizedUsername { return u.name }
+func (u UserForSignatures) ToUserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: u.eldestSeqno}
+}
+func (u UserForSignatures) GetLatestPerUserKey() *keybase1.PerUserKey { return u.latestPUK }
+
+func (u *User) ToUserForSignatures() (ret UserForSignatures) {
+	if u == nil {
+		return ret
+	}
+	ret.uid = u.GetUID()
+	ret.name = u.GetNormalizedName()
+	ret.eldestKID = u.GetEldestKID()
+	ret.eldestSeqno = u.GetCurrentEldestSeqno()
+	ret.latestPUK = u.GetComputedKeyFamily().GetLatestPerUserKey()
+	return ret
+}
+
+var _ UserBasic = UserForSignatures{}

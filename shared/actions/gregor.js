@@ -117,15 +117,23 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGener
   }
 }
 
-function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
+function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
+  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
+  const chosenChannelsForTeam =
+    (chosenChannels &&
+      chosenChannels.item &&
+      chosenChannels.item.body &&
+      chosenChannels.item.body.toString()) ||
+    JSON.stringify([])
   if (sawChatBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawChatBanner())
   }
   if (sawSubteamsBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
+  yield Saga.put(TeamsGen.createSetChosenChannelsForTeam({chosenChannelsForTeam}))
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
@@ -138,7 +146,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
 
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
-      Saga.call(handleIntroBanners, nonNullItems),
+      Saga.call(handleBannersAndBadges, nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
     const destSubPath = sourceSubPath.butLast()
     dispatch(TeamsGen.createCreateNewTeam({destSubPath, joinSubteam, rootPath, sourceSubPath, teamname}))
   },
-  _onSetTeamCreationError: (error: string) => {
+  onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
@@ -33,29 +33,28 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const isSubteam = ownProps.routeProps.get('makeSubteam') || false
   const routeName = ownProps.routeProps.get('name') || ''
-  const name = routeName.concat(isSubteam ? '.' : '')
-  const baseTeam = baseTeamname(name)
+  const baseTeam = baseTeamname(routeName)
   return {
     ...stateProps,
     ...dispatchProps,
     baseTeam,
     isSubteam,
-    name,
   }
 }
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(({joinSubteam, name}) => ({joinSubteam: false, name: name || ''}), {
+  withStateHandlers(({joinSubteam}) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),
   withHandlers({
-    onSubmit: ({joinSubteam, name, _onCreateNewTeam}) => () => _onCreateNewTeam(joinSubteam, name),
+    onSubmit: ({joinSubteam, _onCreateNewTeam}) => (fullName: string) =>
+      _onCreateNewTeam(joinSubteam, fullName),
   }),
   lifecycle({
     componentDidMount() {
-      this.props._onSetTeamCreationError('')
+      this.props.onSetTeamCreationError('')
     },
   })
 )(NewTeamDialog)

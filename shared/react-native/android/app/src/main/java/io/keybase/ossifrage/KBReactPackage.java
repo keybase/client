@@ -16,6 +16,7 @@ import io.keybase.ossifrage.modules.LogSend;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.NativeSettings;
 import io.keybase.ossifrage.modules.ScreenProtector;
+import io.keybase.ossifrage.modules.ShareFiles;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private final String logFilePath;
@@ -39,6 +40,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
         final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);
         final NativeLogger nativeLogger = new NativeLogger(reactApplicationContext);
+        final ShareFiles shareFiles = new ShareFiles(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
@@ -48,6 +50,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         modules.add(screenProtector);
         modules.add(nativeSettings);
         modules.add(nativeLogger);
+        modules.add(shareFiles);
 
         return modules;
     }

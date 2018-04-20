@@ -67,7 +67,7 @@ const FilePreview = (props: FilePreviewProps) => (
           />
         )}
         {isIOS ? (
-          Constants.isImage(props.pathItem.name) && (
+          Constants.isMedia(props.pathItem.name) && (
             <Button
               key="open"
               type="Secondary"

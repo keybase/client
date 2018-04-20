@@ -5400,39 +5400,6 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
 exports[`Storyshots Chat/Inbox Team 1`] = `
 .css-0,
 [data-css-0] {
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  cursor: pointer;
-  align-items: center;
-  flex-shrink: 0;
-  max-height: 24px;
-  min-height: 24px;
-  padding-left: 8px;
-  padding-right: 4px;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -webkit-flex-shrink: 0;
-}
-
-.css-0 .icon,
-[data-css-0] .icon {
-  display: none !important;
-}
-
-.css-0:hover .icon,
-[data-css-0]:hover .icon {
-  display: inherit !important;
-}
-
-.css-2,
-[data-css-2] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -5442,8 +5409,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   border-radius: 4px;
 }
 
-.css-3,
-[data-css-3] {
+.css-1,
+[data-css-1] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -5458,8 +5425,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   opacity: 1;
 }
 
-.css-4,
-[data-css-4] {
+.css-2,
+[data-css-2] {
   font-size: 11px;
   line-height: 15px;
   color: #2645A3;
@@ -5473,18 +5440,18 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   -webkit-flex-grow: 1;
 }
 
-.css-5,
-[data-css-5] {
+.css-3,
+[data-css-3] {
   color: rgba(0, 0, 0, 0.20);
 }
 
-.css-5:hover,
-[data-css-5]:hover {
+.css-3:hover,
+[data-css-3]:hover {
   color: rgba(0, 0, 0, 0.75);
 }
 
-.css-7,
-[data-css-7] {
+.css-5,
+[data-css-5] {
   font-size: 13px;
   line-height: 17px;
   color: rgb(64,64,64);
@@ -5494,8 +5461,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 400;
 }
 
-.css-8,
-[data-css-8] {
+.css-6,
+[data-css-6] {
   font-size: 13px;
   line-height: 17px;
   color: rgb(64,64,64);
@@ -5505,8 +5472,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 700;
 }
 
-.css-9,
-[data-css-9] {
+.css-7,
+[data-css-7] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -5516,8 +5483,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 600;
 }
 
-.css-10,
-[data-css-10] {
+.css-8,
+[data-css-8] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -5553,7 +5520,19 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       }
     >
       <div
-        className="css-0"
+        style={
+          Object {
+            "alignItems": "center",
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "flexShrink": 0,
+            "maxHeight": 24,
+            "minHeight": 24,
+            "paddingLeft": 8,
+            "paddingRight": 4,
+          }
+        }
       >
         <div
           onClick={undefined}
@@ -5569,14 +5548,14 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
           }
         >
           <div
-            className="css-2"
+            className="css-0"
           />
           <div
-            className="css-3"
+            className="css-1"
           />
         </div>
         <span
-          className="css-4"
+          className="css-2"
           onClick={undefined}
           title={undefined}
         >
@@ -5584,7 +5563,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         </span>
         <div>
           <span
-            className="css-5 icon"
+            className="css-3 icon"
             onClick={[Function]}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -5598,7 +5577,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "fontVariant": "normal",
                 "fontWeight": "normal",
                 "lineHeight": 1,
-                "padding": 4,
                 "speak": "none",
                 "textTransform": "none",
                 "userSelect": "none",
@@ -5608,6 +5586,17 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             
           </span>
         </div>
+        <div
+          style={
+            Object {
+              "borderRadius": 6,
+              "height": 8,
+              "marginRight": 4,
+              "marginTop": 4,
+              "width": 8,
+            }
+          }
+        />
       </div>
       <div
         onClick={[Function]}
@@ -5661,7 +5650,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-5"
               onClick={undefined}
               title={undefined}
             >
@@ -5723,7 +5712,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-5"
               onClick={undefined}
               title={undefined}
             >
@@ -5785,7 +5774,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-8"
+              className="css-6"
               onClick={undefined}
               title={undefined}
             >
@@ -5847,7 +5836,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-5"
               onClick={undefined}
               title={undefined}
             >
@@ -5871,7 +5860,19 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         </div>
       </div>
       <div
-        className="css-0"
+        style={
+          Object {
+            "alignItems": "center",
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "flexShrink": 0,
+            "maxHeight": 24,
+            "minHeight": 24,
+            "paddingLeft": 8,
+            "paddingRight": 4,
+          }
+        }
       >
         <div
           onClick={undefined}
@@ -5887,14 +5888,14 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
           }
         >
           <div
-            className="css-2"
+            className="css-0"
           />
           <div
-            className="css-3"
+            className="css-1"
           />
         </div>
         <span
-          className="css-4"
+          className="css-2"
           onClick={undefined}
           title={undefined}
         >
@@ -5902,7 +5903,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         </span>
         <div>
           <span
-            className="css-5 icon"
+            className="css-3 icon"
             onClick={[Function]}
             onMouseEnter={undefined}
             onMouseLeave={undefined}
@@ -5916,7 +5917,6 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
                 "fontVariant": "normal",
                 "fontWeight": "normal",
                 "lineHeight": 1,
-                "padding": 4,
                 "speak": "none",
                 "textTransform": "none",
                 "userSelect": "none",
@@ -5926,6 +5926,17 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             
           </span>
         </div>
+        <div
+          style={
+            Object {
+              "borderRadius": 6,
+              "height": 8,
+              "marginRight": 4,
+              "marginTop": 4,
+              "width": 8,
+            }
+          }
+        />
       </div>
       <div
         onClick={[Function]}
@@ -5982,7 +5993,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-9"
+              className="css-7"
               onClick={undefined}
               title={undefined}
             >
@@ -6044,7 +6055,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-5"
               onClick={undefined}
               title={undefined}
             >
@@ -6109,7 +6120,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-9"
+              className="css-7"
               onClick={undefined}
               title={undefined}
             >
@@ -6187,7 +6198,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-10"
+              className="css-8"
               onClick={undefined}
               title={undefined}
             >

@@ -31,6 +31,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/ed25519"
 )
@@ -64,6 +65,8 @@ type Boxer struct {
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
 	// Post-process signatures and signencrypts
 	testingSignatureMangle func([]byte) []byte
+
+	clock clockwork.Clock
 }
 
 func NewBoxer(g *globals.Context) *Boxer {
@@ -71,7 +74,12 @@ func NewBoxer(g *globals.Context) *Boxer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Boxer", false),
 		hashV1:       hashSha256V1,
 		Contextified: globals.NewContextified(g),
+		clock:        clockwork.NewRealClock(),
 	}
+}
+
+func (b *Boxer) SetClock(clock clockwork.Clock) {
+	b.clock = clock
 }
 
 func (b *Boxer) log() logger.Logger {
@@ -540,6 +548,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
+			Rtime:             gregor1.ToTime(b.clock.Now()),
 		}
 	default:
 		return nil,
@@ -775,7 +784,8 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, headerVersioned chat1.H
 			OutboxID:          hp.OutboxID,
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
-			EphemeralMetadata: hp.EphemeralMetadata, // TODO only for v3
+			EphemeralMetadata: hp.EphemeralMetadata,
+			Rtime:             gregor1.ToTime(b.clock.Now()),
 		}, hp.BodyHash, nil
 	default:
 		return chat1.MessageClientHeaderVerified{}, nil,

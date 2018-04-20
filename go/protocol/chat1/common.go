@@ -1007,6 +1007,7 @@ type MessageServerHeader struct {
 	MessageID    MessageID    `codec:"messageID" json:"messageID"`
 	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
 	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
+	Now          gregor1.Time `codec:"n" json:"n"`
 }
 
 func (o MessageServerHeader) DeepCopy() MessageServerHeader {
@@ -1014,6 +1015,7 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 		MessageID:    o.MessageID.DeepCopy(),
 		SupersededBy: o.SupersededBy.DeepCopy(),
 		Ctime:        o.Ctime.DeepCopy(),
+		Now:          o.Now.DeepCopy(),
 	}
 }
 
@@ -1042,13 +1044,13 @@ func (o OutboxInfo) DeepCopy() OutboxInfo {
 }
 
 type MsgEphemeralMetadata struct {
-	Etime      gregor1.Time          `codec:"e" json:"e"`
+	Lifetime   gregor1.DurationSec   `codec:"l" json:"l"`
 	Generation keybase1.EkGeneration `codec:"g" json:"g"`
 }
 
 func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 	return MsgEphemeralMetadata{
-		Etime:      o.Etime.DeepCopy(),
+		Lifetime:   o.Lifetime.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
 	}
 }
@@ -1174,6 +1176,7 @@ type MessageClientHeaderVerified struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo        *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
+	Rtime             gregor1.Time             `codec:"rt" json:"rt"`
 }
 
 func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
@@ -1230,6 +1233,7 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralMetadata),
+		Rtime: o.Rtime.DeepCopy(),
 	}
 }
 
