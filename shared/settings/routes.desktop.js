@@ -14,7 +14,6 @@ import DeleteConfirm from './delete-confirm/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import InviteGenerated from './invite-generated'
 import DevMenu from '../dev/dev-menu'
-import DumbSheet from '../dev/dumb-sheet'
 import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
 import PlanDetails from './plan-details/container'
@@ -65,19 +64,6 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    ...(__DEV__
-      ? {
-          [Constants.devMenuTab]: {
-            component: DevMenu,
-            children: {
-              dumbSheet: {
-                component: DumbSheet,
-                tags: makeLeafTags({modal: true}),
-              },
-            },
-          },
-        }
-      : {}),
     [Constants.advancedTab]: {
       component: AdvancedContainer,
       children: {

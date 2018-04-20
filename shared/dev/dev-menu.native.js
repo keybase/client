@@ -10,7 +10,6 @@ import {navigateAppend} from '../actions/route-tree'
 class DevMenu extends Component<any> {
   render() {
     const menuItems = [
-      {name: 'Dumb components', hasChildren: true, onClick: this.props.onDumbSheet},
       {name: 'Reset', onClick: this.props.onReset},
       {name: 'Sign Out', onClick: this.props.logout},
       {name: 'Log Send', onClick: this.props.onLogSend},
@@ -36,7 +35,6 @@ class DevMenu extends Component<any> {
 export default connect(
   state => ({}),
   (dispatch: any) => ({
-    onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
     onReset: () => engine().reset(),
     onLogSend: () => dispatch(navigateAppend(['logSend'])),
     onPushDebug: () => dispatch(navigateAppend(['push'])),

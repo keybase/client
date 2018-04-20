@@ -94,8 +94,8 @@ const chrisUsers = [
 ]
 
 const load = () => {
-  storiesOf('Search', module)
-    .add('User Input', () => {
+  storiesOf('Search/UserInput', module)
+    .add('List', () => {
       return (
         <Box>
           <UserInput {...inputCommon} userItems={[]} usernameText="" />
@@ -132,7 +132,7 @@ const load = () => {
         </Box>
       )
     })
-    .add('User Input Editable', () => {
+    .add('Editable', () => {
       const UserInputEditable = compose(
         withStateHandlers(props => ({usernameText: '', userItems: props.userItems}), {
           onChangeText: () => usernameText => ({usernameText}),
