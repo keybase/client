@@ -67,6 +67,10 @@ export const updateTopic = 'teams:updateTopic'
 
 // Action Creators
 /**
+ * Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.
+ */
+export const createGetChannels = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getChannels})
+/**
  * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
  */
 export const createGetTeamRetentionPolicy = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamRetentionPolicy})
@@ -160,7 +164,6 @@ export const createEditTeamDescription = (
     description: string,
   |}>
 ) => ({error: false, payload, type: editTeamDescription})
-export const createGetChannels = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getChannels})
 export const createGetDetails = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getDetails})
 export const createGetTeamOperations = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamOperations})
 export const createGetTeamPublicity = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamPublicity})
