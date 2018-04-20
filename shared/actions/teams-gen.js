@@ -216,7 +216,7 @@ export const createSaveChannelMembership = (
   |}>
 ) => ({error: false, payload, type: saveChannelMembership})
 export const createSetChannelCreationError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setChannelCreationError})
-export const createSetChosenChannelsForTeam = (payload: $ReadOnly<{|chosenChannelsForTeam: string|}>) => ({error: false, payload, type: setChosenChannelsForTeam})
+export const createSetChosenChannelsForTeam = (payload: $ReadOnly<{|chosenChannelsForTeam: I.Set<Types.Teamname>|}>) => ({error: false, payload, type: setChosenChannelsForTeam})
 export const createSetLoaded = (payload: $ReadOnly<{|loaded: boolean|}>) => ({error: false, payload, type: setLoaded})
 export const createSetMemberPublicity = (
   payload: $ReadOnly<{|

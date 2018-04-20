@@ -115,7 +115,7 @@
       "error": "string"
     },
     "setChosenChannelsForTeam": {
-      "chosenChannelsForTeam": "string"
+      "chosenChannelsForTeam": "I.Set<Types.Teamname>"
     },
     "setTeamCreationError": {
       "error": "string"

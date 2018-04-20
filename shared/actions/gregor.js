@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import {Set} from 'immutable'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
 import * as FavoriteGen from './favorite-gen'
@@ -119,20 +120,19 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGener
 
 function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
-  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
-  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
-  const chosenChannelsForTeam =
-    (chosenChannels &&
-      chosenChannels.item &&
-      chosenChannels.item.body &&
-      chosenChannels.item.body.toString()) ||
-    JSON.stringify([])
   if (sawChatBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawChatBanner())
   }
+
+  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawSubteamsBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
+
+  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
+  const chosenChannelsForTeamStr =
+    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
+  const chosenChannelsForTeam = chosenChannelsForTeamStr ? Set(JSON.parse(chosenChannelsForTeamStr)) : Set()
   yield Saga.put(TeamsGen.createSetChosenChannelsForTeam({chosenChannelsForTeam}))
 }
 
