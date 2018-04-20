@@ -92,9 +92,9 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 
 	// Go through resetUsersUntrusted and fetch non-cached latest
 	// EldestSeqnos.
-	resetUserSeqnos := make(map[keybase1.UID]keybase1.Seqno)
+	resetUsers := make(map[keybase1.UID]keybase1.Seqno)
 	for _, u := range resetUsersUntrusted {
-		if _, found := resetUserSeqnos[u.Uid]; found {
+		if _, found := resetUsers[u.Uid]; found {
 			// User was in the list more than once.
 			continue
 		}
@@ -106,7 +106,7 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 			WithForcePoll(true)
 		upak, _, err := g.GetUPAKLoader().LoadV2(arg)
 		if err == nil {
-			resetUserSeqnos[u.Uid] = upak.Current.EldestSeqno
+			resetUsers[u.Uid] = upak.Current.EldestSeqno
 		} else {
 			g.Log.CDebugf(ctx, "Could not load uid:%s through UPAKLoader: %s", u.Uid)
 		}
@@ -126,26 +126,33 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		}
 
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
-		for _, u := range resetUsersUntrusted {
-			eldestSeqno, found := resetUserSeqnos[u.Uid]
-			if !found || eldestSeqno == u.MemberEldestSeqno {
-				// Either we couldn't load users EldestSeqno or we
-				// determined that they are not reset.
-				continue
-			}
-			uv := keybase1.NewUserVersion(u.Uid, u.MemberEldestSeqno)
-			role, err := team.MemberRole(ctx, uv)
-			if err != nil {
-				continue
-			}
-			if role == keybase1.TeamRole_READER || role == keybase1.TeamRole_WRITER {
-				changeReq.None = append(changeReq.None, uv)
+
+		// We are iterating thorugh resetUsers map, which is map of
+		// uid->UPAK that we loaded. Do not rely on server provided
+		// resetUsersUntrusted for EldestSeqnos, just use UIDs and
+		// see if these users are reset.
+		for uid, loadedSeqno := range resetUsers {
+			members := team.AllUserVersionsByUID(ctx, uid)
+			for _, memberUV := range members {
+				if memberUV.EldestSeqno == loadedSeqno {
+					// Member is the current incarnation of the user
+					// (or user has never reset).
+					continue
+				}
+				role, err := team.MemberRole(ctx, memberUV)
+				if err != nil {
+					continue
+				}
+				if role == keybase1.TeamRole_READER || role == keybase1.TeamRole_WRITER {
+					changeReq.None = append(changeReq.None, memberUV)
+				}
 			}
 		}
+
 		if len(changeReq.None) == 0 {
 			// no one to kick out
 			g.Log.CDebugf(ctx, "No one to remove from a CLKR list of %d users, after UPAKLoading %d of them",
-				len(resetUsersUntrusted), len(resetUserSeqnos))
+				len(resetUsersUntrusted), len(resetUsers))
 			return nil
 		}
 
