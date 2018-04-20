@@ -4,6 +4,7 @@ protocol chatUi {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "common.avdl";
 
   record UIPagination {
     string next;
@@ -107,6 +108,7 @@ protocol chatUi {
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
+    union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }
 
   record UIMessageOutbox {

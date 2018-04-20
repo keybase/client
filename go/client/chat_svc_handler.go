@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -256,13 +258,15 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 	arg := sendArgV1{
-		conversationID: convID,
-		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
-		mtype:          chat1.MessageType_TEXT,
-		response:       "message sent",
-		nonblock:       opts.Nonblock,
+		conversationID:    convID,
+		channel:           opts.Channel,
+		body:              chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
+		mtype:             chat1.MessageType_TEXT,
+		response:          "message sent",
+		nonblock:          opts.Nonblock,
+		ephemeralLifetime: opts.EphemeralLifetime,
 	}
+
 	return c.sendV1(ctx, arg)
 }
 
@@ -296,12 +300,13 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 	arg := sendArgV1{
-		conversationID: convID,
-		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
-		mtype:          chat1.MessageType_EDIT,
-		supersedes:     opts.MessageID,
-		response:       "message edited",
+		conversationID:    convID,
+		channel:           opts.Channel,
+		body:              chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:             chat1.MessageType_EDIT,
+		supersedes:        opts.MessageID,
+		response:          "message edited",
+		ephemeralLifetime: opts.EphemeralLifetime,
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -317,9 +322,10 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 	sarg := sendArgV1{
-		conversationID: convID,
-		channel:        opts.Channel,
-		mtype:          chat1.MessageType_ATTACHMENT,
+		conversationID:    convID,
+		channel:           opts.Channel,
+		mtype:             chat1.MessageType_ATTACHMENT,
+		ephemeralLifetime: opts.EphemeralLifetime,
 	}
 
 	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
@@ -403,9 +409,10 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 	sarg := sendArgV1{
-		conversationID: convID,
-		channel:        opts.Channel,
-		mtype:          chat1.MessageType_ATTACHMENT,
+		conversationID:    convID,
+		channel:           opts.Channel,
+		mtype:             chat1.MessageType_ATTACHMENT,
+		ephemeralLifetime: opts.EphemeralLifetime,
 	}
 	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
 	if err != nil {
@@ -694,14 +701,15 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 
 type sendArgV1 struct {
 	// convQuery  chat1.GetInboxLocalQuery
-	conversationID chat1.ConversationID
-	channel        ChatChannel
-	body           chat1.MessageBody
-	mtype          chat1.MessageType
-	supersedes     chat1.MessageID
-	deletes        []chat1.MessageID
-	response       string
-	nonblock       bool
+	conversationID    chat1.ConversationID
+	channel           ChatChannel
+	body              chat1.MessageBody
+	mtype             chat1.MessageType
+	supersedes        chat1.MessageID
+	deletes           []chat1.MessageID
+	response          string
+	nonblock          bool
+	ephemeralLifetime ephemeralLifetime
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
@@ -818,14 +826,20 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	default:
 		return nil, fmt.Errorf("multiple conversations matched")
 	}
+	var ephemeralMetadata chat1.MsgEphemeralMetadata
+	if arg.ephemeralLifetime.Duration != 0 {
+		ephemeralLifetime := gregor1.DurationSec(time.Duration(arg.ephemeralLifetime.Duration) / time.Second)
+		ephemeralMetadata = chat1.MsgEphemeralMetadata{Lifetime: ephemeralLifetime}
+	}
 
 	header.clientHeader = chat1.MessageClientHeader{
-		Conv:        convTriple,
-		TlfName:     tlfName,
-		TlfPublic:   visibility == keybase1.TLFVisibility_PUBLIC,
-		MessageType: arg.mtype,
-		Supersedes:  arg.supersedes,
-		Deletes:     arg.deletes,
+		Conv:              convTriple,
+		TlfName:           tlfName,
+		TlfPublic:         visibility == keybase1.TLFVisibility_PUBLIC,
+		MessageType:       arg.mtype,
+		Supersedes:        arg.supersedes,
+		Deletes:           arg.deletes,
+		EphemeralMetadata: &ephemeralMetadata,
 	}
 
 	return &header, nil
