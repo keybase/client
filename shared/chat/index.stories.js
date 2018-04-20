@@ -9,14 +9,16 @@ import sendAnimation from './conversation/messages/wrapper/chat-send.stories'
 import userMentionHud from './conversation/input-area/user-mention-hud/index.stories'
 
 const load = () => {
-  channelMentionHud()
-  createChannel()
-  inboxRow()
-  infoPanel()
-  infoPanelNotifications()
-  manageChannels()
-  sendAnimation()
-  userMentionHud()
+  ;[
+    channelMentionHud,
+    createChannel,
+    inboxRow,
+    infoPanel,
+    infoPanelNotifications,
+    manageChannels,
+    sendAnimation,
+    userMentionHud,
+  ].forEach(load => load())
 }
 
 export default load
