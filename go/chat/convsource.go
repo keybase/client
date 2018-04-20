@@ -452,7 +452,7 @@ func (s *HybridConversationSource) isContinuousPush(ctx context.Context, convID 
 	default:
 		return false, err
 	}
-	return true, nil
+	return continuousUpdate, nil
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
