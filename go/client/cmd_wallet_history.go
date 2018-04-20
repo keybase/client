@@ -5,7 +5,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -74,51 +73,8 @@ func (c *cmdWalletHistory) Run() (err error) {
 	line := func(format string, args ...interface{}) {
 		dui.Printf(format+"\n", args...)
 	}
-	for _, p := range payments {
-		timeStr := p.Time.Time().Format("2006/01/02 15:04")
-		line("%v", timeStr)
-		amount := fmt.Sprintf("%v XLM", libkb.StellarSimplifyAmount(p.Amount))
-		if !p.Asset.IsNativeXLM() {
-			amount = fmt.Sprintf("%v %v/%v", p.Amount, p.Asset.Code, p.Asset.Issuer)
-		}
-		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
-			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
-		}
-		line("%v", amount)
-		// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
-		from := p.FromStellar.LossyAbbreviation()
-		to := p.ToStellar.LossyAbbreviation()
-		if p.FromUsername != nil {
-			from = *p.FromUsername
-		}
-		if p.ToUsername != nil {
-			to = *p.ToUsername
-		}
-		showedAbbreviation := true
-		if p.FromUsername != nil && p.ToUsername != nil {
-			showedAbbreviation = false
-		}
-		line("%v -> %v", from, to)
-		// If an abbreviation was shown, show the full addresses
-		if showedAbbreviation || c.verbose {
-			line("From: %v", p.FromStellar.String())
-			line("To:   %v", p.ToStellar.String())
-		}
-		if len(p.Note) > 0 {
-			line("Note: %v", c.filterNote(p.Note))
-		}
-		if len(p.NoteErr) > 0 {
-			line("Note Error: %v", p.NoteErr)
-		}
-		if c.verbose {
-			line("Transaction Hash: %v", p.StellarTxID)
-		}
-		if len(p.Status) > 0 && p.Status != "completed" {
-			line("Status: %v", p.Status)
-			if c.verbose {
-				line("        %v", p.StatusDetail)
-			}
-		}
+	for i := len(payments) - 1; i >= 0; i-- {
+		printPayment(c.G(), payments[i], c.verbose, dui)
 		line("")
 	}
 	if len(payments) == 0 {
