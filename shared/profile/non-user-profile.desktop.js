@@ -16,7 +16,7 @@ const NonUserRender = (props: Props) => (
         onClick={props.onBack}
         style={{left: 14, position: 'absolute', top: 16, zIndex: 12}}
         textStyle={{color: globalColors.white}}
-        iconStyle={{color: globalColors.white}}
+        iconColor={globalColors.white}
       />
     </Box>
     <Box style={globalStyles.flexBoxRow}>

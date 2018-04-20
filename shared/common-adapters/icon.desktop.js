@@ -68,7 +68,6 @@ class Icon extends Component<Exact<Props>, void> {
     const imgStyle = collapseStyles([
       desktopStyles.noSelect,
       !hasContainer ? this.props.style : {},
-      this.props.iconStyle,
       onClick ? desktopStyles.clickable : {},
       this.props.color ? {color: color} : {},
     ])

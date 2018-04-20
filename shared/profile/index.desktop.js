@@ -341,7 +341,7 @@ class ProfileRender extends PureComponent<Props, State> {
               onClick={this.props.onBack}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: globalColors.white}}
-              iconStyle={{color: globalColors.white}}
+              iconColor={globalColors.white}
             />
           )}
           <Box

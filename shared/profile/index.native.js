@@ -371,7 +371,7 @@ class Profile extends Component<Props, State> {
               title={null}
               onClick={this.props.onBack}
               style={styleBack}
-              iconStyle={{color: globalColors.white}}
+              iconColor={globalColors.white}
             />
           )}
           <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>

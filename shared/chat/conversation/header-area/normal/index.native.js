@@ -16,7 +16,7 @@ const ChannelHeader = (props: Props) => (
     <BackButton
       badgeNumber={props.badgeNumber}
       onClick={props.onBack}
-      iconStyle={{color: globalColors.black_40}}
+      iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
     />
@@ -66,7 +66,7 @@ const UsernameHeader = (props: Props) => (
     <BackButton
       badgeNumber={props.badgeNumber}
       onClick={props.onBack}
-      iconStyle={{color: globalColors.black_40}}
+      iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
     />

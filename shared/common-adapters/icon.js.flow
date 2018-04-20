@@ -15,7 +15,6 @@ export type Props = {
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
-  iconStyle?: StylesCrossPlatform,
   color?: Color,
   hoverColor?: string,
   fontSize?: number,

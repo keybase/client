@@ -88,7 +88,7 @@ class Icon extends React.PureComponent<Props> {
     const props = this.props
     // Only apply props.style to icon if there is no onClick
     const hasContainer = props.onClick && props.style
-    let iconStyle = hasContainer ? props.iconStyle : collapseStyles([props.style, props.iconStyle])
+    let iconStyle = hasContainer ? null : props.style
     let iconType = shared.typeToIconMapper(props.type)
 
     if (!iconType) {
