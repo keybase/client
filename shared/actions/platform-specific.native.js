@@ -4,6 +4,7 @@ import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
+import * as mime from 'react-native-mime-types'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
@@ -91,17 +92,15 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
 }
 
 // Downloads a file, shows the shareactionsheet, and deletes the file afterwards
-function downloadAndShowShareActionSheet(fileURL: string): Promise<void> {
+function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
+  const extension = mime.extension(mimeType)
   return RNFetchBlob.config({
     fileCache: true,
-    // appendExt: 'png',
+    appendExt: extension,
   })
     .fetch('GET', fileURL)
-    .then(res => {
-      const contentType = res.respInfo.headers['Content-Type']
-      return [res.path(), contentType]
-    })
-    .then(([path, ct]) => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
+    .then(res => res.path())
+    .then(path => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
     .then(([_, path]) => RNFetchBlob.fs.unlink(path))
 }
 
