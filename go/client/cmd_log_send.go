@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -109,7 +110,25 @@ func (c *CmdLogSend) Run() error {
 		Logs:         logs,
 	}
 
-	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes)
+	installID := c.G().Env.GetInstallID()
+
+	var uid keybase1.UID
+	if status != nil {
+		if uidString := status.UserID; len(uidString) > 0 {
+			uid, err = keybase1.UIDFromString(uidString)
+			if err != nil {
+				c.G().Log.Info("bad UID from status (%s): %s", uidString, err)
+			}
+		}
+	} else {
+		uid = c.G().Env.GetUID()
+	}
+
+	if uid.IsNil() {
+		c.G().Log.Info("Not sending up a UID for logged in user; none found")
+	}
+
+	id, err := logSendContext.LogSend(statusJSON, c.feedback, true, c.numBytes, uid, installID)
 	if err != nil {
 		return err
 	}
