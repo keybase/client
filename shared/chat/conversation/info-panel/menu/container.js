@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const _hasCanPerform = Constants.hasCanPerform(state, teamname)
-  const badgeSubscribe = Constants.getBadgeSubscribe(state, teamname)
+  const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
   return {
     _hasCanPerform,
     badgeSubscribe,
