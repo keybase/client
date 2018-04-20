@@ -2,6 +2,7 @@
 // this source code is governed by the included BSD license.
 
 // +build windows
+
 package libkb
 
 import (
