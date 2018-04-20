@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import {GatewayDest} from 'react-gateway'
 import * as RouteTree from '../route-tree/render-route'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
@@ -20,6 +21,7 @@ type Props = {
 class Nav extends React.Component<Props> {
   render() {
     const {routeSelected, routePath, visibleScreen, layerScreens} = this.props
+    const gatewayName = !!visibleScreen.tags && visibleScreen.tags.get('gatewayName')
     return (
       <ErrorBoundary>
         <Box style={stylesTabsContainer}>
@@ -37,6 +39,7 @@ class Nav extends React.Component<Props> {
           {![chatTab, loginTab].includes(routeSelected) && <Offline />}
           <GlobalError />
         </Box>
+        {gatewayName && <GatewayDest name={gatewayName} component={Box} />}
       </ErrorBoundary>
     )
   }

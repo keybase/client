@@ -4,7 +4,6 @@ import * as React from 'react'
 import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNode, type RouteDefNode} from '.'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 import Box from '../common-adapters/box'
-import {GatewayDest} from 'react-gateway'
 
 import type {Action} from '../constants/types/flux'
 import type {Tab} from '../constants/tabs'
@@ -83,25 +82,21 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
     if (!RouteComponent) {
       throw new Error('Missing RouteComponent')
     }
-    const gatewayName = !!routeDef.tags && routeDef.tags.get('gatewayName')
     return (
-      <React.Fragment>
-        <RouteComponent
-          shouldRender={shouldRender}
-          routeProps={routeState.props}
-          routeState={routeState.state}
-          routeSelected={routeState.selected}
-          navigateUp={this._navigateUp}
-          navigateAppend={this._navigateAppend}
-          routePath={path}
-          routeLeafTags={leafTags || makeLeafTags()}
-          routeStack={stack || I.Stack()}
-          setRouteState={this._setRouteState}
-        >
-          {children}
-        </RouteComponent>
-        {gatewayName && <GatewayDest name={gatewayName} />}
-      </React.Fragment>
+      <RouteComponent
+        shouldRender={shouldRender}
+        routeProps={routeState.props}
+        routeState={routeState.state}
+        routeSelected={routeState.selected}
+        navigateUp={this._navigateUp}
+        navigateAppend={this._navigateAppend}
+        routePath={path}
+        routeLeafTags={leafTags || makeLeafTags()}
+        routeStack={stack || I.Stack()}
+        setRouteState={this._setRouteState}
+      >
+        {children}
+      </RouteComponent>
     )
   }
 }

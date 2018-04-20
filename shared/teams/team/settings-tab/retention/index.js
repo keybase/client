@@ -9,7 +9,7 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
 } from '../../../../styles'
-import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
@@ -50,6 +50,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
+  _dropdownRef: ?React.Component<*, *>
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -152,14 +153,26 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 
   render() {
+    console.log('DANNYDEBUG: VISIBLE', this.state.showMenu)
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
+        <FloatingMenu
+          attachTo={this._dropdownRef}
+          closeOnSelect={true}
+          visible={this.state.showMenu}
+          onHidden={() => this.setState({showMenu: false})}
+          items={this.state.items}
+          position="top center"
+          gatewayName="retention-dropdown"
+        />
+
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
           <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
         </Box>
         <ClickableBox
-          onClick={this._onShowDropdown}
+          onClick={() => this.setState({showMenu: true})}
+          ref={isMobile ? undefined : r => (this._dropdownRef = r)}
           style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >

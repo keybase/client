@@ -378,6 +378,16 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
+  const visibleScreen = ownProps.routeStack.last()
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    // visibleScreen,
+  }
+}
+
 const styles = styleSheetCreate({
   container: globalStyles.fullHeight,
   content: globalStyles.flexGrow,

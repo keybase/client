@@ -103,6 +103,7 @@ const conversationRoute = makeRouteDefNode({
     infoPanel: {
       component: InfoPanel,
       children: infoPanelChildren,
+      tags: makeLeafTags({gatewayName: 'retention-dropdown'}),
     },
     // We should consolidate these as only info panel children once it's changed to a route on desktop
     ...infoPanelChildren,
@@ -167,13 +168,13 @@ const routeTree = isMobile
 
         return conversationRoute
       },
-      tags: makeLeafTags({persistChildren: true}),
+      tags: makeLeafTags({persistChildren: true, gatewayName: 'retention-dropdown'}),
     })
   : makeRouteDefNode({
       containerComponent: InboxAndConversation,
       defaultSelected: '0',
       children: () => conversationRoute,
-      tags: makeLeafTags({persistChildren: true}),
+      tags: makeLeafTags({persistChildren: true, gatewayName: 'retention-dropdown'}),
       initialState: {smallTeamsExpanded: false},
     })
 

@@ -131,6 +131,7 @@ const teamRoute = makeRouteDefNode({
     },
   },
   component: Team,
+  tags: makeLeafTags({gatewayName: 'retention-dropdown'}),
 })
 
 const routeTree = makeRouteDefNode({
