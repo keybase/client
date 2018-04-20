@@ -82,6 +82,7 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
+  chosenChannelsForTeam: I.Set(),
   convIDToChannelInfo: I.Map(),
   loaded: false,
   sawChatBanner: false,
@@ -178,6 +179,12 @@ const userIsActiveInTeamHelper = (
   const member = members.get(username)
   return member && member.active
 }
+
+const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
+  state.teams.teamNameToConvIDs.get(teamname, I.Set())
+
+const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
+  !state.teams.chosenChannelsForTeam.has(teamname)
 
 const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
   state.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
@@ -364,6 +371,8 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
+  getBadgeSubscribe,
+  getConvIdsFromTeamName,
   getRole,
   getCanPerform,
   hasCanPerform,
