@@ -51,7 +51,7 @@ const InfoPanelMenu = (props: Props) => {
         view: (
           <Box style={globalStyles.flexBoxRow}>
             {props.badgeSubscribe && <Box style={styleBadge} />}
-            <Text style={isMobile ? styleText : {}} type={isMobile ? 'BodyBig' : 'Body'}>
+            <Text style={styleText} type={isMobile ? 'BodyBig' : 'Body'}>
               Subscribe to channels...
             </Text>
           </Box>
@@ -91,7 +91,7 @@ const styleBadge = {
 }
 
 const styleText = {
-  color: globalColors.blue,
+  color: isMobile ? globalColors.blue : undefined,
 }
 
 export {InfoPanelMenu}

@@ -1,7 +1,14 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, Text, Icon} from '../../../../common-adapters'
-import {desktopStyles, globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {
+  desktopStyles,
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+} from '../../../../styles'
 
 type Props = {
   badgeSubscribe: boolean,
@@ -27,7 +34,11 @@ class BigTeamHeader extends React.PureComponent<Props> {
           style={iconStyle}
         />
         <Box
-          style={{...badgeStyle, backgroundColor: props.badgeSubscribe ? globalColors.orange : undefined}}
+          style={
+            props.badgeSubscribe
+              ? collapseStyles([badgeStyle, {backgroundColor: globalColors.orange}])
+              : badgeStyle
+          }
         />
       </Box>
     )
