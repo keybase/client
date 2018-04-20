@@ -1315,6 +1315,14 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 	return nil
 }
 
+func (u UserPlusKeysV2) GetUID() UID {
+	return u.Uid
+}
+
+func (u UserPlusKeysV2) GetName() string {
+	return u.Username
+}
+
 func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 	for _, k := range u.Current.DeviceKeys {
 		if k.DeviceID.Eq(d) {

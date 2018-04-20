@@ -23,7 +23,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 
 	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	me, err := loadMeForSignatures(ctx, g)
 	if err != nil {
 		return res, teamName, err
 	}
@@ -139,7 +139,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			teamID, impTeam.IsPublic, true, nil)
 }
 
-func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, members SCTeamMembers,
+func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libkb.UserForSignatures, members SCTeamMembers,
 	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
 	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings) (err error) {
 	defer g.Trace("makeSigAndPostRootTeam", func() error { return err })()
@@ -184,7 +184,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	// sign it, *twice*. The first time with the per-team signing key, to
 	// produce the reverse sig, and the second time with the device signing
 	// key, after the reverse sig has been written in.
-	sigBodyBeforeReverse, err := TeamRootSig(me, deviceSigningKey, teamSection)
+	sigBodyBeforeReverse, err := TeamRootSig(g, me, deviceSigningKey, teamSection)
 	if err != nil {
 		return err
 	}
@@ -273,12 +273,12 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	}
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	me, err := loadMeForSignatures(ctx, g)
 	if err != nil {
 		return nil, err
 	}
 
-	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
+	ownerLatest := me.GetLatestPerUserKey()
 	if ownerLatest == nil {
 		return nil, errors.New("can't create a new team without having provisioned a per-user key")
 	}
@@ -324,7 +324,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 
 	perUserKeyUpgradeSoft(ctx, g, "create-subteam")
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	me, err := loadMeForSignatures(ctx, g)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +340,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	}
 
 	// Reuse the `me` getting loaded
-	parentTeam.me = me
+	parentTeam.meForSignature = me
 	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
 		return nil, err
@@ -427,8 +427,8 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 	return teamSection, nil
 }
 
-func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
-	newSubteamSigBody, err := NewSubteamSig(me, signingKey, parentTeam, subteamName, subteamID, admin)
+func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+	newSubteamSigBody, err := NewSubteamSig(g, me, signingKey, parentTeam, subteamName, subteamID, admin)
 	if err != nil {
 		return nil, err
 	}
@@ -467,7 +467,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	return item, nil
 }
 
-func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User,
+func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me libkb.UserForSignatures,
 	signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName,
 	subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion,
 	addSelfAs keybase1.TeamRole) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
@@ -531,7 +531,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		return
 	}
 
-	subteamHeadSigBodyBeforeReverse, err := SubteamHeadSig(me, signingKey, teamSection)
+	subteamHeadSigBodyBeforeReverse, err := SubteamHeadSig(g, me, signingKey, teamSection)
 	if err != nil {
 		return
 	}

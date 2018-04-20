@@ -271,3 +271,14 @@ func (m *CachedFullSelf) OnLogin() error {
 	}
 	return nil
 }
+
+func LoadSelfForTeamSignatures(ctx context.Context, g *GlobalContext) (ret UserForSignatures, err error) {
+	err = g.GetFullSelfer().WithSelf(ctx, func(u *User) error {
+		if u == nil {
+			return LoginRequiredError{"no self in FullSelfCacher"}
+		}
+		ret = u.ToUserForSignatures()
+		return nil
+	})
+	return ret, err
+}
