@@ -20,6 +20,7 @@ import {
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
+  copyToDownloadDir,
 } from './fs-platform-specific'
 import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
@@ -198,6 +199,7 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // that the file is available locally.
     switch (intent) {
       case 'none':
+        yield Saga.call(copyToDownloadDir, localPath, action.payload.mimeType)
         break
       case 'camera-roll':
         yield Saga.call(saveAttachmentDialog, localPath)
