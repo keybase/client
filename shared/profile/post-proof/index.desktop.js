@@ -37,7 +37,7 @@ const PostProof = (props: Props) => {
       onCopyCapture={e => {
         // disallow copying the whole screen by accident
         e.preventDefault()
-        copyToClipboard(proofText)
+        proofText && copyToClipboard(proofText)
       }}
     >
       <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />

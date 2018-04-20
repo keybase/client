@@ -1,15 +1,12 @@
 // @flow
-// requires required to make storybook work
-const openURL = __STORYBOOK__
-  ? (url: ?string) => {}
-  : (url: ?string) => {
-      const shell = require('electron').shell
+import {shell} from 'electron'
 
-      if (!url) {
-        console.warn('openURL received empty url')
-        return
-      }
-      shell.openExternal(url)
-    }
+const openURL = (url: ?string) => {
+  if (!url) {
+    console.warn('openURL received empty url')
+    return
+  }
+  shell.openExternal(url)
+}
 
 export default openURL

@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {Box, Button, ButtonBar, FormInput} from '../../common-adapters/index.native'
 import {globalMargins, globalStyles} from '../../styles'
-
-import type {Props} from './render'
+import type {Props} from '.'
 
 const EditProfileRender = (props: Props) => (
   <Box style={globalStyles.flexBoxColumn}>

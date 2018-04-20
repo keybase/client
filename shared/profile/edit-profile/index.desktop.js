@@ -2,8 +2,7 @@
 import * as React from 'react'
 import {globalStyles} from '../../styles'
 import {StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapters'
-
-import type {Props} from './render'
+import type {Props} from '.'
 
 const EditProfileRender = (props: Props) => (
   <StandardScreen onBack={props.onBack}>
