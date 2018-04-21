@@ -1725,12 +1725,6 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 		chatUI.ChatAttachmentDownloadProgress(ctx, parg)
 	}
 
-	// get s3 params from server
-	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-
 	h.Debug(ctx, "downloadAttachmentLocal: fetching asset from attachment message: convID: %s messageID: %d",
 		arg.ConversationID, arg.MessageID)
 
@@ -1740,7 +1734,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	fetcher := h.G().AttachmentURLSrv.GetAttachmentFetcher()
-	if err := fetcher.FetchAttachment(ctx, arg.Sink, obj, params, h, progress); err != nil {
+	if err := fetcher.FetchAttachment(ctx, arg.Sink, arg.ConversationID, obj, h.remoteClient, h, progress); err != nil {
 		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}

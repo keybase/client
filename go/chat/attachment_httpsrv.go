@@ -25,8 +25,9 @@ import (
 
 type DummyAttachmentFetcher struct{}
 
-func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
-	s3params chat1.S3Params, signer s3.Signer, progress types.ProgressReporter) error {
+func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
+	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
+	progress types.ProgressReporter) error {
 	return nil
 }
 
@@ -176,13 +177,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		makeError(404, "attachment not uploaded yet, no path")
 		return
 	}
-
-	params, err := r.ri().GetS3Params(ctx, pair.ConvID)
-	if err != nil {
-		makeError(500, "failed to get S3 params: %s", err)
-		return
-	}
-	if err := r.fetcher.FetchAttachment(ctx, w, asset, params, r, blankProgress); err != nil {
+	if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
 		makeError(500, "failed to fetch attachment: %s", err)
 		return
 	}
@@ -213,9 +208,15 @@ func NewRemoteAttachmentFetcher(g *globals.Context, store *attachments.Store) *R
 	}
 }
 
-func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
-	s3params chat1.S3Params, signer s3.Signer, progress types.ProgressReporter) (err error) {
+func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
+	convID chat1.ConversationID, asset chat1.Asset,
+	ri func() chat1.RemoteInterface, signer s3.Signer, progress types.ProgressReporter) (err error) {
 	defer r.Trace(ctx, func() error { return err }, "FetchAttachment")()
+	// Grab S3 params for the conversation
+	s3params, err := ri().GetS3Params(ctx, convID)
+	if err != nil {
+		return err
+	}
 	return r.store.DownloadAsset(ctx, s3params, asset, w, signer, progress)
 }
 
@@ -279,8 +280,9 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 	return os.OpenFile(path, os.O_RDWR, os.ModeAppend)
 }
 
-func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset,
-	s3params chat1.S3Params, signer s3.Signer, progress types.ProgressReporter) (err error) {
+func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
+	convID chat1.ConversationID, asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer,
+	progress types.ProgressReporter) (err error) {
 
 	defer c.Trace(ctx, func() error { return err }, "FetchAttachment")()
 
@@ -303,6 +305,12 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if found {
 			return c.store.DecryptAsset(ctx, w, fileReader, asset, progress)
 		}
+	}
+
+	// Grab S3 params for the conversation
+	s3params, err := ri().GetS3Params(ctx, convID)
+	if err != nil {
+		return err
 	}
 
 	// Create a reader to the remote ciphertext

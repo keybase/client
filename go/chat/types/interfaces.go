@@ -231,8 +231,8 @@ type UPAKFinder interface {
 type ProgressReporter func(bytesCompleted, bytesTotal int64)
 
 type AttachmentFetcher interface {
-	FetchAttachment(ctx context.Context, w io.Writer, asset chat1.Asset, s3params chat1.S3Params,
-		signer s3.Signer, progress ProgressReporter) error
+	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
+		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
 }
 
 type AttachmentURLSrv interface {
