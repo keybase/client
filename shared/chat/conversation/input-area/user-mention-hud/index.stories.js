@@ -37,20 +37,18 @@ const UpDownFilterHoc = compose(
       upCounter: 0,
     },
     {
-      // $FlowIssue
-      setDownCounter: () => downCounter => ({downCounter}),
+      increaseDownCounter: ({downCounter}) => () => ({downCounter: downCounter + 1}),
       // $FlowIssue
       setFilter: () => filter => ({filter}),
-      // $FlowIssue
-      setUpCounter: () => upCounter => ({upCounter}),
+      increaseUpCounter: ({upCounter}) => () => ({upCounter: upCounter + 1}),
     }
   ),
   Component => props => (
     <Box style={globalStyles.flexBoxColumn}>
       <Component upCounter={props.upCounter} downCounter={props.downCounter} filter={props.filter} />
       <ButtonBar>
-        <Button label="Up" type="Primary" onClick={() => props.setUpCounter(n => n + 1)} />
-        <Button label="Down" type="Primary" onClick={() => props.setDownCounter(n => n + 1)} />
+        <Button label="Up" type="Primary" onClick={props.increaseUpCounter} />
+        <Button label="Down" type="Primary" onClick={props.increaseDownCounter} />
       </ButtonBar>
       <Input onChangeText={props.setFilter} hintText="Filter" />
     </Box>
