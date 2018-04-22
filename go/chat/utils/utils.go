@@ -905,17 +905,29 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	}
 	switch typ {
 	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
-		var mimeType string
+		var hasFullURL, hasPreviewURL bool
+		var info chat1.UIAssetUrlInfo
 		if typ == chat1.MessageType_ATTACHMENT {
-			mimeType = body.Attachment().Object.MimeType
+			info.MimeType = body.Attachment().Object.MimeType
+			hasFullURL = body.Attachment().Object.Path != ""
+			hasPreviewURL = body.Attachment().Preview != nil &&
+				body.Attachment().Preview.Path != ""
 		} else {
-			mimeType = body.Attachmentuploaded().Object.MimeType
+			info.MimeType = body.Attachmentuploaded().Object.MimeType
+			hasFullURL = body.Attachmentuploaded().Object.Path != ""
+			hasPreviewURL = len(body.Attachmentuploaded().Previews) > 0 &&
+				body.Attachmentuploaded().Previews[0].Path != ""
 		}
-		return &chat1.UIAssetUrlInfo{
-			PreviewUrl: g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true),
-			FullUrl:    g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false),
-			MimeType:   mimeType,
+		if hasFullURL {
+			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
 		}
+		if hasPreviewURL {
+			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
+		}
+		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
+			return nil
+		}
+		return &info
 	}
 	return nil
 }
