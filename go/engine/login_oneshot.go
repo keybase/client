@@ -167,8 +167,6 @@ func (e *LoginOneshot) Run(ectx *Context) (err error) {
 	if err = e.loadKey(ectx); err != nil {
 		return err
 	}
-	if err = e.finish(ctx); err != nil {
-		return err
-	}
-	return nil
+	err = e.finish(ctx)
+	return err
 }
