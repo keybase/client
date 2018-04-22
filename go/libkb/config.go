@@ -572,7 +572,6 @@ func (f JSONConfigFile) GetLogFormat() string {
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
-
 func (f JSONConfigFile) GetGregorURI() string {
 	s, _ := f.GetStringAtPath("push.server_uri")
 	return s
