@@ -1,44 +1,8 @@
 // @noflow
-import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
 import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
-import {isMobile} from '../styles'
 import type {DumbComponentMap} from '../constants/types/more'
-
-const proveEnterUsernameBase = {
-  username: 'chris',
-  errorText: null,
-  errorCode: null,
-  canContinue: true,
-  onUsernameChange: username => {
-    console.log('username change', username)
-  },
-  onContinue: () => {
-    console.log('continue clicked')
-  },
-  onCancel: () => {
-    console.log('cancel clicked')
-  },
-  parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
-}
-
-const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
-  component: ProveEnterUsername,
-  mocks: {
-    Twitter: {...proveEnterUsernameBase, platform: 'twitter'},
-    'Twitter with Error': {...proveEnterUsernameBase, platform: 'twitter', errorText: 'Something went wrong'},
-    Reddit: {...proveEnterUsernameBase, platform: 'reddit'},
-    Facebook: {...proveEnterUsernameBase, platform: 'facebook'},
-    GitHub: {...proveEnterUsernameBase, platform: 'github'},
-    'Hacker News': {...proveEnterUsernameBase, platform: 'hackernews'},
-    Bitcoin: {...proveEnterUsernameBase, platform: 'btc'},
-    'Bitcoin - Disabled': {...proveEnterUsernameBase, platform: 'btc', canContinue: false},
-    DNS: {...proveEnterUsernameBase, platform: 'dns'},
-    Website: {...proveEnterUsernameBase, platform: 'http'},
-    Zcash: {...proveEnterUsernameBase, platform: 'zcash'},
-  },
-}
 
 const revokeBase = {
   onCancel: () => console.log('Revoke Proof: clicked Cancel'),
@@ -84,7 +48,6 @@ const dumbProveWebsiteChoice: DumbComponentMap<ProveWebsiteChoice> = {
 
 export default {
   'Revoke Proof': dumbRevoke,
-  'New Proof: Enter Username': dumbProveEnterUsername,
   'New Proof: Website': dumbProveWebsiteChoice,
   ...pgpDumb,
 }
