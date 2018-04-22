@@ -568,6 +568,8 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       if (old.previewURL && !m.previewURL) {
         ret.set('previewURL', old.previewURL)
       }
+      ret.set('transferState', old.transferState)
+      ret.set('transferProgress', old.transferProgress)
     })
   }
   return m

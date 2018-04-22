@@ -1549,7 +1549,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentPreviewUploadStart': function*(metadata) {
+        const ratio = 0
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        return EngineRpc.rpcResult()
+      },
       'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadOutboxID': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
@@ -1561,7 +1565,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
         }
         return EngineRpc.rpcResult()
       },
-      'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadStart': function*(metadata) {
+        const ratio = 0
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        return EngineRpc.rpcResult()
+      },
     },
     RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
