@@ -6,9 +6,9 @@ package client
 import (
 	"errors"
 	"fmt"
+	"golang.org/x/net/context"
 	"os"
 	"strings"
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -20,17 +20,17 @@ import (
 func NewCmdOneshot(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{
 		cli.StringFlag{
-			Name : "p, paperkey",
-			Usage : "specify a paper key (or try the KEYBASE_PAPERKEY environment variable)",
+			Name:  "p, paperkey",
+			Usage: "specify a paper key (or try the KEYBASE_PAPERKEY environment variable)",
 		},
 		cli.StringFlag{
-			Name : "u,username",
-			Usage : "specify a username (or try the KEYBASE_USERNAME environment variable)",
+			Name:  "u,username",
+			Usage: "specify a username (or try the KEYBASE_USERNAME environment variable)",
 		},
 	}
 	cmd := cli.Command{
-		Name:         "oneshot",
-		Usage:        "Establish a oneshot device, as in logging into keybase from a disposable docker",
+		Name:  "oneshot",
+		Usage: "Establish a oneshot device, as in logging into keybase from a disposable docker",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdOneshotRunner(g), "oneshot", c)
 			cl.SetNoStandalone()
@@ -42,8 +42,8 @@ func NewCmdOneshot(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 type CmdOneshot struct {
 	libkb.Contextified
-	Username   string
-	PaperKey   string
+	Username string
+	PaperKey string
 }
 
 func NewCmdOneshotRunner(g *libkb.GlobalContext) *CmdOneshot {
@@ -62,7 +62,7 @@ func (c *CmdOneshot) Run() error {
 		return err
 	}
 
-	err = client.LoginOneshot(context.Background(), keybase1.LoginOneshotArg{SessionID : 0, Username : c.Username, PaperKey : c.PaperKey })
+	err = client.LoginOneshot(context.Background(), keybase1.LoginOneshotArg{SessionID: 0, Username: c.Username, PaperKey: c.PaperKey})
 	return err
 }
 
