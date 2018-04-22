@@ -131,6 +131,6 @@ func bootstrapActiveDeviceReturnRawError(ctx context.Context, g *GlobalContext, 
 		return err
 	}
 
-	err = ad.set(g, lctx, uid, deviceID, sib, sub, deviceName)
+	err = ad.Set(g, lctx, uid, deviceID, sib, sub, deviceName)
 	return err
 }
