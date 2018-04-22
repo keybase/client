@@ -401,11 +401,6 @@ func (s *SKB) lksUnlockWithSecretRetriever(lctx LoginContext, secretRetriever Se
 	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
 	unlocked, _, _, err = lks.Decrypt(nil, s.Priv.Data)
 
-	// if unlock was successful, lks can be saved in the account:
-	if err == nil && lctx != nil {
-		lctx.SetLKSec(lks)
-	}
-
 	return
 }
 
