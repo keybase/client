@@ -14,18 +14,18 @@ import (
 // but the existence of the login won't hit the user's sigchain.
 type LoginOneshot struct {
 	libkb.Contextified
-	arg      keybase1.LoginOneshotArg
-	upak     keybase1.UserPlusKeysV2
-	sigKey   libkb.GenericKey
-	encKey   libkb.NaclDHKeyPair
-	deviceID keybase1.DeviceID
+	arg        keybase1.LoginOneshotArg
+	upak       keybase1.UserPlusKeysV2
+	sigKey     libkb.GenericKey
+	encKey     libkb.NaclDHKeyPair
+	deviceID   keybase1.DeviceID
 	deviceName string
 }
 
 func NewLoginOneshot(g *libkb.GlobalContext, arg keybase1.LoginOneshotArg) *LoginOneshot {
 	return &LoginOneshot{
-		Contextified : libkb.NewContextified(g),
-		arg : arg,
+		Contextified: libkb.NewContextified(g),
+		arg:          arg,
 	}
 }
 
@@ -89,7 +89,7 @@ func (e *LoginOneshot) checkLogin(ctx context.Context) (err error) {
 func (e *LoginOneshot) makeLoginChanges(ctx context.Context) (err error) {
 	defer e.G().CTrace(ctx, "LoginOneshot#makeLoginChanges", func() error { return err })()
 	var gerr error
-	err = e.G().LoginState().Account(func (a *libkb.Account) {
+	err = e.G().LoginState().Account(func(a *libkb.Account) {
 		gerr = e.G().ActiveDevice.Set(e.G(), a, e.upak.GetUID(), e.deviceID, e.sigKey, e.encKey, e.deviceName)
 	}, "LoginOneshot#makeLoginChanges")
 	if err != nil {
@@ -115,7 +115,7 @@ func (e *LoginOneshot) commitLoginChanges(ctx context.Context) (err error) {
 func (e *LoginOneshot) rollbackLoginChanges(ctx context.Context) (err error) {
 	defer e.G().CTrace(ctx, "LoginOneshot#rollbackLoginChanges", func() error { return err })()
 	var gerr error
-	err = e.G().LoginState().Account(func (a *libkb.Account) {
+	err = e.G().LoginState().Account(func(a *libkb.Account) {
 		gerr = e.G().ActiveDevice.Clear(a)
 	}, "LoginOneshot#rollbackLoginChanges")
 	if err != nil {

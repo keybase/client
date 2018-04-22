@@ -292,7 +292,13 @@ func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserCo
 	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(nu.String()))
 }
 
-func (f JSONConfigFile) copyUserConfigIfForUID(u keybase1.UID) (*UserConfig) {
+func (f JSONConfigFile) copyUserConfigIfForUID(u keybase1.UID) *UserConfig {
+	if f.userConfigWrapper == nil {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUID().IsNil() {
+		return nil
+	}
 	if f.userConfigWrapper.userConfig.GetUID().Equal(u) {
 		tmp := *f.userConfigWrapper.userConfig
 		return &tmp
