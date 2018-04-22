@@ -565,6 +565,9 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     return m.withMutations((ret: Types.MessageAttachment) => {
       ret.set('ordinal', old.ordinal)
       ret.set('downloadPath', old.downloadPath)
+      if (old.previewURL && !m.previewURL) {
+        ret.set('previewURL', old.previewURL)
+      }
     })
   }
   return m
