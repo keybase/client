@@ -877,44 +877,43 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
 }
 
 function _setupTeamHandlers() {
-  return Saga.put((dispatch: Dispatch) => {
-    engine().setIncomingHandler(
-      'keybase.1.NotifyTeam.teamChangedByName',
-      (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam) => {
-        logger.info(`Got teamChanged for ${args.teamName} from service`)
-        if (!args.implicitTeam) {
-          const actions = getLoadCalls(args.teamName)
-          if (actions.length) {
-            logger.info('Reloading team list due to teamChanged')
-            logger.info(`Reloading ${args.teamName} due to teamChanged`)
-          }
-          actions.forEach(dispatch)
-        }
+  engine().setIncomingActionCreators(
+    'keybase.1.NotifyTeam.teamChangedByName',
+    (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam, _, __, getState) => {
+      const state = getState()
+      logger.info(`Got teamChanged for ${args.teamName} from service`)
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(args.teamName)) {
+        // only reload if that team is selected
+        return getLoadCalls(args.teamName)
       }
-    )
-    engine().setIncomingHandler(
-      'keybase.1.NotifyTeam.teamChangedByID',
-      (args: RPCTypes.NotifyTeamTeamChangedByIDRpcParam) => {
-        // ignore
+      return getLoadCalls()
+    }
+  )
+  engine().setIncomingActionCreators(
+    'keybase.1.NotifyTeam.teamDeleted',
+    (args: RPCTypes.NotifyTeamTeamDeletedRpcParam, _, __, getState) => {
+      const state = getState()
+      const {teamID} = args
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+        return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
-    )
-    engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
-      logger.info('Got teamDeleted from service')
-      const actions = getLoadCalls()
-      if (actions.length) {
-        logger.info('Reloading team list due to teamDeleted')
+      return getLoadCalls()
+    }
+  )
+  engine().setIncomingActionCreators(
+    'keybase.1.NotifyTeam.teamExit',
+    (args: RPCTypes.NotifyTeamTeamExitRpcParam, _, __, getState) => {
+      const state = getState()
+      const {teamID} = args
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+        return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
-      actions.forEach(dispatch)
-    })
-    engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
-      logger.info('Got teamExit from service')
-      const actions = getLoadCalls()
-      if (actions.length) {
-        logger.info('Reloading team list due to teamExit')
-      }
-      actions.forEach(dispatch)
-    })
-  })
+      return getLoadCalls()
+    }
+  )
 }
 
 function getLoadCalls(teamname?: string) {
