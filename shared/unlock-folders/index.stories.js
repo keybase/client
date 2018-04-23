@@ -2,6 +2,7 @@
 import * as React from 'react'
 import UnlockFolders from '.'
 import {action, storiesOf} from '../stories/storybook'
+import {Box} from '../common-adapters'
 
 const devices = [
   {
@@ -30,32 +31,28 @@ const devices = [
 ]
 
 // phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
-const common = {
-  parentProps: {style: {marginTop: 20, flex: 1, width: 500, height: 300}},
-  paperKeysHidden: false,
-  phase: 'promptOtherDevice',
+const props = {
   devices: devices,
-  onClose: () => {
-    console.log('onClose')
-  },
-  toPaperKeyInput: () => {
-    console.log('toPaperKeyInput')
-  },
-  onBackFromPaperKey: () => {
-    console.log('onBackFromPaperKey')
-  },
-  onContinueFromPaperKey: (paperkey: string) => {
-    console.log('onContinueFromPaperKey')
-  },
+  onBackFromPaperKey: action('onBackFromPaperKey'),
+  onClose: action('onClose'),
+  onContinueFromPaperKey: action('onContinueFromPaperKey'),
+  onFinish: action('onFinish'),
+  paperKeysHidden: false,
   paperkeyError: null,
+  parentProps: {style: {}},
+  phase: 'promptOtherDevice',
+  toPaperKeyInput: action('toPaperKeyInput'),
   waiting: false,
-  onFinish: () => {
-    console.log('onFinish')
-  },
 }
 
+const Wrapper = props => (
+  <Box style={{flex: 1, height: 300, marginTop: 20, width: 500}}>
+    <UnlockFolders {...props} />
+  </Box>
+)
+
 const load = () => {
-  storiesOf('UnlockFolders', module).add('', () => <UnlockFolders {...props} />)
+  storiesOf('UnlockFolders', module).add('', () => <Wrapper {...props} />)
 }
 
 export default load
