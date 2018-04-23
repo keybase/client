@@ -56,7 +56,7 @@ users can examine each other's processes. But it might be a good fit for
 Docker deployments.
 
 Also note that by default keybase shouldn't be run as root, but in Docker (or
-other containers), root is the best option, so you can use "keybase oneshot"
+other containers), root can be the best option, so you can use "keybase oneshot"
 in concert with the KEYBASE_ALLOW_ROOT=1 environment variable.
 
 Some features won't work in oneshot mode, such as: (1) ephemeral messaging;
