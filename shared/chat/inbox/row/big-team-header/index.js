@@ -12,7 +12,7 @@ import {
 
 type Props = {
   badgeSubscribe: boolean,
-  onClickGear: (evt?: SyntheticEvent<Element>) => void,
+  onClickGear: (evt: SyntheticEvent<Element>) => void,
   memberCount: number,
   teamname: string,
 }
@@ -28,7 +28,7 @@ class BigTeamHeader extends React.PureComponent<Props> {
           {props.teamname}
         </Text>
         <ClickableBox
-          onClick={isMobile ? () => props.onClickGear() : props.onClickGear}
+          onClick={props.onClickGear}
           style={collapseStyles([globalStyles.flexBoxRow, {position: 'relative'}])}
         >
           <Icon className="icon" type="iconfont-gear" style={iconStyle} />
