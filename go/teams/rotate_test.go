@@ -394,3 +394,126 @@ func TestRotateTeamSweeping(t *testing.T) {
 	testRotateTeamSweeping(t, false /* open */)
 	testRotateTeamSweeping(t, true /* open */)
 }
+
+func TestRotateWithBadUIDs(t *testing.T) {
+	// Try the rotate key + remove reset members machinery, but
+	// simulate server giving us one bad UID (for a person that has
+	// not reset at all), and UID of an admin, who has reset. Neither
+	// of the users should be removed from the team.
+
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	t.Logf("Created team %q", name)
+
+	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
+	require.NoError(t, SetRoleAdmin(context.Background(), tc.G, name, otherB.Username))
+
+	// Logout and reset (admin member).
+	tc.G.Logout()
+	require.NoError(t, otherB.Login(tc.G))
+	kbtest.ResetAccount(tc, otherB)
+
+	// Re-login as owner, simulate CLKR message.
+	tc.G.Logout()
+	err = owner.Login(tc.G)
+	require.NoError(t, err)
+
+	team, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	params := keybase1.TeamCLKRMsg{
+		TeamID:     team.ID,
+		Generation: team.Generation(),
+	}
+	for _, u := range []*kbtest.FakeUser{otherA, otherB} {
+		// otherA has not reset at all, but assume it ended up in the
+		// message. otherB has really reset, but is an admin.
+		params.ResetUsersUntrusted = append(params.ResetUsersUntrusted,
+			keybase1.TeamCLKRResetUser{
+				Uid:               u.User.GetUID(),
+				UserEldestSeqno:   keybase1.Seqno(0),
+				MemberEldestSeqno: keybase1.Seqno(1),
+			})
+	}
+
+	err = HandleRotateRequest(context.Background(), tc.G, params)
+	require.NoError(t, err)
+
+	// Check that no one has been removed, and team generation has
+	// changed.
+	team, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.AllUserVersions(), 3)
+	allUids := members.AllUIDs()
+	require.Contains(t, allUids, owner.User.GetUID())
+	require.Contains(t, allUids, otherA.User.GetUID())
+	require.Contains(t, allUids, otherB.User.GetUID())
+
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), team.Generation())
+}
+
+func TestRotateResetMultipleUsers(t *testing.T) {
+	// Same reset test but with multiple users being removed at once.
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	t.Logf("Created team %q", name)
+
+	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_WRITER,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherB.Username))
+
+	team, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	params := keybase1.TeamCLKRMsg{
+		TeamID:     team.ID,
+		Generation: team.Generation(),
+	}
+
+	for _, u := range []*kbtest.FakeUser{otherA, otherB} {
+		tc.G.Logout()
+		require.NoError(t, u.Login(tc.G))
+
+		kbtest.ResetAccount(tc, u)
+
+		params.ResetUsersUntrusted = append(params.ResetUsersUntrusted,
+			keybase1.TeamCLKRResetUser{
+				Uid:               u.User.GetUID(),
+				UserEldestSeqno:   keybase1.Seqno(0),
+				MemberEldestSeqno: keybase1.Seqno(1),
+			})
+	}
+
+	tc.G.Logout()
+	err = owner.Login(tc.G)
+	require.NoError(t, err)
+
+	err = HandleRotateRequest(context.Background(), tc.G, params)
+	require.NoError(t, err)
+
+	// Check that everyone has been removed and team generation changed.
+	team, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	members, err := team.Members()
+	require.NoError(t, err)
+	allUVs := members.AllUserVersions()
+	require.Len(t, allUVs, 1)
+	require.Contains(t, allUVs, keybase1.NewUserVersion(owner.User.GetUID(), owner.EldestSeqno))
+}
