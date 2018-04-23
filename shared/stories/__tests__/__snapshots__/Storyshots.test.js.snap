@@ -33547,6 +33547,16 @@ exports[`Storyshots Files Preview 1`] = `
 
 .css-6,
 [data-css-6] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-6:hover,
+[data-css-6]:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.css-8,
+[data-css-8] {
   font-size: 14px;
   line-height: 18px;
   color: #2645A3;
@@ -33558,8 +33568,8 @@ exports[`Storyshots Files Preview 1`] = `
   margin-bottom: 8px;
 }
 
-.css-7,
-[data-css-7] {
+.css-9,
+[data-css-9] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -33702,6 +33712,68 @@ exports[`Storyshots Files Preview 1`] = `
             </span>
           </div>
         </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-6"
+              onClick={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 16,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div>
+            <span
+              className="css-6"
+              onClick={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 16,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
       </div>
       <div
         style={
@@ -33745,7 +33817,7 @@ exports[`Storyshots Files Preview 1`] = `
             title={undefined}
           />
           <span
-            className="css-6"
+            className="css-8"
             onClick={undefined}
             title={undefined}
           >
@@ -33800,7 +33872,7 @@ exports[`Storyshots Files Preview 1`] = `
               }
             >
               <span
-                className="css-7"
+                className="css-9"
                 onClick={undefined}
                 title={undefined}
               >
