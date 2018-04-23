@@ -36,15 +36,15 @@ export type _PublicitySettings = {
 export type _TeamSettings = {...$Exact<RPCTypes.TeamSettings>}
 export type TeamSettings = I.RecordOf<_TeamSettings>
 
-export type ChannelMembershipState = {[channelname: string]: boolean}
+export type ChannelMembershipState = {[ConversationIDKey]: boolean}
 
 // `days` should be left as 0 unless `type` is expire
 export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}
 export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
 
 export type _ChannelInfo = {
-  channelname: ?string,
-  description: ?string,
+  channelname: string,
+  description: string,
   participants: I.Set<string>,
 }
 export type ChannelInfo = I.RecordOf<_ChannelInfo>
@@ -99,7 +99,6 @@ export type ResetUser = I.RecordOf<_ResetUser>
 export type _State = {
   channelCreationError: string,
   chosenChannelsForTeam: I.Set<Teamname>,
-  convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,
   teamAccessRequestsPending: I.Set<Teamname>,
@@ -108,7 +107,7 @@ export type _State = {
   teamJoinSuccessTeamName: string,
   teamCreationError: string,
   teamCreationPending: boolean,
-  teamNameToConvIDs: I.Map<Teamname, I.Set<ConversationIDKey>>,
+  teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>,
   teamNameToID: I.Map<Teamname, string>,
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>,
   teamNameToIsOpen: I.Map<Teamname, boolean>,
