@@ -1,8 +1,8 @@
 // @flow
-import {requestInvite, restartSignup} from '../../actions/signup'
+import {requestInvite, restartSignup} from '../../../actions/signup'
 import React, {Component} from 'react'
-import Render from './request-invite.render'
-import {connect, type TypedState} from '../../util/container'
+import {connect, type TypedState} from '../../../util/container'
+import Render from '.'
 
 type ContainerProps = {
   restartSignup: () => void,

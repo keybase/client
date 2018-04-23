@@ -1,9 +1,9 @@
 // @flow
-import Container from '../forms/container'
+import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './request-invite.render'
-import {Text, Icon, Input, Button, Box} from '../../common-adapters'
-import {globalMargins, globalStyles} from '../../styles'
+import {Text, Icon, Input, Button, Box} from '../../../common-adapters'
+import {globalMargins, globalStyles} from '../../../styles'
+import type {Props} from '.'
 
 class RequestInviteRender extends Component<Props> {
   render() {

@@ -1,7 +1,7 @@
 // @flow
 import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
+import type {Props} from '.'
 import {Text, Button} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 

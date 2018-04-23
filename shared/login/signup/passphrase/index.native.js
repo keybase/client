@@ -1,9 +1,9 @@
 // @flow
 import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {UserCard, Input, Button, ButtonBar} from '../../../common-adapters'
 import {globalColors, globalMargins} from '../../../styles'
+import type {Props} from '.'
 
 class PassphraseRender extends Component<Props> {
   render() {

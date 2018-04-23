@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import DeviceName from '../register/set-public-name'
 import Error from './error/index.render'
 import HiddenString from '../../util/hidden-string'

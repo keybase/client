@@ -1,9 +1,9 @@
 // @flow
-import Container from '../forms/container'
+import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './invite-code.render'
-import {Text, Input, Button, Icon, Box} from '../../common-adapters'
-import {globalMargins, globalStyles} from '../../styles'
+import {Text, Input, Button, Icon, Box} from '../../../common-adapters'
+import {globalMargins, globalStyles} from '../../../styles'
+import type {Props} from '.'
 
 type State = {
   inviteCode: string,

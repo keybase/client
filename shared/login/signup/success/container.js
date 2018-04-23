@@ -1,5 +1,5 @@
 // @flow
-import RenderSuccess from './index.render'
+import RenderSuccess from '.'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'

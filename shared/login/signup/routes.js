@@ -1,13 +1,13 @@
 // @flow
 import {makeRouteDefNode} from '../../route-tree'
-import InviteCode from './invite-code'
-import RequestInvite from './request-invite'
-import RequestInviteSuccess from './request-invite-success'
-import UsernameEmailForm from './username-email-form'
-import PassphraseSignup from './passphrase'
+import InviteCode from './invite-code/container'
+import RequestInvite from './request-invite/container'
+import RequestInviteSuccess from './request-invite-success/container'
+import UsernameEmailForm from './username-email-form/container'
+import PassphraseSignup from './passphrase/container'
 import DeviceName from './device-name'
-import Success from './success'
-import SignupError from './error'
+import Success from './success/container'
+import SignupError from './error/container'
 
 const signupError = makeRouteDefNode({
   component: SignupError,

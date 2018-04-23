@@ -1,9 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import Container from '../../forms/container'
 import {Text, Button, Box, ButtonBar} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
+import type {Props} from '.'
 
 class ErrorRender extends Component<Props> {
   render() {

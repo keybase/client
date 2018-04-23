@@ -1,32 +1,37 @@
 // @flow
-import Container from '../forms/container'
+import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './username-email-form.render'
-import {UserCard, Input, Button} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {UserCard, Input, Button} from '../../../common-adapters'
+import {globalColors, globalMargins} from '../../../styles'
+import type {Props} from '.'
 
 class UsernameEmailFormRender extends Component<Props> {
   render() {
     return (
-      <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
-        <UserCard style={stylesCard}>
+      <Container onBack={this.props.onBack} outerStyle={stylesOuter}>
+        <UserCard>
           <Input
             autoFocus={true}
             hintText="Create a username"
+            floatingHintTextOverride="Create a username"
             value={this.props.username}
             errorText={this.props.usernameErrorText}
             onChangeText={username => this.props.usernameChange(username)}
           />
           <Input
+            style={stylesInput2}
             hintText="Email address"
+            floatingHintTextOverride="Email address"
             value={this.props.email}
             errorText={this.props.emailErrorText}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={email => this.props.emailChange(email)}
+            keyboardType="email-address"
           />
           <Button
             waiting={this.props.waiting}
-            style={{marginTop: 40, alignSelf: 'center'}}
+            style={stylesButton}
+            fullWidth={true}
             type="Primary"
             label="Continue"
             onClick={this.props.onSubmit}
@@ -40,14 +45,13 @@ class UsernameEmailFormRender extends Component<Props> {
 const stylesOuter = {
   backgroundColor: globalColors.white,
 }
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: 15,
+
+const stylesInput2 = {
+  marginTop: globalMargins.tiny,
 }
-const stylesCard = {
-  alignItems: 'stretch',
+
+const stylesButton = {
+  marginTop: globalMargins.small,
 }
 
 export default UsernameEmailFormRender

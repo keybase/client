@@ -1,8 +1,8 @@
 // @flow
-import * as Creators from '../../actions/signup'
+import * as Creators from '../../../actions/signup'
 import React, {Component} from 'react'
-import Render, {type Props} from './username-email-form.render'
-import {connect, type TypedState} from '../../util/container'
+import {connect, type TypedState} from '../../../util/container'
+import Render, {type Props} from '.'
 
 type State = {
   username: string,

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './index.render'
+import Render from '.'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {restartSignup} from '../../../actions/signup'
 

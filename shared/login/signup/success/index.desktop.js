@@ -1,10 +1,10 @@
 // @flow
 import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {Box, Text, Button, Checkbox, Icon, ProgressIndicator} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import {getStyle} from '../../../common-adapters/text'
+import type {Props} from '.'
 
 type State = {
   inWallet: boolean,

@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import Container from '../../forms/container'
-import type {Props} from './index.render'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../../styles'
 import {getStyle} from '../../../common-adapters/text'
+import type {Props} from '.'
 
 type State = {
   checked: boolean,

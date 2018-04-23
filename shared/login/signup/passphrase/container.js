@@ -1,7 +1,7 @@
 // @flow
 import * as Creators from '../../../actions/signup'
 import React, {Component} from 'react'
-import Render, {type Props} from './index.render'
+import Render, {type Props} from '.'
 import {connect, type TypedState} from '../../../util/container'
 
 type State = {
