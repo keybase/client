@@ -1,5 +1,4 @@
 // @flow
-import AddPeopleHow from '../teams/team/header/add-people-how/container'
 import AttachmentGetTitles from './conversation/attachment-get-titles/container'
 import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
@@ -43,11 +42,6 @@ const retentionWarning = {
 }
 
 const infoPanelChildren = {
-  addPeopleHow: {
-    children: {},
-    component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
-    tags: makeLeafTags({layerOnTop: true}),
-  },
   editChannel,
   infoPanelMenu: {
     children: {},

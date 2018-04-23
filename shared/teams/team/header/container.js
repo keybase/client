@@ -34,15 +34,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
-  onAddPeople: target =>
-    dispatch(
-      navigateAppend([
-        {
-          props: {position: 'bottom left', targetRect: target && target.getBoundingClientRect(), teamname},
-          selected: 'addPeopleHow',
-        },
-      ])
-    ),
   onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
 })
@@ -54,7 +45,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   canManageMembers: stateProps.canManageMembers,
   description: stateProps.description,
   memberCount: stateProps.memberCount,
-  onAddPeople: dispatchProps.onAddPeople,
   onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
   onChat: dispatchProps.onChat,
   onEditDescription: dispatchProps.onEditDescription,

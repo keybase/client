@@ -3,7 +3,6 @@ import TeamsContainer from './container'
 import {MaybePopupHoc} from '../common-adapters'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import AddPeopleDialog from './add-people/container'
-import AddPeopleHow from './team/header/add-people-how/container'
 import InviteByEmailDialog from './invite-by-email/container'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
@@ -105,11 +104,6 @@ const teamRoute = makeRouteDefNode({
         reallyRemoveMember,
       },
       component: Member,
-    },
-    addPeopleHow: {
-      children: {},
-      component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
-      tags: makeLeafTags({layerOnTop: true}),
     },
     editTeamDescription: {
       children: {},

@@ -48,19 +48,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
-  _onAddPeople: (teamname: string, target) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {
-            teamname,
-            position: 'bottom left',
-            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
-          },
-          selected: 'addPeopleHow',
-        },
-      ])
-    ),
   _onOpenMenu: (teamname: string, isSmallTeam: boolean, target) =>
     dispatch(
       Route.navigateAppend([
@@ -117,7 +104,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
-  onAddPeople: (target: ?Element) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,

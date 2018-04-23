@@ -52,7 +52,6 @@ type InfoPanelProps = {
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
-  onAddPeople: (?Element) => void,
   onViewTeam: () => void,
   onClickGear: (?Element) => void,
   canSetRetention: boolean,
