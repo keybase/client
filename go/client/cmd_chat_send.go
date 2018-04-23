@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -21,16 +22,22 @@ import (
 	isatty "github.com/mattn/go-isatty"
 )
 
+// NOTE if you change these values you should change them in
+// go/chatbase/storage/ephemeral.go as well.
+const maxEphemeralLifetime = time.Hour * 24 * 7
+const minEphemeralLifetime = time.Second * 30
+
 type CmdChatSend struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
-	message       string
-	setHeadline   string
-	clearHeadline bool
-	hasTTY        bool
-	nonBlock      bool
-	team          bool
+	message           string
+	setHeadline       string
+	ephemeralLifetime time.Duration
+	clearHeadline     bool
+	hasTTY            bool
+	nonBlock          bool
+	team              bool
 }
 
 func NewCmdChatSendRunner(g *libkb.GlobalContext) *CmdChatSend {
@@ -55,6 +62,17 @@ func (c *CmdChatSend) SetMessage(m string) {
 }
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := append(getConversationResolverFlags(),
+		mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
+	)
+	if g.Env.GetRunMode() == libkb.DevelRunMode {
+		flags = append(flags, cli.DurationFlag{
+			Name: "exploding-lifetime",
+			Usage: `Make this message an exploding message and set the
+				lifetime for the given duration.  The maximum lifetime is 168h
+				(one week) and the minimum lifetime is 5s.`,
+		})
+	}
 	return cli.Command{
 		Name:         "send",
 		Usage:        "Send a message to a conversation",
@@ -63,9 +81,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 			cl.SetNoStandalone()
 		},
-		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
-		),
+		Flags: flags,
 	}
 }
 
@@ -96,14 +112,15 @@ func (c *CmdChatSend) Run() (err error) {
 	}
 
 	return chatSend(context.TODO(), c.G(), ChatSendArg{
-		resolvingRequest: c.resolvingRequest,
-		message:          c.message,
-		setHeadline:      c.setHeadline,
-		clearHeadline:    c.clearHeadline,
-		hasTTY:           c.hasTTY,
-		nonBlock:         c.nonBlock,
-		team:             c.team,
-		setTopicName:     "",
+		resolvingRequest:  c.resolvingRequest,
+		message:           c.message,
+		setHeadline:       c.setHeadline,
+		clearHeadline:     c.clearHeadline,
+		hasTTY:            c.hasTTY,
+		nonBlock:          c.nonBlock,
+		team:              c.team,
+		setTopicName:      "",
+		ephemeralLifetime: c.ephemeralLifetime,
 	})
 }
 
@@ -112,6 +129,7 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
+	c.ephemeralLifetime = ctx.Duration("exploding-lifetime")
 
 	var tlfName string
 	// Get the TLF name from the first position arg
@@ -123,7 +141,6 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	nActions := 0
-
 	if c.setHeadline != "" {
 		nActions++
 		if !c.hasTTY {
@@ -141,6 +158,15 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 		}
 		if len(ctx.Args()) > 1 {
 			return fmt.Errorf("cannot send message and clear headline name simultaneously")
+		}
+	}
+
+	if c.ephemeralLifetime != 0 {
+		if c.ephemeralLifetime > maxEphemeralLifetime {
+			return fmt.Errorf("ephemeral lifetime cannot exceed %v", maxEphemeralLifetime)
+		}
+		if c.ephemeralLifetime < minEphemeralLifetime {
+			return fmt.Errorf("ephemeral lifetime must be at least %v", minEphemeralLifetime)
 		}
 	}
 

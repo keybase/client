@@ -958,10 +958,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	uid := h.G().Env.GetUID()
 
 	// Sanity check that we have a TLF name here
 	if len(arg.Msg.ClientHeader.TlfName) == 0 {
@@ -976,7 +976,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	if err = deviceID.ToBytes(db); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	arg.Msg.ClientHeader.Sender = uid.ToBytes()
+	arg.Msg.ClientHeader.Sender = uid
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
@@ -1022,6 +1022,11 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 		MessageID: arg.Supersedes,
 		Body:      arg.Body,
 	})
+	if arg.EphemeralLifetime != nil {
+		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	return h.PostLocalNonblock(ctx, parg)
 }
@@ -1038,6 +1043,11 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: arg.Body,
 	})
+	if arg.EphemeralLifetime != nil {
+		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	return h.PostLocalNonblock(ctx, parg)
 }
@@ -1281,15 +1291,16 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
 	parg := postAttachmentArg{
-		SessionID:        arg.SessionID,
-		ConversationID:   arg.ConversationID,
-		TlfName:          arg.TlfName,
-		Visibility:       arg.Visibility,
-		Attachment:       newStreamSource(arg.Attachment),
-		Title:            arg.Title,
-		Metadata:         arg.Metadata,
-		IdentifyBehavior: arg.IdentifyBehavior,
-		OutboxID:         arg.OutboxID,
+		SessionID:         arg.SessionID,
+		ConversationID:    arg.ConversationID,
+		TlfName:           arg.TlfName,
+		Visibility:        arg.Visibility,
+		Attachment:        newStreamSource(arg.Attachment),
+		Title:             arg.Title,
+		Metadata:          arg.Metadata,
+		IdentifyBehavior:  arg.IdentifyBehavior,
+		OutboxID:          arg.OutboxID,
+		EphemeralLifetime: arg.EphemeralLifetime,
 	}
 	defer parg.Attachment.Close()
 
@@ -1322,14 +1333,15 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	parg := postAttachmentArg{
-		SessionID:        arg.SessionID,
-		ConversationID:   arg.ConversationID,
-		TlfName:          arg.TlfName,
-		Visibility:       arg.Visibility,
-		Title:            arg.Title,
-		Metadata:         arg.Metadata,
-		IdentifyBehavior: arg.IdentifyBehavior,
-		OutboxID:         arg.OutboxID,
+		SessionID:         arg.SessionID,
+		ConversationID:    arg.ConversationID,
+		TlfName:           arg.TlfName,
+		Visibility:        arg.Visibility,
+		Title:             arg.Title,
+		Metadata:          arg.Metadata,
+		IdentifyBehavior:  arg.IdentifyBehavior,
+		OutboxID:          arg.OutboxID,
+		EphemeralLifetime: arg.EphemeralLifetime,
 	}
 	asrc, err := newFileSource(arg.Attachment)
 	if err != nil {
@@ -1370,16 +1382,17 @@ type attachmentPreview struct {
 
 // postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
 type postAttachmentArg struct {
-	SessionID        int
-	ConversationID   chat1.ConversationID
-	TlfName          string
-	Visibility       keybase1.TLFVisibility
-	Attachment       assetSource
-	Preview          *attachmentPreview
-	Title            string
-	Metadata         []byte
-	IdentifyBehavior keybase1.TLFIdentifyBehavior
-	OutboxID         *chat1.OutboxID
+	SessionID         int
+	ConversationID    chat1.ConversationID
+	TlfName           string
+	Visibility        keybase1.TLFVisibility
+	Attachment        assetSource
+	Preview           *attachmentPreview
+	Title             string
+	Metadata          []byte
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior
+	OutboxID          *chat1.OutboxID
+	EphemeralLifetime *gregor1.DurationSec
 }
 
 func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
@@ -1506,6 +1519,12 @@ func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg)
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
+
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1665,6 +1684,12 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
+
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)

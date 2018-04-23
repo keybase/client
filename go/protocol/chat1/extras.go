@@ -384,6 +384,11 @@ func (m MessageUnboxedValid) Etime() gregor1.Time {
 	return gregor1.ToTime(etime)
 }
 
+func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
+	remainingLifetime := m.Etime().Time().Sub(time.Now()).Round(time.Second)
+	return remainingLifetime
+}
+
 func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
 	if !m.IsExploding() {
 		return false
@@ -398,6 +403,10 @@ func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
 	}
 	etime := m.Etime()
 	return etime.Time().Add(explosionLifetime).Before(now)
+}
+
+func (m UIMessageValid) IsExploding() bool {
+	return m.EphemeralMetadata != nil
 }
 
 func (b MessageBody) IsNil() bool {

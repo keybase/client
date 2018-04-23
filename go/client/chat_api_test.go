@@ -265,6 +265,13 @@ var optTests = []optTest{
 		err:   ErrInvalidOptions{},
 	},
 	{
+		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "5m"}}}`,
+	},
+	{
+		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 	},
 	{
@@ -327,6 +334,13 @@ var optTests = []optTest{
 		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
 	},
 	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}, "exploding_lifetime": "5m"}}}`,
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}, "exploding_lifetime": "1s"}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
 		err:   ErrInvalidOptions{},
 	},
@@ -343,6 +357,13 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+	},
+	{
+		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "5m"}}}`,
+	},
+	{
+		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "1s"}}}`,
+		err:   ErrInvalidOptions{},
 	},
 	{
 		input: `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,
@@ -439,6 +460,10 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
+		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}, "exploding_lifetime": "5m"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
@@ -452,6 +477,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "5m"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
