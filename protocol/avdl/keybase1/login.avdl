@@ -83,7 +83,7 @@ protocol login {
   void accountDelete(int sessionID);
 
   /**
-   loginOnetime allows a service to have a "onetime login", without
+   loginOneshot allows a service to have a "onetime login", without
    provisioning a device. It bootstraps credentials with the given
    paperkey
    */
