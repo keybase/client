@@ -293,7 +293,7 @@ func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserCo
 }
 
 func (f JSONConfigFile) copyUserConfigIfForUID(u keybase1.UID) *UserConfig {
-	if f.userConfigWrapper == nil {
+	if f.userConfigWrapper == nil || f.userConfigWrapper.userConfig == nil {
 		return nil
 	}
 	if f.userConfigWrapper.userConfig.GetUID().IsNil() {
