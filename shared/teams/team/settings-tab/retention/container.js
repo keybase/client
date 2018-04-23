@@ -136,18 +136,6 @@ const mapDispatchToProps = (
 ) => ({
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  _onShowDropdown: (items, target, parentPath: Path) =>
-    dispatch(
-      navigateTo(
-        [
-          {
-            selected: 'retentionDropdown',
-            props: {items, position: 'top center', targetRect: target && target.getBoundingClientRect()},
-          },
-        ],
-        parentPath
-      )
-    ),
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
       navigateTo(
@@ -186,8 +174,6 @@ export default compose(
     },
   }),
   withHandlers({
-    onShowDropdown: ({_parentPath, _onShowDropdown}) => (items, target) =>
-      _onShowDropdown(items, target, _parentPath),
     onShowWarning: ({_parentPath, _onShowWarning}) => (days, onConfirm, onCancel) =>
       _onShowWarning(days, onConfirm, onCancel, _parentPath),
   })

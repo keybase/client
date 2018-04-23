@@ -5,7 +5,7 @@ import {Box} from '../../../../common-adapters'
 import {action, storiesOf} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 import RetentionPicker from './'
-import {RetentionDropdownView} from './dropdown'
+// import {RetentionDropdownView} from './dropdown'
 
 const policyRetain = makeRetentionPolicy({type: 'retain'})
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
@@ -24,17 +24,6 @@ const commonProps = {
   showSaveIndicator: false,
 }
 
-const onClick = action('onClick')
-const onHidden = action('onHidden')
-const teamWideItems = [
-  {title: '1 day', onClick},
-  {title: '7 days', onClick},
-  {title: '30 days', onClick},
-  {title: '90 days', onClick},
-  {title: '365 days', onClick},
-  {title: 'Keep forever', onClick},
-]
-const channelItems = [{title: 'Use team default (30 days)', onClick}, ...teamWideItems]
 const load = () => {
   storiesOf('Teams/Retention', module)
     .addDecorator(story => (
@@ -165,8 +154,6 @@ const load = () => {
         {...actions}
       />
     ))
-    .add('Team-wide dropdown', () => <RetentionDropdownView items={teamWideItems} onHidden={onHidden} />)
-    .add('Channel dropdown', () => <RetentionDropdownView items={channelItems} onHidden={onHidden} />)
 }
 
 export default load

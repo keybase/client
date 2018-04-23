@@ -30,7 +30,6 @@ export type Props = {
   type: 'simple' | 'auto',
   saveRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
-  onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
 }
 
@@ -152,11 +151,6 @@ class RetentionPicker extends React.Component<Props, State> {
       this._makeItems()
       this._setInitialSelected(nextProps.policy)
     }
-  }
-
-  _onShowDropdown = (evt: SyntheticEvent<Element>) => {
-    const target = isMobile ? null : evt.currentTarget
-    this.props.onShowDropdown(this.state.items, target)
   }
 
   render() {
