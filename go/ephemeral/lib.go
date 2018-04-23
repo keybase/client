@@ -57,18 +57,25 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 // to fully release it.
 func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
+
+	// TODO -- when we launch, remove the feature flagging on Prod
 	willRun := g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run")
+		return false
 	}
-	return willRun
+	oneshot, err := g.IsOneshot(ctx)
+	if err != nil {
+		e.G().Log.CWarningf(ctx, "EKLib#ShouldRun failed: %s", err)
+		return false
+	}
+	return !oneshot
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	e.Lock()
 	defer e.Unlock()
 
-	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(ctx) {
 		return nil
 	}
@@ -361,7 +368,6 @@ func (e *EKLib) SignedDeviceEKStatementFromSeed(ctx context.Context, generation 
 func (e *EKLib) BoxLatestUserEK(ctx context.Context, receiverKey libkb.NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (userEKBox *keybase1.UserEkBoxed, err error) {
 	defer e.G().CTrace(ctx, "BoxLatestUserEK", func() error { return err })()
 
-	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(ctx) {
 		return nil, nil
 	}
@@ -469,7 +475,6 @@ func (e *EKLib) PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, si
 }
 
 func (e *EKLib) OnLogin() error {
-	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(context.Background()) {
 		return nil
 	}
@@ -477,7 +482,6 @@ func (e *EKLib) OnLogin() error {
 }
 
 func (e *EKLib) OnLogout() error {
-	// TODO remove this when we want to release in the wild.
 	if !e.ShouldRun(context.Background()) {
 		return nil
 	}

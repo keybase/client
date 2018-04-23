@@ -17,12 +17,16 @@ import (
 )
 
 type PaperKeyGenArg struct {
-	Passphrase    libkb.PaperKeyPhrase
-	SkipPush      bool
-	Me            *libkb.User
-	SigningKey    libkb.GenericKey
-	EncryptionKey libkb.NaclDHKeyPair
+	Passphrase libkb.PaperKeyPhrase
+	SkipPush   bool
 
+	// One of Me or UID is required
+	// Me is required if not SkipPush
+	Me  *libkb.User
+	UID keybase1.UID
+
+	SigningKey     libkb.GenericKey      // optional
+	EncryptionKey  libkb.NaclDHKeyPair   // optional
 	LoginContext   libkb.LoginContext    // optional
 	PerUserKeyring *libkb.PerUserKeyring // optional
 }
@@ -114,9 +118,19 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 		return nil
 	}
 
-	e.G().KeyfamilyChanged(e.arg.Me.GetUID())
+	e.G().KeyfamilyChanged(e.getUID())
 
 	return nil
+}
+
+func (e *PaperKeyGen) getUID() keybase1.UID {
+	if !e.arg.UID.IsNil() {
+		return e.arg.UID
+	}
+	if e.arg.Me != nil {
+		return e.arg.Me.GetUID()
+	}
+	return keybase1.UID("")
 }
 
 func (e *PaperKeyGen) syncPUK(ctx *Context) error {
@@ -214,6 +228,10 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push")
 	if e.arg.SkipPush {
 		return nil
+	}
+
+	if e.arg.Me == nil {
+		return errors.New("no Me object but we wanted to push public keys")
 	}
 
 	// Create a new paper key device. Need the passphrase prefix
