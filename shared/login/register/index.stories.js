@@ -1,9 +1,9 @@
 // @flow
 import codePage from './code-page/index.stories.js'
 import error from './error/index.stories.js'
-// import gpgSign from './gpg-sign/index.stories.js'
-// import paperKey from './paper-key/index.stories.js'
-// import passphrase from './passphrase-page/index.stories.js'
+import gpgSign from './gpg-sign/index.stories.js'
+import paperKey from './paper-key/index.stories.js'
+import passphrase from './passphrase/index.stories.js'
 // import selectOtherDevice from './select-other-device/index.stories.js'
 // import setPublicName from './set-public-name/index.stories.js'
 // import success from './succes/index.stories.js'
@@ -13,9 +13,9 @@ const load = () => {
   ;[
     codePage,
     error,
-    // gpgSign,
-    // paperKey,
-    // passphrase,
+    gpgSign,
+    paperKey,
+    passphrase,
     // selectOtherDevice,
     // setPublicName,
     // success,
