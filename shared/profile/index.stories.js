@@ -7,7 +7,7 @@ import postProof from './post-proof/index.stories'
 import profile from './profile.stories'
 import proveEnter from './prove-enter-username/index.stories'
 // import proveWebsite from './prove-website-choice/index.stories'
-// import revoke from './revoke/index.stories'
+import revoke from './revoke/index.stories'
 
 const load = () => {
   ;[
@@ -19,7 +19,7 @@ const load = () => {
     profile,
     proveEnter,
     // proveWebsite,
-    // revoke,
+    revoke,
   ].forEach(load => load())
 }
 
