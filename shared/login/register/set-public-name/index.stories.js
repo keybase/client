@@ -15,9 +15,9 @@ const props = {
 }
 
 const load = () => {
-  storiesOf('Register/Set Public Name', module)
-    .add('', () => <Setn {...props} />)
-    .add('NoUserPassLogin', () => <SelectOtherDevice {...props} canSelectNoDevice={false} />)
+  storiesOf('Register/SetPublicName', module)
+    .add('Normal', () => <SetPublicName {...props} />)
+    .add('Error', () => <SetPublicName {...props} deviceNameError={'Name taken'} />)
 }
 
 export default load
