@@ -848,10 +848,10 @@ function _setupTeamHandlers() {
     (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam, _, __, getState) => {
       const state = getState()
       logger.info(`Got teamChanged for ${args.teamName} from service`)
-      const selectedTeamName = Constants.getSelectedTeamName(state)
-      if (selectedTeamName && selectedTeamName === args.teamName) {
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(args.teamName)) {
         // only reload if that team is selected
-        return getLoadCalls(selectedTeamName)
+        return getLoadCalls(args.teamName)
       }
       return getLoadCalls()
     }
@@ -861,8 +861,8 @@ function _setupTeamHandlers() {
     (args: RPCTypes.NotifyTeamTeamDeletedRpcParam, _, __, getState) => {
       const state = getState()
       const {teamID} = args
-      const selectedTeamName = Constants.getSelectedTeamName(state)
-      if (selectedTeamName && teamID === Constants.getTeamID(state, selectedTeamName)) {
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
       return getLoadCalls()
@@ -873,8 +873,8 @@ function _setupTeamHandlers() {
     (args: RPCTypes.NotifyTeamTeamExitRpcParam, _, __, getState) => {
       const state = getState()
       const {teamID} = args
-      const selectedTeamName = Constants.getSelectedTeamName(state)
-      if (selectedTeamName && teamID === Constants.getTeamID(state, selectedTeamName)) {
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
         return [navigateTo([], [teamsTab]), ...getLoadCalls()]
       }
       return getLoadCalls()

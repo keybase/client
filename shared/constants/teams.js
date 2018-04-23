@@ -205,13 +205,21 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.getIn(['teamNameToID', teamname], '')
 
+const getTeamNameFromID = (state: TypedState, teamID: string): ?Types.Teamname =>
+  state.teams.teamNameToID.findKey(value => value === teamID)
+
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
 
-const getSelectedTeamName = (state: TypedState): ?Types.Teamname => {
+const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
   const pathProps = getPathProps(state.routeTree.routeState, [teamsTab])
-  const lastNode = pathProps.last()
-  return (lastNode && lastNode.props.get('teamname')) || null
+  return pathProps.reduce((res, val) => {
+    const teamname = val.props.get('teamname')
+    if (val.node === 'team' && teamname) {
+      return res.concat(teamname)
+    }
+    return res
+  }, [])
 }
 
 /**
@@ -384,12 +392,13 @@ export {
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
+  getTeamNameFromID,
   getTeamPublicitySettings,
   getTeamInvites,
   isInTeam,
   isInSomeTeam,
   isAccessRequestPending,
-  getSelectedTeamName,
+  getSelectedTeamNames,
   getTeamSubteams,
   getTeamSettings,
   getTeamResetUsers,
