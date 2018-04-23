@@ -2,10 +2,7 @@
 import * as React from 'react'
 import {globalColors, globalMargins} from '../../styles'
 import {WebView} from 'react-native'
-
-type TextViewProps = {
-  url: string,
-}
+import {type TextViewProps} from './text-view'
 
 // We need to do the spacing in the guest content of the webView rather than
 // the component's styles, to make it feel like the whole "view" is

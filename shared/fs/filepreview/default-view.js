@@ -17,6 +17,7 @@ type DefaultViewProps = {
   onDownload: () => void,
   onSave: () => void,
   onShare: () => void,
+  onOpenAsText: () => void,
   onShowInFileUI: () => void,
 }
 
@@ -52,7 +53,7 @@ const DefaultView = (props: DefaultViewProps) => (
     {isIOS ? (
       Constants.isMedia(props.pathItem.name) && (
         <Button
-          key="open"
+          key="save"
           type="Secondary"
           label={'Save'}
           style={{marginTop: globalMargins.small}}
@@ -69,11 +70,20 @@ const DefaultView = (props: DefaultViewProps) => (
       />
     ) : (
       <Button
-        key="open"
+        key="download"
         type="Secondary"
         label="Download a copy"
         style={{marginTop: globalMargins.small}}
         onClick={props.onDownload}
+      />
+    )}
+    {props.pathItem.name.indexOf('.') === -1 && (
+      <Button
+        key="open-text"
+        type="Secondary"
+        label="Open as text"
+        style={{marginTop: globalMargins.small}}
+        onClick={props.onOpenAsText}
       />
     )}
   </Box>

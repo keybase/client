@@ -101,7 +101,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Preview', () => <FilePreview routeProps={I.Record({path: '/keybase/private/foo/bar.jpb'})()} />)
+    .add('Preview', () => <FilePreview routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />)
 }
 
 export default load

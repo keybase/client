@@ -1,10 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-
-type TextViewProps = {
-  url: string,
-}
+import {type TextViewProps} from './text-view'
 
 // We need to do the spacing in the guest content of the webView rather than
 // the component's styles, to make it feel like the whole "view" is
@@ -33,8 +30,6 @@ class TextView extends React.PureComponent<TextViewProps> {
 
   constructor(props: TextViewProps) {
     super(props)
-    // React.createRef doesn't seem to work with flow yet.
-    // $FlowFixMe
     this.webviewRef = React.createRef()
   }
   componentDidMount() {

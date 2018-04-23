@@ -27,17 +27,18 @@ const _commonChildren = {
   securityPrefs: {
     component: SecurityPrefs,
   },
+  preview: () =>
+    makeRouteDefNode({
+      component: FilePreview,
+      children: _commonChildren,
+      tags: makeLeafTags({title: 'Preview'}),
+    }),
 }
 
 const _folderRoute = {
   children: {
     ..._commonChildren,
     folder: () => makeRouteDefNode(_folderRoute),
-    preview: {
-      component: FilePreview,
-      children: _commonChildren,
-      tags: makeLeafTags({title: 'Preview'}),
-    },
     breadcrumbAction: {
       component: RelativePopupHoc(BreadcrumbPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),

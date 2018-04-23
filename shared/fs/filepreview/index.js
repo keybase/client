@@ -4,30 +4,38 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box} from '../../common-adapters'
+import {Text, Box} from '../../common-adapters'
 import Footer from '../footer/container'
 import {isMobile} from '../../constants/platform'
 import Header from './header-container'
-import FileView from './file-view-container'
+import TextView from './text-view'
 import DefaultView from './default-view-container'
 
 type FilePreviewProps = {
-  routeProps: I.RecordOf<{path: string}>,
+  routeProps: I.Map<string, any>,
+}
+
+const getDisplayComponent = (path: Types.Path, fileViewType: Types.FileViewType) => {
+  switch (fileViewType) {
+    case 'text':
+      return <TextView url="https://keybase.io/warp/release.txt" />
+    case 'default':
+      return <DefaultView path={path} />
+    default:
+      // eslint-disable-next-line no-unused-expressions
+      ;(fileViewType: empty) // this breaks when a new file view type is added but not handled here
+      return <Text type="BodyError">This shouldn't happen</Text>
+  }
 }
 
 const FilePreview = ({routeProps}: FilePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+  const fileViewType = routeProps.get('fileViewType', Constants.viewTypeFromPath(path))
   return (
     <Box style={styleOuterContainer}>
       <Header path={path} />
       <Box style={stylesGreyContainer}>
-        <Box style={stylesContentContainer}>
-          {Types.inferFileTypeFromName(Types.getPathName(path)) === 'unknown' ? (
-            <DefaultView path={path} />
-          ) : (
-            <FileView path={path} />
-          )}
-        </Box>
+        <Box style={stylesContentContainer}>{getDisplayComponent(path, fileViewType)}</Box>
       </Box>
       <Footer />
     </Box>

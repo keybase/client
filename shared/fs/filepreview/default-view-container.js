@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as DispatchMappers from '../utils/dispatch-mappers'
 import DefaultView from './default-view'
+import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const pathItem = state.fs.pathItems.get(path) || Constants.makeUnknownPathItem()
@@ -22,12 +23,21 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _openFinderPopup: DispatchMappers.mapDispatchToOpenFinderPopup(dispatch),
   _save: DispatchMappers.mapDispatchToSave(dispatch),
   _share: DispatchMappers.mapDispatchToShare(dispatch),
+  _openAsText: (path: Types.Path) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {path, fileViewType: 'text'},
+          selected: 'preview',
+        },
+      ])
+    ),
   _showInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {_download, _openFinderPopup, _save, _share, _showInFileUI} = dispatchProps
+  const {_download, _openFinderPopup, _save, _share, _showInFileUI, _openAsText} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
     fileUIEnabled,
@@ -37,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onDownload: () => _download(_path),
     onSave: () => _save(_path),
     onShare: () => _share(_path),
+    onOpenAsText: () => _openAsText(_path),
     onShowInFileUI: fileUIEnabled ? () => _showInFileUI(_path) : _openFinderPopup,
   }
 }
