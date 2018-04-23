@@ -2,10 +2,12 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
+import AddPeopleHow from './add-people-how/container'
 import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 export type Props = {
+  addPeopleButtonRef: ?React.Component<*, *>,
   canChat: boolean,
   canEditDescription: boolean,
   canJoinTeam: boolean,
@@ -15,11 +17,14 @@ export type Props = {
   memberCount: number,
   openTeam: boolean,
   role: Types.MaybeTeamRoleType,
+  showingMenu: boolean,
   teamname: Types.Teamname,
   onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
+  toggleShowingMenu: () => void,
+  setAddPeopleButtonRef: (ref: ?React.Component<*, *>) => void,
 }
 
 const TeamHeader = (props: Props) => (
@@ -89,10 +94,19 @@ const TeamHeader = (props: Props) => (
           <Button
             type="Secondary"
             label={'Add people...'}
-            onClick={event => props.onAddPeople(isMobile ? undefined : event.target)}
+            ref={isMobile ? undefined : props.setAddPeopleButtonRef}
+            onClick={props.toggleShowingMenu}
           />
         )}
       </ButtonBar>
+
+      {/* Add people how dropdown */}
+      <AddPeopleHow
+        attachTo={props.addPeopleButtonRef}
+        visible={props.showingMenu}
+        teamname={props.teamname}
+        onHidden={props.toggleShowingMenu}
+      />
 
       {/* CLI hint */}
       {!isMobile && (

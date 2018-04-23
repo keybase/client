@@ -71,7 +71,7 @@ type InfoPanelProps = {
 type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
-  onClick: (?Element) => void,
+  teamname: string,
 }
 
 type ParticipantRow = {
@@ -268,7 +268,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
-        return <AddPeople key="add people" onClick={row.onClick} />
+        return <AddPeople key="add people" teamname={row.teamname} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -554,7 +554,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       rows = headerRows.concat(participants)
       if (props.admin && props.teamname && !props.isPreview) {
-        rows = rows.concat({type: 'add people', key: 'add people', onClick: props.onAddPeople})
+        rows = rows.concat({type: 'add people', key: 'add people', teamname: props.teamname})
       }
     } else {
       // Conversation.

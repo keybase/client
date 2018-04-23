@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../../util/container'
+import {compose, withStateHandlers, connect, type TypedState} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/teams'
@@ -63,4 +63,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: ownProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamHeader)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withStateHandlers(
+    {addPeopleButtonRef: null, showingMenu: false},
+    {
+      setAddPeopleButtonRef: () => addPeopleButtonRef => ({addPeopleButtonRef}),
+      toggleShowingMenu: ({showingMenu}) => () => ({showingMenu: !showingMenu}),
+    }
+  )
+)(TeamHeader)
