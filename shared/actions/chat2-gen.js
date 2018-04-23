@@ -125,13 +125,15 @@ export const createAttachmentDownload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-    path: string,
+    path?: string,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownloaded})
 export const createAttachmentLoading = (

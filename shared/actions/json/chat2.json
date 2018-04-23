@@ -271,7 +271,8 @@
     // We want to save an attachment to the local disk
     "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
+      "ordinal": "Types.Ordinal",
+      "forShare?": "boolean",
     },
     // Update the loading bars
     "attachmentLoading": {
@@ -284,7 +285,8 @@
     "attachmentDownloaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "path": "string"
+      "path?": "string",
+      "forShare?": "boolean",
     },
     // We want to upload an attachment
     "attachmentUpload": {

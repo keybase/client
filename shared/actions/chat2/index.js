@@ -1762,7 +1762,11 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  yield Saga.call(downloadAndShowShareActionSheet, message.fileURL, message.fileType)
+  yield Saga.sequentially([
+    Saga.put(Chat2Gen.createAttachmentDownload({conversationIDKey, ordinal, forShare: true})),
+    Saga.call(downloadAndShowShareActionSheet, message.fileURL, message.fileType),
+    Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, forShare: true})),
+  ])
 }
 
 // Native save to camera roll
