@@ -43,7 +43,7 @@ running keybase in a Docker container.
 
 It won't write any credential information out disk, and it won't make any
 changes to the user's sigchain. It will rather hold the given paperkey in
-memory for as long as the service is running (or until "keybsae logout" is
+memory for as long as the service is running (or until "keybase logout" is
 called) and then will disappear.
 
 It needs a username and a paperkey to work, either passed in via command-line
