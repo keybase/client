@@ -1292,3 +1292,16 @@ func (g *GlobalContext) AssertTemporarySession(lctx LoginContext) error {
 	}
 	return gerr
 }
+
+func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {
+	uc, err := g.Env.GetConfig().GetUserConfig()
+	if err != nil {
+		g.Log.CDebugf(ctx, "IsOneshot: Error getting a user config: %s", err)
+		return false, err
+	}
+	if uc == nil {
+		g.Log.CDebugf(ctx, "IsOneshot: nil user config")
+		return false, nil
+	}
+	return uc.IsOneshot(), nil
+}

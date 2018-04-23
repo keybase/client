@@ -64,20 +64,12 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run")
 		return false
 	}
-	uc, err := g.Env.GetConfig().GetUserConfig()
+	oneshot, err := g.IsOneshot(ctx)
 	if err != nil {
-		e.G().Log.CDebugf(ctx, "Error getting a user config: %s", err)
+		e.G().Log.CWarningf(ctx, "EKLib#ShouldRun failed: %s", err)
 		return false
 	}
-	if uc == nil {
-		e.G().Log.CDebugf(ctx, "Null userconfig, not running EK tasks")
-		return false
-	}
-	if uc.IsOneshot() {
-		e.G().Log.CDebugf(ctx, "Not running EK tasks in oneshot login mode")
-		return false
-	}
-	return true
+	return !oneshot
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
