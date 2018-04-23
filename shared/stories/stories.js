@@ -11,6 +11,7 @@ import search from '../search/index.stories'
 import signup from '../login/signup/index.stories'
 import styles from '../styles/index.stories'
 import teams from '../teams/index.stories'
+import unlockFolders from '../unlock-folders/index.stories'
 
 const stories = {
   chat,
@@ -25,6 +26,7 @@ const stories = {
   signup,
   styles,
   teams,
+  unlockFolders,
 }
 
 export default stories

@@ -5,29 +5,10 @@ import {action, storiesOf} from '../stories/storybook'
 import {Box} from '../common-adapters'
 
 const devices = [
-  {
-    type: 'mobile',
-    name: 'my phone',
-    deviceID: 'deadbeef',
-  },
-
-  {
-    type: 'desktop',
-    name: 'my computer',
-    deviceID: 'deadbeee',
-  },
-
-  {
-    type: 'desktop',
-    name: 'my laptop',
-    deviceID: 'deadbeea',
-  },
-
-  {
-    type: 'backup',
-    name: 'my paperkey',
-    deviceID: 'deadbee0',
-  },
+  {deviceID: 'deadbeef', name: 'my phone', type: 'mobile'},
+  {deviceID: 'deadbeee', name: 'my computer', type: 'desktop'},
+  {deviceID: 'deadbeea', name: 'my laptop', type: 'desktop'},
+  {deviceID: 'deadbee0', name: 'my paperkey', type: 'backup'},
 ]
 
 // phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
@@ -39,7 +20,6 @@ const props = {
   onFinish: action('onFinish'),
   paperKeysHidden: false,
   paperkeyError: null,
-  parentProps: {style: {}},
   phase: 'promptOtherDevice',
   toPaperKeyInput: action('toPaperKeyInput'),
   waiting: false,
@@ -52,7 +32,18 @@ const Wrapper = props => (
 )
 
 const load = () => {
-  storiesOf('UnlockFolders', module).add('', () => <Wrapper {...props} />)
+  storiesOf('UnlockFolders', module)
+    .add('Normal', () => <Wrapper {...props} />)
+    .add('No paperkeys', () => <Wrapper {...props} paperKeysHidden={true} />)
+    .add('Single', () => <Wrapper {...props} devices={[devices[0]]} />)
+    .add('Paperkey input', () => <Wrapper {...props} phase={'paperKeyInput'} />)
+    .add('Paperkey error', () => (
+      <Wrapper {...props} phase={'paperKeyInput'} paperkeyError={'Invalid paperkey'} />
+    ))
+    .add('Paperkey error waiting', () => (
+      <Wrapper {...props} phase={'paperKeyInput'} paperkeyError={'Invalid paperkey'} waiting={true} />
+    ))
+    .add('Success', () => <Wrapper {...props} phase={'success'} waiting={false} />)
 }
 
 export default load
