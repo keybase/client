@@ -8,6 +8,7 @@ import login from '../login/index.stories'
 import people from '../people/index.stories'
 import profile from '../profile/index.stories'
 import search from '../search/index.stories'
+import settings from '../settings/index.stories'
 import signup from '../login/signup/index.stories'
 import styles from '../styles/index.stories'
 import teams from '../teams/index.stories'
@@ -23,6 +24,7 @@ const stories = {
   people,
   profile,
   search,
+  settings,
   signup,
   styles,
   teams,

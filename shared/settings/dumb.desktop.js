@@ -19,36 +19,6 @@ import {landingTab} from '../constants/settings'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {PendingInvite} from '../settings/invites/index'
 
-const updateEmailBase = {
-  email: 'party@mypla.ce',
-  isVerified: true,
-  edited: false,
-  waitingForResponse: false,
-  onChangeNewEmail: () => console.log('onChangeNewEmail'),
-  onSave: () => console.log('onSave'),
-  onBack: () => console.log('onBack'),
-}
-
-const updateEmailMap: DumbComponentMap<UpdateEmail> = {
-  component: UpdateEmail,
-  mocks: {
-    Normal: updateEmailBase,
-    'Normal - No Email': {
-      ...updateEmailBase,
-      isVerified: false,
-      email: null,
-    },
-    'Not Verified - No Email': {
-      ...updateEmailBase,
-      isVerified: false,
-    },
-    'Resend Confirmation': {
-      ...updateEmailBase,
-      onResendConfirmationCode: () => console.log('onResendConfirmationCode'),
-    },
-  },
-}
-
 const updatePassphraseBase = {
   onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
   onChangeNewPassphraseConfirm: newPassphraseConfirm =>
@@ -504,7 +474,6 @@ const invitesMap: DumbComponentMap<Invites> = {
 }
 
 export default {
-  UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
   PaymentForm: paymentFormMap,
   Landing: landingMap,
