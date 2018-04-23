@@ -1556,10 +1556,13 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	}()
 
 	// get s3 upload params from server
-	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
+	var s3params chat1.S3Params
+	var s3err error
+	s3ParamsCh := make(chan struct{})
+	go func() {
+		s3params, s3err = h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+		close(s3ParamsCh)
+	}()
 
 	// upload attachment and (optional) preview concurrently
 	var object chat1.Asset
@@ -1569,8 +1572,13 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	h.Debug(ctx, "postAttachmentLocalInOrder: uploading assets")
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), placeholder.MessageID)
+		<-s3ParamsCh
+		if s3err != nil {
+			return s3err
+		}
 		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
+		object, err = h.uploadAsset(ctx, arg.SessionID, s3params, arg.Attachment, arg.ConversationID,
+			progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		if err != nil {
 			h.Debug(ctx, "postAttachmentLocalInOrder: error uploading primary asset to s3: %s", err)
@@ -1581,8 +1589,12 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	if arg.Preview != nil && arg.Preview.source != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
+			<-s3ParamsCh
+			if s3err != nil {
+				return s3err
+			}
 			// copy the params so as not to mess with the main params above
-			previewParams := params
+			previewParams := s3params
 
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here

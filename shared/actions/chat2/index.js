@@ -24,7 +24,7 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -1120,7 +1120,7 @@ const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPaylo
   } else if (message.type === 'attachment') {
     retryAction = Chat2Gen.createAttachmentUpload({
       conversationIDKey: message.conversationIDKey,
-      path: message.devicePreviewPath,
+      path: message.previewURL,
       title: message.title,
     })
   }
@@ -1549,7 +1549,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentPreviewUploadStart': function*(metadata) {
+        const ratio = 0
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        return EngineRpc.rpcResult()
+      },
       'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadOutboxID': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
@@ -1561,7 +1565,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
         }
         return EngineRpc.rpcResult()
       },
-      'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadStart': function*(metadata) {
+        const ratio = 0
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        return EngineRpc.rpcResult()
+      },
     },
     RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
@@ -1754,7 +1762,11 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  yield Saga.call(showShareActionSheet, {url: message.deviceFilePath})
+  yield Saga.sequentially([
+    Saga.put(Chat2Gen.createAttachmentDownload({conversationIDKey, ordinal, forShare: true})),
+    Saga.call(downloadAndShowShareActionSheet, message.fileURL, message.fileType),
+    Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, forShare: true})),
+  ])
 }
 
 // Native save to camera roll
@@ -1767,7 +1779,7 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
   }
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
+    yield Saga.call(saveAttachmentDialog, message.fileURL)
   } catch (err) {
     logger.info('Failed to save attachment: ' + err)
     throw new Error('Save attachment failed. Enable photo access in privacy settings.')

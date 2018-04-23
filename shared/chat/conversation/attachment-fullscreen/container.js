@@ -61,9 +61,9 @@ const mergeProps = (
       : () => dispatchProps._onDownloadAttachment(message),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
     onShowMenu: (targetRect: ?ClientRect) => dispatchProps._onShowMenu(message, targetRect),
-    path: message.deviceFilePath || message.devicePreviewPath,
+    path: message.fileURL || message.previewURL,
     progress: message.transferProgress,
-    progressLabel: message.deviceFilePath ? undefined : 'Loading',
+    progressLabel: message.fileURL ? undefined : 'Loading',
     title: message.title,
   }
 }

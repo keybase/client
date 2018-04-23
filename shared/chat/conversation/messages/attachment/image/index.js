@@ -18,7 +18,13 @@ type Props = {
   progressLabel: string,
 }
 
-class ImageAttachment extends React.PureComponent<Props> {
+type State = {
+  loaded: boolean,
+}
+
+class ImageAttachment extends React.PureComponent<Props, State> {
+  state = {loaded: false}
+  _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
       <ClickableBox
@@ -39,10 +45,12 @@ class ImageAttachment extends React.PureComponent<Props> {
           {!!this.props.path && (
             <ImageRender
               src={this.props.path}
+              onLoad={this._setLoaded}
               style={{
                 ...imageStyle,
                 height: this.props.height,
                 width: this.props.width,
+                opacity: this.state.loaded ? 1 : 0,
               }}
             />
           )}
