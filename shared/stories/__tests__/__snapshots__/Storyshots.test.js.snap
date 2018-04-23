@@ -33663,14 +33663,12 @@ exports[`Storyshots Files Preview 1`] = `
           style={
             Object {
               "alignItems": "center",
-              "borderBottomColor": "rgba(0, 0, 0, 0.05)",
               "borderBottomWidth": 0,
               "display": "flex",
               "flexDirection": "column",
               "flexGrow": 1,
               "height": 48,
               "justifyContent": "center",
-              "minHeight": 40,
             }
           }
         >
@@ -33785,99 +33783,114 @@ exports[`Storyshots Files Preview 1`] = `
             "flexDirection": "column",
             "flexGrow": 1,
             "justifyContent": "center",
-            "padding": 24,
           }
         }
       >
         <div
           style={
             Object {
-              "alignItems": "center",
-              "backgroundColor": "#ffffff",
               "display": "flex",
-              "flex": 1,
               "flexDirection": "column",
               "flexGrow": 1,
-              "justifyContent": "center",
+              "overflow": "scroll",
+              "paddingLeft": 24,
+              "paddingRight": 24,
               "width": "100%",
             }
           }
         >
-          <img
-            className={undefined}
-            draggable="false"
-            onClick={null}
-            srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
-            style={
-              Object {
-                "color": "#3663EA",
-                "userSelect": "none",
-              }
-            }
-            title={undefined}
-          />
-          <span
-            className="css-8"
-            onClick={undefined}
-            title={undefined}
-          >
-            bar.jpg
-          </span>
-          <span
-            className="css-3"
-            onClick={undefined}
-            title={undefined}
-          >
-            10 KB
-          </span>
           <div
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            onMouseUp={[Function]}
             style={
               Object {
                 "alignItems": "center",
-                "alignSelf": "center",
-                "backgroundColor": "#e6e6e6",
-                "borderRadius": 50,
-                "cursor": "pointer",
-                "display": "inline-block",
+                "backgroundColor": "#ffffff",
+                "display": "flex",
+                "flex": 1,
                 "flexDirection": "column",
-                "height": 32,
+                "flexGrow": 1,
                 "justifyContent": "center",
-                "lineHeight": "inherit",
-                "marginTop": 16,
-                "minWidth": undefined,
-                "paddingLeft": 24,
-                "paddingRight": 24,
-                "position": "relative",
-                "textAlign": "left",
-                "transform": "none",
-                "transition": "none",
+                "marginBottom": 24,
+                "marginTop": 24,
+                "width": "100%",
               }
             }
           >
+            <img
+              className={undefined}
+              draggable="false"
+              onClick={null}
+              srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+              style={
+                Object {
+                  "color": "#3663EA",
+                  "userSelect": "none",
+                }
+              }
+              title={undefined}
+            />
+            <span
+              className="css-8"
+              onClick={undefined}
+              title={undefined}
+            >
+              bar.jpg
+            </span>
+            <span
+              className="css-3"
+              onClick={undefined}
+              title={undefined}
+            >
+              10 KB
+            </span>
             <div
+              onClick={[Function]}
+              onMouseDown={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              onMouseUp={[Function]}
               style={
                 Object {
                   "alignItems": "center",
-                  "display": "flex",
-                  "flexDirection": "row",
-                  "height": "100%",
+                  "alignSelf": "center",
+                  "backgroundColor": "#e6e6e6",
+                  "borderRadius": 50,
+                  "cursor": "pointer",
+                  "display": "inline-block",
+                  "flexDirection": "column",
+                  "height": 32,
                   "justifyContent": "center",
+                  "lineHeight": "inherit",
+                  "marginTop": 16,
+                  "minWidth": undefined,
+                  "paddingLeft": 24,
+                  "paddingRight": 24,
                   "position": "relative",
+                  "textAlign": "left",
+                  "transform": "none",
+                  "transition": "none",
                 }
               }
             >
-              <span
-                className="css-9"
-                onClick={undefined}
-                title={undefined}
+              <div
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "height": "100%",
+                    "justifyContent": "center",
+                    "position": "relative",
+                  }
+                }
               >
-                Download a copy
-              </span>
+                <span
+                  className="css-9"
+                  onClick={undefined}
+                  title={undefined}
+                >
+                  Download a copy
+                </span>
+              </div>
             </div>
           </div>
         </div>

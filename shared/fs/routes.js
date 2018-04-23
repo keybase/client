@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Files from './container'
-import FilePreview from './filepreview/container'
+import FilePreview from './filepreview'
 import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './popups/breadcrumb-popup-container'
 import FinderPopupMenu from './finder-popup'
