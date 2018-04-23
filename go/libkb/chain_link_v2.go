@@ -63,7 +63,33 @@ func (t SigchainV2Type) NeedsSignature() bool {
 	case SigchainV2TypeTrack, SigchainV2TypeUntrack, SigchainV2TypeAnnouncement:
 		return false
 	default:
+		// Unsupported types don't need signatures. Otherwise we can't
+		// make code forwards-compatible.
+		return t.IsSupportedType()
+	}
+}
+
+func (t SigchainV2Type) IsSupportedType() bool {
+	switch t {
+	case SigchainV2TypeNone,
+		SigchainV2TypeEldest,
+		SigchainV2TypeWebServiceBinding,
+		SigchainV2TypeTrack,
+		SigchainV2TypeUntrack,
+		SigchainV2TypeRevoke,
+		SigchainV2TypeCryptocurrency,
+		SigchainV2TypeAnnouncement,
+		SigchainV2TypeDevice,
+		SigchainV2TypeWebServiceBindingWithRevoke,
+		SigchainV2TypeCryptocurrencyWithRevoke,
+		SigchainV2TypeSibkey,
+		SigchainV2TypeSubkey,
+		SigchainV2TypePGPUpdate,
+		SigchainV2TypePerUserKey,
+		SigchainV2TypeWalletStellar:
 		return true
+	default:
+		return t.IsSupportedTeamType()
 	}
 }
 
@@ -151,7 +177,7 @@ type OuterLinkV2 struct {
 	// When it comes to stubbing, if the link is unsupported and this bit is set then
 	// - it can be stubbed for non-admins
 	// - it cannot be stubbed for admins
-	IgnoreIfUnsupported bool `codec:"ignore_if_unsupported"`
+	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -186,6 +212,8 @@ func (o *OuterLinkV2WithMetadata) CodecDecodeSelf(d *codec.Decoder) {
 type SigIgnoreIfUnsupported bool
 type SigHasRevokes bool
 
+func (b SigIgnoreIfUnsupported) True() bool { return bool(b) }
+
 func MakeSigchainV2OuterSig(
 	signingKey GenericKey,
 	v1LinkType LinkType,
@@ -198,7 +226,7 @@ func MakeSigchainV2OuterSig(
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
-	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes)
+	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes, ignoreIfUnsupported)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
@@ -210,7 +238,7 @@ func MakeSigchainV2OuterSig(
 		Curr:                currLinkID,
 		LinkType:            v2LinkType,
 		SeqType:             seqType,
-		IgnoreIfUnsupported: bool(ignoreIfUnsupported),
+		IgnoreIfUnsupported: ignoreIfUnsupported,
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
@@ -235,6 +263,9 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	err = MsgpackDecode(&ol, payload)
 	if err != nil {
 		return nil, err
+	}
+	if !ol.IgnoreIfUnsupported.True() && !ol.LinkType.IsSupportedType() {
+		return nil, ChainLinkStubbedUnsupportedError{fmt.Sprintf("Stubbed link with type %d is unknown and not marked with IgnoreIfUnsupported", ol.LinkType)}
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
 }
@@ -283,7 +314,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	return &ret, nil
 }
 
-func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevokes) (ret SigchainV2Type, err error) {
+func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevokes, ignoreIfUnsupported SigIgnoreIfUnsupported) (ret SigchainV2Type, err error) {
 
 	switch s {
 	case "eldest":
@@ -326,7 +357,9 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 			ret = teamRes
 		} else {
 			ret = SigchainV2TypeNone
-			err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
+			if !ignoreIfUnsupported {
+				err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
+			}
 		}
 	}
 
@@ -381,7 +414,7 @@ func (o OuterLinkV2) AssertFields(
 	curr LinkID,
 	linkType SigchainV2Type,
 	seqType keybase1.SeqType,
-	ignoreIfUnsupported bool,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
 ) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
@@ -398,7 +431,7 @@ func (o OuterLinkV2) AssertFields(
 	if !o.Curr.Eq(curr) {
 		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
 	}
-	if o.LinkType != linkType {
+	if !(linkType == SigchainV2TypeNone && ignoreIfUnsupported) && o.LinkType != linkType {
 		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
 	}
 	if o.SeqType != seqType {
