@@ -137,7 +137,7 @@ type LoginInterface interface {
 	PGPProvision(context.Context, PGPProvisionArg) error
 	// accountDelete is for devel/testing to delete the current user's account.
 	AccountDelete(context.Context, int) error
-	// loginOnetime allows a service to have a "onetime login", without
+	// loginOneshot allows a service to have a "onetime login", without
 	// provisioning a device. It bootstraps credentials with the given
 	// paperkey
 	LoginOneshot(context.Context, LoginOneshotArg) error
@@ -499,7 +499,7 @@ func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err erro
 	return
 }
 
-// loginOnetime allows a service to have a "onetime login", without
+// loginOneshot allows a service to have a "onetime login", without
 // provisioning a device. It bootstraps credentials with the given
 // paperkey
 func (c LoginClient) LoginOneshot(ctx context.Context, __arg LoginOneshotArg) (err error) {

@@ -230,7 +230,7 @@
         }
       ],
       "response": null,
-      "doc": "loginOnetime allows a service to have a \"onetime login\", without\n   provisioning a device. It bootstraps credentials with the given\n   paperkey"
+      "doc": "loginOneshot allows a service to have a \"onetime login\", without\n   provisioning a device. It bootstraps credentials with the given\n   paperkey"
     }
   },
   "namespace": "keybase.1"
