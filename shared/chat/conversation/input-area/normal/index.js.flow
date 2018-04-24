@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import {Component} from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import {Input as TextInput} from '../../../../common-adapters'
 
 export type PreMentionHocProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -12,7 +13,7 @@ export type PreMentionHocProps = {
   inputBlur: () => void,
   inputClear: () => void,
   inputFocus: () => void,
-  inputSetRef: (r: any) => void,
+  inputSetRef: (r: ?TextInput) => void,
   inputValue: () => string,
   isLoading: boolean,
   isPreview: boolean,

@@ -4,7 +4,7 @@ import {type PreMentionHocProps, type Props} from '../normal'
 import {Input} from '../../../../common-adapters'
 
 export type PropsFromContainer = {
-  _inputSetRef: Input => void,
+  _inputSetRef: ?Input => void,
   _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 } & PreMentionHocProps
 

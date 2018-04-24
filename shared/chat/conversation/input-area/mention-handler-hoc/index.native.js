@@ -29,7 +29,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    inputSetRef = (input: Input) => {
+    inputSetRef = (input: ?Input) => {
       this.props._inputSetRef(input)
       this._inputRef = input
     }

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Set} from 'immutable'
+import {Input as TextInput} from '../../../common-adapters'
 import {Box2} from '../../../common-adapters/box'
 import * as PropProviders from '../../../stories/prop-providers'
 import {action, storiesOf} from '../../../stories/storybook'
@@ -37,9 +38,16 @@ type State = {
 }
 
 class InputContainer extends React.Component<{}, State> {
+  _input: ?TextInput
+
   constructor(props) {
     super(props)
     this.state = {text: ''}
+    this._input = null
+  }
+
+  _inputSetRef = (ref: ?TextInput) => {
+    this._input = ref
   }
 
   _setText = (text: string) => {
@@ -48,10 +56,14 @@ class InputContainer extends React.Component<{}, State> {
 
   render = () => {
     const props: PropsFromContainer = {
-      _inputSetRef: action('inputSetRef'),
+      _inputSetRef: this._inputSetRef,
       _onKeyDown: (e: SyntheticKeyboardEvent<>) => {
         action('_onKeyDown')(e.key)
       },
+
+      // Need to inject this manually since we're not loading from
+      // container/normal.js.
+      inputSelections: () => (this._input ? this._input.selections() : {}),
 
       conversationIDKey: stringToConversationIDKey('fake conversation id key'),
       channelName: 'somechannel',
