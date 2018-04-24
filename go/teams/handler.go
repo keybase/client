@@ -128,9 +128,9 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
 
 		// We are iterating thorugh resetUsers map, which is map of
-		// uid->UPAK that we loaded. Do not rely on server provided
-		// resetUsersUntrusted for EldestSeqnos, just use UIDs and
-		// see if these users are reset.
+		// uid->EldestSeqno that we loaded via UPAKLoader. Do not rely
+		// on server provided resetUsersUntrusted for EldestSeqnos,
+		// just use UIDs and see if these users are reset.
 
 		// We do not need to consider PUKless members here, because we
 		// are not auto-adding PUKless people to open teams (server
