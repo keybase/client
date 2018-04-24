@@ -1,8 +1,7 @@
 // @flow
 import {Component} from 'react'
-import type {Exact} from '../../../constants/types/more'
 
-export type Props = {|
+export type Props = {
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
@@ -13,7 +12,7 @@ export type Props = {|
   waiting?: ?boolean,
   existingDevices?: ?Array<string>,
   existingDevicesTrimmed?: ?Array<string>,
-|}
+}
 
 export type State = {
   deviceName: ?string,

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import UnlockFolders from '.'
+import UnlockFolders from './index.desktop'
 import {action, storiesOf} from '../stories/storybook'
 import {Box} from '../common-adapters'
 
