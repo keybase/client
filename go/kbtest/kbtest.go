@@ -121,6 +121,15 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	Logout(tc)
 }
 
+func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
+	err := tc.G.LoginState().DeleteAccount(u.Username)
+	if err != nil {
+		tc.T.Fatalf("In delete: %s", err)
+	}
+	tc.T.Logf("Account deleted for user %s", u.Username)
+	Logout(tc)
+}
+
 // copied from engine/common_test.go
 func Logout(tc libkb.TestContext) {
 	if err := tc.G.Logout(); err != nil {

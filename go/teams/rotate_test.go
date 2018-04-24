@@ -467,9 +467,14 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
+	otherC, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	tc.G.Logout()
+	require.NoError(t, owner.Login(tc.G))
+
 	t.Logf("Created team %q", name)
 
-	err := ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
+	err = ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_WRITER,
 	})
@@ -477,6 +482,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 
 	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
 	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherB.Username))
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherC.Username))
 
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
@@ -486,11 +492,15 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 		Generation: team.Generation(),
 	}
 
-	for _, u := range []*kbtest.FakeUser{otherA, otherB} {
+	for _, u := range []*kbtest.FakeUser{otherA, otherB, otherC} {
 		tc.G.Logout()
 		require.NoError(t, u.Login(tc.G))
 
-		kbtest.ResetAccount(tc, u)
+		if u != otherC {
+			kbtest.ResetAccount(tc, u)
+		} else {
+			kbtest.DeleteAccount(tc, u)
+		}
 
 		params.ResetUsersUntrusted = append(params.ResetUsersUntrusted,
 			keybase1.TeamCLKRResetUser{
