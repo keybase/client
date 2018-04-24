@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import loginRouteTree from './routes-login'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
+import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {refreshRouteDef, setInitialRouteDef} from '../actions/route-tree'
@@ -71,7 +72,9 @@ class Keybase extends Component<any> {
   render() {
     return (
       <Provider store={this.store}>
-        <Main />
+        <GatewayProvider>
+          <Main />
+        </GatewayProvider>
       </Provider>
     )
   }

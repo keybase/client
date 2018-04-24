@@ -27,7 +27,7 @@ func decengctx(fu *FakeUser, tc libkb.TestContext) *Context {
 func TestPGPDecrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -70,7 +70,7 @@ func TestPGPDecrypt(t *testing.T) {
 func TestPGPDecryptArmored(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -130,7 +130,7 @@ END KEYBASE SALTPACK ENCRYPTED MESSAGE.`
 func TestPGPDecryptSignedSelf(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."

@@ -60,10 +60,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
 
     case TeamsGen.setTeamChannels:
-      return state.withMutations(s => {
-        s.setIn(['teamNameToConvIDs', action.payload.teamname], I.Set(action.payload.convIDs))
-        s.mergeIn(['convIDToChannelInfo'], I.Map(action.payload.channelInfos))
-      })
+      return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)
 
     case TeamsGen.setLoaded:
       return state.set('loaded', action.payload.loaded)
@@ -86,7 +83,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.withMutations(s => {
         s.set('newTeams', action.payload.newTeams)
         s.set('newTeamRequests', action.payload.newTeamRequests)
-        s.set('teamNameToResetUsers', I.Map(action.payload.teamNameToResetUsers))
+        s.set('teamNameToResetUsers', action.payload.teamNameToResetUsers)
       })
 
     case TeamsGen.setTeamSawChatBanner:
@@ -94,6 +91,48 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
 
     case TeamsGen.setTeamSawSubteamsBanner:
       return state.set('sawSubteamsBanner', true)
+
+    case TeamsGen.setChosenChannelsForTeam:
+      const chosenChannels = I.Set(JSON.parse(action.payload.chosenChannelsForTeam))
+      // If this is coming in as the clear before a set, just ignore it.
+      if (chosenChannels.count() === 0) {
+        return state
+      }
+      return state.set('chosenChannelsForTeam', chosenChannels)
+
+    case TeamsGen.setUpdatedChannelName:
+      return state.mergeIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
+        {channelname: action.payload.newChannelName}
+      )
+
+    case TeamsGen.setUpdatedTopic:
+      return state.mergeIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
+        {description: action.payload.newTopic}
+      )
+
+    case TeamsGen.deleteChannelInfo:
+      return state.deleteIn([
+        'teamNameToChannelInfos',
+        action.payload.teamname,
+        action.payload.conversationIDKey,
+      ])
+
+    case TeamsGen.addParticipant:
+      return state.updateIn(
+        ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'participants'],
+        set => set.add(action.payload.participant)
+      )
+
+    case TeamsGen.removeParticipant:
+      return state.deleteIn([
+        'teamNameToChannelInfos',
+        action.payload.teamname,
+        action.payload.conversationIDKey,
+        'participants',
+        action.payload.participant,
+      ])
 
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
@@ -112,6 +151,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:
     case TeamsGen.getTeams:
+    case TeamsGen.haveChosenChannelsForTeam:
     case TeamsGen.ignoreRequest:
     case TeamsGen.inviteToTeamByEmail:
     case TeamsGen.inviteToTeamByPhone:

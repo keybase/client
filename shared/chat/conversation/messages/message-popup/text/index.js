@@ -23,14 +23,8 @@ type Props = {
 const TextPopupMenu = (props: Props) => {
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
-    {onClick: props.onCopy, title: 'Copy Text'},
-    {onClick: props.onQuote, title: 'Quote'},
-    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
-    {onClick: props.onViewProfile, title: 'View Profile'},
     ...(props.yourMessage
       ? [
-          {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
-          'Divider',
           {
             danger: true,
             disabled: !props.onDelete,
@@ -42,7 +36,6 @@ const TextPopupMenu = (props: Props) => {
       : []),
     ...(props.onDeleteMessageHistory
       ? [
-          'Divider',
           {
             danger: true,
             onClick: props.onDeleteMessageHistory,
@@ -50,7 +43,14 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
+    'Divider',
+    {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
+    {onClick: props.onCopy, title: 'Copy Text'},
+    {onClick: props.onQuote, title: 'Quote'},
+    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+    {onClick: props.onViewProfile, title: 'View Profile'},
   ]
+
   const header = {
     title: 'header',
     view: (

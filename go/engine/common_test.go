@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
@@ -65,6 +66,12 @@ func NewFakeUser(prefix string) (fu *FakeUser, err error) {
 
 func (fu FakeUser) NormalizedUsername() libkb.NormalizedUsername {
 	return libkb.NewNormalizedUsername(fu.Username)
+}
+
+func (fu *FakeUser) LoadUser(tc libkb.TestContext) error {
+	var err error
+	fu.User, err = libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	return err
 }
 
 func (fu FakeUser) UID() keybase1.UID {
@@ -248,7 +255,7 @@ func (fu *FakeUser) NewCountSecretUI() *libkb.TestCountSecretUI {
 }
 
 func AssertProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
+	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -259,7 +266,7 @@ func AssertProvisioned(tc libkb.TestContext) error {
 }
 
 func AssertNotProvisioned(tc libkb.TestContext) error {
-	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
+	prov, err := tc.G.LoginState().LoggedInProvisioned(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -307,22 +314,13 @@ func testEngineWithSecretStore(
 	tc := SetupEngineTest(t, "wss")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "wss")
+	fu := SignupFakeUserStoreSecret(tc, "wss")
 	tc.ResetLoginState()
 
 	testSecretUI := libkb.TestSecretUI{
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	runEngine(tc, fu, &testSecretUI)
-
-	if !testSecretUI.CalledGetPassphrase {
-		t.Fatal("GetPassphrase() unexpectedly not called")
-	}
-
-	tc.ResetLoginState()
-
-	testSecretUI = libkb.TestSecretUI{}
 	runEngine(tc, fu, &testSecretUI)
 
 	if testSecretUI.CalledGetPassphrase {

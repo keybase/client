@@ -5400,39 +5400,6 @@ exports[`Storyshots Chat/Inbox Simple 1`] = `
 exports[`Storyshots Chat/Inbox Team 1`] = `
 .css-0,
 [data-css-0] {
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: row;
-  cursor: pointer;
-  align-items: center;
-  flex-shrink: 0;
-  max-height: 24px;
-  min-height: 24px;
-  padding-left: 8px;
-  padding-right: 4px;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -webkit-flex-shrink: 0;
-}
-
-.css-0 .icon,
-[data-css-0] .icon {
-  display: none !important;
-}
-
-.css-0:hover .icon,
-[data-css-0]:hover .icon {
-  display: inherit !important;
-}
-
-.css-2,
-[data-css-2] {
   bottom: 1px;
   left: 1px;
   position: absolute;
@@ -5442,8 +5409,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   border-radius: 4px;
 }
 
-.css-3,
-[data-css-3] {
+.css-1,
+[data-css-1] {
   background-size: cover;
   bottom: 0;
   left: 0;
@@ -5458,8 +5425,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   opacity: 1;
 }
 
-.css-4,
-[data-css-4] {
+.css-2,
+[data-css-2] {
   font-size: 11px;
   line-height: 15px;
   color: #2645A3;
@@ -5473,18 +5440,13 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   -webkit-flex-grow: 1;
 }
 
-.css-5,
-[data-css-5] {
+.css-3,
+[data-css-3] {
   color: rgba(0, 0, 0, 0.20);
 }
 
-.css-5:hover,
-[data-css-5]:hover {
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.css-7,
-[data-css-7] {
+.css-4,
+[data-css-4] {
   font-size: 13px;
   line-height: 17px;
   color: rgb(64,64,64);
@@ -5494,8 +5456,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 400;
 }
 
-.css-8,
-[data-css-8] {
+.css-5,
+[data-css-5] {
   font-size: 13px;
   line-height: 17px;
   color: rgb(64,64,64);
@@ -5505,8 +5467,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 700;
 }
 
-.css-9,
-[data-css-9] {
+.css-6,
+[data-css-6] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -5516,8 +5478,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 600;
 }
 
-.css-10,
-[data-css-10] {
+.css-7,
+[data-css-7] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -5553,7 +5515,19 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
       }
     >
       <div
-        className="css-0"
+        style={
+          Object {
+            "alignItems": "center",
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "flexShrink": 0,
+            "maxHeight": 24,
+            "minHeight": 24,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+          }
+        }
       >
         <div
           onClick={undefined}
@@ -5569,44 +5543,78 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
           }
         >
           <div
-            className="css-2"
+            className="css-0"
           />
           <div
-            className="css-3"
+            className="css-1"
           />
         </div>
         <span
-          className="css-4"
+          className="css-2"
           onClick={undefined}
           title={undefined}
         >
           Keybase
         </span>
-        <div>
-          <span
-            className="css-5 icon"
-            onClick={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "stretch",
+              "borderRadius": 0,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-3 icon"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div
             style={
               Object {
-                "WebkitFontSmoothing": "antialiased",
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "padding": 4,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
+                "borderRadius": 6,
+                "height": 8,
+                "position": "absolute",
+                "right": -3,
+                "top": -1,
+                "width": 8,
               }
             }
-          >
-            
-          </span>
+          />
         </div>
       </div>
       <div
@@ -5661,7 +5669,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -5723,7 +5731,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -5785,7 +5793,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-8"
+              className="css-5"
               onClick={undefined}
               title={undefined}
             >
@@ -5847,7 +5855,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -5871,7 +5879,19 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         </div>
       </div>
       <div
-        className="css-0"
+        style={
+          Object {
+            "alignItems": "center",
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "row",
+            "flexShrink": 0,
+            "maxHeight": 24,
+            "minHeight": 24,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+          }
+        }
       >
         <div
           onClick={undefined}
@@ -5887,44 +5907,78 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
           }
         >
           <div
-            className="css-2"
+            className="css-0"
           />
           <div
-            className="css-3"
+            className="css-1"
           />
         </div>
         <span
-          className="css-4"
+          className="css-2"
           onClick={undefined}
           title={undefined}
         >
           techtonica
         </span>
-        <div>
-          <span
-            className="css-5 icon"
-            onClick={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
+        <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
+          style={
+            Object {
+              "alignItems": "stretch",
+              "borderRadius": 0,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-3 icon"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div
             style={
               Object {
-                "WebkitFontSmoothing": "antialiased",
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "padding": 4,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
+                "borderRadius": 6,
+                "height": 8,
+                "position": "absolute",
+                "right": -3,
+                "top": -1,
+                "width": 8,
               }
             }
-          >
-            
-          </span>
+          />
         </div>
       </div>
       <div
@@ -5982,7 +6036,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-9"
+              className="css-6"
               onClick={undefined}
               title={undefined}
             >
@@ -6044,7 +6098,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -6109,7 +6163,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-9"
+              className="css-6"
               onClick={undefined}
               title={undefined}
             >
@@ -6187,7 +6241,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-10"
+              className="css-7"
               onClick={undefined}
               title={undefined}
             >
@@ -7289,992 +7343,6 @@ exports[`Storyshots Chat/Teams EditChannel - general 1`] = `
                 >
                   Save
                 </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Teams EditChannel - waiting for get info 1`] = `
-.css-0,
-[data-css-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-}
-
-.css-1,
-[data-css-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-24.png') 1x, url('icons/icon-team-placeholder-avatar-24@2x.png') 2x);
-  border-radius: 4px;
-  height: 24px;
-  max-width: 24px;
-  min-width: 24px;
-  opacity: 1;
-}
-
-.css-2,
-[data-css-2] {
-  font-size: 11px;
-  line-height: 15px;
-  color: #2645A3;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.css-3,
-[data-css-3] {
-  font-size: 11px;
-  line-height: 15px;
-  color: #4C8EFF;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  min-height: 15px;
-  display: block;
-}
-
-.css-4,
-[data-css-4] {
-  color: #ff4d61;
-}
-
-.css-5,
-[data-css-5] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #ff4d61;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.css-6,
-[data-css-6] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  white-space: pre;
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={
-      Object {
-        "height": "100%",
-      }
-    }
-  >
-    <div
-      style={
-        Object {
-          "border": "black solid 1px",
-          "width": 700,
-        }
-      }
-    >
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-            "paddingBottom": 24,
-            "paddingLeft": 40,
-            "paddingRight": 40,
-            "paddingTop": 24,
-          }
-        }
-      >
-        <div
-          onClick={undefined}
-          style={
-            Object {
-              "height": 24,
-              "maxWidth": 24,
-              "minHeight": 24,
-              "minWidth": 24,
-              "position": "relative",
-              "userSelect": "none",
-            }
-          }
-        >
-          <div
-            className="css-0"
-          />
-          <div
-            className="css-1"
-          />
-        </div>
-        <span
-          className="css-2"
-          onClick={undefined}
-          title={undefined}
-        >
-          stripe.usa
-        </span>
-        <img
-          className={undefined}
-          draggable="false"
-          onClick={null}
-          srcSet="icons/icon-progress-grey-static.png 1x, icons/icon-progress-grey-static@2x.png 2x"
-          style={
-            Object {
-              "marginBottom": 8,
-              "marginTop": 8,
-              "userSelect": "none",
-              "width": 20,
-            }
-          }
-          title={undefined}
-        />
-        <div
-          style={
-            Object {
-              "position": "relative",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "column",
-                "marginBottom": 16,
-                "marginTop": 16,
-              }
-            }
-          >
-            <style>
-              ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
-            </style>
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            />
-            <input
-              autoFocus={undefined}
-              className={undefined}
-              onBlur={[Function]}
-              onChange={[Function]}
-              onClick={undefined}
-              onCompositionEnd={[Function]}
-              onCompositionStart={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              placeholder="Loading channel name..."
-              readOnly="readonly"
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "backgroundColor": "rgba(0, 0, 0, 0)",
-                  "border": "none",
-                  "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
-                  "color": "rgba(0, 0, 0, 0.75)",
-                  "flex": 1,
-                  "fontFamily": "OpenSans",
-                  "fontSize": 16,
-                  "fontWeight": 600,
-                  "height": 28,
-                  "lineHeight": "20px",
-                  "maxWidth": 460,
-                  "minWidth": 333,
-                  "outlineWidth": 0,
-                  "textAlign": "center",
-                  "textRendering": "optimizeLegibility",
-                }
-              }
-              type="text"
-              value=""
-            />
-          </div>
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "column",
-                "marginBottom": 16,
-                "marginTop": 16,
-              }
-            }
-          >
-            <style>
-              ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
-            </style>
-            <span
-              className="css-3"
-              onClick={undefined}
-              title={undefined}
-            />
-            <input
-              autoFocus={undefined}
-              className={undefined}
-              onBlur={[Function]}
-              onChange={[Function]}
-              onClick={undefined}
-              onCompositionEnd={[Function]}
-              onCompositionStart={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              placeholder="Loading channel description..."
-              readOnly="readonly"
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "backgroundColor": "rgba(0, 0, 0, 0)",
-                  "border": "none",
-                  "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
-                  "color": "rgba(0, 0, 0, 0.75)",
-                  "flex": 1,
-                  "fontFamily": "OpenSans",
-                  "fontSize": 16,
-                  "fontWeight": 600,
-                  "height": 28,
-                  "lineHeight": "20px",
-                  "maxWidth": 460,
-                  "minWidth": 333,
-                  "outlineWidth": 0,
-                  "textAlign": "center",
-                  "textRendering": "optimizeLegibility",
-                }
-              }
-              type="text"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "alignItems": "flex-end",
-              "alignSelf": "stretch",
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "minWidth": "500px",
-              "position": "relative",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "display": "flex",
-                "flexDirection": "row",
-                "left": 0,
-                "opacity": undefined,
-                "position": "absolute",
-              }
-            }
-          >
-            <div>
-              <span
-                className="css-4"
-                onClick={null}
-                onMouseEnter={undefined}
-                onMouseLeave={undefined}
-                style={
-                  Object {
-                    "WebkitFontSmoothing": "antialiased",
-                    "fontFamily": "kb",
-                    "fontSize": 16,
-                    "fontStyle": "normal",
-                    "fontVariant": "normal",
-                    "fontWeight": "normal",
-                    "height": 14,
-                    "lineHeight": 1,
-                    "marginRight": 8,
-                    "speak": "none",
-                    "textTransform": "none",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                
-              </span>
-            </div>
-            <span
-              className="css-5"
-              onClick={[Function]}
-              title={undefined}
-            >
-              Delete Channel
-            </span>
-          </div>
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "minHeight": 64,
-                "width": "100%",
-              }
-            }
-          >
-            <div
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "alignSelf": "center",
-                  "backgroundColor": "#e6e6e6",
-                  "borderRadius": 50,
-                  "cursor": "pointer",
-                  "display": "inline-block",
-                  "flexDirection": "column",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "lineHeight": "inherit",
-                  "minWidth": undefined,
-                  "paddingLeft": 24,
-                  "paddingRight": 24,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "height": "100%",
-                    "justifyContent": "center",
-                    "position": "relative",
-                  }
-                }
-              >
-                <span
-                  className="css-6"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Cancel
-                </span>
-              </div>
-            </div>
-            <div
-              style={
-                Object {
-                  "height": 8,
-                  "width": 8,
-                }
-              }
-            />
-            <div
-              onClick={null}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "alignSelf": "center",
-                  "backgroundColor": "#4C8EFF",
-                  "borderRadius": 50,
-                  "display": "inline-block",
-                  "flexDirection": "column",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "lineHeight": "inherit",
-                  "marginLeft": 8,
-                  "minWidth": undefined,
-                  "opacity": 0.3,
-                  "paddingLeft": 24,
-                  "paddingRight": 24,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "height": "100%",
-                    "justifyContent": "center",
-                    "position": "relative",
-                  }
-                }
-              >
-                <div
-                  style={
-                    Object {
-                      "alignItems": "center",
-                      "bottom": 0,
-                      "display": "flex",
-                      "justifyContent": "center",
-                      "left": 0,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                    }
-                  }
-                >
-                  <img
-                    className={undefined}
-                    draggable="false"
-                    onClick={null}
-                    srcSet="icons/icon-progress-white-static.png 1x, icons/icon-progress-white-static@2x.png 2x"
-                    style={
-                      Object {
-                        "height": 20,
-                        "userSelect": "none",
-                      }
-                    }
-                    title={undefined}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Chat/Teams EditChannel - waiting for save 1`] = `
-.css-0,
-[data-css-0] {
-  bottom: 1px;
-  left: 1px;
-  position: absolute;
-  right: 1px;
-  top: 1px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-}
-
-.css-1,
-[data-css-1] {
-  background-size: cover;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-  background-image: -webkit-image-set(url('icons/icon-team-placeholder-avatar-24.png') 1x, url('icons/icon-team-placeholder-avatar-24@2x.png') 2x);
-  border-radius: 4px;
-  height: 24px;
-  max-width: 24px;
-  min-width: 24px;
-  opacity: 1;
-}
-
-.css-2,
-[data-css-2] {
-  font-size: 11px;
-  line-height: 15px;
-  color: #2645A3;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.css-3,
-[data-css-3] {
-  font-size: 16px;
-  line-height: 20px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  margin-bottom: 8px;
-  margin-top: 8px;
-}
-
-.css-4,
-[data-css-4] {
-  font-size: 11px;
-  line-height: 15px;
-  color: #4C8EFF;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  min-height: 15px;
-  display: block;
-}
-
-.css-5,
-[data-css-5] {
-  color: #ff4d61;
-}
-
-.css-6,
-[data-css-6] {
-  font-size: 13px;
-  line-height: 17px;
-  color: #ff4d61;
-  cursor: pointer;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 400;
-}
-
-.css-7,
-[data-css-7] {
-  font-size: 14px;
-  line-height: 18px;
-  color: rgba(0, 0, 0, 0.75);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
-  text-align: center;
-  white-space: pre;
-}
-
-<div
-  style={
-    Object {
-      "flex": 1,
-      "overflow": "auto",
-    }
-  }
->
-  <div
-    style={
-      Object {
-        "height": "100%",
-      }
-    }
-  >
-    <div
-      style={
-        Object {
-          "border": "black solid 1px",
-          "width": 700,
-        }
-      }
-    >
-      <div
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "column",
-            "paddingBottom": 24,
-            "paddingLeft": 40,
-            "paddingRight": 40,
-            "paddingTop": 24,
-          }
-        }
-      >
-        <div
-          onClick={undefined}
-          style={
-            Object {
-              "height": 24,
-              "maxWidth": 24,
-              "minHeight": 24,
-              "minWidth": 24,
-              "position": "relative",
-              "userSelect": "none",
-            }
-          }
-        >
-          <div
-            className="css-0"
-          />
-          <div
-            className="css-1"
-          />
-        </div>
-        <span
-          className="css-2"
-          onClick={undefined}
-          title={undefined}
-        >
-          stripe.usa
-        </span>
-        <span
-          className="css-3"
-          onClick={undefined}
-          title={undefined}
-        >
-          Edit #
-          takeover
-        </span>
-        <div
-          style={
-            Object {
-              "position": "relative",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "column",
-                "marginBottom": 16,
-                "marginTop": 16,
-              }
-            }
-          >
-            <style>
-              ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
-            </style>
-            <span
-              className="css-4"
-              onClick={undefined}
-              title={undefined}
-            >
-              Channel name
-            </span>
-            <input
-              autoFocus={undefined}
-              className={undefined}
-              onBlur={[Function]}
-              onChange={[Function]}
-              onClick={undefined}
-              onCompositionEnd={[Function]}
-              onCompositionStart={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              placeholder="Channel name"
-              readOnly={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "backgroundColor": "rgba(0, 0, 0, 0)",
-                  "border": "none",
-                  "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
-                  "color": "rgba(0, 0, 0, 0.75)",
-                  "flex": 1,
-                  "fontFamily": "OpenSans",
-                  "fontSize": 16,
-                  "fontWeight": 600,
-                  "height": 28,
-                  "lineHeight": "20px",
-                  "maxWidth": 460,
-                  "minWidth": 333,
-                  "outlineWidth": 0,
-                  "textAlign": "center",
-                  "textRendering": "optimizeLegibility",
-                }
-              }
-              type="text"
-              value="takeover"
-            />
-          </div>
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "column",
-                "marginBottom": 16,
-                "marginTop": 16,
-              }
-            }
-          >
-            <style>
-              ::-webkit-input-placeholder { color: rgba(0,0,0,.2); }
-            </style>
-            <span
-              className="css-4"
-              onClick={undefined}
-              title={undefined}
-            />
-            <input
-              autoFocus={undefined}
-              className={undefined}
-              onBlur={[Function]}
-              onChange={[Function]}
-              onClick={undefined}
-              onCompositionEnd={[Function]}
-              onCompositionStart={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              placeholder="Description or topic (optional)"
-              readOnly={undefined}
-              style={
-                Object {
-                  "WebkitFontSmoothing": "antialiased",
-                  "backgroundColor": "rgba(0, 0, 0, 0)",
-                  "border": "none",
-                  "borderBottom": "1px solid rgba(0, 0, 0, 0.10)",
-                  "color": "rgba(0, 0, 0, 0.75)",
-                  "flex": 1,
-                  "fontFamily": "OpenSans",
-                  "fontSize": 16,
-                  "fontWeight": 600,
-                  "height": 28,
-                  "lineHeight": "20px",
-                  "maxWidth": 460,
-                  "minWidth": 333,
-                  "outlineWidth": 0,
-                  "textAlign": "center",
-                  "textRendering": "optimizeLegibility",
-                }
-              }
-              type="text"
-              value=""
-            />
-          </div>
-        </div>
-        <div
-          style={
-            Object {
-              "alignItems": "flex-end",
-              "alignSelf": "stretch",
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "minWidth": "500px",
-              "position": "relative",
-            }
-          }
-        >
-          <div
-            style={
-              Object {
-                "display": "flex",
-                "flexDirection": "row",
-                "left": 0,
-                "opacity": undefined,
-                "position": "absolute",
-              }
-            }
-          >
-            <div>
-              <span
-                className="css-5"
-                onClick={null}
-                onMouseEnter={undefined}
-                onMouseLeave={undefined}
-                style={
-                  Object {
-                    "WebkitFontSmoothing": "antialiased",
-                    "fontFamily": "kb",
-                    "fontSize": 16,
-                    "fontStyle": "normal",
-                    "fontVariant": "normal",
-                    "fontWeight": "normal",
-                    "height": 14,
-                    "lineHeight": 1,
-                    "marginRight": 8,
-                    "speak": "none",
-                    "textTransform": "none",
-                    "userSelect": "none",
-                  }
-                }
-              >
-                
-              </span>
-            </div>
-            <span
-              className="css-6"
-              onClick={[Function]}
-              title={undefined}
-            >
-              Delete Channel
-            </span>
-          </div>
-          <div
-            style={
-              Object {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "minHeight": 64,
-                "width": "100%",
-              }
-            }
-          >
-            <div
-              onClick={[Function]}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "alignSelf": "center",
-                  "backgroundColor": "#e6e6e6",
-                  "borderRadius": 50,
-                  "cursor": "pointer",
-                  "display": "inline-block",
-                  "flexDirection": "column",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "lineHeight": "inherit",
-                  "minWidth": undefined,
-                  "paddingLeft": 24,
-                  "paddingRight": 24,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "height": "100%",
-                    "justifyContent": "center",
-                    "position": "relative",
-                  }
-                }
-              >
-                <span
-                  className="css-7"
-                  onClick={undefined}
-                  title={undefined}
-                >
-                  Cancel
-                </span>
-              </div>
-            </div>
-            <div
-              style={
-                Object {
-                  "height": 8,
-                  "width": 8,
-                }
-              }
-            />
-            <div
-              onClick={null}
-              onMouseDown={[Function]}
-              onMouseEnter={undefined}
-              onMouseLeave={undefined}
-              onMouseUp={[Function]}
-              style={
-                Object {
-                  "alignItems": "center",
-                  "alignSelf": "center",
-                  "backgroundColor": "#4C8EFF",
-                  "borderRadius": 50,
-                  "display": "inline-block",
-                  "flexDirection": "column",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "lineHeight": "inherit",
-                  "marginLeft": 8,
-                  "minWidth": undefined,
-                  "opacity": 0.3,
-                  "paddingLeft": 24,
-                  "paddingRight": 24,
-                  "position": "relative",
-                  "textAlign": "left",
-                  "transform": "none",
-                  "transition": "none",
-                }
-              }
-            >
-              <div
-                style={
-                  Object {
-                    "alignItems": "center",
-                    "display": "flex",
-                    "flexDirection": "row",
-                    "height": "100%",
-                    "justifyContent": "center",
-                    "position": "relative",
-                  }
-                }
-              >
-                <div
-                  style={
-                    Object {
-                      "alignItems": "center",
-                      "bottom": 0,
-                      "display": "flex",
-                      "justifyContent": "center",
-                      "left": 0,
-                      "position": "absolute",
-                      "right": 0,
-                      "top": 0,
-                    }
-                  }
-                >
-                  <img
-                    className={undefined}
-                    draggable="false"
-                    onClick={null}
-                    srcSet="icons/icon-progress-white-static.png 1x, icons/icon-progress-white-static@2x.png 2x"
-                    style={
-                      Object {
-                        "height": 20,
-                        "userSelect": "none",
-                      }
-                    }
-                    title={undefined}
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -34479,6 +33547,16 @@ exports[`Storyshots Files Preview 1`] = `
 
 .css-6,
 [data-css-6] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-6:hover,
+[data-css-6]:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.css-8,
+[data-css-8] {
   font-size: 14px;
   line-height: 18px;
   color: #2645A3;
@@ -34490,8 +33568,8 @@ exports[`Storyshots Files Preview 1`] = `
   margin-bottom: 8px;
 }
 
-.css-7,
-[data-css-7] {
+.css-9,
+[data-css-9] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -34634,6 +33712,68 @@ exports[`Storyshots Files Preview 1`] = `
             </span>
           </div>
         </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-6"
+              onClick={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 16,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div>
+            <span
+              className="css-6"
+              onClick={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 16,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
       </div>
       <div
         style={
@@ -34677,7 +33817,7 @@ exports[`Storyshots Files Preview 1`] = `
             title={undefined}
           />
           <span
-            className="css-6"
+            className="css-8"
             onClick={undefined}
             title={undefined}
           >
@@ -34732,7 +33872,7 @@ exports[`Storyshots Files Preview 1`] = `
               }
             >
               <span
-                className="css-7"
+                className="css-9"
                 onClick={undefined}
                 title={undefined}
               >

@@ -1,11 +1,11 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
-import {navigateAppend, navigateUp} from '../../actions/route-tree'
+import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
-import {isMobile, isLinux} from '../../constants/platform'
+import * as DispatchMappers from '../utils/dispatch-mappers'
+import * as StateMappers from '../utils/state-mappers'
 
 const mapStateToProps = (state: TypedState, {path}) => {
   const pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
@@ -13,7 +13,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   return {
     _username,
     path,
-    kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
+    kbfsEnabled: StateMappers.mapStateToKBFSEnabled(state),
     pathItem,
   }
 }
@@ -26,41 +26,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
     }
   },
-  _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _onAction: (path: Types.Path, type: Types.PathType, targetRect?: ?ClientRect) => {
-    // We may not have the folder loaded yet, but will need metadata to know
-    // folder entry types in the popup. So dispatch an action now to load it.
-    type === 'folder' && dispatch(FsGen.createFolderListLoad({path}))
-    dispatch(
-      navigateAppend([
-        {
-          props: {
-            path,
-            position: 'bottom right',
-            isShare: false,
-            targetRect,
-          },
-          selected: 'pathItemAction',
-        },
-      ])
-    )
-  },
-  _openFinderPopup: isMobile
-    ? () => undefined
-    : (evt?: SyntheticEvent<>) =>
-        dispatch(
-          navigateAppend([
-            {
-              props: {
-                targetRect: evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null,
-                position: 'bottom right',
-                onHidden: () => dispatch(navigateUp()),
-                onInstall: () => dispatch(FsGen.createInstallFuse()),
-              },
-              selected: 'finderAction',
-            },
-          ])
-        ),
+  _openInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
+  _onAction: DispatchMappers.mapDispatchToOnAction(dispatch),
+  _openFinderPopup: DispatchMappers.mapDispatchToOpenFinderPopup(dispatch),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -75,11 +43,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     ? () => dispatchProps._openInFileUI(stateProps.path)
     : dispatchProps._openFinderPopup,
   onAction: (event: SyntheticEvent<>) =>
-    dispatchProps._onAction(
-      stateProps.path,
-      stateProps.pathItem.type,
-      isMobile ? undefined : (event.target: window.HTMLElement).getBoundingClientRect()
-    ),
+    dispatchProps._onAction(stateProps.path, stateProps.pathItem.type, event),
   itemStyles: Constants.getItemStyles(
     Types.getPathElements(stateProps.path),
     stateProps.pathItem.type,

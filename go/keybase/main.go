@@ -128,7 +128,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		return nil
 	}
 
-	if !cmd.GetUsage().AllowRoot {
+	if !cmd.GetUsage().AllowRoot && !g.Env.GetAllowRoot() {
 		checkSystemUser(g.Log)
 	}
 

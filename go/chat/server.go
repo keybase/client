@@ -489,6 +489,14 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: result obtained offline")
 		}
 	}()
+
+	// Lock conversation while this is running
+	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
+		return res, err
+	}
+	defer h.G().ConvSource.ReleaseConversationLock(ctx, uid, arg.ConversationID)
+	h.Debug(ctx, "GetThreadNonblock: conversation lock obtained")
+
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
@@ -950,10 +958,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	uid := h.G().Env.GetUID()
 
 	// Sanity check that we have a TLF name here
 	if len(arg.Msg.ClientHeader.TlfName) == 0 {
@@ -968,7 +976,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	if err = deviceID.ToBytes(db); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	arg.Msg.ClientHeader.Sender = uid.ToBytes()
+	arg.Msg.ClientHeader.Sender = uid
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
@@ -1014,6 +1022,11 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 		MessageID: arg.Supersedes,
 		Body:      arg.Body,
 	})
+	if arg.EphemeralLifetime != nil {
+		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	return h.PostLocalNonblock(ctx, parg)
 }
@@ -1030,6 +1043,11 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: arg.Body,
 	})
+	if arg.EphemeralLifetime != nil {
+		parg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	return h.PostLocalNonblock(ctx, parg)
 }
@@ -1273,15 +1291,16 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
 	parg := postAttachmentArg{
-		SessionID:        arg.SessionID,
-		ConversationID:   arg.ConversationID,
-		TlfName:          arg.TlfName,
-		Visibility:       arg.Visibility,
-		Attachment:       newStreamSource(arg.Attachment),
-		Title:            arg.Title,
-		Metadata:         arg.Metadata,
-		IdentifyBehavior: arg.IdentifyBehavior,
-		OutboxID:         arg.OutboxID,
+		SessionID:         arg.SessionID,
+		ConversationID:    arg.ConversationID,
+		TlfName:           arg.TlfName,
+		Visibility:        arg.Visibility,
+		Attachment:        newStreamSource(arg.Attachment),
+		Title:             arg.Title,
+		Metadata:          arg.Metadata,
+		IdentifyBehavior:  arg.IdentifyBehavior,
+		OutboxID:          arg.OutboxID,
+		EphemeralLifetime: arg.EphemeralLifetime,
 	}
 	defer parg.Attachment.Close()
 
@@ -1314,14 +1333,15 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	parg := postAttachmentArg{
-		SessionID:        arg.SessionID,
-		ConversationID:   arg.ConversationID,
-		TlfName:          arg.TlfName,
-		Visibility:       arg.Visibility,
-		Title:            arg.Title,
-		Metadata:         arg.Metadata,
-		IdentifyBehavior: arg.IdentifyBehavior,
-		OutboxID:         arg.OutboxID,
+		SessionID:         arg.SessionID,
+		ConversationID:    arg.ConversationID,
+		TlfName:           arg.TlfName,
+		Visibility:        arg.Visibility,
+		Title:             arg.Title,
+		Metadata:          arg.Metadata,
+		IdentifyBehavior:  arg.IdentifyBehavior,
+		OutboxID:          arg.OutboxID,
+		EphemeralLifetime: arg.EphemeralLifetime,
 	}
 	asrc, err := newFileSource(arg.Attachment)
 	if err != nil {
@@ -1362,16 +1382,17 @@ type attachmentPreview struct {
 
 // postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
 type postAttachmentArg struct {
-	SessionID        int
-	ConversationID   chat1.ConversationID
-	TlfName          string
-	Visibility       keybase1.TLFVisibility
-	Attachment       assetSource
-	Preview          *attachmentPreview
-	Title            string
-	Metadata         []byte
-	IdentifyBehavior keybase1.TLFIdentifyBehavior
-	OutboxID         *chat1.OutboxID
+	SessionID         int
+	ConversationID    chat1.ConversationID
+	TlfName           string
+	Visibility        keybase1.TLFVisibility
+	Attachment        assetSource
+	Preview           *attachmentPreview
+	Title             string
+	Metadata          []byte
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior
+	OutboxID          *chat1.OutboxID
+	EphemeralLifetime *gregor1.DurationSec
 }
 
 func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
@@ -1498,6 +1519,12 @@ func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg)
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
+
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1657,6 +1684,12 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
+
+	if arg.EphemeralLifetime != nil {
+		postArg.Msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *arg.EphemeralLifetime,
+		}
+	}
 
 	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -2467,7 +2500,11 @@ func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool 
 
 func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs []string) {
 	// Get session token
-	status, err := h.G().LoginState().APIServerSession(false)
+	nist, _, err := h.G().ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		h.Debug(ctx, "sendRemoteNotificationSuccessful: got a nil NIST, is the user logged out?")
+		return
+	}
 	if err != nil {
 		h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to get logged in session: %s", err.Error())
 		return
@@ -2503,7 +2540,7 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
 	if err = cli.RemoteNotificationSuccessful(ctx,
 		chat1.RemoteNotificationSuccessfulArg{
-			AuthToken:        gregor1.SessionToken(status.SessionToken),
+			AuthToken:        gregor1.SessionToken(nist.Token().String()),
 			CompanionPushIDs: pushIDs,
 		}); err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to invoke remote notification success: %",
@@ -2568,23 +2605,39 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 
-	// Let's just take this whole message and add it to the message body cache. Alternatively,
-	// we can try to just unbox if this fails, since it will need the convo in cache.
-	msgUnboxed, _, err := h.G().ConvSource.Push(ctx, convID, uid, msgBoxed)
+	// Unbox first
+	vis := keybase1.TLFVisibility_PRIVATE
+	if msgBoxed.ClientHeader.TlfPublic {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil, vis)
+	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo)
 	if err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
-		// Try to just unbox without pushing
-		vis := keybase1.TLFVisibility_PRIVATE
-		if msgBoxed.ClientHeader.TlfPublic {
-			vis = keybase1.TLFVisibility_PUBLIC
-		}
-		unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil, vis)
-		if msgUnboxed, err = NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo); err != nil {
-			h.Debug(ctx, "UnboxMobilePushNotification: failed simple unbox as well, bailing: %s", err.Error())
-			return res, err
-		}
+		h.Debug(ctx, "UnboxMobilePushNotification: unbox failed, bailing: %s", err.Error())
+		return res, err
 	}
 
+	// Check to see if this will be a strict append before adding to the body cache
+	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
+		return res, err
+	}
+	maxMsgID, err := storage.New(h.G()).GetMaxMsgID(ctx, convID, uid)
+	if err == nil {
+		if msgUnboxed.GetMessageID() > maxMsgID {
+			if _, err = h.G().ConvSource.PushUnboxed(ctx, convID, uid, msgUnboxed); err != nil {
+				h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s",
+					err.Error())
+			}
+		} else {
+			h.Debug(ctx, "UnboxMobilePushNotification: message from the past, skipping insert: msgID: %d maxMsgID: %d", msgUnboxed.GetMessageID(), maxMsgID)
+
+		}
+	} else {
+		h.Debug(ctx, "UnboxMobilePushNotification: failed to fetch max msg ID: %s", err)
+	}
+	h.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
+
+	// Form the push notification message
 	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
 		res = h.formatPushText(ctx, uid, convID, arg.MembersType, msgUnboxed)
 		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox")

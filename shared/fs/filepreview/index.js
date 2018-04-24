@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Button, Text, BackButton} from '../../common-adapters'
+import {Box, Button, Icon, Text, BackButton} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import PathItemIcon from '../common/path-item-icon'
 import Footer from '../footer/container'
@@ -14,7 +14,7 @@ type FilePreviewProps = {
   fileUIEnabled: boolean,
   pathItem: Types.PathItemMetadata,
   itemStyles: Types.ItemStyles,
-  onAction: (targetRect?: ?ClientRect) => void,
+  onAction: (evt?: SyntheticEvent<>) => void,
   onBack: () => void,
   onDownload: () => void,
   onShowInFileUI: () => void,
@@ -35,6 +35,10 @@ const FilePreview = (props: FilePreviewProps) => (
             startWithLastModified={true}
           />
         )}
+      </Box>
+      <Box style={stylesHeaderIcons}>
+        {!isMobile && <Icon type="iconfont-finder" style={stylesHeaderIcon} onClick={props.onShowInFileUI} />}
+        <Icon type="iconfont-ellipsis" style={stylesHeaderIcon} onClick={props.onAction} />
       </Box>
     </Box>
     <Box style={stylesGreyContainer}>
@@ -67,7 +71,7 @@ const FilePreview = (props: FilePreviewProps) => (
           />
         )}
         {isIOS ? (
-          Constants.isImage(props.pathItem.name) && (
+          Constants.isMedia(props.pathItem.name) && (
             <Button
               key="open"
               type="Secondary"
@@ -165,6 +169,16 @@ const stylesFilename = memoize(color => ({
 const stylesNoOpenMobile = {
   marginTop: globalMargins.medium,
   width: 295,
+}
+
+const stylesHeaderIcons = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+}
+
+const stylesHeaderIcon = {
+  fontSize: 16,
+  marginRight: globalMargins.small,
 }
 
 export default FilePreview

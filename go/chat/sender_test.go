@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -131,6 +132,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 	res := kbtest.NewChatMockWorld(t, name, numUsers)
 	for _, w := range res.Tcs {
 		teams.ServiceInit(w.G)
+		ephemeral.ServiceInit(w.G)
 	}
 	return res
 }
@@ -159,6 +161,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		ri = gh.GetClient()
 	}
 	boxer := NewBoxer(g)
+	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
 	sender := NewNonblockingSender(g, baseSender)
@@ -941,7 +944,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, conv.GetConvID(), uid))
+	require.NoError(t, storage.New(tc.Context()).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 
 	// Fetch a subset into the cache
 	_, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{

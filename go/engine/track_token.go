@@ -48,7 +48,7 @@ func (e *TrackToken) Name() string {
 // GetPrereqs returns the engine prereqs.
 func (e *TrackToken) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

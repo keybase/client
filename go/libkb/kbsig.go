@@ -805,7 +805,6 @@ func StellarProof(me *User, walletAddress stellar1.AccountID,
 	}
 
 	walletSection := jsonw.NewDictionary()
-	walletSection.SetKey("name", jsonw.NewString(""))
 	walletSection.SetKey("address", jsonw.NewString(walletAddress.String()))
 	walletSection.SetKey("network", jsonw.NewString(string(WalletNetworkStellar)))
 

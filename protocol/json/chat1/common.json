@@ -748,6 +748,12 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "now",
+          "mpackkey": "n",
+          "jsonkey": "n"
         }
       ]
     },
@@ -784,10 +790,10 @@
       "name": "MsgEphemeralMetadata",
       "fields": [
         {
-          "type": "gregor1.Time",
-          "name": "etime",
-          "mpackkey": "e",
-          "jsonkey": "e"
+          "type": "gregor1.DurationSec",
+          "name": "lifetime",
+          "mpackkey": "l",
+          "jsonkey": "l"
         },
         {
           "type": "keybase1.EkGeneration",
@@ -988,6 +994,12 @@
           "name": "ephemeralMetadata",
           "mpackkey": "em",
           "jsonkey": "em"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "rtime",
+          "mpackkey": "rt",
+          "jsonkey": "rt"
         }
       ]
     },

@@ -202,15 +202,11 @@ func TestTrackNewUserWithPGP(t *testing.T) {
 
 // see issue #578
 func TestTrackRetrack(t *testing.T) {
+
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
-	fu := CreateAndSignupFakeUser(tc, "track")
-
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-	}, "clear stream cache")
+	fu := createFakeUserWithPGPSibkey(tc)
 
 	idUI := &FakeIdentifyUI{}
 	secretUI := fu.NewSecretUI()
@@ -239,10 +235,6 @@ func TestTrackRetrack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !secretUI.CalledGetPassphrase {
-		t.Errorf("expected get passphrase call")
-	}
-
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
@@ -253,25 +245,10 @@ func TestTrackRetrack(t *testing.T) {
 		t.Errorf("seqno after track: %d, expected > %d", seqnoAfter, seqnoBefore)
 	}
 
-	Logout(tc)
-	fu.LoginOrBust(tc)
-	// clear out the passphrase cache
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-		a.ClearCachedSecretKeys()
-	}, "clear stream cache")
-
-	// reset the flag
-	secretUI.CalledGetPassphrase = false
-
 	eng = NewTrackEngine(arg, tc.G)
 	err = RunEngine(eng, ctx)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if secretUI.CalledGetPassphrase {
-		t.Errorf("get secret called on retrack")
 	}
 
 	fu.User, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))

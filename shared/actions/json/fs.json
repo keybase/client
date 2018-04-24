@@ -26,9 +26,10 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
+      "intent": "Types.TransferIntent",
+      "mimeType?": "string",
       "path": "Types.Path",
-      "localPath?": "string",
-      "intent": "Types.TransferIntent"
+      "localPath?": "string"
     },
     "downloadStarted": {
       "key": "string",

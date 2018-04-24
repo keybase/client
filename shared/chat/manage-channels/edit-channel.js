@@ -2,16 +2,7 @@
 import * as React from 'react'
 import {compose, withStateHandlers, lifecycle} from '../../util/container'
 import DeleteChannel from './delete-channel'
-import {
-  Avatar,
-  Text,
-  Box,
-  Button,
-  Input,
-  ProgressIndicator,
-  StandardScreen,
-  ButtonBar,
-} from '../../common-adapters'
+import {Avatar, Text, Box, Button, Input, StandardScreen, ButtonBar} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 
 type Props = {
@@ -23,8 +14,6 @@ type Props = {
   onConfirmedDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
-  waitingForGetInfo: boolean,
-  waitingForSave: boolean,
 }
 
 type TextState = {
@@ -40,20 +29,14 @@ const EditChannelBare = (props: Props & TextState) => (
     <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
       {props.teamname}
     </Text>
-    {props.waitingForGetInfo ? (
-      <ProgressIndicator
-        style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny, width: 20}}
-      />
-    ) : (
-      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
-        Edit #{props.channelName}
-      </Text>
-    )}
+    <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+      Edit #{props.channelName}
+    </Text>
     <Box style={{position: 'relative'}}>
       <Input
         onChangeText={props.onChangeChannelName}
-        hintText={props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
-        editable={!props.waitingForGetInfo && !props.deleteRenameDisabled}
+        hintText="Channel name"
+        editable={!props.deleteRenameDisabled}
         value={props.newChannelName}
       />
 
@@ -74,10 +57,7 @@ const EditChannelBare = (props: Props & TextState) => (
 
       <Input
         onChangeText={props.onChangeTopic}
-        editable={!props.waitingForGetInfo}
-        hintText={
-          props.waitingForGetInfo ? 'Loading channel description...' : 'Description or topic (optional)'
-        }
+        hintText="Description or topic (optional)"
         value={props.newTopic}
       />
     </Box>
@@ -95,7 +75,6 @@ const EditChannelBare = (props: Props & TextState) => (
         <Button
           type="Primary"
           label="Save"
-          waiting={props.waitingForSave}
           disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
           onClick={() => props.onSave(props.newChannelName, props.newTopic)}
           style={{marginLeft: globalMargins.tiny}}

@@ -226,6 +226,17 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
 }
 
+func runWithEphemeral(t *testing.T, mt chat1.ConversationMembersType, f func(ephemeralLifetime *gregor1.DurationSec)) {
+	switch mt {
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
+		f(nil)
+		lifetime := gregor1.DurationSec(60 * 5)
+		f(&lifetime)
+	default:
+		f(nil)
+	}
+}
+
 type chatTestUserContext struct {
 	startCtx context.Context
 	u        *kbtest.FakeUser
@@ -1462,7 +1473,7 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		// make evil hello evil
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		require.NoError(t, tc.Context().ConvSource.Clear(created.Id, uid))
+		require.NoError(t, tc.Context().ConvSource.Clear(context.TODO(), created.Id, uid))
 
 		ri := ctc.as(t, users[0]).ri
 		sabRemote := messageSabotagerRemote{RemoteInterface: ri}
@@ -1895,188 +1906,206 @@ func newServerChatListener() *serverChatListener {
 
 func TestChatSrvPostLocalNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "PostLocalNonblock", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
+		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+			ctc := makeChatTestContext(t, "PostLocalNonblock", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
 
-		tc := ctc.as(t, users[0])
-		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
-		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+			tc := ctc.as(t, users[0])
+			listener := newServerChatListener()
+			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
-		var err error
-		var created chat1.ConversationInfoLocal
-		switch mt {
-		case chat1.ConversationMembersType_TEAM:
-			first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-				mt, ctc.as(t, users[1]).user())
-			topicName := "mike"
-			ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
-				chat1.NewConversationLocalArg{
-					TlfName:       first.TlfName,
-					TopicName:     &topicName,
-					TopicType:     chat1.TopicType_CHAT,
-					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
-					MembersType:   chat1.ConversationMembersType_TEAM,
-				})
+			var err error
+			var created chat1.ConversationInfoLocal
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					mt, ctc.as(t, users[1]).user())
+				topicName := "mike"
+				ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
+					chat1.NewConversationLocalArg{
+						TlfName:       first.TlfName,
+						TopicName:     &topicName,
+						TopicType:     chat1.TopicType_CHAT,
+						TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+						MembersType:   chat1.ConversationMembersType_TEAM,
+					})
+				require.NoError(t, err)
+				created = ncres.Conv.Info
+				consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
+			default:
+				created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					mt, ctc.as(t, users[1]).user())
+			}
+
+			t.Logf("send a text message")
+			arg := chat1.PostTextNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Body:             "hi",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
-			created = ncres.Conv.Info
-			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener, chat1.MessageType_JOIN)
-			consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
-			consumeNewMsg(t, listener, chat1.MessageType_SYSTEM)
-		default:
-			created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-				mt, ctc.as(t, users[1]).user())
-		}
-
-		t.Logf("send a text message")
-		arg := chat1.PostTextNonblockArg{
-			ConversationID:   created.Id,
-			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			Body:             "hi",
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
-		require.NoError(t, err)
-		var unboxed chat1.UIMessage
-		select {
-		case info := <-listener.newMessage:
-			unboxed = info.Message
-			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no event received")
-		}
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-
-		t.Logf("post text message with prefetched outbox ID")
-		genOutboxID, err := ctc.as(t, users[0]).chatLocalHandler().GenerateOutboxID(context.TODO())
-		require.NoError(t, err)
-		arg = chat1.PostTextNonblockArg{
-			ConversationID:   created.Id,
-			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			Body:             "hi",
-			OutboxID:         &genOutboxID,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
-		require.NoError(t, err)
-		select {
-		case info := <-listener.newMessage:
-			unboxed = info.Message
-			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no event received")
-		}
-		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
-
-		t.Logf("edit the message")
-		earg := chat1.PostEditNonblockArg{
-			ConversationID:   created.Id,
-			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			Supersedes:       unboxed.GetMessageID(),
-			Body:             "hi2",
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
-		require.NoError(t, err)
-		select {
-		case info := <-listener.newMessage:
-			unboxed = info.Message
-			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no event received")
-		}
-		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
-
-		t.Logf("delete the message")
-		darg := chat1.PostDeleteNonblockArg{
-			ConversationID:   created.Id,
-			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			Supersedes:       unboxed.GetMessageID(),
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
-		require.NoError(t, err)
-		select {
-		case info := <-listener.newMessage:
-			unboxed = info.Message
-			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no event received")
-		}
-		consumeNewMsg(t, listener, chat1.MessageType_DELETE)
-
-		t.Logf("post headline")
-		headline := "SILENCE!"
-		harg := chat1.PostHeadlineNonblockArg{
-			ConversationID:   created.Id,
-			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			Headline:         headline,
-		}
-		res, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
-		require.NoError(t, err)
-		select {
-		case info := <-listener.newMessage:
-			unboxed = info.Message
-			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, chat1.MessageType_HEADLINE, unboxed.GetMessageType(), "invalid type")
-			switch mt {
-			case chat1.ConversationMembersType_TEAM:
-				require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
+			var unboxed chat1.UIMessage
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
 			}
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no event received")
-		}
-		consumeNewMsg(t, listener, chat1.MessageType_HEADLINE)
+			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 
-		t.Logf("change name")
-		topicName := "NEWNAME"
-		marg := chat1.PostMetadataNonblockArg{
-			ConversationID:   created.Id,
-			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			ChannelName:      topicName,
-		}
-		res, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
-		require.NoError(t, err)
-		select {
-		case info := <-listener.newMessage:
-			unboxed = info.Message
-			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, chat1.MessageType_METADATA, unboxed.GetMessageType(), "invalid type")
-			switch mt {
-			case chat1.ConversationMembersType_TEAM:
-				require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
+			t.Logf("post text message with prefetched outbox ID")
+			genOutboxID, err := ctc.as(t, users[0]).chatLocalHandler().GenerateOutboxID(context.TODO())
+			require.NoError(t, err)
+			arg = chat1.PostTextNonblockArg{
+				ConversationID:    created.Id,
+				TlfName:           created.TlfName,
+				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Body:              "hi",
+				OutboxID:          &genOutboxID,
+				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				EphemeralLifetime: ephemeralLifetime,
 			}
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no event received")
-		}
-		consumeNewMsg(t, listener, chat1.MessageType_METADATA)
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+				if ephemeralLifetime == nil {
+					require.False(t, unboxed.Valid().IsExploding())
+				} else {
+					require.True(t, unboxed.Valid().IsExploding())
+					metadata := unboxed.Valid().EphemeralMetadata
+					require.Equal(t, metadata.Lifetime, *ephemeralLifetime)
+				}
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+
+			t.Logf("edit the message")
+			earg := chat1.PostEditNonblockArg{
+				ConversationID:    created.Id,
+				TlfName:           created.TlfName,
+				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:        unboxed.GetMessageID(),
+				Body:              "hi2",
+				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				EphemeralLifetime: ephemeralLifetime,
+			}
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
+				if ephemeralLifetime == nil {
+					require.False(t, unboxed.Valid().IsExploding())
+				} else {
+					require.True(t, unboxed.Valid().IsExploding())
+					metadata := unboxed.Valid().EphemeralMetadata
+					require.Equal(t, metadata.Lifetime, *ephemeralLifetime)
+				}
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+
+			t.Logf("delete the message")
+			darg := chat1.PostDeleteNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_DELETE)
+
+			t.Logf("post headline")
+			headline := "SILENCE!"
+			harg := chat1.PostHeadlineNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				Headline:         headline,
+			}
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_HEADLINE, unboxed.GetMessageType(), "invalid type")
+				switch mt {
+				case chat1.ConversationMembersType_TEAM:
+					require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
+				}
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_HEADLINE)
+
+			t.Logf("change name")
+			topicName := "NEWNAME"
+			marg := chat1.PostMetadataNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				ChannelName:      topicName,
+			}
+			res, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessage:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_METADATA, unboxed.GetMessageType(), "invalid type")
+				switch mt {
+				case chat1.ConversationMembersType_TEAM:
+					require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
+				}
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsg(t, listener, chat1.MessageType_METADATA)
+		})
 	})
 }
 
@@ -2408,7 +2437,8 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
-		require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
+		require.NoError(t,
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].ChatG
 		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
@@ -2460,7 +2490,8 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
-		require.NoError(t, ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(conv.Id, uid))
+		require.NoError(t,
+			ctc.world.Tcs[users[0].Username].ChatG.ConvSource.Clear(context.TODO(), conv.Id, uid))
 		g := ctc.world.Tcs[users[0].Username].Context()
 		ri := ctc.as(t, users[0]).ri
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
