@@ -212,7 +212,7 @@ func (o *OuterLinkV2WithMetadata) CodecDecodeSelf(d *codec.Decoder) {
 type SigIgnoreIfUnsupported bool
 type SigHasRevokes bool
 
-func (b SigIgnoreIfUnsupported) True() bool { return bool(b) }
+func (b SigIgnoreIfUnsupported) Bool() bool { return bool(b) }
 
 func MakeSigchainV2OuterSig(
 	signingKey GenericKey,
@@ -264,7 +264,7 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	if err != nil {
 		return nil, err
 	}
-	if !ol.IgnoreIfUnsupported.True() && !ol.LinkType.IsSupportedType() {
+	if !ol.IgnoreIfUnsupported.Bool() && !ol.LinkType.IsSupportedType() {
 		return nil, ChainLinkStubbedUnsupportedError{fmt.Sprintf("Stubbed link with type %d is unknown and not marked with IgnoreIfUnsupported", ol.LinkType)}
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
