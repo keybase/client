@@ -1160,14 +1160,27 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) error {
 	g.Log.CDebugf(ctx, "looking for active or obsolete keybase-type invite in %s for %s", team.Name(), uid)
 
+	// Remove all invites with given UID, so we don't have to worry
+	// about old teams that might have duplicates. Having to remove
+	// more than one should be rare because we do not allow adding
+	// duplicate pukless/crypto memberships anymore, and client tries
+	// to always remove old versions of memberships.
+
+	var toRemove []keybase1.TeamInviteID
 	allInvites := team.GetActiveAndObsoleteInvites()
 	for _, invite := range allInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid.Equal(uid) {
-				g.Log.CDebugf(ctx, "found keybase-type invite %s for %s, removing it", invite.Id, invite.Name)
-				return removeInviteID(ctx, team, invite.Id)
+				g.Log.CDebugf(ctx, "found keybase-type invite %s for %s, removing", invite.Id, invite.Name)
+				toRemove = append(toRemove, invite.Id)
 			}
 		}
+	}
+
+	if len(toRemove) > 0 {
+		g.Log.CDebugf(ctx, "found %d keybase-type invites for %s, trying to post remove invite link",
+			len(toRemove), uid)
+		return removeMultipleInviteIDs(ctx, team, toRemove)
 	}
 
 	g.Log.CDebugf(ctx, "no keybase-invites found to remove %s", uid)
