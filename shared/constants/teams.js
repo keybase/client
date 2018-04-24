@@ -178,7 +178,7 @@ const userIsActiveInTeamHelper = (
 }
 
 const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
-  !state.teams.teamsWithChosenChannels.has(teamname)
+  state.teams.teamsWithChosenChannels.has(teamname)
 
 const getTeamChannelInfos = (
   state: TypedState,
