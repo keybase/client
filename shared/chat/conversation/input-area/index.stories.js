@@ -73,12 +73,35 @@ const defaultProps: PropsFromContainer = {
   typing: Set(),
 }
 
+type State = {
+  text: string,
+}
+
+class InputContainer extends React.Component<{}, State> {
+  constructor(props) {
+    super(props)
+    this.state = {text: ''}
+  }
+
+  _setText = (text: string) => {
+    this.setState({text})
+  }
+
+  render = () => {
+    return (
+      <Box2 direction="horizontal" style={{width: 500}}>
+        <Input {...defaultProps} setText={this._setText} {...this.state} />
+      </Box2>
+    )
+  }
+}
+
 const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
     .add('Basic', () => (
       <Box2 direction="horizontal" style={{width: 500}}>
-        <Input {...defaultProps} />
+        <InputContainer />
       </Box2>
     ))
 }
