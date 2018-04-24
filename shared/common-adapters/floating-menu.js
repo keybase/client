@@ -46,6 +46,7 @@ export type FloatingMenuParentProps = {
   toggleShowingMenu: () => void,
 }
 
+// TODO make setAttachmentRef undefined on mobile
 export const FloatingMenuParentHOC = withStateHandlers(
   {attachmentRef: null, showingMenu: false},
   {
