@@ -130,7 +130,7 @@ const Typing = () => (
 )
 
 const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
-  text && !pendingWaiting ? (
+  text ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
@@ -139,12 +139,17 @@ const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, inse
   ) : (
     <Box style={styles.actionButtonContainer}>
       <Icon
-        onClick={insertMentionMarker}
+        onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
         style={styles.mentionMarkerStyle}
         fontSize={21}
       />
-      <Icon onClick={openFilePicker} type="iconfont-camera" style={styles.actionButton} fontSize={21} />
+      <Icon
+        onClick={pendingWaiting ? undefined : openFilePicker}
+        type="iconfont-camera"
+        style={styles.actionButton}
+        fontSize={21}
+      />
     </Box>
   )
 
