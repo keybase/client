@@ -3,10 +3,12 @@ import * as React from 'react'
 import {Set} from 'immutable'
 import {Input as TextInput} from '../../../common-adapters'
 import {Box2} from '../../../common-adapters/box'
+import {platformStyles} from '../../../styles'
 import * as PropProviders from '../../../stories/prop-providers'
 import {action, storiesOf} from '../../../stories/storybook'
 import mentionHoc, {type PropsFromContainer} from './mention-handler-hoc'
 import {default as _Input} from './normal'
+import {isMobile} from '../../../constants/platform'
 import {stringToConversationIDKey} from '../../../constants/types/chat2'
 
 // For some reason, flow can't infer the type of mentionHoc here.
@@ -42,6 +44,15 @@ type Props = {
 
 type State = {
   text: string,
+}
+
+const boxProps = {
+  direction: 'vertical',
+  fullHeight: isMobile,
+  fullWidth: isMobile,
+  style: platformStyles({
+    isElectron: {height: 750, width: 500},
+  }),
 }
 
 class InputContainer extends React.Component<Props, State> {
@@ -103,7 +114,7 @@ class InputContainer extends React.Component<Props, State> {
     }
 
     return (
-      <Box2 direction="horizontal" style={{backgroundColor: 'red', height: 750, width: 500}}>
+      <Box2 {...boxProps}>
         <Input {...props} />
       </Box2>
     )
