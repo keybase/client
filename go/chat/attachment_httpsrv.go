@@ -31,6 +31,11 @@ func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer
 	return nil
 }
 
+func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
+	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
+	return nil
+}
+
 type DummyAttachmentHTTPSrv struct{}
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -220,11 +225,38 @@ func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writ
 	return r.store.DownloadAsset(ctx, s3params, asset, w, signer, progress)
 }
 
+func (r *RemoteAttachmentFetcher) DeleteAssets(ctx context.Context,
+	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
+	defer r.Trace(ctx, func() error { return err }, "DeleteAssets")()
+
+	if len(assets) == 0 {
+		return nil
+	}
+
+	// get s3 params from server
+	s3params, err := ri().GetS3Params(ctx, convID)
+	if err != nil {
+		r.Debug(ctx, "error getting s3params: %s", err)
+		return err
+	}
+
+	// Try to delete the assets remotely
+	if err := r.store.DeleteAssets(ctx, s3params, signer, assets); err != nil {
+		// there's no way to get asset information after this point.
+		// any assets not deleted will be stranded on s3.
+		r.Debug(ctx, "error deleting assets: %s", err)
+	}
+
+	r.Debug(ctx, "deleted %d assets", len(assets))
+	return nil
+}
+
 type attachmentRemoteStore interface {
 	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
 		progress types.ProgressReporter) error
 	GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
 		signer s3.Signer) (io.ReadCloser, error)
+	DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error
 }
 
 type CachingAttachmentFetcher struct {
@@ -266,6 +298,10 @@ func (c *CachingAttachmentFetcher) closeFile(f io.Closer) {
 	}
 }
 
+func (c *CachingAttachmentFetcher) cacheKey(asset chat1.Asset) string {
+	return asset.Path
+}
+
 func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
 	os.MkdirAll(c.getCacheDir(), os.ModePerm)
 	file, err := ioutil.TempFile(c.getCacheDir(), "att")
@@ -287,7 +323,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	defer c.Trace(ctx, func() error { return err }, "FetchAttachment")()
 
 	// Check for a disk cache hit, and decrypt that onto the response stream
-	found, entry, err := c.diskLRU.Get(ctx, c.G(), asset.Path)
+	found, entry, err := c.diskLRU.Get(ctx, c.G(), c.cacheKey(asset))
 	if err != nil {
 		return err
 	}
@@ -299,7 +335,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), asset.Path)
+			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 			found = false
 		}
 		if found {
@@ -339,7 +375,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 
 	// Add an entry to the disk LRU mapping the asset path to the local path, and remove
 	// the remnants of any evicted attachments.
-	evicted, err := c.diskLRU.Put(ctx, c.G(), asset.Path, fileWriter.Name())
+	evicted, err := c.diskLRU.Put(ctx, c.G(), c.cacheKey(asset), fileWriter.Name())
 	if err != nil {
 		return err
 	}
@@ -348,5 +384,36 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		os.Remove(path)
 	}
 
+	return nil
+}
+
+func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
+	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
+	defer c.Trace(ctx, func() error { return err }, "DeleteAssets")()
+
+	if len(assets) == 0 {
+		return nil
+	}
+
+	// get s3 params from server
+	s3params, err := ri().GetS3Params(ctx, convID)
+	if err != nil {
+		c.Debug(ctx, "error getting s3params: %s", err)
+		return err
+	}
+
+	// Delete the assets locally
+	for _, asset := range assets {
+		c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+	}
+
+	// Try to delete the assets remotely
+	if err := c.store.DeleteAssets(ctx, s3params, signer, assets); err != nil {
+		// there's no way to get asset information after this point.
+		// any assets not deleted will be stranded on s3.
+		c.Debug(ctx, "error deleting assets: %s", err)
+	}
+
+	c.Debug(ctx, "deleted %d assets", len(assets))
 	return nil
 }

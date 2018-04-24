@@ -1220,3 +1220,31 @@ func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *ch
 	}
 	return res
 }
+
+// assetsForMessage gathers all assets on a message
+func AssetsForMessage(g *globals.Context, msgBody chat1.MessageBody) (assets []chat1.Asset) {
+	typ, err := msgBody.MessageType()
+	if err != nil {
+		// Log and drop the error for a malformed MessageBody.
+		g.Log.Warning("error getting assets for message: %s", err)
+		return assets
+	}
+	switch typ {
+	case chat1.MessageType_ATTACHMENT:
+		body := msgBody.Attachment()
+		if body.Object.Path != "" {
+			assets = append(assets, body.Object)
+		}
+		if body.Preview != nil {
+			assets = append(assets, *body.Preview)
+		}
+		assets = append(assets, body.Previews...)
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		body := msgBody.Attachmentuploaded()
+		if body.Object.Path != "" {
+			assets = append(assets, body.Object)
+		}
+		assets = append(assets, body.Previews...)
+	}
+	return assets
+}

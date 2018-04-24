@@ -41,6 +41,10 @@ func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer
 	return nil
 }
 
+func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
+	return nil
+}
+
 func (m mockAttachmentRemoteStore) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
 	signer s3.Signer) (io.ReadCloser, error) {
 	if m.assetReaderCh != nil {
@@ -53,7 +57,7 @@ type mockSigningRemote struct {
 	chat1.RemoteInterface
 }
 
-func (m mockSigningRemote) S3Sign(ctx context.Context, arg chat1.S3SignArg) ([]byte, error) {
+func (m mockSigningRemote) Sign(payload []byte) ([]byte, error) {
 	return nil, nil
 }
 
@@ -146,4 +150,10 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 	require.NoError(t, os.RemoveAll(fetcher.tempDir))
 	readAsset(uiMsg, false)
 	readAsset(uiMsg, true)
+
+	assets := utils.AssetsForMessage(tc.Context(), tv.Messages[0].Valid().MessageBody)
+	require.Len(t, assets, 1)
+	err = fetcher.DeleteAssets(context.TODO(), conv.Id, assets,
+		func() chat1.RemoteInterface { return mockSigningRemote{} }, mockSigningRemote{})
+	require.NoError(t, err)
 }
