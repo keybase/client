@@ -46,12 +46,16 @@ type State = {
   text: string,
 }
 
+// On mobile, we want full width and height. On desktop, we we want to
+// manually set dimensions. Not sure why fullHeight doesn't work on
+// mobile, though.
 const boxProps = {
   direction: 'vertical',
   fullWidth: isMobile,
   style: platformStyles({
-    isElectron: {height: 750, width: 500},
-    isMobile: {justifyContent: 'flex-end', height: 300},
+    common: {height: 300, justifyContent: 'flex-end'},
+    isElectron: {width: 500},
+    isMobile: {},
   }),
 }
 
@@ -106,7 +110,9 @@ class InputContainer extends React.Component<Props, State> {
       onCancelEditing: action('onCancelEditing'),
       onJoinChannel: action('onJoinChannel'),
       onLeaveChannel: action('onLeaveChannel'),
-      onSubmit: action('onSubmit'),
+      onSubmit: (text: string) => {
+        action('onSubmit')(text)
+      },
       pendingWaiting: this.props.pendingWaiting,
       setText: this._setText,
       text: this.state.text,
