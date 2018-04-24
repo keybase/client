@@ -4,6 +4,7 @@ import FloatingBox from './floating-box'
 import type {Position} from './relative-popup-hoc'
 import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {isMobile} from '../constants/platform'
+import {withStateHandlers} from '../util/container'
 
 export type Props = {
   closeOnSelect?: boolean,
@@ -36,3 +37,20 @@ export default (props: Props) => {
     </FloatingBox>
   )
 }
+
+export type FloatingMenuParentProps = {
+  attachmentRef: ?React.Component<*, *>,
+  showingMenu: boolean,
+  setAttachmentRef: (?React.Component<*, *>) => void,
+  setShowingMenu: boolean => void,
+  toggleShowingMenu: () => void,
+}
+
+export const FloatingMenuParentHOC = withStateHandlers(
+  {attachmentRef: null, showingMenu: false},
+  {
+    setAttachmentRef: () => attachmentRef => ({attachmentRef}),
+    setShowingMenu: () => showingMenu => ({showingMenu}),
+    toggleShowingMenu: ({showingMenu}) => () => ({showingMenu: !showingMenu}),
+  }
+)
