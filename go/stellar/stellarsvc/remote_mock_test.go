@@ -50,6 +50,18 @@ func (t *txlogger) Filter(accountID stellar1.AccountID, limit int) []stellar1.Pa
 	return res
 }
 
+func (t *txlogger) Find(txID string) *stellar1.PaymentSummary {
+	for _, tx := range t.transactions {
+		if tx.StellarTxID.String() == txID {
+			return &tx
+		}
+		if tx.Keybase != nil && tx.Keybase.KbTxID.String() == txID {
+			return &tx
+		}
+	}
+	return nil
+}
+
 var txLog *txlogger
 
 func init() {
@@ -192,7 +204,11 @@ func (r *RemoteMock) RecentPayments(ctx context.Context, accountID stellar1.Acco
 }
 
 func (r *RemoteMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
-	return res, fmt.Errorf("TODO (CORE-7554)")
+	p := txLog.Find(txID)
+	if p == nil {
+		return res, fmt.Errorf("RemoteMock: tx not found: '%v'", txID)
+	}
+	return *p, nil
 }
 
 func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {

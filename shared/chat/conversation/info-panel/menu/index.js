@@ -2,7 +2,7 @@
 import * as React from 'react'
 import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
 import {Avatar, Box, Text} from '../../../../common-adapters'
-import {globalColors, globalStyles, isMobile} from '../../../../styles'
+import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 type Props = {
   badgeSubscribe: boolean,
@@ -50,10 +50,12 @@ const InfoPanelMenu = (props: Props) => {
         title: 'Subscribe to channels...',
         view: (
           <Box style={globalStyles.flexBoxRow}>
-            {props.badgeSubscribe && <Box style={styleBadge} />}
             <Text style={styleText} type={isMobile ? 'BodyBig' : 'Body'}>
               Subscribe to channels...
             </Text>
+            {props.badgeSubscribe && (
+              <Box style={collapseStyles([styleBadge, !isMobile && styleBadgeDesktop])} />
+            )}
           </Box>
         ),
       }
@@ -83,11 +85,18 @@ const InfoPanelMenu = (props: Props) => {
 }
 
 const styleBadge = {
-  backgroundColor: globalColors.orange,
+  backgroundColor: globalColors.blue,
   borderRadius: 6,
   height: 8,
-  margin: isMobile ? 6 : 4,
+  margin: 6,
   width: 8,
+}
+
+const styleBadgeDesktop = {
+  margin: 4,
+  marginTop: 5,
+  right: globalMargins.tiny,
+  position: 'absolute',
 }
 
 const styleText = {

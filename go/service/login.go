@@ -176,3 +176,13 @@ func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
 	eng := engine.NewAccountDelete(h.G())
 	return engine.RunEngine(eng, ectx)
 }
+
+func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOneshotArg) error {
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		NetContext: ctx,
+		SessionID:  arg.SessionID,
+	}
+	eng := engine.NewLoginOneshot(h.G(), arg)
+	return engine.RunEngine(eng, ectx)
+}

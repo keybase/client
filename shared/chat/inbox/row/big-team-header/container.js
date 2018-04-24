@@ -1,6 +1,6 @@
 // @flow
-import {connect, type TypedState} from '../../../../util/container'
-import {getBadgeSubscribe, getTeamMemberCount} from '../../../../constants/teams'
+import {connect, isMobile, type TypedState} from '../../../../util/container'
+import {isTeamWithChosenChannels, getTeamMemberCount} from '../../../../constants/teams'
 import {BigTeamHeader} from '.'
 // Typically you'd use the navigateAppend from the routeable component but this is a child* of that
 // and I'd prefer not to plumb through anything that could cause render thrashing so using the
@@ -8,13 +8,13 @@ import {BigTeamHeader} from '.'
 import {navigateAppend} from '../../../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, {teamname}) => ({
-  badgeSubscribe: getBadgeSubscribe(state, teamname),
+  badgeSubscribe: !isTeamWithChosenChannels(state, teamname),
   memberCount: getTeamMemberCount(state, teamname),
   teamname,
 })
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
-  onClickGear: (evt?: SyntheticEvent<Element>) =>
+  onClickGear: (evt: SyntheticEvent<Element>) =>
     dispatch(
       navigateAppend([
         {
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
             teamname,
             isSmallTeam: false,
             position: 'bottom right',
-            targetRect: evt && evt.currentTarget.getBoundingClientRect(),
+            targetRect: isMobile ? null : evt && evt.currentTarget.getBoundingClientRect(),
           },
           selected: 'infoPanelMenu',
         },

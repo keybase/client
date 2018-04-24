@@ -10,6 +10,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -124,12 +125,34 @@ func (l listOptionsV1) Check() error {
 	return nil
 }
 
+type ephemeralLifetime struct {
+	time.Duration
+}
+
+func (l *ephemeralLifetime) UnmarshalJSON(b []byte) (err error) {
+	l.Duration, err = time.ParseDuration(strings.Trim(string(b), `"`))
+	return err
+}
+
+func (l ephemeralLifetime) MarshalJSON() (b []byte, err error) {
+	return []byte(fmt.Sprintf(`"%s"`, l.String())), nil
+}
+
+func (l ephemeralLifetime) Valid() bool {
+	d := l.Duration
+	if d == 0 {
+		return true // nil val
+	}
+	return d <= maxEphemeralLifetime && d >= minEphemeralLifetime
+}
+
 type sendOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string `json:"conversation_id"`
-	Message        ChatMessage
-	Nonblock       bool   `json:"nonblock"`
-	MembersType    string `json:"members_type"`
+	Channel           ChatChannel
+	ConversationID    string `json:"conversation_id"`
+	Message           ChatMessage
+	Nonblock          bool              `json:"nonblock"`
+	MembersType       string            `json:"members_type"`
+	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
 }
 
 func (s sendOptionsV1) Check() error {
@@ -138,6 +161,9 @@ func (s sendOptionsV1) Check() error {
 	}
 	if !s.Message.Valid() {
 		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid message")}
+	}
+	if !s.EphemeralLifetime.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid ephemeral lifetime")}
 	}
 	return nil
 }
@@ -156,10 +182,11 @@ func (r readOptionsV1) Check() error {
 }
 
 type editOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string          `json:"conversation_id"`
-	MessageID      chat1.MessageID `json:"message_id"`
-	Message        ChatMessage
+	Channel           ChatChannel
+	ConversationID    string          `json:"conversation_id"`
+	MessageID         chat1.MessageID `json:"message_id"`
+	Message           ChatMessage
+	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
 }
 
 func (e editOptionsV1) Check() error {
@@ -173,6 +200,9 @@ func (e editOptionsV1) Check() error {
 
 	if !e.Message.Valid() {
 		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message")}
+	}
+	if !e.EphemeralLifetime.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid ephemeral lifetime")}
 	}
 
 	return nil
@@ -198,12 +228,13 @@ func (d deleteOptionsV1) Check() error {
 }
 
 type attachOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string `json:"conversation_id"`
-	Filename       string
-	Preview        string
-	Title          string
-	NoStream       bool
+	Channel           ChatChannel
+	ConversationID    string `json:"conversation_id"`
+	Filename          string
+	Preview           string
+	Title             string
+	NoStream          bool
+	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
 }
 
 func (a attachOptionsV1) Check() error {
@@ -212,6 +243,9 @@ func (a attachOptionsV1) Check() error {
 	}
 	if len(strings.TrimSpace(a.Filename)) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("empty filename")}
+	}
+	if !a.EphemeralLifetime.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("invalid ephemeral lifetime")}
 	}
 	return nil
 }

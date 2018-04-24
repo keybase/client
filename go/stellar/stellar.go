@@ -109,6 +109,30 @@ func ImportSecretKey(ctx context.Context, g *libkb.GlobalContext, secretKey stel
 	return remote.Post(ctx, g, nextBundle)
 }
 
+func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return res, err
+	}
+	for _, account := range prevBundle.Accounts {
+		if account.AccountID.Eq(accountID) && account.Mode == stellar1.AccountMode_USER {
+			if len(account.Signers) == 0 {
+				return res, fmt.Errorf("no secret keys found for account")
+			}
+			if len(account.Signers) != 1 {
+				return res, fmt.Errorf("expected 1 secret key but found %v", len(account.Signers))
+			}
+			return account.Signers[0], nil
+		}
+	}
+	_, _, parseSecErr := libkb.ParseStellarSecretKey(accountID.String())
+	if parseSecErr == nil {
+		// Just in case a secret key worked its way in here
+		return res, fmt.Errorf("account not found: unexpected secret key")
+	}
+	return res, fmt.Errorf("account not found: %v", accountID)
+}
+
 func BalanceXLM(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.Balance, error) {
 	balances, err := remoter.Balances(ctx, accountID)
 	if err != nil {
@@ -324,74 +348,82 @@ func RecentPaymentsCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter
 	if err != nil {
 		return nil, err
 	}
-	for _, x := range payments {
-		y := stellar1.PaymentCLILocal{
-			StellarTxID: x.StellarTxID,
-			Status:      "pending",
-			Amount:      x.Amount,
-			Asset:       x.Asset,
-			FromStellar: x.From,
-			ToStellar:   x.To,
-		}
-		if x.Stellar != nil {
-			y.Status = "completed"
-		}
-		if x.Keybase != nil {
-			y.Time = x.Keybase.Ctime
-			switch x.Keybase.Status {
-			case stellar1.TransactionStatus_PENDING:
-				y.Status = "pending"
-			case stellar1.TransactionStatus_SUCCESS:
-				y.Status = "completed"
-			case stellar1.TransactionStatus_ERROR_TRANSIENT:
-				y.Status = "error"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			case stellar1.TransactionStatus_ERROR_PERMANENT:
-				y.Status = "error"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			default:
-				y.Status = "unknown"
-				y.StatusDetail = x.Keybase.SubmitErrMsg
-			}
-			y.DisplayAmount = x.Keybase.DisplayAmount
-			y.DisplayCurrency = x.Keybase.DisplayCurrency
-			fromUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.From.Uid)
-			if err == nil {
-				tmp := fromUsername.String()
-				y.FromUsername = &tmp
-			}
-			if x.Keybase.To != nil {
-				toUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.To.Uid)
-				if err == nil {
-					tmp := toUsername.String()
-					y.ToUsername = &tmp
-				}
-			}
-			if len(x.Keybase.NoteB64) > 0 {
-				note, err := NoteDecryptB64(ctx, g, x.Keybase.NoteB64)
-				if err != nil {
-					y.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
-				} else {
-					if note.StellarID != x.StellarTxID {
-						y.NoteErr = "discarded note for wrong txid"
-					} else {
-						y.Note = note.Note
-					}
-				}
-				if len(y.NoteErr) > 0 {
-					g.Log.CWarningf(ctx, y.NoteErr)
-				}
-			}
-		}
-		if x.Stellar != nil {
-			y.Time = x.Stellar.Ctime
-		}
-		res = append(res, y)
+	for _, p := range payments {
+		res = append(res, localizePayment(ctx, g, p))
 	}
 	return res, nil
 }
 
 func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, txID string) (res stellar1.PaymentCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PaymentDetailCLILocal", func() error { return err })()
-	return res, fmt.Errorf("TODO (CORE-7554)")
+	payment, err := remoter.PaymentDetail(ctx, txID)
+	if err != nil {
+		return res, err
+	}
+	return localizePayment(ctx, g, payment), nil
+}
+
+func localizePayment(ctx context.Context, g *libkb.GlobalContext, x stellar1.PaymentSummary) stellar1.PaymentCLILocal {
+	y := stellar1.PaymentCLILocal{
+		StellarTxID: x.StellarTxID,
+		Status:      "pending",
+		Amount:      x.Amount,
+		Asset:       x.Asset,
+		FromStellar: x.From,
+		ToStellar:   x.To,
+	}
+	if x.Stellar != nil {
+		y.Status = "completed"
+	}
+	if x.Keybase != nil {
+		y.Time = x.Keybase.Ctime
+		switch x.Keybase.Status {
+		case stellar1.TransactionStatus_PENDING:
+			y.Status = "pending"
+		case stellar1.TransactionStatus_SUCCESS:
+			y.Status = "completed"
+		case stellar1.TransactionStatus_ERROR_TRANSIENT:
+			y.Status = "error"
+			y.StatusDetail = x.Keybase.SubmitErrMsg
+		case stellar1.TransactionStatus_ERROR_PERMANENT:
+			y.Status = "error"
+			y.StatusDetail = x.Keybase.SubmitErrMsg
+		default:
+			y.Status = "unknown"
+			y.StatusDetail = x.Keybase.SubmitErrMsg
+		}
+		y.DisplayAmount = x.Keybase.DisplayAmount
+		y.DisplayCurrency = x.Keybase.DisplayCurrency
+		fromUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.From.Uid)
+		if err == nil {
+			tmp := fromUsername.String()
+			y.FromUsername = &tmp
+		}
+		if x.Keybase.To != nil {
+			toUsername, err := g.GetUPAKLoader().LookupUsername(ctx, x.Keybase.To.Uid)
+			if err == nil {
+				tmp := toUsername.String()
+				y.ToUsername = &tmp
+			}
+		}
+		if len(x.Keybase.NoteB64) > 0 {
+			note, err := NoteDecryptB64(ctx, g, x.Keybase.NoteB64)
+			if err != nil {
+				y.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
+			} else {
+				if note.StellarID != x.StellarTxID {
+					y.NoteErr = "discarded note for wrong txid"
+				} else {
+					y.Note = note.Note
+				}
+			}
+			if len(y.NoteErr) > 0 {
+				g.Log.CWarningf(ctx, y.NoteErr)
+			}
+		}
+	}
+	if x.Stellar != nil {
+		y.Time = x.Stellar.Ctime
+	}
+	return y
 }

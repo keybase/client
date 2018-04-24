@@ -6,6 +6,7 @@ import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
 import {connect, type Dispatch} from '../util/container'
+import {type StylesCrossPlatform, collapseStyles} from '../styles'
 
 import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
 
@@ -177,7 +178,7 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
-  style?: Object,
+  style?: StylesCrossPlatform,
 } & PP
 
 function ModalPositionRelative<PP>(
@@ -199,11 +200,10 @@ function ModalPositionRelative<PP>(
         return
       }
 
-      const style = {
-        ...computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
-        ...this.props.style,
-      }
-
+      const style = collapseStyles([
+        computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
+        this.props.style,
+      ])
       this.setState({style})
     }
 
@@ -245,11 +245,21 @@ function ModalPositionRelative<PP>(
     }
 
     render() {
+      // React will complain if WrappedComponent is a HTMLElement and we try to attach these props
+      const noPassProps = ['targetRect', 'position', 'onClosePopup']
+      // $ForceType thinks {} is invalid for PP, we're filtering out the HOC's props
+      const passProps: PP = Object.keys(this.props).reduce((res, k) => {
+        if (!noPassProps.includes(k)) {
+          res[k] = this.props[k]
+        }
+        return res
+      }, {})
+
       return (
         <Modal setNode={this._setRef}>
           <Box style={this.state.style}>
             <EscapeHandler onESC={this.props.onClosePopup}>
-              <WrappedComponent {...(this.props: PP)} />
+              <WrappedComponent {...(passProps: PP)} />
             </EscapeHandler>
           </Box>
         </Modal>

@@ -9,6 +9,8 @@ import (
 func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
 		newCmdWalletBalances(cl, g),
+		newCmdWalletExport(cl, g),
+		newCmdWalletDetail(cl, g),
 		newCmdWalletHistory(cl, g),
 		newCmdWalletImport(cl, g),
 		newCmdWalletSend(cl, g),

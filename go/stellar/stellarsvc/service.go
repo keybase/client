@@ -61,6 +61,38 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
 }
 
+func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "ExportSecretKeyLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	// Prompt for passphrase
+	username := s.G().GetEnv().GetUsername().String()
+	arg := libkb.DefaultPassphrasePromptArg(s.G(), username)
+	arg.Prompt = arg.Prompt + " to export Stellar secret keys"
+	secretUI := s.uiSource.SecretUI(s.G(), 0)
+	ppRes, err := secretUI.GetPassphrase(arg, nil)
+	if err != nil {
+		return res, err
+	}
+	pwdOk := false
+	_, err = s.G().LoginState().VerifyPlaintextPassphrase(ppRes.Passphrase, func(lctx libkb.LoginContext) error {
+		pwdOk = true
+		return nil
+	})
+	if err != nil {
+		return res, err
+	}
+	if !pwdOk {
+		return res, libkb.PassphraseError{}
+	}
+
+	return stellar.ExportSecretKey(ctx, s.G(), accountID)
+}
+
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "OwnAccountLocal", func() error { return err })()
