@@ -44,38 +44,6 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
   }),
 })
 
-const defaultProps: PropsFromContainer = {
-  _inputSetRef: action('inputSetRef'),
-  _onKeyDown: (e: SyntheticKeyboardEvent<>) => {
-    action('_onKeyDown')(e.key)
-  },
-
-  conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-  channelName: 'somechannel',
-  isEditing: false,
-  focusInputCounter: 0,
-  clearInboxFilter: action('clearInboxFilter'),
-  inputBlur: action('inputBlur'),
-  inputClear: action('inputClear'),
-  inputFocus: action('inputFocus'),
-  inputSetRef: action('inputSetRef'),
-  inputValue: action('inputValue'),
-  isLoading: false,
-  isPreview: false,
-  onAttach: action('onAttach'),
-  onEditLastMessage: action('onEditLastMessage'),
-  onCancelEditing: action('onCancelEditing'),
-  onJoinChannel: action('onJoinChannel'),
-  onLeaveChannel: action('onLeaveChannel'),
-  onSubmit: action('onSubmit'),
-  onStoreInputText: action('onStoreInputText'),
-  onUpdateTyping: action('onUpdateTyping'),
-  pendingWaiting: false,
-  setText: action('setText'),
-  text: '',
-  typing: Set(),
-}
-
 type State = {
   text: string,
 }
@@ -91,9 +59,41 @@ class InputContainer extends React.Component<{}, State> {
   }
 
   render = () => {
+    const props: PropsFromContainer = {
+      _inputSetRef: action('inputSetRef'),
+      _onKeyDown: (e: SyntheticKeyboardEvent<>) => {
+        action('_onKeyDown')(e.key)
+      },
+
+      conversationIDKey: stringToConversationIDKey('fake conversation id key'),
+      channelName: 'somechannel',
+      isEditing: false,
+      focusInputCounter: 0,
+      clearInboxFilter: action('clearInboxFilter'),
+      inputBlur: action('inputBlur'),
+      inputClear: action('inputClear'),
+      inputFocus: action('inputFocus'),
+      inputSetRef: action('inputSetRef'),
+      inputValue: action('inputValue'),
+      isLoading: false,
+      isPreview: false,
+      onAttach: action('onAttach'),
+      onEditLastMessage: action('onEditLastMessage'),
+      onCancelEditing: action('onCancelEditing'),
+      onJoinChannel: action('onJoinChannel'),
+      onLeaveChannel: action('onLeaveChannel'),
+      onSubmit: action('onSubmit'),
+      onStoreInputText: action('onStoreInputText'),
+      onUpdateTyping: action('onUpdateTyping'),
+      pendingWaiting: false,
+      setText: this._setText,
+      text: this.state.text,
+      typing: Set(),
+    }
+
     return (
       <Box2 direction="horizontal" style={{width: 500}}>
-        <Input {...defaultProps} setText={this._setText} {...this.state} />
+        <Input {...props} />
       </Box2>
     )
   }
