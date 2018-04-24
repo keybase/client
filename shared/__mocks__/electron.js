@@ -1,3 +1,4 @@
 // @noflow
 const clipboard = {}
-export {clipboard}
+const remote = {BrowserWindow: {}}
+export {clipboard, remote}
