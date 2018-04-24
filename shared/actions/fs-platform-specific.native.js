@@ -5,6 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import type {TypedState} from '../constants/reducer'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {isAndroid} from '../constants/platform'
+import {copy} from '../util/file'
 
 export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState) {}
 export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {}
@@ -21,13 +22,18 @@ export function uninstallKBFSSaga() {}
 export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {}
 export function copyToDownloadDir(path: string, mime: string): Promise<*> {
   if (isAndroid) {
-    return RNFetchBlob.android.addCompleteDownload({
-      title: 'Keybase Download',
-      description: 'Keybase Download',
-      mime,
-      path,
-      showNotification: true,
-    })
+    const downloadDir = RNFetchBlob.fs.dirs.DownloadDir
+    const fileName = path.substring(path.lastIndexOf('/'))
+    const downloadPath = `${downloadDir}/${fileName}`
+    copy(path, downloadPath).then(() =>
+      RNFetchBlob.android.addCompleteDownload({
+        title: 'Keybase Download',
+        description: 'Keybase Download',
+        mime,
+        downloadPath,
+        showNotification: true,
+      })
+    )
   }
   return new Promise((resolve, reject) => resolve())
 }
