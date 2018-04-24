@@ -37,7 +37,7 @@ public class ShareFiles extends ReactContextBaseJavaModule {
     public void share(String uriPath, String mimeType, Promise promise) {
         File file = new File(uriPath);
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
-        if (mimeType.contains("text/")) {
+        if (mimeType.startsWith("text/")) {
             try {
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 StringBuilder textBuilder = new StringBuilder();
