@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../../common-adapters'
+import {Box, ClickableBox, Icon, NameWithIcon, Text} from '../../../common-adapters'
 import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../common-adapters/floating-menu'
 import InfoPanelMenu from './menu/container'
-import {glamorous, globalMargins, globalStyles, isMobile} from '../../../styles'
+import {glamorous, globalMargins, globalStyles, isMobile, platformStyles} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
@@ -16,13 +16,12 @@ const gearIconSize = isMobile ? 24 : 16
 
 const _SmallTeamHeader = (props: SmallProps) => {
   return (
-    <ClickableBox
+    <Box
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
         marginLeft: globalMargins.small,
       }}
-      onClick={props.onClick}
     >
       <InfoPanelMenu
         attachTo={props.attachmentRef}
@@ -31,24 +30,37 @@ const _SmallTeamHeader = (props: SmallProps) => {
         teamname={props.teamname}
         visible={props.showingMenu}
       />
-      <Avatar size={isMobile ? 48 : 32} teamname={props.teamname} isTeam={true} />
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-        <Text type="BodySemibold">{props.teamname}</Text>
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySmall">
-            {props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
-          </Text>
-        </Box>
-      </Box>
+      <NameWithIcon
+        containerStyle={{flex: 1}}
+        horizontal={true}
+        teamname={props.teamname}
+        onClick={props.onClick}
+        title={props.teamname}
+        metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
+      />
       <Icon
         type="iconfont-gear"
         onClick={props.toggleShowingMenu}
         ref={props.setAttachmentRef}
-        style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
+        style={iconStyle}
       />
-    </ClickableBox>
+    </Box>
   )
 }
+
+const iconStyle = platformStyles({
+  common: {
+    paddingRight: 16,
+    paddingLeft: 16,
+    width: gearIconSize,
+    height: gearIconSize,
+    fontSize: gearIconSize,
+  },
+  isMobile: {
+    marginRight: 16,
+    width: gearIconSize + 32,
+  },
+})
 
 const SmallTeamHeader = FloatingMenuParentHOC(_SmallTeamHeader)
 
