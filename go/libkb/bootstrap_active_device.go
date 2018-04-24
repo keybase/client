@@ -140,12 +140,12 @@ func bootstrapActiveDeviceReturnRawError(ctx context.Context, g *GlobalContext, 
 // for anything aside from assertions, but as we phase out LoginState, we'll
 // leave it here so that assertions in LoginState can still pass.
 func BootstrapActiveDeviceWithLoginContext(ctx context.Context, g *GlobalContext, lctx LoginContext) (ok bool, uid keybase1.UID, err error) {
-	run := func(a LoginContext) (keybase1.UID, error) {
+	run := func(lctx LoginContext) (keybase1.UID, error) {
 		return BootstrapActiveDeviceFromConfig(ctx, g, lctx, true)
 	}
 	if lctx == nil {
-		aerr := g.LoginState().Account(func(a *Account) {
-			uid, err = run(a)
+		aerr := g.LoginState().Account(func(lctx *Account) {
+			uid, err = run(lctx)
 		}, "BootstrapActiveDevice")
 		if err == nil && aerr != nil {
 			g.Log.CDebugf(ctx, "LoginOffline: LoginState account error: %s", aerr)
