@@ -103,7 +103,7 @@ class InputContainer extends React.Component<Props, State> {
     }
 
     return (
-      <Box2 direction="horizontal" style={{width: 500}}>
+      <Box2 direction="horizontal" style={{backgroundColor: 'red', height: 750, width: 500}}>
         <Input {...props} />
       </Box2>
     )
@@ -113,40 +113,26 @@ class InputContainer extends React.Component<Props, State> {
 const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
-    .add('Normal', () => (
-      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set()} />
-      </Box2>
-    ))
+    .add('Normal', () => <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set()} />)
     .add('Typing 1', () => (
-      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris'])} />
-      </Box2>
+      <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris'])} />
     ))
     .add('Typing 2', () => (
-      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris', 'strib'])} />
-      </Box2>
+      <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris', 'strib'])} />
     ))
     .add('Typing 3', () => (
-      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer
-          isEditing={false}
-          pendingWaiting={false}
-          text=""
-          typing={Set(['chris', 'strib', 'fred'])}
-        />
-      </Box2>
+      <InputContainer
+        isEditing={false}
+        pendingWaiting={false}
+        text=""
+        typing={Set(['chris', 'strib', 'fred'])}
+      />
     ))
     .add('Editing', () => (
-      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={true} pendingWaiting={false} text="some text" typing={Set()} />
-      </Box2>
+      <InputContainer isEditing={true} pendingWaiting={false} text="some text" typing={Set()} />
     ))
     .add('Pending waiting', () => (
-      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={true} text="" typing={Set()} />
-      </Box2>
+      <InputContainer isEditing={false} pendingWaiting={true} text="" typing={Set()} />
     ))
 }
 
