@@ -1042,3 +1042,37 @@ func TestCrJournalCreateDirRenameFileRemoveUnmerged(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for KBFS-2915.
+func TestCrDoubleMergedDeleteAndRecreate(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b/c/d"),
+			write("a/b/c/d/e1/f1", "f1"),
+			write("a/b/c/d/e2/f2", "f2"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			rm("a/b/c/d/e1/f1"),
+			rm("a/b/c/d/e2/f2"),
+			rmdir("a/b/c/d/e1"),
+			rmdir("a/b/c/d/e2"),
+			rmdir("a/b/c/d"),
+			rmdir("a/b/c"),
+		),
+		as(bob, noSync(),
+			write("a/b/c/d/e1/f1", "f1.2"),
+			write("a/b/c/d/e2/f2", "f2.2"),
+			reenableUpdates(),
+			read("a/b/c/d/e1/f1", "f1.2"),
+			read("a/b/c/d/e2/f2", "f2.2"),
+		),
+		as(alice,
+			read("a/b/c/d/e1/f1", "f1.2"),
+			read("a/b/c/d/e2/f2", "f2.2"),
+		),
+	)
+}
