@@ -4,7 +4,7 @@ import FloatingBox from './floating-box'
 import type {Position} from './relative-popup-hoc'
 import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {isMobile} from '../constants/platform'
-import {withStateHandlers} from '../util/container'
+import {compose, withProps, withStateHandlers} from '../util/container'
 
 export type Props = {
   closeOnSelect?: boolean,
@@ -46,13 +46,19 @@ export type FloatingMenuParentProps = {
   toggleShowingMenu: () => void,
 }
 
-// TODO make setAttachmentRef undefined on mobile
-// also TODO mock this for storybook w/ actions
-export const FloatingMenuParentHOC = withStateHandlers(
-  {attachmentRef: null, showingMenu: false},
-  {
-    setAttachmentRef: () => attachmentRef => ({attachmentRef}),
-    setShowingMenu: () => showingMenu => ({showingMenu}),
-    toggleShowingMenu: ({showingMenu}) => () => ({showingMenu: !showingMenu}),
-  }
+// TODO mock this for storybook w/ actions
+export const FloatingMenuParentHOC = compose(
+  withStateHandlers(
+    {attachmentRef: null, showingMenu: false},
+    {
+      _setAttachmentRef: () => attachmentRef => ({attachmentRef}),
+      setShowingMenu: () => showingMenu => ({showingMenu}),
+      toggleShowingMenu: ({showingMenu}) => () => ({showingMenu: !showingMenu}),
+    }
+  ),
+  // using withProps so we can set it to undefined on mobile
+  // while keeping flow / recompose happy
+  withProps(({_setAttachmentRef}) => ({
+    setAttachmentRef: isMobile ? undefined : _setAttachmentRef,
+  }))
 )
