@@ -2,6 +2,8 @@
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
 import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../styles'
 
 type Props = {
@@ -16,9 +18,9 @@ type Props = {
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,
-}
+} & FloatingMenuParentProps
 
-class SimpleTopLine extends React.Component<Props> {
+class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'participants') {
@@ -41,6 +43,15 @@ class SimpleTopLine extends React.Component<Props> {
           maxHeight: isMobile ? 20 : 17,
         }}
       >
+        {this.props.showGear && (
+          <TeamMenu
+            visible={this.props.showingMenu}
+            attachTo={this.props.attachmentRef}
+            onHidden={this.props.toggleShowingMenu}
+            isSmallTeam={false}
+            teamname={(this.props.participants.length && this.props.participants[0]) || ''}
+          />
+        )}
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -91,7 +102,8 @@ class SimpleTopLine extends React.Component<Props> {
           <Icon
             type="iconfont-gear"
             className="small-team-gear"
-            onClick={this.props.onClickGear}
+            onClick={this.props.toggleShowingMenu}
+            ref={this.props.setAttachmentRef}
             style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
           />
         )}
@@ -100,6 +112,7 @@ class SimpleTopLine extends React.Component<Props> {
     )
   }
 }
+const SimpleTopLine = FloatingMenuParentHOC(_SimpleTopLine)
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
