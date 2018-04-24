@@ -8,26 +8,7 @@ import {Box, Button, Input, ButtonBar} from '../../../../common-adapters'
 import {storiesOf, action} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 
-const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
-  UserMentionHud: props => ({
-    ...props,
-    following: I.Set(),
-    you: 'chris',
-    data: props.users
-      .map((u, i) => ({
-        username: u.username,
-        fullName: u.fullName,
-        key: u.username,
-      }))
-      .filter(u => {
-        return (
-          u.username.toLowerCase().indexOf(props.filter) >= 0 ||
-          u.fullName.toLowerCase().indexOf(props.filter) >= 0
-        )
-      })
-      .map((u, i) => ({...u, selected: i === props.selectedIndex})),
-  }),
-})
+const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'))
 
 const UpDownFilterHoc = compose(
   withStateHandlers(
