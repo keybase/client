@@ -10,6 +10,10 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -460,6 +464,13 @@
             "items": "UIChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": [
+            null,
+            "MsgEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata"
         }
       ]
     },

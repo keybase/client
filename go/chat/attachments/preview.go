@@ -165,8 +165,8 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 
 	var baseDuration int
 	if frames > 1 {
-		if fileSize < 5*1024*1024 {
-			log.Debug("previewGif: not resizing because multiple-frame original < 5MB")
+		if fileSize < 10*1024*1024 {
+			log.Debug("previewGif: not resizing because multiple-frame original < 10MB")
 
 			// don't resize if multiple frames and < 5MB
 			bounds := g.Image[0].Bounds()

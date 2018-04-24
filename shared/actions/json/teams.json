@@ -24,6 +24,7 @@
       "destSubPath": "I.List<string>"
     },
     "getChannels": {
+      "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
     "getTeams": {},
@@ -36,12 +37,24 @@
     "getTeamPublicity": {
       "teamname": "string"
     },
-    "haveChosenChannelsForTeam": {
+    "addTeamWithChosenChannels": {
       "teamname": "string"
     },
     "saveChannelMembership": {
       "teamname": "string",
-      "channelState": "Types.ChannelMembershipState"
+      "oldChannelState": "Types.ChannelMembershipState",
+      "newChannelState": "Types.ChannelMembershipState",
+      "you": "string"
+    },
+    "addParticipant": {
+      "teamname": "string",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "participant": "string"
+    },
+    "removeParticipant": {
+      "teamname": "string",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "participant": "string"
     },
     "addPeopleToTeam": {
       "teamname": "string",
@@ -101,8 +114,8 @@
     "setChannelCreationError": {
       "error": "string"
     },
-    "setChosenChannelsForTeam": {
-      "chosenChannelsForTeam": "string"
+    "setTeamsWithChosenChannels": {
+      "teamsWithChosenChannels": "I.Set<Types.Teamname>"
     },
     "setTeamCreationError": {
       "error": "string"
@@ -147,7 +160,6 @@
     },
     "setTeamChannels": {
       "teamname": "string",
-      "convIDs": "I.Set<ChatTypes.ConversationIDKey>",
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>",
     },
     "setLoaded": {
@@ -174,15 +186,32 @@
     "setTeamSawSubteamsBanner": {},
     "setupTeamHandlers": {},
     "updateChannelName": {
+      "teamname": "Types.Teamname",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "newChannelName": "string"
+    },
+    "setUpdatedChannelName": {
+      "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newChannelName": "string"
     },
     "updateTopic": {
+      "teamname": "Types.Teamname",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "newTopic": "string"
+    },
+    "setUpdatedTopic": {
+      "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newTopic": "string"
     },
     "deleteChannelConfirmed": {
-      "conversationIDKey": "ChatTypes.ConversationIDKey"
+      "teamname": "Types.Teamname",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
+    },
+    "deleteChannelInfo": {
+      "teamname": "Types.Teamname",
+      "conversationIDKey": "ChatTypes.ConversationIDKey",
     },
     "badgeAppForTeams": {
       "newTeamNames": "Array<string>",

@@ -973,6 +973,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
+			EphemeralMetadata:     valid.EphemeralMetadata(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

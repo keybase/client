@@ -209,6 +209,15 @@
       ],
       "response": null
     },
+    "exportSecretKeyLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "SecretKey"
+    },
     "setDisplayCurrency": {
       "request": [
         {
