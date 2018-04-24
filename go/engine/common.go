@@ -34,36 +34,8 @@ func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID) {
 	return ret, uid
 }
 
-// bootstrap will setup an ActiveDevice with a NIST Factory for the engine
-// that's calling us. The LoginContext passed through isn't really needed
-// for anything aside from assertions, but as we phase out LoginState, we'll
-// leave it here so that assertions in LoginState can still pass.
 func bootstrap(e Engine, ctx *Context) (ok bool, uid keybase1.UID, err error) {
-
-	run := func(a libkb.LoginContext) (keybase1.UID, error) {
-		return libkb.BootstrapActiveDeviceFromConfig(ctx.NetContext, e.G(), a, true)
-	}
-	a := ctx.LoginContext
-	nctx := ctx.NetContext
-	g := e.G()
-	if a == nil {
-		aerr := g.LoginState().Account(func(a *libkb.Account) {
-			uid, err = run(a)
-		}, "BootstrapActiveDevice")
-		if err == nil && aerr != nil {
-			g.Log.CDebugf(nctx, "LoginOffline: LoginState account error: %s", aerr)
-			err = aerr
-		}
-	} else {
-		uid, err = run(a)
-	}
-	ok = false
-	if err == nil {
-		ok = true
-	} else if _, isLRE := err.(libkb.LoginRequiredError); isLRE {
-		err = nil
-	}
-	return ok, uid, err
+	return libkb.BootstrapActiveDeviceWithLoginContext(ctx.GetNetContext(), e.G(), ctx.LoginContext)
 }
 
 type keypair struct {
