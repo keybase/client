@@ -37,6 +37,7 @@ type Props = {
   isEditing: boolean,
   pendingWaiting: boolean,
   text: string,
+  typing: Set<string>,
 }
 
 type State = {
@@ -97,7 +98,7 @@ class InputContainer extends React.Component<Props, State> {
       pendingWaiting: this.props.pendingWaiting,
       setText: this._setText,
       text: this.state.text,
-      typing: Set(),
+      typing: this.props.typing,
     }
 
     return (
@@ -113,17 +114,37 @@ const load = () => {
     .addDecorator(provider)
     .add('Normal', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={false} text="" />
+        <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set()} />
+      </Box2>
+    ))
+    .add('Typing 1', () => (
+      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
+        <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris'])} />
+      </Box2>
+    ))
+    .add('Typing 2', () => (
+      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
+        <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris', 'strib'])} />
+      </Box2>
+    ))
+    .add('Typing 3', () => (
+      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
+        <InputContainer
+          isEditing={false}
+          pendingWaiting={false}
+          text=""
+          typing={Set(['chris', 'strib', 'fred'])}
+        />
       </Box2>
     ))
     .add('Editing', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={true} pendingWaiting={false} text="some text" />
+        <InputContainer isEditing={true} pendingWaiting={false} text="some text" typing={Set()} />
       </Box2>
     ))
     .add('Pending waiting', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={true} text="" />
+        <InputContainer isEditing={false} pendingWaiting={true} text="" typing={Set()} />
       </Box2>
     ))
 }
