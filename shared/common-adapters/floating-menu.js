@@ -47,6 +47,7 @@ export type FloatingMenuParentProps = {
 }
 
 // TODO make setAttachmentRef undefined on mobile
+// also TODO mock this for storybook w/ actions
 export const FloatingMenuParentHOC = withStateHandlers(
   {attachmentRef: null, showingMenu: false},
   {

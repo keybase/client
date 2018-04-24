@@ -53,7 +53,6 @@ type InfoPanelProps = {
 
   // Used for small and big teams.
   onViewTeam: () => void,
-  onClickGear: (?Element) => void,
   canSetRetention: boolean,
 
   // Used for big teams.

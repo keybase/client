@@ -85,7 +85,6 @@ const conversationProps = {
 
   onAddPeople: unexpected('onAddPeople'),
   onViewTeam: unexpected('onViewTeam'),
-  onClickGear: unexpected('onClickGear'),
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
@@ -104,7 +103,6 @@ const teamCommonProps = {
 
   onAddPeople: action('onAddPeople'),
   onViewTeam: action('onViewTeam'),
-  onClickGear: action('onClickGear'),
 }
 
 const smallTeamProps = {
