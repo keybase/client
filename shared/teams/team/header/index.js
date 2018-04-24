@@ -4,10 +4,10 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
 import {Box, Button, ButtonBar, Icon, Meta, NameWithIcon, Text} from '../../../common-adapters'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 export type Props = {
-  addPeopleButtonRef: ?React.Component<*, *>,
   canChat: boolean,
   canEditDescription: boolean,
   canJoinTeam: boolean,
@@ -23,11 +23,9 @@ export type Props = {
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
-  toggleShowingMenu: () => void,
-  setAddPeopleButtonRef: (ref: ?React.Component<*, *>) => void,
-}
+} & FloatingMenuParentProps
 
-const TeamHeader = (props: Props) => (
+const _TeamHeader = (props: Props) => (
   <Box style={stylesContainer}>
     {props.canJoinTeam && (
       <Box key="add yourself" style={stylesAddYourselfBanner}>
@@ -94,7 +92,7 @@ const TeamHeader = (props: Props) => (
           <Button
             type="Secondary"
             label={'Add people...'}
-            ref={isMobile ? undefined : props.setAddPeopleButtonRef}
+            ref={isMobile ? undefined : props.setAttachmentRef}
             onClick={props.toggleShowingMenu}
           />
         )}
@@ -102,7 +100,7 @@ const TeamHeader = (props: Props) => (
 
       {/* Add people how dropdown */}
       <AddPeopleHow
-        attachTo={props.addPeopleButtonRef}
+        attachTo={props.attachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
         onHidden={props.toggleShowingMenu}
@@ -141,6 +139,8 @@ const TeamHeader = (props: Props) => (
     </Box>
   </Box>
 )
+
+const TeamHeader = FloatingMenuParentHOC(_TeamHeader)
 
 const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   let res = `${memberCount} member`
