@@ -34,7 +34,7 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 }
 
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
-	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
+	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithLoginContext(ctx, e.G(), nil); err != nil {
 		return err
 	} else if !loggedIn {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
@@ -66,7 +66,7 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	}
 	oneshot, err := g.IsOneshot(ctx)
 	if err != nil {
-		e.G().Log.CWarningf(ctx, "EKLib#ShouldRun failed: %s", err)
+		e.G().Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
 		return false
 	}
 	return !oneshot
@@ -187,13 +187,11 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 
 	// Let's see what the latest server statement is.
 	myUID := e.G().Env.GetUID()
-	statements, err := fetchUserEKStatements(ctx, e.G(), []keybase1.UID{myUID})
+	statement, wrongKID, err := fetchUserEKStatement(ctx, e.G(), myUID)
 	if err != nil {
 		return false, err
 	}
-	statement, ok := statements[myUID]
-	// No statement, so we need a userEK
-	if !ok || statement == nil {
+	if statement == nil || wrongKID {
 		return true, nil
 	}
 	// Can we access this generation? If not, let's regenerate.
@@ -478,7 +476,11 @@ func (e *EKLib) OnLogin() error {
 	if !e.ShouldRun(context.Background()) {
 		return nil
 	}
-	return e.KeygenIfNeeded(context.Background())
+	err := e.KeygenIfNeeded(context.Background())
+	if err != nil {
+		e.G().Log.CDebugf(context.Background(), "OnLogin error: %v", err)
+	}
+	return nil
 }
 
 func (e *EKLib) OnLogout() error {

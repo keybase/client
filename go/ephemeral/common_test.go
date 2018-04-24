@@ -10,15 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ephemeralKeyTestSetup(t *testing.T) libkb.TestContext {
+func ephemeralKeyTestSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 
 	NewEphemeralStorageAndInstall(tc.G)
 
-	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	user, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	return tc
+	return tc, user
 }
 
 func TestTimeConversions(t *testing.T) {

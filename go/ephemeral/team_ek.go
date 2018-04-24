@@ -379,7 +379,8 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 		// after EK support is sufficiently widespread.
 		if wrongKID {
 			g.Log.CDebugf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
-			return nil, nil
+			// Don't box for this member since they have no valid userEK
+			continue
 		}
 		if err != nil {
 			return nil, err

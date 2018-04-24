@@ -13,7 +13,7 @@ import (
 )
 
 func TestDeviceEKStorage(t *testing.T) {
-	tc := ephemeralKeyTestSetup(t)
+	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	now := keybase1.TimeFromSeconds(time.Now().Unix())

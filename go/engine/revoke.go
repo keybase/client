@@ -20,17 +20,19 @@ const (
 
 type RevokeEngine struct {
 	libkb.Contextified
-	deviceID  keybase1.DeviceID
-	kid       keybase1.KID
-	mode      RevokeMode
-	forceSelf bool
-	forceLast bool
+	deviceID   keybase1.DeviceID
+	kid        keybase1.KID
+	mode       RevokeMode
+	forceSelf  bool
+	forceLast  bool
+	skipUserEk bool // Set for testing
 }
 
 type RevokeDeviceEngineArgs struct {
-	ID        keybase1.DeviceID
-	ForceSelf bool
-	ForceLast bool
+	ID         keybase1.DeviceID
+	ForceSelf  bool
+	ForceLast  bool
+	SkipUserEK bool
 }
 
 func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) *RevokeEngine {
@@ -39,6 +41,7 @@ func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) 
 		mode:         RevokeDevice,
 		forceSelf:    args.ForceSelf,
 		forceLast:    args.ForceLast,
+		skipUserEk:   args.SkipUserEK,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -257,37 +260,39 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		libkb.AddPerUserKeyServerArg(payload, newPukGeneration, pukBoxes, pukPrev)
 	}
 
-	ekLib := e.G().GetEKLib()
 	var myUserEKBox *keybase1.UserEkBoxed
 	var newUserEKMetadata *keybase1.UserEkMetadata
-	if addingNewPUK && ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
-		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(ctx.NetContext, *merkleRoot, *newPukSeed)
-		if err != nil {
-			return err
-		}
-		// The assembled set of boxes includes one for the device we're in the
-		// middle of revoking. Filter it out.
-		filteredBoxes := []keybase1.UserEkBoxMetadata{}
-		deviceIDToFilter := e.explicitOrImplicitDeviceID(me)
-		for _, boxMetadata := range boxes {
-			if !boxMetadata.RecipientDeviceID.Eq(deviceIDToFilter) {
-				filteredBoxes = append(filteredBoxes, boxMetadata)
+	if !e.skipUserEk {
+		ekLib := e.G().GetEKLib()
+		if addingNewPUK && ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
+			sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(ctx.NetContext, *merkleRoot, *newPukSeed)
+			if err != nil {
+				return err
+			}
+			// The assembled set of boxes includes one for the device we're in the
+			// middle of revoking. Filter it out.
+			filteredBoxes := []keybase1.UserEkBoxMetadata{}
+			deviceIDToFilter := e.explicitOrImplicitDeviceID(me)
+			for _, boxMetadata := range boxes {
+				if !boxMetadata.RecipientDeviceID.Eq(deviceIDToFilter) {
+					filteredBoxes = append(filteredBoxes, boxMetadata)
+				}
+			}
+			// If there are no active deviceEKs, we can't publish this key. This
+			// should mostly only come up in tests.
+			if len(filteredBoxes) > 0 {
+				myUserEKBox = myBox
+				newUserEKMetadata = &newMetadata
+				userEKSection := make(libkb.JSONPayload)
+				userEKSection["sig"] = sig
+				userEKSection["boxes"] = filteredBoxes
+				payload["user_ek"] = userEKSection
+			} else {
+				e.G().Log.CWarningf(ctx.NetContext, "skipping userEK publishing, because there are no valid deviceEKs")
 			}
 		}
-		// If there are no active deviceEKs, we can't publish this key. This
-		// should mostly only come up in tests.
-		if len(filteredBoxes) > 0 {
-			myUserEKBox = myBox
-			newUserEKMetadata = &newMetadata
-			userEKSection := make(libkb.JSONPayload)
-			userEKSection["sig"] = sig
-			userEKSection["boxes"] = filteredBoxes
-			payload["user_ek"] = userEKSection
-		} else {
-			e.G().Log.CWarningf(ctx.NetContext, "skipping userEK publishing, because there are no valid deviceEKs")
-		}
-	}
 
+	}
 	_, err = e.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
