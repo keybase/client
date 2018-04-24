@@ -64,6 +64,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           overlay={'icon-proof-pending'}
           overlayColor={globalColors.grey}
         />
+        <UsernameTips platform={this.props.platform} />
         <Input
           style={styleInput}
           autoFocus={true}
@@ -73,7 +74,6 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           onChangeText={username => this.handleUsernameChange(username)}
           onEnterKeyDown={() => this.handleContinue()}
         />
-        <UsernameTips platform={this.props.platform} />
         <Button
           style={styleButton}
           type="Primary"
@@ -87,17 +87,20 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
   }
 }
 
+// FIXME: this is the old way (#styles)
+
 const styleErrorBannerText = {
   color: globalColors.white,
 }
 
 const styleIcon = {
   alignSelf: 'center',
+  marginTop: globalMargins.mediumLarge,
 }
 
 const styleInput = {
   marginBottom: 0,
-  marginTop: globalMargins.large,
+  marginTop: globalMargins.mediumLarge,
 }
 
 const styleInfoBanner = {
@@ -109,6 +112,7 @@ const styleInfoBanner = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   marginTop: globalMargins.large,
+  marginBottom: -globalMargins.medium,
   marginLeft: -globalMargins.medium,
   marginRight: -globalMargins.medium,
 }
