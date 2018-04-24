@@ -8,6 +8,6 @@ export type PropsFromContainer = {
   _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 } & PreMentionHocProps
 
-declare function mentionHoc(input: React.ComponentType<Props>): React.ComponentType<Props>
+declare function mentionHoc(input: React.ComponentType<Props>): React.ComponentType<PropsFromContainer>
 
 declare export default mentionHoc

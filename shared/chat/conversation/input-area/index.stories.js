@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Set} from 'immutable'
 import {Box2} from '../../../common-adapters/box'
 import * as PropProviders from '../../../stories/prop-providers'
@@ -8,7 +8,7 @@ import mentionHoc, {type PropsFromContainer} from './mention-handler-hoc'
 import {default as _Input} from './normal'
 import {stringToConversationIDKey} from '../../../constants/types/chat2'
 
-const Input = mentionHoc(_Input)
+const Input: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
   ChannelMentionHud: props => ({
