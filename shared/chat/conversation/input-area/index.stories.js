@@ -36,6 +36,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 type Props = {
   isEditing: boolean,
   pendingWaiting: boolean,
+  text: string,
 }
 
 type State = {
@@ -47,8 +48,11 @@ class InputContainer extends React.Component<Props, State> {
 
   constructor(props) {
     super(props)
-    this.state = {text: ''}
     this._input = null
+  }
+
+  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
+    return {text: nextProps.text}
   }
 
   _inputSetRef = (ref: ?TextInput) => {
@@ -109,17 +113,17 @@ const load = () => {
     .addDecorator(provider)
     .add('Normal', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={false} />
+        <InputContainer isEditing={false} pendingWaiting={false} text="" />
       </Box2>
     ))
     .add('Editing', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={true} pendingWaiting={false} />
+        <InputContainer isEditing={true} pendingWaiting={false} text="some text" />
       </Box2>
     ))
     .add('Pending waiting', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} pendingWaiting={true} />
+        <InputContainer isEditing={false} pendingWaiting={true} text="" />
       </Box2>
     ))
 }
