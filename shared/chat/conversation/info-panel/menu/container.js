@@ -2,7 +2,7 @@
 import * as Constants from '../../../../constants/teams'
 import type {Component} from 'react'
 import {createGetTeamOperations, createHaveChosenChannelsForTeam} from '../../../../actions/teams-gen'
-import {compose, connect, lifecycle, type TypedState} from '../../../../util/container'
+import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
@@ -65,6 +65,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
+  setDisplayName('TeamMenu'),
   lifecycle({
     componentDidMount() {
       if (!this.props._hasCanPerform) {

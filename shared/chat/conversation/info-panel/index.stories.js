@@ -42,11 +42,30 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
+const teamMenuPropSelector = props => ({
+  _hasCanPerform: true,
+  _loadOperations: unexpected('_loadOperations'),
+  attachTo: props.attachTo,
+  badgeSubscribe: false,
+  canAddPeople: true,
+  isSmallTeam: props.isSmallTeam,
+  memberCount: 60,
+  teamname: props.teamname,
+  visible: props.visible,
+  onAddPeople: action('onAddPeople'),
+  onHidden: props.onHidden,
+  onInvite: action('onInvite'),
+  onLeaveTeam: action('onLeaveTeam'),
+  onManageChannels: action('onManageChannels'),
+  onViewTeam: action('onViewTeam'),
+})
+
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
   InfoPanel: (props: InfoPanelProps) => props,
   OnlyValidConversations: () => onlyValidConversationsProps,
   LifecycleNotifications: () => notificationProps,
   RetentionPicker: retentionPickerPropSelector,
+  TeamMenu: teamMenuPropSelector,
 })
 
 const commonProps = {
