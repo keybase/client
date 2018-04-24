@@ -45,9 +45,13 @@ class ConversationInput extends Component<InputProps> {
     if (!body) {
       return
     }
-    const f = add ? body.addEventListener : body.removeEventListener
-    f('keydown', this._globalKeyDownHandler)
-    f('keypress', this._globalKeyDownHandler)
+    if (add) {
+      body.addEventListener('keydown', this._globalKeyDownHandler)
+      body.addEventListener('keypress', this._globalKeyDownHandler)
+    } else {
+      body.removeEventListener('keydown', this._globalKeyDownHandler)
+      body.removeEventListener('keypress', this._globalKeyDownHandler)
+    }
   }
 
   _globalKeyDownHandler = (ev: KeyboardEvent) => {
