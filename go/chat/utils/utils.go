@@ -936,6 +936,7 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
+			EphemeralMetadata:     valid.EphemeralMetadata(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

@@ -59,7 +59,7 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
 
 	// TODO -- when we launch, remove the feature flagging on Prod
-	willRun := g.Env.GetFeatureFlags().UseEphemeral() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+	willRun := g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run")
 		return false
