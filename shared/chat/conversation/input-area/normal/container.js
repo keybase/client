@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -19,7 +18,6 @@ import {
   type Dispatch,
 } from '../../../../util/container'
 import {isEqual, throttle} from 'lodash-es'
-import {chatTab} from '../../../../constants/tabs'
 import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
 
 type OwnProps = {
@@ -114,10 +112,6 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _onStoreInputText: (conversationIDKey: Types.ConversationIDKey, inputText: string) =>
-    dispatch(
-      RouteTree.setRouteState(I.List([chatTab, conversationIDKey]), {inputText: new HiddenString(inputText)})
-    ),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),

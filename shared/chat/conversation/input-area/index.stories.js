@@ -87,7 +87,6 @@ class InputContainer extends React.Component<{}, State> {
       onJoinChannel: action('onJoinChannel'),
       onLeaveChannel: action('onLeaveChannel'),
       onSubmit: action('onSubmit'),
-      onStoreInputText: action('onStoreInputText'),
       onUpdateTyping: action('onUpdateTyping'),
       pendingWaiting: false,
       setText: this._setText,
