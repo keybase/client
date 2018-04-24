@@ -103,7 +103,7 @@ const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
     .add('Basic', () => (
-      <Box2 direction="horizontal" style={{height: 500, width: 500}}>
+      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
         <InputContainer />
       </Box2>
     ))
