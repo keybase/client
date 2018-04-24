@@ -4,6 +4,8 @@ import * as PushTypes from '../constants/types/push'
 import * as PushConstants from '../constants/push'
 import * as PushGen from './push-gen'
 import * as PushNotifications from 'react-native-push-notification'
+import * as mime from 'react-native-mime-types'
+import RNFetchBlob from 'react-native-fetch-blob'
 import {
   PushNotificationIOS,
   CameraRoll,
@@ -86,11 +88,20 @@ type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  if (!isIOS) {
-    goodPath = 'file://' + goodPath
-  }
-  logger.debug('Saving to camera roll: ', goodPath)
   return CameraRoll.saveToCameraRoll(goodPath)
+}
+
+// Downloads a file, shows the shareactionsheet, and deletes the file afterwards
+function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
+  const extension = mime.extension(mimeType)
+  return RNFetchBlob.config({
+    fileCache: true,
+    appendExt: extension,
+  })
+    .fetch('GET', fileURL)
+    .then(res => res.path())
+    .then(path => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
+    .then(([_, path]) => RNFetchBlob.fs.unlink(path))
 }
 
 function clearAllNotifications() {
@@ -229,6 +240,7 @@ export {
   openAppSettings,
   checkPermissions,
   displayNewMessageNotification,
+  downloadAndShowShareActionSheet,
   getAppState,
   setAppState,
   requestPushPermissions,

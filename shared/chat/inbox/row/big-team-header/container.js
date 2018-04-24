@@ -1,6 +1,6 @@
 // @flow
 import {connect, isMobile, type TypedState} from '../../../../util/container'
-import {getBadgeSubscribe, getTeamMemberCount} from '../../../../constants/teams'
+import {isTeamWithChosenChannels, getTeamMemberCount} from '../../../../constants/teams'
 import {BigTeamHeader} from '.'
 // Typically you'd use the navigateAppend from the routeable component but this is a child* of that
 // and I'd prefer not to plumb through anything that could cause render thrashing so using the
@@ -8,7 +8,7 @@ import {BigTeamHeader} from '.'
 import {navigateAppend} from '../../../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, {teamname}) => ({
-  badgeSubscribe: getBadgeSubscribe(state, teamname),
+  badgeSubscribe: !isTeamWithChosenChannels(state, teamname),
   memberCount: getTeamMemberCount(state, teamname),
   teamname,
 })

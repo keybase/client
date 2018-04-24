@@ -14032,6 +14032,64 @@ exports[`Storyshots Common Box 1`] = `
               "borderColor": "#cccccc",
               "borderStyle": "dashed",
               "borderWidth": 2,
+              "height": 12,
+              "marginRight": 24,
+              "width": 12,
+            }
+          }
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "width": "50%",
+          }
+        }
+      >
+        <span
+          className="css-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          xsmall
+          : 
+        </span>
+        <span
+          className="css-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          12
+          px
+        </span>
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "row",
+          "margin": 30,
+          "width": "100%",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "50%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "borderColor": "#cccccc",
+              "borderStyle": "dashed",
+              "borderWidth": 2,
               "height": 16,
               "marginRight": 24,
               "width": 16,
@@ -14118,6 +14176,64 @@ exports[`Storyshots Common Box 1`] = `
           title={undefined}
         >
           24
+          px
+        </span>
+      </div>
+    </div>
+    <div
+      style={
+        Object {
+          "display": "flex",
+          "flexDirection": "row",
+          "margin": 30,
+          "width": "100%",
+        }
+      }
+    >
+      <div
+        style={
+          Object {
+            "alignItems": "flex-end",
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "50%",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "borderColor": "#cccccc",
+              "borderStyle": "dashed",
+              "borderWidth": 2,
+              "height": 32,
+              "marginRight": 24,
+              "width": 32,
+            }
+          }
+        />
+      </div>
+      <div
+        style={
+          Object {
+            "width": "50%",
+          }
+        }
+      >
+        <span
+          className="css-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          mediumLarge
+          : 
+        </span>
+        <span
+          className="css-0"
+          onClick={undefined}
+          title={undefined}
+        >
+          32
           px
         </span>
       </div>

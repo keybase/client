@@ -134,3 +134,31 @@ func bootstrapActiveDeviceReturnRawError(ctx context.Context, g *GlobalContext, 
 	err = ad.Set(g, lctx, uid, deviceID, sib, sub, deviceName)
 	return err
 }
+
+// BootstrapActiveDeviceWithLoginConext will setup an ActiveDevice with a NIST Factory
+// for the caller. The LoginContext passed through isn't really needed
+// for anything aside from assertions, but as we phase out LoginState, we'll
+// leave it here so that assertions in LoginState can still pass.
+func BootstrapActiveDeviceWithLoginContext(ctx context.Context, g *GlobalContext, lctx LoginContext) (ok bool, uid keybase1.UID, err error) {
+	run := func(lctx LoginContext) (keybase1.UID, error) {
+		return BootstrapActiveDeviceFromConfig(ctx, g, lctx, true)
+	}
+	if lctx == nil {
+		aerr := g.LoginState().Account(func(lctx *Account) {
+			uid, err = run(lctx)
+		}, "BootstrapActiveDevice")
+		if err == nil && aerr != nil {
+			g.Log.CDebugf(ctx, "LoginOffline: LoginState account error: %s", aerr)
+			err = aerr
+		}
+	} else {
+		uid, err = run(lctx)
+	}
+	ok = false
+	if err == nil {
+		ok = true
+	} else if _, isLRE := err.(LoginRequiredError); isLRE {
+		err = nil
+	}
+	return ok, uid, err
+}
