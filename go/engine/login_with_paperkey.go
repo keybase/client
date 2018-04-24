@@ -112,8 +112,16 @@ func (e *LoginWithPaperKey) Run(ctx *Context) error {
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	e.G().Log.Debug("LoginWithPaperkey success, sending login notification")
+	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+	e.G().Log.Debug("LoginWithPaperkey success, calling login hooks")
+	e.G().CallLoginHooks()
+
+	return nil
 }
 
 func (e *LoginWithPaperKey) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
