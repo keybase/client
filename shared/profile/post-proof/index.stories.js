@@ -6,10 +6,10 @@ import Render from '.'
 
 const props = {
   allowProofCheck: true,
-  onAllowProofCheck: () => action('onAllowProofCheck'),
-  onCancel: () => action('onCancel'),
+  onAllowProofCheck: action('onAllowProofCheck'),
+  onCancel: action('onCancel'),
   onCancelText: 'Cancel',
-  onComplete: () => action('onComplete'),
+  onComplete: action('onComplete'),
   platformUserName: 'awendland',
 }
 
@@ -17,7 +17,7 @@ const propsTwitter = {
   ...props,
   platform: 'twitter',
   platformUserName: 'alexrwendland',
-  proofAction: () => action('proofAction'),
+  proofAction: action('proofAction'),
   proofText:
     'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
 }
