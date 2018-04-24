@@ -48,10 +48,10 @@ type State = {
 
 const boxProps = {
   direction: 'vertical',
-  fullHeight: isMobile,
   fullWidth: isMobile,
   style: platformStyles({
     isElectron: {height: 750, width: 500},
+    isMobile: {justifyContent: 'flex-end', height: 300},
   }),
 }
 
