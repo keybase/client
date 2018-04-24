@@ -8,6 +8,7 @@ import mentionHoc, {type PropsFromContainer} from './mention-handler-hoc'
 import {default as _Input} from './normal'
 import {stringToConversationIDKey} from '../../../constants/types/chat2'
 
+// For some reason, flow can't infer the type of mentionHoc here.
 const Input: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
