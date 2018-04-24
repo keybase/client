@@ -35,6 +35,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 
 type Props = {
   isEditing: boolean,
+  pendingWaiting: boolean,
 }
 
 type State = {
@@ -89,7 +90,7 @@ class InputContainer extends React.Component<Props, State> {
       onJoinChannel: action('onJoinChannel'),
       onLeaveChannel: action('onLeaveChannel'),
       onSubmit: action('onSubmit'),
-      pendingWaiting: false,
+      pendingWaiting: this.props.pendingWaiting,
       setText: this._setText,
       text: this.state.text,
       typing: Set(),
@@ -106,9 +107,19 @@ class InputContainer extends React.Component<Props, State> {
 const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
-    .add('Basic', () => (
+    .add('Normal', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer isEditing={false} />
+        <InputContainer isEditing={false} pendingWaiting={false} />
+      </Box2>
+    ))
+    .add('Editing', () => (
+      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
+        <InputContainer isEditing={true} pendingWaiting={false} />
+      </Box2>
+    ))
+    .add('Pending waiting', () => (
+      <Box2 direction="horizontal" style={{height: 750, width: 500}}>
+        <InputContainer isEditing={false} pendingWaiting={true} />
       </Box2>
     ))
 }
