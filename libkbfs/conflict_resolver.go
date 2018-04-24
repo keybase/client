@@ -2331,12 +2331,24 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			return err
 		}
 
-		// recreateOps update the merged paths using original
-		// pointers; but if other stuff happened in the block before
-		// it was deleted (such as other removes) we want to preserve
-		// those.
+		if unmergedPath.tailPointer() == mergedPath.tailPointer() {
+			// recreateOps update the merged paths using original
+			// pointers; but if other stuff happened in the merged
+			// block before it was deleted (such as other removes) we
+			// want to preserve those.  Therefore, we don't want the
+			// unmerged block to remain in the local block cache.
+			// Below we'll replace it with a new one instead.
+			delete(lbc, unmergedPath.tailPointer())
+			cr.log.CDebugf(ctx, "Removing block for %v from the local cache",
+				unmergedPath.tailPointer())
+		}
+
 		var mergedBlock *DirBlock
-		if mergedChains.isDeleted(mergedPath.tailPointer()) {
+		_, blockExists := lbc[mergedPath.tailPointer()]
+		// If this is a recreate op and we haven't yet made a new
+		// block for it, then make a new one and put it in the local
+		// block cache.  Otherwise, fetch it.
+		if mergedChains.isDeleted(mergedPath.tailPointer()) && !blockExists {
 			mergedBlock = NewDirBlock().(*DirBlock)
 			lbc[mergedPath.tailPointer()] = mergedBlock
 		} else {
