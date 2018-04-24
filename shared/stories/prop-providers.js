@@ -20,6 +20,8 @@ const compose = (...providers: any[]) => {
  *          that are needed to derive view props
  *  Output: a map of DisplayName: Function(...) that returns the
  *          view props the connected component is concerned with
+ *
+ *  TODO (DA) Type these props with respective OwnProps where possible
  */
 
 const Usernames = (following: string[], you?: string) => ({
