@@ -15,8 +15,6 @@ export type PreMentionHocProps = {
   inputFocus: () => void,
   inputSetRef: (r: ?TextInput) => void,
   inputValue: () => string,
-  isLoading: boolean,
-  isPreview: boolean,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,

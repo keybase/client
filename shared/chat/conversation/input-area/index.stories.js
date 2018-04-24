@@ -33,11 +33,15 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
   },
 })
 
+type Props = {
+  isEditing: boolean,
+}
+
 type State = {
   text: string,
 }
 
-class InputContainer extends React.Component<{}, State> {
+class InputContainer extends React.Component<Props, State> {
   _input: ?TextInput
 
   constructor(props) {
@@ -67,7 +71,7 @@ class InputContainer extends React.Component<{}, State> {
 
       conversationIDKey: stringToConversationIDKey('fake conversation id key'),
       channelName: 'somechannel',
-      isEditing: false,
+      isEditing: this.props.isEditing,
       focusInputCounter: 0,
       clearInboxFilter: action('clearInboxFilter'),
       inputBlur: action('inputBlur'),
@@ -75,8 +79,6 @@ class InputContainer extends React.Component<{}, State> {
       inputFocus: action('inputFocus'),
       inputSetRef: action('inputSetRef'),
       inputValue: action('inputValue'),
-      isLoading: false,
-      isPreview: false,
       onAttach: (paths: Array<string>) => {
         // This will always be called with an empty array, since some
         // browsers don't have the path property set on File.
@@ -106,7 +108,7 @@ const load = () => {
     .addDecorator(provider)
     .add('Basic', () => (
       <Box2 direction="horizontal" style={{height: 750, width: 500}}>
-        <InputContainer />
+        <InputContainer isEditing={false} />
       </Box2>
     ))
 }

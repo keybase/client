@@ -3,7 +3,6 @@ import * as React from 'react'
 import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
 import {Input} from '../../../../common-adapters'
-import logger from '../../../../logger'
 
 type MentionHocState = {
   upArrowCounter: number,
@@ -210,10 +209,6 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
 
       if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
         this._triggerPickSelectedCounter()
-        return
-      }
-      if (this.props.isLoading) {
-        logger.info('Ignoring chat submit while still loading')
         return
       }
       if (this.props.text) {

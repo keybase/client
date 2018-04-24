@@ -98,7 +98,6 @@ class ConversationInput extends Component<Props> {
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             openFilePicker={this._openFilePicker}
-            isLoading={this.props.isLoading}
             insertMentionMarker={this.props.insertMentionMarker}
           />
         </Box>
@@ -129,10 +128,10 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker, isLoading}) =>
+const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker}) =>
   text ? (
     <Box style={styles.actionText}>
-      <Text type="BodyBigLink" style={isLoading ? styles.actionLoading : null} onClick={onSubmit}>
+      <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
     </Box>
@@ -172,9 +171,6 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     paddingRight: globalMargins.tiny,
-  },
-  actionLoading: {
-    color: globalColors.grey,
   },
   actionText: {
     ...globalStyles.flexBoxColumn,

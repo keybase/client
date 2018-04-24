@@ -141,7 +141,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   focusInputCounter: ownProps.focusInputCounter,
   injectedInput: stateProps.injectedInput,
   isEditing: !!stateProps._editingMessage,
-  isLoading: false,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => {
     dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
