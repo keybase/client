@@ -63,12 +63,13 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *Login) Run(ctx *Context) error {
 	// check to see if already logged in
-	loggedInOK, err := e.checkLoggedInAndNotRevoked(ctx)
+	loggedIn, username, err := e.checkLoggedInAndNotRevoked(ctx)
 	if err != nil {
 		e.G().Log.Debug("Login: error checking if user is logged in: %s", err)
 		return err
 	}
-	if loggedInOK {
+	if loggedIn {
+		e.G().NotifyRouter.HandleLoggedInAlready(username.String())
 		return nil
 	}
 	e.G().Log.Debug("Login: not currently logged in")
@@ -173,13 +174,13 @@ func (e *Login) perUserKeyUpgradeSoft(ctx *Context) error {
 	return err
 }
 
-func (e *Login) checkLoggedInAndNotRevoked(ctx *Context) (bool, error) {
-	loggedInOK, err := e.checkLoggedIn(ctx)
+func (e *Login) checkLoggedInAndNotRevoked(ctx *Context) (loggedIn bool, username libkb.NormalizedUsername, err error) {
+	loggedIn, username, err = e.checkLoggedIn(ctx)
 	if err != nil {
-		return loggedInOK, err
+		return loggedIn, username, err
 	}
-	if !loggedInOK {
-		return loggedInOK, nil
+	if !loggedIn {
+		return loggedIn, username, nil
 	}
 
 	e.G().Log.Debug("user is logged in, checking if on a revoked device")
@@ -189,49 +190,49 @@ func (e *Login) checkLoggedInAndNotRevoked(ctx *Context) (bool, error) {
 		return nil
 	})
 	if err != nil {
-		return false, err
+		return false, username, err
 	}
 	if validDevice {
 		e.G().Log.Debug("user is logged in on a valid device")
-		return true, nil
+		return true, username, nil
 	}
 
 	e.G().Log.Debug("user is logged in on a revoked device, logging out then proceeding to login")
 	if err := e.G().Logout(); err != nil {
 		e.G().Log.Debug("logout error: %s", err)
-		return false, err
+		return false, username, err
 	}
 
-	return false, nil
+	return false, username, nil
 }
 
-func (e *Login) checkLoggedIn(ctx *Context) (bool, error) {
+func (e *Login) checkLoggedIn(ctx *Context) (loggedIn bool, username libkb.NormalizedUsername, err error) {
 	e.G().Log.Debug("checkLoggedIn()")
 	if !e.G().ActiveDevice.Valid() {
-		return false, nil
+		return false, username, nil
 	}
 
 	if len(e.usernameOrEmail) == 0 {
 		e.G().Log.Debug("Login: already logged in, no username or email provided, so returning without error")
-		return true, nil
+		return true, username, nil
 	}
 	if libkb.CheckEmail.F(e.usernameOrEmail) {
 		e.G().Log.Debug("Login: already logged in, but %q email address provided.  Can't determine if that is current user without further work, so just returning LoggedInError")
-		return true, libkb.LoggedInError{}
+		return true, username, libkb.LoggedInError{}
 	}
 	e.G().Log.Debug("checkLoggedIn() looking up username for %s", e.G().ActiveDevice.UID())
-	username, err := e.G().GetUPAKLoader().LookupUsername(ctx.NetContext, e.G().ActiveDevice.UID())
+	username, err = e.G().GetUPAKLoader().LookupUsername(ctx.NetContext, e.G().ActiveDevice.UID())
 	if err != nil {
 		e.G().Log.Debug("checkLoggedIn() LookupUsername error: %s", err)
-		return true, err
+		return true, username, err
 	}
 	if username.Eq(libkb.NewNormalizedUsername(e.usernameOrEmail)) {
 		e.G().Log.Debug("Login: already logged in as %q, returning without error", e.usernameOrEmail)
-		return true, nil
+		return true, username, nil
 	}
 
 	e.G().Log.Debug("Login: logged in already as %q (%q requested), returning LoggedInError", username, e.usernameOrEmail)
-	return true, libkb.LoggedInError{}
+	return true, username, libkb.LoggedInError{}
 
 }
 

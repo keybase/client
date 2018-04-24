@@ -15,6 +15,10 @@ type LoggedInArg struct {
 	Username string `codec:"username" json:"username"`
 }
 
+type LoggedInAlreadyArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type ClientOutOfDateArg struct {
 	UpgradeTo  string `codec:"upgradeTo" json:"upgradeTo"`
 	UpgradeURI string `codec:"upgradeURI" json:"upgradeURI"`
@@ -24,6 +28,7 @@ type ClientOutOfDateArg struct {
 type NotifySessionInterface interface {
 	LoggedOut(context.Context) error
 	LoggedIn(context.Context, string) error
+	LoggedInAlready(context.Context, string) error
 	ClientOutOfDate(context.Context, ClientOutOfDateArg) error
 }
 
@@ -54,6 +59,22 @@ func NotifySessionProtocol(i NotifySessionInterface) rpc.Protocol {
 						return
 					}
 					err = i.LoggedIn(ctx, (*typedArgs)[0].Username)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loggedInAlready": {
+				MakeArg: func() interface{} {
+					ret := make([]LoggedInAlreadyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoggedInAlreadyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoggedInAlreadyArg)(nil), args)
+						return
+					}
+					err = i.LoggedInAlready(ctx, (*typedArgs)[0].Username)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -90,6 +111,12 @@ func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
 func (c NotifySessionClient) LoggedIn(ctx context.Context, username string) (err error) {
 	__arg := LoggedInArg{Username: username}
 	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedIn", []interface{}{__arg}, nil)
+	return
+}
+
+func (c NotifySessionClient) LoggedInAlready(ctx context.Context, username string) (err error) {
+	__arg := LoggedInAlreadyArg{Username: username}
+	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedInAlready", []interface{}{__arg}, nil)
 	return
 }
 

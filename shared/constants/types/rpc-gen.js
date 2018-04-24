@@ -2889,6 +2889,8 @@ export type NotifyServiceShutdownRpcParam = ?$ReadOnly<{incomingCallMap?: Incomi
 
 export type NotifySessionClientOutOfDateRpcParam = $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type NotifySessionLoggedInAlreadyRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type NotifySessionLoggedInRpcParam = $ReadOnly<{username: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type NotifySessionLoggedOutRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -4321,6 +4323,7 @@ export type IncomingCallMapType = {|
   'keybase.1.NotifyService.shutdown'?: (params: $ReadOnly<{}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifySession.loggedOut'?: (params: $ReadOnly<{}>) => void,
   'keybase.1.NotifySession.loggedIn'?: (params: $ReadOnly<{username: String}>, response: CommonResponseHandler) => void,
+  'keybase.1.NotifySession.loggedInAlready'?: (params: $ReadOnly<{username: String}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifySession.clientOutOfDate'?: (params: $ReadOnly<{upgradeTo: String, upgradeURI: String, upgradeMsg: String}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamChangedByID'?: (params: $ReadOnly<{teamID: TeamID, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,
   'keybase.1.NotifyTeam.teamChangedByName'?: (params: $ReadOnly<{teamName: String, latestSeqno: Seqno, implicitTeam: Boolean, changes: TeamChangeSet}>, response: CommonResponseHandler) => void,

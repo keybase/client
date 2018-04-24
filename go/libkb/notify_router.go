@@ -227,6 +227,32 @@ func (n *NotifyRouter) HandleLogin(u string) {
 	n.G().Log.Debug("- Login notification sent")
 }
 
+// HandleLoggedInAlready is called when a login is attempted and a user.
+func (n *NotifyRouter) HandleLoggedInAlready(u string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending loggedInAlready notification, as user %q", u)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Session` notification type
+		if n.getNotificationChannels(id).Session {
+			// In the background do...
+			go func() {
+				// A send of a `LoggedInAlready` RPC
+				(keybase1.NotifySessionClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).LoggedInAlready(context.Background(), u)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.Login(u)
+	}
+	n.G().Log.Debug("- LoggedInAlready notification sent")
+}
+
 // ClientOutOfDate is called whenever the API server tells us our client is out
 // of date. (This is done by adding special headers to every API response that
 // an out-of-date client makes.)

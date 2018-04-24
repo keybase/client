@@ -100,6 +100,9 @@ func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 func (d *notificationDisplay) LoggedIn(_ context.Context, un string) error {
 	return d.printf("Logged in as %q\n", un)
 }
+func (d *notificationDisplay) LoggedInAlready(_ context.Context, un string) error {
+	return d.printf("Logged in already as %q\n", un)
+}
 func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) (err error) {
 	if arg.UpgradeMsg != "" {
 		var decodedMsg []byte

@@ -17,6 +17,15 @@
       ],
       "response": null
     },
+    "loggedInAlready": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "clientOutOfDate": {
       "request": [
         {

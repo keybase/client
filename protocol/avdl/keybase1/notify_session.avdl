@@ -5,5 +5,6 @@ protocol NotifySession {
   @notify("")
   void loggedOut();
   void loggedIn(string username);
+  void loggedInAlready(string username);
   void clientOutOfDate(string upgradeTo, string upgradeURI, string upgradeMsg);
 }
