@@ -100,7 +100,7 @@ export type _MessageAttachment = {
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
-  transferState: 'uploading' | 'downloading' | null, // only for file
+  transferState: 'uploading' | 'downloading' | 'remoteUploading' | null, // only for file
   previewTransferState: 'downloading' | null, // only for preview
   type: 'attachment',
 }

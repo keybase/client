@@ -11,6 +11,7 @@ type Props = {
   title: string,
   progress: number,
   progressLabel: string,
+  hasProgress: boolean,
 }
 
 class FileAttachment extends React.PureComponent<Props> {
@@ -37,7 +38,7 @@ class FileAttachment extends React.PureComponent<Props> {
           </Box>
           {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-download" style={{color: this.props.arrowColor, maxHeight: 14}} />
+              <Icon type="iconfont-download" style={{maxHeight: 14}} color={this.props.arrowColor} />
             </Box>
           )}
           {!!this.props.progressLabel && (
@@ -45,7 +46,7 @@ class FileAttachment extends React.PureComponent<Props> {
               <Text type="BodySmall" style={progressLabelStyle}>
                 {this.props.progressLabel}
               </Text>
-              <ProgressBar ratio={this.props.progress} />
+              {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
             </Box>
           )}
           {this.props.onShowInFinder && (

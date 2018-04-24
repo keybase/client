@@ -303,12 +303,16 @@ const validUIMessagetoMessage = (
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
+      let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
         attachment = m.messageBody.attachment || {}
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        if (attachment && !attachment.uploaded) {
+          transferState = 'remoteUploading'
+        }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
@@ -346,6 +350,7 @@ const validUIMessagetoMessage = (
         previewHeight,
         previewWidth,
         title,
+        transferState,
       })
     }
     case RPCChatTypes.commonMessageType.join:

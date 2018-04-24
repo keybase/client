@@ -18,6 +18,7 @@ type Props = {
   width: number,
   progress: number,
   progressLabel: string,
+  hasProgress: boolean,
 }
 
 class ImageAttachment extends React.PureComponent<Props> {
@@ -71,7 +72,7 @@ class ImageAttachment extends React.PureComponent<Props> {
             <Text type={'BodySmall'} style={progressLabelStyle}>
               {this.props.progressLabel}
             </Text>
-            <ProgressBar ratio={this.props.progress} />
+            {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
           </Box>
         )}
         {this.props.onShowInFinder && (
