@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {FloatingMenu} from '../../../../common-adapters/'
-import {Avatar, Box, Text} from '../../../../common-adapters'
+import {Avatar, Box, FloatingMenu, Text} from '../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 type Props = {

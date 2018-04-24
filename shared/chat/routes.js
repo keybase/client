@@ -8,7 +8,6 @@ import EditChannel from './manage-channels/edit-channel-container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import Inbox from './inbox/container'
 import InfoPanel from './conversation/info-panel/container'
-import InfoPanelMenu from './conversation/info-panel/menu/container'
 import ManageChannels from './manage-channels/container'
 import MessagePopup from './conversation/messages/message-popup'
 import NewTeamDialogFromChat from './new-team-dialog-container'
@@ -43,11 +42,6 @@ const retentionWarning = {
 
 const infoPanelChildren = {
   editChannel,
-  infoPanelMenu: {
-    children: {},
-    component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
-    tags: makeLeafTags({layerOnTop: true}),
-  },
   manageChannels,
   reallyLeaveTeam: {
     children: {},
@@ -133,11 +127,6 @@ const createChannelRoute = makeRouteDefNode({
   tags: makeLeafTags({hideStatusBar: true}),
   children: {},
 })
-const infoPanelMenuRoute = makeRouteDefNode({
-  children: {},
-  component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
-  tags: makeLeafTags({layerOnTop: true}),
-})
 
 const routeTree = isMobile
   ? makeRouteDefNode({
@@ -147,8 +136,6 @@ const routeTree = isMobile
           return manageChannelsRoute
         } else if (key === 'createChannel') {
           return createChannelRoute
-        } else if (key === 'infoPanelMenu') {
-          return infoPanelMenuRoute
         }
 
         return conversationRoute
