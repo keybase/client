@@ -97,6 +97,7 @@ class ConversationInput extends Component<Props> {
             text={this.props.text}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
+            pendingWaiting={this.props.pendingWaiting}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
           />
@@ -128,8 +129,8 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker}) =>
-  text ? (
+const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
+  text && !pendingWaiting ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}

@@ -202,8 +202,12 @@ class ConversationInput extends Component<InputProps> {
             {this.props.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
-            <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
+            {!this.props.pendingWaiting && (
+              <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
+            )}
+            {!this.props.pendingWaiting && (
+              <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
+            )}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
             <Text
