@@ -34,6 +34,7 @@ const Wrapper = props => (
 const load = () => {
   storiesOf('UnlockFolders', module)
     .add('Normal', () => <Wrapper {...props} />)
+    // TODO this doesn't seem to work
     .add('No paperkeys', () => <Wrapper {...props} paperKeysHidden={true} />)
     .add('Single', () => <Wrapper {...props} devices={[devices[0]]} />)
     .add('Paperkey input', () => <Wrapper {...props} phase={'paperKeyInput'} />)

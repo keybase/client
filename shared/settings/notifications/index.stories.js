@@ -56,6 +56,7 @@ unsubProps.groups.email.unsubscribedFromAll = true
 const load = () => {
   storiesOf('Settings/Notifications', module)
     .add('Normal', () => <Notifications {...props} />)
+    // TODO this doesn't seem to work
     .add('Unsuball', () => <Notifications {...unsubProps} />)
 }
 
