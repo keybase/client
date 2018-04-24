@@ -93,7 +93,7 @@ func (a *Account) UnloadLocalSession() {
 // LoggedIn returns true if the user is logged in.  It does not
 // try to load the session.
 func (a *Account) LoggedIn() bool {
-	return a.LocalSession().IsLoggedIn()
+	return a.G().ActiveDevice.Valid() || a.LocalSession().IsLoggedIn()
 }
 
 // LoggedInLoad will load and check the session with the api server if necessary.
