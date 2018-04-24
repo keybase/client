@@ -11,7 +11,8 @@ import (
 // PGPKeyGen is an engine.
 type PGPKeyGen struct {
 	libkb.Contextified
-	arg keybase1.PGPKeyGenDefaultArg
+	arg    keybase1.PGPKeyGenDefaultArg
+	genArg *libkb.PGPGenArg
 }
 
 // NewPGPKeyGen creates a PGPKeyGen engine.
@@ -53,11 +54,16 @@ func (e *PGPKeyGen) SubConsumers() []libkb.UIConsumer {
 func (e *PGPKeyGen) Run(ctx *Context) error {
 
 	// generate a new pgp key with defaults (and no push)
+	var genArg libkb.PGPGenArg
+	if e.genArg != nil {
+		genArg = *e.genArg
+	}
+	genArg.Ids = libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)
 	arg := PGPKeyImportEngineArg{
 		Ctx:        e.G(),
 		AllowMulti: true,
 		OnlySave:   true,
-		Gen:        &libkb.PGPGenArg{Ids: libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)},
+		Gen:        &genArg,
 	}
 	eng := NewPGPKeyImportEngine(arg)
 	if err := RunEngine(eng, ctx); err != nil {

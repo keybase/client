@@ -1,10 +1,10 @@
 // @flow
 import {connect, type TypedState} from '../../../../util/container'
-import {getBadgeSubscribe, getTeamMemberCount} from '../../../../constants/teams'
+import {isTeamWithChosenChannels, getTeamMemberCount} from '../../../../constants/teams'
 import {BigTeamHeader} from '.'
 
 const mapStateToProps = (state: TypedState, {teamname}) => ({
-  badgeSubscribe: getBadgeSubscribe(state, teamname),
+  badgeSubscribe: !isTeamWithChosenChannels(state, teamname),
   memberCount: getTeamMemberCount(state, teamname),
   teamname,
 })
