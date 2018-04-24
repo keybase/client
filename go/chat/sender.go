@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
@@ -26,13 +27,13 @@ type BlockingSender struct {
 	utils.DebugLabeler
 
 	boxer *Boxer
-	store *AttachmentStore
+	store *attachments.Store
 	getRi func() chat1.RemoteInterface
 }
 
 var _ types.Sender = (*BlockingSender)(nil)
 
-func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
+func NewBlockingSender(g *globals.Context, boxer *Boxer, store *attachments.Store,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified: globals.NewContextified(g),
@@ -653,9 +654,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Send up to frontend
 	if cerr == nil && boxed.GetMessageType() != chat1.MessageType_LEAVE {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(ctx, unboxedMsg, boxed.ClientHeader.Sender,
-				s.G().TeamChannelSource),
-			ConvID: convID,
+			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender, convID),
+			ConvID:  convID,
 			DisplayDesktopNotification: false,
 			Conv: s.presentUIItem(convLocal),
 		})

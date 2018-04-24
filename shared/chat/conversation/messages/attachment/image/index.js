@@ -8,8 +8,6 @@ import {isMobile} from '../../../../../util/container'
 type Props = {
   arrowColor: string,
   height: number,
-  isPreviewLoaded: boolean,
-  loadPreview: null | (() => void),
   onClick: () => void,
   onShowMenu: () => void,
   onShowInFinder: null | (() => void),
@@ -20,19 +18,13 @@ type Props = {
   progressLabel: string,
 }
 
-class ImageAttachment extends React.PureComponent<Props> {
-  componentDidMount() {
-    if (this.props.loadPreview) {
-      this.props.loadPreview()
-    }
-  }
+type State = {
+  loaded: boolean,
+}
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.loadPreview && !this.props.loadPreview) {
-      nextProps.loadPreview()
-    }
-  }
-
+class ImageAttachment extends React.PureComponent<Props, State> {
+  state = {loaded: false}
+  _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
       <ClickableBox
@@ -45,7 +37,7 @@ class ImageAttachment extends React.PureComponent<Props> {
         </Text>
         <Box
           style={{
-            ...(this.props.isPreviewLoaded ? loadedStyle : loadingStyle),
+            ...loadingStyle,
             height: this.props.height,
             width: this.props.width,
           }}
@@ -53,10 +45,12 @@ class ImageAttachment extends React.PureComponent<Props> {
           {!!this.props.path && (
             <ImageRender
               src={this.props.path}
+              onLoad={this._setLoaded}
               style={{
                 ...imageStyle,
                 height: this.props.height,
                 width: this.props.width,
+                opacity: this.state.loaded ? 1 : 0,
               }}
             />
           )}
@@ -129,10 +123,6 @@ const imageStyle = {
   backgroundColor: globalColors.fastBlank,
   maxWidth: 320,
   position: 'relative',
-}
-
-const loadedStyle = {
-  ...imageStyle,
 }
 
 const loadingStyle = {

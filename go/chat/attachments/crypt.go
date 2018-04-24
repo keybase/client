@@ -1,4 +1,4 @@
-package chat
+package attachments
 
 import (
 	"crypto/rand"
