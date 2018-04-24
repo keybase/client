@@ -18,12 +18,13 @@ import {chatTab} from '../../../../constants/tabs'
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const _participants = meta.teamname ? I.Set() : meta.participants
+  const _isPending = conversationIDKey === Constants.pendingConversationIDKey
 
   return {
     _conversationIDKey: conversationIDKey,
+    _isPending,
     _participants,
     badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
-    canOpenInfoPanel: conversationIDKey !== Constants.pendingConversationIDKey,
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
@@ -33,6 +34,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
+  _onCancel: () => dispatch(Chat2Gen.createCancelPendingConversation()),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
@@ -41,12 +43,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversation
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNumber: stateProps.badgeNumber,
-  canOpenInfoPanel: stateProps.canOpenInfoPanel,
+  canOpenInfoPanel: !stateProps._isPending,
   channelName: stateProps.channelName,
   infoPanelOpen: stateProps.infoPanelOpen,
   muted: stateProps.muted,
   onBack: dispatchProps.onBack,
-  onOpenFolder: dispatchProps._onOpenFolder,
+  onCancelPending: stateProps._isPending ? dispatchProps._onCancel : null,
+  onOpenFolder: stateProps._isPending ? null : dispatchProps._onOpenFolder,
   onShowProfile: dispatchProps.onShowProfile,
   onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
   participants: stateProps._participants.toArray(),

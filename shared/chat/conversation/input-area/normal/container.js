@@ -162,13 +162,15 @@ export default compose(
     }
   ),
   withProps(props => ({
-    setText: (text: string, skipUnsentSaving?: boolean) => {
+    setText: (text: string, skipUnsentSaving?: boolean, skipSendTyping?: boolean) => {
       props._setText(text)
       if (!skipUnsentSaving) {
         unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] = text
       }
 
-      throttled(props.sendTyping, !!text)
+      if (!skipSendTyping) {
+        throttled(props.sendTyping, !!text)
+      }
     },
   })),
   withProps(props => ({
@@ -219,7 +221,7 @@ export default compose(
         this.props.inputFocus()
       } else if (this.props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
-        this.props.setText(text, true)
+        this.props.setText(text, true, true)
       }
 
       if (nextProps.isEditing && !this.props.isEditing) {
