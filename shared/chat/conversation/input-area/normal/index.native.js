@@ -13,7 +13,7 @@ import type {Props} from '.'
 class ConversationInput extends Component<Props> {
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
-      if (response.didCancel) {
+      if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
       if (response.error) {
@@ -21,9 +21,7 @@ class ConversationInput extends Component<Props> {
         throw new Error(response.error)
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      if (!response.didCancel && this.props.conversationIDKey) {
-        this.props.onAttach([filename])
-      }
+      this.props.onAttach([filename])
     })
   }
 
