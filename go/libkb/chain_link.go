@@ -583,6 +583,11 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 		// Assume public if unset
 		ol.SeqType = keybase1.SeqType_PUBLIC
 	}
+
+	if !ol.IgnoreIfUnsupported.Bool() && !ol.LinkType.IsSupportedType() {
+		return ChainLinkStubbedUnsupportedError{fmt.Sprintf("Stubbed link with type %d is unknown and not marked with IgnoreIfUnsupported", ol.LinkType)}
+	}
+
 	c.id = ol.LinkID()
 	c.unpacked = &ChainLinkUnpacked{
 		prev:                ol.Prev,

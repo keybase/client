@@ -264,9 +264,6 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 	if err != nil {
 		return nil, err
 	}
-	if !ol.IgnoreIfUnsupported.Bool() && !ol.LinkType.IsSupportedType() {
-		return nil, ChainLinkStubbedUnsupportedError{fmt.Sprintf("Stubbed link with type %d is unknown and not marked with IgnoreIfUnsupported", ol.LinkType)}
-	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
 }
 
