@@ -4,6 +4,8 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {getPathProps} from '../route-tree'
+import {teamsTab} from './tabs'
 
 import type {Service} from './types/search'
 import {type TypedState} from './reducer'
@@ -209,8 +211,22 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.getIn(['teamNameToID', teamname], '')
 
+const getTeamNameFromID = (state: TypedState, teamID: string): ?Types.Teamname =>
+  state.teams.teamNameToID.findKey(value => value === teamID)
+
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
+
+const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
+  const pathProps = getPathProps(state.routeTree.routeState, [teamsTab])
+  return pathProps.reduce((res, val) => {
+    const teamname = val.props.get('teamname')
+    if (val.node === 'team' && teamname) {
+      return res.concat(teamname)
+    }
+    return res
+  }, [])
+}
 
 /**
  * Gets whether the team is big or small for teams you are a member of
@@ -379,11 +395,13 @@ export {
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
+  getTeamNameFromID,
   getTeamPublicitySettings,
   getTeamInvites,
   isInTeam,
   isInSomeTeam,
   isAccessRequestPending,
+  getSelectedTeamNames,
   getTeamSubteams,
   getTeamSettings,
   getTeamResetUsers,

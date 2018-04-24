@@ -89,6 +89,12 @@ type AccountDeleteArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type LoginOneshotArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+	PaperKey  string `codec:"paperKey" json:"paperKey"`
+}
+
 type LoginInterface interface {
 	// Returns an array of information about accounts configured on the local
 	// machine. Currently configured accounts are defined as those that have stored
@@ -131,6 +137,10 @@ type LoginInterface interface {
 	PGPProvision(context.Context, PGPProvisionArg) error
 	// accountDelete is for devel/testing to delete the current user's account.
 	AccountDelete(context.Context, int) error
+	// loginOneshot allows a service to have a "onetime login", without
+	// provisioning a device. It bootstraps credentials with the given
+	// paperkey
+	LoginOneshot(context.Context, LoginOneshotArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -361,6 +371,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loginOneshot": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginOneshotArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginOneshotArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginOneshotArg)(nil), args)
+						return
+					}
+					err = i.LoginOneshot(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -470,5 +496,13 @@ func (c LoginClient) PGPProvision(ctx context.Context, __arg PGPProvisionArg) (e
 func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err error) {
 	__arg := AccountDeleteArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []interface{}{__arg}, nil)
+	return
+}
+
+// loginOneshot allows a service to have a "onetime login", without
+// provisioning a device. It bootstraps credentials with the given
+// paperkey
+func (c LoginClient) LoginOneshot(ctx context.Context, __arg LoginOneshotArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.loginOneshot", []interface{}{__arg}, nil)
 	return
 }

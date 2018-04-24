@@ -48,7 +48,6 @@ type Account struct {
 	loginSession *LoginSession
 	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
-	lksec        *LKSec // local key security (this member not currently used)
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
@@ -94,7 +93,7 @@ func (a *Account) UnloadLocalSession() {
 // LoggedIn returns true if the user is logged in.  It does not
 // try to load the session.
 func (a *Account) LoggedIn() bool {
-	return a.LocalSession().IsLoggedIn()
+	return a.G().ActiveDevice.Valid() || a.LocalSession().IsLoggedIn()
 }
 
 // LoggedInLoad will load and check the session with the api server if necessary.
@@ -174,7 +173,6 @@ func (a *Account) Logout() error {
 
 	a.ClearCachedSecretKeys()
 
-	a.lksec = nil
 	a.G().Log.Debug("- Account.Logout() - all clears complete, localSession.Logout() -> %s", ErrToOk(err))
 
 	return err
@@ -185,7 +183,6 @@ func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
 	}
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
-	a.SetLKSec(NewLKSec(pps, a.GetUID(), a.G()))
 }
 
 // SetStreamGeneration sets the passphrase generation on the cached stream
@@ -227,8 +224,6 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 
-	a.SetLKSec(NewLKSec(pps, a.GetUID(), a.G()))
-
 	return nil
 }
 
@@ -251,7 +246,6 @@ func (a *Account) PassphraseStreamRef() *PassphraseStream {
 func (a *Account) ClearStreamCache() {
 	a.streamCache.Clear()
 	a.streamCache = nil
-	a.lksec = nil
 }
 
 // ClearLoginSession clears out any cached login sessions with the account
@@ -262,24 +256,6 @@ func (a *Account) ClearLoginSession() {
 		a.loginSession.Clear()
 		a.loginSession = nil
 	}
-}
-
-func (a *Account) SetLKSec(lks *LKSec) {
-	a.lksec = lks
-}
-
-func (a *Account) LKSec() *LKSec {
-	return a.lksec
-}
-
-// LKSecUnlock isn't used, but it could be.  It's here for a future
-// refactoring of the key unlock mess.
-func (a *Account) LKSecUnlock(locked []byte) ([]byte, PassphraseGeneration, error) {
-	if a.lksec == nil {
-		return nil, 0, errors.New("LKSecUnlock: no lksec in account")
-	}
-	key, gen, _, err := a.lksec.Decrypt(a, locked)
-	return key, gen, err
 }
 
 func (a *Account) SecretSyncer() *SecretSyncer {

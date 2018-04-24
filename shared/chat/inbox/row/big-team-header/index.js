@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Text, Icon} from '../../../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
 import {
   desktopStyles,
   collapseStyles,
@@ -12,7 +12,7 @@ import {
 
 type Props = {
   badgeSubscribe: boolean,
-  onClickGear: (evt?: SyntheticEvent<Element>) => void,
+  onClickGear: (evt: SyntheticEvent<Element>) => void,
   memberCount: number,
   teamname: string,
 }
@@ -27,19 +27,15 @@ class BigTeamHeader extends React.PureComponent<Props> {
         <Text type="BodySmallSemibold" style={teamStyle}>
           {props.teamname}
         </Text>
-        <Icon
-          className="icon"
-          type="iconfont-gear"
-          onClick={isMobile ? () => props.onClickGear() : props.onClickGear}
-          style={iconStyle}
-        />
-        <Box
-          style={
-            props.badgeSubscribe
-              ? collapseStyles([badgeStyle, {backgroundColor: globalColors.orange}])
-              : badgeStyle
-          }
-        />
+        <ClickableBox
+          onClick={props.onClickGear}
+          style={collapseStyles([globalStyles.flexBoxRow, {position: 'relative'}])}
+        >
+          <Icon className="icon" type="iconfont-gear" style={iconStyle} />
+          <Box
+            style={collapseStyles([badgeStyle, props.badgeSubscribe && {backgroundColor: globalColors.blue}])}
+          />
+        </ClickableBox>
       </Box>
     )
   }
@@ -53,7 +49,7 @@ const teamRowContainerStyle = {
   maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
   minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
-  paddingRight: isMobile ? 0 : globalMargins.xtiny,
+  paddingRight: globalMargins.tiny,
 }
 
 const iconStyle = {
@@ -76,8 +72,9 @@ const teamStyle = {
 const badgeStyle = {
   borderRadius: 6,
   height: 8,
-  marginTop: 4,
-  marginRight: 4,
+  top: -1,
+  right: isMobile ? -1 : -3,
+  position: 'absolute',
   width: 8,
 }
 

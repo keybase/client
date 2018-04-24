@@ -5445,9 +5445,15 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   color: rgba(0, 0, 0, 0.20);
 }
 
-.css-3:hover,
-[data-css-3]:hover {
-  color: rgba(0, 0, 0, 0.75);
+.css-4,
+[data-css-4] {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgb(64,64,64);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
 }
 
 .css-5,
@@ -5458,22 +5464,11 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .css-6,
 [data-css-6] {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgb(64,64,64);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 700;
-}
-
-.css-7,
-[data-css-7] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -5483,8 +5478,8 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
   font-weight: 600;
 }
 
-.css-8,
-[data-css-8] {
+.css-7,
+[data-css-7] {
   font-size: 13px;
   line-height: 17px;
   color: #ffffff;
@@ -5530,7 +5525,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             "maxHeight": 24,
             "minHeight": 24,
             "paddingLeft": 8,
-            "paddingRight": 4,
+            "paddingRight": 8,
           }
         }
       >
@@ -5561,42 +5556,66 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         >
           Keybase
         </span>
-        <div>
-          <span
-            className="css-3 icon"
-            onClick={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
         <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
           style={
             Object {
-              "borderRadius": 6,
-              "height": 8,
-              "marginRight": 4,
-              "marginTop": 4,
-              "width": 8,
+              "alignItems": "stretch",
+              "borderRadius": 0,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
             }
           }
-        />
+        >
+          <div>
+            <span
+              className="css-3 icon"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div
+            style={
+              Object {
+                "borderRadius": 6,
+                "height": 8,
+                "position": "absolute",
+                "right": -3,
+                "top": -1,
+                "width": 8,
+              }
+            }
+          />
+        </div>
       </div>
       <div
         onClick={[Function]}
@@ -5650,7 +5669,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-5"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -5712,7 +5731,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-5"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -5774,7 +5793,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-6"
+              className="css-5"
               onClick={undefined}
               title={undefined}
             >
@@ -5836,7 +5855,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-5"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -5870,7 +5889,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             "maxHeight": 24,
             "minHeight": 24,
             "paddingLeft": 8,
-            "paddingRight": 4,
+            "paddingRight": 8,
           }
         }
       >
@@ -5901,42 +5920,66 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
         >
           techtonica
         </span>
-        <div>
-          <span
-            className="css-3 icon"
-            onClick={[Function]}
-            onMouseEnter={undefined}
-            onMouseLeave={undefined}
-            style={
-              Object {
-                "WebkitFontSmoothing": "antialiased",
-                "cursor": "pointer",
-                "fontFamily": "kb",
-                "fontSize": 16,
-                "fontStyle": "normal",
-                "fontVariant": "normal",
-                "fontWeight": "normal",
-                "lineHeight": 1,
-                "speak": "none",
-                "textTransform": "none",
-                "userSelect": "none",
-              }
-            }
-          >
-            
-          </span>
-        </div>
         <div
+          onClick={[Function]}
+          onMouseDown={[Function]}
+          onMouseEnter={undefined}
+          onMouseLeave={undefined}
+          onMouseUp={[Function]}
           style={
             Object {
-              "borderRadius": 6,
-              "height": 8,
-              "marginRight": 4,
-              "marginTop": 4,
-              "width": 8,
+              "alignItems": "stretch",
+              "borderRadius": 0,
+              "cursor": "pointer",
+              "display": "flex",
+              "flexDirection": "row",
+              "height": undefined,
+              "lineHeight": 0,
+              "minWidth": undefined,
+              "position": "relative",
+              "textAlign": "left",
+              "transform": "none",
+              "transition": "none",
             }
           }
-        />
+        >
+          <div>
+            <span
+              className="css-3 icon"
+              onClick={null}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div
+            style={
+              Object {
+                "borderRadius": 6,
+                "height": 8,
+                "position": "absolute",
+                "right": -3,
+                "top": -1,
+                "width": 8,
+              }
+            }
+          />
+        </div>
       </div>
       <div
         onClick={[Function]}
@@ -5993,7 +6036,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-6"
               onClick={undefined}
               title={undefined}
             >
@@ -6055,7 +6098,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-5"
+              className="css-4"
               onClick={undefined}
               title={undefined}
             >
@@ -6120,7 +6163,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-7"
+              className="css-6"
               onClick={undefined}
               title={undefined}
             >
@@ -6198,7 +6241,7 @@ exports[`Storyshots Chat/Inbox Team 1`] = `
             }
           >
             <span
-              className="css-8"
+              className="css-7"
               onClick={undefined}
               title={undefined}
             >
@@ -33504,6 +33547,16 @@ exports[`Storyshots Files Preview 1`] = `
 
 .css-6,
 [data-css-6] {
+  color: rgba(0, 0, 0, 0.40);
+}
+
+.css-6:hover,
+[data-css-6]:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.css-8,
+[data-css-8] {
   font-size: 14px;
   line-height: 18px;
   color: #2645A3;
@@ -33515,8 +33568,8 @@ exports[`Storyshots Files Preview 1`] = `
   margin-bottom: 8px;
 }
 
-.css-7,
-[data-css-7] {
+.css-9,
+[data-css-9] {
   font-size: 14px;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
@@ -33659,6 +33712,68 @@ exports[`Storyshots Files Preview 1`] = `
             </span>
           </div>
         </div>
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <div>
+            <span
+              className="css-6"
+              onClick={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 16,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+          <div>
+            <span
+              className="css-6"
+              onClick={[Function]}
+              onMouseEnter={undefined}
+              onMouseLeave={undefined}
+              style={
+                Object {
+                  "WebkitFontSmoothing": "antialiased",
+                  "cursor": "pointer",
+                  "fontFamily": "kb",
+                  "fontSize": 16,
+                  "fontStyle": "normal",
+                  "fontVariant": "normal",
+                  "fontWeight": "normal",
+                  "lineHeight": 1,
+                  "marginRight": 16,
+                  "speak": "none",
+                  "textTransform": "none",
+                  "userSelect": "none",
+                }
+              }
+            >
+              
+            </span>
+          </div>
+        </div>
       </div>
       <div
         style={
@@ -33702,7 +33817,7 @@ exports[`Storyshots Files Preview 1`] = `
             title={undefined}
           />
           <span
-            className="css-6"
+            className="css-8"
             onClick={undefined}
             title={undefined}
           >
@@ -33757,7 +33872,7 @@ exports[`Storyshots Files Preview 1`] = `
               }
             >
               <span
-                className="css-7"
+                className="css-9"
                 onClick={undefined}
                 title={undefined}
               >

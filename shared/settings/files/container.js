@@ -2,12 +2,12 @@
 import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
-import {isLinux} from '../../constants/platform'
+import * as StateMappers from '../../fs/utils/state-mappers'
 import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
 import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
   return {
     kbfsEnabled,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,

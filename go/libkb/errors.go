@@ -970,6 +970,10 @@ type KeyRevokedError struct {
 	msg string
 }
 
+func NewKeyRevokedError(m string) KeyRevokedError {
+	return KeyRevokedError{m}
+}
+
 func (r KeyRevokedError) Error() string {
 	return fmt.Sprintf("Key revoked: %s", r.msg)
 }
@@ -1190,6 +1194,10 @@ func (e SkipSecretPromptError) Error() string {
 
 type NoDeviceError struct {
 	Reason string
+}
+
+func NewNoDeviceError(s string) NoDeviceError {
+	return NoDeviceError{s}
 }
 
 func (e NoDeviceError) Error() string {

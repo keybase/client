@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../../../util/container'
+import {connect, isMobile, type TypedState} from '../../../../util/container'
 import {getBadgeSubscribe, getTeamMemberCount} from '../../../../constants/teams'
 import {BigTeamHeader} from '.'
 // Typically you'd use the navigateAppend from the routeable component but this is a child* of that
@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState, {teamname}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
-  onClickGear: (evt?: SyntheticEvent<Element>) =>
+  onClickGear: (evt: SyntheticEvent<Element>) =>
     dispatch(
       navigateAppend([
         {
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
             teamname,
             isSmallTeam: false,
             position: 'bottom right',
-            targetRect: evt && evt.currentTarget.getBoundingClientRect(),
+            targetRect: isMobile ? null : evt && evt.currentTarget.getBoundingClientRect(),
           },
           selected: 'infoPanelMenu',
         },
