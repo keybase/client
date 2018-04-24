@@ -3,7 +3,7 @@ import * as shared from './shared'
 import * as React from 'react'
 import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../../common-adapters'
 import LinkWithIcon from '../link-with-icon'
-import {clipboard} from 'electron'
+import {copyToClipboard} from '../../util/clipboard'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import type {Props} from '.'
 
@@ -37,7 +37,7 @@ const PostProof = (props: Props) => {
       onCopyCapture={e => {
         // disallow copying the whole screen by accident
         e.preventDefault()
-        clipboard.writeText(proofText)
+        proofText && copyToClipboard(proofText)
       }}
     >
       <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />

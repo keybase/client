@@ -5,11 +5,14 @@ import devices from '../devices/index.stories'
 import fs from '../fs/index.stories.js'
 import git from '../git/index.stories'
 import login from '../login/index.stories'
-import profile from '../profile/index.stories'
 import people from '../people/index.stories'
+import profile from '../profile/index.stories'
 import search from '../search/index.stories'
+import settings from '../settings/index.stories'
+import signup from '../login/signup/index.stories'
 import styles from '../styles/index.stories'
 import teams from '../teams/index.stories'
+import unlockFolders from '../unlock-folders/index.stories'
 
 const stories = {
   chat,
@@ -21,8 +24,11 @@ const stories = {
   people,
   profile,
   search,
+  settings,
+  signup,
   styles,
   teams,
+  unlockFolders,
 }
 
 export default stories
