@@ -2,6 +2,7 @@
 import React from 'react'
 import {Box} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
+import * as PropProviders from '../../../stories/prop-providers'
 import {globalColors} from '../../../styles'
 import {SmallTeam} from './small-team'
 import {FilterSmallTeam} from './filter-small-team'
@@ -100,8 +101,11 @@ const commonChannel = {
   isError: false,
 }
 
+const provider = PropProviders.compose(PropProviders.TeamDropdownMenu())
+
 const load = () => {
   storiesOf('Chat/Inbox', module)
+    .addDecorator(provider)
     .add('Simple', () => (
       <Box style={{width: 240}}>
         {mocks.map(m => (
