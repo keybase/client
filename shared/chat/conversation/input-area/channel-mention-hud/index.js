@@ -1,13 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  compose,
-  lifecycle,
-  setDisplayName,
-  withProps,
-  withPropsOnChange,
-  withStateHandlers,
-} from '../../../../util/container'
+import {compose, lifecycle, withProps, withPropsOnChange, withStateHandlers} from '../../../../util/container'
 import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 
@@ -81,7 +74,6 @@ const MentionHud = compose(
       fullList,
     }
   }),
-  setDisplayName('ChannelMentionHud'),
   lifecycle({
     componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {
