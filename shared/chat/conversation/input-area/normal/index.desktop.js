@@ -15,7 +15,7 @@ type InputProps = {
   inputSelections: () => {selectionStart?: number, selectionEnd?: number},
   emojiPickerOpen: boolean,
   emojiPickerToggle: () => void,
-  filePickerFiles: () => Array<any>,
+  filePickerFiles: () => FileList | [],
   filePickerOpen: () => void,
   filePickerSetValue: (value: string) => void,
   filePickerSetRef: (r: ?HTMLInputElement) => void,
@@ -89,7 +89,17 @@ class ConversationInput extends Component<InputProps> {
 
   _pickFile = () => {
     const fileList = this.props.filePickerFiles()
-    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path).filter(Boolean) : []
+    const paths = fileList.length
+      ? Array.prototype.map
+          .call(fileList, (f: File) => {
+            // We rely on path being here, even though it's
+            // not part of the File spec.
+            // $ForceType
+            const path: string = f.path
+            return path
+          })
+          .filter(Boolean)
+      : []
     if (paths) {
       this.props.onAttach(paths)
     }

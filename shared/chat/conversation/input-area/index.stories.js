@@ -78,6 +78,8 @@ class InputContainer extends React.Component<{}, State> {
       isLoading: false,
       isPreview: false,
       onAttach: (paths: Array<string>) => {
+        // This will always be called with an empty array, since some
+        // browsers don't have the path property set on File.
         action('onAttach').call(paths)
       },
       onEditLastMessage: action('onEditLastMessage'),
