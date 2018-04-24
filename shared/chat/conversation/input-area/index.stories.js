@@ -12,17 +12,19 @@ import {stringToConversationIDKey} from '../../../constants/types/chat2'
 const Input: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
-  ChannelMentionHud: props => ({
-    ...props,
-    following: Set(),
-    you: 'chris',
-    data: props.channels
-      ? Object.keys(props.channels)
-          .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
-          .sort()
-          .map((c, i) => ({channelName: c, selected: i === props.selectedIndex}))
-      : {},
-  }),
+  ChannelMentionHud: props => {
+    const channels = ['foo', 'bar']
+    return {
+      ...props,
+      channels,
+      following: Set(),
+      you: 'chris',
+      data: channels
+        .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
+        .sort()
+        .map((c, i) => ({channelName: c, selected: i === props.selectedIndex})),
+    }
+  },
   UserMentionHud: props => ({
     ...props,
     following: Set(),
