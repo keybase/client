@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import CreateTeamNotice from './system-create-team-notice/container'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
+import shallowEqual from 'shallowequal'
 import {Text, Box, Icon} from '../../../common-adapters'
 import {connect, type TypedState} from '../../../util/container'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
@@ -16,18 +17,12 @@ type Props = {
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
   onToggleInfoPanel: () => void,
   showTeamOffer: boolean,
-  // $FlowIssue "null or undefined is incompatible with null or undefined"
-  measure: ?() => void,
+  measure: () => void,
 }
 
 class TopMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
-    // remeasure if the layout changes. On purpose we don't change size when loadMoreType changes
-    if (
-      this.props.measure &&
-      (this.props.hasOlderResetConversation !== prevProps.hasOlderResetConversation ||
-        this.props.showTeamOffer !== prevProps.showTeamOffer)
-    ) {
+    if (this.props.measure && !shallowEqual(this.props, prevProps)) {
       this.props.measure()
     }
   }
