@@ -46,7 +46,9 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 
 const defaultProps: PropsFromContainer = {
   _inputSetRef: action('inputSetRef'),
-  _onKeyDown: action('_onKeyDown'),
+  _onKeyDown: (e: SyntheticKeyboardEvent<>) => {
+    action('_onKeyDown')(e.key)
+  },
 
   conversationIDKey: stringToConversationIDKey('fake conversation id key'),
   channelName: 'somechannel',
