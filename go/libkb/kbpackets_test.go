@@ -63,3 +63,20 @@ tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 `)
 	require.IsType(t, err, FishyMsgpackError{}, "p=%+v", p)
 }
+
+// This is a regression test for
+// https://github.com/ugorji/go/issues/237 .
+func TestMsgpackReencodeNilHash(t *testing.T) {
+	packet, err := NewKeybasePacket("body", 1, 2)
+	require.NoError(t, err)
+	// We encounter packets with nil Hash during integration
+	// tests.
+	packet.Hash = nil
+	bytes, err := packet.Encode()
+	require.NoError(t, err)
+
+	// This shouldn't return a FishyMsgpackError.
+	packet2, err := DecodePacket(bytes)
+	require.NoError(t, err)
+	require.Equal(t, &packet, packet2)
+}
