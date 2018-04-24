@@ -67,7 +67,7 @@ tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 // This is a regression test for
 // https://github.com/ugorji/go/issues/237 .
 func TestMsgpackReencodeNilHash(t *testing.T) {
-	packet, err := NewKeybasePacket("body", 1, 2)
+	packet, err := NewKeybasePacket(&NaclEncryptionInfo{}, TagEncryption, KeybasePacketV1)
 	require.NoError(t, err)
 	// We encounter packets with nil Hash during integration
 	// tests.
@@ -78,5 +78,5 @@ func TestMsgpackReencodeNilHash(t *testing.T) {
 	// This shouldn't return a FishyMsgpackError.
 	packet2, err := DecodePacket(bytes)
 	require.NoError(t, err)
-	require.Equal(t, &packet, packet2)
+	require.Equal(t, packet, packet2)
 }
