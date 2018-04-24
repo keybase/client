@@ -23,7 +23,6 @@ export type PreMentionHocProps = {
   onJoinChannel: () => void,
   onLeaveChannel: () => void,
   onSubmit: (text: string) => void,
-  onUpdateTyping: (typing: boolean) => void,
   pendingWaiting: boolean,
   setText: (text: string) => void,
   text: string,
