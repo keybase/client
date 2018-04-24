@@ -1,4 +1,4 @@
-// @flow
+// @noflow // The typing of these components isn't good so lets no try and fix that here
 import * as React from 'react'
 import * as Constants from '../constants/tracker'
 import Tracker from '.'
@@ -16,48 +16,48 @@ const proofMaker = (type, id = 'id-') => ({
   type,
 })
 
-const proofWeb: Proof = {
+const proofWeb = {
   ...proofMaker('http'),
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-const proofWeb1: Proof = {
+const proofWeb1 = {
   ...proofMaker('http', '1'),
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   meta: Constants.metaNone,
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com',
 }
-const proofWeb2: Proof = {
+const proofWeb2 = {
   ...proofMaker('http', '2'),
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com',
 }
-const proofWeb3: Proof = {
+const proofWeb3 = {
   ...proofMaker('http', '3'),
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandm.com',
 }
-const proofWeb4: Proof = {
+const proofWeb4 = {
   ...proofMaker('http', '4'),
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreand.com',
 }
-const proofWeb5: Proof = {
+const proofWeb5 = {
   ...proofMaker('http', '5'),
   humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   name: 'thelongestdomainnameintheworldandthensomeandthensomemorean.com',
 }
 const proofGithub = proofMaker('github')
-const proofTwitter: Proof = proofMaker('twitter')
-const proofFacebook: Proof = proofMaker('facebook')
-const proofHN: Proof = proofMaker('hackernews')
-const proofReddit: Proof = proofMaker('reddit')
-const proofPgp: Proof = proofMaker('pgp')
-const proofHttps: Proof = proofMaker('https')
-const proofRooter: Proof = proofMaker('rooter')
-const proofDNS: Proof = proofMaker('dns')
+const proofTwitter = proofMaker('twitter')
+const proofFacebook = proofMaker('facebook')
+const proofHN = proofMaker('hackernews')
+const proofReddit = proofMaker('reddit')
+const proofPgp = proofMaker('pgp')
+const proofHttps = proofMaker('https')
+const proofRooter = proofMaker('rooter')
+const proofDNS = proofMaker('dns')
 
-const proofsDefault: Array<Proof> = [
+const proofsDefault = [
   proofGithub,
   proofTwitter,
   proofFacebook,
@@ -75,7 +75,7 @@ const proofsDefault: Array<Proof> = [
   proofWeb5,
 ]
 
-const proofsChanged: Array<Proof> = [
+const proofsChanged = [
   {
     humanUrl: '',
     id: 'warningId',
@@ -134,10 +134,17 @@ const proofsChanged: Array<Proof> = [
 ]
 
 const propsBase = {
+  _checkRequestedAccess: action('_checkRequestedAccess'),
+  _loadTeams: action('_loadTeams'),
+  _onSetTeamJoinError: action('_onSetTeamJoinError'),
+  _onSetTeamJoinSuccess: action('_onSetTeamJoinSuccess'),
   actionBarReady: true,
   closed: false,
   currentlyFollowing: false,
   errorMessage: null,
+  headerProps: {
+    onClose: action('onClose'),
+  },
   lastAction: null,
   loading: false,
   loggedIn: true,
@@ -179,11 +186,11 @@ const propsDefault = {
   username: 'darksim905',
 }
 
-const propsNewUser: TrackerProps = {
+const propsNewUser = {
   ...propsDefault,
 }
 
-const propsNonUser: TrackerProps = {
+const propsNonUser = {
   ...propsDefault,
   inviteLink: 'keybase.io/inv/9999999999',
   isPrivate: false,
@@ -195,7 +202,7 @@ const propsNonUser: TrackerProps = {
   userInfo: null,
 }
 
-const propsNewUserFollowsYou: TrackerProps = {
+const propsNewUserFollowsYou = {
   ...propsDefault,
   userInfo: {
     ...propsNewUser.userInfo,
@@ -203,42 +210,30 @@ const propsNewUserFollowsYou: TrackerProps = {
   },
 }
 
-type setFollowFilter = (p: Proof) => boolean
-function setFollow(source: TrackerProps, filter: setFollowFilter): TrackerProps {
-  source.proofs = source.proofs.map(
-    p =>
-      filter(p)
-        ? {
-            ...p,
-            isTracked: true,
-          }
-        : p
-  )
+function setFollow(source) {
+  source.proofs = source.proofs.map(p => ({
+    ...p,
+    isTracked: true,
+  }))
   return source
 }
 
-const propsFollowing: TrackerProps = setFollow(
-  {
-    ...propsNewUser,
-    currentlyFollowing: true,
-    lastAction: 'followed',
-    proofs: proofsDefault,
-    reason: 'You have followed gabrielh.',
-    userInfo: {...propsNewUser.userInfo, followsYou: true},
-  },
-  () => true
-)
+const propsFollowing = setFollow({
+  ...propsNewUser,
+  currentlyFollowing: true,
+  lastAction: 'followed',
+  proofs: proofsDefault,
+  reason: 'You have followed gabrielh.',
+  userInfo: {...propsNewUser.userInfo, followsYou: true},
+})
 
-const propsWhatevz: TrackerProps = setFollow(
-  {
-    ...propsFollowing,
-    proofs: [proofGithub, {...proofTwitter, meta: Constants.metaIgnored}],
-    reason: 'You have followed gabrielh',
-  },
-  () => true
-)
+const propsWhatevz = setFollow({
+  ...propsFollowing,
+  proofs: [proofGithub, {...proofTwitter, meta: Constants.metaIgnored}],
+  reason: 'You have followed gabrielh',
+})
 
-const propsChangedProofs: TrackerProps = {
+const propsChangedProofs = {
   ...propsDefault,
   currentlyFollowing: true,
   proofs: proofsChanged,
@@ -247,14 +242,14 @@ const propsChangedProofs: TrackerProps = {
   userInfo: {...propsNewUser.userInfo, followsYou: true},
 }
 
-const propsUnfollowed: TrackerProps = {
+const propsUnfollowed = {
   ...propsDefault,
   lastAction: 'unfollowed',
   reason: 'You have unfollowed gabrielh.',
   userInfo: {...propsNewUser.userInfo, followsYou: true},
 }
 
-const propsLessData: TrackerProps = {
+const propsLessData = {
   ...propsBase,
   currentlyFollowing: false,
   nonUser: false,
@@ -275,13 +270,13 @@ const propsLessData: TrackerProps = {
   username: '00',
 }
 
-const propsLoggedOut: TrackerProps = {
+const propsLoggedOut = {
   ...propsDefault,
   loggedIn: false,
   reason: 'You accessed a public folder with gabrielh.',
 }
-const propsOneProof: TrackerProps = {...propsDefault, proofs: [proofsDefault[0]]}
-const propsFiveProof: TrackerProps = {
+const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
+const propsFiveProof = {
   ...propsDefault,
   proofs: [0, 1, 2, 3, 4].map(id => proofMaker('github', id)),
   userInfo: {

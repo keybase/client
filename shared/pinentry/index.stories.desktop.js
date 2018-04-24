@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Pinentry from '.'
+import Pinentry from './index.desktop'
 import {action, storiesOf} from '../stories/storybook'
 import {passphraseCommonPassphraseType} from '../constants/types/rpc-gen'
 
@@ -8,6 +8,7 @@ const props = {
   onCancel: action('onCancel'),
   onSubmit: action('onSubmit'),
   prompt: 'Enter your passphrase to unlock the secret key for home computer.',
+  retryLabel: undefined,
   showTyping: {allow: true, defaultValue: false, label: 'Show typing', readonly: false},
   type: passphraseCommonPassphraseType.passPhrase,
 }
