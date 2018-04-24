@@ -77,7 +77,9 @@ class InputContainer extends React.Component<{}, State> {
       inputValue: action('inputValue'),
       isLoading: false,
       isPreview: false,
-      onAttach: action('onAttach'),
+      onAttach: (paths: Array<string>) => {
+        action('onAttach').call(paths)
+      },
       onEditLastMessage: action('onEditLastMessage'),
       onCancelEditing: action('onCancelEditing'),
       onJoinChannel: action('onJoinChannel'),

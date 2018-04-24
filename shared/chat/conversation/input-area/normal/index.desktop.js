@@ -17,8 +17,8 @@ type InputProps = {
   emojiPickerToggle: () => void,
   filePickerFiles: () => Array<any>,
   filePickerOpen: () => void,
-  filePickerSetValue: (value: any) => void,
-  filePickerSetRef: (r: any) => void,
+  filePickerSetValue: (value: string) => void,
+  filePickerSetRef: (r: ?HTMLInputElement) => void,
 } & Props
 
 const MentionCatcher = ({onClick}) => (
@@ -93,7 +93,7 @@ class ConversationInput extends Component<InputProps> {
     if (paths) {
       this.props.onAttach(paths)
     }
-    this.props.filePickerSetValue(null)
+    this.props.filePickerSetValue('')
   }
 
   _mentionCatcherClick = () => {
@@ -331,16 +331,16 @@ export default compose(
     {emojiPickerToggle: ({emojiPickerOpen}) => () => ({emojiPickerOpen: !emojiPickerOpen})}
   ),
   withHandlers(props => {
-    let fileInput
+    let fileInput: ?HTMLInputElement
     return {
       filePickerFiles: props => () => (fileInput && fileInput.files) || [],
       filePickerOpen: props => () => {
         fileInput && fileInput.click()
       },
-      filePickerSetRef: props => (r: any) => {
+      filePickerSetRef: props => (r: ?HTMLInputElement) => {
         fileInput = r
       },
-      filePickerSetValue: props => (value: any) => {
+      filePickerSetValue: props => (value: string) => {
         if (fileInput) fileInput.value = value
       },
     }
