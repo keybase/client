@@ -72,6 +72,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           overlay={'icon-proof-unfinished'}
           overlayColor={globalColors.grey}
         />
+        <UsernameTips platform={this.props.platform} />
         <Input
           autoFocus={true}
           style={styleInput}
@@ -81,7 +82,6 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           onChangeText={username => this.handleUsernameChange(username)}
           onEnterKeyDown={() => this.handleContinue()}
         />
-        <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
           <Button
             type="Secondary"
@@ -100,6 +100,8 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
     )
   }
 }
+
+// FIXME: this is the old way (#styles)
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,
@@ -142,10 +144,15 @@ const styleInput = {
 
 const styleInfoBanner = {
   ...globalStyles.flexBoxColumn,
-  alignSelf: 'stretch',
   alignItems: 'center',
   backgroundColor: globalColors.yellow,
-  padding: globalMargins.tiny,
+  marginTop: globalMargins.small,
+  marginBottom: -globalMargins.tiny,
+  paddingTop: globalMargins.xsmall,
+  paddingBottom: globalMargins.xsmall,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  borderRadius: 3,
 }
 
 export default PrivateEnterUsernameRender
