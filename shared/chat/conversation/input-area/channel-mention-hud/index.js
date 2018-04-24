@@ -70,7 +70,7 @@ const MentionHud = compose(
     return {
       data: fullList
         .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
-        .map((c, i) => ({channelName: c, selected: i === props.selectedIndex})),
+        .map((c, i) => ({channelName: c, key: c, selected: i === props.selectedIndex})),
       fullList,
     }
   }),
