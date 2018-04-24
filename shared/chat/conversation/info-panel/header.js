@@ -1,31 +1,20 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../../common-adapters'
+import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../common-adapters/floating-menu'
+import InfoPanelMenu from './menu/container'
 import {glamorous, globalMargins, globalStyles, isMobile} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
   participantCount: number,
   onClick: () => void,
-  onClickGear: (?Element) => void,
-}
+  isSmallTeam: boolean,
+} & FloatingMenuParentProps
 
 const gearIconSize = isMobile ? 24 : 16
 
-const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: SmallProps) => {
-  const _onClick = (evt: SyntheticEvent<Element>) => {
-    if (!evt.defaultPrevented) {
-      onClick()
-    }
-  }
-  const _onClickGear = (evt: SyntheticEvent<Element>) => {
-    evt.preventDefault()
-    if (!isMobile) {
-      onClickGear(evt.currentTarget)
-    } else {
-      onClickGear()
-    }
-  }
+const _SmallTeamHeader = (props: SmallProps) => {
   return (
     <ClickableBox
       style={{
@@ -33,25 +22,35 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
         alignItems: 'center',
         marginLeft: globalMargins.small,
       }}
-      onClick={_onClick}
+      onClick={props.onClick}
     >
-      <Avatar size={isMobile ? 48 : 32} teamname={teamname} isTeam={true} />
+      <InfoPanelMenu
+        attachTo={props.attachmentRef}
+        onHidden={props.toggleShowingMenu}
+        isSmallTeam={props.isSmallTeam}
+        teamname={props.teamname}
+        visible={props.showingMenu}
+      />
+      <Avatar size={isMobile ? 48 : 32} teamname={props.teamname} isTeam={true} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
-        <Text type="BodySemibold">{teamname}</Text>
+        <Text type="BodySemibold">{props.teamname}</Text>
         <Box style={globalStyles.flexBoxRow}>
           <Text type="BodySmall">
-            {participantCount.toString() + ' member' + (participantCount !== 1 ? 's' : '')}
+            {props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
           </Text>
         </Box>
       </Box>
       <Icon
         type="iconfont-gear"
-        onClick={_onClickGear}
+        onClick={props.toggleShowingMenu}
+        ref={props.setAttachmentRef}
         style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
       />
     </ClickableBox>
   )
 }
+
+const SmallTeamHeader = FloatingMenuParentHOC(_SmallTeamHeader)
 
 // TODO probably factor this out into a connected component
 type BigProps = {

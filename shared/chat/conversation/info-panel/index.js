@@ -158,10 +158,10 @@ type ParticipantCountRow = {
 type SmallTeamHeaderRow = {
   type: 'small team header',
   key: 'small team header',
+  isSmallTeam: boolean,
   teamname: string,
   participantCount: number,
   onViewTeam: () => void,
-  onClickGear: (?Element) => void,
 }
 
 type BigTeamHeaderRow = {
@@ -314,9 +314,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <SmallTeamHeader
             key="small team header"
             teamname={row.teamname}
+            isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
             onClick={row.onViewTeam}
-            onClickGear={row.onClickGear}
           />
         )
 
@@ -398,16 +398,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const participantCount = participants.length
 
     let rows: Array<Row>
-    const {teamname, channelname, onViewTeam, onClickGear} = props
+    const {teamname, channelname, onViewTeam} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
       const smallTeamHeaderRow = {
         type: 'small team header',
         key: 'small team header',
         teamname,
+        isSmallTeam: props.smallTeam,
         participantCount,
         onViewTeam,
-        onClickGear,
       }
       if (props.smallTeam) {
         // Small team.
