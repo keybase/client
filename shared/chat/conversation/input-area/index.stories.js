@@ -25,25 +25,17 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
         .map((c, i) => ({channelName: c, selected: i === props.selectedIndex})),
     }
   },
-  UserMentionHud: props => ({
-    ...props,
-    following: Set(),
-    you: 'chris',
-    data: [{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}]
-      .map((u, i) => ({
-        username: u.username,
-        fullName: u.fullName,
-        key: u.username,
-      }))
-      .filter(u => {
-        return (
-          u.username.toLowerCase().indexOf(props.filter) >= 0 ||
-          u.fullName.toLowerCase().indexOf(props.filter) >= 0
-        )
-      })
-      .map((u, i) => ({...u, selected: i === props.selectedIndex})),
-    users: [{username: 'marcopolo', fullName: 'Marco Munizaga'}, {username: 'trex', fullName: ''}],
-  }),
+  UserMentionHud: ownProps => {
+    const users = [
+      {username: 'marcopolo', fullName: 'Marco Munizaga'},
+      {username: 'trex', fullName: 'Thomas Rex'},
+      {username: 'chris', fullName: 'Chris Coyne'},
+    ]
+    return {
+      ...ownProps,
+      users,
+    }
+  },
 })
 
 type State = {
