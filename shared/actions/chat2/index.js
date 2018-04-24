@@ -1462,13 +1462,16 @@ const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
 
 // either select the special pending converationidkey or select the preview conversation
 const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload, state: TypedState) => {
-  const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+  if (action.payload.pendingMode === 'none') {
+    const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+    if (Constants.isValidConversationIDKey(meta.conversationIDKey)) {
+      return Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: meta.conversationIDKey}))
+    } else return
+  }
+
   return Saga.put(
     Chat2Gen.createSelectConversation({
-      conversationIDKey:
-        action.payload.pendingMode === 'none' && Constants.isValidConversationIDKey(meta.conversationIDKey)
-          ? meta.conversationIDKey
-          : Constants.pendingConversationIDKey,
+      conversationIDKey: Constants.pendingConversationIDKey,
       reason: 'pendingModeChange',
     })
   )
