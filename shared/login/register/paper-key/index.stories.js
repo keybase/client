@@ -1,10 +1,19 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../../common-adapters'
-import {storiesOf} from '../../../stories/storybook'
+import PaperKey from '.'
+import {action, storiesOf} from '../../../stories/storybook'
 
 const load = () => {
-  storiesOf('Login/Register', module).add('PaperKey', () => <Text type="Body">TODO</Text>)
+  storiesOf('Register', module).add('PaperKey', () => (
+    <PaperKey
+      onBack={action('onBack')}
+      onSubmit={action('onSubmit')}
+      onChangePaperKey={action('onChangePaperKey')}
+      paperKey={''}
+      waitingForResponse={false}
+      error={''}
+    />
+  ))
 }
 
 export default load
