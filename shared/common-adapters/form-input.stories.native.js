@@ -8,7 +8,7 @@ import {globalStyles} from '../styles'
 const onChangeText = action('onChangeText')
 
 const load = () => {
-  storiesOf('Form input', module)
+  storiesOf('Common/Form input', module)
     .add('Basic', () => {
       return <FormInput label="Label" onChangeText={onChangeText} />
     })

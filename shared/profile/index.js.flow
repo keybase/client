@@ -1,9 +1,8 @@
 // @flow
 import {Component} from 'react'
-
+import * as Types from '../constants/types/profile'
 import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker'
 import type {BioEditFns} from '../common-adapters/user-bio'
-import type {Tab as FriendshipsTab, FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Folder} from '../folders/list'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
@@ -14,7 +13,7 @@ export type Props = {
   bioEditFns: ?BioEditFns,
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
-  currentFriendshipsTab: FriendshipsTab,
+  currentFriendshipsTab: Types.FriendshipsTab,
   refresh: () => void,
   serverActive: boolean,
   onAvatarLoaded?: () => void,
@@ -23,7 +22,7 @@ export type Props = {
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
-  onChangeFriendshipsTab: (currentFriendshipsTab: FriendshipsTab) => void,
+  onChangeFriendshipsTab: (currentFriendshipsTab: Types.FriendshipsTab) => void,
   onClickShowcaseOffer: () => void,
   onClickShowcased: (target: ?HTMLElement, team: UserTeamShowcase) => void,
   onMissingProofClick: (missingProof: MissingProof) => void,
@@ -38,8 +37,8 @@ export type Props = {
   proofs: Array<Proof>,
   tlfs: Array<Folder>,
   followersLoaded: boolean,
-  followers: Array<FriendshipUserInfo>,
-  following: Array<FriendshipUserInfo>,
+  followers: Array<Types.FriendshipUserInfo>,
+  following: Array<Types.FriendshipUserInfo>,
   reason: ?string,
   error: ?string,
   onClickAvatar: () => void,

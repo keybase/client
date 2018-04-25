@@ -1352,13 +1352,15 @@ export type TopicType =
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
 
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mimeType: String}>
+
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 

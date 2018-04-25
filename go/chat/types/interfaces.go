@@ -1,8 +1,10 @@
 package types
 
 import (
+	"io"
 	"regexp"
 
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -224,4 +226,17 @@ type IdentifyNotifier interface {
 type UPAKFinder interface {
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
+}
+
+type ProgressReporter func(bytesCompleted, bytesTotal int64)
+
+type AttachmentFetcher interface {
+	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
+		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
+}
+
+type AttachmentURLSrv interface {
+	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+		preview bool) string
+	GetAttachmentFetcher() AttachmentFetcher
 }
