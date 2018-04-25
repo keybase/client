@@ -9,16 +9,8 @@ import (
 	"time"
 )
 
-type SessionReader interface {
-	APIArgs() (token, csrf string)
-	IsLoggedIn() bool
-	Invalidate()
-}
-
 type Session struct {
 	Contextified
-	token    string
-	csrf     string
 	inFile   bool
 	loaded   bool
 	deviceID keybase1.DeviceID

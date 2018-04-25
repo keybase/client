@@ -44,7 +44,6 @@ func (t *timedGenericKey) clean() {
 type Account struct {
 	Contextified
 	secretSyncer *SecretSyncer
-	localSession *Session
 	loginSession *LoginSession
 	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
@@ -62,43 +61,28 @@ var _ LoginContext = (*Account)(nil)
 
 func NewAccount(g *GlobalContext) *Account {
 	return &Account{
-		localSession: newSession(g),
 		secretSyncer: NewSecretSyncer(g),
 		Contextified: NewContextified(g),
 	}
 }
 
-func (a *Account) LocalSession() *Session {
-	return a.localSession
-}
-
 func (a *Account) GetUID() (ret keybase1.UID) {
-	if a.localSession != nil {
-		ret = a.localSession.GetUID()
-	}
-	return ret
+	return a.G().ActiveDevice().UID()
 }
 
 func (a *Account) GetDeviceID() (ret keybase1.DeviceID) {
-	if a.localSession != nil {
-		ret = a.localSession.GetDeviceID()
-	}
-	return ret
-}
-
-func (a *Account) UnloadLocalSession() {
-	a.localSession = newSession(a.G())
+	return a.G().ActiveDevice().DeviceID()
 }
 
 // LoggedIn returns true if the user is logged in.  It does not
 // try to load the session.
 func (a *Account) LoggedIn() bool {
-	return a.G().ActiveDevice.Valid() || a.LocalSession().IsLoggedIn()
+	return a.G().ActiveDevice.Valid()
 }
 
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
-	return a.LocalSession().loadAndCheck()
+	return a.LoggedIn()
 }
 
 // LoggedInProvisioned will check if the user is logged in and provisioned on this
@@ -158,13 +142,6 @@ func (a *Account) Logout() error {
 	a.G().Log.Debug("+ Account.Logout()")
 	a.ClearStreamCache()
 
-	err := a.localSession.Logout()
-	if err != nil {
-		a.G().Log.Debug("error in localSession.Logout(): %s", err)
-		a.G().Log.Debug("(continuing with the rest of the logout process, but this error will be returned)")
-	}
-
-	a.UnloadLocalSession()
 	a.loginSession = nil
 	a.ClearKeyring()
 
@@ -173,7 +150,7 @@ func (a *Account) Logout() error {
 
 	a.ClearCachedSecretKeys()
 
-	a.G().Log.Debug("- Account.Logout() - all clears complete, localSession.Logout() -> %s", ErrToOk(err))
+	a.G().Log.Debug("- Account.Logout() - all clears complete")
 
 	return err
 }
@@ -263,32 +240,25 @@ func (a *Account) SecretSyncer() *SecretSyncer {
 }
 
 func (a *Account) RunSecretSyncer(uid keybase1.UID) error {
-	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.localSession)
+	return RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.G().ActiveDevice.SessionReader())
 }
 
-func (a *Account) Keyring() (*SKBKeyringFile, error) {
-	if a.localSession == nil {
-		a.G().Log.Warning("local session is nil")
-	}
-	a.LocalSession().loadAndCheck()
-	if a.localSession == nil {
-		a.G().Log.Warning("local session after load is nil")
-	}
-	unp := a.localSession.GetUsername()
-	// not sure how this could happen, but just in case:
-	if unp == nil {
-		return nil, NoUsernameError{}
+func (a *Account) Keyring(ctx context.Context) (*SKBKeyringFile, error) {
+
+	un, err := a.G().ActiveDevice.NormalizedUsername(ctx, a.G())
+	if err != nil {
+		return nil, err
 	}
 
-	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(*unp) {
-		a.G().Log.Debug("Account: found loaded keyring for %s", *unp)
+	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(un) {
+		a.G().Log.Debug("Account: found loaded keyring for %s", un.String())
 		return a.skbKeyring, nil
 	}
 
 	a.skbKeyring = nil
 
-	a.G().Log.Debug("Account: loading keyring for %s", *unp)
-	kr, err := LoadSKBKeyring(*unp, a.G())
+	a.G().Log.Debug("Account: loading keyring for %s", un.String())
+	kr, err := LoadSKBKeyring(un, a.G())
 	if err != nil {
 		return nil, err
 	}
@@ -372,19 +342,6 @@ func (a *Account) Shutdown() error {
 	return nil
 }
 
-func (a *Account) EnsureUsername(username NormalizedUsername) {
-	su := a.LocalSession().GetUsername()
-	if su == nil {
-		a.LocalSession().SetUsername(username)
-		return
-	}
-	if *su != username {
-		a.Logout()
-		a.LocalSession().SetUsername(username)
-	}
-
-}
-
 func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 	token string, deviceSubkey, deviceSibkey GenericKey, err error) {
 	if !a.LoggedIn() {
@@ -408,8 +365,12 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 		return nil
 
 	})
-	token = a.localSession.GetToken()
-	return
+	var nist *NIST
+	nist, err = a.G().ActiveDevice.NIST()
+	if err == nil {
+		token = nist.Token().String()
+	}
+	return uid, username, token, deviceSibkey, deviceSibkey, err
 }
 
 // SaveState saves the logins state to memory, and to the user
@@ -418,7 +379,7 @@ func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername,
 	if err := a.saveUserConfig(username, uid, deviceID); err != nil {
 		return err
 	}
-	return a.LocalSession().SetLoggedIn(sessionID, csrf, username, uid, deviceID)
+	return a.G().ActiveDevice.SetLegacySession(sessionID, csrf)
 }
 
 func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
@@ -456,7 +417,7 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *D
 	}
 
 	uid := a.G().Env.GetUID()
-	deviceID := a.deviceIDFromDevice(device)
+	deviceID := device.ID
 	if deviceID.IsNil() {
 		a.G().Log.Debug("SetCachedSecretKey with nil deviceID (%+v)", ska)
 	}
@@ -483,13 +444,6 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *D
 	default:
 		return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 	}
-}
-
-func (a *Account) deviceIDFromDevice(device *Device) keybase1.DeviceID {
-	if device != nil {
-		return device.ID
-	}
-	return a.localSession.GetDeviceID()
 }
 
 func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) string {
@@ -597,8 +551,4 @@ func (a *Account) SkipSecretPrompt() bool {
 
 func (a *Account) SecretPromptCanceled() {
 	a.secretPromptCanceledAt = a.G().Clock().Now()
-}
-
-func (a *Account) SetDeviceName(name string) error {
-	return a.G().ActiveDevice.setDeviceName(a, a.G().Env.GetUID(), a.localSession.GetDeviceID(), name)
 }

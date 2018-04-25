@@ -53,10 +53,9 @@ type LoginContext interface {
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
-	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 
-	Keyring() (*SKBKeyringFile, error)
+	Keyring(context.Context) (*SKBKeyringFile, error)
 	ClearKeyring()
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 

@@ -13,9 +13,10 @@ type ActiveDevice struct {
 	uid           keybase1.UID
 	deviceID      keybase1.DeviceID
 	deviceName    string
-	signingKey    GenericKey   // cached secret signing key
-	encryptionKey GenericKey   // cached secret encryption key
-	nistFactory   *NISTFactory // Non-Interactive Session Token
+	signingKey    GenericKey    // cached secret signing key
+	encryptionKey GenericKey    // cached secret encryption key
+	nistFactory   *NISTFactory  // Non-Interactive Session Token
+	legacySession LegacySession // a legacy session used in signup and provisioning
 	sync.RWMutex
 }
 
@@ -133,6 +134,8 @@ func (a *ActiveDevice) clear(acct *Account) error {
 	a.encryptionKey = nil
 	a.nistFactory = nil
 
+	a.legacySession.clear()
+
 	return nil
 }
 
@@ -217,7 +220,10 @@ func (a *ActiveDevice) HaveKeys() bool {
 func (a *ActiveDevice) Valid() bool {
 	a.RLock()
 	defer a.RUnlock()
+	return a.validLocked()
+}
 
+func (a *ActiveDevice) validLocked() bool {
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }
 
@@ -247,4 +253,18 @@ func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, err
 	defer a.RUnlock()
 	nist, err := a.nistFactory.NIST(ctx)
 	return nist, a.uid, err
+}
+
+func (a *ActiveDevice) LoggedIn() bool {
+	a.RLock()
+	defer a.RUnlock()
+	return a.validLocked() || a.legacySession.valid()
+}
+
+func (a *ActiveDevice) NormalizedUsername(ctx context.Context, g *GlobalContext) (ret NormalizedUsername, err error) {
+	uid := a.UID()
+	if uid.IsNil() {
+		return ret, NoUsernameError{}
+	}
+	return g.UPAKLoader().LookupUsername(ctx, uid)
 }
