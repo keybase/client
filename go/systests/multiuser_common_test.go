@@ -479,6 +479,16 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	return smuImplicitTeam{ID: res.TeamID}
 }
 
+func (u *smuUser) loadTeam(teamname string, admin bool) *teams.Team {
+	team, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
+		Name:        teamname,
+		NeedAdmin:   admin,
+		ForceRepoll: true,
+	})
+	require.NoError(u.ctx.t, err)
+	return team
+}
+
 func (u *smuUser) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
 	team, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
 		ID:          teamID,

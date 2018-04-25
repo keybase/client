@@ -16,6 +16,7 @@ type ChatContext struct {
 	ConvLoader          types.ConvLoader          // background conversation loader
 	PushHandler         types.PushHandler         // for handling push notifications from chat server
 	TeamChannelSource   types.TeamChannelSource   // source of all channels in a team
+	AttachmentURLSrv    types.AttachmentURLSrv    // source of URLs for loading attachments
 }
 
 type Context struct {

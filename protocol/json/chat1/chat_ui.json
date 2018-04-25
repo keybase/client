@@ -378,6 +378,24 @@
     },
     {
       "type": "record",
+      "name": "UIAssetUrlInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "previewUrl"
+        },
+        {
+          "type": "string",
+          "name": "fullUrl"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -414,6 +432,13 @@
         {
           "type": "boolean",
           "name": "superseded"
+        },
+        {
+          "type": [
+            null,
+            "UIAssetUrlInfo"
+          ],
+          "name": "assetUrlInfo"
         },
         {
           "type": [

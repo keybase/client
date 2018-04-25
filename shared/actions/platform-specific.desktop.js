@@ -10,6 +10,10 @@ function showShareActionSheet(options: {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 
+function downloadAndShowShareActionSheet(fileURL: string) {
+  throw new Error('Download and show share action - unsupported on this platform')
+}
+
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   throw new Error('Save Attachment - unsupported on this platform')
@@ -76,6 +80,7 @@ export {
   setAppState,
   saveAttachmentDialog,
   showShareActionSheet,
+  downloadAndShowShareActionSheet,
   displayNewMessageNotification,
   clearAllNotifications,
 }

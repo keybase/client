@@ -1,21 +1,23 @@
-package chat
+package attachments
 
-import "time"
+import (
+	"time"
+
+	"github.com/keybase/client/go/chat/types"
+)
 
 // desktop requested 1 update per second:
 const durationBetweenUpdates = 1 * time.Second
-
-type ProgressReporter func(bytesCompleted, bytesTotal int64)
 
 type progressWriter struct {
 	complete       int64
 	total          int64
 	lastReport     int64
 	lastReportTime time.Time
-	progress       ProgressReporter
+	progress       types.ProgressReporter
 }
 
-func newProgressWriter(p ProgressReporter, size int64) *progressWriter {
+func newProgressWriter(p types.ProgressReporter, size int64) *progressWriter {
 	pw := &progressWriter{progress: p, total: size}
 	pw.initialReport()
 	return pw
