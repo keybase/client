@@ -90,4 +90,5 @@ protocol metadata {
 
   // For testing.
   void setImplicitTeamModeForTest(string implicitTeamMode);
+  void forceMerkleBuildForTest();
 }

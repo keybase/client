@@ -309,6 +309,9 @@ type SetImplicitTeamModeForTestArg struct {
 	ImplicitTeamMode string `codec:"implicitTeamMode" json:"implicitTeamMode"`
 }
 
+type ForceMerkleBuildForTestArg struct {
+}
+
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
@@ -336,6 +339,7 @@ type MetadataInterface interface {
 	GetMerkleNode(context.Context, string) ([]byte, error)
 	FindNextMD(context.Context, FindNextMDArg) (FindNextMDResponse, error)
 	SetImplicitTeamModeForTest(context.Context, string) error
+	ForceMerkleBuildForTest(context.Context) error
 }
 
 func MetadataProtocol(i MetadataInterface) rpc.Protocol {
@@ -743,6 +747,17 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"forceMerkleBuildForTest": {
+				MakeArg: func() interface{} {
+					ret := make([]ForceMerkleBuildForTestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.ForceMerkleBuildForTest(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -887,5 +902,10 @@ func (c MetadataClient) FindNextMD(ctx context.Context, __arg FindNextMDArg) (re
 func (c MetadataClient) SetImplicitTeamModeForTest(ctx context.Context, implicitTeamMode string) (err error) {
 	__arg := SetImplicitTeamModeForTestArg{ImplicitTeamMode: implicitTeamMode}
 	err = c.Cli.Call(ctx, "keybase.1.metadata.setImplicitTeamModeForTest", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataClient) ForceMerkleBuildForTest(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.forceMerkleBuildForTest", []interface{}{ForceMerkleBuildForTestArg{}}, nil)
 	return
 }

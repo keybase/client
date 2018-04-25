@@ -1080,6 +1080,10 @@ export const metadataFindNextMDRpcChannelMap = (configKeys: Array<string>, reque
 
 export const metadataFindNextMDRpcPromise = (request: MetadataFindNextMDRpcParam): Promise<MetadataFindNextMDResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.findNextMD', request, (error: RPCError, result: MetadataFindNextMDResult) => (error ? reject(error) : resolve(result))))
 
+export const metadataForceMerkleBuildForTestRpcChannelMap = (configKeys: Array<string>, request: MetadataForceMerkleBuildForTestRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.forceMerkleBuildForTest', request)
+
+export const metadataForceMerkleBuildForTestRpcPromise = (request: MetadataForceMerkleBuildForTestRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.forceMerkleBuildForTest', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const metadataGetChallengeRpcChannelMap = (configKeys: Array<string>, request: MetadataGetChallengeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.getChallenge', request)
 
 export const metadataGetChallengeRpcPromise = (request: MetadataGetChallengeRpcParam): Promise<MetadataGetChallengeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.metadata.getChallenge', request, (error: RPCError, result: MetadataGetChallengeResult) => (error ? reject(error) : resolve(result))))
@@ -2798,6 +2802,8 @@ export type MetadataAuthenticateRpcParam = $ReadOnly<{signature: String, incomin
 export type MetadataDeleteKeyRpcParam = $ReadOnly<{uid: UID, deviceKID: KID, keyHalfID: Bytes, logTags: {[key: string]: String}, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MetadataFindNextMDRpcParam = $ReadOnly<{seqno: Seqno, folderID: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type MetadataForceMerkleBuildForTestRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type MetadataGetChallengeRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 

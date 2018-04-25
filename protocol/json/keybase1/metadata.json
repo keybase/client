@@ -535,6 +535,10 @@
         }
       ],
       "response": null
+    },
+    "forceMerkleBuildForTest": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"
