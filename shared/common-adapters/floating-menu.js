@@ -4,7 +4,6 @@ import FloatingBox from './floating-box'
 import type {Position} from './relative-popup-hoc'
 import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {isMobile} from '../constants/platform'
-import {compose, withProps, withStateHandlers} from '../util/container'
 
 export type Props = {
   closeOnSelect?: boolean,
@@ -41,24 +40,38 @@ export default (props: Props) => {
 export type FloatingMenuParentProps = {
   attachmentRef: ?React.Component<*, *>,
   showingMenu: boolean,
-  setAttachmentRef: (?React.Component<*, *>) => void,
+  setAttachmentRef: ?(?React.Component<*, *>) => void,
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
 }
 
-// TODO mock this for storybook w/ actions
-export const FloatingMenuParentHOC = compose(
-  withStateHandlers(
-    {attachmentRef: null, showingMenu: false},
-    {
-      _setAttachmentRef: () => attachmentRef => ({attachmentRef}),
-      setShowingMenu: () => showingMenu => ({showingMenu}),
-      toggleShowingMenu: ({showingMenu}) => () => ({showingMenu: !showingMenu}),
+type State = {
+  attachmentRef: ?React.Component<*, *>,
+  showingMenu: boolean,
+}
+
+type Callbacks = {
+  setShowingMenu: boolean => void,
+  toggleShowingMenu: () => void,
+  setAttachmentRef: ?(?React.Component<*, *>) => void,
+}
+
+export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
+  ComposedComponent: React.ComponentType<T>
+): React.ComponentType<$Diff<T, FloatingMenuParentProps>> => {
+  class FloatingMenuParent extends React.Component<$Diff<T, FloatingMenuParentProps>, State> {
+    _setters: Callbacks
+    constructor() {
+      super()
+      this._setters = {
+        setShowingMenu: showingMenu => this.setState({showingMenu}),
+        toggleShowingMenu: () => this.setState(oldState => ({showingMenu: !oldState.showingMenu})),
+        setAttachmentRef: isMobile ? undefined : attachmentRef => this.setState({attachmentRef}),
+      }
     }
-  ),
-  // using withProps so we can set it to undefined on mobile
-  // while keeping flow / recompose happy
-  withProps(({_setAttachmentRef}) => ({
-    setAttachmentRef: isMobile ? undefined : _setAttachmentRef,
-  }))
-)
+    render() {
+      return <ComposedComponent {...this.props} {...this._setters} {...this.state} />
+    }
+  }
+  return FloatingMenuParent
+}

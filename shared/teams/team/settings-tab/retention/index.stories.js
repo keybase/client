@@ -5,7 +5,6 @@ import {Box} from '../../../../common-adapters'
 import {action, storiesOf} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
 import RetentionPicker from './'
-// import {RetentionDropdownView} from './dropdown'
 
 const policyRetain = makeRetentionPolicy({type: 'retain'})
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
