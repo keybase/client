@@ -16,6 +16,7 @@ import NonUserProfile from './non-user-profile-container'
 import ShowcaseTeamOffer from './showcase-team-offer/container'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
+import ControlledRolePicker from '../teams/role-picker/controlled-container'
 
 const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
@@ -41,7 +42,13 @@ const profileRoute = makeRouteDefNode({
   children: {
     profile: () => profileRoute,
     addToTeam: {
-      children: {},
+      children: {
+        controlledRolePicker: {
+          children: {},
+          component: ControlledRolePicker,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+      },
       component: isMobile ? AddToTeam : AddToTeam,
       tags: makeLeafTags({layerOnTop: true}),
     },

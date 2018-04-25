@@ -7,6 +7,7 @@ import {
   Button,
   Checkbox,
   ClickableBox,
+  Dropdown,
   Divider,
   Icon,
   Meta,
@@ -14,8 +15,9 @@ import {
   ScrollView,
   Text,
 } from '../../common-adapters'
-import {teamWaitingKey} from '../../constants/teams'
-
+import {teamRoleTypes, teamWaitingKey} from '../../constants/teams'
+import {capitalize} from 'lodash-es'
+import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
 const TeamRow = ({
@@ -33,7 +35,8 @@ const TeamRow = ({
       style={{
         ...globalStyles.flexBoxRow,
         minHeight: isMobile ? 64 : 48,
-        marginLeft: globalMargins.tiny,
+        minWidth: isMobile ? undefined : 500,
+        marginLeft: globalMargins.medium,
         marginRight: globalMargins.tiny,
         paddingTop: globalMargins.tiny,
         paddingBottom: globalMargins.tiny,
@@ -63,9 +66,25 @@ const TeamRow = ({
   </Box>
 )
 
+const _makeDropdownItem = (item: string) => (
+  <Box
+    key={item}
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    }}
+  >
+    <Text type="Body">{capitalize(item)}</Text>
+  </Box>
+)
+
+const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
+
 const AddToTeam = (props: Props) => (
   <Box style={styleContainer}>
-    <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.small}])}>
+    <Box style={collapseStyles([globalStyles.flexBoxRow, {paddingBottom: globalMargins.large}])}>
       <Text type="Header">
         Add
       </Text>
@@ -94,6 +113,26 @@ const AddToTeam = (props: Props) => (
           ))}
       </Box>
     </ScrollView>
+    <Box
+        style={{
+          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
+          alignItems: 'center',
+          margin: isMobile ? 0 : globalMargins.small,
+        }}
+      >
+        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">{props.them} will be added as a</Text>
+        <ClickableBox onClick={() => props.onOpenRolePicker()} underlayColor="rgba(0, 0, 0, 0)">
+          <Dropdown
+            items={_makeDropdownItems()}
+            selected={_makeDropdownItem(props.role)}
+            onChanged={(node: React.Node) => {
+              // $FlowIssue doesn't understand key will be string
+              const selectedRole: TeamRoleType = (node && node.key) || null
+              props.onRoleChange(selectedRole)
+            }}
+          />
+        </ClickableBox>
+    </Box>
     <ClickableBox onClick={props.onBack} style={{flexGrow: 1}}>
       <Button style={{margin: globalMargins.small}} type="Secondary" onClick={props.onBack} label="Close" />
     </ClickableBox>
@@ -106,6 +145,7 @@ const styleContainer = {
   flex: 1,
   marginTop: 35,
   marginBottom: isMobile ? globalMargins.xtiny : 55,
+  width: isMobile ? undefined : 500,
 }
 
 const styleMeta = {

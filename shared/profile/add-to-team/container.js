@@ -6,6 +6,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {getSortedTeamnames} from '../../constants/teams'
+import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
@@ -26,6 +27,27 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
+  onOpenRolePicker: (
+    role: string,
+    sendNotification: boolean,
+    allowOwner: boolean,
+    onComplete: (string, boolean) => void
+  ) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            allowOwner,
+            onComplete,
+            selectedRole: role,
+            sendNotificationChecked: sendNotification,
+            showNotificationCheckbox: true,
+          },
+          selected: 'controlledRolePicker',
+        },
+      ])
+    )
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

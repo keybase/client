@@ -54,7 +54,7 @@ const ControlledRolePicker = props => (
 )
 
 const PopupWrapped = props => (
-  <PopupDialog onClose={props.onCancel}>
+  <PopupDialog styleCover={{zIndex: 30}} onClose={props.onCancel}>
     <ControlledRolePicker {...props} />
   </PopupDialog>
 )
