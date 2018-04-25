@@ -46,6 +46,7 @@ const profileInject = {
     const container = document.querySelector("#fbProfileCover .actions");
     if (!container) return;
 
+    user.extraReplyCls = "fixed-form"
     const button = renderProfileChatButton(user);
     container.insertBefore(button, container.firstChild);
   },
