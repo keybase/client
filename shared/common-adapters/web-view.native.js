@@ -1,4 +1,9 @@
 // @flow
-import * as React from 'react'
+import {isIOS} from '../constants/platform'
+import {WebView} from 'react-native'
+// $FlowFixMe
+import WKWebView from 'react-native-wkwebview-reborn'
 
-declare export default React.ComponentType<any>
+const wv = isIOS ? WKWebView : WebView
+
+export default wv
