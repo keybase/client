@@ -8,25 +8,29 @@ import {Box, ClickableBox, Text, Icon} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
 import {connect, type Dispatch, type TypedState} from '../../util/container'
 import {getDisplayComponent} from './common'
-import {type BareViewProps} from './bare-view'
+import {type BarePreviewProps} from './bare-preview'
 
-const mapStateToProps = (state: TypedState, {path}: BareViewProps) => ({
-  _pathItem: state.fs.pathItems.get(path) || Constants.makeUnknownPathItem(),
-})
+const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
+  const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
+  return {
+    path,
+    _pathItem: state.fs.pathItems.get(path) || Constants.makeUnknownPathItem(),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
   _onAction: DispatchMappers.mapDispatchToOnAction(dispatch),
 })
 
-const mergeProps = ({_pathItem}, {onBack, _onAction}, {path, fileViewType}: BareViewProps) => ({
+const mergeProps = ({path, _pathItem}, {onBack, _onAction}) => ({
   path,
-  fileViewType,
+  fileViewType: Constants.viewTypeFromPath(path),
   onBack,
   onAction: (event: SyntheticEvent<>) => _onAction(path, _pathItem.type, event),
 })
 
-type ConnectedBareViewProps = {
+type ConnectedBarePreviewProps = {
   path: Types.Path,
   fileViewType: Types.FileViewType,
 
@@ -34,7 +38,7 @@ type ConnectedBareViewProps = {
   onAction: (evt?: SyntheticEvent<>) => void,
 }
 
-const BareView = (props: ConnectedBareViewProps) => (
+const BarePreview = (props: ConnectedBarePreviewProps) => (
   <Box style={stylesContainer}>
     <Box style={stylesHeader}>
       <ClickableBox onClick={props.onBack}>
@@ -43,10 +47,7 @@ const BareView = (props: ConnectedBareViewProps) => (
         </Text>
       </ClickableBox>
     </Box>
-    <Box style={stylesContentContainer}>
-      <Text type="Body"> 1 </Text>
-      {getDisplayComponent(props.path, props.fileViewType)}
-    </Box>
+    <Box style={stylesContentContainer}>{getDisplayComponent(props.path, props.fileViewType)}</Box>
     <Box style={stylesFooter}>
       <Icon type="iconfont-ellipsis" style={stylesText} onClick={props.onAction} />
     </Box>
@@ -81,4 +82,4 @@ const stylesFooter = {
   paddingLeft: globalMargins.tiny,
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BareView)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BarePreview)
