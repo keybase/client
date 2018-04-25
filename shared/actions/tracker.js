@@ -11,7 +11,7 @@ import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
 import {type TypedState} from '../constants/reducer'
-import type {FriendshipUserInfo} from '../profile/friendships'
+import type {FriendshipUserInfo} from '../constants/types/profile'
 
 // Send a heartbeat while trackers are still open
 function* _trackerTimer(): Generator<any, void, any> {

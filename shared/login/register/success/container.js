@@ -1,7 +1,7 @@
 // @flow
 import * as LoginGen from '../../../actions/login-gen'
 import HiddenString from '../../../util/hidden-string'
-import RenderSuccess from '../../signup/success/index.render'
+import RenderSuccess from '../../signup/success'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
