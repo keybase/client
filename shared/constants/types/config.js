@@ -47,5 +47,7 @@ export type _State = {
   userActive: boolean,
   username: ?string,
   startedDueToPush: boolean,
+  version: string,
+  versionShort: string,
 }
 export type State = I.RecordOf<_State>

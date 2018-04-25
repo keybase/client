@@ -49,4 +49,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   uid: null,
   userActive: true,
   username: null,
+  version: '',
+  versionShort: '',
 })
