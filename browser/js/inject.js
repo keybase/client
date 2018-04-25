@@ -52,8 +52,8 @@ const profileInject = {
 
   "reddit": function redditInjectProfile(user) {
     const designV1 = document.querySelector("h1");
-    const designV2 = document.querySelector("h4").nextSibling;
-    const container = designV1 || designV2;
+    const designV2 = document.querySelector("h4");
+    const container = designV1 || designV2.nextSibling;
     if (!container) return;
 
     if (designV2) {
