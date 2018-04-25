@@ -129,7 +129,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
       dispatch(FsGen.createFuseStatus()),
-      dispatch(ConfigGen.createLoadConfig()),
+      dispatch(ConfigGen.createLoadConfig({logVersion: true})),
     ])
       .then(() => {
         dispatch(ConfigGen.createBootstrapSuccess())
@@ -310,8 +310,10 @@ function _loadConfig(action: ConfigGen.LoadConfigPayload) {
   return Saga.call(RPCTypes.configGetConfigRpcPromise)
 }
 
-function _afterLoadConfig(config: RPCTypes.Config) {
-  logger.info(`Keybase version: ${config.version}`)
+function _afterLoadConfig(config: RPCTypes.Config, action: ConfigGen.LoadConfigPayload) {
+  if (action.payload.logVersion) {
+    logger.info(`Keybase version: ${config.version}`)
+  }
   return Saga.put(ConfigGen.createConfigLoaded({config}))
 }
 

@@ -64,7 +64,7 @@ export const createExtendedConfigLoaded = (payload: $ReadOnly<{|extendedConfig: 
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: $ReadOnly<{|globalError: null | Error | RPCError|}>) => ({error: false, payload, type: globalError})
 export const createLoadAvatars = (payload: $ReadOnly<{|usernames: Array<string>|}>) => ({error: false, payload, type: loadAvatars})
-export const createLoadConfig = () => ({error: false, payload: undefined, type: loadConfig})
+export const createLoadConfig = (payload: $ReadOnly<{|logVersion?: boolean|}>) => ({error: false, payload, type: loadConfig})
 export const createLoadTeamAvatars = (payload: $ReadOnly<{|teamnames: Array<string>|}>) => ({error: false, payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})

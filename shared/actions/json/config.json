@@ -34,7 +34,9 @@
       "kbfsPath": "string"
     },
     "clearRouteState": {},
-    "loadConfig": {},
+    "loadConfig": {
+      "logVersion?": "boolean"
+    },
     "configLoaded": {
       "config": "RPCTypes.Config"
     },
