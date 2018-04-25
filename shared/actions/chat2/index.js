@@ -1318,14 +1318,11 @@ const startConversationFindExisting = (
     throw new Error('Start conversation called w/ no participants or teamname')
   }
 
-  const clearPendingUsers =
-    action.type === Chat2Gen.setPendingConversationUsers
-      ? Saga.put(
-          Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-            conversationIDKey: Constants.noConversationIDKey,
-          })
-        )
-      : Saga.identity(null)
+  const clearPendingUsers = Saga.put(
+    Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+      conversationIDKey: Constants.noConversationIDKey,
+    })
+  )
 
   const makeCall = Saga.call(RPCChatTypes.localFindConversationsLocalRpcPromise, {
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,

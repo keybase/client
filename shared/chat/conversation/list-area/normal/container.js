@@ -39,10 +39,10 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
-  onToggleInfoPanel: ownProps.onToggleInfoPanel,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
+  onToggleInfoPanel: ownProps.onToggleInfoPanel,
 })
 
 // We load the first thread automatically so in order to mark it read
