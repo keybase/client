@@ -1176,6 +1176,9 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 // those changes, any new recreate ops, and returns the MDs used to
 // compute all this. Note that even if err is nil, the merged MD list
 // might be non-nil to allow for better error handling.
+//
+// This always returns the merged MDs, even in an error case, to allow
+// the caller's error-handling code to unstage if necessary.
 func (cr *ConflictResolver) buildChainsAndPaths(
 	ctx context.Context, lState *lockState, writerLocked bool) (
 	unmergedChains, mergedChains *crChains, unmergedPaths []path,
@@ -1189,26 +1192,26 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 
 	if len(unmerged) == 0 {
 		cr.log.CDebugf(ctx, "Skipping merge process due to empty MD list")
-		return nil, nil, nil, nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil, merged, nil
 	}
 
 	// Update the current input to reflect the MDs we'll actually be
 	// working with.
 	err = cr.updateCurrInput(ctx, unmerged, merged)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 
 	// Canceled before we start the heavy lifting?
 	err = cr.checkDone(ctx)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 
 	// Make the chains
 	unmergedChains, mergedChains, err = cr.makeChains(ctx, unmerged, merged)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 
 	// TODO: if the root node didn't change in either chain, we can
@@ -1221,14 +1224,14 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	unmergedPaths, err = unmergedChains.getPaths(ctx, &cr.fbo.blocks,
 		cr.log, cr.fbo.nodeCache, false)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 
 	// Add in any directory paths that were created in both branches.
 	newUnmergedPaths, err := cr.findCreatedDirsToMerge(ctx, unmergedPaths,
 		unmergedChains, mergedChains)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 	unmergedPaths = append(unmergedPaths, newUnmergedPaths...)
 	if len(newUnmergedPaths) > 0 {
@@ -1239,7 +1242,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	kbpki := cr.config.KBPKI()
 	session, err := kbpki.GetCurrentSession(ctx)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 
 	currUnmergedWriterInfo := newWriterInfo(session.UID,
@@ -1252,8 +1255,6 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 		ctx, lState, unmergedPaths, unmergedChains, mergedChains,
 		currUnmergedWriterInfo)
 	if err != nil {
-		// Return mergedChains in this error case, to allow the error
-		// handling code to unstage if necessary.
 		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 	unmergedPaths = append(unmergedPaths, newUnmergedPaths...)
