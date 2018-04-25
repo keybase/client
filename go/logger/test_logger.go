@@ -168,7 +168,7 @@ func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
 	log.common(nil, logging.CRITICAL, false, fmts, arg...)
 }
 
-func (log *TestLogger) Configure(style string, debug bool, filename string) {
+func (log *TestLogger) Configure(style string, debug bool) {
 	// no-op
 }
 

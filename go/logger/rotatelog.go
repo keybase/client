@@ -5,19 +5,17 @@ package logger
 
 import (
 	"errors"
-	"time"
 )
 
-// RotateLogFile is the old style of logging to a file. It uses a default
-// config for log rotation and uses the filename set from .Configure.
+// RotateLogFile rotates log files.
 func (log *Standard) RotateLogFile() error {
-	if log.filename == "" {
-		return errors.New("No log filename specified")
+	globalLock.Lock()
+	defer globalLock.Unlock()
+
+	var w = currentLogFileWriter
+	if w == nil {
+		return errors.New("Cannot rotate a when no current log file writer")
 	}
-	return SetLogFileConfig(&LogFileConfig{
-		Path:         log.filename,
-		MaxAge:       30 * 24 * time.Hour, // 30 days
-		MaxSize:      128 * 1024 * 1024,   // 128mb
-		MaxKeepFiles: 3,
-	})
+
+	return w.Reset()
 }

@@ -69,9 +69,18 @@ type logFileWriter struct {
 	currentStart time.Time
 }
 
+// Reset a logFileWriter by closing and opening it - rotating log files.
+func (lfw *logFileWriter) Reset() error {
+	lfw.lock.Lock()
+	defer lfw.lock.Unlock()
+
+	lfw.Close()
+	return lfw.Open(time.Now())
+}
+
 func (lfw *logFileWriter) Open(at time.Time) error {
 	var err error
-	_, lfw.file, err = OpenLogFile(lfw.config.Path)
+	_, lfw.file, err = openLogFile(lfw.config.Path)
 	if err != nil {
 		return err
 	}
