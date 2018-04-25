@@ -46,6 +46,8 @@ func NewBgTicker(g *GlobalContext, d time.Duration) *BgTicker {
 
 	t.fn = func() {
 		t.c <- t.clock.Now()
+		// reset the duration in case we modified it when calling Pause
+		t.duration = d
 		t.t = time.AfterFunc(t.duration, t.fn)
 	}
 	go t.monitorAppState()
