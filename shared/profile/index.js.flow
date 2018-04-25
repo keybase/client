@@ -23,6 +23,7 @@ export type Props = {
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
+  onAddToTeam: () => void,
   onChangeFriendshipsTab: (currentFriendshipsTab: FriendshipsTab) => void,
   onClickShowcaseOffer: () => void,
   onClickShowcased: (target: ?HTMLElement, team: UserTeamShowcase) => void,

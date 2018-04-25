@@ -2,6 +2,7 @@
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import pgpRoutes from './pgp/routes'
 import Profile from './container'
+import AddToTeam from './add-to-team/container'
 import EditProfile from './edit-profile'
 import EditAvatar from './edit-avatar-container'
 import ProveEnterUsername from './prove-enter-username-container'
@@ -39,6 +40,11 @@ const profileRoute = makeRouteDefNode({
   tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),
   children: {
     profile: () => profileRoute,
+    addToTeam: {
+      children: {},
+      component: isMobile ? AddToTeam : AddToTeam,
+      tags: makeLeafTags({layerOnTop: true}),
+    },
     editProfile: {
       component: EditProfile,
     },

@@ -9,6 +9,7 @@ function UserActions({
   trackerState,
   currentlyFollowing,
   style,
+  onAddToTeam,
   onChat,
   onFollow,
   onUnfollow,
@@ -20,7 +21,7 @@ function UserActions({
       return (
         <ButtonBar style={style}>
           <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
-          <Button type="Primary" label="Chat" onClick={onChat} style={{marginRight: 0}}>
+          <Button type="Primary" label="Chat" onClick={onChat}>
             <Icon
               type="iconfont-chat"
               style={{
@@ -29,13 +30,16 @@ function UserActions({
               }}
             />
           </Button>
+          <Button label="..." type="Secondary" onClick={onAddToTeam} style={{marginRight: 0}} />
+
         </ButtonBar>
       )
     } else {
       return (
         <ButtonBar style={style}>
           <Button type="Secondary" label="Unfollow" onClick={onUnfollow} waiting={waiting} />
-          <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} style={{marginRight: 0}} />
+          <Button type="PrimaryGreen" label="Accept" onClick={onAcceptProofs} />
+          <Button label="..." type="Secondary" onClick={onAddToTeam} style={{marginRight: 0}} />
         </ButtonBar>
       )
     }
@@ -52,6 +56,7 @@ function UserActions({
             }}
           />
         </Button>
+        <Button label="..." type="Secondary" onClick={onAddToTeam} />
       </ButtonBar>
     )
   }
