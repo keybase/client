@@ -31,11 +31,11 @@ export const PeoplePageSearchBar = (
       style={collapseStyles([styleSearchContainer, props.styleSearchContainer])}
     >
       <Icon
-        style={{...styleSearch, ...props.styleSearch}}
+        style={collapseStyles([styleSearch, props.styleSearch])}
         type="iconfont-search"
         color={globalColors.black_20}
       />
-      <Text style={{...styleSearchText, ...props.styleSearchText}} type="Body">
+      <Text style={collapseStyles([styleSearchText, props.styleSearchText])} type="Body">
         Search people
       </Text>
     </ClickableBox>
