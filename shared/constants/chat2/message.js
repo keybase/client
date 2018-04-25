@@ -48,8 +48,9 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
   attachmentType: 'file',
-  deviceFilePath: '',
-  devicePreviewPath: '',
+  fileURL: '',
+  previewURL: '',
+  fileType: '',
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -338,6 +339,14 @@ const validUIMessagetoMessage = (
           attachmentType = 'image'
         }
       }
+      let previewURL = ''
+      let fileURL = ''
+      let fileType = ''
+      if (m.assetUrlInfo) {
+        previewURL = m.assetUrlInfo.previewUrl
+        fileURL = m.assetUrlInfo.fullUrl
+        fileType = m.assetUrlInfo.mimeType
+      }
 
       return makeMessageAttachment({
         ...common,
@@ -347,6 +356,9 @@ const validUIMessagetoMessage = (
         previewHeight,
         previewWidth,
         title,
+        previewURL,
+        fileURL,
+        fileType,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -507,7 +519,7 @@ export const makePendingAttachmentMessage = (
   conversationIDKey: Types.ConversationIDKey,
   attachmentType: Types.AttachmentType,
   title: string,
-  devicePreviewPath: string,
+  previewURL: string,
   outboxID: Types.OutboxID
 ) => {
   const lastOrindal =
@@ -519,7 +531,7 @@ export const makePendingAttachmentMessage = (
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
-    devicePreviewPath,
+    previewURL,
     deviceType: isMobile ? 'mobile' : 'desktop',
     id: Types.numberToMessageID(0),
     ordinal,
@@ -553,9 +565,12 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
       ret.set('ordinal', old.ordinal)
-      ret.set('deviceFilePath', old.deviceFilePath)
-      ret.set('devicePreviewPath', old.devicePreviewPath)
       ret.set('downloadPath', old.downloadPath)
+      if (old.previewURL && !m.previewURL) {
+        ret.set('previewURL', old.previewURL)
+      }
+      ret.set('transferState', old.transferState)
+      ret.set('transferProgress', old.transferProgress)
     })
   }
   return m

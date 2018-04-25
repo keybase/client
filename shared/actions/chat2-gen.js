@@ -14,11 +14,7 @@ import type {RetentionPolicy} from '../constants/types/teams'
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentHandleQueue = 'chat2:attachmentHandleQueue'
-export const attachmentLoad = 'chat2:attachmentLoad'
-export const attachmentLoaded = 'chat2:attachmentLoaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
-export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
 export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -27,6 +23,7 @@ export const blockConversation = 'chat2:blockConversation'
 export const cancelPendingConversation = 'chat2:cancelPendingConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
+export const clearPendingConversation = 'chat2:clearPendingConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -131,38 +128,17 @@ export const createAttachmentDownload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-    path: string,
+    path?: string,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownloaded})
-export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
-export const createAttachmentLoad = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentLoad})
-export const createAttachmentLoaded = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    path: string,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentLoaded})
-export const createAttachmentLoadedError = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: true, payload, type: attachmentLoaded})
 export const createAttachmentLoading = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -171,13 +147,6 @@ export const createAttachmentLoading = (
     isPreview: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentLoading})
-export const createAttachmentNeedsUpdating = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentNeedsUpdating})
 export const createAttachmentUpload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -207,6 +176,7 @@ export const createBlockConversation = (
 ) => ({error: false, payload, type: blockConversation})
 export const createClearLoading = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: clearLoading})
 export const createClearOrdinals = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: clearOrdinals})
+export const createClearPendingConversation = () => ({error: false, payload: undefined, type: clearPendingConversation})
 export const createDesktopNotification = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -448,11 +418,7 @@ export const createUpdateTypers = (payload: $ReadOnly<{|conversationToTypers: I.
 // Action Payloads
 export type AttachmentDownloadPayload = More.ReturnType<typeof createAttachmentDownload>
 export type AttachmentDownloadedPayload = More.ReturnType<typeof createAttachmentDownloaded>
-export type AttachmentHandleQueuePayload = More.ReturnType<typeof createAttachmentHandleQueue>
-export type AttachmentLoadPayload = More.ReturnType<typeof createAttachmentLoad>
-export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoaded>
 export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
-export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
 export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpload>
 export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
@@ -461,6 +427,7 @@ export type BlockConversationPayload = More.ReturnType<typeof createBlockConvers
 export type CancelPendingConversationPayload = More.ReturnType<typeof createCancelPendingConversation>
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
+export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
@@ -523,12 +490,7 @@ export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 export type Actions =
   | More.ReturnType<typeof createAttachmentDownload>
   | More.ReturnType<typeof createAttachmentDownloaded>
-  | More.ReturnType<typeof createAttachmentHandleQueue>
-  | More.ReturnType<typeof createAttachmentLoad>
-  | More.ReturnType<typeof createAttachmentLoaded>
-  | More.ReturnType<typeof createAttachmentLoadedError>
   | More.ReturnType<typeof createAttachmentLoading>
-  | More.ReturnType<typeof createAttachmentNeedsUpdating>
   | More.ReturnType<typeof createAttachmentUpload>
   | More.ReturnType<typeof createAttachmentUploaded>
   | More.ReturnType<typeof createAttachmentUploading>
@@ -537,6 +499,7 @@ export type Actions =
   | More.ReturnType<typeof createCancelPendingConversation>
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
+  | More.ReturnType<typeof createClearPendingConversation>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createJoinConversation>

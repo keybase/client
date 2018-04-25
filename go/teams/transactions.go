@@ -153,7 +153,8 @@ func (tx *AddMemberTx) sweepCryptoMembersOlderThan(uv keybase1.UserVersion) {
 // invites (PUKless members) for given UID.
 func (tx *AddMemberTx) sweepKeybaseInvites(uid keybase1.UID) {
 	team := tx.team
-	for _, invite := range team.chain().inner.ActiveInvites {
+	allInvites := team.GetActiveAndObsoleteInvites()
+	for _, invite := range allInvites {
 		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
 			if inviteUv.Uid.Equal(uid) && !tx.completedInvites[invite.Id] {
 				tx.CancelInvite(invite.Id)

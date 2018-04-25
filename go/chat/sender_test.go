@@ -206,6 +206,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.Searcher = NewSearcher(g)
+	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
