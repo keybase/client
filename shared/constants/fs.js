@@ -440,7 +440,7 @@ export const folderToFavoriteItems = (
   )
 }
 
-export const mimeTypeFromPathItem = (p: Types.PathItem): string => mime.lookup(p.name) || ''
+export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
 
 export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   const name = Types.getPathName(p)

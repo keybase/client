@@ -21,19 +21,5 @@ export function uninstallKBFSConfirmSaga(): Promise<*> {
 export function uninstallKBFSSaga() {}
 export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {}
 export function copyToDownloadDir(path: string, mime: string): Promise<*> {
-  if (isAndroid) {
-    const downloadDir = RNFetchBlob.fs.dirs.DownloadDir
-    const fileName = path.substring(path.lastIndexOf('/'))
-    const downloadPath = `${downloadDir}/${fileName}`
-    copy(path, downloadPath).then(() =>
-      RNFetchBlob.android.addCompleteDownload({
-        title: 'Keybase Download',
-        description: 'Keybase Download',
-        mime,
-        downloadPath,
-        showNotification: true,
-      })
-    )
-  }
-  return new Promise((resolve, reject) => resolve())
+  return new Promise((resolve, reject) => reject(new Error('unimplemented')))
 }

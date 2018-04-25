@@ -27,7 +27,6 @@
     },
     "download": {
       "intent": "Types.TransferIntent",
-      "mimeType?": "string",
       "path": "Types.Path",
       "localPath?": "string"
     },
