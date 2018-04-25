@@ -357,7 +357,7 @@ const _createNewTeamFromConversation = function*(
           })
         }
       }
-      yield Saga.put(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`}))
+      yield Saga.put(Chat2Gen.createStartConversation({teamname}))
     } catch (error) {
       yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
     } finally {

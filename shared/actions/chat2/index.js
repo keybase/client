@@ -27,7 +27,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import {parseFolderNameToUsers} from '../../util/kbfs'
 import flags from '../../util/feature-flags'
 
 const inboxQuery = {
@@ -1302,10 +1301,10 @@ const startConversationFindExisting = (
   state: TypedState
 ) => {
   let participants
-  let tlf
+  let teamname
   if (action.type === Chat2Gen.startConversation) {
     participants = action.payload.participants
-    tlf = action.payload.tlf
+    teamname = action.payload.teamname
   } else if (action.type === Chat2Gen.setPendingConversationUsers) {
     if (!action.payload.fromSearch) {
       return
@@ -1320,40 +1319,21 @@ const startConversationFindExisting = (
   let params
   let users
 
-  // we handled participants or tlfs
+  // we handled participants or teams
   if (participants) {
     const toFind = I.Set(participants).concat([you])
     users = toFind.toArray()
     params = {
       tlfName: toFind.join(','),
     }
-  } else if (tlf) {
-    const parts = tlf.split('/')
-    if (parts.length >= 4) {
-      const [, , type, names] = parts
-      if (type === 'private' || type === 'public') {
-        // allow talking to yourself
-        const toFind = I.Set(
-          names === you ? [] : parseFolderNameToUsers('', names).map(u => u.username)
-        ).concat([you])
-        params = {
-          tlfName: toFind.join(','),
-        }
-        users = toFind.toArray()
-      } else if (type === 'team') {
-        params = {
-          membersType: RPCChatTypes.commonConversationMembersType.team,
-          tlfName: names,
-          topicName: 'general',
-        }
-      } else {
-        throw new Error('Start conversation called w/ bad tlf type')
-      }
-    } else {
-      throw new Error('Start conversation called w/ bad tlf')
+  } else if (teamname) {
+    params = {
+      membersType: RPCChatTypes.commonConversationMembersType.team,
+      tlfName: teamname,
+      topicName: 'general',
     }
   } else {
-    throw new Error('Start conversation called w/ no participants or tlf')
+    throw new Error('Start conversation called w/ no participants or teamname')
   }
 
   const clearPendingUsers =
@@ -1469,7 +1449,12 @@ const selectPendingConversation = (action: Chat2Gen.SetPendingModePayload, state
   if (action.payload.pendingMode === 'none') {
     const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
     if (Constants.isValidConversationIDKey(meta.conversationIDKey)) {
-      return Saga.put(Chat2Gen.createSelectConversation({conversationIDKey: meta.conversationIDKey}))
+      return Saga.put(
+        Chat2Gen.createSelectConversation({
+          conversationIDKey: meta.conversationIDKey,
+          reason: 'existingSearch',
+        })
+      )
     } else return
   }
 
@@ -1535,21 +1520,6 @@ const updatePendingParticipants = (
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users})),
     Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: users})),
   ])
-}
-
-const updatePendingSelected = (
-  action: Chat2Gen.SetPendingModePayload | Chat2Gen.SelectConversationPayload,
-  state: TypedState
-) => {
-  let selected
-  if (action.type === Chat2Gen.setPendingMode) {
-    selected = action.payload.pendingMode !== 'none'
-  } else {
-    selected = !action.payload.conversationIDKey
-  }
-  if (selected !== state.chat2.pendingSelected) {
-    return Saga.put(Chat2Gen.createSetPendingSelected({selected}))
-  }
 }
 
 function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {

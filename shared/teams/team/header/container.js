@@ -43,7 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
         },
       ])
     ),
-  onChat: () => dispatch(Chat2Gen.createStartConversation({tlf: `/keybase/team/${teamname}`})),
+  onChat: () => dispatch(Chat2Gen.createStartConversation({teamname})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
 })
 

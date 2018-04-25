@@ -400,8 +400,8 @@ export const createSetPendingMode = (payload: $ReadOnly<{|pendingMode: Types.Pen
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
 export const createStartConversation = (
   payload: $ReadOnly<{|
-    participants?: ?Array<string>,
-    tlf?: ?string,
+    participants?: Array<string>,
+    teamname?: string,
     fromAReset?: boolean,
   |}>
 ) => ({error: false, payload, type: startConversation})
