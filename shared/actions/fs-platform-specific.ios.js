@@ -3,9 +3,6 @@ import * as FsGen from './fs-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import type {TypedState} from '../constants/reducer'
-import RNFetchBlob from 'react-native-fetch-blob'
-import {isAndroid} from '../constants/platform'
-import {copy} from '../util/file'
 
 export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState) {}
 export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {}
