@@ -134,21 +134,6 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 	return res, fmt.Errorf("account not found: %v", accountID)
 }
 
-func BalanceXLM(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.Balance, error) {
-	balances, err := remoter.Balances(ctx, accountID)
-	if err != nil {
-		return stellar1.Balance{}, err
-	}
-
-	for _, b := range balances {
-		if b.Asset.IsNativeXLM() {
-			return b, nil
-		}
-	}
-
-	return stellar1.Balance{}, errors.New("no native balance")
-}
-
 func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
 	bundle, _, err := remote.Fetch(ctx, g)
 	if err != nil {
