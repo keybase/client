@@ -47,7 +47,18 @@ func keybaseExit(exitCode int) {
 }
 
 func main() {
-	err := libkb.SaferDLLLoading()
+	// Preserve non-critical errors that happen very early during
+	// startup, where logging is not set up yet, to be printed later
+	// when logging is functioning.
+	var startupErrors []error
+
+	if err := libkb.SaferDLLLoading(); err != nil {
+		// Don't abort here. This should not happen on any known
+		// version of Windows, but new MS platforms may create
+		// regressions.
+		startupErrors = append(startupErrors,
+			fmt.Errorf("SaferDLLLoading error: %v", err.Error()))
+	}
 
 	// handle a Quick version query
 	if handleQuickVersion() {
@@ -57,17 +68,11 @@ func main() {
 	g := libkb.NewGlobalContext()
 	g.Init()
 
-	// Don't abort here. This should not happen on any known version of Windows, but
-	// new MS platforms may create regressions.
-	if err != nil {
-		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
-	}
-
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
 
 	go HandleSignals(g)
-	err = mainInner(g)
+	err := mainInner(g, startupErrors)
 
 	if g.Env.GetDebug() {
 		// hack to wait a little bit to receive all the log messages from the
@@ -93,6 +98,32 @@ func main() {
 	}
 }
 
+func tryToDisableProcessTracing(log logger.Logger, e *libkb.Env) {
+	if e.GetRunMode() != libkb.ProductionRunMode || e.AllowPTrace() {
+		return
+	}
+
+	if !e.GetFeatureFlags().Admin() {
+		// Admin only for now
+		return
+	}
+
+	// We do our best but if it's not possible on some systems or
+	// configurations, it's not a fatal error. Also see documentation
+	// in ptrace_*.go files.
+	if err := libkb.DisableProcessTracing(); err != nil {
+		log.Debug("Unable to disable process tracing: %v", err.Error())
+	} else {
+		log.Debug("DisableProcessTracing call succeeded")
+	}
+}
+
+func logStartupIssues(errors []error, log logger.Logger) {
+	for _, err := range errors {
+		log.Warning(err.Error())
+	}
+}
+
 func warnNonProd(log logger.Logger, e *libkb.Env) {
 	mode := e.GetRunMode()
 	if mode != libkb.ProductionRunMode {
@@ -107,7 +138,7 @@ func checkSystemUser(log logger.Logger) {
 	}
 }
 
-func mainInner(g *libkb.GlobalContext) error {
+func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl, g))
 	cl.AddCommands(service.GetCommands(cl, g))
@@ -149,6 +180,8 @@ func mainInner(g *libkb.GlobalContext) error {
 	g.StartupMessage()
 
 	warnNonProd(g.Log, g.Env)
+	logStartupIssues(startupErrors, g.Log)
+	tryToDisableProcessTracing(g.Log, g.Env)
 
 	if err := configOtherLibraries(g); err != nil {
 		return err

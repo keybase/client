@@ -1016,6 +1016,14 @@ func (c ChainLinkError) Error() string {
 	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
 }
 
+type ChainLinkStubbedUnsupportedError struct {
+	msg string
+}
+
+func (c ChainLinkStubbedUnsupportedError) Error() string {
+	return c.msg
+}
+
 type SigchainV2Error struct {
 	msg string
 }

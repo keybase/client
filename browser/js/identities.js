@@ -1,27 +1,5 @@
 // All of our identity services and matchers are defined here.
 
-// parseLocationQuery converts URL-encoded parameters into an object. It
-// requires unique keys, will throw an error if there is a duplicate key.
-function parseLocationQuery(s) {
-  if (s.startsWith("?")) s = s.substr(1);
-  if (s == "") return {};
-  const params = {};
-  const parts = s.split('&');
-  for (let i = 0; i < parts.length; i++) {
-    let p = parts[i].split('=', 2);
-    const key = p[0].toLowerCase();
-    if (key in params) {
-      throw new Error('duplicate key in query string: ' + key);
-    }
-    if (p.length == 1) {
-      params[key] = "";
-    } else {
-      params[key] = decodeURIComponent(p[1].replace(/\+/g, " "));
-    }
-  }
-  return params;
-}
-
 // identityMatchers is used to generate our declarative page match rules, but
 // also used to check for matches at runtime for each `service` that we
 // support. They have the following schema:
@@ -55,8 +33,8 @@ const identityMatchers = [
   {
     service: "keybase",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    pathMatches: new RegExp('^([\\w]+)[/]?'),
-    originAndPathMatches: '^https://keybase\\.io/[\\w]+[/]?',
+    pathMatches: new RegExp('^/([\\w]+)[/]?$'),
+    originAndPathMatches: '^https://keybase\\.io/[\\w]+[/]?$',
     subdomains: [],
     host: 'keybase.io',
     css: ['.profile-heading']
@@ -100,7 +78,7 @@ const identityMatchers = [
   },
   {
     service: "hackernews",
-    getUsername: function(loc) { return parseLocationQuery(loc.search)["id"]; },
+    getUsername: function(loc) { return document.querySelector('.hnuser').text; },
     pathMatches: new RegExp('^/user'),
     originAndPathMatches: '^https://news\\.ycombinator\\.com/user',
     subdomains: [],
@@ -148,11 +126,14 @@ function User(username, service) {
   this.origin = service;
   this.services = {};
   this.services[service] = username;
+  this.extraReplyCls = "";
 }
 
 // Return a fresh copy equivalent to how it was initialized.
 User.prototype.clone = function() {
-  return new User(this.services[this.origin], this.origin);
+  user = new User(this.services[this.origin], this.origin);
+  user.extraReplyCls = this.extraReplyCls
+  return user
 }
 
 User.prototype.query = function() {
