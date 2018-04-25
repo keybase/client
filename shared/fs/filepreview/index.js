@@ -4,33 +4,25 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Text, Box} from '../../common-adapters'
+import {isMobile} from '../../constants/platform'
+import {Box} from '../../common-adapters'
 import Footer from '../footer/container'
 import Header from './header-container'
-import TextView from './text-view'
-import DefaultView from './default-view-container'
+import {getDisplayComponent} from './common'
+import BareView from './bare-view'
 
 type FilePreviewProps = {
   routeProps: I.Map<string, any>,
 }
 
-const getDisplayComponent = (path: Types.Path, fileViewType: Types.FileViewType) => {
-  switch (fileViewType) {
-    case 'text':
-      return <TextView url="https://keybase.io/warp/release.txt" />
-    case 'default':
-      return <DefaultView path={path} />
-    default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(fileViewType: empty) // this breaks when a new file view type is added but not handled here
-      return <Text type="BodyError">This shouldn't happen</Text>
-  }
-}
+const isBare = (fileViewType: Types.FileViewType) => isMobile && ['image'].includes(fileViewType)
 
 const FilePreview = ({routeProps}: FilePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
   const fileViewType = Constants.viewTypeFromPath(path)
-  return (
+  return isBare(fileViewType) ? (
+    <BareView path={path} fileViewType={fileViewType} />
+  ) : (
     <Box style={styleOuterContainer}>
       <Header path={path} />
       <Box style={stylesGreyContainer}>
@@ -60,6 +52,7 @@ const stylesContentContainer = platformStyles({
   common: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexGrow,
+    height: '100%',
     width: '100%',
     overflow: 'scroll',
   },
