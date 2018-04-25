@@ -4,6 +4,7 @@ import {Text} from '../common-adapters'
 import {storiesOf} from '../stories/storybook'
 
 const load = () => {
+  // these should actually be implemented in their own files Aka walletlist/index. Stories. Js
   storiesOf('Stellar', module).add('Wallet List', () => <Text type="BodyBig">Wallet List TBD</Text>)
   storiesOf('Stellar', module).add('Wallet', () => <Text type="BodyBig">Wallet TBD</Text>)
   storiesOf('Stellar', module).add('Wallet Onboarding', () => (
