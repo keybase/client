@@ -311,6 +311,7 @@ function _loadConfig(action: ConfigGen.LoadConfigPayload) {
 }
 
 function _afterLoadConfig(config: RPCTypes.Config) {
+  logger.info(`Keybase version: ${config.version}`)
   return Saga.put(ConfigGen.createConfigLoaded({config}))
 }
 

@@ -95,7 +95,6 @@ export default function(
       return state.set('startedDueToPush', true)
     case ConfigGen.configLoaded:
       const {config} = action.payload
-      logger.info(`Keybase version: ${config.version}`)
       return state.set('version', config.version).set('versionShort', config.versionShort)
     // Saga only actions
     case ConfigGen.loadTeamAvatars:

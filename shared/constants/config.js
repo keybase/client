@@ -26,7 +26,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   avatars: {}, // Can't be an I.Map since it's used by remotes
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: maxBootstrapTries,
-  config: null,
   daemonError: null,
   deviceID: null,
   deviceName: null,
