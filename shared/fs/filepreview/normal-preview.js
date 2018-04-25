@@ -1,5 +1,5 @@
 // @flow
-import * as I from 'immutable'
+import {mapProps} from '../../util/container'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -10,22 +10,19 @@ import Header from './header-container'
 import {getDisplayComponent} from './common'
 
 type NormalPreviewProps = {
-  routeProps: I.Map<string, any>,
+  path: Types.Path,
+  fileViewType: Types.FileViewType,
 }
 
-const NormalPreview = ({routeProps}: NormalPreviewProps) => {
-  const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
-  const fileViewType = routeProps.get('fileViewType', Constants.viewTypeFromPath(path))
-  return (
-    <Box style={styleOuterContainer}>
-      <Header path={path} />
-      <Box style={stylesGreyContainer}>
-        <Box style={stylesContentContainer}>{getDisplayComponent(path, fileViewType)}</Box>
-      </Box>
-      <Footer />
+const NormalPreview = ({path, fileViewType}: NormalPreviewProps) => (
+  <Box style={styleOuterContainer}>
+    <Header path={path} />
+    <Box style={stylesGreyContainer}>
+      <Box style={stylesContentContainer}>{getDisplayComponent(path, fileViewType)}</Box>
     </Box>
-  )
-}
+    <Footer />
+  </Box>
+)
 
 const styleOuterContainer = {
   ...globalStyles.flexBoxColumn,
@@ -48,7 +45,6 @@ const stylesContentContainer = platformStyles({
     ...globalStyles.flexGrow,
     height: '100%',
     width: '100%',
-    overflow: 'scroll',
   },
   isElectron: {
     paddingLeft: globalMargins.medium,
@@ -56,4 +52,8 @@ const stylesContentContainer = platformStyles({
   },
 })
 
-export default NormalPreview
+export default mapProps(({routeProps}): NormalPreviewProps => {
+  const path = Types.stringToPath(routeProps.get('path') || Constants.defaultPath)
+  const fileViewType = routeProps.get('fileViewType') || Constants.viewTypeFromPath(path)
+  return {path, fileViewType}
+})(NormalPreview)
