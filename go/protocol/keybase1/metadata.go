@@ -148,6 +148,35 @@ func (o LockContext) DeepCopy() LockContext {
 	}
 }
 
+type FindNextMDResponse struct {
+	MerkleNodes [][]byte `codec:"merkleNodes" json:"merkleNodes"`
+	RootSeqno   Seqno    `codec:"rootSeqno" json:"rootSeqno"`
+	RootHash    HashMeta `codec:"rootHash" json:"rootHash"`
+}
+
+func (o FindNextMDResponse) DeepCopy() FindNextMDResponse {
+	return FindNextMDResponse{
+		MerkleNodes: (func(x [][]byte) [][]byte {
+			if x == nil {
+				return nil
+			}
+			var ret [][]byte
+			for _, v := range x {
+				vCopy := (func(x []byte) []byte {
+					if x == nil {
+						return nil
+					}
+					return append([]byte{}, x...)
+				})(v)
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.MerkleNodes),
+		RootSeqno: o.RootSeqno.DeepCopy(),
+		RootHash:  o.RootHash.DeepCopy(),
+	}
+}
+
 type GetChallengeArg struct {
 }
 
@@ -271,6 +300,11 @@ type GetMerkleNodeArg struct {
 	Hash string `codec:"hash" json:"hash"`
 }
 
+type FindNextMDArg struct {
+	Seqno    Seqno  `codec:"seqno" json:"seqno"`
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
 type SetImplicitTeamModeForTestArg struct {
 	ImplicitTeamMode string `codec:"implicitTeamMode" json:"implicitTeamMode"`
 }
@@ -300,6 +334,7 @@ type MetadataInterface interface {
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
 	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
 	GetMerkleNode(context.Context, string) ([]byte, error)
+	FindNextMD(context.Context, FindNextMDArg) (FindNextMDResponse, error)
 	SetImplicitTeamModeForTest(context.Context, string) error
 }
 
@@ -676,6 +711,22 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"findNextMD": {
+				MakeArg: func() interface{} {
+					ret := make([]FindNextMDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FindNextMDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FindNextMDArg)(nil), args)
+						return
+					}
+					ret, err = i.FindNextMD(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"setImplicitTeamModeForTest": {
 				MakeArg: func() interface{} {
 					ret := make([]SetImplicitTeamModeForTestArg, 1)
@@ -825,6 +876,11 @@ func (c MetadataClient) GetMerkleRootSince(ctx context.Context, __arg GetMerkleR
 func (c MetadataClient) GetMerkleNode(ctx context.Context, hash string) (res []byte, err error) {
 	__arg := GetMerkleNodeArg{Hash: hash}
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleNode", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) FindNextMD(ctx context.Context, __arg FindNextMDArg) (res FindNextMDResponse, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.findNextMD", []interface{}{__arg}, &res)
 	return
 }
 
