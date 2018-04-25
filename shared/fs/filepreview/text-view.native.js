@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalColors, globalMargins} from '../../styles'
-import WebView from '../../util/web-view';
+import WebView from '../../common-adapters/web-view.native'
 import {type TextViewProps} from './text-view'
 
 // We need to do the spacing in the guest content of the webView rather than
