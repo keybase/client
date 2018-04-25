@@ -51,7 +51,7 @@ const profileInject = {
   },
 
   "reddit": function redditInjectProfile(user) {
-    const container = document.querySelector("h1");
+    const container = document.querySelector("h1") || document.querySelector("h4").nextSibling;
     if (!container) return;
 
     const button = renderProfileChatButton(user);
