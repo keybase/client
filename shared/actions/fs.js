@@ -156,6 +156,10 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         // avoid overriding existing files. Just download over them.
         localPath = Constants.downloadFilePathFromPathNoSearch(path)
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(intent: empty) // this breaks when a new intent is added but not handled here
@@ -201,6 +205,10 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
       case 'share':
         yield Saga.call(showShareActionSheet, {url: localPath, mimeType: action.payload.mimeType})
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
         // eslint-disable-next-line no-unused-expressions
         ;(intent: empty) // this breaks when a new intent is added but not handled here

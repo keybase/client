@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Files from './container'
-import FilePreview from './filepreview/container'
+import FilePreview from './filepreview'
 import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './popups/breadcrumb-popup-container'
 import FinderPopupMenu from './finder-popup'
@@ -27,17 +27,18 @@ const _commonChildren = {
   securityPrefs: {
     component: SecurityPrefs,
   },
+  preview: () =>
+    makeRouteDefNode({
+      component: FilePreview,
+      children: _commonChildren,
+      tags: makeLeafTags({title: 'Preview'}),
+    }),
 }
 
 const _folderRoute = {
   children: {
     ..._commonChildren,
     folder: () => makeRouteDefNode(_folderRoute),
-    preview: {
-      component: FilePreview,
-      children: _commonChildren,
-      tags: makeLeafTags({title: 'Preview'}),
-    },
     breadcrumbAction: {
       component: RelativePopupHoc(BreadcrumbPopupMenu),
       tags: makeLeafTags({layerOnTop: true}),
