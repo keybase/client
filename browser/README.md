@@ -54,7 +54,7 @@ You can add the extension in development mode:
 
 Once you have development versions of the extension in your browsers, run
 through the following to quickly QA any changes you have made. Check that the
-button appears and you can chat `joshblum` on :
+button appears and you can chat `joshblum` on:
 
 * [keybase.io](https://keybase.io/joshblum)
 * [reddit](https://www.reddit.com/user/joshblum)
@@ -62,6 +62,11 @@ button appears and you can chat `joshblum` on :
 * [GitHub](https://github.com/joshblum)
 * [Twitter](https://twitter.com/blumua)
 * [Facebook](https://www.facebook.com/ccoyne77)
+
+Note: Reddit is doing a large redesign and this affects the extension. If you
+are making any changes you should test against the old and new designs. You can
+toggle which experience you get  by visiting https://www.reddit.com/prefs and
+selecting "Use the redesign as my default experience".
 
 
 ### KBNM

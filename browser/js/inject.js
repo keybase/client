@@ -51,9 +51,14 @@ const profileInject = {
   },
 
   "reddit": function redditInjectProfile(user) {
-    const container = document.querySelector("h1") || document.querySelector("h4").nextSibling;
+    const designV1 = document.querySelector("h1");
+    const designV2 = document.querySelector("h4").nextSibling;
+    const container = designV1 || designV2;
     if (!container) return;
 
+    if (designV2) {
+      user.extraReplyCls = "fixed-form"
+    }
     const button = renderProfileChatButton(user);
     button.style = "display: block; margin: 4px 0;";
     container.parentNode.insertBefore(button, container.nextSibling);
