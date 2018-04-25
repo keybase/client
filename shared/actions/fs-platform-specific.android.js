@@ -36,8 +36,8 @@ export function copyToDownloadDir(path: string, mime: string): Promise<*> {
     .then(() => unlink(path))
     .then(() =>
       RNFetchBlob.android.addCompleteDownload({
-        title: 'Keybase Download',
-        description: 'Keybase Download',
+        title: fileName,
+        description: `Keybase downloaded ${fileName}`,
         mime,
         path: downloadPath,
         showNotification: true,
