@@ -934,23 +934,18 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
 
 const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
   const {sourceConversationIDKey, ordinal} = action.payload
-  const you = state.config.username
   const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
   if (!message) {
     logger.warn("Can't find message to reply to", ordinal)
     return
   }
 
-  // Do we already have a convo for this author?
-  const newConversationIDKey =
-    you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
-
   return Saga.sequentially([
     Saga.put(
       Chat2Gen.createMessageSetQuoting({
         ordinal,
         sourceConversationIDKey,
-        targetConversationIDKey: newConversationIDKey || Constants.pendingConversationIDKey,
+        targetConversationIDKey: Constants.pendingConversationIDKey,
       })
     ),
     Saga.put(
@@ -1212,16 +1207,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
     ])
   }
 
-  // Did we search for an existing conversation? if so exit it
-  // const exitSearch =
-  // Constants.getSelectedConversation(state) === Constants.pendingConversationIDKey
-  // ? [
-  // Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'existingSearch'})),
-  // Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-  // Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
-  // ]
-  // : []
-
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname // TODO non existant convo
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
@@ -1250,7 +1235,6 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
       tlfName,
       tlfPublic: false,
     }),
-    // ...exitSearch,
   ])
 }
 
@@ -1264,35 +1248,33 @@ const startConversationAfterFindExisting = (
   const results: RPCChatTypes.FindConversationsLocalRes = _fromStartConversation[1]
   const users: Array<string> = _fromStartConversation[2]
 
-  if (results.conversations && results.conversations.length > 0) {
-    const conversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
+  let existingConversationIDKey
 
-    // There is an existing conversation, select it
-    if (conversationIDKey) {
-      if (action.type === Chat2Gen.startConversation) {
-        return Saga.sequentially([
-          Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'})),
-          Saga.put(Chat2Gen.createNavigateToThread()),
-        ])
-      } else if (action.type === Chat2Gen.setPendingConversationUsers) {
-        return Saga.sequentially([
-          Saga.put(Chat2Gen.createSetPendingConversationExistingConversationIDKey({conversationIDKey})),
-          Saga.put(Chat2Gen.createNavigateToThread()),
-        ])
-      }
-    }
-  } else {
-    const fromAReset = action.type === Chat2Gen.startConversation && action.payload.fromAReset
-    // Not found, so lets start it
-    return Saga.sequentially([
-      // it's a fixed set of users so it's not a search (aka you can't add people to it)
-      Saga.put(
-        Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
-      ),
-      Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
-      Saga.put(Chat2Gen.createNavigateToThread()),
-    ])
+  if (results.conversations && results.conversations.length > 0) {
+    // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
+    // and allows quoting privately to work nicely
+    existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
   }
+
+  const fromAReset = action.type === Chat2Gen.startConversation && action.payload.fromAReset
+
+  return Saga.sequentially([
+    // it's a fixed set of users so it's not a search (aka you can't add people to it)
+    Saga.put(
+      Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
+    ),
+    ...(existingConversationIDKey
+      ? [
+          Saga.put(
+            Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+              conversationIDKey: existingConversationIDKey,
+            })
+          ),
+        ]
+      : []),
+    Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
+    Saga.put(Chat2Gen.createNavigateToThread()),
+  ])
 }
 
 // Start a conversation, or select an existing one
@@ -1322,10 +1304,10 @@ const startConversationFindExisting = (
   // we handled participants or teams
   if (participants) {
     const toFind = I.Set(participants).concat([you])
-    users = toFind.toArray()
-    params = {
-      tlfName: toFind.join(','),
-    }
+    params = {tlfName: toFind.join(',')}
+    users = I.Set(participants)
+      .subtract([you])
+      .toArray()
   } else if (teamname) {
     params = {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -1382,7 +1364,8 @@ const desktopSelectTheNewestConversation = (
   }
 
   const conversationIDKey = Constants.getSelectedConversation(state)
-  if (Constants.isValidConversationIDKey(conversationIDKey)) {
+  if (conversationIDKey !== Constants.noConversationIDKey) {
+    // if (Constants.isValidConversationIDKey(conversationIDKey)) {
     // already something?
     return
   }
@@ -1414,26 +1397,6 @@ const desktopSelectTheNewestConversation = (
     )
   }
 }
-
-// const onExitSearch = (action: Chat2Gen.ExitSearchPayload, state: TypedState) => {
-// TODO clean this up
-// const conversationIDKey = Constants.findConversationFromParticipants(
-// state,
-// state.chat2.pendingConversationUsers
-// )
-// return Saga.sequentially([
-// Saga.put(SearchGen.createClearSearchResults({searchKey: 'chatSearch'})),
-// Saga.put(SearchGen.createSetUserInputItems({searchKey: 'chatSearch', searchResults: []})),
-// Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: true, users: []})),
-// Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-// Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
-// // We may have some failed pending messages sitting around, clear out that data
-// Saga.put(Chat2Gen.createClearPendingConversation()),
-// // ...(action.payload.canceled || !conversationIDKey
-// // ? []
-// // : [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'startFoundExisting'}))]),
-// ])
-// }
 
 const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)

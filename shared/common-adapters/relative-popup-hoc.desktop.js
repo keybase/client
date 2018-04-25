@@ -246,7 +246,7 @@ function ModalPositionRelative<PP>(
 
     render() {
       // React will complain if WrappedComponent is a HTMLElement and we try to attach these props
-      const noPassProps = ['targetRect', 'position', 'onClosePopup']
+      const noPassProps = ['targetRect', 'position'] // TEMP fix until master is better , 'onClosePopup']
       // $ForceType thinks {} is invalid for PP, we're filtering out the HOC's props
       const passProps: PP = Object.keys(this.props).reduce((res, k) => {
         if (!noPassProps.includes(k)) {

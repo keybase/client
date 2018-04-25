@@ -409,7 +409,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return quotingMap.delete(targetConversationIDKey)
         }
         // quoting a specific message
-        return quotingMap.set(targetConversationIDKey, {sourceConversationIDKey, ordinal})
+        return quotingMap.set(targetConversationIDKey, {ordinal, sourceConversationIDKey})
       })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
