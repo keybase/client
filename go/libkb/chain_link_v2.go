@@ -58,18 +58,29 @@ const (
 	SigchainV2TypeTeamKBFSSettings SigchainV2Type = 47
 )
 
-func (t SigchainV2Type) NeedsSignature() bool {
+// NeedsSignature is untrue of most supported link types. If a link can
+// be stubbed, that means we potentially won't get to verify its signature,
+// since we need the full link to verify signatures. However, in some cases,
+// signature verification is required, and hence stubbing is disallowed.
+func (t SigchainV2Type) AllowStubbing() bool {
+
+	// Unsupported types don't need signatures. Otherwise we can't
+	// make code forwards-compatible.
+	if !t.IsSupportedUserType() {
+		return true
+	}
+
+	// Of known types, Track, Untrack and Announcement can be stubbed, but
+	// nothing else, for now....
 	switch t {
 	case SigchainV2TypeTrack, SigchainV2TypeUntrack, SigchainV2TypeAnnouncement:
-		return false
+		return true
 	default:
-		// Unsupported types don't need signatures. Otherwise we can't
-		// make code forwards-compatible.
-		return t.IsSupportedType()
+		return false
 	}
 }
 
-func (t SigchainV2Type) IsSupportedType() bool {
+func (t SigchainV2Type) IsSupportedUserType() bool {
 	switch t {
 	case SigchainV2TypeNone,
 		SigchainV2TypeEldest,
@@ -89,8 +100,12 @@ func (t SigchainV2Type) IsSupportedType() bool {
 		SigchainV2TypeWalletStellar:
 		return true
 	default:
-		return t.IsSupportedTeamType()
+		return false
 	}
+}
+
+func (t SigchainV2Type) IsSupportedType() bool {
+	return t.IsSupportedTeamType() || t.IsSupportedUserType()
 }
 
 // Whether a type is for team sigchains.
@@ -353,14 +368,14 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		if teamErr == nil {
 			ret = teamRes
 		} else {
-			ret = SigchainV2TypeNone
+			ret = SigchainV2TypeUnknown
 			if !ignoreIfUnsupported {
 				err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
 			}
 		}
 	}
 
-	if !ret.NeedsSignature() && bool(hasRevocations) {
+	if ret.AllowStubbing() && bool(hasRevocations) {
 		err = ChainLinkError{fmt.Sprintf("invalid chain link of type %d with a revocation", ret)}
 	}
 

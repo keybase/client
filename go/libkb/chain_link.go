@@ -1282,12 +1282,9 @@ func (c ChainLink) LinkID() LinkID {
 	return c.id
 }
 
-func (c ChainLink) NeedsSignature() bool {
-	if !c.IsStubbed() {
-		return true
-	}
+func (c ChainLink) AllowStubbing() bool {
 	if c.unpacked.outerLinkV2 == nil {
-		return true
+		return false
 	}
-	return c.unpacked.outerLinkV2.LinkType.NeedsSignature()
+	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
 }
