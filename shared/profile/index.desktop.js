@@ -1,7 +1,7 @@
 // @flow
-import * as shared from './index.shared'
+import * as shared from './shared'
 import * as Constants from '../constants/tracker'
-import Friendships from './friendships'
+import Friendships from './friendships.desktop'
 import React, {PureComponent} from 'react'
 import {orderBy} from 'lodash-es'
 import moment from 'moment'

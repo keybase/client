@@ -4,9 +4,9 @@
 package engine
 
 import (
-	"testing"
-
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"testing"
 )
 
 func TestPGPKeyGenPush(t *testing.T) {
@@ -29,6 +29,10 @@ func TestPGPKeyGenPush(t *testing.T) {
 		},
 	}
 	eng := NewPGPKeyGen(tc.G, arg)
+	eng.genArg = &libkb.PGPGenArg{
+		PrimaryBits: 768,
+		SubkeyBits:  768,
+	}
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -68,6 +72,10 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 		},
 	}
 	eng := NewPGPKeyGen(tc.G, arg)
+	eng.genArg = &libkb.PGPGenArg{
+		PrimaryBits: 768,
+		SubkeyBits:  768,
+	}
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

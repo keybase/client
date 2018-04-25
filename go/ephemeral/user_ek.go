@@ -68,19 +68,22 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	if err != nil {
 		return "", nil, newMetadata, nil, err
 	}
-	var generation keybase1.EkGeneration
+	var newGeneration keybase1.EkGeneration
+	var existingMaybeStaleMetadata []keybase1.UserEkMetadata
 	prevStatement, ok := prevStatements[g.Env.GetUID()]
 	if !ok || prevStatement == nil {
-		generation = 1 // start at generation 1
+		newGeneration = 1 // start at generation 1
 	} else {
-		generation = prevStatement.CurrentUserEkMetadata.Generation + 1
+		newGeneration = prevStatement.CurrentUserEkMetadata.Generation + 1
+		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.ExistingUserEkMetadata...)
+		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.CurrentUserEkMetadata)
 	}
 
 	dhKeypair := seed.DeriveDHKey()
 
 	metadata := keybase1.UserEkMetadata{
 		Kid:        dhKeypair.GetKID(),
-		Generation: generation,
+		Generation: newGeneration,
 		HashMeta:   merkleRoot.HashMeta(),
 		// The ctime is derivable from the hash meta, by fetching the hashed
 		// root from the server, but including it saves readers a potential
@@ -88,20 +91,17 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
 	}
 
-	// Get the list of existing userEKs to form the full statement. Make sure
-	// that if it's nil, we replace it with an empty slice. Although those are
-	// practically the same in Go, they get serialized to different JSON.
-	active, err := filterStaleUserEKStatements(ctx, g, prevStatements, merkleRoot)
-	if err != nil {
-		return "", nil, newMetadata, nil, err
-	}
-	var existingActiveMetadata []keybase1.UserEkMetadata
-	userMetadata, ok := active[g.Env.GetUID()]
-	if ok {
-		existingActiveMetadata = userMetadata.ExistingUserEkMetadata
-		existingActiveMetadata = append(existingActiveMetadata, userMetadata.CurrentUserEkMetadata)
-	} else {
-		existingActiveMetadata = []keybase1.UserEkMetadata{}
+	// Filter out the still-active userEKs, those less than a week old. Make
+	// sure that if there are none, we use an empty slice instead of nil.
+	// Although those are practically the same in Go, they get serialized to
+	// different JSON.
+	existingActiveMetadata := []keybase1.UserEkMetadata{}
+	for _, metadata := range existingMaybeStaleMetadata {
+		if ctimeIsStale(metadata.Ctime, merkleRoot) {
+			g.Log.CDebugf(ctx, "skipping stale UserEkMetadata for KID: %s", metadata.Kid)
+			continue
+		}
+		existingActiveMetadata = append(existingActiveMetadata, metadata)
 	}
 
 	statement := keybase1.UserEkStatement{

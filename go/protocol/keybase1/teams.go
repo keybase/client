@@ -1036,10 +1036,25 @@ func (o TeamName) DeepCopy() TeamName {
 	}
 }
 
+type TeamCLKRResetUser struct {
+	Uid               UID   `codec:"uid" json:"uid"`
+	UserEldestSeqno   Seqno `codec:"userEldestSeqno" json:"user_eldest"`
+	MemberEldestSeqno Seqno `codec:"memberEldestSeqno" json:"member_eldest"`
+}
+
+func (o TeamCLKRResetUser) DeepCopy() TeamCLKRResetUser {
+	return TeamCLKRResetUser{
+		Uid:               o.Uid.DeepCopy(),
+		UserEldestSeqno:   o.UserEldestSeqno.DeepCopy(),
+		MemberEldestSeqno: o.MemberEldestSeqno.DeepCopy(),
+	}
+}
+
 type TeamCLKRMsg struct {
-	TeamID     TeamID               `codec:"teamID" json:"team_id"`
-	Generation PerTeamKeyGeneration `codec:"generation" json:"generation"`
-	Score      int                  `codec:"score" json:"score"`
+	TeamID              TeamID               `codec:"teamID" json:"team_id"`
+	Generation          PerTeamKeyGeneration `codec:"generation" json:"generation"`
+	Score               int                  `codec:"score" json:"score"`
+	ResetUsersUntrusted []TeamCLKRResetUser  `codec:"resetUsersUntrusted" json:"reset_users"`
 }
 
 func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
@@ -1047,6 +1062,17 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 		TeamID:     o.TeamID.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
 		Score:      o.Score,
+		ResetUsersUntrusted: (func(x []TeamCLKRResetUser) []TeamCLKRResetUser {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamCLKRResetUser
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ResetUsersUntrusted),
 	}
 }
 

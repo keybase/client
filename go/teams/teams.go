@@ -172,6 +172,10 @@ func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1
 	return t.chain().GetLatestUVWithUID(uid)
 }
 
+func (t *Team) AllUserVersionsByUID(ctx context.Context, uid keybase1.UID) []keybase1.UserVersion {
+	return t.chain().GetAllUVsWithUID(uid)
+}
+
 func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
 	return t.chain().GetUsersWithRole(role)
 }

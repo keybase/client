@@ -970,6 +970,10 @@ type KeyRevokedError struct {
 	msg string
 }
 
+func NewKeyRevokedError(m string) KeyRevokedError {
+	return KeyRevokedError{m}
+}
+
 func (r KeyRevokedError) Error() string {
 	return fmt.Sprintf("Key revoked: %s", r.msg)
 }
@@ -1010,6 +1014,14 @@ type ChainLinkError struct {
 
 func (c ChainLinkError) Error() string {
 	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
+}
+
+type ChainLinkStubbedUnsupportedError struct {
+	msg string
+}
+
+func (c ChainLinkStubbedUnsupportedError) Error() string {
+	return c.msg
 }
 
 type SigchainV2Error struct {
@@ -1190,6 +1202,10 @@ func (e SkipSecretPromptError) Error() string {
 
 type NoDeviceError struct {
 	Reason string
+}
+
+func NewNoDeviceError(s string) NoDeviceError {
+	return NoDeviceError{s}
 }
 
 func (e NoDeviceError) Error() string {

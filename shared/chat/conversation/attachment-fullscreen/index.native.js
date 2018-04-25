@@ -15,8 +15,8 @@ import type {Props} from './'
 
 const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
 
-class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
-  state = {height: 0, width: 0}
+class AutoMaxSizeImage extends Component<any, {width: number, height: number, loaded: boolean}> {
+  state = {height: 0, width: 0, loaded: false}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -30,6 +30,8 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
       }
     })
   }
+
+  _setLoaded = () => this.setState({loaded: true})
 
   render() {
     return (
@@ -48,6 +50,7 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
             height: Math.min(this.state.height, screenHeight),
             width: Math.min(this.state.width, screenWidth),
             alignSelf: 'center',
+            opacity: this.props.opacity,
           }}
         />
       </ZoomableBox>
@@ -55,47 +58,47 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
   }
 }
 
-const AttachmentView = ({
-  isZoomed,
-  onToggleZoom,
-  path,
-}: {
-  isZoomed: boolean,
-  onToggleZoom: () => void,
-  path: ?string,
-}) => (
-  <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
-    {!!path && <AutoMaxSizeImage source={{uri: `file://${path}`}} />}
-    {!path && <ProgressIndicator style={{width: 48}} white={true} />}
-  </Box>
-)
-
-const Fullscreen = (props: Props) => {
-  return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        ...globalStyles.fillAbsolute,
-        backgroundColor: globalColors.black,
-        paddingTop: isIPhoneX ? globalMargins.medium : undefined,
-      }}
-    >
-      <Text
-        type="Body"
-        onClick={props.onClose}
-        style={{color: globalColors.white, padding: globalMargins.small}}
+class Fullscreen extends React.Component<Props, {loaded: boolean}> {
+  state = {loaded: false}
+  _setLoaded = () => this.setState({loaded: true})
+  render() {
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          ...globalStyles.fillAbsolute,
+          backgroundColor: globalColors.black,
+          paddingTop: isIPhoneX ? globalMargins.medium : undefined,
+        }}
       >
-        Close
-      </Text>
-      <AttachmentView isZoomed={props.isZoomed} onToggleZoom={props.onToggleZoom} path={props.path} />
-      <Icon
-        type="iconfont-ellipsis"
-        style={styleHeaderFooter}
-        color={globalColors.white}
-        onClick={() => props.onShowMenu(null)}
-      />
-    </Box>
-  )
+        <Text
+          type="Body"
+          onClick={this.props.onClose}
+          style={{color: globalColors.white, padding: globalMargins.small}}
+        >
+          Close
+        </Text>
+        <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
+          {this.props.path && (
+            <AutoMaxSizeImage
+              source={{uri: `${this.props.path}`}}
+              onLoad={this._setLoaded}
+              opacity={this.state.loaded ? 1 : 0}
+            />
+          )}
+          {!this.state.loaded && (
+            <ProgressIndicator style={{width: 48, position: 'absolute', margin: 'auto'}} white={true} />
+          )}
+        </Box>
+        <Icon
+          type="iconfont-ellipsis"
+          style={styleHeaderFooter}
+          color={globalColors.white}
+          onClick={() => this.props.onShowMenu(null)}
+        />
+      </Box>
+    )
+  }
 }
 
 const styleHeaderFooter = {

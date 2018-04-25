@@ -1274,7 +1274,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	// Basically we never fail, since worse comes to worse, we treat
 	// unknown signatures as "generic" and can still display them
-	return
+	return ret, w
 }
 
 func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
@@ -1309,10 +1309,14 @@ func (idt *IdentityTable) populate() (err error) {
 			continue
 		}
 		tcl, w := NewTypedChainLink(link)
-		tcl.insertIntoTable(idt)
 		if w != nil {
 			w.Warn(idt.G())
 		}
+		// If it's an unknown link type, then it's OK to ignore it
+		if tcl == nil {
+			continue
+		}
+		tcl.insertIntoTable(idt)
 		if link.isOwnNewLinkFromServer {
 			link.isOwnNewLinkFromServer = false
 			tcl.DoOwnNewLinkFromServerNotifications(idt.G())

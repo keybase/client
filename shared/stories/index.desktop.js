@@ -3,10 +3,13 @@
 import * as React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import {configure, addDecorator} from '@storybook/react'
-import stories from './stories'
+import commonStories from './stories'
+import desktopStories from './stories-desktop'
 
 // Load css
 import '../desktop/renderer/style.css'
+
+const stories = {...commonStories, ...desktopStories}
 
 const load = () => {
   addDecorator(story => (

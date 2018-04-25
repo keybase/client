@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/stellar/bundle"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/amount"
 )
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
@@ -131,21 +132,6 @@ func ExportSecretKey(ctx context.Context, g *libkb.GlobalContext, accountID stel
 		return res, fmt.Errorf("account not found: unexpected secret key")
 	}
 	return res, fmt.Errorf("account not found: %v", accountID)
-}
-
-func BalanceXLM(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.Balance, error) {
-	balances, err := remoter.Balances(ctx, accountID)
-	if err != nil {
-		return stellar1.Balance{}, err
-	}
-
-	for _, b := range balances {
-		if b.Asset.IsNativeXLM() {
-			return b, nil
-		}
-	}
-
-	return stellar1.Balance{}, errors.New("no native balance")
 }
 
 func OwnAccount(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
@@ -284,8 +270,11 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 
 	// check if recipient account exists
 	var txID string
-	_, err = BalanceXLM(ctx, remoter, stellar1.AccountID(recipient.AccountID.String()))
+	funded, err := isAccountFunded(ctx, remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
+		return stellar1.PaymentResult{}, fmt.Errorf("error checking destination account balance: %v", err)
+	}
+	if !funded {
 		// if no balance, create_account operation
 		// we could check here to make sure that amount is at least 1XLM
 		// but for now, just let stellar-core tell us there was an error
@@ -328,6 +317,25 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	payload := make(libkb.JSONPayload)
 	payload["payment"] = post
 	return remoter.SubmitTransaction(ctx, payload)
+}
+
+func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {
+	balances, err := remoter.Balances(ctx, accountID)
+	if err != nil {
+		return false, err
+	}
+	for _, b := range balances {
+		if b.Asset.IsNativeXLM() {
+			a, err := amount.ParseInt64(b.Amount)
+			if err != nil {
+				return false, err
+			}
+			if a > 0 {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func GetOwnPrimaryAccountID(ctx context.Context, g *libkb.GlobalContext) (res stellar1.AccountID, err error) {

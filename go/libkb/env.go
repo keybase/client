@@ -583,6 +583,12 @@ func (e *Env) GetAPIDump() bool {
 	)
 }
 
+func (e *Env) GetAllowRoot() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_ROOT") },
+	)
+}
+
 func (e *Env) GetUsername() NormalizedUsername {
 	return e.GetConfig().GetUsername()
 }
@@ -1360,4 +1366,10 @@ func GetPlatformString() string {
 		return "ios"
 	}
 	return runtime.GOOS
+}
+
+func (e *Env) AllowPTrace() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_PTRACE") },
+	)
 }

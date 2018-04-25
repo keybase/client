@@ -1,9 +1,20 @@
 // @flow
 import * as React from 'react'
-import type {Props} from './user-actions'
 import {Button, FollowButton, ButtonBar, Icon} from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors} from '../styles'
+import type {SimpleProofState} from '../constants/types/tracker'
+
+type Props = {
+  trackerState: SimpleProofState,
+  currentlyFollowing: boolean,
+  style: Object,
+  onChat: () => void,
+  onFollow: () => void,
+  onUnfollow: () => void,
+  onAcceptProofs: () => void,
+  waiting: boolean,
+}
 
 function UserActions({
   trackerState,

@@ -38,8 +38,10 @@ declare export var mobileStyles: {}
 declare export var globalMargins: {|
   xtiny: number,
   tiny: number,
+  xsmall: number,
   small: number,
   medium: number,
+  mediumLarge: number,
   large: number,
   xlarge: number,
 |}

@@ -80,7 +80,7 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
-  chosenChannelsForTeam: I.Set(),
+  teamsWithChosenChannels: I.Set(),
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -177,11 +177,8 @@ const userIsActiveInTeamHelper = (
   return member && member.active
 }
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  I.Set(getTeamChannelInfos(state, teamname).keys())
-
-const getBadgeSubscribe = (state: TypedState, teamname: string): boolean =>
-  !state.teams.chosenChannelsForTeam.has(teamname)
+const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
+  state.teams.teamsWithChosenChannels.has(teamname)
 
 const getTeamChannelInfos = (
   state: TypedState,
@@ -383,8 +380,6 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
-  getBadgeSubscribe,
-  getConvIdsFromTeamName,
   getRole,
   getCanPerform,
   hasCanPerform,
@@ -413,6 +408,7 @@ export {
   isBigTeam,
   isOwner,
   isSubteam,
+  isTeamWithChosenChannels,
   serviceRetentionPolicyToRetentionPolicy,
   retentionPolicyToServiceRetentionPolicy,
   baseRetentionPolicies,

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -131,6 +132,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 	res := kbtest.NewChatMockWorld(t, name, numUsers)
 	for _, w := range res.Tcs {
 		teams.ServiceInit(w.G)
+		ephemeral.ServiceInit(w.G)
 	}
 	return res
 }
@@ -204,6 +206,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.Searcher = NewSearcher(g)
+	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

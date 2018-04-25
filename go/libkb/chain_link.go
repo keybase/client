@@ -93,7 +93,7 @@ type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
 	seqType                            keybase1.SeqType
-	ignoreIfUnsupported                bool
+	ignoreIfUnsupported                SigIgnoreIfUnsupported
 	payloadLocal                       []byte // local track payloads
 	payloadV2                          []byte
 	ctime, etime                       int64
@@ -242,8 +242,12 @@ func (c *ChainLink) getSeqTypeFromPayload() keybase1.SeqType {
 	return c.unpacked.seqType
 }
 
-func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() bool {
+func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() SigIgnoreIfUnsupported {
 	return c.unpacked.ignoreIfUnsupported
+}
+
+func (c *ChainLink) GetIgnoreIfSupported() SigIgnoreIfUnsupported {
+	return c.getIgnoreIfUnsupportedFromPayload()
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -505,9 +509,9 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 	}
 
 	// Assume false if unsupported
-	tmp.ignoreIfUnsupported = false
+	tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(false)
 	if ignore, err := jsonparser.GetBoolean(payload, "ignore_if_unsupported"); err == nil {
-		tmp.ignoreIfUnsupported = ignore
+		tmp.ignoreIfUnsupported = SigIgnoreIfUnsupported(ignore)
 	}
 
 	if i, err := jsonparser.GetInt(payload, "body", "merkle_root", "seqno"); err == nil {
@@ -579,6 +583,11 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 		// Assume public if unset
 		ol.SeqType = keybase1.SeqType_PUBLIC
 	}
+
+	if !ol.IgnoreIfUnsupported.Bool() && !ol.LinkType.IsSupportedType() {
+		return ChainLinkStubbedUnsupportedError{fmt.Sprintf("Stubbed link with type %d is unknown and not marked with IgnoreIfUnsupported", ol.LinkType)}
+	}
+
 	c.id = ol.LinkID()
 	c.unpacked = &ChainLinkUnpacked{
 		prev:                ol.Prev,
@@ -903,12 +912,12 @@ func (c *ChainLink) verifyPayloadV2() error {
 	seqno := c.getSeqnoFromPayload()
 	prev := c.getPrevFromPayload()
 	curr := c.getPayloadHash()
-	linkType, err := c.GetSigchainV2Type()
+	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
+	linkType, err := c.GetSigchainV2Type(SigIgnoreIfUnsupported(ignoreIfUnsupported))
 	if err != nil {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
-	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
 
 	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported); err != nil {
 		return err
@@ -1093,11 +1102,11 @@ func (c *ChainLink) verifyLinkV2() error {
 	return c.verifyPayloadV2()
 }
 
-func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
+func (c *ChainLink) GetSigchainV2Type(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
 	if c.unpacked == nil || c.unpacked.typ == "" {
 		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
-	return SigchainV2TypeFromV1TypeAndRevocations(c.unpacked.typ, SigHasRevokes(c.HasRevocations()))
+	return SigchainV2TypeFromV1TypeAndRevocations(c.unpacked.typ, SigHasRevokes(c.HasRevocations()), ignoreIfUnsupported)
 }
 
 func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
@@ -1273,12 +1282,9 @@ func (c ChainLink) LinkID() LinkID {
 	return c.id
 }
 
-func (c ChainLink) NeedsSignature() bool {
-	if !c.IsStubbed() {
-		return true
-	}
+func (c ChainLink) AllowStubbing() bool {
 	if c.unpacked.outerLinkV2 == nil {
-		return true
+		return false
 	}
-	return c.unpacked.outerLinkV2.LinkType.NeedsSignature()
+	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
 }

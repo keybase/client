@@ -873,11 +873,11 @@ func PresentConversationLocals(convs []chat1.ConversationLocal, currentUsername 
 	return res
 }
 
-func PresentThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView,
-	tcs types.TeamChannelSource) (res chat1.UIMessages) {
+func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID, tv chat1.ThreadView,
+	convID chat1.ConversationID) (res chat1.UIMessages) {
 	res.Pagination = PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
-		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, msg, uid, tcs))
+		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
 	return res
 }
@@ -896,8 +896,44 @@ func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMent
 	return res
 }
 
-func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid gregor1.UID,
-	tcs types.TeamChannelSource) (res chat1.UIMessage) {
+func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
+	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
+		var hasFullURL, hasPreviewURL bool
+		var info chat1.UIAssetUrlInfo
+		if typ == chat1.MessageType_ATTACHMENT {
+			info.MimeType = body.Attachment().Object.MimeType
+			hasFullURL = body.Attachment().Object.Path != ""
+			hasPreviewURL = body.Attachment().Preview != nil &&
+				body.Attachment().Preview.Path != ""
+		} else {
+			info.MimeType = body.Attachmentuploaded().Object.MimeType
+			hasFullURL = body.Attachmentuploaded().Object.Path != ""
+			hasPreviewURL = len(body.Attachmentuploaded().Previews) > 0 &&
+				body.Attachmentuploaded().Previews[0].Path != ""
+		}
+		if hasFullURL {
+			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
+		}
+		if hasPreviewURL {
+			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
+		}
+		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
+			return nil
+		}
+		return &info
+	}
+	return nil
+}
+
+func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
+	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
 	miscErr := func(err error) chat1.UIMessage {
 		return chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
@@ -936,6 +972,8 @@ func PresentMessageUnboxed(ctx context.Context, rawMsg chat1.MessageUnboxed, uid
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
+			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
+			EphemeralMetadata:     valid.EphemeralMetadata(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

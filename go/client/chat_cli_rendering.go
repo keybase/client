@@ -276,6 +276,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				Content:   flexibletable.SingleCell{Item: authorAndTime},
 			},
 			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
+			},
+			flexibletable.Cell{
 				Alignment: flexibletable.Left,
 				Content:   flexibletable.SingleCell{Item: body},
 			},
@@ -288,7 +292,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
+		5, 1, flexibletable.ColumnConstraint(w / 5), flexibletable.ColumnConstraint(w / 5),
+		flexibletable.ColumnConstraint(w / 5), flexibletable.Expandable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
@@ -365,13 +370,17 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 				Content:   flexibletable.SingleCell{Item: authorAndTime},
 			},
 			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
+			},
+			flexibletable.Cell{
 				Alignment: flexibletable.Left,
 				Content:   flexibletable.SingleCell{Item: mv.Body},
 			},
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ExpandableWrappable,
+		5, 1, flexibletable.ColumnConstraint(w / 5), flexibletable.ColumnConstraint(w / 5), flexibletable.ExpandableWrappable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation view error: %v\n", err)
 	}
@@ -418,6 +427,7 @@ type messageView struct {
 	AuthorAndTime               string
 	AuthorAndTimeWithDeviceName string
 	Body                        string
+	EphemeralInfo               string
 	FromRevokedDevice           bool
 
 	// Used internally for supersedeers
@@ -528,6 +538,18 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		m.SenderUsername, possiblyRevokedMark, shortDurationFromNow(t))
 	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s%s <%s> %s",
 		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
+
+	if m.IsExploding() {
+		remainingLifetime := m.RemainingLifetime()
+		if remainingLifetime <= 0 {
+			mv.Body = "[exploded]"
+			for i := 0; i < 40; i++ {
+				mv.Body += "* "
+			}
+		} else {
+			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingLifetime)
+		}
+	}
 
 	return mv, nil
 }
