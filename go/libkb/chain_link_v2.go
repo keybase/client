@@ -368,7 +368,7 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		if teamErr == nil {
 			ret = teamRes
 		} else {
-			ret = SigchainV2TypeUnknown
+			ret = SigchainV2TypeNone
 			if !ignoreIfUnsupported {
 				err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
 			}
