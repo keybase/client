@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbtest/insecure"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -21,15 +21,7 @@ import (
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
 	tc := externalstest.SetupTest(tb, name, 2)
 
-	// use an insecure triplesec in tests
-	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
-		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
-		isProduction := func() bool {
-			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
-		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
-	}
-
+	insecure.InstallInsecureTriplesec(tc.G)
 	return tc
 }
 
