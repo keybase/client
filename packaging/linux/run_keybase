@@ -118,7 +118,11 @@ kill_all() {
   if killall kbfsfuse &> /dev/null ; then
     echo Shutting down kbfsfuse...
   fi
-  if killall keybase &> /dev/null ; then
+  # Use pkill instead of killall because service sets itself as non-
+  # dumpable, which changes ownership of /proc/[pid], giving killall
+  # trouble finding `keybase` process. Make sure to use regexp pattern
+  # here so we don't also kill "keybase-redirector".
+  if pkill "^keybase$" &> /dev/null ; then
     echo Shutting down keybase service...
   fi
 

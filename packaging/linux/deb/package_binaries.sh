@@ -32,7 +32,9 @@ elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
   # "psmisc" provides "killall", which is used in run_keybase and
   # post_install.sh.
-  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc"
+  # "procps" provides "pkill", which is used when we can't use killall
+  # becuase of PR_SET_DUMPABLE.
+  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc, procps"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo
@@ -86,8 +88,17 @@ build_one_architecture() {
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }
 
-export debian_arch=amd64
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+  export debian_arch=amd64
+  build_one_architecture
+else
+  echo SKIPPING 64-bit deb package
+fi
 
-export debian_arch=i386
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+  export debian_arch=i386
+  build_one_architecture
+else
+  echo SKIPPING 32-bit deb package
+fi
+
