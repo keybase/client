@@ -3,10 +3,9 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Text, Box} from '../../common-adapters'
 import Footer from '../footer/container'
-import {isMobile} from '../../constants/platform'
 import Header from './header-container'
 import TextView from './text-view'
 import DefaultView from './default-view-container'
@@ -30,7 +29,7 @@ const getDisplayComponent = (path: Types.Path, fileViewType: Types.FileViewType)
 
 const FilePreview = ({routeProps}: FilePreviewProps) => {
   const path = Types.stringToPath(routeProps.get('path', Constants.defaultPath))
-  const fileViewType = routeProps.get('fileViewType', Constants.viewTypeFromPath(path))
+  const fileViewType = Constants.viewTypeFromPath(path)
   return (
     <Box style={styleOuterContainer}>
       <Header path={path} />
@@ -57,17 +56,17 @@ const stylesGreyContainer = {
   backgroundColor: globalColors.blue5,
 }
 
-const stylesContentContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexGrow,
-  ...(isMobile
-    ? {}
-    : {
-        paddingLeft: globalMargins.medium,
-        paddingRight: globalMargins.medium,
-      }),
-  width: '100%',
-  overflow: 'scroll',
-}
+const stylesContentContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.flexGrow,
+    width: '100%',
+    overflow: 'scroll',
+  },
+  isElectron: {
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+  },
+})
 
 export default FilePreview

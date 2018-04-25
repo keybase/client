@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, Button, Text} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import PathItemIcon from '../common/path-item-icon'
@@ -89,23 +89,24 @@ const DefaultView = (props: DefaultViewProps) => (
   </Box>
 )
 
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexGrow,
-  width: '100%',
-  flex: 1,
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: globalColors.white,
-  ...(isMobile
-    ? {
-        marginTop: 32,
-      }
-    : {
-        marginTop: globalMargins.medium,
-        marginBottom: globalMargins.medium,
-      }),
-}
+const stylesContainer = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.flexGrow,
+    width: '100%',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: globalColors.white,
+  },
+  isMobile: {
+    marginTop: 32,
+  },
+  isElectron: {
+    marginTop: globalMargins.medium,
+    marginBottom: globalMargins.medium,
+  },
+})
 
 const stylesFilename = memoize(color => ({
   marginTop: globalMargins.small,

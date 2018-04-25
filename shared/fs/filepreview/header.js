@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {Box, Icon, Text, BackButton} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import {isMobile} from '../../constants/platform'
@@ -38,14 +38,21 @@ const stylesClose = {
   marginLeft: globalMargins.tiny,
 }
 
-const filePreviewHeaderStyle = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexGrow,
-  height: isMobile ? 64 : 48,
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderBottomWidth: 0,
-}
+const filePreviewHeaderStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.flexGrow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 0,
+  },
+  isMobile: {
+    height: 64,
+  },
+  isElectron: {
+    height: 48,
+  },
+})
 
 const stylesHeaderIcons = {
   ...globalStyles.flexBoxRow,
