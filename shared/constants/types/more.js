@@ -51,10 +51,3 @@ export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
 // eslint-disable-next-line
 export type _PropsOf<Props, C: Component<Props, *>> = Props
 export type PropsOf<C> = _PropsOf<*, C>
-
-export type DumbComponentMap<C: Component<*, *>> = {
-  component: Class<C>,
-  mocks: {
-    [key: string]: PropsOf<C> | {...$Exact<PropsOf<C>>, parentProps: Object},
-  },
-}

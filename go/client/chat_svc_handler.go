@@ -783,6 +783,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		return nil, err
 	}
 
+	membersType := arg.channel.GetMembersType(c.G().GetEnv())
 	var header postHeader
 	var convTriple chat1.ConversationIDTriple
 	var tlfName string
@@ -808,7 +809,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 			TopicName:        topicName,
 			TopicType:        tt,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-			MembersType:      arg.channel.GetMembersType(c.G().GetEnv()),
+			MembersType:      membersType,
 		})
 		if err != nil {
 			return nil, err
@@ -826,10 +827,10 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	default:
 		return nil, fmt.Errorf("multiple conversations matched")
 	}
-	var ephemeralMetadata chat1.MsgEphemeralMetadata
-	if arg.ephemeralLifetime.Duration != 0 {
+	var ephemeralMetadata *chat1.MsgEphemeralMetadata
+	if arg.ephemeralLifetime.Duration != 0 && membersType != chat1.ConversationMembersType_KBFS {
 		ephemeralLifetime := gregor1.DurationSec(time.Duration(arg.ephemeralLifetime.Duration) / time.Second)
-		ephemeralMetadata = chat1.MsgEphemeralMetadata{Lifetime: ephemeralLifetime}
+		ephemeralMetadata = &chat1.MsgEphemeralMetadata{Lifetime: ephemeralLifetime}
 	}
 
 	header.clientHeader = chat1.MessageClientHeader{
@@ -839,7 +840,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		MessageType:       arg.mtype,
 		Supersedes:        arg.supersedes,
 		Deletes:           arg.deletes,
-		EphemeralMetadata: &ephemeralMetadata,
+		EphemeralMetadata: ephemeralMetadata,
 	}
 
 	return &header, nil

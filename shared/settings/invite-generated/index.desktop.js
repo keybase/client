@@ -2,8 +2,6 @@
 import React, {Component} from 'react'
 import {globalStyles, globalMargins, globalColors, desktopStyles} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
-import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/route-tree'
 
 import type {Props} from './index'
 
@@ -13,10 +11,10 @@ class InviteGeneratedRender extends Component<Props> {
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          flex: 1,
-          position: 'relative',
-          justifyContent: 'center',
           alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
+          position: 'relative',
         }}
       >
         <Icon
@@ -61,32 +59,20 @@ class InviteGeneratedRender extends Component<Props> {
 }
 
 const textStyle = {
-  textAlign: 'center',
   paddingTop: globalMargins.medium,
+  textAlign: 'center',
   width: 440,
 }
 
 const linkContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  backgroundColor: globalColors.green3,
   borderRadius: 48,
   height: 32,
   marginTop: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  backgroundColor: globalColors.green3,
 }
 
-export default connect(
-  (state: any, {routeProps}) => ({
-    email: routeProps.get('email'),
-    link: routeProps.get('link'),
-  }),
-  (dispatch: any) => {
-    return {
-      onClose: () => dispatch(navigateUp()),
-    }
-  }
-)(InviteGeneratedRender)
-
-export {InviteGeneratedRender}
+export default InviteGeneratedRender

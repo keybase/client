@@ -11,13 +11,19 @@ const stories = {...commonStories, ...nativeStories}
 
 const scrollViewDecorator = story => [
   <StatusBar key="statusbar" hidden={true} />,
-  <ScrollView key="scrollview" style={{height: '100%', width: '100%'}}>
+  <ScrollView
+    key="scrollview"
+    style={{height: '100%', width: '100%'}}
+    contentContainerStyle={{minHeight: '100%', minWidht: '100%'}}
+  >
     {story()}
   </ScrollView>,
 ]
 
 // Stories w/ their own scrolling views
-const noScrollBars = [/* 'chatList', */ 'chatManageChannels']
+// const noScrollBars = [[> 'chatList', <] 'chatManageChannels']
+// TODO figure out a better way to do this
+const noScrollBars = []
 
 // Load common-adapter stories
 const load = () => {

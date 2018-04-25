@@ -3,6 +3,9 @@ import {remote} from 'electron'
 const BrowserWindow = remote.BrowserWindow
 
 function autoResize() {
+  if (__STORYBOOK__) {
+    return
+  }
   let previousHeight = 0
 
   // This only works when I delay a frame, unclear what the solution is but this seems fine for now
