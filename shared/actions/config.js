@@ -129,6 +129,7 @@ const bootstrap = (opts: $PropertyType<ConfigGen.BootstrapPayload, 'payload'>): 
       dispatch(waitForKBFS()),
       dispatch(KBFSGen.createFuseStatus()),
       dispatch(FsGen.createFuseStatus()),
+      dispatch(ConfigGen.createLoadConfig()),
     ])
       .then(() => {
         dispatch(ConfigGen.createBootstrapSuccess())
@@ -305,6 +306,14 @@ function* _getAppState(): Generator<any, void, any> {
   }
 }
 
+function _loadConfig(action: ConfigGen.LoadConfigPayload) {
+  return Saga.call(RPCTypes.configGetConfigRpcPromise)
+}
+
+function _afterLoadConfig(config: RPCTypes.Config) {
+  return Saga.put(ConfigGen.createConfigLoaded({config}))
+}
+
 const _setStartedDueToPush = (action: Chat2Gen.SelectConversationPayload) =>
   action.payload.reason === 'push' ? Saga.put(ConfigGen.createSetStartedDueToPush()) : undefined
 
@@ -324,6 +333,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
   yield Saga.safeTakeEveryPure(ConfigGen.setOpenAtLogin, _setOpenAtLogin)
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, _setStartedDueToPush)
+  yield Saga.safeTakeEveryPure(ConfigGen.loadConfig, _loadConfig, _afterLoadConfig)
   yield Saga.fork(_getAppState)
 }
 

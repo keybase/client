@@ -25,6 +25,7 @@ export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const getExtendedStatus = 'config:getExtendedStatus'
 export const globalError = 'config:globalError'
 export const loadAvatars = 'config:loadAvatars'
+export const loadConfig = 'config:loadConfig'
 export const loadTeamAvatars = 'config:loadTeamAvatars'
 export const loadedAvatars = 'config:loadedAvatars'
 export const persistRouteState = 'config:persistRouteState'
@@ -63,6 +64,7 @@ export const createExtendedConfigLoaded = (payload: $ReadOnly<{|extendedConfig: 
 export const createGetExtendedStatus = () => ({error: false, payload: undefined, type: getExtendedStatus})
 export const createGlobalError = (payload: $ReadOnly<{|globalError: null | Error | RPCError|}>) => ({error: false, payload, type: globalError})
 export const createLoadAvatars = (payload: $ReadOnly<{|usernames: Array<string>|}>) => ({error: false, payload, type: loadAvatars})
+export const createLoadConfig = () => ({error: false, payload: undefined, type: loadConfig})
 export const createLoadTeamAvatars = (payload: $ReadOnly<{|teamnames: Array<string>|}>) => ({error: false, payload, type: loadTeamAvatars})
 export const createLoadedAvatars = (payload: $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>) => ({error: false, payload, type: loadedAvatars})
 export const createPersistRouteState = () => ({error: false, payload: undefined, type: persistRouteState})
@@ -100,6 +102,7 @@ export type ExtendedConfigLoadedPayload = More.ReturnType<typeof createExtendedC
 export type GetExtendedStatusPayload = More.ReturnType<typeof createGetExtendedStatus>
 export type GlobalErrorPayload = More.ReturnType<typeof createGlobalError>
 export type LoadAvatarsPayload = More.ReturnType<typeof createLoadAvatars>
+export type LoadConfigPayload = More.ReturnType<typeof createLoadConfig>
 export type LoadTeamAvatarsPayload = More.ReturnType<typeof createLoadTeamAvatars>
 export type LoadedAvatarsPayload = More.ReturnType<typeof createLoadedAvatars>
 export type PersistRouteStatePayload = More.ReturnType<typeof createPersistRouteState>
@@ -129,6 +132,7 @@ export type Actions =
   | More.ReturnType<typeof createGetExtendedStatus>
   | More.ReturnType<typeof createGlobalError>
   | More.ReturnType<typeof createLoadAvatars>
+  | More.ReturnType<typeof createLoadConfig>
   | More.ReturnType<typeof createLoadTeamAvatars>
   | More.ReturnType<typeof createLoadedAvatars>
   | More.ReturnType<typeof createPersistRouteState>
