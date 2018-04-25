@@ -1020,6 +1020,10 @@ export const loginGetConfiguredAccountsRpcChannelMap = (configKeys: Array<string
 
 export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result))))
 
+export const loginLoginOneshotRpcChannelMap = (configKeys: Array<string>, request: LoginLoginOneshotRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginOneshot', request)
+
+export const loginLoginOneshotRpcPromise = (request: LoginLoginOneshotRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginOneshot', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const loginLoginProvisionedDeviceRpcChannelMap = (configKeys: Array<string>, request: LoginLoginProvisionedDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginProvisionedDevice', request)
 
 export const loginLoginProvisionedDeviceRpcPromise = (request: LoginLoginProvisionedDeviceRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginProvisionedDevice', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2725,6 +2729,8 @@ export type LoginDeprovisionRpcParam = $ReadOnly<{username: String, doRevoke: Bo
 
 export type LoginGetConfiguredAccountsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type LoginLoginOneshotRpcParam = $ReadOnly<{username: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type LoginLoginProvisionedDeviceRpcParam = $ReadOnly<{username: String, noPassphrasePrompt: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginLoginRpcParam = $ReadOnly<{deviceType: String, usernameOrEmail: String, clientType: ClientType, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3677,7 +3683,9 @@ export type TeamApplication =
 
 export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
 
-export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int}>
+export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
+
+export type TeamCLKRResetUser = $ReadOnly<{uid: UID, userEldestSeqno: Seqno, memberEldestSeqno: Seqno}>
 
 export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}}>
 

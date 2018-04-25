@@ -374,6 +374,20 @@ func (o UIChannelNameMention) DeepCopy() UIChannelNameMention {
 	}
 }
 
+type UIAssetUrlInfo struct {
+	PreviewUrl string `codec:"previewUrl" json:"previewUrl"`
+	FullUrl    string `codec:"fullUrl" json:"fullUrl"`
+	MimeType   string `codec:"mimeType" json:"mimeType"`
+}
+
+func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
+	return UIAssetUrlInfo{
+		PreviewUrl: o.PreviewUrl,
+		FullUrl:    o.FullUrl,
+		MimeType:   o.MimeType,
+	}
+}
+
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
@@ -383,10 +397,12 @@ type UIMessageValid struct {
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
 	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
 	Superseded            bool                   `codec:"superseded" json:"superseded"`
+	AssetUrlInfo          *UIAssetUrlInfo        `codec:"assetUrlInfo,omitempty" json:"assetUrlInfo,omitempty"`
 	SenderDeviceRevokedAt *gregor1.Time          `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
+	EphemeralMetadata     *MsgEphemeralMetadata  `codec:"ephemeralMetadata,omitempty" json:"ephemeralMetadata,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -405,6 +421,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
 		Superseded:       o.Superseded,
+		AssetUrlInfo: (func(x *UIAssetUrlInfo) *UIAssetUrlInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AssetUrlInfo),
 		SenderDeviceRevokedAt: (func(x *gregor1.Time) *gregor1.Time {
 			if x == nil {
 				return nil
@@ -435,6 +458,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		EphemeralMetadata: (func(x *MsgEphemeralMetadata) *MsgEphemeralMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralMetadata),
 	}
 }
 

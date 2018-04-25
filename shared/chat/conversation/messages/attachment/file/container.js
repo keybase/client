@@ -9,14 +9,6 @@ import File from '.'
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadPreview: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-    dispatch(
-      Chat2Gen.createAttachmentNeedsUpdating({
-        conversationIDKey,
-        isPreview: true,
-        ordinal,
-      })
-    ),
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
@@ -44,9 +36,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
-    loadPreview: message.devicePreviewPath
-      ? null
-      : () => dispatchProps._loadPreview(message.conversationIDKey, message.ordinal),
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     progress: message.transferProgress,

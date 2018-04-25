@@ -1,7 +1,6 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Route from '../../../../../actions/route-tree'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
@@ -11,22 +10,7 @@ import {imgMaxWidth} from './image-render'
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _loadPreview: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-    dispatch(
-      Chat2Gen.createAttachmentNeedsUpdating({
-        conversationIDKey,
-        isPreview: true,
-        ordinal,
-      })
-    ),
   _onClick: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createAttachmentNeedsUpdating({
-        conversationIDKey: message.conversationIDKey,
-        isPreview: false,
-        ordinal: message.ordinal,
-      })
-    )
     dispatch(
       Route.navigateAppend([
         {
@@ -65,11 +49,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     arrowColor,
     height: message.previewHeight,
-    isPreviewLoaded: !!message.devicePreviewPath,
-    loadPreview:
-      message.devicePreviewPath || !message.fileName // already have preview or is this a placeholder?
-        ? null
-        : () => dispatchProps._loadPreview(message.conversationIDKey, message.ordinal),
     message,
     onClick: () => dispatchProps._onClick(message),
     onShowInFinder:
@@ -81,7 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           }
         : null,
     onShowMenu: () => dispatchProps._onShowMenu(null, message),
-    path: message.devicePreviewPath,
+    path: message.previewURL,
     progress: message.transferProgress,
     progressLabel,
     title: message.title || message.fileName,

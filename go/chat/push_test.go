@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"crypto/rand"
 	"testing"
 	"time"
 
@@ -15,6 +16,14 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
+
+func randBytes(t *testing.T, n int) []byte {
+	buf := make([]byte, n)
+	if _, err := rand.Read(buf); err != nil {
+		t.Fatal(err)
+	}
+	return buf
+}
 
 func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 	sender types.Sender, conv chat1.Conversation, user *kbtest.FakeUser,

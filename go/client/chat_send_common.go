@@ -5,11 +5,13 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -17,11 +19,12 @@ type ChatSendArg struct {
 	resolvingRequest chatConversationResolvingRequest
 
 	// Only one of these should be set
-	message       string
-	setTopicName  string
-	setHeadline   string
-	clearHeadline bool
-	deleteHistory *chat1.MessageDeleteHistory
+	message           string
+	setTopicName      string
+	setHeadline       string
+	clearHeadline     bool
+	deleteHistory     *chat1.MessageDeleteHistory
+	ephemeralLifetime time.Duration
 
 	hasTTY       bool
 	nonBlock     bool
@@ -50,9 +53,9 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 	}
 	conversationInfo := conversation.Info
 
-	var args chat1.PostLocalArg
-	args.ConversationID = conversationInfo.Id
-	args.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
+	var arg chat1.PostLocalArg
+	arg.ConversationID = conversationInfo.Id
+	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
 
 	var msg chat1.MessagePlaintext
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
@@ -92,6 +95,10 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 			}
 			confirmed = true
 		}
+		if c.ephemeralLifetime != 0 {
+			lifetime := gregor1.DurationSec(c.ephemeralLifetime / time.Second)
+			msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{Lifetime: lifetime}
+		}
 
 		msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
@@ -106,18 +113,18 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		confirmed = true
 	}
 
-	args.Msg = msg
+	arg.Msg = msg
 
 	if c.nonBlock {
 		var nbarg chat1.PostLocalNonblockArg
-		nbarg.ConversationID = args.ConversationID
-		nbarg.Msg = args.Msg
-		nbarg.IdentifyBehavior = args.IdentifyBehavior
+		nbarg.ConversationID = arg.ConversationID
+		nbarg.Msg = arg.Msg
+		nbarg.IdentifyBehavior = arg.IdentifyBehavior
 		if _, err = resolver.ChatClient.PostLocalNonblock(ctx, nbarg); err != nil {
 			return err
 		}
 	} else {
-		if _, err = resolver.ChatClient.PostLocal(ctx, args); err != nil {
+		if _, err = resolver.ChatClient.PostLocal(ctx, arg); err != nil {
 			return err
 		}
 	}

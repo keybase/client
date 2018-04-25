@@ -1,18 +1,12 @@
 // @flow
-import * as LoginGen from '../actions/login-gen'
 import * as React from 'react'
-import engine from '../engine'
 import {BackButton, Box, Text} from '../common-adapters'
 import {connect, type Dispatch} from '../util/container'
 import {globalStyles, globalColors} from '../styles'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import {navigateUp} from '../actions/route-tree'
 
 function DevMenu(props) {
-  const menuItems = [
-    {name: 'Dumb components', hasChildren: true, onClick: props.onDumbSheet},
-    {name: 'Reset engine', onClick: props.onReset},
-    {name: 'Sign Out', onClick: props.onSignOut},
-  ]
+  const menuItems = []
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <BackButton onClick={() => props.onBack()} />
@@ -32,9 +26,6 @@ function DevMenu(props) {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onReset: () => engine().reset(),
-  onSignOut: () => dispatch(LoginGen.createLogout()),
   onBack: () => dispatch(navigateUp()),
-  onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
 })
 export default connect(() => ({}), mapDispatchToProps)(DevMenu)

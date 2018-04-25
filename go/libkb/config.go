@@ -292,8 +292,27 @@ func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserCo
 	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(nu.String()))
 }
 
+func (f JSONConfigFile) copyUserConfigIfForUID(u keybase1.UID) *UserConfig {
+	if f.userConfigWrapper == nil || f.userConfigWrapper.userConfig == nil {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUID().IsNil() {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUID().Equal(u) {
+		tmp := *f.userConfigWrapper.userConfig
+		return &tmp
+	}
+	return nil
+}
+
 // GetUserConfigForUID sees if there's a UserConfig object for the given UIDs previously stored.
 func (f JSONConfigFile) GetUserConfigForUID(u keybase1.UID) (*UserConfig, error) {
+
+	if uc := f.copyUserConfigIfForUID(u); uc != nil {
+		return uc, nil
+	}
+
 	d := f.jw.AtKey("users")
 	keys, _ := d.Keys()
 	for _, key := range keys {
@@ -374,6 +393,11 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 		f.jw.DeleteKey("current_user")
 		f.userConfigWrapper.userConfig = nil
 		return f.Save()
+	}
+
+	if u.IsOneshot() {
+		f.userConfigWrapper.userConfig = u
+		return nil
 	}
 
 	parent := f.jw.AtKey("users")
@@ -548,7 +572,6 @@ func (f JSONConfigFile) GetLogFormat() string {
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
-
 func (f JSONConfigFile) GetGregorURI() string {
 	s, _ := f.GetStringAtPath("push.server_uri")
 	return s

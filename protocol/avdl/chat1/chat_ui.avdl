@@ -4,6 +4,7 @@ protocol chatUi {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "common.avdl";
 
   record UIPagination {
     string next;
@@ -94,6 +95,12 @@ protocol chatUi {
     string convID;
   }
 
+  record UIAssetUrlInfo {
+    string previewUrl;
+    string fullUrl;
+    string mimeType;
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -103,10 +110,12 @@ protocol chatUi {
     string senderDeviceName;
     string senderDeviceType;
     boolean superseded;
-    union {null, gregor1.Time} senderDeviceRevokedAt;
+    union { null, UIAssetUrlInfo } assetUrlInfo;
+    union { null, gregor1.Time } senderDeviceRevokedAt;
     array<string> atMentions;
     ChannelMention channelMention;
     array<UIChannelNameMention> channelNameMentions;
+    union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }
 
   record UIMessageOutbox {

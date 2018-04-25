@@ -20,4 +20,4 @@ clean:
 bundle: ./js/bundle.js
 
 js/bundle.js: package.json webpack.config.js js/bundle.entry.js
-	yarn build
+	yarn && yarn build

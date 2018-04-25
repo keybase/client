@@ -116,6 +116,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                       this.props.showTeam.fqName === team.fqName &&
                       this.props.selectedTeamRect && (
                         <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
+                          {/* $FlowIssue style will always be overridden */}
                           <ModalPopupComponent
                             {...this.props}
                             targetRect={this.props.selectedTeamRect}
