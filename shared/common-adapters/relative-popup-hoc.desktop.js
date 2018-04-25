@@ -10,8 +10,6 @@ import {type StylesCrossPlatform, collapseStyles} from '../styles'
 
 import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
 
-const modalRoot = document.getElementById('modal-root')
-
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,
   children: React.Element<*>,
@@ -32,13 +30,15 @@ class DOMNodeFinder extends React.Component<{
 
 class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
   el: HTMLElement
+  modalRoot: ?HTMLElement
   constructor() {
     super()
     this.el = document.createElement('div')
+    this.modalRoot = document.getElementById('modal-root')
   }
 
   componentDidMount() {
-    modalRoot && modalRoot.appendChild(this.el)
+    this.modalRoot && this.modalRoot.appendChild(this.el)
     const firstChild = this.el.firstChild
     if (firstChild instanceof HTMLElement) {
       this.props.setNode(firstChild)
@@ -46,7 +46,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 
   componentWillUnmount() {
-    modalRoot && modalRoot.removeChild(this.el)
+    this.modalRoot && this.modalRoot.removeChild(this.el)
   }
 
   render() {
