@@ -187,11 +187,6 @@ services:
       , from: "hint_url"
       , into: ["subreddit_from_url", "path_remainder"]
       , error: ["BAD_API_URL", "URL should start with 'https://www.reddit.com/r/keybaseproofs'"] } },
-    # this assertion is just here to test the pvl updater
-    { assert_regex_match: {
-      , pattern: "^.*reddit.*$"
-      , from: "hint_url"
-      , error: ["BAD_API_URL", "URL should contain 'reddit'"] } },
     { assert_regex_match: {
       , pattern: "^keybaseproofs$"
       , case_insensitive: true
@@ -228,7 +223,9 @@ services:
       , case_insensitive: true
       , from: "subreddit_from_json"
       , error: ["CONTENT_FAILURE", "Wrong subreddit %{subreddit_from_json}"] } },
-    # check the author
+    # Check the author.
+    # This also checks for deletion.
+    # When a post is deleted author = "[deleted]"
     { selector_json: {
       , selectors: [0, "data", "children", 0, "data", "author"]
       , into: "author"
@@ -247,15 +244,6 @@ services:
       , pattern: "^.*%{sig_id_medium}.*$"
       , from: "title"
       , error: ["TITLE_NOT_FOUND", "Missing signature ID (%{sig_id_medium})) in post title '%{title}'"] } },
-    # check the selftext
-    { selector_json: {
-      , selectors: [0, "data", "children", 0, "data", "selftext"]
-      , into: "selftext"
-      , error: ["CONTENT_MISSING", "Could not find selftext in json"] } },
-    { assert_find_base64: {
-      , needle: "sig"
-      , haystack: "selftext"
-      , error: ["TEXT_NOT_FOUND", "Signature not found in body"] } },
   ]]
   rooter: [[
     # URL validation.
