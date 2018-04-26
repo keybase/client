@@ -51,6 +51,7 @@ export const setTeamCreationError = 'teams:setTeamCreationError'
 export const setTeamCreationPending = 'teams:setTeamCreationPending'
 export const setTeamDetails = 'teams:setTeamDetails'
 export const setTeamInfo = 'teams:setTeamInfo'
+export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
@@ -92,9 +93,12 @@ export const createAddParticipant = (
 ) => ({error: false, payload, type: addParticipant})
 export const createAddPeopleToTeam = (
   payload: $ReadOnly<{|
-    teamname: string,
+    destSubPath: I.List<string>,
     role: string,
+    rootPath: I.List<string>,
     sendChatNotification: boolean,
+    sourceSubPath: I.List<string>,
+    teamname: string,
   |}>
 ) => ({error: false, payload, type: addPeopleToTeam})
 export const createAddTeamWithChosenChannels = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: addTeamWithChosenChannels})
@@ -272,6 +276,7 @@ export const createSetTeamInfo = (
     teamNameToID: I.Map<Types.Teamname, string>,
   |}>
 ) => ({error: false, payload, type: setTeamInfo})
+export const createSetTeamInviteError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamInviteError})
 export const createSetTeamJoinError = (payload: $ReadOnly<{|error: string|}>) => ({error: false, payload, type: setTeamJoinError})
 export const createSetTeamJoinSuccess = (
   payload: $ReadOnly<{|
@@ -373,6 +378,7 @@ export type SetTeamCreationErrorPayload = More.ReturnType<typeof createSetTeamCr
 export type SetTeamCreationPendingPayload = More.ReturnType<typeof createSetTeamCreationPending>
 export type SetTeamDetailsPayload = More.ReturnType<typeof createSetTeamDetails>
 export type SetTeamInfoPayload = More.ReturnType<typeof createSetTeamInfo>
+export type SetTeamInviteErrorPayload = More.ReturnType<typeof createSetTeamInviteError>
 export type SetTeamJoinErrorPayload = More.ReturnType<typeof createSetTeamJoinError>
 export type SetTeamJoinSuccessPayload = More.ReturnType<typeof createSetTeamJoinSuccess>
 export type SetTeamLoadingInvitesPayload = More.ReturnType<typeof createSetTeamLoadingInvites>
@@ -431,6 +437,7 @@ export type Actions =
   | More.ReturnType<typeof createSetTeamCreationPending>
   | More.ReturnType<typeof createSetTeamDetails>
   | More.ReturnType<typeof createSetTeamInfo>
+  | More.ReturnType<typeof createSetTeamInviteError>
   | More.ReturnType<typeof createSetTeamJoinError>
   | More.ReturnType<typeof createSetTeamJoinSuccess>
   | More.ReturnType<typeof createSetTeamLoadingInvites>
