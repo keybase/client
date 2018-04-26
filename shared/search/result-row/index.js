@@ -108,10 +108,10 @@ const RightEdge = ({showCheckmark}) => {
     <Icon
       type="iconfont-check"
       style={{
-        color: globalColors.blue,
         marginLeft: globalMargins.small,
         marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
       }}
+      color={globalColors.blue}
     />
   ) : null
 }

@@ -1,17 +1,18 @@
 // @flow
 import * as React from 'react'
-import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
-import {Avatar, Box, Text} from '../../../../common-adapters'
+import {Avatar, Box, FloatingMenu, Text} from '../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 type Props = {
+  attachTo: ?React.Component<*, *>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,
   memberCount: number,
   teamname: string,
+  visible: boolean,
   onAddPeople: () => void,
-  onClose: () => void,
+  onHidden: () => void,
   onInvite: () => void,
   onLeaveTeam: () => void,
   onManageChannels: () => void,
@@ -72,14 +73,15 @@ const InfoPanelMenu = (props: Props) => {
     view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
   }
 
-  return isMobile ? (
-    <PopupMenu header={header} onHidden={props.onClose} style={{overflow: 'visible'}} items={items} />
-  ) : (
-    <ModalLessPopupMenu
-      header={header}
-      onHidden={() => {}}
-      style={{overflow: 'visible', width: 200}}
+  return (
+    <FloatingMenu
+      attachTo={props.attachTo}
+      visible={props.visible}
       items={items}
+      header={header}
+      onHidden={props.onHidden}
+      position="bottom left"
+      closeOnSelect={true}
     />
   )
 }

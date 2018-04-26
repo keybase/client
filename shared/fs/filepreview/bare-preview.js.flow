@@ -1,0 +1,10 @@
+// @flow
+import * as I from 'immutable'
+import * as React from 'react'
+import * as Types from '../../constants/types/fs'
+
+export type BarePreviewProps = {
+  routeProps: I.Map<string, any>,
+}
+
+declare export default React.ComponentType<BarePreviewProps>

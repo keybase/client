@@ -28,7 +28,7 @@ const roleConfirmProps = {
 }
 
 const load = () => {
-  storiesOf('Team Roles', module)
+  storiesOf('Teams/Roles', module)
     .add('Picker', () => <RoleOptions {...roleOptionsProps} />)
     .add('ConfirmReader', () => <RoleConfirm {...roleConfirmProps} selectedRole="reader" />)
     .add('ConfirmWriter', () => <RoleConfirm {...roleConfirmProps} selectedRole="writer" />)

@@ -106,8 +106,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       }
       throw new Error('RetentionPicker needs a teamname to set big team retention policies')
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(entityType: empty)
+    /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(entityType);
+      */
     // Issue with flow here: https://github.com/facebook/flow/issues/6068
     // throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
@@ -136,18 +138,6 @@ const mapDispatchToProps = (
 ) => ({
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  _onShowDropdown: (items, target, parentPath: Path) =>
-    dispatch(
-      navigateTo(
-        [
-          {
-            selected: 'retentionDropdown',
-            props: {items, position: 'top center', targetRect: target && target.getBoundingClientRect()},
-          },
-        ],
-        parentPath
-      )
-    ),
   _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
     dispatch(
       navigateTo(
@@ -186,8 +176,6 @@ export default compose(
     },
   }),
   withHandlers({
-    onShowDropdown: ({_parentPath, _onShowDropdown}) => (items, target) =>
-      _onShowDropdown(items, target, _parentPath),
     onShowWarning: ({_parentPath, _onShowWarning}) => (days, onConfirm, onCancel) =>
       _onShowWarning(days, onConfirm, onCancel, _parentPath),
   })

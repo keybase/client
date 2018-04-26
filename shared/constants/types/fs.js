@@ -91,7 +91,9 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type TransferType = 'upload' | 'download'
-export type TransferIntent = 'none' | 'camera-roll' | 'share'
+export type transferIntentMobile = 'camera-roll' | 'share'
+export type transferIntentWebview = 'web-view-text' | 'web-view'
+export type TransferIntent = 'none' | transferIntentMobile | transferIntentWebview
 
 export type _TransferMeta = {
   type: TransferType,
@@ -326,3 +328,5 @@ export type FavoriteFolder = {
     can_self_help: boolean,
   },
 }
+
+export type FileViewType = 'text' | 'image' | 'default'

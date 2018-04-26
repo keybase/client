@@ -277,7 +277,7 @@ func TestTeamOpenResetAndRejoin(t *testing.T) {
 	bob.kickTeamRekeyd()
 	bob.reset()
 
-	// Wait for rotate link after bob resets
+	// Wait for change membership link after bob resets
 	ann.waitForRotateByID(teamID, keybase1.Seqno(4))
 
 	bob.loginAfterResetPukless()

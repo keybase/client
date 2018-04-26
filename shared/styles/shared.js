@@ -6,8 +6,10 @@ import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 export const globalMargins = {
   xtiny: 4,
   tiny: 8,
+  xsmall: 12,
   small: 16,
   medium: 24,
+  mediumLarge: 32,
   large: 40,
   xlarge: 64,
 }

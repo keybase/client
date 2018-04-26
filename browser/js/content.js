@@ -133,7 +133,7 @@ function renderNudge(user, nudgeSupported) {
 // Render the Keybase chat reply widget
 function renderChat(parent, user, nudgeSupported, closeCallback) {
   // The chat widget is enclosed in the form element.
-  const f = bel`<form class="keybase-reply" action="#">
+  const f = bel`<form class="keybase-reply ${user.extraReplyCls}" action="#">
     <h3>
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"

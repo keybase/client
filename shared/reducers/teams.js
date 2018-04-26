@@ -92,13 +92,13 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamSawSubteamsBanner:
       return state.set('sawSubteamsBanner', true)
 
-    case TeamsGen.setChosenChannelsForTeam:
-      const chosenChannels = I.Set(JSON.parse(action.payload.chosenChannelsForTeam))
+    case TeamsGen.setTeamsWithChosenChannels:
+      const teams = action.payload.teamsWithChosenChannels
       // If this is coming in as the clear before a set, just ignore it.
-      if (chosenChannels.count() === 0) {
+      if (teams.count() === 0) {
         return state
       }
-      return state.set('chosenChannelsForTeam', chosenChannels)
+      return state.set('teamsWithChosenChannels', teams)
 
     case TeamsGen.setUpdatedChannelName:
       return state.mergeIn(
@@ -151,7 +151,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:
     case TeamsGen.getTeams:
-    case TeamsGen.haveChosenChannelsForTeam:
+    case TeamsGen.addTeamWithChosenChannels:
     case TeamsGen.ignoreRequest:
     case TeamsGen.inviteToTeamByEmail:
     case TeamsGen.inviteToTeamByPhone:
@@ -167,8 +167,10 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.updateTopic:
       return state
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

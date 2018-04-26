@@ -20,6 +20,7 @@ import {
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
+  copyToDownloadDir,
 } from './fs-platform-specific'
 import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
@@ -156,9 +157,15 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         // avoid overriding existing files. Just download over them.
         localPath = Constants.downloadFilePathFromPathNoSearch(path)
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
         break
     }
@@ -190,20 +197,28 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // completePortion to 1.
     yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
 
-    // If this is for anyting other than a simple download, kick that off now
-    // that the file is available locally.
+    const mimeType = Constants.mimeTypeFromPathName(Types.getPathName(path))
+
+    // Kick off any post-download actions, now that the file is available locally.
     switch (intent) {
       case 'none':
+        yield Saga.call(copyToDownloadDir, localPath, mimeType)
         break
       case 'camera-roll':
         yield Saga.call(saveAttachmentDialog, localPath)
         break
       case 'share':
-        yield Saga.call(showShareActionSheet, {url: localPath, mimeType: action.payload.mimeType})
+        yield Saga.call(showShareActionSheet, {url: localPath, mimeType})
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         break
     }
   } catch (error) {

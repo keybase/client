@@ -5634,7 +5634,7 @@ fbjs@^0.8.1, fbjs@^0.8.12, fbjs@^0.8.9:
     setimmediate "^1.0.5"
     ua-parser-js "^0.7.9"
 
-fbjs@^0.8.14, fbjs@^0.8.16:
+fbjs@^0.8.14, fbjs@^0.8.16, fbjs@^0.8.3:
   version "0.8.16"
   resolved "https://registry.yarnpkg.com/fbjs/-/fbjs-0.8.16.tgz#5e67432f550dc41b572bf55847b8aca64e5337db"
   dependencies:
@@ -10682,6 +10682,12 @@ react-native-tab-view@^0.0.67:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-0.0.67.tgz#cdd146fe5e5d4baff6c89f2d5d0b15fa23db39d0"
   dependencies:
     prop-types "^15.5.8"
+
+react-native-wkwebview-reborn@^1.18.0:
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/react-native-wkwebview-reborn/-/react-native-wkwebview-reborn-1.18.0.tgz#6519f9b8245b159f3785f090f4ba57acfedb7d6d"
+  dependencies:
+    fbjs "^0.8.3"
 
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-543":
   version "0.54.3"

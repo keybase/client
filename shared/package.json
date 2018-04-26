@@ -70,7 +70,8 @@
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
       "react-list": "<rootDir>/__mocks__/react-list.js",
       "desktop/resolve-root": "<rootDir>/__mocks__/resolve-root.js",
-      "react-redux": "<rootDir>/__mocks__/react-redux.js"
+      "react-redux": "<rootDir>/__mocks__/react-redux.js",
+      "electron": "<rootDir>/__mocks__/electron.js"
     },
     "moduleFileExtensions": [
       "js",
@@ -128,6 +129,7 @@
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "^2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-302",
+    "react-native-wkwebview-reborn": "^1.18.0",
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
     "react-transition-group": "2.2.1",

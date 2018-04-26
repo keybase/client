@@ -14,11 +14,7 @@ import type {RetentionPolicy} from '../constants/types/teams'
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentHandleQueue = 'chat2:attachmentHandleQueue'
-export const attachmentLoad = 'chat2:attachmentLoad'
-export const attachmentLoaded = 'chat2:attachmentLoaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
-export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
 export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -129,38 +125,17 @@ export const createAttachmentDownload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-    path: string,
+    path?: string,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownloaded})
-export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
-export const createAttachmentLoad = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentLoad})
-export const createAttachmentLoaded = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    path: string,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentLoaded})
-export const createAttachmentLoadedError = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: true, payload, type: attachmentLoaded})
 export const createAttachmentLoading = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -169,13 +144,6 @@ export const createAttachmentLoading = (
     isPreview: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentLoading})
-export const createAttachmentNeedsUpdating = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentNeedsUpdating})
 export const createAttachmentUpload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -449,11 +417,7 @@ export const createUpdateTypers = (payload: $ReadOnly<{|conversationToTypers: I.
 // Action Payloads
 export type AttachmentDownloadPayload = More.ReturnType<typeof createAttachmentDownload>
 export type AttachmentDownloadedPayload = More.ReturnType<typeof createAttachmentDownloaded>
-export type AttachmentHandleQueuePayload = More.ReturnType<typeof createAttachmentHandleQueue>
-export type AttachmentLoadPayload = More.ReturnType<typeof createAttachmentLoad>
-export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoaded>
 export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
-export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
 export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpload>
 export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
@@ -526,12 +490,7 @@ export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 export type Actions =
   | More.ReturnType<typeof createAttachmentDownload>
   | More.ReturnType<typeof createAttachmentDownloaded>
-  | More.ReturnType<typeof createAttachmentHandleQueue>
-  | More.ReturnType<typeof createAttachmentLoad>
-  | More.ReturnType<typeof createAttachmentLoaded>
-  | More.ReturnType<typeof createAttachmentLoadedError>
   | More.ReturnType<typeof createAttachmentLoading>
-  | More.ReturnType<typeof createAttachmentNeedsUpdating>
   | More.ReturnType<typeof createAttachmentUpload>
   | More.ReturnType<typeof createAttachmentUploaded>
   | More.ReturnType<typeof createAttachmentUploading>

@@ -9,7 +9,7 @@ import {
   collapseStyles,
   type StylesCrossPlatform,
 } from '../../../../styles'
-import {Box, ClickableBox, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
 import {type RetentionPolicy} from '../../../../constants/types/teams'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
@@ -30,7 +30,6 @@ export type Props = {
   type: 'simple' | 'auto',
   saveRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
-  onShowDropdown: (items: Array<MenuItem | 'Divider' | null>, target: ?Element) => void,
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
 }
 
@@ -50,6 +49,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
+  _dropdownRef: ?React.Component<*, *>
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -91,6 +91,13 @@ class RetentionPicker extends React.Component<Props, State> {
   _setSaving = (saving: boolean) => {
     this.setState({saving})
   }
+
+  _toggleShowMenu = () =>
+    this.setState(prevState => ({
+      showMenu: !prevState.showMenu,
+    }))
+
+  _setDropdownRef = ref => (this._dropdownRef = ref)
 
   _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
@@ -146,27 +153,31 @@ class RetentionPicker extends React.Component<Props, State> {
     }
   }
 
-  _onShowDropdown = (evt: SyntheticEvent<Element>) => {
-    const target = isMobile ? null : evt.currentTarget
-    this.props.onShowDropdown(this.state.items, target)
-  }
-
   render() {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
+        <FloatingMenu
+          attachTo={this._dropdownRef}
+          closeOnSelect={true}
+          visible={this.state.showMenu}
+          onHidden={this._toggleShowMenu}
+          items={this.state.items}
+          position="top center"
+        />
         <Box style={headingStyle}>
           <Text type="BodySmallSemibold">Message deletion</Text>
-          <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
+          <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
         </Box>
         <ClickableBox
-          onClick={this._onShowDropdown}
+          onClick={this._toggleShowMenu}
+          ref={isMobile ? undefined : this._setDropdownRef}
           style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >
           <Box style={labelStyle}>
             <Text type="BodySemibold">{this._label()}</Text>
           </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} style={{fontSize: 7}} />
+          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
         </ClickableBox>
         {this.props.showOverrideNotice && (
           <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
@@ -207,7 +218,7 @@ const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
     <Box style={collapseStyles([globalStyles.flexBoxColumn, props.containerStyle])}>
       <Box style={displayHeadingStyle}>
         <Text type="BodySmallSemibold">Message deletion</Text>
-        <Icon type="iconfont-timer" style={{fontSize: 16, marginLeft: globalMargins.xtiny}} />
+        <Icon type="iconfont-timer" style={{marginLeft: globalMargins.xtiny}} fontSize={16} />
       </Box>
       <Text type="BodySmall">{text}</Text>
     </Box>

@@ -81,8 +81,9 @@ export type _MessageAttachment = {
   attachmentType: AttachmentType,
   author: string,
   conversationIDKey: Common.ConversationIDKey,
-  deviceFilePath: string,
-  devicePreviewPath: string,
+  fileURL: string,
+  previewURL: string,
+  fileType: string, // MIME type
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,

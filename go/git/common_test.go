@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"golang.org/x/net/context"
@@ -166,6 +167,11 @@ func (m *mockChatHelper) GetChannelTopicName(ctx context.Context, teamID keybase
 func (m *mockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	public bool) error {
 	return nil
+}
+
+func (m *mockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
+	return nil, nil
 }
 
 func (m *mockChatHelper) convKey(name string, topicName *string) string {

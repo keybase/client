@@ -31,7 +31,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <StyledRadio disabled={disabled} selected={selected}>
-      <div style={styleIcon} />
+      <div style={styleRadio} />
     </StyledRadio>
     <Text type="Body" style={{color: globalColors.black_75}}>
       {label}
@@ -44,7 +44,7 @@ const styleContainer = {
   alignItems: 'center',
 }
 
-const styleIcon = {
+const styleRadio = {
   ...transition('opacity'),
   border: `solid 3px ${globalColors.white}`,
   borderRadius: '100%',

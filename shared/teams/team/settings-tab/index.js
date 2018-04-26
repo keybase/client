@@ -5,6 +5,7 @@ import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
 // initial settings (except retention policy)
@@ -76,7 +77,9 @@ const SetMemberShowcase = (props: SettingProps) => (
       <Text type="BodySmall">
         {props.yourOperations.setMemberShowcase
           ? 'Your profile will mention this team. Team description and number of members will be public.'
-          : "Admins aren't allowing members to publish this team on their profile."}
+          : props.yourOperations.joinTeam
+            ? 'You must join this team to publish it on your profile.'
+            : "Admins aren't allowing members to publish this team on their profile."}
       </Text>
     </Box>
   </Box>
@@ -137,7 +140,7 @@ const OpenTeam = (props: SettingProps) =>
             type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
             onClick={props.newOpenTeam ? props.onSetOpenTeamRole : undefined}
           >
-            {props.newOpenTeamRole}
+            {pluralize(props.newOpenTeamRole)}
           </Text>
           .
         </Text>

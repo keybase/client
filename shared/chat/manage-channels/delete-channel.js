@@ -100,7 +100,8 @@ class DeleteChannel extends React.Component<Props, State> {
       >
         <Icon
           type="iconfont-trash"
-          style={{height: 14, color: globalColors.red, marginRight: globalMargins.tiny}}
+          style={{height: 14, marginRight: globalMargins.tiny}}
+          color={globalColors.red}
         />
         <Text
           type={disabled ? 'Body' : 'BodyPrimaryLink'}

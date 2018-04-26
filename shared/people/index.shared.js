@@ -6,7 +6,7 @@ import Todo from './task/container'
 import FollowNotification from './follow-notification'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../styles'
 
 export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
@@ -26,9 +26,16 @@ export const PeoplePageSearchBar = (
   }
 ) => (
   <Box style={{...styleRowContainer, ...props.styleRowContainer}}>
-    <ClickableBox onClick={props.onSearch} style={{...styleSearchContainer, ...props.styleSearchContainer}}>
-      <Icon style={{...styleSearch, ...props.styleSearch}} type="iconfont-search" />
-      <Text style={{...styleSearchText, ...props.styleSearchText}} type="Body">
+    <ClickableBox
+      onClick={props.onSearch}
+      style={collapseStyles([styleSearchContainer, props.styleSearchContainer])}
+    >
+      <Icon
+        style={collapseStyles([styleSearch, props.styleSearch])}
+        type="iconfont-search"
+        color={globalColors.black_20}
+      />
+      <Text style={collapseStyles([styleSearchText, props.styleSearchText])} type="Body">
         Search people
       </Text>
     </ClickableBox>
@@ -67,7 +74,6 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.black_20,
   padding: globalMargins.xtiny,
 }
 

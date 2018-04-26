@@ -1,7 +1,7 @@
 // @flow
-import * as shared from './index.shared'
+import * as shared from './shared'
 import * as Constants from '../constants/tracker'
-import Friendships from './friendships'
+import Friendships from './friendships.desktop'
 import React, {PureComponent} from 'react'
 import {orderBy} from 'lodash-es'
 import moment from 'moment'
@@ -280,7 +280,11 @@ class ProfileRender extends PureComponent<Props, State> {
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
-          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
+          <Icon
+            style={styleFolderIcon}
+            type={shared.folderIconType(folder)}
+            color={shared.folderIconColor(folder)}
+          />
         </Box>
         <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
           <Usernames
@@ -304,7 +308,7 @@ class ProfileRender extends PureComponent<Props, State> {
           onClick={() => this.setState({foldersExpanded: true})}
         >
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
-            <Icon type="iconfont-ellipsis" style={styleFolderIcon} />
+            <Icon type="iconfont-ellipsis" style={styleFolderIcon} textAlign="center" />
           </Box>
           <Text type="BodySmall" style={{color: globalColors.black_60, marginBottom: 2}}>
             + {this.props.tlfs.length - folders.length} more
@@ -337,7 +341,7 @@ class ProfileRender extends PureComponent<Props, State> {
               onClick={this.props.onBack}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: globalColors.white}}
-              iconStyle={{color: globalColors.white}}
+              iconColor={globalColors.white}
             />
           )}
           <Box
@@ -346,7 +350,7 @@ class ProfileRender extends PureComponent<Props, State> {
             onMouseLeave={() => this.setState({searchHovered: false})}
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Icon style={styleSearch} type="iconfont-search" />
+            <Icon style={styleSearch} type="iconfont-search" color={globalColors.white_75} />
             <Text style={styleSearchText} type="Body">
               Search people
             </Text>
@@ -558,7 +562,6 @@ const styleFolderLine = {
 const styleFolderIcon = {
   width: 16,
   height: 16,
-  textAlign: 'center',
 }
 
 const styleMeta = {
@@ -594,12 +597,12 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.white_75,
   padding: 3,
 }
 
 const styleSearchText = {
   ...styleSearch,
+  color: globalColors.white_75,
   position: 'relative',
   top: -1,
 }

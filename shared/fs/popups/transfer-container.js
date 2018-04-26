@@ -34,7 +34,7 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer, _cancelTransfer}) 
   )
   const some =
     stateProps._transfers
-      .filter(ts => ts.meta.type === 'download' && ts.meta.intent !== 'none')
+      .filter(ts => ts.meta.type === 'download' && ['cameral-roll', 'share'].includes(ts.meta.intent))
       .entries()
       .next().value || Constants.makeTransferState()
   const [key, {meta: {intent}, state: {completePortion, endEstimate, isDone, error}}] =

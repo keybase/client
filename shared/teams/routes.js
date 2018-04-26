@@ -3,7 +3,6 @@ import TeamsContainer from './container'
 import {MaybePopupHoc} from '../common-adapters'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import AddPeopleDialog from './add-people/container'
-import AddPeopleHow from './team/header/add-people-how/container'
 import InviteByEmailDialog from './invite-by-email/container'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
@@ -19,7 +18,6 @@ import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
 import TeamMenu from './team/menu-container'
 import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
-import RetentionDropdown from './team/settings-tab/retention/dropdown'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import {isMobile} from '../constants/platform'
 
@@ -82,12 +80,6 @@ const makeAddPeopleOptions = {
   },
 }
 
-const retentionDropdown = {
-  component: isMobile ? RetentionDropdown : RelativePopupHoc(RetentionDropdown),
-  children: {},
-  tags: makeLeafTags({layerOnTop: true}),
-}
-
 const retentionWarning = {
   component: RetentionWarning,
   children: {},
@@ -102,7 +94,6 @@ const teamRoute = makeRouteDefNode({
     rolePicker,
     reallyLeaveTeam,
     reallyRemoveMember,
-    retentionDropdown,
     retentionWarning,
     showNewTeamDialog,
     team: () => teamRoute,
@@ -113,11 +104,6 @@ const teamRoute = makeRouteDefNode({
         reallyRemoveMember,
       },
       component: Member,
-    },
-    addPeopleHow: {
-      children: {},
-      component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
-      tags: makeLeafTags({layerOnTop: true}),
     },
     editTeamDescription: {
       children: {},

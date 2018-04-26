@@ -1,54 +1,81 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, PopupDialog, ProgressBar} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, fileUIName, platformStyles} from '../../../styles'
+import {Box, Icon, Text, PopupDialog, ProgressBar, ProgressIndicator} from '../../../common-adapters'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  fileUIName,
+  platformStyles,
+} from '../../../styles'
 
 import type {Props} from '.'
 
-const Fullscreen = (props: Props) => {
-  return (
-    <PopupDialog onClose={props.onClose} fill={true}>
-      <Box style={containerStyle}>
-        <Box style={headerFooterStyle}>
-          <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
-            {props.title}
-          </Text>
-          <Icon
-            type="iconfont-ellipsis"
-            style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
-            onClick={event => {
-              const node = event.target instanceof window.HTMLElement ? event.target : null
-              props.onShowMenu(node ? node.getBoundingClientRect() : null)
-            }}
-          />
-        </Box>
-        {props.path && (
-          <Box style={props.isZoomed ? styleContentsZoom : styleContentsFit} onClick={props.onToggleZoom}>
-            <img src={props.path} style={props.isZoomed ? styleImageZoom : styleImageFit} />
-          </Box>
-        )}
-        <Box style={headerFooterStyle}>
-          {!!props.progressLabel && (
-            <Text type="BodySmall" style={{color: globalColors.black_60, marginRight: globalMargins.tiny}}>
-              {props.progressLabel}
+type State = {loaded: boolean}
+class Fullscreen extends React.Component<Props, State> {
+  state = {loaded: false}
+  _setLoaded = () => this.setState({loaded: true})
+  render() {
+    return (
+      <PopupDialog onClose={this.props.onClose} fill={true}>
+        <Box style={containerStyle}>
+          <Box style={headerFooterStyle}>
+            <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
+              {this.props.title}
             </Text>
+            <Icon
+              type="iconfont-ellipsis"
+              style={platformStyles({
+                common: {marginLeft: globalMargins.tiny},
+                isElectron: {cursor: 'pointer'},
+              })}
+              color={globalColors.black_40}
+              onClick={event => {
+                const node = event.target instanceof window.HTMLElement ? event.target : null
+                this.props.onShowMenu(node ? node.getBoundingClientRect() : null)
+              }}
+            />
+          </Box>
+          {this.props.path && (
+            <Box
+              style={collapseStyles([
+                this.props.isZoomed ? styleContentsZoom : styleContentsFit,
+                this.state.loaded ? null : {display: 'none'},
+              ])}
+              onClick={this.props.onToggleZoom}
+            >
+              <img
+                onLoad={this._setLoaded}
+                src={this.props.path}
+                style={this.props.isZoomed ? styleImageZoom : styleImageFit}
+              />
+            </Box>
           )}
-          {!!props.progressLabel && <ProgressBar ratio={props.progress} />}
-          {!props.progressLabel &&
-            props.onDownloadAttachment && (
-              <Text type="BodySmall" style={linkStyle} onClick={props.onDownloadAttachment}>
-                Download
+          {!this.state.loaded && <ProgressIndicator style={{margin: 'auto'}} />}
+          <Box style={headerFooterStyle}>
+            {!!this.props.progressLabel && (
+              <Text type="BodySmall" style={{color: globalColors.black_60, marginRight: globalMargins.tiny}}>
+                {this.props.progressLabel}
               </Text>
             )}
-          {props.onShowInFinder && (
-            <Text type="BodySmallPrimaryLink" style={linkStyle} onClick={props.onShowInFinder}>
-              Show in {fileUIName}
-            </Text>
-          )}
+            {!!this.props.progressLabel && <ProgressBar ratio={this.props.progress} />}
+            {!this.props.progressLabel &&
+              this.props.onDownloadAttachment && (
+                <Text type="BodySmall" style={linkStyle} onClick={this.props.onDownloadAttachment}>
+                  Download
+                </Text>
+              )}
+            {this.props.onShowInFinder && (
+              <Text type="BodySmall" style={linkStyle} onClick={this.props.onShowInFinder}>
+                Show in {fileUIName}
+              </Text>
+            )}
+          </Box>
         </Box>
-      </Box>
-    </PopupDialog>
-  )
+      </PopupDialog>
+    )
+  }
 }
 
 const linkStyle = platformStyles({

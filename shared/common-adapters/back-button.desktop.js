@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props} from './back-button'
 import Text from './text'
 import Icon from './icon'
-import {globalStyles, desktopStyles} from '../styles'
+import {globalStyles, desktopStyles, collapseStyles} from '../styles'
 
 class BackButton extends Component<Props> {
   onClick(event: SyntheticEvent<>) {
@@ -16,8 +16,8 @@ class BackButton extends Component<Props> {
 
   render() {
     return (
-      <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
-        <Icon type="iconfont-arrow-left" style={{...styles.icon, ...this.props.iconStyle}} />
+      <div style={collapseStyles([styles.container, this.props.style])} onClick={e => this.onClick(e)}>
+        <Icon type="iconfont-arrow-left" style={styles.icon} color={this.props.iconColor} />
         {this.props.title !== null && (
           <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
             {this.props.title || 'Back'}

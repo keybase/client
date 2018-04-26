@@ -106,7 +106,8 @@ class GlobalError extends Component<Props, State> {
           <Box style={summaryRowStyle}>
             <Icon
               type="iconfont-exclamation"
-              style={{color: globalColors.white, marginRight: globalMargins.tiny}}
+              style={{marginRight: globalMargins.tiny}}
+              color={globalColors.white}
             />
             <Text type="BodySmall" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
               {summary}
@@ -114,7 +115,8 @@ class GlobalError extends Component<Props, State> {
             <Icon
               type="iconfont-close"
               onClick={onDismiss}
-              style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}}
+              style={{marginLeft: globalMargins.tiny}}
+              color={globalColors.white_75}
             />
           </Box>
         </NativeTouchableWithoutFeedback>

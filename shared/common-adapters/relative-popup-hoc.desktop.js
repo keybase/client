@@ -10,8 +10,6 @@ import {type StylesCrossPlatform, collapseStyles} from '../styles'
 
 import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
 
-const modalRoot = document.getElementById('modal-root')
-
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,
   children: React.Element<*>,
@@ -29,7 +27,7 @@ class DOMNodeFinder extends React.Component<{
     return React.Children.only(children)
   }
 }
-
+const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
   el: HTMLElement
   constructor() {
@@ -38,6 +36,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 
   componentDidMount() {
+    const modalRoot = getModalRoot()
     modalRoot && modalRoot.appendChild(this.el)
     const firstChild = this.el.firstChild
     if (firstChild instanceof HTMLElement) {
@@ -46,6 +45,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 
   componentWillUnmount() {
+    const modalRoot = getModalRoot()
     modalRoot && modalRoot.removeChild(this.el)
   }
 
@@ -245,21 +245,11 @@ function ModalPositionRelative<PP>(
     }
 
     render() {
-      // React will complain if WrappedComponent is a HTMLElement and we try to attach these props
-      const noPassProps = ['targetRect', 'position', 'onClosePopup']
-      // $ForceType thinks {} is invalid for PP, we're filtering out the HOC's props
-      const passProps: PP = Object.keys(this.props).reduce((res, k) => {
-        if (!noPassProps.includes(k)) {
-          res[k] = this.props[k]
-        }
-        return res
-      }, {})
-
       return (
         <Modal setNode={this._setRef}>
           <Box style={this.state.style}>
             <EscapeHandler onESC={this.props.onClosePopup}>
-              <WrappedComponent {...(passProps: PP)} />
+              <WrappedComponent {...(this.props: PP)} />
             </EscapeHandler>
           </Box>
         </Modal>

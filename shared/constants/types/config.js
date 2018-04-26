@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
-import {type Config, type DeviceID, type ExtendedStatus} from './rpc-gen'
+import {type DeviceID, type ExtendedStatus} from './rpc-gen'
 import {RPCError} from '../../util/errors'
 
 export type InitialState = {|
@@ -25,7 +25,6 @@ export type _State = {
   avatars: {[username: string]: AvatarSizes},
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
-  config: ?Config,
   daemonError: ?Error,
   deviceID: ?DeviceID,
   deviceName: ?string,
@@ -47,5 +46,7 @@ export type _State = {
   userActive: boolean,
   username: ?string,
   startedDueToPush: boolean,
+  version: string,
+  versionShort: string,
 }
 export type State = I.RecordOf<_State>

@@ -5,7 +5,8 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Constants from '../constants/tracker'
-import * as Types from '../constants/types/tracker'
+import * as TrackerTypes from '../constants/types/tracker'
+import * as Types from '../constants/types/profile'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
@@ -19,9 +20,8 @@ import {connect, type TypedState} from '../util/container'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from '.'
-import type {Tab as FriendshipsTab} from './friendships'
 
-type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: FriendshipsTab}>
+type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: Types.FriendshipsTab}>
 
 type EitherProps<P> =
   | {
@@ -89,8 +89,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
-  onRecheckProof: (proof: Types.Proof) => dispatch(ProfileGen.createCheckProof()),
-  onRevokeProof: (proof: Types.Proof) =>
+  onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
+  onRevokeProof: (proof: TrackerTypes.Proof) =>
     dispatch(
       navigateAppend(
         [
@@ -108,7 +108,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   },
   onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onViewProof: (proof: Types.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
+  onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
   updateTrackers: (username: string) => dispatch(TrackerGen.createUpdateTrackers({username})),
 })
 

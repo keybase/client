@@ -501,8 +501,8 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			// Try to remove as an invite
-			if ierr := removeMemberInvite(ctx, g, t, username, uv); ierr == nil {
+			// Try to remove as an keybase-invite
+			if ierr := removeKeybaseTypeInviteForUID(ctx, g, t, uv.Uid); ierr == nil {
 				return nil
 			}
 			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username,
@@ -1154,6 +1154,36 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 
 	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
 
+	return libkb.NotFoundError{}
+}
+
+func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) error {
+	g.Log.CDebugf(ctx, "looking for active or obsolete keybase-type invite in %s for %s", team.Name(), uid)
+
+	// Remove all invites with given UID, so we don't have to worry
+	// about old teams that might have duplicates. Having to remove
+	// more than one should be rare because we do not allow adding
+	// duplicate pukless/crypto memberships anymore, and client tries
+	// to always remove old versions of memberships.
+
+	var toRemove []keybase1.TeamInviteID
+	allInvites := team.GetActiveAndObsoleteInvites()
+	for _, invite := range allInvites {
+		if inviteUv, err := invite.KeybaseUserVersion(); err == nil {
+			if inviteUv.Uid.Equal(uid) {
+				g.Log.CDebugf(ctx, "found keybase-type invite %s for %s, removing", invite.Id, invite.Name)
+				toRemove = append(toRemove, invite.Id)
+			}
+		}
+	}
+
+	if len(toRemove) > 0 {
+		g.Log.CDebugf(ctx, "found %d keybase-type invites for %s, trying to post remove invite link",
+			len(toRemove), uid)
+		return removeMultipleInviteIDs(ctx, team, toRemove)
+	}
+
+	g.Log.CDebugf(ctx, "no keybase-invites found to remove %s", uid)
 	return libkb.NotFoundError{}
 }
 

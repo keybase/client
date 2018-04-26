@@ -41,7 +41,6 @@ export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({
 export const createDownload = (
   payload: $ReadOnly<{|
     intent: Types.TransferIntent,
-    mimeType?: string,
     path: Types.Path,
     localPath?: string,
   |}>

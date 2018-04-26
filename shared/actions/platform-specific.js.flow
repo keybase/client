@@ -12,6 +12,7 @@ declare export function showShareActionSheet(options: {url?: ?any, message?: ?an
   completed: boolean,
   method: string,
 }>
+declare export function downloadAndShowShareActionSheet(fileURL: string): Promise<void>
 
 type NextURI = string
 declare export function saveAttachmentDialog(filePath: string): Promise<NextURI>

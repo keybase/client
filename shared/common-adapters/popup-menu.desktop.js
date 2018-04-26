@@ -8,8 +8,9 @@ import {globalColors, globalMargins, globalStyles, desktopStyles} from '../style
 class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
   render() {
     const realCSS = `
-    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) ||
-      globalColors.blue4}; }
+    .menu-hover:hover { background-color: ${
+      this.props.hoverColor ? this.props.hoverColor : globalColors.blue4
+    }; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
 
     .menu-hover .title { color: ${globalColors.black_75}; }
@@ -113,8 +114,7 @@ class PopupMenu extends Component<Props> {
 class OLDPopupMenu extends Component<Props> {
   render() {
     const realCSS = `
-    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) ||
-      globalColors.blue4}; }
+    .menu-hover:hover { background-color: ${this.props.hoverColor || globalColors.blue4}; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
 
     .menu-hover .title { color: ${globalColors.black_75}; }
