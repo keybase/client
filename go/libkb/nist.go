@@ -118,8 +118,7 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 func (n *NIST) IsStillValid() (bool, time.Duration) {
 	n.RLock()
 	defer n.RUnlock()
-	conservativeExpiration := n.expiresAt.Add(-nistExpirationMargin)
-	diff := conservativeExpiration.Sub(n.G().Clock().Now())
+	diff := n.expiresAt.Sub(n.G().Clock().Now()) - nistExpirationMargin
 	return (diff > 0), diff
 }
 
