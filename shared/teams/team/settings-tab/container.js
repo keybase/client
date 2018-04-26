@@ -46,6 +46,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             selectedRole: newOpenTeamRole,
             allowOwner: false,
             allowAdmin: false,
+            pluralizeRoleName: true,
           },
           selected: 'controlledRolePicker',
         },

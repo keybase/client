@@ -5,6 +5,7 @@ import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
 // initial settings (except retention policy)
@@ -139,7 +140,7 @@ const OpenTeam = (props: SettingProps) =>
             type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
             onClick={props.newOpenTeam ? props.onSetOpenTeamRole : undefined}
           >
-            {props.newOpenTeamRole}
+            {pluralize(props.newOpenTeamRole)}
           </Text>
           .
         </Text>
