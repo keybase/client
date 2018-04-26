@@ -36,9 +36,16 @@ class Conversation extends React.PureComponent<SwitchProps> {
 }
 
 const mapStateToProps = (state: TypedState): * => {
-  const conversationIDKey = Constants.getSelectedConversation(state)
+  let conversationIDKey = Constants.getSelectedConversation(state)
+  let _meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+
+  if (conversationIDKey === Constants.pendingConversationIDKey && _meta.conversationIDKey) {
+    // Special case we stash the 'preview' of the chat if it exists in here
+    conversationIDKey = _meta.conversationIDKey
+    _meta = Constants.getMeta(state, conversationIDKey)
+  }
   return {
-    _meta: Constants.getMeta(state, conversationIDKey),
+    _meta,
     conversationIDKey,
   }
 }

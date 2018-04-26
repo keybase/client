@@ -45,20 +45,13 @@ class ListArea extends React.PureComponent<Props> {
 const searchResultStyle = {...desktopStyles.scrollable, flexGrow: 1}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
-  let conversationToShow = conversationIDKey
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    // Special case we stash the 'preview' of the chat if it exists in here
-    const meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
-    conversationToShow = meta.conversationIDKey
-  }
-
   const showSearchResults =
-    Constants.getSelectedConversation(state) === Constants.pendingConversationIDKey &&
+    conversationIDKey === Constants.pendingConversationIDKey &&
     state.chat2.pendingMode === 'searchingForUsers' &&
     !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
 
   return {
-    conversationIDKey: conversationToShow,
+    conversationIDKey,
     showSearchResults,
   }
 }
