@@ -12,7 +12,7 @@ const common = {
 }
 
 const load = () => {
-  storiesOf('Chat/Conversation/Set explode time')
+  storiesOf('Chat/Conversation/Set explode time', module)
     .add('New', () => <SetExplodingPopup {...common} isNew={true} />)
     .add('Old', () => <SetExplodingPopup {...common} isNew={false} />)
     .add('Selected', () => (
