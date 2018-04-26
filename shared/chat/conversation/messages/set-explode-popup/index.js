@@ -3,7 +3,7 @@ import * as React from 'react'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box, Icon, Text, FloatingMenu} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {collapseStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
@@ -23,7 +23,7 @@ const Header = (props: HeaderProps) => (
         </Text>
       </Box>
     )}
-    <Box style={headerTextContainerStyle}>
+    <Box style={collapseStyles([headerTextContainerStyle, props.isNew ? null : {paddingTop: 10}])}>
       <Text type="BodySmallSemibold">Explode message after:</Text>
     </Box>
   </Box>
