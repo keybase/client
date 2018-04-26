@@ -15,6 +15,9 @@ const Header = (props: HeaderProps) => (
   <Box style={headerContainerStyle}>
     {props.isNew && (
       <Box style={announcementContainerStyle}>
+        <Box style={{marginTop: -10, marginBottom: -10}}>
+          <Icon type="iconfont-boom" color={globalColors.white} fontSize={48} />
+        </Box>
         <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
           Set a timeout on your messages and watch them
         </Text>
