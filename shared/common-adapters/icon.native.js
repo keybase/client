@@ -104,8 +104,6 @@ class Icon extends React.PureComponent<Props> {
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      // glamorous.text color just doesn't work? Put color
-      // back into the style here
       if (props.color) {
         iconStyle = collapseStyles([iconStyle, {color: props.color}])
       }
