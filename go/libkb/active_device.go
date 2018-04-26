@@ -9,6 +9,12 @@ import (
 	"sync"
 )
 
+type SessionReader interface {
+	APIArgs() (token, csrf string)
+	IsLoggedIn() bool
+	Invalidate()
+}
+
 type ActiveDevice struct {
 	uid           keybase1.UID
 	deviceID      keybase1.DeviceID
@@ -19,6 +25,10 @@ type ActiveDevice struct {
 	legacySession LegacySession // a legacy session used in signup and provisioning
 	sync.RWMutex
 }
+
+type LegacySessionWrapper ActiveDevice
+
+var _ SessionReader = (*LegacySessionWrapper)(nil)
 
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
@@ -266,5 +276,33 @@ func (a *ActiveDevice) NormalizedUsername(ctx context.Context, g *GlobalContext)
 	if uid.IsNil() {
 		return ret, NoUsernameError{}
 	}
-	return g.UPAKLoader().LookupUsername(ctx, uid)
+	return g.GetUPAKLoader().LookupUsername(ctx, uid)
+}
+
+func (a *ActiveDevice) SessionReader() SessionReader {
+	return (*LegacySessionWrapper)(a)
+}
+
+func (a *LegacySessionWrapper) APIArgs() (string, string) {
+	a.RLock()
+	defer a.RUnlock()
+	return a.legacySession.APIArgs()
+}
+
+func (a *LegacySessionWrapper) IsLoggedIn() bool {
+	a.RLock()
+	defer a.RUnlock()
+	return a.legacySession.IsLoggedIn()
+}
+
+func (a *LegacySessionWrapper) Invalidate() {
+	a.Lock()
+	defer a.Unlock()
+	a.legacySession.clear()
+}
+
+func (a *ActiveDevice) SetLegacySession(g *GlobalContext, token, csrf string) {
+	a.Lock()
+	defer a.Unlock()
+	a.legacySession.set(g, token, csrf)
 }

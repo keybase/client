@@ -5,22 +5,33 @@ import (
 	"time"
 )
 
-type SessionReader interface {
-	APIArgs() (token, csrf string)
-	IsLoggedIn() bool
-	Invalidate()
-}
-
 type LegacySession struct {
-	uid     keybase1.UID
 	token   string
 	csrf    string
 	created time.Time
 }
 
+
 func (l *LegacySession) clear() {
-	l.uid = keybase1.UID("")
 	l.token = ""
 	l.csrf = ""
 	l.created = time.Time{}
+}
+
+func (l *LegacySession) set(g *GlobalContext, token string, csrf string, ) {
+	l.token = token
+	l.csrf = csrf
+	l.created = g.Clock().Now()
+}
+
+func (l LegacySession) valid() bool {
+	return l.token != ""
+}
+
+func (l LegacySession) APIArgs() (string, string) {
+	return l.token, l.csrf
+}
+
+func (l LegacySession) IsLoggedIn() bool {
+	return l.token != ""
 }

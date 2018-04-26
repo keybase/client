@@ -67,11 +67,11 @@ func NewAccount(g *GlobalContext) *Account {
 }
 
 func (a *Account) GetUID() (ret keybase1.UID) {
-	return a.G().ActiveDevice().UID()
+	return a.G().ActiveDevice.UID()
 }
 
 func (a *Account) GetDeviceID() (ret keybase1.DeviceID) {
-	return a.G().ActiveDevice().DeviceID()
+	return a.G().ActiveDevice.DeviceID()
 }
 
 // LoggedIn returns true if the user is logged in.  It does not
@@ -82,7 +82,7 @@ func (a *Account) LoggedIn() bool {
 
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
-	return a.LoggedIn()
+	return a.LoggedIn(), nil
 }
 
 // LoggedInProvisioned will check if the user is logged in and provisioned on this
@@ -152,7 +152,7 @@ func (a *Account) Logout() error {
 
 	a.G().Log.Debug("- Account.Logout() - all clears complete")
 
-	return err
+	return nil
 }
 
 func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
@@ -285,46 +285,45 @@ func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyTy
 // LockedLocalSecretKey looks in the local keyring to find a key
 // for the given user.  Returns non-nil if one was found, and nil
 // otherwise.
-func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
+func (a *Account) LockedLocalSecretKey(ctx context.Context, ska SecretKeyArg) (*SKB, error) {
 	var ret *SKB
 	me := ska.Me
-	a.EnsureUsername(me.GetNormalizedName())
 
-	keyring, err := a.Keyring()
+	keyring, err := a.Keyring(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if keyring == nil {
-		a.G().Log.Debug("| No secret keyring found: %s", err)
+		a.G().Log.CDebugf(ctx, "| No secret keyring found: %s", err)
 		return nil, NoKeyringsError{}
 	}
 
 	ckf := me.GetComputedKeyFamily()
 	if ckf == nil {
-		a.G().Log.Warning("No ComputedKeyFamily found for %s", me.name)
+		a.G().Log.CWarningf(ctx, "No ComputedKeyFamily found for %s", me.name)
 		return nil, KeyFamilyError{Msg: "not found for " + me.name}
 	}
 
 	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
 		key, err := a.getDeviceKey(ckf, ska.KeyType, me.GetNormalizedName())
 		if err != nil {
-			a.G().Log.Debug("| No key for current device: %s", err)
+			a.G().Log.CDebugf(ctx, "| No key for current device: %s", err)
 			return nil, err
 		}
 
 		if key == nil {
-			a.G().Log.Debug("| Key for current device is nil")
+			a.G().Log.CDebugf(ctx, "| Key for current device is nil")
 			return nil, NoKeyError{Msg: "Key for current device is nil"}
 		}
 
 		kid := key.GetKID()
-		a.G().Log.Debug("| Found KID for current device: %s", kid)
+		a.G().Log.CDebugf(ctx, "| Found KID for current device: %s", kid)
 		ret = keyring.LookupByKid(kid)
 		if ret != nil {
 			a.G().Log.Debug("| Using device key: %s", kid)
 		}
 	} else {
-		a.G().Log.Debug("| Looking up secret key in local keychain")
+		a.G().Log.CDebugf(ctx, "| Looking up secret key in local keychain")
 		blocks := keyring.SearchWithComputedKeyFamily(ckf, ska)
 		if len(blocks) > 0 {
 			ret = blocks[0]
@@ -342,7 +341,7 @@ func (a *Account) Shutdown() error {
 	return nil
 }
 
-func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
+func (a *Account) UserInfo(ctx context.Context) (uid keybase1.UID, username NormalizedUsername,
 	token string, deviceSubkey, deviceSibkey GenericKey, err error) {
 	if !a.LoggedIn() {
 		err = LoginRequiredError{}
@@ -366,7 +365,7 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 
 	})
 	var nist *NIST
-	nist, err = a.G().ActiveDevice.NIST()
+	nist, err = a.G().ActiveDevice.NIST(ctx)
 	if err == nil {
 		token = nist.Token().String()
 	}
@@ -379,7 +378,8 @@ func (a *Account) SaveState(sessionID, csrf string, username NormalizedUsername,
 	if err := a.saveUserConfig(username, uid, deviceID); err != nil {
 		return err
 	}
-	return a.G().ActiveDevice.SetLegacySession(sessionID, csrf)
+	a.G().ActiveDevice.SetLegacySession(a.G(), sessionID, csrf)
+	return nil
 }
 
 func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {

@@ -51,13 +51,12 @@ type LoginContext interface {
 	LoginSession() *LoginSession
 	ClearLoginSession()
 
-	LocalSession() *Session
 	GetUID() keybase1.UID
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 
 	Keyring(context.Context) (*SKBKeyringFile, error)
 	ClearKeyring()
-	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
+	LockedLocalSecretKey(ctx context.Context, ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error

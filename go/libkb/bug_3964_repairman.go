@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"golang.org/x/net/context"
 	"errors"
 	"time"
 )
@@ -16,10 +17,10 @@ func newBug3964Repairman(g *GlobalContext) *bug3964Repairman {
 	return &bug3964Repairman{Contextified: NewContextified(g)}
 }
 
-func (b *bug3964Repairman) attemptRepair(lctx LoginContext, lksec *LKSec, dkm DeviceKeyMap) (ran bool, serverHalfSet *LKSecServerHalfSet, err error) {
+func (b *bug3964Repairman) attemptRepair(ctx context.Context, lctx LoginContext, lksec *LKSec, dkm DeviceKeyMap) (ran bool, serverHalfSet *LKSecServerHalfSet, err error) {
 	defer b.G().Trace("bug3964Repairman#attemptRepair", func() error { return err })()
 	var oldKeyring, newKeyring *SKBKeyringFile
-	oldKeyring, err = lctx.Keyring()
+	oldKeyring, err = lctx.Keyring(ctx)
 	if err != nil {
 		return false, nil, err
 	}
@@ -151,8 +152,8 @@ func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppg
 }
 
 // Run the engine
-func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err error) {
-	defer b.G().Trace("bug3964Repairman#Run", func() error { return err })()
+func (b *bug3964Repairman) Run(ctx context.Context, lctx LoginContext, pps *PassphraseStream) (err error) {
+	defer b.G().CTrace(ctx, "bug3964Repairman#Run", func() error { return err })()
 
 	var lksec *LKSec
 	var ran bool
@@ -162,12 +163,12 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 	nun := b.G().Env.GetUsername()
 
 	if b.G().TestOptions.NoBug3964Repair {
-		b.G().Log.Debug("| short circuit due to test options")
+		b.G().Log.CDebugf(ctx, "| short circuit due to test options")
 		return nil
 	}
 
 	if pps == nil {
-		b.G().Log.Debug("| Can't run repairman without a passphrase stream")
+		b.G().Log.CDebugf(ctx, "| Can't run repairman without a passphrase stream")
 		return nil
 	}
 
@@ -177,12 +178,12 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 
 	if ss {
 		// This logline is asserted in testing in bug_3964_repairman_test
-		b.G().Log.Debug("| Repairman already visited after file update; bailing out")
+		b.G().Log.CDebugf(ctx, "| Repairman already visited after file update; bailing out")
 		return nil
 	}
 
 	// This logline is asserted in testing in bug_3964_repairman_test
-	b.G().Log.Debug("| Repairman wasn't short-circuited")
+	b.G().Log.CDebugf(ctx, "| Repairman wasn't short-circuited")
 
 	lksec, err = pps.ToLKSec(b.G(), lctx.GetUID())
 	if err != nil {
@@ -193,7 +194,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 		return err
 	}
 
-	if ran, serverHalfSet, err = b.attemptRepair(lctx, lksec, dkm); err != nil {
+	if ran, serverHalfSet, err = b.attemptRepair(ctx, lctx, lksec, dkm); err != nil {
 		return err
 	}
 
@@ -201,7 +202,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 		return err
 	}
 
-	b.G().Log.Debug("| SKB keyring repair completed; edits=%v", ran)
+	b.G().Log.CDebugf(ctx, "| SKB keyring repair completed; edits=%v", ran)
 
 	if !ran {
 		b.saveRepairmanVisit(nun)
@@ -213,7 +214,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 	}
 
 	if ussErr := b.updateSecretStore(nun, lksec); ussErr != nil {
-		b.G().Log.Warning("Error in secret store manipulation: %s", ussErr)
+		b.G().Log.CWarningf(ctx, "Error in secret store manipulation: %s", ussErr)
 	} else {
 		b.saveRepairmanVisit(nun)
 	}
@@ -223,10 +224,10 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 	return err
 }
 
-func RunBug3964Repairman(g *GlobalContext, lctx LoginContext, pps *PassphraseStream) error {
-	err := newBug3964Repairman(g).Run(lctx, pps)
+func RunBug3964Repairman(ctx context.Context, g *GlobalContext, lctx LoginContext, pps *PassphraseStream) error {
+	err := newBug3964Repairman(g).Run(ctx, lctx, pps)
 	if err != nil {
-		g.Log.Debug("Error running Bug 3964 repairman: %s", err)
+		g.Log.CDebugf(ctx, "Error running Bug 3964 repairman: %s", err)
 	}
 	return err
 }

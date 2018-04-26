@@ -490,25 +490,11 @@ func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string, err error
 		return tok, csrf, nil
 	}
 
-	a.G().LoginState().Account(func(a *Account) {
-		// since a session is required, try to load one:
-		var in bool
-		in, err = a.LoggedInLoad()
-		if err != nil {
-			return
-		}
-		if !in {
-			err = LoginRequiredError{}
-			return
-		}
-		tok, csrf = a.LocalSession().APIArgs()
-	}, "sessionArgs")
-
-	if err != nil {
-		return "", "", err
+	tok, csrf = a.G().ActiveDevice.SessionReader().APIArgs()
+	if tok == "" {
+		err = LoginRequiredError{}
 	}
-
-	return tok, csrf, nil
+	return tok, csrf, err
 }
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
