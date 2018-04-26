@@ -11,7 +11,13 @@ type BgTicker struct {
 	resumeWait time.Duration
 }
 
-func NewBgTicker(duration time.Duration, wait time.Duration) *BgTicker {
+// This ticker wrap's Go's time.Ticker to wait a given time.Duration before
+// firing. This is helpful to not overload the mobile apps when they are
+// brought to the foreground and all have tasks that are ready to fire.
+
+// NewBgTicker will panic if wait > duration as time.Ticker does with a
+// negative duration.
+func NewBgTicker(duration time.Duration) *BgTicker {
 	return NewBgTickerWithWait(duration, 10*time.Second)
 }
 

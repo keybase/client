@@ -556,7 +556,7 @@ func (d *Service) writeServiceInfo() error {
 }
 
 func (d *Service) chatEphemeralPurgeChecks() {
-	ticker := libkb.NewBgTicker(d.G(), 5*time.Minute)
+	ticker := libkb.NewBgTicker(5 * time.Minute)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping chatEphemeralPurgeChecks loop")
 		ticker.Stop()
@@ -582,7 +582,7 @@ func (d *Service) chatEphemeralPurgeChecks() {
 }
 
 func (d *Service) hourlyChecks() {
-	ticker := libkb.NewBgTicker(d.G(), 1*time.Hour)
+	ticker := libkb.NewBgTicker(1 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping hourlyChecks loop")
 		ticker.Stop()
@@ -614,7 +614,7 @@ func (d *Service) hourlyChecks() {
 }
 
 func (d *Service) slowChecks() {
-	ticker := libkb.NewBgTicker(d.G(), 6*time.Hour)
+	ticker := libkb.NewBgTicker(6 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping slowChecks loop")
 		ticker.Stop()
