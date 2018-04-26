@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
@@ -118,6 +119,13 @@ func (u *User) GetSigChainLastKnownSeqno() keybase1.Seqno {
 		return 0
 	}
 	return u.sigChain().GetLastKnownSeqno()
+}
+
+func (u *User) GetSigChainLastKnownID() LinkID {
+	if u.sigChain() == nil {
+		return nil
+	}
+	return u.sigChain().GetLastKnownID()
 }
 
 func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
@@ -453,6 +461,12 @@ func (u *User) IDTable() *IdentityTable {
 	return u.idTable
 }
 
+// Return the active stellar public address for a user.
+// Returns nil if there is none or it has not been loaded.
+func (u *User) StellarWalletAddress() *stellar1.AccountID {
+	return u.idTable.StellarWalletAddress()
+}
+
 func (u *User) sigChain() *SigChain {
 	return u.sigChainMem
 }
@@ -587,7 +601,7 @@ func (u *User) remoteTrackChainLinkFor(username NormalizedUsername, uid keybase1
 }
 
 // BaseProofSet creates a basic proof set for a user with their
-// keybase and uid proofs and any pgp fingerpring proofs.
+// keybase and uid proofs and any pgp fingerprint proofs.
 func (u *User) BaseProofSet() *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.name},
@@ -712,23 +726,6 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 	return pubKey, nil
 }
 
-func (u *User) TrackStatementJSON(them *User, outcome *IdentifyOutcome) (string, error) {
-	key, err := u.SigningKeyPub()
-	if err != nil {
-		return "", err
-	}
-
-	stmt, err := u.TrackingProofFor(key, them, outcome)
-	if err != nil {
-		return "", err
-	}
-	json, err := stmt.Marshal()
-	if err != nil {
-		return "", err
-	}
-	return string(json), nil
-}
-
 func (u *User) GetSigIDFromSeqno(seqno keybase1.Seqno) keybase1.SigID {
 	if u.sigChain() == nil {
 		return ""
@@ -829,3 +826,34 @@ func ValidateNormalizedUsername(username string) (NormalizedUsername, error) {
 	}
 	return res, nil
 }
+
+type UserForSignatures struct {
+	uid         keybase1.UID
+	name        NormalizedUsername
+	eldestKID   keybase1.KID
+	eldestSeqno keybase1.Seqno
+	latestPUK   *keybase1.PerUserKey
+}
+
+func (u UserForSignatures) GetUID() keybase1.UID                  { return u.uid }
+func (u UserForSignatures) GetName() string                       { return u.name.String() }
+func (u UserForSignatures) GetEldestKID() keybase1.KID            { return u.eldestKID }
+func (u UserForSignatures) GetNormalizedName() NormalizedUsername { return u.name }
+func (u UserForSignatures) ToUserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: u.eldestSeqno}
+}
+func (u UserForSignatures) GetLatestPerUserKey() *keybase1.PerUserKey { return u.latestPUK }
+
+func (u *User) ToUserForSignatures() (ret UserForSignatures) {
+	if u == nil {
+		return ret
+	}
+	ret.uid = u.GetUID()
+	ret.name = u.GetNormalizedName()
+	ret.eldestKID = u.GetEldestKID()
+	ret.eldestSeqno = u.GetCurrentEldestSeqno()
+	ret.latestPUK = u.GetComputedKeyFamily().GetLatestPerUserKey()
+	return ret
+}
+
+var _ UserBasic = UserForSignatures{}

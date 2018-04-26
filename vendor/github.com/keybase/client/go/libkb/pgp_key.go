@@ -172,7 +172,7 @@ func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
 	strippedKey.Subkeys = nil
 	for _, subkey := range oldSubkeys {
 		// Skip revoked subkeys
-		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding {
+		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding && subkey.Revocation == nil {
 			strippedKey.Subkeys = append(strippedKey.Subkeys, subkey)
 		}
 	}
@@ -558,14 +558,17 @@ func (k PGPKeyBundle) GetPrimaryUID() string {
 	return s
 }
 
+// HasSecretKey checks if the PGPKeyBundle contains secret key. This
+// function returning true does not indicate that the key is
+// functional - it may also be a key stub.
 func (k *PGPKeyBundle) HasSecretKey() bool {
 	return k.PrivateKey != nil
 }
 
-// findPGPPrivateKey checks if supposed secret key PGPKeyBundle
+// FindPGPPrivateKey checks if supposed secret key PGPKeyBundle
 // contains any valid PrivateKey entities. Sometimes primary private
-// key is stupped out but there are subkeys with secret keys.
-func findPGPPrivateKey(k *PGPKeyBundle) bool {
+// key is stoopped out but there are subkeys with secret keys.
+func FindPGPPrivateKey(k *PGPKeyBundle) bool {
 	if k.PrivateKey.PrivateKey != nil {
 		return true
 	}
@@ -584,7 +587,7 @@ func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
 		err = BadKeyError{"PGP key material should be unencrypted"}
-	} else if !findPGPPrivateKey(k) && k.GPGFallbackKey == nil {
+	} else if !FindPGPPrivateKey(k) && k.GPGFallbackKey == nil {
 		err = BadKeyError{"no private key material or GPGKey"}
 	}
 	return

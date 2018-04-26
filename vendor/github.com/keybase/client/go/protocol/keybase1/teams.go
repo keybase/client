@@ -1036,10 +1036,25 @@ func (o TeamName) DeepCopy() TeamName {
 	}
 }
 
+type TeamCLKRResetUser struct {
+	Uid               UID   `codec:"uid" json:"uid"`
+	UserEldestSeqno   Seqno `codec:"userEldestSeqno" json:"user_eldest"`
+	MemberEldestSeqno Seqno `codec:"memberEldestSeqno" json:"member_eldest"`
+}
+
+func (o TeamCLKRResetUser) DeepCopy() TeamCLKRResetUser {
+	return TeamCLKRResetUser{
+		Uid:               o.Uid.DeepCopy(),
+		UserEldestSeqno:   o.UserEldestSeqno.DeepCopy(),
+		MemberEldestSeqno: o.MemberEldestSeqno.DeepCopy(),
+	}
+}
+
 type TeamCLKRMsg struct {
-	TeamID     TeamID               `codec:"teamID" json:"team_id"`
-	Generation PerTeamKeyGeneration `codec:"generation" json:"generation"`
-	Score      int                  `codec:"score" json:"score"`
+	TeamID              TeamID               `codec:"teamID" json:"team_id"`
+	Generation          PerTeamKeyGeneration `codec:"generation" json:"generation"`
+	Score               int                  `codec:"score" json:"score"`
+	ResetUsersUntrusted []TeamCLKRResetUser  `codec:"resetUsersUntrusted" json:"reset_users"`
 }
 
 func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
@@ -1047,6 +1062,17 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 		TeamID:     o.TeamID.DeepCopy(),
 		Generation: o.Generation.DeepCopy(),
 		Score:      o.Score,
+		ResetUsersUntrusted: (func(x []TeamCLKRResetUser) []TeamCLKRResetUser {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamCLKRResetUser
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ResetUsersUntrusted),
 	}
 }
 
@@ -2126,7 +2152,8 @@ type TeamAcceptInviteOrRequestAccessArg struct {
 }
 
 type TeamListRequestsArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	TeamName  *string `codec:"teamName,omitempty" json:"teamName,omitempty"`
 }
 
 type TeamListMyAccessRequestsArg struct {
@@ -2263,7 +2290,7 @@ type TeamsInterface interface {
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
 	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) (TeamAcceptOrRequestResult, error)
-	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
+	TeamListRequests(context.Context, TeamListRequestsArg) ([]TeamJoinRequest, error)
 	TeamListMyAccessRequests(context.Context, TeamListMyAccessRequestsArg) ([]TeamName, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
@@ -2578,7 +2605,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamListRequestsArg)(nil), args)
 						return
 					}
-					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -3028,8 +3055,7 @@ func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg 
 	return
 }
 
-func (c TeamsClient) TeamListRequests(ctx context.Context, sessionID int) (res []TeamJoinRequest, err error) {
-	__arg := TeamListRequestsArg{SessionID: sessionID}
+func (c TeamsClient) TeamListRequests(ctx context.Context, __arg TeamListRequestsArg) (res []TeamJoinRequest, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
 	return
 }

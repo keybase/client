@@ -24,7 +24,7 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-// DebugDumpKey is used only in debugging. For now it's now in
+// DebugDumpKey is used only in debugging. For now it's not in
 // use but we might need it in the future.
 func DebugDumpKey(g *GlobalContext, name string, b []byte) {
 	tmp, err := ioutil.TempFile(os.TempDir(), "dump-"+name)
@@ -400,11 +400,6 @@ func (s *SKB) lksUnlockWithSecretRetriever(lctx LoginContext, secretRetriever Se
 	}
 	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
 	unlocked, _, _, err = lks.Decrypt(nil, s.Priv.Data)
-
-	// if unlock was successful, lks can be saved in the account:
-	if err == nil && lctx != nil {
-		lctx.SetLKSec(lks)
-	}
 
 	return
 }

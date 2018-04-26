@@ -92,6 +92,11 @@ var _ GenericKey = NaclDHKeyPair{}
 
 type NaclSecretBoxKey [NaclSecretBoxKeySize]byte
 
+func (k NaclSecretBoxKey) IsZero() bool {
+	var z NaclSecretBoxKey
+	return hmac.Equal(k[:], z[:])
+}
+
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 	kid := keybase1.KIDFromString(s)
 	return importNaclKid(kid.ToBytes(), typ, bodyLen)
@@ -905,4 +910,15 @@ func GeneratePerUserKeySeed() (res PerUserKeySeed, err error) {
 	}
 	seed := PerUserKeySeed(MakeByte32(bs))
 	return seed, nil
+}
+
+func RandomNaclDHNonce() (nonce [NaclDHNonceSize]byte, err error) {
+	nRead, err := rand.Read(nonce[:])
+	if err != nil {
+		return nonce, err
+	}
+	if nRead != NaclDHNonceSize {
+		return nonce, fmt.Errorf("Short random read: %d", nRead)
+	}
+	return nonce, nil
 }

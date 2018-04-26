@@ -970,6 +970,10 @@ type KeyRevokedError struct {
 	msg string
 }
 
+func NewKeyRevokedError(m string) KeyRevokedError {
+	return KeyRevokedError{m}
+}
+
 func (r KeyRevokedError) Error() string {
 	return fmt.Sprintf("Key revoked: %s", r.msg)
 }
@@ -1012,6 +1016,14 @@ func (c ChainLinkError) Error() string {
 	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
 }
 
+type ChainLinkStubbedUnsupportedError struct {
+	msg string
+}
+
+func (c ChainLinkStubbedUnsupportedError) Error() string {
+	return c.msg
+}
+
 type SigchainV2Error struct {
 	msg string
 }
@@ -1044,6 +1056,18 @@ type SigchainV2MismatchedHashError struct{}
 
 func (s SigchainV2MismatchedHashError) Error() string {
 	return "Sigchain V2 hash mismatch error"
+}
+
+type SigchainV2StubbedDisallowed struct{}
+
+func (s SigchainV2StubbedDisallowed) Error() string {
+	return "Link was stubbed but required"
+}
+
+type SigchainV2Required struct{}
+
+func (s SigchainV2Required) Error() string {
+	return "Link must use sig v2"
 }
 
 //=============================================================================
@@ -1105,6 +1129,7 @@ const (
 	merkleErrorNoLeftBookend
 	merkleErrorNoRightBookend
 	merkleErrorHashMeta
+	merkleErrorBadResetChain
 )
 
 type MerkleClientError struct {
@@ -1177,6 +1202,10 @@ func (e SkipSecretPromptError) Error() string {
 
 type NoDeviceError struct {
 	Reason string
+}
+
+func NewNoDeviceError(s string) NoDeviceError {
+	return NoDeviceError{s}
 }
 
 func (e NoDeviceError) Error() string {
@@ -1688,16 +1717,19 @@ func (e UnhandledSignatureError) Error() string {
 	return fmt.Sprintf("unhandled signature version: %d", e.version)
 }
 
-type DeletedError struct {
+type UserDeletedError struct {
 	Msg string
 }
 
-func (e DeletedError) Error() string {
+func (e UserDeletedError) Error() string {
 	if len(e.Msg) == 0 {
-		return "Deleted"
+		return "User deleted"
 	}
 	return e.Msg
 }
+
+// Keep the previous name around until KBFS revendors and updates.
+type DeletedError = UserDeletedError
 
 //=============================================================================
 
@@ -2155,7 +2187,7 @@ func UserErrorFromStatus(s keybase1.StatusCode) error {
 	case keybase1.StatusCode_SCOk:
 		return nil
 	case keybase1.StatusCode_SCDeleted:
-		return DeletedError{}
+		return UserDeletedError{}
 	default:
 		return &APIError{Code: int(s), Msg: "user status error"}
 	}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
@@ -106,7 +107,7 @@ func (g *GenericChainLink) GetUID() keybase1.UID {
 func (g *GenericChainLink) GetDevice() *Device { return nil }
 
 func (g *GenericChainLink) extractPGPFullHash(loc string) string {
-	if jw := g.payloadJSON.AtPath("body." + loc + ".full_hash"); !jw.IsNil() {
+	if jw := g.UnmarshalPayloadJSON().AtPath("body." + loc + ".full_hash"); !jw.IsNil() {
 		if ret, err := jw.GetString(); err == nil {
 			return ret
 		}
@@ -372,14 +373,8 @@ func ParseServiceBlock(jw *jsonw.Wrapper, pt keybase1.ProofType) (sb *ServiceBlo
 
 // To be used for signatures in a user's signature chain.
 func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e error) {
-	jw := base.payloadJSON.AtKey("body").AtKey("service")
-
-	var sptf string
-	ptf := base.packed.AtKey("proof_text_full")
-	if !ptf.IsNil() {
-		// TODO: add test that returning on err here is ok:
-		sptf, _ = ptf.GetString()
-	}
+	jw := base.UnmarshalPayloadJSON().AtKey("body").AtKey("service")
+	sptf := base.unpacked.proofText
 
 	if jw.IsNil() {
 		ret, e = ParseSelfSigChainLink(base)
@@ -419,15 +414,16 @@ func (l TrackChainLink) IsRemote() bool {
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
+	payload := b.UnmarshalPayloadJSON()
 	var tmp string
-	tmp, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
+	tmp, err = payload.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
 	whomUsername := NewNormalizedUsername(tmp)
 
-	whomUID, err := GetUID(b.payloadJSON.AtPath("body.track.id"))
+	whomUID, err := GetUID(payload.AtPath("body.track.id"))
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
@@ -483,7 +479,7 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 
 	var res []TrackedKey
 
-	pgpKeysJSON := l.payloadJSON.AtPath("body.track.pgp_keys")
+	pgpKeysJSON := l.UnmarshalPayloadJSON().AtPath("body.track.pgp_keys")
 	if !pgpKeysJSON.IsNil() {
 		n, err := pgpKeysJSON.Len()
 		if err != nil {
@@ -505,7 +501,7 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 }
 
 func (l *TrackChainLink) GetEldestKID() (kid keybase1.KID, err error) {
-	keyJSON := l.payloadJSON.AtPath("body.track.key")
+	keyJSON := l.UnmarshalPayloadJSON().AtPath("body.track.key")
 	if keyJSON.IsNil() {
 		return kid, nil
 	}
@@ -517,11 +513,11 @@ func (l *TrackChainLink) GetEldestKID() (kid keybase1.KID, err error) {
 }
 
 func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
-	return GetUID(l.payloadJSON.AtPath("body.track.id"))
+	return GetUID(l.UnmarshalPayloadJSON().AtPath("body.track.id"))
 }
 
 func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
-	tmp, err := l.payloadJSON.AtPath("body.track.basics.username").GetString()
+	tmp, err := l.UnmarshalPayloadJSON().AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		return NormalizedUsername(""), nil
 	}
@@ -533,7 +529,7 @@ func (l *TrackChainLink) IsRevoked() bool {
 }
 
 func (l *TrackChainLink) RemoteKeyProofs() *jsonw.Wrapper {
-	return l.payloadJSON.AtPath("body.track.remote_proofs")
+	return l.UnmarshalPayloadJSON().AtPath("body.track.remote_proofs")
 }
 
 func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
@@ -554,7 +550,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 
 // convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
 // to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
-// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeeds,
+// well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeds,
 // we output a service block that can entered into found-versus-tracked comparison logic.
 // The `index` provided is what index this JSON stanza is in the overall track statement.
 func convertTrackedProofToServiceBlock(g *GlobalContext, proof *jsonw.Wrapper, index int) (ret *ServiceBlock) {
@@ -610,12 +606,13 @@ func ParseEldestChainLink(b GenericChainLink) (ret *EldestChainLink, err error) 
 	var kid keybase1.KID
 	var device *Device
 
-	if kid, err = GetKID(b.payloadJSON.AtPath("body.key.kid")); err != nil {
+	payload := b.UnmarshalPayloadJSON()
+	if kid, err = GetKID(payload.AtPath("body.key.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad eldest statement @%s: %s", b.ToDebugString(), err)}
 		return
 	}
 
-	if jw := b.payloadJSON.AtPath("body.device"); !jw.IsNil() {
+	if jw := payload.AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
@@ -653,19 +650,20 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 	var kid keybase1.KID
 	var device *Device
 
-	if kid, err = GetKID(b.payloadJSON.AtPath("body.sibkey.kid")); err != nil {
+	payload := b.UnmarshalPayloadJSON()
+	if kid, err = GetKID(payload.AtPath("body.sibkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Bad sibkey statement @%s: %s", b.ToDebugString(), err)}
 		return
 	}
 
 	var rs string
-	if rs, err = b.payloadJSON.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
+	if rs, err = payload.AtPath("body.sibkey.reverse_sig").GetString(); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Missing reverse_sig in sibkey delegation: @%s: %s",
 			b.ToDebugString(), err)}
 		return
 	}
 
-	if jw := b.payloadJSON.AtPath("body.device"); !jw.IsNil() {
+	if jw := payload.AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
@@ -705,7 +703,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	return VerifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.payloadJSON, s.reverseSig)
+	return VerifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
 //
@@ -720,9 +718,10 @@ type SubkeyChainLink struct {
 
 func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) {
 	var kid, pkid keybase1.KID
-	if kid, err = GetKID(b.payloadJSON.AtPath("body.subkey.kid")); err != nil {
+	payload := b.UnmarshalPayloadJSON()
+	if kid, err = GetKID(payload.AtPath("body.subkey.kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get KID for subkey @%s: %s", b.ToDebugString(), err)}
-	} else if pkid, err = GetKID(b.payloadJSON.AtPath("body.subkey.parent_kid")); err != nil {
+	} else if pkid, err = GetKID(payload.AtPath("body.subkey.parent_kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get parent_kid for subkey @%s: %s", b.ToDebugString(), err)}
 	} else {
 		ret = &SubkeyChainLink{b, kid, pkid}
@@ -759,7 +758,7 @@ func ParsePerUserKeyChainLink(b GenericChainLink) (ret *PerUserKeyChainLink, err
 	var sigKID, encKID keybase1.KID
 	var g int
 	var reverseSig string
-	section := b.payloadJSON.AtPath("body.per_user_key")
+	section := b.UnmarshalPayloadJSON().AtPath("body.per_user_key")
 	if sigKID, err = GetKID(section.AtKey("signing_kid")); err != nil {
 		err = ChainLinkError{fmt.Sprintf("Can't get signing KID for per_user_secret: @%s: %s", b.ToDebugString(), err)}
 	} else if encKID, err = GetKID(section.AtKey("encryption_kid")); err != nil {
@@ -807,7 +806,7 @@ func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) 
 		return fmt.Errorf("Invalid per-user signing KID: %s", s.sigKID)
 	}
 
-	return VerifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.payloadJSON, s.reverseSig)
+	return VerifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
 //
@@ -816,7 +815,7 @@ func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) 
 //
 
 // PGPUpdateChainLink represents a chain link which marks a new version of a
-// PGP key as current. The KID and a new new full hash are included in the
+// PGP key as current. The KID and a new full hash are included in the
 // pgp_update section of the body.
 type PGPUpdateChainLink struct {
 	GenericChainLink
@@ -828,7 +827,7 @@ type PGPUpdateChainLink struct {
 func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err error) {
 	var kid keybase1.KID
 
-	pgpUpdate := b.payloadJSON.AtPath("body.pgp_update")
+	pgpUpdate := b.UnmarshalPayloadJSON().AtPath("body.pgp_update")
 
 	if pgpUpdate.IsNil() {
 		err = ChainLinkError{fmt.Sprintf("missing pgp_update section @%s", b.ToDebugString())}
@@ -867,7 +866,7 @@ type DeviceChainLink struct {
 
 func ParseDeviceChainLink(b GenericChainLink) (ret *DeviceChainLink, err error) {
 	var dobj *Device
-	if dobj, err = ParseDevice(b.payloadJSON.AtPath("body.device"), b.GetCTime()); err != nil {
+	if dobj, err = ParseDevice(b.UnmarshalPayloadJSON().AtPath("body.device"), b.GetCTime()); err != nil {
 	} else {
 		ret = &DeviceChainLink{b, dobj}
 	}
@@ -879,6 +878,88 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(s)
 }
 
+//
+//=========================================================================
+// WalletStellarChainLink
+
+type WalletStellarChainLink struct {
+	GenericChainLink
+	addressKID keybase1.KID
+	reverseSig string
+	address    string
+	network    string
+	name       string
+}
+
+func ParseWalletStellarChainLink(b GenericChainLink) (ret *WalletStellarChainLink, err error) {
+	ret = &WalletStellarChainLink{GenericChainLink: b}
+	mkErr := func(format string, args ...interface{}) error {
+		return ChainLinkError{fmt.Sprintf(format, args...) + fmt.Sprintf(" @%s", b.ToDebugString())}
+	}
+	bodyW := b.UnmarshalPayloadJSON()
+	walletSection := bodyW.AtPath("body.wallet")
+	walletKeySection := bodyW.AtPath("body.wallet_key")
+	ret.addressKID, err = GetKID(walletKeySection.AtKey("kid"))
+	if err != nil {
+		return nil, mkErr("Can't get address KID: %v", err)
+	}
+	ret.reverseSig, err = walletKeySection.AtKey("reverse_sig").GetString()
+	if err != nil {
+		return nil, mkErr("Missing reverse_sig: %v", err)
+	}
+	ret.address, err = walletSection.AtKey("address").GetString()
+	if err != nil {
+		return nil, mkErr("Can't get address: %v", err)
+	}
+	ret.network, err = walletSection.AtKey("network").GetString()
+	if err != nil {
+		return nil, mkErr("Can't get address network: %v", err)
+	}
+	nameOption := walletSection.AtKey("name")
+	if !nameOption.IsNil() {
+		ret.name, err = nameOption.GetString()
+		if err != nil {
+			return nil, mkErr("Can't get account name: %v", err)
+		}
+	}
+
+	// Check the network and that the keys match.
+	if ret.network != string(WalletNetworkStellar) {
+		return nil, mkErr("Unsupported wallet network '%v'", ret.network)
+	}
+	accountKey, err := MakeNaclSigningKeyPairFromStellarAccountID(stellar1.AccountID(ret.address))
+	if err != nil {
+		return nil, mkErr("Invalid stellar account address: '%v'", ret.address)
+	}
+	if !ret.addressKID.Equal(accountKey.GetKID()) {
+		return nil, mkErr("Mismatched wallet keys: '%v' <-/-> '%v", ret.addressKID, ret.address)
+	}
+
+	return ret, nil
+}
+
+func (s *WalletStellarChainLink) Type() string { return string(LinkTypeWalletStellar) }
+func (s *WalletStellarChainLink) ToDisplayString() string {
+	return fmt.Sprintf("%v %v %v %v", s.network, s.name, s.address, s.addressKID.String())
+}
+func (s *WalletStellarChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+	if tab.stellar == nil || tab.stellar.GetSeqno() <= s.GetSeqno() {
+		tab.stellar = s
+	}
+}
+
+// VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
+func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) {
+	key, err := ImportNaclSigningKeyPairFromHex(s.addressKID.String())
+	if err != nil {
+		return fmt.Errorf("Invalid wallet reverse signing KID: %s", s.addressKID)
+	}
+
+	return VerifyReverseSig(s.G(), key, "body.wallet_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
+}
+
+//
 //=========================================================================
 // UntrackChainLink
 
@@ -890,14 +971,15 @@ type UntrackChainLink struct {
 
 func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
 	var tmp string
-	tmp, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
+	payload := b.UnmarshalPayloadJSON()
+	tmp, err = payload.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
 	whomUsername := NewNormalizedUsername(tmp)
 
-	whomUID, err := GetUID(b.payloadJSON.AtPath("body.untrack.id"))
+	whomUID, err := GetUID(payload.AtPath("body.untrack.id"))
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
@@ -952,7 +1034,7 @@ func (c CryptocurrencyChainLink) GetAddress() string {
 func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	cl *CryptocurrencyChainLink, err error) {
 
-	jw := b.payloadJSON.AtPath("body.cryptocurrency")
+	jw := b.UnmarshalPayloadJSON().AtPath("body.cryptocurrency")
 	var styp, addr string
 	var pkhash []byte
 
@@ -1004,7 +1086,7 @@ type RevokeChainLink struct {
 
 func ParseRevokeChainLink(b GenericChainLink) (ret *RevokeChainLink, err error) {
 	var device *Device
-	if jw := b.payloadJSON.AtPath("body.device"); !jw.IsNil() {
+	if jw := b.UnmarshalPayloadJSON().AtPath("body.device"); !jw.IsNil() {
 		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
 			return
 		}
@@ -1079,7 +1161,7 @@ func (s *SelfSigChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff { return 
 func (s *SelfSigChainLink) GetProofType() keybase1.ProofType { return keybase1.ProofType_KEYBASE }
 
 func (s *SelfSigChainLink) ParseDevice() (err error) {
-	if jw := s.payloadJSON.AtPath("body.device"); !jw.IsNil() {
+	if jw := s.UnmarshalPayloadJSON().AtPath("body.device"); !jw.IsNil() {
 		s.device, err = ParseDevice(jw, s.GetCTime())
 	}
 	return err
@@ -1112,6 +1194,7 @@ type IdentityTable struct {
 	Order            []TypedChainLink
 	sigHints         *SigHints
 	cryptocurrency   []*CryptocurrencyChainLink
+	stellar          *WalletStellarChainLink
 	checkResult      *CheckResult
 	eldest           keybase1.KID
 }
@@ -1148,7 +1231,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	base := GenericChainLink{cl}
 
-	s, err := cl.payloadJSON.AtKey("body").AtKey("type").GetString()
+	s, err := cl.UnmarshalPayloadJSON().AtKey("body").AtKey("type").GetString()
 	if len(s) == 0 || err != nil {
 		err = fmt.Errorf("No type in signature @%s", base.ToDebugString())
 	} else {
@@ -1175,6 +1258,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParsePerUserKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
+		case string(LinkTypeWalletStellar):
+			ret, err = ParseWalletStellarChainLink(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}
@@ -1189,7 +1274,7 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 
 	// Basically we never fail, since worse comes to worse, we treat
 	// unknown signatures as "generic" and can still display them
-	return
+	return ret, w
 }
 
 func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
@@ -1224,10 +1309,14 @@ func (idt *IdentityTable) populate() (err error) {
 			continue
 		}
 		tcl, w := NewTypedChainLink(link)
-		tcl.insertIntoTable(idt)
 		if w != nil {
 			w.Warn(idt.G())
 		}
+		// If it's an unknown link type, then it's OK to ignore it
+		if tcl == nil {
+			continue
+		}
+		tcl.insertIntoTable(idt)
 		if link.isOwnNewLinkFromServer {
 			link.isOwnNewLinkFromServer = false
 			tcl.DoOwnNewLinkFromServerNotifications(idt.G())
@@ -1337,6 +1426,22 @@ func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyC
 		}
 	}
 	return ret
+}
+
+// Return the active stellar public address for a user.
+// Returns nil if there is none or it has not been loaded.
+func (idt *IdentityTable) StellarWalletAddress() *stellar1.AccountID {
+	// Return the account ID of the latest link with the network set to stellar.
+	if idt.stellar == nil {
+		return nil
+	}
+	link := idt.stellar
+	if link.network == string(WalletNetworkStellar) {
+		// Something should have already validated link.address as a stellar account ID.
+		tmp := stellar1.AccountID(link.address)
+		return &tmp
+	}
+	return nil
 }
 
 func (idt *IdentityTable) Len() int {

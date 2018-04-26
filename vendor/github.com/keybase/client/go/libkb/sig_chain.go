@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"time"
 
+	"github.com/buger/jsonparser"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -226,7 +228,7 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 	sc.G().Log.CDebugf(ctx, "+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { sc.G().Log.CDebugf(ctx, "- Loaded SigChain -> %s", ErrToOk(err)) }()
 
-	res, err := sc.G().API.Get(APIArg{
+	resp, finisher, err := sc.G().API.GetResp(APIArg{
 		Endpoint:    "sig/get",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
@@ -237,31 +239,37 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 		},
 		NetContext: ctx,
 	})
-
 	if err != nil {
 		return
 	}
-
-	v := res.Body.AtKey("sigs")
-	var lim int
-	if lim, err = v.Len(); err != nil {
-		return
+	if finisher != nil {
+		defer finisher()
 	}
 
-	foundTail := false
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return sc.LoadServerBody(ctx, body, low, t, selfUID)
+}
 
-	sc.G().Log.CDebugf(ctx, "| Got back %d new entries", lim)
+func (sc *SigChain) LoadServerBody(ctx context.Context, body []byte, low keybase1.Seqno, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
+	foundTail := false
 
 	var links ChainLinks
 	var tail *ChainLink
 
-	for i := 0; i < lim; i++ {
+	numEntries := 0
+
+	jsonparser.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
+
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(sc.G(), sc, v.AtIndex(i), selfUID); err != nil {
+		if link, err = ImportLinkFromServer(sc.G(), sc, value, selfUID); err != nil {
+			sc.G().Log.Debug("ImportLinkFromServer error: %s", err)
 			return
 		}
 		if link.GetSeqno() <= low {
-			continue
+			return
 		}
 		if selfUID.Equal(link.GetUID()) {
 			sc.G().Log.CDebugf(ctx, "| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
@@ -273,13 +281,21 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 				return
 			}
 		}
+
 		tail = link
+		numEntries++
+	}, "sigs")
+
+	if err != nil {
+		return nil, err
 	}
+
+	sc.G().Log.CDebugf(ctx, "| Got back %d new entries", numEntries)
 
 	if t != nil && !foundTail {
 		err = NewServerChainError("Failed to reach (%s, %d) in server response",
 			t.LinkID, int(t.Seqno))
-		return
+		return nil, err
 	}
 
 	if tail != nil {
@@ -295,7 +311,12 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 	}
 
 	sc.chainLinks = append(sc.chainLinks, links...)
-	return
+	return dirtyTail, nil
+}
+
+func (sc *SigChain) SetUIDUsername(uid keybase1.UID, username string) {
+	sc.uid = uid
+	sc.username = NewNormalizedUsername(username)
 }
 
 func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
@@ -552,6 +573,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
 
 	first := true
+	seenInflatedWalletStellarLink := false
 
 	for linkIndex, link := range links {
 		if isBad, reason := link.IsBad(); isBad {
@@ -563,8 +585,17 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 			if first {
 				return cached, cki, SigchainV2StubbedFirstLinkError{}
 			}
-			if link.NeedsSignature() {
+			if !link.AllowStubbing() {
 				return cached, cki, SigchainV2StubbedSignatureNeededError{}
+			}
+			linkTypeV2, err := link.GetSigchainV2TypeFromV2Shell()
+			if err != nil {
+				return cached, cki, err
+			}
+			if linkTypeV2 == SigchainV2TypeWalletStellar && seenInflatedWalletStellarLink {
+				// There may not be stubbed wallet links following an unstubbed wallet links (for a given network).
+				// So that the server can't roll back someone's active wallet address.
+				return cached, cki, SigchainV2StubbedDisallowed{}
 			}
 			sc.G().VDL.Log(VLog1, "| Skipping over stubbed-out link: %s", link.id)
 			continue
@@ -624,6 +655,15 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 			if err != nil {
 				return cached, cki, err
 			}
+		}
+
+		if _, ok := tcl.(*WalletStellarChainLink); ok {
+			// Assert that wallet chain links are be >= v2.
+			// They must be v2 in order to be stubbable later for privacy.
+			if link.unpacked.sigVersion < 2 {
+				return cached, cki, SigchainV2Required{}
+			}
+			seenInflatedWalletStellarLink = true
 		}
 
 		if err = tcl.VerifyReverseSig(ckf); err != nil {
@@ -731,7 +771,7 @@ func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 }
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
-// multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false othewise.
+// multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false otherwise.
 func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
 	// First consume the currently active sigchain.
 	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(ctx, eldest, ckf)
@@ -743,6 +783,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 
 	// Now let's examine any historical subchains, if there are any.
 	historicalLinks := sc.chainLinks.omittingNRightmostLinks(numLinksConsumed)
+
 	if len(historicalLinks) > 0 {
 		sc.G().Log.CDebugf(ctx, "After consuming %d links, there are %d historical links left",
 			numLinksConsumed, len(historicalLinks))
@@ -766,7 +807,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allL
 
 	for {
 		if len(allLinks) == 0 {
-			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; no futher links")
+			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; no further links")
 			break
 		}
 
@@ -946,6 +987,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", currentLink.GetPrev())
 			return nil
 		}
+
 		links = append(links, prevLink)
 		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()

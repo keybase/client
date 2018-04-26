@@ -12,8 +12,10 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"math/big"
 	"os"
@@ -22,14 +24,15 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 	"unicode"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -189,7 +192,7 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err
 	}
 	g.Debug("| Temporary file generated: %s", tmpfn)
 	defer tmp.Close()
-	defer os.Remove(tmpfn)
+	defer ShredFile(tmpfn)
 
 	g.Debug("| WriteTo %s", tmpfn)
 	n, err := t.WriteTo(tmp)
@@ -521,8 +524,15 @@ func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() er
 	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
 
-func (g *GlobalContext) CTimeTracer(ctx context.Context, label string) *TimeTracer {
-	return NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
+func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled bool) profiling.TimeTracer {
+	if enabled {
+		return profiling.NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
+	}
+	return profiling.NewSilentTimeTracer()
+}
+
+func (g *GlobalContext) CTimeBuckets(ctx context.Context) (context.Context, *profiling.TimeBuckets) {
+	return profiling.WithTimeBuckets(ctx, g.Clock(), g.Log)
 }
 
 func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
@@ -689,59 +699,10 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 }
 
 func CITimeMultiplier(g *GlobalContext) time.Duration {
-	if g.GetEnv().RunningInCI() {
+	if g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn() {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
-}
-
-type TimeTracer struct {
-	sync.Mutex
-	ctx    context.Context
-	log    logger.Logger
-	clock  clockwork.Clock
-	label  string
-	stage  string
-	staged bool      // whether any stages were used
-	start  time.Time // when the tracer started
-	prev   time.Time // when the active stage started
-}
-
-func NewTimeTracer(ctx context.Context, log logger.Logger, clock clockwork.Clock, label string) *TimeTracer {
-	now := clock.Now()
-	log.CDebugf(ctx, "+ %s", label)
-	return &TimeTracer{
-		ctx:    ctx,
-		log:    log,
-		clock:  clock,
-		label:  label,
-		stage:  "init",
-		staged: false,
-		start:  now,
-		prev:   now,
-	}
-}
-
-func (t *TimeTracer) finishStage() {
-	t.log.CDebugf(t.ctx, "| %s:%s [time=%s]", t.label, t.stage, t.clock.Since(t.prev))
-}
-
-func (t *TimeTracer) Stage(format string, args ...interface{}) {
-	t.Lock()
-	defer t.Unlock()
-	t.finishStage()
-	t.stage = fmt.Sprintf(format, args...)
-	t.prev = t.clock.Now()
-	t.staged = true
-}
-
-func (t *TimeTracer) Finish() {
-	t.Lock()
-	defer t.Unlock()
-	if t.staged {
-		t.finishStage()
-	}
-	t.log.CDebugf(t.ctx, "- %s [time=%s]", t.label, t.clock.Since(t.start))
 }
 
 func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
@@ -757,6 +718,10 @@ func CanExec(p string) error {
 }
 
 func CurrentBinaryRealpath() (string, error) {
+	if IsMobilePlatform() {
+		return "mobile-binary-location-unknown", nil
+	}
+
 	executable, err := os.Executable()
 	if err != nil {
 		return "", err
@@ -824,4 +789,71 @@ func IsNoSpaceOnDeviceError(err error) bool {
 	}
 
 	return false
+}
+
+func ShredFile(filename string) error {
+	stat, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	if stat.IsDir() {
+		return errors.New("cannot shred a directory")
+	}
+	size := int(stat.Size())
+
+	defer os.Remove(filename)
+
+	for i := 0; i < 3; i++ {
+		noise, err := RandBytes(size)
+		if err != nil {
+			return err
+		}
+		if err := ioutil.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
+			return err
+		}
+	}
+
+	return os.Remove(filename)
+}
+
+func MPackEncode(input interface{}) ([]byte, error) {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(input); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func MPackDecode(data []byte, res interface{}) error {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	err := dec.Decode(res)
+	return err
+}
+
+type NoiseBytes [noiseFileLen]byte
+
+func MakeNoise() (nb NoiseBytes, err error) {
+	noise, err := RandBytes(noiseFileLen)
+	if err != nil {
+		return nb, err
+	}
+	copy(nb[:], noise)
+	return nb, nil
+}
+
+func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
+	sum := sha256.Sum256(noise[:])
+	if len(sum) != len(secret) {
+		return nil, errors.New("secret or sha256.Size is no longer 32")
+	}
+
+	xor := make([]byte, len(sum))
+	for i := 0; i < len(sum); i++ {
+		xor[i] = sum[i] ^ secret[i]
+	}
+
+	return xor, nil
 }

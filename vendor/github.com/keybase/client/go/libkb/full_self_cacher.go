@@ -15,7 +15,7 @@ type FullSelfer interface {
 	WithUser(arg LoadUserArg, f func(u *User) error) (err error)
 	HandleUserChanged(u keybase1.UID) error
 	Update(ctx context.Context, u *User) error
-	OnLogout() error
+	New() FullSelfer
 	OnLogin() error
 }
 
@@ -44,9 +44,10 @@ func (n *UncachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) erro
 }
 
 func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error    { return nil }
-func (n *UncachedFullSelf) OnLogout() error                           { return nil }
 func (n *UncachedFullSelf) OnLogin() error                            { return nil }
 func (n *UncachedFullSelf) Update(ctx context.Context, u *User) error { return nil }
+
+func (n *UncachedFullSelf) New() FullSelfer { return NewUncachedFullSelf(n.G()) }
 
 func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
 	return &UncachedFullSelf{NewContextified(g)}
@@ -72,6 +73,8 @@ func NewCachedFullSelf(g *GlobalContext) *CachedFullSelf {
 		Contextified: NewContextified(g),
 	}
 }
+
+func (m *CachedFullSelf) New() FullSelfer { return NewCachedFullSelf(m.G()) }
 
 func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 	if arg.self {
@@ -259,14 +262,6 @@ func (m *CachedFullSelf) HandleUserChanged(u keybase1.UID) error {
 	return nil
 }
 
-// OnLogout clears the cached self user.
-func (m *CachedFullSelf) OnLogout() error {
-	m.Lock()
-	defer m.Unlock()
-	m.me = nil
-	return nil
-}
-
 // OnLogin clears the cached self user if it differs from what's already cached.
 func (m *CachedFullSelf) OnLogin() error {
 	m.Lock()
@@ -275,4 +270,15 @@ func (m *CachedFullSelf) OnLogin() error {
 		m.me = nil
 	}
 	return nil
+}
+
+func LoadSelfForTeamSignatures(ctx context.Context, g *GlobalContext) (ret UserForSignatures, err error) {
+	err = g.GetFullSelfer().WithSelf(ctx, func(u *User) error {
+		if u == nil {
+			return LoginRequiredError{"no self in FullSelfCacher"}
+		}
+		ret = u.ToUserForSignatures()
+		return nil
+	})
+	return ret, err
 }

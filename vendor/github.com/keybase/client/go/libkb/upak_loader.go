@@ -27,6 +27,7 @@ type UPAKLoader interface {
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
+	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -86,7 +87,10 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	u.purgeMemCache()
 }
 
-const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V5
+// NOTE(max) 2018.02.28
+// When bumping this next, please see the fussy logic surrounding the fact that minor
+// version 5 is still OK for non-reset accounts.
+const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V6
 
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
@@ -108,14 +112,27 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	} else {
 		var tmp keybase1.UserPlusKeysV2AllIncarnations
 		found, err := u.G().LocalDb.GetInto(&tmp, culDBKeyV2(uid))
+
+		// As a nice load-saving hack, we can upgrade V5 minor versions to V6 on load if there are no resets.
+		// We just do this in memory.
+		if found && err == nil && tmp.MinorVersion == keybase1.UPK2MinorVersion_V5 && len(tmp.PastIncarnations) == 0 {
+			u.G().VDL.CLogf(ctx, VLog0, "| upgrade disk cache v%d without resets to v%d", keybase1.UPK2MinorVersion_V5, keybase1.UPK2MinorVersion_V6)
+			tmp.MinorVersion = keybase1.UPK2MinorVersion_V6
+		}
+
+		hit := false
 		if err != nil {
 			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
 		} else if !found {
 			u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
-		} else if tmp.MinorVersion != UPK2MinorVersionCurrent {
-			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+		} else if tmp.MinorVersion == UPK2MinorVersionCurrent {
+			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (v%d)", tmp.MinorVersion)
+			hit = true
 		} else {
-			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
+			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+		}
+
+		if hit {
 			upak = &tmp
 			if info != nil {
 				info.InDiskCache = true
@@ -340,7 +357,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
-			// since the previous line updates the in-memory cache satisfactorially.
+			// since the previous line updates the in-memory cache satisfactorily.
 			if err := u.putUPAKToCache(ctx, upak); err != nil {
 				u.G().Log.CDebugf(ctx, "continuing past error in putUPAKToCache: %s", err)
 			}
@@ -480,13 +497,15 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // incarnation if there are multiple.
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
 	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), func() error { return err })()
+	ctx, tbs := u.G().CTimeBuckets(ctx)
+	defer tbs.Record("CachedUPAKLoader.LoadKeyV2")()
 	if uid.IsNil() {
 		return nil, nil, nil, NoUIDError{}
 	}
 
 	argBase := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 
-	// Make the retry mechanism increasingly aggresive. See CORE-8851.
+	// Make the retry mechanism increasingly aggressive. See CORE-8851.
 	// It should be that a ForcePoll is good enough, but in some rare cases,
 	// people have cached values for previous pre-reset user incarnations that
 	// were incorrect. So clobber over that if it comes to it.
@@ -652,6 +671,33 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 		err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
 	}
 	return NormalizedUsername(""), "", "", err
+}
+
+func (u *CachedUPAKLoader) loadUserWithKIDAndInfo(ctx context.Context, uid keybase1.UID, kid keybase1.KID, info *CachedUserLoadInfo) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
+	argBase := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
+
+	// See comment in LoadKeyV2
+	attempts := []LoadUserArg{
+		argBase,
+		argBase.WithForcePoll(true),
+		argBase.WithForceReload(),
+	}
+	for _, arg := range attempts {
+		u.G().VDL.CLogf(ctx, VLog0, "| loadWithUserKIDAndInfo: loading with arg: %s", arg.String())
+		ret, _, err = u.loadWithInfo(arg, info, nil, false)
+		if err == nil && ret != nil && (kid.IsNil() || ret.HasKID(kid)) {
+			u.G().VDL.CLogf(ctx, VLog0, "| loadWithUserKIDAndInfo: UID/KID %s/%s found", uid, kid)
+			return ret, nil
+		}
+	}
+	if err == nil {
+		err = NotFoundError{fmt.Sprintf("UID/KID pair %s/%s not found", uid, kid)}
+	}
+	return nil, err
+}
+
+func (u *CachedUPAKLoader) LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
+	return u.loadUserWithKIDAndInfo(ctx, uid, kid, nil)
 }
 
 func (u *CachedUPAKLoader) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error) {

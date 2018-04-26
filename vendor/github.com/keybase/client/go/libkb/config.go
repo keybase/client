@@ -292,8 +292,27 @@ func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserCo
 	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(nu.String()))
 }
 
+func (f JSONConfigFile) copyUserConfigIfForUID(u keybase1.UID) *UserConfig {
+	if f.userConfigWrapper == nil || f.userConfigWrapper.userConfig == nil {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUID().IsNil() {
+		return nil
+	}
+	if f.userConfigWrapper.userConfig.GetUID().Equal(u) {
+		tmp := *f.userConfigWrapper.userConfig
+		return &tmp
+	}
+	return nil
+}
+
 // GetUserConfigForUID sees if there's a UserConfig object for the given UIDs previously stored.
 func (f JSONConfigFile) GetUserConfigForUID(u keybase1.UID) (*UserConfig, error) {
+
+	if uc := f.copyUserConfigIfForUID(u); uc != nil {
+		return uc, nil
+	}
+
 	d := f.jw.AtKey("users")
 	keys, _ := d.Keys()
 	for _, key := range keys {
@@ -374,6 +393,11 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 		f.jw.DeleteKey("current_user")
 		f.userConfigWrapper.userConfig = nil
 		return f.Save()
+	}
+
+	if u.IsOneshot() {
+		f.userConfigWrapper.userConfig = u
+		return nil
 	}
 
 	parent := f.jw.AtKey("users")
@@ -539,13 +563,15 @@ func (f JSONConfigFile) GetVDebugSetting() string {
 func (f JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
+func (f JSONConfigFile) GetRememberPassphrase() (bool, bool) {
+	return f.GetTopLevelBool("remember_passphrase")
+}
 func (f JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
 }
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
-
 func (f JSONConfigFile) GetGregorURI() string {
 	s, _ := f.GetStringAtPath("push.server_uri")
 	return s
@@ -615,6 +641,10 @@ func (f JSONConfigFile) GetUPAKCacheSize() (int, bool) {
 
 func (f JSONConfigFile) GetUIDMapFullNameCacheSize() (int, bool) {
 	return f.getCacheSize("cache.limits.uid_map_full_name")
+}
+
+func (f JSONConfigFile) GetPayloadCacheSize() (int, bool) {
+	return f.getCacheSize("cache.limits.payloads")
 }
 
 func (f JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
@@ -763,10 +793,6 @@ func (f JSONConfigFile) GetUpdateDisabled() (bool, bool) {
 	return f.GetBoolAtPath("updates.disabled")
 }
 
-func (f JSONConfigFile) IsAdmin() (bool, bool) {
-	return f.GetBoolAtPath("is_admin")
-}
-
 func (f JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
 	var ret keybase1.Time
 	s, _ := f.GetStringAtPath(path)
@@ -821,4 +847,12 @@ func (f JSONConfigFile) SetBug3964RepairTime(un NormalizedUsername, t time.Time)
 
 func (f JSONConfigFile) GetAppType() AppType {
 	return AppType(f.GetTopLevelString("app_type"))
+}
+
+func (f JSONConfigFile) GetSlowGregorConn() (bool, bool) {
+	return f.GetBoolAtPath("slow_gregor_conn")
+}
+
+func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
+	return f.SetBoolAtPath("remember_passphrase", remember)
 }

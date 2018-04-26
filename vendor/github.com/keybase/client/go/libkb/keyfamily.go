@@ -38,7 +38,8 @@ const (
 	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
 	ComputedKeyInfosV2             ComputedKeyInfosVersion = ComputedKeyInfosVersion(2)
 	ComputedKeyInfosV3             ComputedKeyInfosVersion = ComputedKeyInfosVersion(3)
-	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV3
+	ComputedKeyInfosV4             ComputedKeyInfosVersion = ComputedKeyInfosVersion(4)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV4
 )
 
 // refers to exactly one ServerKeyInfo.
@@ -353,12 +354,13 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 	kbid := KeybaseIdentity(cki.G(), un)
 	if pgp, ok := eldestKey.(*PGPKeyBundle); ok {
 
-		// In the future, we might chose to ignore this etime, as we do in
+		// In the future, we might choose to ignore this etime, as we do in
 		// InsertEldestLink below. When we do make that change, be certain
 		// to update the comment in PGPKeyBundle#CheckIdentity to reflect it.
 		// For now, we continue to honor the foo_user@keybase.io etime in the case
 		// there's no sigchain link over the key to specify a different etime.
 		match, ctime, etime := pgp.CheckIdentity(kbid)
+		etime = cki.G().HonorPGPExpireTime(etime)
 		if match {
 			kid := eldestKey.GetKID()
 			eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, "" /* activePGPHash */)
@@ -389,7 +391,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 	// We don't need to check the signature on the first link, because
 	// verifySubchain will take care of that.
 	ctime := tcl.GetCTime().Unix()
-	etime := tcl.GetETime().Unix()
+	etime := ckf.G().HonorSigchainExpireTime(tcl.GetETime().Unix())
 
 	eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
 	eldestCki.DelegatedAt = tm
@@ -638,15 +640,16 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 
 	cki.G().Log.Debug("ComputeKeyInfos#Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
+	etimeUnix := cki.G().HonorSigchainExpireTime(etime.Unix())
 	if !found {
-		newInfo := NewComputedKeyInfo(kid, false, isSibkey, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
+		newInfo := NewComputedKeyInfo(kid, false, isSibkey, KeyUncancelled, ctime.Unix(), etimeUnix, pgpHash)
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kid] = info
 	} else {
 		info.Status = KeyUncancelled
 		info.CTime = ctime.Unix()
-		info.ETime = etime.Unix()
+		info.ETime = etimeUnix
 	}
 	info.Delegations[sigid] = signingKid
 	info.DelegationsList = append(info.DelegationsList, Delegation{signingKid, sigid})

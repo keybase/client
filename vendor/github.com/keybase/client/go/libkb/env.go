@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -42,6 +43,7 @@ func (n NullConfiguration) GetLinkCacheSize() (int, bool)                       
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetUIDMapFullNameCacheSize() (int, bool)                        { return 0, false }
+func (n NullConfiguration) GetPayloadCacheSize() (int, bool)                               { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -82,12 +84,13 @@ func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)        
 func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)                   { return 0, false }
 func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool)                { return 0, false }
-func (n NullConfiguration) IsAdmin() (bool, bool)                                          { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                                { return false, false }
 func (n NullConfiguration) GetMountDir() string                                            { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
+func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                                { return false, false }
+func (n NullConfiguration) GetRememberPassphrase() (bool, bool)                            { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)                 { return 1, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
@@ -158,6 +161,17 @@ type TestParameters struct {
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
+
+	// whether LogoutIfRevoked check should be skipped to avoid races
+	// during resets.
+	SkipLogoutIfRevokedCheck bool
+
+	// On if, in test, we want to skip sending system chat messages
+	SkipSendingSystemChatMessages bool
+
+	// If we need to use the real clock for NIST generation (as in really
+	// whacky tests liks TestRekey).
+	UseTimeClockForNISTs bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -221,19 +235,6 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 }
 
 func (e *Env) GetMountDir() (string, error) {
-	var darwinMountsubdir string
-	runMode := e.GetRunMode()
-	switch runMode {
-	case DevelRunMode:
-		darwinMountsubdir = "keybase.devel"
-	case StagingRunMode:
-		darwinMountsubdir = "keybase.staging"
-	case ProductionRunMode:
-		darwinMountsubdir = "keybase"
-	default:
-		return "", fmt.Errorf("Invalid run mode: %s", runMode)
-	}
-
 	return e.GetString(
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
@@ -241,12 +242,31 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string {
 			switch runtime.GOOS {
 			case "darwin":
-				return filepath.Join(
-					string(filepath.Separator), darwinMountsubdir)
+				volumes := "/Volumes"
+				user, err := user.Current()
+				if err != nil {
+					panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+				}
+				var runmodeName string
+				switch e.GetRunMode() {
+				case DevelRunMode:
+					runmodeName = "KeybaseDevel"
+				case StagingRunMode:
+					runmodeName = "KeybaseStaging"
+				case ProductionRunMode:
+					runmodeName = "Keybase"
+				default:
+					panic("Invalid run mode")
+				}
+				return filepath.Join(volumes, fmt.Sprintf(
+					"%s (%s)", runmodeName, user.Username))
 			case "linux":
-				return filepath.Join(e.GetDataDir(), "fs")
-			default:
+				return filepath.Join(e.GetRuntimeDir(), "kbfs")
+			// kbfsdokan depends on an empty default
+			case "windows":
 				return ""
+			default:
+				return filepath.Join(e.GetRuntimeDir(), "kbfs")
 			}
 		},
 	), nil
@@ -287,6 +307,14 @@ func (e *Env) GetCacheDir() string        { return e.HomeFinder.CacheDir() }
 func (e *Env) GetSandboxCacheDir() string { return e.HomeFinder.SandboxCacheDir() }
 func (e *Env) GetDataDir() string         { return e.HomeFinder.DataDir() }
 func (e *Env) GetLogDir() string          { return e.HomeFinder.LogDir() }
+
+func (e *Env) SendSystemChatMessages() bool {
+	return !e.Test.SkipSendingSystemChatMessages
+}
+
+func (e *Env) UseTimeClockForNISTs() bool {
+	return e.Test.UseTimeClockForNISTs
+}
 
 func (e *Env) GetRuntimeDir() string {
 	return e.GetString(
@@ -555,6 +583,12 @@ func (e *Env) GetAPIDump() bool {
 	)
 }
 
+func (e *Env) GetAllowRoot() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_ROOT") },
+	)
+}
+
 func (e *Env) GetUsername() NormalizedUsername {
 	return e.GetConfig().GetUsername()
 }
@@ -677,6 +711,12 @@ func (e *Env) GetEmail() string {
 // Upgrade sigchains to contain per-user-keys.
 func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
+}
+
+// If true, do not logout after user.key_change notification handler
+// decides that current device has been revoked.
+func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
+	return e.Test.SkipLogoutIfRevokedCheck
 }
 
 func (e *Env) GetProxy() string {
@@ -835,6 +875,14 @@ func (e *Env) GetLinkCacheCleanDur() time.Duration {
 	)
 }
 
+func (e *Env) GetPayloadCacheSize() int {
+	return e.GetInt(PayloadCacheSize,
+		e.cmd.GetPayloadCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_PAYLOAD_CACHE_SIZE") },
+		e.GetConfig().GetPayloadCacheSize,
+	)
+}
+
 func (e *Env) GetEmailOrUsername() string {
 	un := e.GetUsername().String()
 	if len(un) > 0 {
@@ -882,6 +930,14 @@ func (e *Env) GetAppType() AppType {
 	default:
 		return NoAppType
 	}
+}
+
+func (e *Env) GetSlowGregorConn() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetSlowGregorConn() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_SLOW_GREGOR_CONN") },
+		func() (bool, bool) { return e.GetConfig().GetSlowGregorConn() },
+	)
 }
 
 func (e *Env) GetFeatureFlags() FeatureFlags {
@@ -1041,6 +1097,13 @@ func (e *Env) GetChatMemberType() string {
 	)
 }
 
+func (e *Env) GetAvatarSource() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_AVATAR_SOURCE") },
+		func() string { return "full" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.GetConfig().GetDeviceID()
 }
@@ -1184,12 +1247,27 @@ func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
 }
 
+func (c AppConfig) GetSlowGregorConn() (bool, bool) {
+	return false, false
+}
+
 func (c AppConfig) GetVDebugSetting() string {
 	return c.VDebugSetting
 }
 
 func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
 	return c.ChatInboxSourceLocalizeThreads, true
+}
+
+// Default is 500, compacted size of each file is 2MB, so turning
+// this down on mobile to reduce mem usage.
+func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
+	return 50, true
+}
+
+// Default is 4000. Turning down on mobile to reduce memory usage.
+func (c AppConfig) GetLinkCacheSize() (int, bool) {
+	return 1000, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
@@ -1230,11 +1308,6 @@ func (e *Env) GetUpdateURL() string {
 
 func (e *Env) GetUpdateDisabled() (bool, bool) {
 	return e.GetConfig().GetUpdateDisabled()
-}
-
-func (e *Env) IsAdmin() bool {
-	b, _ := e.GetConfig().IsAdmin()
-	return b
 }
 
 func (e *Env) GetVDebugSetting() string {
@@ -1281,9 +1354,27 @@ func (e *Env) DarwinForceSecretStoreFile() bool {
 		os.Getenv("KEYBASE_SECRET_STORE_FILE") == "1")
 }
 
+func (e *Env) RememberPassphrase() bool {
+	return e.GetBool(true,
+		e.cmd.GetRememberPassphrase,
+		e.GetConfig().GetRememberPassphrase,
+	)
+}
+
 func GetPlatformString() string {
 	if isIOS {
 		return "ios"
 	}
 	return runtime.GOOS
+}
+
+func IsMobilePlatform() bool {
+	s := GetPlatformString()
+	return (s == "ios" || s == "android")
+}
+
+func (e *Env) AllowPTrace() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_PTRACE") },
+	)
 }

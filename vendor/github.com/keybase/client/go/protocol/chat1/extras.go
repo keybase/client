@@ -8,12 +8,17 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// we will show some representation of an exploded message in the UI for a week
+const explosionLifetime = time.Hour * 24 * 7
+
 type ByUID []gregor1.UID
+type ConvIDShort = []byte
 
 func (b ByUID) Len() int      { return len(b) }
 func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
@@ -68,8 +73,16 @@ const DbShortFormLen = 10
 
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
-func (cid ConversationID) DbShortForm() []byte {
+func (cid ConversationID) DbShortForm() ConvIDShort {
 	return cid[:DbShortFormLen]
+}
+
+func (cid ConversationID) DbShortFormString() string {
+	return DbShortFormToString(cid.DbShortForm())
+}
+
+func DbShortFormToString(cid ConvIDShort) string {
+	return hex.EncodeToString(cid)
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -86,6 +99,13 @@ func MakeTopicType(val int64) TopicType {
 
 func (mid MessageID) String() string {
 	return strconv.FormatUint(uint64(mid), 10)
+}
+
+func (mid MessageID) Min(mid2 MessageID) MessageID {
+	if mid < mid2 {
+		return mid
+	}
+	return mid2
 }
 
 func (t MessageType) String() string {
@@ -217,6 +237,95 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+// IsValidFull returns whether the message is both:
+// 1. Valid
+// 2. Has a non-deleted body with a type matching the header
+//    (TLFNAME is an exception as it has no body)
+func (m MessageUnboxed) IsValidFull() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Skip body check
+		return true
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == headerType
+}
+
+func (m *MessageUnboxed) DebugString() string {
+	if m == nil {
+		return "[nil]"
+	}
+	state, err := m.State()
+	if err != nil {
+		return fmt.Sprintf("[INVALID err:%v]", err)
+	}
+	if state == MessageUnboxedState_ERROR {
+		merr := m.Error()
+		return fmt.Sprintf("[%v %v mt:%v (%v)]", state, m.GetMessageID(), merr.ErrType, merr.ErrMsg)
+	}
+	switch state {
+	case MessageUnboxedState_VALID:
+		valid := m.Valid()
+		headerType := valid.ClientHeader.MessageType
+		s := fmt.Sprintf("%v %v", state, valid.ServerHeader.MessageID)
+		bodyType, err := valid.MessageBody.MessageType()
+		if err != nil {
+			return fmt.Sprintf("[INVALID-BODY err:%v]", err)
+		}
+		if headerType == bodyType {
+			s = fmt.Sprintf("%v %v", s, headerType)
+		} else {
+			if headerType == MessageType_TLFNAME {
+				s = fmt.Sprintf("%v h:%v (b:%v)", s, headerType, bodyType)
+			} else {
+				s = fmt.Sprintf("%v h:%v != b:%v", s, headerType, bodyType)
+			}
+		}
+		if valid.ServerHeader.SupersededBy != 0 {
+			s = fmt.Sprintf("%v supBy:%v", s, valid.ServerHeader.SupersededBy)
+		}
+		return fmt.Sprintf("[%v]", s)
+	case MessageUnboxedState_OUTBOX:
+		obr := m.Outbox()
+		ostateStr := "CORRUPT"
+		ostate, err := obr.State.State()
+		if err != nil {
+			ostateStr = "CORRUPT"
+		} else {
+			ostateStr = fmt.Sprintf("%v", ostate)
+		}
+		return fmt.Sprintf("[%v obid:%v prev:%v ostate:%v %v]",
+			state, obr.OutboxID, obr.Msg.ClientHeader.OutboxInfo.Prev, ostateStr, obr.Msg.ClientHeader.MessageType)
+	default:
+		return fmt.Sprintf("[state:%v %v]", state, m.GetMessageID())
+	}
+}
+
+func MessageUnboxedDebugStrings(ms []MessageUnboxed) (res []string) {
+	for _, m := range ms {
+		res = append(res, m.DebugString())
+	}
+	return res
+}
+
+func MessageUnboxedDebugList(ms []MessageUnboxed) string {
+	return fmt.Sprintf("{ %v %v }", len(ms), strings.Join(MessageUnboxedDebugStrings(ms), ","))
+}
+
+func MessageUnboxedDebugLines(ms []MessageUnboxed) string {
+	return strings.Join(MessageUnboxedDebugStrings(ms), "\n")
+}
+
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
 	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
 		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
@@ -232,6 +341,72 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 		return res, fmt.Errorf("message has wrong body type: %v", btyp)
 	}
 	return m.MessageBody.Deletehistory(), nil
+}
+
+func (m MessagePlaintext) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
+}
+
+func (m MessagePlaintext) EphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
+	if o != nil && r != nil {
+		return *o == *r
+	}
+	return (o == nil) && (r == nil)
+}
+
+func (m MessageUnboxedValid) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
+}
+
+func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageUnboxedValid) Etime() gregor1.Time {
+	// The server sends us (untrusted) ctime of the message and server's view
+	// of now. We use these to calculate the remaining lifetime on an ephemeral
+	// message, returning an etime based on our received time.
+	metadata := m.EphemeralMetadata()
+	header := m.ServerHeader
+	originalLifetime := time.Second * time.Duration(metadata.Lifetime)
+	elapsedLifetime := header.Ctime.Time().Sub(header.Now.Time())
+	remainingLifetime := originalLifetime - elapsedLifetime
+	// If the server's view doesn't make sense, just use the signed lifetime
+	// from the message.
+	if remainingLifetime > originalLifetime {
+		remainingLifetime = originalLifetime
+	}
+	etime := m.ClientHeader.Rtime.Time().Add(remainingLifetime)
+	return gregor1.ToTime(etime)
+}
+
+func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
+	remainingLifetime := m.Etime().Time().Sub(time.Now()).Round(time.Second)
+	return remainingLifetime
+}
+
+func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
+	if !m.IsExploding() {
+		return false
+	}
+	etime := m.Etime().Time()
+	return etime.Before(now) || etime.Equal(now)
+}
+
+func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
+	if !m.IsExploding() {
+		return false
+	}
+	etime := m.Etime()
+	return etime.Time().Add(explosionLifetime).Before(now)
+}
+
+func (m UIMessageValid) IsExploding() bool {
+	return m.EphemeralMetadata != nil
 }
 
 func (b MessageBody) IsNil() bool {
@@ -304,6 +479,18 @@ func (m MessageBoxed) Summary() MessageSummary {
 		s.Ctime = m.ServerHeader.Ctime
 	}
 	return s
+}
+
+func (m MessageBoxed) KBFSEncrypted() bool {
+	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
+}
+
+func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageBoxed) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -406,7 +593,7 @@ func (c ConversationInfoLocal) TLFNameExpanded() string {
 
 // TLFNameExpandedSummary returns a TLF name with a summary of the
 // account reset if there was one.
-// This version is for display purposes only and connot be used to lookup the TLF.
+// This version is for display purposes only and cannot be used to lookup the TLF.
 func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 	if c.FinalizeInfo == nil {
 		return c.TlfName
@@ -474,6 +661,11 @@ func (p Pagination) Eq(other Pagination) bool {
 		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
 }
 
+func (p Pagination) String() string {
+	return fmt.Sprintf("[Num: %d n: %s p: %s]", p.Num, hex.EncodeToString(p.Next),
+		hex.EncodeToString(p.Previous))
+}
+
 func (c ConversationLocal) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
@@ -492,6 +684,14 @@ func (c ConversationLocal) GetMembersType() ConversationMembersType {
 
 func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
+}
+
+func (c ConversationLocal) GetExpunge() *Expunge {
+	return &c.Expunge
+}
+
+func (c ConversationLocal) IsPublic() bool {
+	return c.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
 func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
@@ -528,6 +728,14 @@ func (c Conversation) GetMembersType() ConversationMembersType {
 
 func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Metadata.FinalizeInfo
+}
+
+func (c Conversation) GetExpunge() *Expunge {
+	return &c.Expunge
+}
+
+func (c Conversation) IsPublic() bool {
+	return c.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {

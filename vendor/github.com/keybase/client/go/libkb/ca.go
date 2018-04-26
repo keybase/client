@@ -16,7 +16,7 @@ func GetBundledCAsFromHost(host string) (rootCA []byte, ok bool) {
 		realAPICA = apiCAOverrideForTest
 	}
 	switch {
-	case host == "api.keybase.io":
+	case (host == "api.keybase.io" || host == "api-0.core.keybaseapi.com"):
 		return []byte(realAPICA), true
 
 	// Staging CA.

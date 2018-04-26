@@ -39,7 +39,7 @@ type NodeHashLong [NodeHashLenLong]byte
 // It's unfortunate we need it, but I didn't see any other way to use the
 // Go json marshal/unmarshal system where the hashes might be either short
 // or long. Our hacky solution is to have a union-type struct that supports
-// both, and just to unmarshal into the relevant relevant field. Note this
+// both, and just to unmarshal into the relevant field. Note this
 // type also fits ths NodeHash interface.
 type NodeHashAny struct {
 	s *NodeHashShort
@@ -240,6 +240,7 @@ type MerkleUserLeaf struct {
 	username  string
 	uid       keybase1.UID
 	eldest    keybase1.KID // may be empty
+	resets    *MerkleResets
 }
 
 type MerkleTeamLeaf struct {
@@ -273,11 +274,12 @@ func (mul MerkleUserLeaf) MerkleGenericLeaf() *MerkleGenericLeaf {
 type PathSteps []*PathStep
 
 type merkleUserInfoT struct {
-	uid           keybase1.UID
-	uidPath       PathSteps
-	idVersion     int64
-	username      string
-	usernameCased string
+	uid                  keybase1.UID
+	uidPath              PathSteps
+	idVersion            int64
+	username             string
+	usernameCased        string
+	unverifiedResetChain unverifiedResetChain
 }
 
 type VerificationPath struct {
@@ -312,10 +314,6 @@ type MerkleRootPayloadUnpacked struct {
 				Version *int    `json:"version"`
 			} `json:"public"`
 		} `json:"kbfs"`
-		Key struct {
-			Fingerprint PGPFingerprint `json:"fingerprint"`
-			KeyID       string         `json:"key_id"`
-		} `json:"key"`
 		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
 		Prev          NodeHashLong   `json:"prev"`
 		Root          NodeHashLong   `json:"root"`
@@ -662,7 +660,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceUser(ctx context.Context, q HTT
 }
 
 func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(ctx context.Context, q HTTPArgs, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
-	apiRes, err := mc.lookupPathAndSkipSequenceHelper(ctx, q, nil, lastRoot, true)
+	apiRes, err := mc.lookupPathAndSkipSequenceHelper(ctx, q, nil, lastRoot, false)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -685,14 +683,13 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
-	w := 10
-	if mc.G().Env.GetRunMode() == DevelRunMode {
-		// CI can be slow. EXTREMELY slow. So bump this way up to 30.
-		w = 30
-	}
+	w := 10 * int(CITimeMultiplier(mc.G()))
 
 	q.Add("poll", I{w})
-	q.Add("load_deleted", B{true})
+	if isUser {
+		q.Add("load_deleted", B{true})
+		q.Add("load_reset_chain", B{true})
+	}
 
 	// Add the local db sigHints version
 	if sigHints != nil {
@@ -722,7 +719,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 		err = NotFoundError{}
 		return nil, err
 	case SCDeleted:
-		err = DeletedError{}
+		err = UserDeletedError{}
 		return nil, err
 	}
 
@@ -829,6 +826,11 @@ func (mc *MerkleClient) readPathFromAPIResUser(ctx context.Context, res *APIRes)
 		return nil, nil, err
 	}
 	userInfo.usernameCased, _ = res.Body.AtKey("username_cased").GetString()
+
+	userInfo.unverifiedResetChain, err = importResetChainFromServer(ctx, mc.G(), res.Body.AtKey("reset_chain"))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return vp, userInfo, nil
 }
@@ -1160,6 +1162,13 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 		user.eldest = eldest
 	}
 
+	if l >= 5 {
+		user.resets, err = parseV2LeafResetChainTail(jw.AtIndex(4))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &user, nil
 }
 
@@ -1427,7 +1436,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRootHelper(ctx context.Context, ss 
 	}()
 
 	// It's important to check the merkle skip sequence before verifying the root.
-	// If it's historical, then it's OK to to swap ordering directions.
+	// If it's historical, then it's OK to swap ordering directions.
 	if err = mc.verifySkipSequence(ctx, ss, curr, prev, historical); err != nil {
 		return err
 	}
@@ -1447,7 +1456,7 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
-	// Note, we can have multiple concurrenct calls to LookupUser that can return in any order.
+	// Note, we can have multiple concurrent calls to LookupUser that can return in any order.
 	// Checking against the cache after the call completes can cause false-positive rollback
 	// warnings if the first call is super slow, and the second call is super fast, and there
 	// was a change on the server side. See CORE-4064.
@@ -1471,6 +1480,10 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 	}
 
 	if u.username, err = path.verifyUsername(ctx, *userInfo); err != nil {
+		return nil, err
+	}
+
+	if err = u.resets.verifyAndLoad(ctx, mc.G(), userInfo.unverifiedResetChain); err != nil {
 		return nil, err
 	}
 
@@ -1545,7 +1558,7 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
 
-	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupUser(%v)", teamID)
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
 	var path *VerificationPath
 	var ss SkipSequence
@@ -1556,7 +1569,7 @@ func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) 
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
-	// Note, we can have multiple concurrenct calls to LookupUser that can return in any order.
+	// Note, we can have multiple concurrent calls to LookupUser that can return in any order.
 	// Checking against the cache after the call completes can cause false-positive rollback
 	// warnings if the first call is super slow, and the second call is super fast, and there
 	// was a change on the server side. See CORE-4064.
@@ -1577,7 +1590,7 @@ func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) 
 		return nil, err
 	}
 
-	mc.G().VDL.CLogf(ctx, VLog0, "- MerkleClient.LookupUser(%v) -> OK", teamID)
+	mc.G().VDL.CLogf(ctx, VLog0, "- MerkleClient.LookupTeam(%v) -> OK", teamID)
 	return leaf, nil
 }
 

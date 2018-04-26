@@ -36,8 +36,7 @@ type LoginState struct {
 // the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
-	LoggedInProvisioned() (bool, error)
-	LoggedInProvisionedCheck() (bool, error)
+	LoggedInProvisioned(context.Context) (bool, error)
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
@@ -66,8 +65,6 @@ type LoginContext interface {
 
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
 	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
-
-	SetLKSec(lksec *LKSec)
 
 	GetUnlockedPaperEncKey() GenericKey
 	GetUnlockedPaperSigKey() GenericKey
@@ -248,7 +245,7 @@ func (s *LoginState) GetPassphraseStream(ui SecretUI) (pps *PassphraseStream, er
 	s.G().Log.Debug("+ GetPassphraseStream() called")
 	defer func() { s.G().Log.Debug("- GetPassphraseStream() -> %s", ErrToOk(err)) }()
 
-	pps, err = s.GetPassphraseStreamForUser(ui, string(s.G().Env.GetUsername()))
+	pps, err = s.GetPassphraseStreamForUser(ui, s.G().Env.GetUsername().String())
 	return
 }
 
@@ -321,7 +318,7 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 }
 
 func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (*PassphraseStream, error) {
-	fullSecret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
+	fullSecret, err := s.G().SecretStore().RetrieveSecret(s.G().Env.GetUsername())
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +352,7 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 	}
 
 	// 2. try from secret store
-	if s.G().SecretStoreAll != nil {
+	if s.G().SecretStore() != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
 		pps, err = s.getStoredPassphraseStream(s.G().Env.GetUsername())
 		if err == nil {
@@ -409,14 +406,14 @@ func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret Triplesec, gen Passp
 // is indeed the correct passphrase for the logged in user.  This is accomplished
 // via a login request.  The side effect will be that we'll retrieve the
 // correct generation number of the current passphrase from the server.
-func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseStream, err error) {
+func (s *LoginState) VerifyPlaintextPassphrase(pp string, after afterFn) (ppStream *PassphraseStream, err error) {
 	err = s.loginHandle(func(lctx LoginContext) error {
-		ret := s.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
-		if ret == nil {
+		err := s.verifyPlaintextPassphraseForLoggedInUser(lctx, pp)
+		if err == nil {
 			ppStream = lctx.PassphraseStreamCache().PassphraseStream()
 		}
-		return ret
-	}, nil, "VerifyPlaintextPassphrase")
+		return err
+	}, after, "VerifyPlaintextPassphrase")
 	return
 }
 
@@ -435,42 +432,46 @@ func ComputeLoginPackage(lctx LoginContext, username string) (ret PDPKALoginPack
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
 }
 
-func (s *LoginState) ResetAccount(un string) (err error) {
-	return s.resetOrDelete(un, "nuke")
+func (s *LoginState) ResetAccount(username string) (err error) {
+	return s.resetOrDelete(username, "nuke")
 }
 
-func (s *LoginState) DeleteAccount(un string) (err error) {
-	return s.resetOrDelete(un, "delete")
+func (s *LoginState) DeleteAccount(username string) (err error) {
+	return s.resetOrDelete(username, "delete")
 }
 
-func (s *LoginState) resetOrDelete(un string, which string) (err error) {
-	var aerr error
-	err = s.loginHandle(func(lctx LoginContext) error {
-		aerr = lctx.LoadLoginSession(un)
-		if aerr != nil {
-			return aerr
-		}
-		pdpka, aerr := ComputeLoginPackage(lctx, un)
-		if aerr != nil {
-			return aerr
-		}
-		arg := APIArg{
-			Endpoint:    which,
-			SessionType: APISessionTypeREQUIRED,
-			Args:        NewHTTPArgs(),
-			SessionR:    lctx.LocalSession(),
-		}
-		pdpka.PopulateArgs(&arg.Args)
-		res, aerr := s.G().API.Post(arg)
-		if aerr == nil {
-			s.G().Log.Info("%s Result: %+v\n", which, res.AppStatus)
-		}
-		return aerr
-	}, nil, ("ResetAccount:" + which))
-	if aerr != nil {
-		return aerr
+func ResetAccountWithContext(g *GlobalContext, lctx LoginContext, username string) error {
+	return ResetOrDeleteWithContext(g, lctx, username, "nuke")
+}
+
+func DeleteAccountWithContext(g *GlobalContext, lctx LoginContext, username string) error {
+	return ResetOrDeleteWithContext(g, lctx, username, "delete")
+}
+
+func ResetOrDeleteWithContext(g *GlobalContext, lctx LoginContext, username string, endpoint string) (err error) {
+	err = lctx.LoadLoginSession(username)
+	if err != nil {
+		return err
 	}
+	pdpka, err := ComputeLoginPackage(lctx, username)
+	if err != nil {
+		return err
+	}
+	arg := APIArg{
+		Endpoint:    endpoint,
+		SessionType: APISessionTypeREQUIRED,
+		Args:        NewHTTPArgs(),
+		SessionR:    lctx.LocalSession(),
+	}
+	pdpka.PopulateArgs(&arg.Args)
+	_, err = g.API.Post(arg)
 	return err
+}
+
+func (s *LoginState) resetOrDelete(username string, endpoint string) (err error) {
+	return s.loginHandle(func(lctx LoginContext) error {
+		return ResetOrDeleteWithContext(s.G(), lctx, username, endpoint)
+	}, nil, ("ResetAccount: " + endpoint))
 }
 
 func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
@@ -1146,11 +1147,6 @@ func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
 func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
 	var err error
 	aerr := s.Account(func(a *Account) {
-		// SecretSyncer needs session loaded:
-		err = a.localSession.Load()
-		if err != nil {
-			return
-		}
 		h(a.SecretSyncer())
 	}, name)
 	if aerr != nil {
@@ -1228,20 +1224,10 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	return lin, err
 }
 
-func (s *LoginState) LoggedInProvisioned() (lin bool, err error) {
+func (s *LoginState) LoggedInProvisioned(ctx context.Context) (lin bool, err error) {
 	aerr := s.Account(func(a *Account) {
-		lin, err = a.LoggedInProvisioned()
+		lin, err = a.LoggedInProvisioned(ctx)
 	}, "LoggedInProvisioned")
-	if aerr != nil {
-		return false, aerr
-	}
-	return
-}
-
-func (s *LoginState) LoggedInProvisionedCheck() (lin bool, err error) {
-	aerr := s.Account(func(a *Account) {
-		lin, err = a.LoggedInProvisionedCheck()
-	}, "LoggedInProvisionedCheck")
 	if aerr != nil {
 		return false, aerr
 	}
@@ -1290,70 +1276,6 @@ func (s *LoginState) SessionLoadAndCheck(force bool) (bool, error) {
 		return false, err
 	}
 	return sessionValid, nil
-}
-
-type APIServerSessionStatus struct {
-	Username     NormalizedUsername
-	UID          keybase1.UID
-	SessionToken string
-}
-
-func (s *LoginState) APIServerSession(force bool) (*APIServerSessionStatus, error) {
-	if !s.G().ActiveDevice.Valid() {
-		return nil, LoginRequiredError{}
-	}
-
-	sessionValid, err := s.SessionLoadAndCheck(force)
-	if err != nil {
-		return nil, err
-	}
-
-	if !sessionValid {
-		// pubkey login to refresh session
-		username := s.G().Env.GetUsername()
-		if err := s.LoginWithStoredSecret(username.String(), nil); err != nil {
-			if _, ok := err.(NoKeyError); ok {
-				s.G().Log.Debug("APIServerSession: ActiveDevice is valid, but no key in LoginWithStoredSecret (reset or revoked): Logging out")
-				if logoutErr := s.G().Logout(); logoutErr != nil {
-					return nil, logoutErr
-				}
-				return nil, err
-
-			}
-			return nil, err
-		}
-	}
-
-	var status APIServerSessionStatus
-	err = s.LocalSession(func(session *Session) {
-		sessionValid = session.IsValid()
-		if !sessionValid {
-			return
-		}
-		status.SessionToken = session.GetToken()
-		status.UID = session.GetUID()
-		username := session.GetUsername()
-		if username != nil {
-			status.Username = *username
-		}
-	}, "APIServerSession")
-	if err != nil {
-		return nil, err
-	}
-	if !sessionValid {
-		return nil, NoSessionError{}
-	}
-
-	// safety checks
-	uid := s.G().ActiveDevice.UID()
-	if uid != status.UID {
-		return nil, errors.New("uid mismatch between session and ActiveDevice")
-	}
-	if status.Username == "" {
-		return nil, errors.New("no username in session")
-	}
-
-	return &status, nil
 }
 
 func IsLoggedIn(g *GlobalContext, lih LoggedInHelper) (ret bool, uid keybase1.UID, err error) {

@@ -15,7 +15,7 @@ import (
 const (
 	DevelServerURI      = "http://localhost:3000"
 	StagingServerURI    = "https://stage0.keybase.io"
-	ProductionServerURI = "https://api.keybase.io"
+	ProductionServerURI = "https://api-0.core.keybaseapi.com"
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
@@ -106,12 +106,14 @@ const (
 	// could be stale.
 	CachedUserTimeout = 10 * time.Minute
 
-	LinkCacheSize     = 0x10000
+	LinkCacheSize     = 4000
 	LinkCacheCleanDur = 1 * time.Minute
 
 	UPAKCacheSize                     = 2000
 	UIDMapFullNameCacheSize           = 100000
 	ImplicitTeamConflictInfoCacheSize = 10000
+
+	PayloadCacheSize = 1000
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
@@ -120,6 +122,7 @@ const (
 
 	ChatBoxerMerkleFreshness    = 10 * time.Minute
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
+	EphemeralKeyMerkleFreshness = 30 * time.Second
 
 	// By default, only 64 files can be opened.
 	LevelDBNumFiles = 64
@@ -132,9 +135,11 @@ const RemoteIdentifyUITimeout = 5 * time.Second
 
 var MerkleProdKIDs = []string{
 	"010159baae6c7d43c66adf8fb7bb2b8b4cbe408c062cfc369e693ccb18f85631dbcd0a",
+	"01209ec31411b9b287f62630c2486005af27548ba62a59bbc802e656b888991a20230a",
 }
 var MerkleTestKIDs = []string{
 	"0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a",
+	"0120328031cf9d2a6108036408aeb3646b8985f7f8ff1a8e635e829d248a48b1014d0a",
 }
 var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
@@ -152,8 +157,11 @@ var CodeSigningStagingKIDs = []string{}
 
 type SigVersion int
 
-const KeybaseSignatureV1 SigVersion = 1
-const KeybaseSignatureV2 SigVersion = 2
+const (
+	KeybaseNullSigVersion SigVersion = 0
+	KeybaseSignatureV1    SigVersion = 1
+	KeybaseSignatureV2    SigVersion = 2
+)
 
 const (
 	KeybaseKIDV1     = 1 // Uses SHA-256
@@ -311,6 +319,7 @@ const (
 	LinkTypeUpdateSettings    LinkType = "update_settings"
 	LinkTypeWebServiceBinding LinkType = "web_service_binding"
 	LinkTypePerUserKey        LinkType = "per_user_key"
+	LinkTypeWalletStellar     LinkType = "wallet.stellar"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
@@ -485,7 +494,6 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
-	DLGPerUserKey
 )
 
 const (
@@ -561,6 +569,7 @@ const (
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
 	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
+	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
 	// Chat prefixes for each MessageBoxedVersion.
 	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
@@ -572,9 +581,10 @@ const (
 )
 
 const (
-	EncryptionReasonChatLocalStorage  EncryptionReason = "Keybase-Chat-Local-Storage-1"
-	EncryptionReasonChatMessage       EncryptionReason = "Keybase-Chat-Message-1"
-	EncryptionReasonTeamsLocalStorage EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 )
 
 type DeriveReason string
@@ -583,8 +593,18 @@ const (
 	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
 	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
 	// Context used for chaining generations of PerUserKeys.
-	DeriveReasonPUKPrev DeriveReason = "Derived-User-NaCl-SecretBox-1"
+	DeriveReasonPUKPrev            DeriveReason = "Derived-User-NaCl-SecretBox-1"
+	DeriveReasonPUKStellarBundle   DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
+	DeriveReasonPUKStellarNoteSelf DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
+
+	DeriveReasonDeviceEKEncryption  DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
+	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
+	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
+	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
 )
+
+// Not a DeriveReason because it is not used in the same way.
+const DeriveReasonPUKStellarNoteShared string = "Keybase-Derived-Stellar-Note-PUK-Sbox-NaCl-DH-1"
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
@@ -648,3 +668,7 @@ const (
 )
 
 const CurrentGitMetadataEncryptionVersion = 1
+
+// The secret_store_file and erasable_kv_store use a random noise file of this
+// size when encrypting secrets for disk.
+const noiseFileLen = 1024 * 1024 * 2

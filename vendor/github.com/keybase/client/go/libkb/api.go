@@ -40,13 +40,21 @@ type ExternalAPIEngine struct {
 	BaseAPIEngine
 }
 
+type AppStatusEmbed struct {
+	Status AppStatus `json:"status"`
+}
+
+func (s *AppStatusEmbed) GetAppStatus() *AppStatus {
+	return &s.Status
+}
+
 // Internal and External APIs both implement these methods,
 // allowing us to share the request-making code below in doRequest
 type Requester interface {
 	Contextifier
-	fixHeaders(arg APIArg, req *http.Request) error
+	fixHeaders(ctx context.Context, arg APIArg, req *http.Request, nist *NIST) error
 	getCli(needSession bool) *Client
-	consumeHeaders(resp *http.Response) error
+	consumeHeaders(ctx context.Context, resp *http.Response, nist *NIST) error
 	isExternal() bool
 }
 
@@ -209,6 +217,28 @@ func (c *countingReader) numRead() int {
 
 func noopFinisher() {}
 
+func getNIST(ctx context.Context, g *GlobalContext, sessType APISessionType) *NIST {
+	if sessType == APISessionTypeNONE {
+		return nil
+	}
+
+	if !g.Env.GetTorMode().UseSession() {
+		return nil
+	}
+
+	nist, err := g.ActiveDevice.NIST(ctx)
+	if nist == nil {
+		g.Log.CDebugf(ctx, "active device couldn't generate a NIST")
+		return nil
+	}
+
+	if err != nil {
+		g.Log.CDebugf(ctx, "Error generating NIST: %s", err)
+		return nil
+	}
+	return nist
+}
+
 // doRequestShared returns an http.Response, which is a live streaming object that
 // escapes the function in which it was created.  It therefore also returns
 // a `finisher func()` that *must always be called* after the response is no longer
@@ -231,7 +261,9 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
 
-	if err = api.fixHeaders(arg, req); err != nil {
+	nist := getNIST(ctx, api.G(), arg.SessionType)
+
+	if err = api.fixHeaders(ctx, arg, req, nist); err != nil {
 		api.G().Log.CDebugf(ctx, "- API %s %s: fixHeaders error: %s", req.Method, req.URL, err)
 		return
 	}
@@ -292,7 +324,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	// headers. If the client is *really* out of date, the request status will
 	// be a 400 error, but these headers will still be present. So we need to
 	// handle headers *before* we abort based on status below.
-	err = api.consumeHeaders(internalResp)
+	err = api.consumeHeaders(ctx, internalResp, nist)
 	if err != nil {
 		return nil, finisher, nil, err
 	}
@@ -500,7 +532,7 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 	return ret
 }
 
-// If the local clock is within a reasonable offst of the server's
+// If the local clock is within a reasonable offset of the server's
 // clock, we'll get 0.  Otherwise, we set the skew accordingly. Safe
 // to set this every time.
 func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) {
@@ -518,7 +550,7 @@ func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) 
 	}
 }
 
-func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
+func (a *InternalAPIEngine) consumeHeaders(ctx context.Context, resp *http.Response, nist *NIST) (err error) {
 	upgradeTo := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	upgradeURI := resp.Header.Get("X-Keybase-Upgrade-URI")
 	customMessage := resp.Header.Get("X-Keybase-Upgrade-Message")
@@ -528,7 +560,21 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 			customMessage = string(decoded)
 		} else {
 			// If base64-decode fails, just log the error and skip decoding.
-			a.G().Log.Errorf("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
+			a.G().Log.CErrorf(ctx, "Failed to decode X-Keybase-Upgrade-Message header: %s", err)
+		}
+	}
+
+	if nist != nil {
+		nistReply := resp.Header.Get("X-Keybase-Auth-NIST")
+		switch nistReply {
+		case "":
+		case "verified":
+			nist.MarkSuccess()
+		case "failed":
+			nist.MarkFailure()
+			a.G().Log.CWarningf(ctx, "NIST token failed to verify")
+		default:
+			a.G().Log.CNoticef(ctx, "Unexpected 'X-Keybase-Auth-NIST' state: %s", nistReply)
 		}
 	}
 
@@ -562,22 +608,27 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	return
 }
 
-func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
-	if arg.SessionType != APISessionTypeNONE {
+func (a *InternalAPIEngine) fixHeaders(ctx context.Context, arg APIArg, req *http.Request, nist *NIST) error {
+
+	if nist != nil {
+		req.Header.Set("X-Keybase-Session", nist.Token().String())
+
+	} else if arg.SessionType != APISessionTypeNONE {
+		a.G().Log.CDebugf(ctx, "fixHeaders: falling back to legacy session management")
 		tok, csrf, err := a.sessionArgs(arg)
 		if err != nil {
 			if arg.SessionType == APISessionTypeREQUIRED {
-				a.G().Log.Warning("fixHeaders: session required, but error getting sessionArgs: %s", err)
+				a.G().Log.CWarningf(ctx, "fixHeaders: session required, but error getting sessionArgs: %s", err)
 				return err
 			}
-			a.G().Log.Debug("fixHeaders: session optional, error getting sessionArgs: %s", err)
+			a.G().Log.CDebugf(ctx, "fixHeaders: session optional, error getting sessionArgs: %s", err)
 		}
 
 		if a.G().Env.GetTorMode().UseSession() {
 			if len(tok) > 0 {
 				req.Header.Set("X-Keybase-Session", tok)
 			} else if arg.SessionType == APISessionTypeREQUIRED {
-				a.G().Log.Warning("fixHeaders: need session, but session token empty")
+				a.G().Log.CWarningf(ctx, "fixHeaders: need session, but session token empty")
 				return InternalError{Msg: "API request requires session, but session token empty"}
 			}
 		}
@@ -585,7 +636,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 			if len(csrf) > 0 {
 				req.Header.Set("X-CSRF-Token", csrf)
 			} else if arg.SessionType == APISessionTypeREQUIRED {
-				a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
+				a.G().Log.CWarningf(ctx, "fixHeaders: need session, but session csrf empty")
 				return InternalError{Msg: "API request requires session, but session csrf empty"}
 			}
 		}
@@ -646,7 +697,7 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	// if SCBadSession comes back, but no session was provided, then the session isn't invalid,
 	// the requesting code is broken.
 	if arg.SessionType == APISessionTypeNONE {
-		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad sesion", arg.Endpoint)
+		a.G().Log.CDebugf(arg.NetContext, "api request to %q was made with session type NONE, but api server responded with bad session", arg.Endpoint)
 		return fmt.Errorf("api endpoint %q requires session, APIArg for this request had session type NONE", arg.Endpoint)
 	}
 
@@ -950,7 +1001,7 @@ const (
 	XAPIResText
 )
 
-func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
+func (api *ExternalAPIEngine) fixHeaders(ctx context.Context, arg APIArg, req *http.Request, nist *NIST) error {
 	// TODO (here and in the internal API engine implementation): If we don't
 	// set the User-Agent, it will default to http.defaultUserAgent
 	// ("Go-http-client/1.1"). We should think about whether that's what we
@@ -979,7 +1030,7 @@ func isReddit(req *http.Request) bool {
 	return host == "reddit.com" || strings.HasSuffix(host, ".reddit.com")
 }
 
-func (api *ExternalAPIEngine) consumeHeaders(resp *http.Response) error {
+func (api *ExternalAPIEngine) consumeHeaders(ctx context.Context, resp *http.Response, nist *NIST) error {
 	return nil
 }
 

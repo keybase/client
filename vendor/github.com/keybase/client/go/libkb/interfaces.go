@@ -32,6 +32,7 @@ import (
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetAppType() AppType
+	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
@@ -81,6 +82,8 @@ type configGetter interface {
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
+	GetPayloadCacheSize() (int, bool)
+	GetRememberPassphrase() (bool, bool)
 }
 
 type CommandLine interface {
@@ -167,7 +170,6 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
-	IsAdmin() (bool, bool)
 }
 
 type UpdaterConfigReader interface {
@@ -195,6 +197,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
+	SetRememberPassphrase(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
@@ -209,6 +212,7 @@ type Usage struct {
 	KbKeyring  bool
 	API        bool
 	Socket     bool
+	AllowRoot  bool
 }
 
 type Command interface {
@@ -366,6 +370,8 @@ type ChatUI interface {
 	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
+	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
+	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
 }
 
 type PromptDefault int
@@ -596,16 +602,62 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
-	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
 	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
+	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
+}
+
+type Stellar interface {
+	CreateWalletGated(context.Context) (bool, error)
+	CreateWalletSoft(context.Context)
+	Upkeep(context.Context) error
+	OnLogout()
+}
+
+type DeviceEKStorage interface {
+	Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) error
+	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.DeviceEk, error)
+	GetAllActive(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.DeviceEkMetadata, error)
+	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
+	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	ClearCache()
+}
+
+type UserEKBoxStorage interface {
+	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
+	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.UserEk, error)
+	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
+	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	ClearCache()
+}
+
+type TeamEKBoxStorage interface {
+	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
+	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
+	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	ClearCache()
+}
+
+type EKLib interface {
+	KeygenIfNeeded(ctx context.Context) error
+	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
+	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	NewEphemeralSeed() (keybase1.Bytes32, error)
+	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
+	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey, existingMetadata []keybase1.DeviceEkMetadata) (keybase1.DeviceEkStatement, string, error)
+	BoxLatestUserEK(ctx context.Context, receiverKey NaclDHKeyPair, deviceEKGeneration keybase1.EkGeneration) (*keybase1.UserEkBoxed, error)
+	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
+	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
+	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
+	ShouldRun(ctx context.Context) bool
 }
 
 type ImplicitTeamConflictInfoCacher interface {
@@ -714,4 +766,8 @@ type ChatHelper interface {
 	FindConversations(ctx context.Context, name string, topicName *string, topicType chat1.TopicType,
 		membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
+	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
+	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
+	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 }

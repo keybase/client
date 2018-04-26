@@ -11,6 +11,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
@@ -106,9 +107,15 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 // Explicit open does nothing we'll wait for a lazy open
 func (l *LevelDb) Open() error { return nil }
 
+// Opts returns the options for all leveldb databases.
+//
+// PC: I think it's worth trying a bloom filter.  From docs:
+// "In many cases, a filter can cut down the number of disk
+// seeks from a handful to a single disk seek per DB.Get call."
 func (l *LevelDb) Opts() *opt.Options {
 	return &opt.Options{
 		OpenFilesCacheCapacity: l.G().Env.GetLevelDBNumFiles(),
+		Filter:                 filter.NewBloomFilter(10),
 	}
 }
 
@@ -123,6 +130,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.G().Log.Debug("+ LevelDb.open")
 			fn := l.GetFilename()
 			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
+			l.G().Log.Debug("| Opening LevelDB options: %+v", l.Opts())
 			l.db, err = leveldb.OpenFile(fn, l.Opts())
 			if err != nil {
 				if _, ok := err.(*errors.ErrCorrupted); ok {
@@ -229,7 +237,7 @@ func (l *LevelDb) isCorrupt(err error) bool {
 
 func (l *LevelDb) Nuke() (fn string, err error) {
 	l.Lock()
-	// We need to do defered Unlock here in Nuke rather than delegating to
+	// We need to do deferred Unlock here in Nuke rather than delegating to
 	// l.Close() because we'll be re-opening the database later, and it's
 	// necesary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()

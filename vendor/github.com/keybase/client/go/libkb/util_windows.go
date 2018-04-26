@@ -34,11 +34,10 @@ type GUID struct {
 // 3EB685DB-65F9-4CF6-A03A-E3EF65729F3D
 var (
 	FOLDERIDRoamingAppData = GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
-)
+	// F1B32785-6FBA-4FCF-9D55-7B8E7F157091
 
-// F1B32785-6FBA-4FCF-9D55-7B8E7F157091
-var (
 	FOLDERIDLocalAppData = GUID{0xF1B32785, 0x6FBA, 0x4FCF, [8]byte{0x9D, 0x55, 0x7B, 0x8E, 0x7F, 0x15, 0x70, 0x91}}
+	FOLDERIDSystem       = GUID{0x1AC14E77, 0x02E7, 0x4E5D, [8]byte{0xB7, 0x44, 0x2E, 0xB1, 0xAE, 0x51, 0x98, 0xB7}}
 )
 
 var (
@@ -123,6 +122,10 @@ func AppDataDir() (string, error) {
 
 func LocalDataDir() (string, error) {
 	return GetDataDir(FOLDERIDLocalAppData, "FOLDERIDLocalAppData", "LOCALAPPDATA")
+}
+
+func SystemDir() (string, error) {
+	return GetDataDir(FOLDERIDSystem, "FOLDERIDSystem", "")
 }
 
 // SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
@@ -281,7 +284,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 	return nil
 }
 
-// RemoteSettingsRepairman does a one-time move of everyting from the roaming
+// RemoteSettingsRepairman does a one-time move of everything from the roaming
 // target directory to local. We depend on the .exe files having been uninstalled from
 // there first.
 // Note that Chromium still insists on keeping some stuff in roaming,

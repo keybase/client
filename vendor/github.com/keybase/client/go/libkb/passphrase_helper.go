@@ -13,11 +13,7 @@ func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg stri
 	resCh := make(chan keybase1.GetPassphraseRes)
 	errCh := make(chan error)
 	go func() {
-		arg := DefaultPassphraseArg(g)
-		arg.WindowTitle = "Keybase passphrase"
-		arg.Type = keybase1.PassphraseType_PASS_PHRASE
-		arg.Username = username
-		arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
+		arg := DefaultPassphrasePromptArg(g, username)
 		arg.RetryLabel = retryMsg
 		res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
 		if err != nil {
@@ -141,7 +137,6 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 		}
 		arg.RetryLabel = err.Error()
 	}
-
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
@@ -159,6 +154,15 @@ func DefaultPassphraseArg(g *GlobalContext) keybase1.GUIEntryArg {
 		},
 	}
 
+	return arg
+}
+
+func DefaultPassphrasePromptArg(g *GlobalContext, username string) keybase1.GUIEntryArg {
+	arg := DefaultPassphraseArg(g)
+	arg.WindowTitle = "Keybase passphrase"
+	arg.Type = keybase1.PassphraseType_PASS_PHRASE
+	arg.Username = username
+	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
 	return arg
 }
 

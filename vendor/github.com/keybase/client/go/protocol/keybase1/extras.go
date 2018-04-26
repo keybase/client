@@ -1315,6 +1315,14 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 	return nil
 }
 
+func (u UserPlusKeysV2) GetUID() UID {
+	return u.Uid
+}
+
+func (u UserPlusKeysV2) GetName() string {
+	return u.Username
+}
+
 func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 	for _, k := range u.Current.DeviceKeys {
 		if k.DeviceID.Eq(d) {
@@ -1365,6 +1373,40 @@ func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 		}
 	}
 	return nil
+}
+
+func (u UserPlusKeysV2) FindSigningDeviceKey(d DeviceID) (*PublicKeyV2NaCl, string) {
+	for _, k := range u.DeviceKeys {
+		if k.DeviceID.Eq(d) && k.Base.IsSibkey {
+			return &k, k.DeviceDescription
+		}
+	}
+	return nil, ""
+}
+
+func (u UserPlusKeysV2) FindSigningDeviceKID(d DeviceID) (KID, string) {
+	key, name := u.FindSigningDeviceKey(d)
+	if key == nil {
+		return KID(""), name
+	}
+	return key.Base.Kid, name
+}
+
+func (u UserPlusKeysV2) FindEncryptionDeviceKey(parent KID) *PublicKeyV2NaCl {
+	for _, k := range u.DeviceKeys {
+		if !k.Base.IsSibkey && k.Parent != nil && k.Parent.Equal(parent) {
+			return &k
+		}
+	}
+	return nil
+}
+
+func (u UserPlusKeysV2) FindEncryptionDeviceKID(parent KID) KID {
+	key := u.FindEncryptionDeviceKey(parent)
+	if key == nil {
+		return KID("")
+	}
+	return key.Base.Kid
 }
 
 func (s ChatConversationID) String() string {
@@ -2238,6 +2280,11 @@ func (t TLFVisibility) Eq(r TLFVisibility) bool {
 func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 	parts := strings.Split(string(s), "%")
 	if len(parts) == 1 {
+		// NOTE: We have to keep it the way it is, even though we
+		// never save UIDs without EldestSeqno anywhere. There may be
+		// team chain which have UVs encoded with default eldest=1 in
+		// the wild.
+
 		// default to seqno 1
 		parts = append(parts, "1")
 	}
