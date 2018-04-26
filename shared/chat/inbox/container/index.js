@@ -22,6 +22,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
     filter,
     isLoading: !state.chat2.loadingMap.isEmpty(),
     neverLoaded: state.chat2.metaMap.isEmpty(),
+    teamsLoaded: state.teams.loaded,
   }
 }
 
@@ -98,6 +99,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
   smallIDsHidden: stateProps.smallIDsHidden,
   smallTeamsExpanded: stateProps.smallTeamsExpanded,
+  teamsLoaded: stateProps.teamsLoaded,
   toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
 })
 
@@ -112,8 +114,11 @@ export default compose(
   })),
   lifecycle({
     componentDidMount() {
-      if (this.props.neverLoaded) {
+      if (this.props.neverLoaded && !this.props.isLoading) {
         this.props.refreshInbox()
+      }
+
+      if (!this.props.teamsLoaded) {
         // Get team counts for team headers in the inbox
         this.props.getTeams()
       }
