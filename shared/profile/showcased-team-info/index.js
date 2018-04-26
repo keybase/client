@@ -15,12 +15,12 @@ const TeamInfo = (props: Props) => (
   >
     <Box
       style={{
-        height: isMobile ? 64 : 40,
+        height: isMobile ? 64 : 48,
         marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
         marginBottom: globalMargins.xtiny,
       }}
     >
-      <Avatar teamname={props.teamname} size={isMobile ? 64 : 40} />
+      <Avatar teamname={props.teamname} size={isMobile ? 64 : 48} />
     </Box>
     <Text type="Header">{props.teamname}</Text>
 

@@ -76,7 +76,7 @@ const ShowcasedTeamRow = ({
     style={styleShowcasedTeamContainer}
   >
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={team.fqName} size={40} />
+      <Avatar teamname={team.fqName} size={48} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
@@ -652,18 +652,18 @@ const styleShowcasedTeamContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
-  minHeight: 32,
-  paddingBottom: globalMargins.xtiny,
+  minHeight: 48,
+  paddingTop: globalMargins.tiny,
 }
 
 const styleShowcasedTeamAvatar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   alignSelf: 'flex-start',
-  height: 40,
-  minHeight: 40,
-  minWidth: 40,
-  width: 40,
+  height: 48,
+  minHeight: 48,
+  minWidth: 48,
+  width: 48,
 }
 
 const styleShowcasedTeamName = {

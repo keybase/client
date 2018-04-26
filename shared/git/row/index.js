@@ -109,7 +109,7 @@ class Row extends React.Component<Props, State> {
                 style={_iconCaretStyle}
               />
               <Avatar
-                size={isMobile ? 40 : 24}
+                size={isMobile ? 48 : 32}
                 isTeam={!!this.props.teamname}
                 teamname={this.props.teamname}
                 username={this.props.teamname ? undefined : this.props.you}
@@ -185,7 +185,7 @@ class Row extends React.Component<Props, State> {
                   !!this.props.lastEditUser && (
                     <Avatar
                       username={this.props.lastEditUser}
-                      size={isMobile ? 16 : 12}
+                      size={16}
                       style={{marginLeft: isMobile ? 0 : 4}}
                     />
                   )}

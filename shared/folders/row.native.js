@@ -33,9 +33,9 @@ const Avatars = ({styles, users, ignored, isPublic, isTeam}) => {
       }}
     >
       {isTeam ? (
-        <Avatar size={40} teamname={teamname} style={{opacity}} />
+        <Avatar size={48} teamname={teamname} style={{opacity}} />
       ) : (
-        <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
+        <MultiAvatar singleSize={48} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
       )}
     </Box>
   )
