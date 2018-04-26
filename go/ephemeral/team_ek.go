@@ -367,7 +367,7 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 		// Verify the server only returns actual members of our team.
 		uv, err := team.UserVersionByUID(ctx, uid)
 		if err != nil {
-			return nil, err
+			continue // user is not on the team chain
 		}
 		isMember := team.IsMember(ctx, uv)
 		if !isMember {
