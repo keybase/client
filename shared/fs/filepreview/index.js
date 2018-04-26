@@ -21,8 +21,10 @@ const getDisplayComponent = (path: Types.Path, fileViewType: Types.FileViewType)
     case 'default':
       return <DefaultView path={path} />
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(fileViewType: empty) // this breaks when a new file view type is added but not handled here
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(fileViewType);
+      */
       return <Text type="BodyError">This shouldn't happen</Text>
   }
 }

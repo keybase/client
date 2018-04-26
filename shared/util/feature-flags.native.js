@@ -4,10 +4,9 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  deleteChatHistory: true,
   fsEnabled: __DEV__,
-  impTeamChatEnabled: true,
   plansEnabled: false,
+  walletsEnabled: __DEV__,
 }
 
 if (__DEV__) {

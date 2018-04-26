@@ -106,8 +106,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       }
       throw new Error('RetentionPicker needs a teamname to set big team retention policies')
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(entityType: empty)
+    /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(entityType);
+      */
     // Issue with flow here: https://github.com/facebook/flow/issues/6068
     // throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }

@@ -29,8 +29,10 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'rekey':
         return <Rekey conversationIDKey={this.props.conversationIDKey} />
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(this.props.type: empty) // if you get a flow error here it means there's a missing case
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
+      */
         return <NoConversation />
     }
   }

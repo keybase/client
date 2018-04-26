@@ -204,8 +204,11 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           inviteType = 'text'
           break
         default:
+          /*::
           // $FlowIssue flow gets confused about this switch statement
-          ;(iType: empty) // eslint-disable-line no-unused-expressions
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(iType);
+      */
           inviteType = 'unknown'
           break
       }
@@ -244,8 +247,10 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       })
     }
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(body.systemType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(body.systemType);
+      */
       return null
   }
 }
@@ -388,8 +393,11 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      // normally we'd have this but flow gets confused about the fallthrough
-      // ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      // $FlowIssue flow gets confused by the fallthroughs
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(m.messageBody.messageType);
+      */
       return null
   }
 }
@@ -478,8 +486,10 @@ export const uiMessageToMessage = (
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
       return null
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(uiMessage.state: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(uiMessage.state);
+      */
       return null
   }
 }

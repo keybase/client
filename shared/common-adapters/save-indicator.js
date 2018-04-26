@@ -98,8 +98,10 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
       return 'steady'
 
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(saveState: empty)
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(saveState);
+      */
       throw new Error(`Unexpected state ${saveState}`)
   }
 }
@@ -189,8 +191,10 @@ class SaveIndicator extends React.Component<Props, State> {
         )
 
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(saveState: empty)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(saveState);
+      */
         throw new Error(`Unexpected state ${saveState}`)
     }
   }
