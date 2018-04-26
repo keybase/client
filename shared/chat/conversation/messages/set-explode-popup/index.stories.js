@@ -15,6 +15,9 @@ const load = () => {
   storiesOf('Chat/Conversation/Set explode time')
     .add('New', () => <SetExplodingPopup {...common} isNew={true} />)
     .add('Old', () => <SetExplodingPopup {...common} isNew={false} />)
+    .add('Selected', () => (
+      <SetExplodingPopup {...common} isNew={false} selected={{text: '12 hours', seconds: 3600 * 12}} />
+    ))
 }
 
 export default load
