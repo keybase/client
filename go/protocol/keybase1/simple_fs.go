@@ -760,6 +760,9 @@ type SimpleFSDumpDebuggingInfoArg struct {
 type SimpleFSSyncStatusArg struct {
 }
 
+type SimpleFSGetTokenForHTTPServerArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path
 	// Retrieve results with readList()
@@ -813,6 +816,7 @@ type SimpleFSInterface interface {
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context) (FSSyncStatus, error)
+	SimpleFSGetTokenForHTTPServer(context.Context) (string, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1135,6 +1139,17 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"simpleFSGetTokenForHTTPServer": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSGetTokenForHTTPServerArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetTokenForHTTPServer(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1282,5 +1297,10 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 // Get sync status.
 func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatus, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{SimpleFSSyncStatusArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetTokenForHTTPServer(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetTokenForHTTPServer", []interface{}{SimpleFSGetTokenForHTTPServerArg{}}, &res)
 	return
 }

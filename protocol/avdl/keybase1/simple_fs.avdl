@@ -268,4 +268,7 @@ protocol SimpleFS {
    Get sync status.
    */
   FSSyncStatus simpleFSSyncStatus();
+
+  @lint("ignore")
+  string simpleFSGetTokenForHTTPServer();
 }

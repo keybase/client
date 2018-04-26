@@ -639,6 +639,11 @@
       "request": [],
       "response": "FSSyncStatus",
       "doc": "Get sync status."
+    },
+    "simpleFSGetTokenForHTTPServer": {
+      "request": [],
+      "response": "string",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"
