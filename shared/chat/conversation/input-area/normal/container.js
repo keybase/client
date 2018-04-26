@@ -20,7 +20,7 @@ import {
 } from '../../../../util/container'
 import {isEqual, throttle} from 'lodash-es'
 import {chatTab} from '../../../../constants/tabs'
-import mentionHoc from '../mention-handler-hoc'
+import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -32,14 +32,14 @@ const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
-  const _editingMessage = editingOrdinal
+  const _editingMessage: ?Types.Message = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const quote = Constants.getQuotingOrdinalAndSource(
     state,
     state.chat2.pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
   )
-  let _quotingMessage = null
+  let _quotingMessage: ?Types.Message = null
   if (quote) {
     const {ordinal, sourceConversationIDKey} = quote
     _quotingMessage = ordinal ? Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal) : null
@@ -160,6 +160,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
+type LifecycleProps = PropsFromContainer & {
+  _quotingMessage: ?Types.Message,
+  _editingMessage: ?Types.Message,
+}
+
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withStateHandlers(
@@ -204,12 +209,14 @@ export default compose(
     }
   }),
   lifecycle({
-    componentDidUpdate(prevProps) {
+    // The types for prevProps and nextProps aren't exact, but they're
+    // good enough.
+    componentDidUpdate(prevProps: LifecycleProps) {
       if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.inputFocus()
       }
     },
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: LifecycleProps) {
       // Fill in the input with an edit, quote, or unsent text
       if (
         (nextProps._quotingMessage && nextProps._quotingMessage !== this.props._quotingMessage) ||
