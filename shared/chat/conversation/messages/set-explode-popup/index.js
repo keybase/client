@@ -2,8 +2,8 @@
 import * as React from 'react'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {Box, Icon, Text, FloatingMenu} from '../../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
+import {collapseStyles, globalColors, globalMargins} from '../../../../styles'
 
 const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
@@ -12,42 +12,41 @@ type HeaderProps = {
 }
 
 const Header = (props: HeaderProps) => (
-  <Box style={headerContainerStyle}>
+  <Box2 direction="vertical" style={headerContainerStyle}>
     {props.isNew && (
-      <Box style={announcementContainerStyle}>
-        <Box style={{marginTop: -10, marginBottom: -10}}>
+      <Box2 direction="vertical" style={announcementContainerStyle}>
+        <Box2 direction="vertical" style={{marginTop: -10, marginBottom: -10}}>
           <Icon type="iconfont-boom" color={globalColors.white} fontSize={48} />
-        </Box>
+        </Box2>
         <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
           Set a timeout on your messages and watch them
         </Text>
         <Text type="BodySemibold" backgroundMode="Announcements">
           E X P L O D E
         </Text>
-      </Box>
+      </Box2>
     )}
-    <Box style={collapseStyles([headerTextContainerStyle, props.isNew ? null : {paddingTop: 10}])}>
+    <Box2
+      direction="horizontal"
+      gap="small"
+      fullWidth={true}
+      gapStart={true}
+      style={collapseStyles([{paddingTop: 5, alignItems: 'center'}, props.isNew ? null : {paddingTop: 10}])}
+    >
       <Text type="BodySmallSemibold">Explode message after:</Text>
-    </Box>
-  </Box>
+    </Box2>
+  </Box2>
 )
 
 const headerContainerStyle = {
-  ...globalStyles.flexBoxColumn,
   width: 200,
 }
 
 const announcementContainerStyle = {
-  ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.blue,
   padding: globalMargins.small,
   paddingBottom: globalMargins.tiny,
-}
-
-const headerTextContainerStyle = {
-  paddingLeft: 16,
-  paddingTop: 5,
 }
 
 type ItemProps = {
@@ -57,12 +56,12 @@ type ItemProps = {
 }
 
 const Item = (props: ItemProps) => (
-  <Box style={globalStyles.flexBoxRow}>
+  <Box2 direction="horizontal" fullWidth={true}>
     <Text type="Body" style={{flex: 1}}>
       {props.desc.text}
     </Text>
     {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
-  </Box>
+  </Box2>
 )
 
 type Props = {
