@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {action, storiesOf} from '../../../../stories/storybook'
-import SetExplodingPopup from '.'
+import SetExplodingPopup from './'
 
 const common = {
   attachTo: null,

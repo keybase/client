@@ -4,6 +4,7 @@ import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
+import type {Props} from '.'
 
 const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
@@ -64,15 +65,6 @@ const Item = (props: ItemProps) => (
     {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
   </Box>
 )
-
-type Props = {
-  attachTo: ?React.Component<*, *>,
-  visible: boolean,
-  onHidden: () => void,
-  isNew: boolean,
-  selected: ?MessageExplodeDescription,
-  onSelect: MessageExplodeDescription => void,
-}
 
 export default (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}
