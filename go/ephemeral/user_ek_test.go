@@ -89,15 +89,15 @@ func TestNewUserEK(t *testing.T) {
 // userEkGeneration during the revoke to simulate revoking a device without
 // userEK support.
 func TestDeviceRevokeNewUserEK(t *testing.T) {
-	testDeviceRevokeNewUserEK(t, false)
+	testDeviceRevoke(t, false /* skipUserEk */)
 }
 
 func TestDeviceRevokeNoNewUserEK(t *testing.T) {
-	testDeviceRevokeNewUserEK(t, true)
+	testDeviceRevoke(t, true /* skipUserEk */)
 }
 
-func testDeviceRevokeNewUserEK(t *testing.T, skipUserEk bool) {
-	tc := libkb.SetupTest(t, "kex2provision", 2)
+func testDeviceRevoke(t *testing.T, skipUserEk bool) {
+	tc := libkb.SetupTest(t, "testDeviceRevoke", 2)
 	defer tc.Cleanup()
 	NewEphemeralStorageAndInstall(tc.G)
 
@@ -151,8 +151,13 @@ func testDeviceRevokeNewUserEK(t *testing.T, skipUserEk bool) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	existingMetadata := statement.ExistingUserEkMetadata
-	existingMetadata = append(existingMetadata, statement.CurrentUserEkMetadata)
+	var existingMetadata []keybase1.UserEkMetadata
+	if skipUserEk {
+		existingMetadata = []keybase1.UserEkMetadata{}
+	} else {
+		existingMetadata = statement.ExistingUserEkMetadata
+		existingMetadata = append(existingMetadata, statement.CurrentUserEkMetadata)
+	}
 	publishAndVerifyUserEK(t, tc, merkleRoot, uid, existingMetadata)
 }
 
