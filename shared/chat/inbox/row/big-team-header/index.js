@@ -1,6 +1,8 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
+import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
+import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {
   desktopStyles,
   collapseStyles,
@@ -13,23 +15,30 @@ import {
 
 type Props = {
   badgeSubscribe: boolean,
-  onClickGear: (evt: SyntheticEvent<Element>) => void,
   memberCount: number,
   teamname: string,
-}
+} & FloatingMenuParentProps
 
-class BigTeamHeader extends React.PureComponent<Props> {
+class _BigTeamHeader extends React.PureComponent<Props> {
   render() {
     const props = this.props
 
     return (
       <Box style={teamRowContainerStyle}>
+        <TeamMenu
+          attachTo={props.attachmentRef}
+          visible={props.showingMenu}
+          onHidden={props.toggleShowingMenu}
+          teamname={props.teamname}
+          isSmallTeam={false}
+        />
         <Avatar teamname={props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>
           {props.teamname}
         </Text>
         <ClickableBox
-          onClick={props.onClickGear}
+          onClick={props.toggleShowingMenu}
+          ref={props.setAttachmentRef}
           style={collapseStyles([globalStyles.flexBoxRow, {position: 'relative'}])}
         >
           <Icon className="icon" type="iconfont-gear" fontSize={iconFontSize} color={globalColors.black_20} />
@@ -41,6 +50,8 @@ class BigTeamHeader extends React.PureComponent<Props> {
     )
   }
 }
+
+const BigTeamHeader = FloatingMenuParentHOC(_BigTeamHeader)
 
 const iconFontSize = isMobile ? 20 : 16
 
