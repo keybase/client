@@ -374,7 +374,7 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 		if !isMember {
 			return nil, fmt.Errorf("Server lied about team membership! %v is not a member of team %v", uv, teamID)
 		}
-		memberStatement, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, sig)
+		memberStatement, _, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, sig)
 		// Check the wrongKID condition before checking the error, since an error
 		// is still returned in this case. TODO: Turn this warning into an error
 		// after EK support is sufficiently widespread.

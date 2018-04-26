@@ -187,7 +187,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 
 	// Let's see what the latest server statement is.
 	myUID := e.G().Env.GetUID()
-	statement, wrongKID, err := fetchUserEKStatement(ctx, e.G(), myUID)
+	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), myUID)
 	if err != nil {
 		return false, err
 	}

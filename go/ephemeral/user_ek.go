@@ -64,21 +64,22 @@ func prepareNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 		return "", nil, newMetadata, nil, err
 	}
 
-	prevStatement, wrongKID, err := fetchUserEKStatement(ctx, g, g.Env.GetUID())
+	prevStatement, latestGeneration, wrongKID, err := fetchUserEKStatement(ctx, g, g.Env.GetUID())
 	if err != nil {
 		return "", nil, newMetadata, nil, err
 	}
 	var newGeneration keybase1.EkGeneration
 	var existingMaybeStaleMetadata []keybase1.UserEkMetadata
 	if prevStatement == nil {
-		newGeneration = 1 // start at generation 1
+		if wrongKID {
+			newGeneration = latestGeneration + 1
+		} else {
+			newGeneration = 1 // start at generation 1
+		}
 	} else {
 		newGeneration = prevStatement.CurrentUserEkMetadata.Generation + 1
-		// If we signed with a previous PUK, we don't keep any existing statements
-		if !wrongKID {
-			existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.ExistingUserEkMetadata...)
-			existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.CurrentUserEkMetadata)
-		}
+		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.ExistingUserEkMetadata...)
+		existingMaybeStaleMetadata = append(existingMaybeStaleMetadata, prevStatement.CurrentUserEkMetadata)
 	}
 
 	dhKeypair := seed.DeriveDHKey()
@@ -231,7 +232,7 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 
 	statements = make(map[keybase1.UID]*keybase1.UserEkStatement)
 	for uid, sig := range parsedResponse.Sigs {
-		statement, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, *sig)
+		statement, _, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, *sig)
 		// Check the wrongKID condition before checking the error, since an error
 		// is still returned in this case. TODO: Turn this warning into an error
 		// after EK support is sufficiently widespread.
@@ -254,7 +255,7 @@ func fetchUserEKStatements(ctx context.Context, g *libkb.GlobalContext, uids []k
 // one, this function will return wrongKID. This allows clients to chose the
 // correct generation number but not include the statement when generating a
 // new userEK.
-func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (statement *keybase1.UserEkStatement, wrongKID bool, err error) {
+func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTrace(ctx, "fetchUserEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -267,39 +268,39 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	}
 	res, err := g.GetAPI().Get(apiArg)
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
 
 	parsedResponse := userEKStatementResponse{}
 	err = res.Body.UnmarshalAgain(&parsedResponse)
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
 	// User has no statements
 	if len(parsedResponse.Sigs) == 0 {
-		return nil, false, nil
+		return nil, latestGeneration, false, nil
 	}
 	if len(parsedResponse.Sigs) != 1 {
-		return nil, false, fmt.Errorf("Invalid server response, multiple userEK statements returned")
+		return nil, latestGeneration, false, fmt.Errorf("Invalid server response, multiple userEK statements returned")
 	}
 	sig, ok := parsedResponse.Sigs[uid]
 	if !ok {
-		return nil, false, fmt.Errorf("Invalid server response, wrong uid returned")
+		return nil, latestGeneration, false, fmt.Errorf("Invalid server response, wrong uid returned")
 	}
 
-	statement, wrongKID, err = verifySigWithLatestPUK(ctx, g, uid, *sig)
+	statement, latestGeneration, wrongKID, err = verifySigWithLatestPUK(ctx, g, uid, *sig)
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
 	if wrongKID {
 		g.Log.CDebugf(ctx, "It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
-		return statement, true, nil
+		return nil, latestGeneration, true, nil
 	}
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
 
-	return statement, false, nil
+	return statement, latestGeneration, false, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -307,14 +308,21 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 // the wrong KID, that's still an error, but we'll also return this special
 // `wrongKID` flag. As a transitional measure while we wait for all clients in
 // the wild to have EK support, callers will treat that case as "there is no
-// key" and convert the error to a warning.
-func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, sig string) (statement *keybase1.UserEkStatement, wrongKID bool, err error) {
+// key" and convert the error to a warning. We set `latestGeneration` so that
+// callers can use this value to generate a new key even if `wrongKID` is set.
+func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, sig string) (statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTrace(ctx, "verifySigWithLatestPUK", func() error { return err })()
 
 	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
+
+	parsedStatement := keybase1.UserEkStatement{}
+	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
+		return nil, latestGeneration, false, err
+	}
+	latestGeneration = parsedStatement.CurrentUserEkMetadata.Generation
 
 	// Verify the signing key corresponds to the latest PUK. We load the user's
 	// UPAK from cache, but if the KID doesn't match, we try a forced reload to
@@ -322,37 +330,30 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 	// match after the reload do we complain.
 	upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g, uid))
 	if err != nil {
-		return nil, false, err
+		return nil, latestGeneration, false, err
 	}
 	latestPUK := upak.Current.GetLatestPerUserKey()
 	if latestPUK == nil || !latestPUK.SigKID.Equal(signerKey.GetKID()) {
 		// The latest PUK might be stale. Force a reload, then check this over again.
 		upak, _, err = g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDForceArg(g, uid))
 		if err != nil {
-			return nil, false, err
+			return nil, latestGeneration, false, err
 		}
 		latestPUK = upak.Current.GetLatestPerUserKey()
 		if latestPUK == nil || !latestPUK.SigKID.Equal(signerKey.GetKID()) {
-			wrongKID = true
+			// The latest PUK still doesn't match the signing key after a
+			// forced reload. Bail out, and set the `wrongKID` flag.
+			latestPUKSigningKIDString := "<nil>"
+			if latestPUK != nil {
+				latestPUKSigningKIDString = fmt.Sprint(latestPUK.SigKID)
+			}
+			err = fmt.Errorf("userEK returned for PUK signing KID %s, but latest is %s",
+				signerKey.GetKID(), latestPUKSigningKIDString)
+			return nil, latestGeneration, true, err
 		}
 	}
 
-	parsedStatement := keybase1.UserEkStatement{}
-	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
-		return nil, wrongKID, err
-	}
-
-	if wrongKID {
-		// The latest PUK still doesn't match the signing key after a
-		// forced reload. Bail out, and set the `wrongKID` flag.
-		latestPUKSigningKIDString := "<nil>"
-		if latestPUK != nil {
-			latestPUKSigningKIDString = fmt.Sprint(latestPUK.SigKID)
-		}
-		err = fmt.Errorf("userEK returned for PUK signing KID %s, but latest is %s",
-			signerKey.GetKID(), latestPUKSigningKIDString)
-	}
-	return &parsedStatement, wrongKID, err
+	return &parsedStatement, latestGeneration, false, nil
 }
 
 func filterStaleUserEKStatements(ctx context.Context, g *libkb.GlobalContext, statementMap map[keybase1.UID]*keybase1.UserEkStatement, merkleRoot libkb.MerkleRoot) (activeMap map[keybase1.UID]keybase1.UserEkStatement, err error) {
