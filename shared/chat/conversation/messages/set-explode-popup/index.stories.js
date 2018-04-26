@@ -8,7 +8,7 @@ const common = {
   onHidden: () => {}, // pretty spammy otherwise
   onSelect: action('onSelect'),
   selected: null,
-  visible: true,
+  visible: false, // TODO (for storyshots, see DESKTOP-6620)
 }
 
 const load = () => {
