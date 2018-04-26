@@ -162,6 +162,7 @@ const stylesRowBox = {
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
+  minHeight: isMobile ? 64 : 40,
 }
 
 const stylesRowContainer = {
