@@ -162,8 +162,10 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         // TODO
         return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
         break
     }
@@ -213,8 +215,10 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         // TODO
         return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         break
     }
   } catch (error) {

@@ -12,6 +12,7 @@ const settingsTab = 'tabs:settingsTab'
 const teamsTab = 'tabs:teamsTab'
 const gitTab = 'tabs:gitTab'
 const fsTab = 'tabs:fsTab'
+const walletsTab = 'tabs:walletsTab'
 
 type ChatTab = 'tabs:chatTab'
 type DevicesTab = 'tabs:devicesTab'
@@ -24,6 +25,7 @@ type SettingsTab = 'tabs:settingsTab'
 type TeamsTab = 'tabs:teamsTab'
 type FsTab = 'tabs:fsTab'
 type GitTab = 'tabs:gitTab'
+type WalletsTab = 'tabs:walletsTab'
 
 export type Tab =
   | ChatTab
@@ -37,6 +39,7 @@ export type Tab =
   | TeamsTab
   | GitTab
   | FsTab
+  | WalletsTab
 
 function isValidInitialTab(tab: ?Tab) {
   return isValidInitialTabString(tab)
@@ -66,4 +69,5 @@ export {
   searchTab,
   settingsTab,
   teamsTab,
+  walletsTab,
 }
