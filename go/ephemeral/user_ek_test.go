@@ -89,14 +89,14 @@ func TestNewUserEK(t *testing.T) {
 // userEkGeneration during the revoke to simulate revoking a device without
 // userEK support.
 func TestDeviceRevokeNewUserEK(t *testing.T) {
-	testDeviceRevoke(t, false /* skipUserEk */)
+	testDeviceRevoke(t, false /* skipUserEKForTesting */)
 }
 
 func TestDeviceRevokeNoNewUserEK(t *testing.T) {
-	testDeviceRevoke(t, true /* skipUserEk */)
+	testDeviceRevoke(t, true /* skipUserEKForTesting */)
 }
 
-func testDeviceRevoke(t *testing.T, skipUserEk bool) {
+func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	tc := libkb.SetupTest(t, "testDeviceRevoke", 2)
 	defer tc.Cleanup()
 	NewEphemeralStorageAndInstall(tc.G)
@@ -125,8 +125,8 @@ func testDeviceRevoke(t *testing.T, skipUserEk bool) {
 
 	// Revoke the paper key.
 	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
-		ID:         paperKey.ID,
-		SkipUserEK: skipUserEk,
+		ID:                   paperKey.ID,
+		SkipUserEKForTesting: skipUserEKForTesting,
 	}, tc.G)
 	ctx := &engine.Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -136,7 +136,7 @@ func testDeviceRevoke(t *testing.T, skipUserEk bool) {
 	require.NoError(t, err)
 
 	// Finally, confirm that the revocation above rolled a new userEK.
-	if !skipUserEk {
+	if !skipUserEKForTesting {
 		statements, err = fetchUserEKStatements(context.Background(), tc.G, uids)
 		require.NoError(t, err)
 		statement, ok = statements[uid]
@@ -152,7 +152,7 @@ func testDeviceRevoke(t *testing.T, skipUserEk bool) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 	var existingMetadata []keybase1.UserEkMetadata
-	if skipUserEk {
+	if skipUserEKForTesting {
 		existingMetadata = []keybase1.UserEkMetadata{}
 	} else {
 		existingMetadata = statement.ExistingUserEkMetadata
