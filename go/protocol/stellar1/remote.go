@@ -11,55 +11,19 @@ import (
 
 type Members struct {
 	FromStellar  AccountID            `codec:"fromStellar" json:"fromStellar"`
-	FromKeybase  string               `codec:"fromKeybase" json:"fromKeybase"`
 	From         keybase1.UserVersion `codec:"from" json:"from"`
 	FromDeviceID keybase1.DeviceID    `codec:"fromDeviceID" json:"fromDeviceID"`
 	ToStellar    AccountID            `codec:"toStellar" json:"toStellar"`
-	ToKeybase    string               `codec:"toKeybase" json:"toKeybase"`
 	To           keybase1.UserVersion `codec:"to" json:"to"`
 }
 
 func (o Members) DeepCopy() Members {
 	return Members{
 		FromStellar:  o.FromStellar.DeepCopy(),
-		FromKeybase:  o.FromKeybase,
 		From:         o.From.DeepCopy(),
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
 		ToStellar:    o.ToStellar.DeepCopy(),
-		ToKeybase:    o.ToKeybase,
 		To:           o.To.DeepCopy(),
-	}
-}
-
-type TransactionSummary struct {
-	StellarID       TransactionID        `codec:"stellarID" json:"stellarID"`
-	KeybaseID       KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Status          TransactionStatus    `codec:"status" json:"status"`
-	ErrMsg          string               `codec:"errMsg" json:"errMsg"`
-	NoteB64         string               `codec:"noteB64" json:"noteB64"`
-	Asset           Asset                `codec:"asset" json:"asset"`
-	Amount          string               `codec:"amount" json:"amount"`
-	DisplayAmount   string               `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency string               `codec:"displayCurrency" json:"displayCurrency"`
-	Members         Members              `codec:"members" json:"members"`
-	Ctime           TimeMs               `codec:"ctime" json:"ctime"`
-	Rtime           TimeMs               `codec:"rtime" json:"rtime"`
-}
-
-func (o TransactionSummary) DeepCopy() TransactionSummary {
-	return TransactionSummary{
-		StellarID:       o.StellarID.DeepCopy(),
-		KeybaseID:       o.KeybaseID.DeepCopy(),
-		Status:          o.Status.DeepCopy(),
-		ErrMsg:          o.ErrMsg,
-		NoteB64:         o.NoteB64,
-		Asset:           o.Asset.DeepCopy(),
-		Amount:          o.Amount,
-		DisplayAmount:   o.DisplayAmount,
-		DisplayCurrency: o.DisplayCurrency,
-		Members:         o.Members.DeepCopy(),
-		Ctime:           o.Ctime.DeepCopy(),
-		Rtime:           o.Rtime.DeepCopy(),
 	}
 }
 

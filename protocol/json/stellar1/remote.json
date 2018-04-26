@@ -21,10 +21,6 @@
           "name": "fromStellar"
         },
         {
-          "type": "string",
-          "name": "fromKeybase"
-        },
-        {
           "type": "keybase1.UserVersion",
           "name": "from"
         },
@@ -37,66 +33,8 @@
           "name": "toStellar"
         },
         {
-          "type": "string",
-          "name": "toKeybase"
-        },
-        {
           "type": "keybase1.UserVersion",
           "name": "to"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "TransactionSummary",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "stellarID"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "keybaseID"
-        },
-        {
-          "type": "TransactionStatus",
-          "name": "status"
-        },
-        {
-          "type": "string",
-          "name": "errMsg"
-        },
-        {
-          "type": "string",
-          "name": "noteB64"
-        },
-        {
-          "type": "Asset",
-          "name": "asset"
-        },
-        {
-          "type": "string",
-          "name": "amount"
-        },
-        {
-          "type": "string",
-          "name": "displayAmount"
-        },
-        {
-          "type": "string",
-          "name": "displayCurrency"
-        },
-        {
-          "type": "Members",
-          "name": "members"
-        },
-        {
-          "type": "TimeMs",
-          "name": "ctime"
-        },
-        {
-          "type": "TimeMs",
-          "name": "rtime"
         }
       ]
     },
