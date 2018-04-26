@@ -140,13 +140,13 @@ const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, inse
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
         style={styles.mentionMarkerStyle}
-        fontSize={21}
+        iconStyle={styles.actionButtonIcon}
       />
       <Icon
         onClick={pendingWaiting ? undefined : openFilePicker}
         type="iconfont-camera"
         style={styles.actionButton}
-        fontSize={21}
+        iconStyle={styles.actionButtonIcon}
       />
     </Box>
   )
