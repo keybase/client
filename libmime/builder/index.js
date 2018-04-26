@@ -124,12 +124,11 @@ function printGo(types) {
   process.stdout.write(`// Use of this source code is governed by a BSD\n`)
   process.stdout.write(`// license that can be found in the LICENSE file.\n\n`)
   process.stdout.write(`// This file is auto-generated and should not be edited by hand.\n\n`)
-  process.stdout.write(`package mime\n\n`)
-  process.stdout.write(`import "mime"\n\n`)
-  process.stdout.write(`func init() {\n`)
+  process.stdout.write(`package libmime\n\n`)
+  process.stdout.write(`var mimeTypes = map[string]string{\n`)
   Object.keys(types).forEach( (k) => {
     types[k].extensions.forEach( (ext) => {
-      process.stdout.write(`\tmime.AddExtensionType(".${ext}", "${k}")\n`)
+      process.stdout.write(`\t".${ext}": "${k}",\n`)
     })
   })
   process.stdout.write(`}\n`)

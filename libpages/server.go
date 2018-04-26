@@ -21,13 +21,17 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/libmime"
 	"github.com/keybase/kbfs/libpages/config"
-	_ "github.com/keybase/kbfs/libpages/mime" // side-effects: add mime types
 	"github.com/keybase/kbfs/tlf"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 )
+
+func init() {
+	libmime.Patch(nil)
+}
 
 // ServerConfig holds configuration parameters for Server.
 type ServerConfig struct {
