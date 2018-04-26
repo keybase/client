@@ -771,7 +771,7 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
   },
 }
 
-const avatarSizes = [176, 112, 96, 80, 64, 48, 32, 16]
+const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16, 12]
 const mockAvatarSizes = (title, modifiers) =>
   keyBy(
     avatarSizes.map(size => ({size, username: 'awendland', ...modifiers})),
