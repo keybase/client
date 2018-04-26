@@ -111,6 +111,17 @@ const _setupPeopleHandlers = () => {
     })
   })
 }
+
+const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+  const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
+  if (root === peopleTab && peoplePath.size === 2 && peoplePath.get(1) === 'profile' && _wasOnPeopleTab) {
+    // Navigating away from the people tab root to a profile page.
+    return Saga.put(PeopleGen.createMarkViewed())
+  }
+}
+
 const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
@@ -152,6 +163,7 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
   yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteConstants.navigateTo, _onNavigateTo)
 }
 
 export default peopleSaga
