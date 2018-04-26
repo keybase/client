@@ -20,6 +20,7 @@ import {
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
+  copyToDownloadDir,
 } from './fs-platform-specific'
 import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
@@ -194,16 +195,18 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // completePortion to 1.
     yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
 
-    // If this is for anyting other than a simple download, kick that off now
-    // that the file is available locally.
+    const mimeType = Constants.mimeTypeFromPathName(Types.getPathName(path))
+
+    // Kick off any post-download actions, now that the file is available locally.
     switch (intent) {
       case 'none':
+        yield Saga.call(copyToDownloadDir, localPath, mimeType)
         break
       case 'camera-roll':
         yield Saga.call(saveAttachmentDialog, localPath)
         break
       case 'share':
-        yield Saga.call(showShareActionSheet, {url: localPath, mimeType: action.payload.mimeType})
+        yield Saga.call(showShareActionSheet, {url: localPath, mimeType})
         break
       case 'web-view':
       case 'web-view-text':
