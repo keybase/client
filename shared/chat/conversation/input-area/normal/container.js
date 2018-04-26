@@ -162,6 +162,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
+// With the heavy use of recompose below, it's pretty difficult to
+// figure out the types passed into the various handlers. This type is
+// good enough to use in the lifecycle methods.
 type LifecycleProps = PropsFromContainer & {
   _quotingMessage: ?Types.Message,
   _editingMessage: ?Types.Message,
