@@ -27,18 +27,17 @@ class DOMNodeFinder extends React.Component<{
     return React.Children.only(children)
   }
 }
-
+const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
   el: HTMLElement
-  modalRoot: ?HTMLElement
   constructor() {
     super()
     this.el = document.createElement('div')
-    this.modalRoot = document.getElementById('modal-root')
   }
 
   componentDidMount() {
-    this.modalRoot && this.modalRoot.appendChild(this.el)
+    const modalRoot = getModalRoot()
+    modalRoot && modalRoot.appendChild(this.el)
     const firstChild = this.el.firstChild
     if (firstChild instanceof HTMLElement) {
       this.props.setNode(firstChild)
@@ -46,7 +45,8 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 
   componentWillUnmount() {
-    this.modalRoot && this.modalRoot.removeChild(this.el)
+    const modalRoot = getModalRoot()
+    modalRoot && modalRoot.removeChild(this.el)
   }
 
   render() {

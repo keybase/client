@@ -61,8 +61,8 @@ export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
 ): React.ComponentType<$Diff<T, FloatingMenuParentProps>> => {
   class FloatingMenuParent extends React.Component<$Diff<T, FloatingMenuParentProps>, State> {
     _setters: Callbacks
-    constructor() {
-      super()
+    constructor(props: $Diff<T, FloatingMenuParentProps>) {
+      super(props)
       this._setters = {
         setShowingMenu: showingMenu => this.setState({showingMenu}),
         toggleShowingMenu: () => this.setState(oldState => ({showingMenu: !oldState.showingMenu})),
