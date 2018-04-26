@@ -23,8 +23,8 @@ import (
 // we're more responsive when we come back from backgrounding, etc.
 //
 
-// If we're within 5 minutes of expiration, generate a new NIST
-const nistExpirationMargin = time.Minute * 5
+// If we're within 1 hour of expiration, generate a new NIST;
+const nistExpirationMargin = time.Hour
 const nistLifetime = 28 * time.Hour
 const nistSessionIDLength = 16
 const nistShortHashLen = 19
@@ -86,23 +86,41 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 	f.Lock()
 	defer f.Unlock()
 
-	if f.nist == nil || f.nist.IsExpired() || f.nist.DidFail() {
+	makeNew := true
+
+	if f.nist == nil {
+		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: nil NIST, making new one")
+	} else if f.nist.DidFail() {
+		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: NIST previously failed, so we'll make a new one")
+	} else {
+		valid, until := f.nist.IsStillValid()
+		if valid {
+			f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: returning existing NIST (expires conservatively in %s, expiresAt: %s)", until, f.nist.expiresAt)
+			makeNew = false
+		} else {
+			f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: NIST expired (conservatively) %s ago, making a new one (expiresAt: %s)", -until, f.nist.expiresAt)
+		}
+	}
+
+	if makeNew {
 		ret = newNIST(f.G())
 		err = ret.generate(ctx, f.uid, f.deviceID, f.key)
 		if err != nil {
 			return nil, err
 		}
 		f.nist = ret
+		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: Installing new NIST; expiresAt: %s", f.nist.expiresAt)
 	}
 
 	return f.nist, nil
 }
 
-func (n *NIST) IsExpired() bool {
+func (n *NIST) IsStillValid() (bool, time.Duration) {
 	n.RLock()
 	defer n.RUnlock()
 	conservativeExpiration := n.expiresAt.Add(-nistExpirationMargin)
-	return !conservativeExpiration.After(n.G().Clock().Now())
+	diff := conservativeExpiration.Sub(n.G().Clock().Now())
+	return (diff > 0), diff
 }
 
 func (n *NIST) DidFail() bool {
