@@ -64,10 +64,10 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
   const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
-  const injectedInput: ?string =
+  const injectedInput: string =
     injectedInputMessage && injectedInputMessage.type === 'text'
       ? injectedInputMessage.text.stringValue()
-      : null
+      : ''
 
   return {
     _editingMessage,
@@ -169,7 +169,7 @@ type LifecycleProps = PropsFromContainer & {
   _quotingMessage: ?Types.Message,
   _editingMessage: ?Types.Message,
   setText: (string, skipUnsentSaving?: boolean) => void,
-  injectedInput: ?string,
+  injectedInput: string,
   inputMoveToEnd: () => void,
 }
 
@@ -233,7 +233,7 @@ export default compose(
         nextProps._editingMessage !== props._editingMessage
       ) {
         props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-        const injectedInput = nextProps.injectedInput || ''
+        const injectedInput = nextProps.injectedInput
         props.setText(
           nextProps._quotingMessage && !nextProps._editingMessage
             ? formatTextForQuoting(injectedInput)
