@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import pluralize from 'pluralize'
 import * as Types from '../../../constants/types/teams'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
@@ -139,7 +140,7 @@ const OpenTeam = (props: SettingProps) =>
             type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
             onClick={props.newOpenTeam ? props.onSetOpenTeamRole : undefined}
           >
-            {props.newOpenTeamRole}
+            {pluralize(props.newOpenTeamRole)}
           </Text>
           .
         </Text>
