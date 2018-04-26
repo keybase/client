@@ -139,7 +139,7 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
         numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
       })
     )
-  )
+  }
 }
 
 const networkErrors = [
