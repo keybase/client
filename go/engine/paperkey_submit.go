@@ -46,12 +46,13 @@ func (e *PaperKeySubmit) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKeySubmit) Run(ctx *Context) error {
+	m := NewMetaContext(e, ctx)
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
 	}
 
-	e.pair, err = matchPaperKey(ctx, e.G(), me, e.paperPhrase)
+	e.pair, err = matchPaperKey(m, ctx, me, e.paperPhrase)
 	if err != nil {
 		return err
 	}

@@ -104,7 +104,7 @@ func (a *Account) LoggedInLoad() (bool, error) {
 // LoggedInProvisioned will check if the user is logged in and provisioned on this
 // device. It will do so by bootstrapping the ActiveDevice.
 func (a *Account) LoggedInProvisioned(ctx context.Context) (bool, error) {
-	_, err := BootstrapActiveDeviceFromConfig(context.TODO(), a.G(), a, true)
+	_, err := BootstrapActiveDeviceFromConfig(NewMetaContext(ctx, a.G()).WithLoginContext(a), true)
 	if err == nil {
 		return true, nil
 	}

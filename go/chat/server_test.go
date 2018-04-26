@@ -242,6 +242,7 @@ type chatTestUserContext struct {
 	u        *kbtest.FakeUser
 	h        *Server
 	ri       chat1.RemoteInterface
+	m        libkb.MetaContext
 }
 
 func (tuc *chatTestUserContext) user() *kbtest.FakeUser {
@@ -355,6 +356,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		u:        user,
 		startCtx: ctx,
 		ri:       ri,
+		m:        libkb.NewMetaContext(ctx, tc.G),
 	}
 	c.userContextCache[user.Username] = tuc
 	return tuc
@@ -3894,7 +3896,8 @@ func TestChatSrvUserReset(t *testing.T) {
 			ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 
 		t.Logf("reset user 1")
-		require.NoError(t, ctc.as(t, users[1]).h.G().LoginState().ResetAccount(users[1].Username))
+		ctcForUser := ctc.as(t, users[1])
+		require.NoError(t, ctcForUser.h.G().LoginState().ResetAccount(ctcForUser.m, users[1].Username))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)
@@ -3954,7 +3957,8 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.Error(t, err)
 
 		t.Logf("reset user 2")
-		require.NoError(t, ctc.as(t, users[2]).h.G().LoginState().ResetAccount(users[2].Username))
+		ctcForUser2 := ctc.as(t, users[2])
+		require.NoError(t, ctcForUser2.h.G().LoginState().ResetAccount(ctcForUser2.m, users[2].Username))
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, conv.Id)

@@ -113,7 +113,7 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 
 // copied from engine/common_test.go
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().ResetAccount(u.Username)
+	err := tc.G.LoginState().ResetAccount(libkb.NewMetaContextForTest(tc), u.Username)
 	if err != nil {
 		tc.T.Fatalf("In account reset: %s", err)
 	}
@@ -122,7 +122,7 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 }
 
 func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().DeleteAccount(u.Username)
+	err := tc.G.LoginState().DeleteAccount(libkb.NewMetaContextForTest(tc), u.Username)
 	if err != nil {
 		tc.T.Fatalf("In delete: %s", err)
 	}

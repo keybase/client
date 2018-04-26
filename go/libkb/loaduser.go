@@ -56,6 +56,14 @@ func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
 }
 
+func NewLoadUserArgWithMetaContext(m MetaContext) LoadUserArg {
+	return LoadUserArg{
+		Contextified: NewContextified(m.G()),
+		netContext:   m.Ctx(),
+		loginContext: m.LoginContext(),
+	}
+}
+
 func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
 	return LoadUserArg{
 		Contextified: NewContextified(g),
@@ -253,6 +261,9 @@ func LoadMe(arg LoadUserArg) (*User, error) {
 
 func LoadMeByUID(ctx context.Context, g *GlobalContext, uid keybase1.UID) (*User, error) {
 	return LoadMe(NewLoadUserByUIDArg(ctx, g, uid))
+}
+func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
+	return LoadMe(NewLoadUserArgWithMetaContext(m).WithUID(uid))
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {

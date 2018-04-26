@@ -57,7 +57,8 @@ func (e *SaltpackSign) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *SaltpackSign) Run(ctx *Context) error {
-	if err := e.loadKey(ctx); err != nil {
+	m := NewMetaContext(e, ctx)
+	if err := e.loadKey(m, ctx); err != nil {
 		return err
 	}
 
@@ -73,7 +74,7 @@ func (e *SaltpackSign) Run(ctx *Context) error {
 	return libkb.SaltpackSign(e.G(), e.arg.Source, e.arg.Sink, e.key, e.arg.Opts.Binary, saltpackVersion)
 }
 
-func (e *SaltpackSign) loadKey(ctx *Context) error {
+func (e *SaltpackSign) loadKey(m libkb.MetaContext, ctx *Context) error {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
@@ -82,7 +83,7 @@ func (e *SaltpackSign) loadKey(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "signing a message/file"))
+	key, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "signing a message/file"))
 	if err != nil {
 		return err
 	}

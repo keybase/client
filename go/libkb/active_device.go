@@ -22,18 +22,18 @@ type ActiveDevice struct {
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) Set(g *GlobalContext, lctx LoginContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+func (a *ActiveDevice) Set(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
-	if err := a.internalUpdateUIDDeviceID(lctx, uid, deviceID); err != nil {
+	if err := a.internalUpdateUIDDeviceID(m.LoginContext(), uid, deviceID); err != nil {
 		return err
 	}
 
 	a.signingKey = sigKey
 	a.encryptionKey = encKey
 	a.deviceName = deviceName
-	a.nistFactory = NewNISTFactory(g, uid, deviceID, sigKey)
+	a.nistFactory = NewNISTFactory(m.G(), uid, deviceID, sigKey)
 
 	return nil
 }

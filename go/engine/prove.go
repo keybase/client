@@ -175,13 +175,13 @@ func (p *Prove) doWarnings(ctx *Context) (err error) {
 	return
 }
 
-func (p *Prove) generateProof(ctx *Context) (err error) {
+func (p *Prove) generateProof(m libkb.MetaContext, ctx *Context) (err error) {
 	ska := libkb.SecretKeyArg{
 		Me:      p.me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
 
-	p.signingKey, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "tracking signature"))
+	p.signingKey, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "tracking signature"))
 	if err != nil {
 		return err
 	}
@@ -333,13 +333,11 @@ func (p *Prove) SigID() keybase1.SigID {
 
 // Run runs the Prove engine, performing all steps of the proof process.
 func (p *Prove) Run(ctx *Context) (err error) {
-	p.G().Log.Debug("+ ProofEngine.Run")
-	defer func() {
-		p.G().Log.Debug("- ProofEngine.Run -> %s", libkb.ErrToOk(err))
-	}()
+	m := NewMetaContext(p, ctx)
+	defer m.CTrace("ProofEngine.Run", func() error { return err })()
 
 	stage := func(s string) {
-		p.G().Log.Debug("| ProofEngine.Run() %s", s)
+		m.CDebugf("| ProofEngine.Run() %s", s)
 	}
 
 	stage("GetServiceType")
@@ -373,7 +371,7 @@ func (p *Prove) Run(ctx *Context) (err error) {
 	p.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "Prove")
 	defer p.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Prove")
 	stage("GenerateProof")
-	if err = p.generateProof(ctx); err != nil {
+	if err = p.generateProof(m, ctx); err != nil {
 		return
 	}
 	stage("PostProofToServer")

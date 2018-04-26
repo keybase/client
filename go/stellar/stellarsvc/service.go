@@ -69,9 +69,11 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 		return res, err
 	}
 
+	mctx := libkb.NewMetaContext(ctx, s.G())
+
 	// Prompt for passphrase
 	username := s.G().GetEnv().GetUsername().String()
-	arg := libkb.DefaultPassphrasePromptArg(s.G(), username)
+	arg := libkb.DefaultPassphrasePromptArg(mctx, username)
 	arg.Prompt = arg.Prompt + " to export Stellar secret keys"
 	secretUI := s.uiSource.SecretUI(s.G(), 0)
 	ppRes, err := secretUI.GetPassphrase(arg, nil)
@@ -79,7 +81,7 @@ func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.Ac
 		return res, err
 	}
 	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(ppRes.Passphrase, func(lctx libkb.LoginContext) error {
+	_, err = s.G().LoginState().VerifyPlaintextPassphrase(mctx, ppRes.Passphrase, func(lctx libkb.LoginContext) error {
 		pwdOk = true
 		return nil
 	})

@@ -53,6 +53,8 @@ func (e *PGPKeyGen) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPKeyGen) Run(ctx *Context) error {
 
+	m := NewMetaContext(e, ctx)
+
 	// generate a new pgp key with defaults (and no push)
 	var genArg libkb.PGPGenArg
 	if e.genArg != nil {
@@ -71,7 +73,7 @@ func (e *PGPKeyGen) Run(ctx *Context) error {
 	}
 
 	// tell the UI about the key
-	e.G().Log.Debug("generated pgp key: %s", eng.bundle.GetFingerprint())
+	m.CDebugf("generated pgp key: %s", eng.bundle.GetFingerprint())
 	pub, err := eng.bundle.Encode()
 	if err != nil {
 		return err
@@ -94,8 +96,8 @@ func (e *PGPKeyGen) Run(ctx *Context) error {
 		return err
 	}
 
-	e.G().Log.Debug("push private generated pgp key to API server? %v", pushPrivate)
-	if err := e.push(ctx, eng.bundle, pushPrivate); err != nil {
+	m.CDebugf("push private generated pgp key to API server? %v", pushPrivate)
+	if err := e.push(m, ctx, eng.bundle, pushPrivate); err != nil {
 		return err
 	}
 
@@ -103,10 +105,10 @@ func (e *PGPKeyGen) Run(ctx *Context) error {
 	return ctx.PgpUI.Finished(ctx.NetContext, ctx.SessionID)
 }
 
-func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
-	e.G().Trace("PGPKeyGen.push", func() error { return err })()
+func (e *PGPKeyGen) push(m libkb.MetaContext, ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
+	defer m.CTrace("PGPKeyGen.push", func() error { return err })()
 
-	tsec, gen, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
+	tsec, gen, err := e.G().LoginState().GetVerifiedTriplesec(NewMetaContext(e, ctx), ctx.SecretUI)
 	if err != nil {
 		return err
 	}
@@ -122,7 +124,7 @@ func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate b
 		DelegationType: libkb.DelegationTypeSibkey,
 		Contextified:   libkb.NewContextified(e.G()),
 	}
-	if err := del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI); err != nil {
+	if err := del.LoadSigningKey(m, ctx.SecretUI); err != nil {
 		return err
 	}
 	del.NewKey = bundle

@@ -178,7 +178,7 @@ func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
 	}
 
 	// need a session to continue to provision, login with paper sigKey
-	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.User, kp.sigKey, afterLogin)
+	return e.G().LoginState().LoginWithKey(NewMetaContext(e, ctx), e.User, kp.sigKey, afterLogin)
 }
 
 func (e *PaperProvisionEngine) sendNotification() {

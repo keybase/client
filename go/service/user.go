@@ -235,7 +235,7 @@ func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
 	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
 		return errors.New("can only reset user via service RPC in dev mode")
 	}
-	err := h.G().LoginState().ResetAccount(h.G().Env.GetUsername().String())
+	err := h.G().LoginState().ResetAccount(libkb.NewMetaContext(ctx, h.G()), h.G().Env.GetUsername().String())
 	if err != nil {
 		return err
 	}

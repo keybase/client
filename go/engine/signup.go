@@ -72,6 +72,7 @@ func (s *SignupEngine) GetMe() *libkb.User {
 
 func (s *SignupEngine) Run(ctx *Context) error {
 	// make sure we're starting with a clear login state:
+	m := NewMetaContext(s, ctx)
 	if err := s.G().Logout(); err != nil {
 		return err
 	}
@@ -91,7 +92,8 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		if err := s.registerDevice(a, ctx, s.arg.DeviceName); err != nil {
+		m = m.WithLoginContext(a)
+		if err := s.registerDevice(m, ctx, s.arg.DeviceName); err != nil {
 			return err
 		}
 
@@ -204,8 +206,8 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 	return nil
 }
 
-func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, deviceName string) error {
-	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#registerDevice")
+func (s *SignupEngine) registerDevice(m libkb.MetaContext, ctx *Context, deviceName string) error {
+	m.CDebugf("SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid, s.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
@@ -224,7 +226,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	}
 
 	eng := NewDeviceWrap(args, s.G())
-	ctx.LoginContext = a
+	ctx.LoginContext = m.LoginContext()
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
@@ -243,7 +245,7 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	if s.arg.StoreSecret {
 		secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
 		if secretStore != nil {
-			secret, err := s.lks.GetSecret(a)
+			secret, err := s.lks.GetSecret(m)
 			if err != nil {
 				return err
 			}

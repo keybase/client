@@ -116,7 +116,8 @@ func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.Devic
 }
 
 func (e *RevokeEngine) Run(ctx *Context) error {
-	e.G().Log.CDebugf(ctx.NetContext, "RevokeEngine#Run (mode:%v)", e.mode)
+	m := NewMetaContext(e, ctx)
+	m.CDebugf("RevokeEngine#Run (mode:%v)", e.mode)
 
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "RevokeEngine")
 	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "RevokeEngine")
@@ -165,7 +166,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		ctx.LogUI.Info("  %s", kid)
 	}
 
-	sigKey, encKey, err := e.getDeviceSecretKeys(ctx, me)
+	sigKey, encKey, err := e.getDeviceSecretKeys(m, ctx, me)
 	if err != nil {
 		return err
 	}
@@ -188,7 +189,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	err = pukring.Sync(ctx.NetContext)
+	err = pukring.Sync(m)
 	if err != nil {
 		return err
 	}
@@ -204,7 +205,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		newPukSeed = &newPukSeedInner
 
 		// Create a prev secretbox containing the previous generation seed
-		pukPrevInner, err := pukring.PreparePrev(ctx.NetContext, *newPukSeed, newPukGeneration)
+		pukPrevInner, err := pukring.PreparePrev(m, *newPukSeed, newPukGeneration)
 		if err != nil {
 			return err
 		}
@@ -217,7 +218,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		}
 
 		// Create boxes of the new per-user-key
-		pukBoxesInner, err := pukring.PrepareBoxesForDevices(ctx.NetContext,
+		pukBoxesInner, err := pukring.PrepareBoxesForDevices(m,
 			*newPukSeed, newPukGeneration, pukReceivers, encKey)
 		if err != nil {
 			return err
@@ -298,7 +299,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	}
 
 	if addingNewPUK {
-		err = pukring.AddKey(ctx.NetContext, newPukGeneration, newPukSeqno, *newPukSeed)
+		err = pukring.AddKey(m, newPukGeneration, newPukSeqno, *newPukSeed)
 		if err != nil {
 			return err
 		}
@@ -319,12 +320,12 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 // Get the full keys for this device.
 // Returns (sigKey, encKey, err)
-func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.GenericKey, libkb.GenericKey, error) {
+func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, ctx *Context, me *libkb.User) (libkb.GenericKey, libkb.GenericKey, error) {
 	skaSig := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(skaSig, "to revoke another key"))
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(skaSig, "to revoke another key"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -336,7 +337,7 @@ func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(skaEnc, "to revoke another key"))
+	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(skaEnc, "to revoke another key"))
 	if err != nil {
 		return nil, nil, err
 	}

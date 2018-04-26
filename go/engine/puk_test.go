@@ -29,30 +29,32 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 
 	kr, err := libkb.NewPerUserKeyring(tc.G, fu.UID())
 	require.NoError(t, err)
-	err = kr.Sync(context.Background())
+	ctx := context.Background()
+	mctx := libkb.NewMetaContext(ctx, tc.G)
+	err = kr.Sync(mctx)
 	require.NoError(t, err)
 	gen := keybase1.PerUserKeyGeneration(1)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 
-	sigKey, err := kr.GetLatestSigningKey(context.TODO())
+	sigKey, err := kr.GetLatestSigningKey(mctx)
 	require.NoError(t, err)
 	require.NotNil(t, sigKey)
 	require.NotNil(t, sigKey.Private)
 
-	encKey, err := kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(1))
+	encKey, err := kr.GetEncryptionKeyByGeneration(mctx, keybase1.PerUserKeyGeneration(1))
 	require.NoError(t, err)
 	require.NotNil(t, encKey)
 	require.NotNil(t, encKey.Private)
 
-	encKey, err = kr.GetEncryptionKeyBySeqno(context.TODO(), keybase1.Seqno(3))
+	encKey, err = kr.GetEncryptionKeyBySeqno(mctx, keybase1.Seqno(3))
 	require.NoError(t, err)
 	require.NotNil(t, encKey)
 	require.NotNil(t, encKey.Private)
 
-	_, err = kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(2))
+	_, err = kr.GetEncryptionKeyByGeneration(mctx, keybase1.PerUserKeyGeneration(2))
 	require.Error(t, err)
 
-	err = kr.Sync(context.Background())
+	err = kr.Sync(mctx)
 	require.Nil(t, err)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 }
@@ -70,31 +72,33 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 
 	kr, err := libkb.NewPerUserKeyring(tc.G, fu.UID())
 	require.NoError(t, err)
-	err = kr.Sync(context.Background())
+	ctx := context.Background()
+	mctx := libkb.NewMetaContext(ctx, tc.G)
+	err = kr.Sync(mctx)
 	require.NoError(t, err)
 
 	gen := keybase1.PerUserKeyGeneration(1)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 
-	sigKey, err := kr.GetLatestSigningKey(context.TODO())
+	sigKey, err := kr.GetLatestSigningKey(mctx)
 	require.NoError(t, err)
 	require.NotNil(t, sigKey)
 	require.NotNil(t, sigKey.Private)
 
-	encKey, err := kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(1))
+	encKey, err := kr.GetEncryptionKeyByGeneration(mctx, keybase1.PerUserKeyGeneration(1))
 	require.NoError(t, err)
 	require.NotNil(t, encKey)
 	require.NotNil(t, encKey.Private)
 
-	encKey, err = kr.GetEncryptionKeyBySeqno(context.TODO(), keybase1.Seqno(3))
+	encKey, err = kr.GetEncryptionKeyBySeqno(mctx, keybase1.Seqno(3))
 	require.NoError(t, err)
 	require.NotNil(t, encKey)
 	require.NotNil(t, encKey.Private)
 
-	_, err = kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(2))
+	_, err = kr.GetEncryptionKeyByGeneration(mctx, keybase1.PerUserKeyGeneration(2))
 	require.Error(t, err)
 
-	err = kr.Sync(context.Background())
+	err = kr.Sync(mctx)
 	require.Nil(t, err)
 	require.Equal(t, kr.CurrentGeneration(), gen)
 }

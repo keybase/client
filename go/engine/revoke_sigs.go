@@ -63,6 +63,8 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "RevokeSigsEngine")
 	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "RevokeSigsEngine")
 
+	m := NewMetaContext(e, ctx)
+
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
@@ -82,7 +84,7 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke a signature"))
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "to revoke a signature"))
 	if err != nil {
 		return err
 	}

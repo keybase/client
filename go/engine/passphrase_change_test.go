@@ -12,12 +12,13 @@ import (
 )
 
 func verifyPassphraseChange(tc libkb.TestContext, u *FakeUser, newPassphrase string) {
-	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil)
+	mctx := NewMetaContextForTest(tc)
+	_, err := tc.G.LoginState().VerifyPlaintextPassphrase(mctx, newPassphrase, nil)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 
-	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(u.Passphrase, nil)
+	_, err = tc.G.LoginState().VerifyPlaintextPassphrase(mctx, u.Passphrase, nil)
 	if err == nil {
 		tc.T.Fatal("old passphrase passed verification")
 	}
@@ -44,7 +45,8 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 		SecretUI: u.NewSecretUI(),
 		Reason:   "testing sig",
 	}
-	sigKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(parg)
+	m := NewMetaContextForTest(tc)
+	sigKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -53,7 +55,7 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 	}
 
 	parg.Ska.KeyType = libkb.DeviceEncryptionKeyType
-	encKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(parg)
+	encKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -77,7 +79,8 @@ func assertLoadPGPKeys(tc libkb.TestContext, u *FakeUser) {
 		SecretUI: u.NewSecretUI(),
 		Reason:   "pgp test",
 	}
-	key, err := tc.G.Keyrings.GetSecretKeyWithPrompt(parg)
+	m := NewMetaContextForTest(tc)
+	key, err := tc.G.Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -229,7 +232,7 @@ func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
 		// the bug fix that we're actually trying to test by doing multiple
 		// passphrase changes.
 		if i == numChanges-1 {
-			_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase, nil)
+			_, err := tc.G.LoginState().VerifyPlaintextPassphrase(NewMetaContextForTest(tc), newPassphrase, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -713,6 +716,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := createFakeUserWithPGPSibkeyPushed(tc)
+	m := NewMetaContextForTest(tc)
 
 	// create/push another pgp key
 	parg := PGPKeyImportEngineArg{
@@ -780,7 +784,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		parg := libkb.SecretKeyPromptArg{
 			SecretUI: u.NewSecretUI(),
 		}
-		unlocked, err := key.PromptAndUnlock(parg, nil, me)
+		unlocked, err := key.PromptAndUnlock(m, parg, nil, me)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -15,7 +15,7 @@ import (
 // promptPassphrase asks the user for a passphrase.
 // Used during signup.
 func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error) {
-	arg := libkb.DefaultPassphraseArg(g)
+	arg := libkb.DefaultPassphraseArg(libkb.NewMetaContextTODO(g))
 	arg.WindowTitle = "Passphrase"
 	arg.Prompt = fmt.Sprintf("Pick a strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
@@ -25,7 +25,7 @@ func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error)
 // promptNewPassphrase asks the user for a new passphrase.
 // Used when changing passphrases.
 func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
-	arg := libkb.DefaultPassphraseArg(g)
+	arg := libkb.DefaultPassphraseArg(libkb.NewMetaContextTODO(g))
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
@@ -39,7 +39,8 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 // PromptPaperPhrase asks the user to enter a paper key phrase.
 // Used in `rekey paper` command.
 func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
-	arg := libkb.DefaultPassphraseArg(g)
+	m := libkb.NewMetaContextTODO(g)
+	arg := libkb.DefaultPassphraseArg(m)
 	arg.WindowTitle = "Enter a paper key"
 	arg.Prompt = "Enter a paper key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
@@ -47,7 +48,7 @@ func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
 	arg.Features.ShowTyping.DefaultValue = true
 
 	prompter := newClientPrompter(g)
-	res, err := libkb.GetPassphraseUntilCheck(g, arg, prompter, &libkb.PaperChecker{})
+	res, err := libkb.GetPassphraseUntilCheck(m, arg, prompter, &libkb.PaperChecker{})
 	if err != nil {
 		return "", err
 	}
@@ -56,12 +57,13 @@ func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
 
 func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, promptConfirm string) (keybase1.GetPassphraseRes, error) {
 	prompter := newClientPrompter(g)
+	m := libkb.NewMetaContextTODO(g)
 
 	firstPrompt := arg.Prompt
 
 	for i := 0; i < 10; i++ {
 		// get the first passphrase
-		res, err := libkb.GetPassphraseUntilCheckWithChecker(g, arg, prompter, &libkb.CheckPassphraseNew)
+		res, err := libkb.GetPassphraseUntilCheckWithChecker(m, arg, prompter, &libkb.CheckPassphraseNew)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err
 		}
@@ -69,7 +71,7 @@ func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, p
 		// get confirmation passphrase
 		arg.RetryLabel = ""
 		arg.Prompt = promptConfirm
-		confirm, err := libkb.GetPassphraseUntilCheckWithChecker(g, arg, prompter, &libkb.CheckPassphraseNew)
+		confirm, err := libkb.GetPassphraseUntilCheckWithChecker(m, arg, prompter, &libkb.CheckPassphraseNew)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err
 		}

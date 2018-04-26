@@ -33,6 +33,10 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 	}
 }
 
+func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, e.G())
+}
+
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
 		return err
@@ -44,7 +48,7 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := pukring.Sync(ctx); err != nil {
+	if err := pukring.Sync(e.NewMetaContext(ctx)); err != nil {
 		return err
 	}
 	if !pukring.HasAnyKeys() {
