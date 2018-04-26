@@ -41,13 +41,18 @@ type State = {selected: MessageExplodeDescription}
 class SetExplodePopup extends React.Component<Props, State> {
   state = {selected: {text: 'Never', seconds: 0}}
 
-  static getDerivedStateFromProps(nextProps, prevState) {
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return {selected: nextProps.selected || {text: 'Never', seconds: 0}}
   }
 
-  setSelected = (value: number) => {
+  setSelected = (value: number | string) => {
     const selected = sortedDescriptions.find(item => item.seconds === value) || {text: 'Never', seconds: 0}
     this.setState({selected})
+  }
+
+  onDone = () => {
+    this.props.onSelect(this.state.selected)
+    this.props.onHidden()
   }
 
   render() {
@@ -58,6 +63,8 @@ class SetExplodePopup extends React.Component<Props, State> {
         items={items}
         onSelect={this.setSelected}
         onHidden={this.props.onHidden}
+        onCancel={this.props.onHidden}
+        onDone={this.onDone}
         visible={this.props.visible}
         selectedValue={this.state.selected.seconds}
       />

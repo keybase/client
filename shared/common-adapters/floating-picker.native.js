@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React, {type Node} from 'react'
 import {TouchableWithoutFeedback, Picker} from 'react-native'
 import Box from './box'
 import Text from './text'
@@ -8,12 +8,12 @@ import FloatingBox from './floating-box.native'
 
 type PickerItem = {label: string, value: string | number}
 
-type Props<T: string | number> = {
+type Props = {
   items: PickerItem[], // values must be unique
-  selectedValue: T,
-  onSelect: T => void,
-  header?: React.Node,
-  prompt?: React.Node,
+  selectedValue: string | number,
+  onSelect: (string | number) => void,
+  header?: Node,
+  prompt?: Node,
   onHidden: () => void,
   onCancel: () => void,
   onDone: () => void,
@@ -25,10 +25,11 @@ const FloatingPicker = (props: Props) => {
     return null
   }
   return (
-    <FloatingBox>
+    // onHidden required by the typing for desktop, not used on mobile
+    <FloatingBox onHidden={() => {}}>
       <TouchableWithoutFeedback style={styleOverlayContainer} onPress={props.onHidden}>
         <Box style={styleOverlay}>
-          <Box style={{...styleMenu, ...props.style}}>
+          <Box style={styleMenu}>
             {props.header}
             <Box style={styleActionButtons}>
               <Box style={{flex: 1}}>
