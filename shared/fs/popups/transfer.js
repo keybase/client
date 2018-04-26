@@ -31,8 +31,10 @@ const getTitle = (intent: Types.TransferIntent): string => {
       // TODO
       return ''
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(intent: empty) // this breaks when a new intent is added but not handled here
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
       return ''
   }
 }

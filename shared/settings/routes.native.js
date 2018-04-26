@@ -8,6 +8,7 @@ import InviteGenerated from './invite-generated/container'
 import Feedback from './feedback-container'
 import Push from '../app/push/push.native'
 import DevicesRoute from '../devices/routes'
+import WalletsRoute from '../wallets/routes'
 import GitRoute from '../git/routes'
 import FoldersRoute from '../folders/routes'
 import FilesRoute from '../fs/routes'
@@ -53,6 +54,7 @@ const routeTree = makeRouteDefNode({
     [Constants.foldersTab]: FoldersRoute,
     [Constants.fsTab]: FilesRoute,
     [Constants.devicesTab]: DevicesRoute,
+    [Constants.walletsTab]: WalletsRoute,
     [Constants.gitTab]: GitRoute,
     [Constants.notificationsTab]: {component: NotificationsContainer},
     [Constants.advancedTab]: {

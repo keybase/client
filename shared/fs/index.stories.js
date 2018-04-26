@@ -6,7 +6,7 @@ import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors} from '../styles'
 import Files from '.'
-import FilePreview from './filepreview'
+import {NormalPreview} from './filepreview'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
@@ -101,7 +101,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Preview', () => <FilePreview routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />)
+    .add('Preview', () => <NormalPreview routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />)
 }
 
 export default load

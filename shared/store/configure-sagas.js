@@ -1,31 +1,32 @@
 // @flow
+import appStateSaga from '../actions/app'
 import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
 import favoriteSaga from '../actions/favorite'
 import fsSaga from '../actions/fs'
+import gitSaga from '../actions/git'
 import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
 import notificationsSaga from '../actions/notifications'
+import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
-import gitSaga from '../actions/git'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
+import pushSaga from '../actions/push'
 import routeSaga from '../actions/route-tree'
+import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
-import trackerSaga from '../actions/tracker'
-import usersSaga from '../actions/users'
-import unlockFoldersSaga from '../actions/unlock-folders'
-import pushSaga from '../actions/push'
-import {fork} from 'redux-saga/effects'
-import sagaMonitor from './saga-monitor'
-import {reduxSagaLogger} from '../local-debug'
-import appStateSaga from '../actions/app'
 import teamsSaga from '../actions/teams'
-import peopleSaga from '../actions/people'
+import trackerSaga from '../actions/tracker'
+import unlockFoldersSaga from '../actions/unlock-folders'
+import usersSaga from '../actions/users'
+import walletsSaga from '../actions/wallets'
+import {fork} from 'redux-saga/effects'
+import {reduxSagaLogger} from '../local-debug'
 import {sagaTimer} from '../dev/user-timings'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -54,6 +55,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(usersSaga)
   yield fork(gitSaga)
   yield fork(peopleSaga)
+  yield fork(walletsSaga)
 }
 
 let middleWare

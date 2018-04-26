@@ -81,6 +81,7 @@ type NotificationsTab = 'settingsTabs:notificationsTab'
 type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
+type WalletsTab = 'settingsTabs:walletsTab'
 
 export type Tab =
   | LandingTab
@@ -98,5 +99,6 @@ export type Tab =
   | FsTab
   | ScreenprotectorTab
   | PassphraseTab
+  | WalletsTab
 
 export type PlanLevel = string
