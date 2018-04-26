@@ -51,6 +51,7 @@ func (e *PGPUpdateEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *PGPUpdateEngine) Run(ctx *Context) error {
+	m := NewMetaContext(e, ctx)
 	if e.all && len(e.selectedFingerprints) > 0 {
 		return fmt.Errorf("Cannot use explicit fingerprints with --all.")
 	}
@@ -77,7 +78,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	err = del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI)
+	err = del.LoadSigningKey(m, ctx.SecretUI)
 	if err != nil {
 		return err
 	}

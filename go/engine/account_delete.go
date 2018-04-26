@@ -46,13 +46,14 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *AccountDelete) Run(ctx *Context) error {
 	username := e.G().GetEnv().GetUsername().String()
-	arg := libkb.DefaultPassphrasePromptArg(e.G(), username)
+	mctx := NewMetaContext(e, ctx)
+	arg := libkb.DefaultPassphrasePromptArg(mctx, username)
 	res, err := ctx.SecretUI.GetPassphrase(arg, nil)
 	if err != nil {
 		return err
 	}
-	_, err = e.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
-		return libkb.DeleteAccountWithContext(e.G(), lctx, username)
+	_, err = e.G().LoginState().VerifyPlaintextPassphrase(mctx, res.Passphrase, func(lctx libkb.LoginContext) error {
+		return libkb.DeleteAccountWithContext(mctx.WithLoginContext(lctx), username)
 	})
 
 	if err != nil {

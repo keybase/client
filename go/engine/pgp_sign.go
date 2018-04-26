@@ -59,6 +59,8 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 	var dumpTo io.WriteCloser
 	var written int64
 
+	m := NewMetaContext(p, ctx)
+
 	defer func() {
 		if dumpTo != nil {
 			if e := dumpTo.Close(); e != nil {
@@ -83,7 +85,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		KeyType:  libkb.PGPKeyType,
 		KeyQuery: p.arg.Opts.KeyQuery,
 	}
-	key, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "command-line signature"))
+	key, err = p.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "command-line signature"))
 	if err != nil {
 		return
 	} else if pgp, ok = key.(*libkb.PGPKeyBundle); !ok {

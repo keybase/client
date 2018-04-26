@@ -87,5 +87,5 @@ func (c *CryptoHandler) UnboxBytes32(ctx context.Context, arg keybase1.UnboxByte
 }
 
 func (c *CryptoHandler) UnboxBytes32Any(ctx context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {
-	return engine.UnboxBytes32Any(ctx, c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+	return engine.UnboxBytes32Any(libkb.NewMetaContext(ctx, c.G()), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }

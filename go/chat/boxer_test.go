@@ -95,7 +95,7 @@ func getSigningKeyPairForTest(t *testing.T, tc *kbtest.ChatTestContext, u *kbtes
 			t.Fatal(err)
 		}
 	}
-	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(nil, u.User, u.Passphrase, nil)
+	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(kbtest.NewMetaContextForTest(*tc), u.User, u.Passphrase, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

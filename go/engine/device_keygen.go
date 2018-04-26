@@ -94,9 +94,10 @@ func (e *DeviceKeygen) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeygen) Run(ctx *Context) error {
+	mctx := NewMetaContext(e, ctx)
 	e.setup(ctx)
 	e.generate()
-	e.localSave(ctx)
+	e.localSave(mctx)
 	return e.runErr
 }
 
@@ -119,7 +120,7 @@ func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
 
 // Push pushes the generated keys to the api server and stores the
 // local key security server half on the api server as well.
-func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
+func (e *DeviceKeygen) Push(m libkb.MetaContext, ctx *Context, pargs *DeviceKeygenPushArgs) error {
 	var encSigner libkb.GenericKey
 	eldestKID := pargs.EldestKID
 
@@ -145,7 +146,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 		pukBoxes = append(pukBoxes, pukBox)
 	}
 	if !e.args.IsEldest {
-		boxes, err := e.preparePerUserKeyBoxFromPaperkey(ctx)
+		boxes, err := e.preparePerUserKeyBoxFromPaperkey(m, ctx)
 		if err != nil {
 			return err
 		}
@@ -236,15 +237,14 @@ func (e *DeviceKeygen) generate() {
 
 }
 
-func (e *DeviceKeygen) localSave(ctx *Context) {
+func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 	if e.runErr != nil {
 		return
 	}
-
-	if e.runErr = e.naclSignGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
+	if e.runErr = e.naclSignGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
-	if e.runErr = e.naclEncGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
+	if e.runErr = e.naclEncGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
 }
@@ -366,7 +366,7 @@ func (e *DeviceKeygen) device() *libkb.Device {
 }
 
 // Can return no boxes if there are no per-user-keys.
-func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
+func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext, ctx *Context) ([]keybase1.PerUserKeyBox, error) {
 	// Assuming this is a paperkey provision.
 
 	upak := e.args.Me.ExportToUserPlusAllKeys()
@@ -406,14 +406,14 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 	if err != nil {
 		return nil, err
 	}
-	err = pukring.SyncAsPaperKey(ctx.NetContext, ctx.LoginContext, &upak, paperDeviceID, paperEncKey)
+	err = pukring.SyncAsPaperKey(m, &upak, paperDeviceID, paperEncKey)
 	if err != nil {
 		return nil, err
 	}
 	if !pukring.HasAnyKeys() {
 		return nil, nil
 	}
-	pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
+	pukBox, err := pukring.PrepareBoxForNewDevice(m,
 		e.EncryptionKey(), // receiver key: provisionee enc
 		paperEncKey,       // sender key: paper key enc
 	)

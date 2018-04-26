@@ -54,8 +54,8 @@ func (e *UntrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *UntrackEngine) Run(ctx *Context) (err error) {
-	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "UntrackEngine")
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "UntrackEngine")
+	m := NewMetaContext(e, ctx)
+	defer m.CTrace("UntrackEngine#Run", func() error { return err })()
 
 	e.arg.Me, err = e.loadMe()
 	if err != nil {
@@ -95,7 +95,7 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 	}
 
 	if remoteLink != nil && !remoteLink.IsRevoked() {
-		err = e.storeRemoteUntrack(them, ctx)
+		err = e.storeRemoteUntrack(m, them, ctx)
 		if err != nil {
 			return
 		}
@@ -191,9 +191,8 @@ func (e *UntrackEngine) storeLocalUntrack(them *libkb.User) error {
 	return libkb.RemoveLocalTracks(e.arg.Me.GetUID(), them.GetUID(), e.G())
 }
 
-func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err error) {
-	e.G().Log.Debug("+ StoreRemoteUntrack")
-	defer e.G().Log.Debug("- StoreRemoteUntrack -> %s", libkb.ErrToOk(err))
+func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User, ctx *Context) (err error) {
+	defer m.CTrace("UntrackEngine#StoreRemoteUntrack", func() error { return err })()
 
 	me := e.arg.Me
 	arg := libkb.SecretKeyArg{
@@ -201,7 +200,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 		KeyType: libkb.DeviceSigningKeyType,
 	}
 	var signingKey libkb.GenericKey
-	if signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(arg, "untracking signature")); err != nil {
+	if signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(arg, "untracking signature")); err != nil {
 		return
 	}
 

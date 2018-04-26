@@ -55,11 +55,12 @@ func (e *PerUserKeyRoll) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyRoll) Run(ctx *Context) (err error) {
-	defer e.G().CTrace(ctx.GetNetContext(), "PerUserKeyRoll", func() error { return err })()
-	return e.inner(ctx)
+	m := NewMetaContext(e, ctx)
+	defer m.CTrace("PerUserKeyRoll", func() error { return err })()
+	return e.inner(m, ctx)
 }
 
-func (e *PerUserKeyRoll) inner(ctx *Context) error {
+func (e *PerUserKeyRoll) inner(m libkb.MetaContext, ctx *Context) error {
 	var err error
 
 	uid := e.G().GetMyUID()
@@ -96,7 +97,7 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	err = pukring.Sync(ctx.GetNetContext())
+	err = pukring.Sync(m)
 	if err != nil {
 		return err
 	}
@@ -112,7 +113,7 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 
 	var pukPrev *libkb.PerUserKeyPrev
 	if gen > 1 {
-		pukPrevInner, err := pukring.PreparePrev(ctx.GetNetContext(), pukSeed, gen)
+		pukPrevInner, err := pukring.PreparePrev(m, pukSeed, gen)
 		if err != nil {
 			return err
 		}
@@ -128,7 +129,7 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 	}
 
 	// Create boxes of the new per-user-key
-	pukBoxes, err := pukring.PrepareBoxesForDevices(ctx.GetNetContext(),
+	pukBoxes, err := pukring.PrepareBoxesForDevices(m,
 		pukSeed, gen, pukReceivers, encKey)
 	if err != nil {
 		return err
@@ -190,7 +191,7 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 	e.DidNewKey = true
 
 	// Add the per-user-key locally
-	err = pukring.AddKey(ctx.GetNetContext(), gen, pukSeqno, pukSeed)
+	err = pukring.AddKey(m, gen, pukSeqno, pukSeed)
 	if err != nil {
 		return err
 	}

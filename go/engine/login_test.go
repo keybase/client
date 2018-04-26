@@ -2474,7 +2474,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	ResetAccount(tc, u)
 
 	// Now login again so we can post a PGP key
-	err := tc.G.LoginState().LoginWithPassphrase(u.Username, u.Passphrase, false, nil)
+	err := tc.G.LoginState().LoginWithPassphrase(NewMetaContextForTest(tc), u.Username, u.Passphrase, false, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

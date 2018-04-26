@@ -48,7 +48,8 @@ func (c *EmailChange) SubConsumers() []libkb.UIConsumer {
 
 // Run the engine
 func (c *EmailChange) Run(ctx *Context) (err error) {
-	defer c.G().Trace("EmailChange#Run", func() error { return err })()
+	mctx := NewMetaContext(c, ctx)
+	defer mctx.CTrace("EmailChange#Run", func() error { return err })()
 
 	if !libkb.CheckEmail.F(c.arg.NewEmail) {
 		return libkb.BadEmailError{}
@@ -66,7 +67,7 @@ func (c *EmailChange) Run(ctx *Context) (err error) {
 		KeyType: libkb.DeviceSigningKeyType,
 	}
 	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
-	signingKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(arg)
+	signingKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(mctx, arg)
 	if err != nil {
 		return err
 	}

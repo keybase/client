@@ -66,6 +66,7 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 func (e *PGPEncrypt) Run(ctx *Context) error {
 	// verify valid options based on logged in state:
 	ok, uid := IsLoggedIn(e, ctx)
+	m := NewMetaContext(e, ctx)
 
 	if !ok {
 		// not logged in.  this is fine, unless they requested signing the message.
@@ -78,7 +79,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			return libkb.LoginRequiredError{Context: "you must be logged in to encrypt for yourself (or use --no-self flag)"}
 		}
 	} else {
-		me, err := libkb.LoadMeByUID(ctx.GetNetContext(), e.G(), uid)
+		me, err := libkb.LoadMeByMetaContextAndUID(m, uid)
 		if err != nil {
 			return err
 		}
@@ -93,7 +94,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			KeyType:  libkb.PGPKeyType,
 			KeyQuery: e.arg.KeyQuery,
 		}
-		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "command-line signature"))
+		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "command-line signature"))
 		if err != nil {
 			return err
 		}

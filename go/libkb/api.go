@@ -950,7 +950,7 @@ func (a *InternalAPIEngine) refreshSession(arg APIArg, reqErr error) error {
 	}
 
 	username := a.G().Env.GetUsername()
-	if err := a.G().LoginState().LoginWithStoredSecret(username.String(), nil); err != nil {
+	if err := a.G().LoginState().LoginWithStoredSecret(NewMetaContext(arg.NetContext, a.G()), username.String(), nil); err != nil {
 		a.G().Log.CDebugf(arg.NetContext, "| API call %s session refresh error: %s", arg.Endpoint, err)
 		return LoginRequiredError{Context: "your session has expired"}
 

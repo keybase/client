@@ -296,10 +296,11 @@ func (s *ScanKeys) publicByID(id uint64) openpgp.EntityList {
 
 func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 	var list openpgp.EntityList
+	m := libkb.NewMetaContextTODO(s.G())
 	for _, skb := range s.skbs {
 		pubkey, err := skb.GetPubKey()
 		if err != nil {
-			s.G().Log.Warning("error getting pub key from skb: %s", err)
+			m.CWarningf("error getting pub key from skb: %s", err)
 			continue
 		}
 		bundle, ok := pubkey.(*libkb.PGPKeyBundle)
@@ -316,14 +317,14 @@ func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 			Reason:   unlockReason,
 			SecretUI: s.secui,
 		}
-		unlocked, err := skb.PromptAndUnlock(parg, nil, s.me)
+		unlocked, err := skb.PromptAndUnlock(m, parg, nil, s.me)
 		if err != nil {
-			s.G().Log.Warning("error unlocking key: %s", err)
+			m.CWarningf("error unlocking key: %s", err)
 			continue
 		}
 		unlockedBundle, ok := unlocked.(*libkb.PGPKeyBundle)
 		if !ok {
-			s.G().Log.Warning("could not convert unlocked key to PGPKeyBundle")
+			m.CWarningf("could not convert unlocked key to PGPKeyBundle")
 			continue
 		}
 		list = append(list, unlockedBundle.Entity)
@@ -332,20 +333,21 @@ func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 }
 
 func (s *ScanKeys) unlockAll() openpgp.EntityList {
+	m := libkb.NewMetaContextTODO(s.G())
 	var list openpgp.EntityList
 	for _, skb := range s.skbs {
 		parg := libkb.SecretKeyPromptArg{
 			Reason:   unlockReason,
 			SecretUI: s.secui,
 		}
-		unlocked, err := skb.PromptAndUnlock(parg, nil, s.me)
+		unlocked, err := skb.PromptAndUnlock(m, parg, nil, s.me)
 		if err != nil {
-			s.G().Log.Warning("error unlocking key: %s", err)
+			m.CWarningf("error unlocking key: %s", err)
 			continue
 		}
 		unlockedBundle, ok := unlocked.(*libkb.PGPKeyBundle)
 		if !ok {
-			s.G().Log.Warning("could not convert unlocked key to PGPKeyBundle")
+			m.CWarningf("could not convert unlocked key to PGPKeyBundle")
 			continue
 		}
 		list = append(list, unlockedBundle.Entity)

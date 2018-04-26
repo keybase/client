@@ -190,27 +190,23 @@ type SecretKeyArg struct {
 // looking for keys synced from the server, and if that fails, tries
 // those in the local Keyring that are also active for the user.
 // In any case, the key will be locked.
-func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret *SKB, err error) {
-	k.G().Log.Debug("+ GetSecretKeyLocked()")
-	defer func() {
-		k.G().Log.Debug("- GetSecretKeyLocked() -> %s", ErrToOk(err))
-	}()
-
-	k.G().Log.Debug("| LoadMe w/ Secrets on")
+func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB, err error) {
+	defer m.CTrace("Keyrings#GetSecretKeyLocked()", func() error { return err })()
+	m.CDebugf("| LoadMe w/ Secrets on")
 
 	if ska.Me == nil {
 		if ska.Me, err = LoadMe(NewLoadUserArg(k.G())); err != nil {
-			return
+			return nil, err
 		}
 	}
 
-	if lctx != nil {
+	if lctx := m.LoginContext(); lctx != nil {
 		ret, err = lctx.LockedLocalSecretKey(ska)
 		if err != nil {
 			return ret, err
 		}
 	} else {
-		aerr := k.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginState().Account(func(a *Account) {
 			ret, err = a.LockedLocalSecretKey(ska)
 		}, "LockedLocalSecretKey")
 		if err != nil {
@@ -222,20 +218,20 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	}
 
 	if ret != nil {
-		k.G().Log.Debug("| Getting local secret key")
+		m.CDebugf("| Getting local secret key")
 		return ret, nil
 	}
 
 	var pub GenericKey
 
 	if ska.KeyType != PGPKeyType {
-		k.G().Log.Debug("| Skipped Synced PGP key (via options)")
+		m.CDebugf("| Skipped Synced PGP key (via options)")
 		err = NoSecretKeyError{}
 		return nil, err
 	}
 
-	if ret, err = ska.Me.SyncedSecretKey(lctx); err != nil {
-		k.G().Log.Warning("Error fetching synced PGP secret key: %s", err)
+	if ret, err = ska.Me.SyncedSecretKey(m); err != nil {
+		m.CWarningf("Error fetching synced PGP secret key: %s", err)
 		return nil, err
 	}
 	if ret == nil {
@@ -248,7 +244,7 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	}
 
 	if !KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
-		k.G().Log.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
+		m.CDebugf("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
 		err = NoSecretKeyError{}
 		return nil, err
 
@@ -257,40 +253,39 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 	return ret, nil
 }
 
-func (k *Keyrings) cachedSecretKey(lctx LoginContext, ska SecretKeyArg) GenericKey {
-	key, err := k.G().ActiveDevice.KeyByType(ska.KeyType)
+func (k *Keyrings) cachedSecretKey(m MetaContext, ska SecretKeyArg) GenericKey {
+	key, err := m.G().ActiveDevice.KeyByType(ska.KeyType)
 
 	if key != nil && err == nil {
-		k.G().Log.Debug("found cached secret key for ska: %+v", ska)
+		m.CDebugf("found cached secret key for ska: %+v", ska)
 	} else if err != nil {
 		if _, notFound := err.(NotFoundError); !notFound {
-			k.G().Log.Debug("error getting cached secret key: %s", err)
+			m.CDebugf("error getting cached secret key: %s", err)
 		}
 	}
 
 	return key
 }
 
-func (k *Keyrings) setCachedSecretKey(lctx LoginContext, ska SecretKeyArg, key GenericKey) {
-	k.G().Log.Debug("caching secret key for ska: %+v", ska)
+func (k *Keyrings) setCachedSecretKey(m MetaContext, ska SecretKeyArg, key GenericKey) {
+	m.CDebugf("caching secret key for ska: %+v", ska)
 	var setErr error
-	if lctx != nil {
+	if lctx := m.LoginContext(); lctx != nil {
 		setErr = lctx.SetCachedSecretKey(ska, key, nil)
 	} else {
-		aerr := k.G().LoginState().Account(func(a *Account) {
+		aerr := m.G().LoginState().Account(func(a *Account) {
 			setErr = a.SetCachedSecretKey(ska, key, nil)
 		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
 		if aerr != nil {
-			k.G().Log.Debug("Account error: %s", aerr)
+			m.CDebugf("Account error: %s", aerr)
 		}
 	}
 	if setErr != nil {
-		k.G().Log.Debug("SetCachedSecretKey error: %s", setErr)
+		m.CDebugf("SetCachedSecretKey error: %s", setErr)
 	}
 }
 
 type SecretKeyPromptArg struct {
-	LoginContext   LoginContext
 	Ska            SecretKeyArg
 	SecretUI       SecretUI
 	Reason         string
@@ -298,123 +293,108 @@ type SecretKeyPromptArg struct {
 }
 
 // TODO: Figure out whether and how to dep-inject the SecretStore.
-func (k *Keyrings) GetSecretKeyWithPrompt(arg SecretKeyPromptArg) (key GenericKey, err error) {
-	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", arg.Reason)
-	defer func() {
-		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))
-	}()
+func (k *Keyrings) GetSecretKeyWithPrompt(m MetaContext, arg SecretKeyPromptArg) (key GenericKey, err error) {
+	defer m.CTrace(fmt.Sprintf("Keyrings#GetSecretKeyWithPrompt(%s)", arg.Reason), func() error { return err })()
 
-	key = k.cachedSecretKey(arg.LoginContext, arg.Ska)
+	key = k.cachedSecretKey(m, arg.Ska)
 	if key != nil {
 		return key, err
 	}
 
-	key, _, err = k.GetSecretKeyAndSKBWithPrompt(arg)
+	key, _, err = k.GetSecretKeyAndSKBWithPrompt(m, arg)
 
 	if key != nil && err == nil {
-		k.setCachedSecretKey(arg.LoginContext, arg.Ska, key)
+		k.setCachedSecretKey(m, arg.Ska, key)
 	}
 
 	return key, err
 }
 
-func (k *Keyrings) GetSecretKeyWithoutPrompt(lctx LoginContext, ska SecretKeyArg) (key GenericKey, err error) {
-	k.G().Log.Debug("+ GetSecretKeyWithoutPrompt()")
-	defer func() {
-		k.G().Log.Debug("- GetSecretKeyWithoutPrompt() -> %s", ErrToOk(err))
-	}()
+func (k *Keyrings) GetSecretKeyWithoutPrompt(m MetaContext, ska SecretKeyArg) (key GenericKey, err error) {
+	defer m.CTrace("Keyrings#GetSecretKeyWithoutPrompt()", func() error { return err })()
 
-	key = k.cachedSecretKey(lctx, ska)
+	key = k.cachedSecretKey(m, ska)
 	if key != nil {
-		k.G().Log.Debug("  found cached secret key")
+		m.CDebugf("found cached secret key")
 		return key, err
 	}
 
-	k.G().Log.Debug("  no cached secret key, trying via secretStore")
+	m.CDebugf("no cached secret key, trying via secretStore")
 
 	// not cached, so try to unlock without prompting
 	if ska.Me == nil {
 		err = NoUsernameError{}
 		return nil, err
 	}
-	secretStore := NewSecretStore(k.G(), ska.Me.GetNormalizedName())
+	secretStore := NewSecretStore(m.G(), ska.Me.GetNormalizedName())
 
-	skb, err := k.GetSecretKeyLocked(lctx, ska)
+	skb, err := k.GetSecretKeyLocked(m, ska)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err = skb.UnlockNoPrompt(lctx, secretStore)
+	key, err = skb.UnlockNoPrompt(m, secretStore)
 	if key != nil && err == nil {
-		k.setCachedSecretKey(lctx, ska, key)
+		k.setCachedSecretKey(m, ska, key)
 	}
 
 	return key, err
 }
 
-func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(arg SecretKeyPromptArg) (key GenericKey, skb *SKB, err error) {
-	k.G().Log.Debug("+ GetSecretKeyAndSKBWithPrompt(%s)", arg.Reason)
-	defer func() {
-		k.G().Log.Debug("- GetSecretKeyAndSKBWithPrompt() -> %s", ErrToOk(err))
-	}()
-	if skb, err = k.GetSecretKeyLocked(arg.LoginContext, arg.Ska); err != nil {
+func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(m MetaContext, arg SecretKeyPromptArg) (key GenericKey, skb *SKB, err error) {
+	defer m.CTrace(fmt.Sprintf("GetSecretKeyAndSKBWithPrompt(%s)", arg.Reason), func() error { return err })()
+	if skb, err = k.GetSecretKeyLocked(m, arg.Ska); err != nil {
 		skb = nil
-		return
+		return nil, nil, err
 	}
 	var secretStore SecretStore
 	if arg.Ska.Me != nil {
 		skb.SetUID(arg.Ska.Me.GetUID())
-		secretStore = NewSecretStore(k.G(), arg.Ska.Me.GetNormalizedName())
+		secretStore = NewSecretStore(m.G(), arg.Ska.Me.GetNormalizedName())
 	}
-	if key, err = skb.PromptAndUnlock(arg, secretStore, arg.Ska.Me); err != nil {
+	if key, err = skb.PromptAndUnlock(m, arg, secretStore, arg.Ska.Me); err != nil {
 		key = nil
 		skb = nil
-		return
+		return nil, nil, err
 	}
-	return
+	return key, skb, nil
 }
 
-func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, ska SecretKeyArg, me *User, secretRetriever SecretRetriever) (key GenericKey, err error) {
-	k.G().Log.Debug("+ GetSecretKeyWithStoredSecret()")
-	defer func() {
-		k.G().Log.Debug("- GetSecretKeyWithStoredSecret() -> %s", ErrToOk(err))
-	}()
+func (k *Keyrings) GetSecretKeyWithStoredSecret(m MetaContext, ska SecretKeyArg, me *User, secretRetriever SecretRetriever) (key GenericKey, err error) {
+	defer m.CTrace("Keyrings#GetSecretKeyWithStoredSecret()", func() error { return err })()
 	var skb *SKB
-	skb, err = k.GetSecretKeyLocked(lctx, ska)
+	skb, err = k.GetSecretKeyLocked(m, ska)
 	if err != nil {
 		return
 	}
 	skb.SetUID(me.GetUID())
-	return skb.UnlockWithStoredSecret(lctx, secretRetriever)
+	return skb.UnlockWithStoredSecret(m, secretRetriever)
 }
 
-func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passphrase string, secretStorer SecretStorer) (key GenericKey, err error) {
-	k.G().Log.Debug("+ GetSecretKeyWithPassphrase()")
-	defer func() {
-		k.G().Log.Debug("- GetSecretKeyWithPassphrase() -> %s", ErrToOk(err))
-	}()
+func (k *Keyrings) GetSecretKeyWithPassphrase(m MetaContext, me *User, passphrase string, secretStorer SecretStorer) (key GenericKey, err error) {
+	defer m.CTrace("Keyrings#GetSecretKeyWithPassphrase()", func() error { return err })()
 	ska := SecretKeyArg{
 		Me:      me,
 		KeyType: DeviceSigningKeyType,
 	}
 	var skb *SKB
-	skb, err = k.GetSecretKeyLocked(lctx, ska)
+	skb, err = k.GetSecretKeyLocked(m, ska)
 	if err != nil {
 		return
 	}
 	skb.SetUID(me.GetUID())
 	var tsec Triplesec
 	var pps *PassphraseStream
-	if lctx != nil {
+	if lctx := m.LoginContext(); lctx != nil {
 		tsec = lctx.PassphraseStreamCache().Triplesec()
 		pps = lctx.PassphraseStreamCache().PassphraseStream()
 	} else {
-		k.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
+		m.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
 			tsec = sc.Triplesec()
 			pps = sc.PassphraseStream()
 		}, "StreamCache - tsec, pps")
 	}
-	return skb.UnlockSecretKey(lctx, passphrase, tsec, pps, secretStorer)
+	return skb.UnlockSecretKey(m, passphrase, tsec, pps, secretStorer)
 }
 
 type EmptyKeyRing struct{}

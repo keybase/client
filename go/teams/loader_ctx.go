@@ -36,6 +36,10 @@ type LoaderContextG struct {
 	libkb.Contextified
 }
 
+func (l *LoaderContextG) NewMetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, l.G())
+}
+
 var _ LoaderContext = (*LoaderContextG)(nil)
 
 func NewLoaderContextFromG(g *libkb.GlobalContext) LoaderContext {
@@ -137,7 +141,7 @@ func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno key
 	if err != nil {
 		return nil, err
 	}
-	return kr.GetEncryptionKeyBySeqnoOrSync(ctx, userSeqno)
+	return kr.GetEncryptionKeyBySeqnoOrSync(l.NewMetaContext(ctx), userSeqno)
 }
 
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
