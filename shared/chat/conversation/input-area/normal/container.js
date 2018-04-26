@@ -63,9 +63,11 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
-  const injectedInputMessage = _editingMessage || _quotingMessage || null
-  const injectedInput =
-    injectedInputMessage && injectedInputMessage.type === 'text' && injectedInputMessage.text.stringValue()
+  const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
+  const injectedInput: ?string =
+    injectedInputMessage && injectedInputMessage.type === 'text'
+      ? injectedInputMessage.text.stringValue()
+      : null
 
   return {
     _editingMessage,
@@ -163,6 +165,9 @@ const throttled = throttle((f, param) => f(param), 1000)
 type LifecycleProps = PropsFromContainer & {
   _quotingMessage: ?Types.Message,
   _editingMessage: ?Types.Message,
+  setText: (string, skipUnsentSaving?: boolean) => void,
+  injectedInput: ?string,
+  inputMoveToEnd: () => void,
 }
 
 export default compose(
@@ -217,27 +222,30 @@ export default compose(
       }
     },
     componentWillReceiveProps(nextProps: LifecycleProps) {
+      const props: LifecycleProps = this.props
+
       // Fill in the input with an edit, quote, or unsent text
       if (
-        (nextProps._quotingMessage && nextProps._quotingMessage !== this.props._quotingMessage) ||
-        nextProps._editingMessage !== this.props._editingMessage
+        (nextProps._quotingMessage && nextProps._quotingMessage !== props._quotingMessage) ||
+        nextProps._editingMessage !== props._editingMessage
       ) {
-        this.props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-        this.props.setText(
+        props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
+        const injectedInput = nextProps.injectedInput || ''
+        props.setText(
           nextProps._quotingMessage && !nextProps._editingMessage
-            ? formatTextForQuoting(nextProps.injectedInput)
-            : nextProps.injectedInput,
+            ? formatTextForQuoting(injectedInput)
+            : injectedInput,
           true
         )
-        !isMobile && this.props.inputMoveToEnd()
-        this.props.inputFocus()
-      } else if (this.props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
+        !isMobile && props.inputMoveToEnd()
+        props.inputFocus()
+      } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
-        this.props.setText(text, true)
+        props.setText(text, true)
       }
 
-      if (nextProps.isEditing && !this.props.isEditing) {
-        this.props.inputFocus()
+      if (nextProps.isEditing && !props.isEditing) {
+        props.inputFocus()
       }
     },
   }),
