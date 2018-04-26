@@ -123,6 +123,11 @@ func (n *NIST) IsStillValid() (bool, time.Duration) {
 	return (diff > 0), diff
 }
 
+func (n *NIST) IsExpired() bool {
+	isValid, _ := n.IsStillValid()
+	return !isValid
+}
+
 func (n *NIST) DidFail() bool {
 	n.RLock()
 	defer n.RUnlock()
