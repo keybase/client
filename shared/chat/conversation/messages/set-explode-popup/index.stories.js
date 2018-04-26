@@ -5,10 +5,10 @@ import SetExplodingPopup from './'
 
 const common = {
   attachTo: null,
-  onHidden: () => {}, // pretty spammy otherwise
+  onHidden: action('onHidden'),
   onSelect: action('onSelect'),
   selected: null,
-  visible: false, // TODO (for storyshots, see DESKTOP-6620)
+  visible: true, // TODO (for storyshots, see DESKTOP-6620)
 }
 
 const load = () => {

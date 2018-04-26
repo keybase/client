@@ -2,22 +2,67 @@
 import * as React from 'react'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {Box, Icon, Text, FloatingBox} from '../../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {Box, Icon, Text, FloatingPicker} from '../../../../common-adapters/index.native'
+import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 import type {Props} from '.'
 
 const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
-export default (props: Props) => {
-  const selected = props.selected || {text: 'Never', seconds: 0}
-  const items = sortedDescriptions.map(it => ({
-    onClick: () => props.onSelect(it),
-    title: it.text,
-    // view: <Item desc={it} selected={selected.seconds === it.seconds} onSelect={props.onSelect} />,
-  }))
-  return (
-    <FloatingBox>
-      <Text type="HeaderBig">Hi</Text>
-    </FloatingBox>
-  )
+const Announcement = () => (
+  <Box style={announcementContainerStyle}>
+    <Box style={{marginTop: -10, marginBottom: -10}}>
+      <Icon type="iconfont-boom" color={globalColors.white} fontSize={48} />
+    </Box>
+    <Text
+      type="BodySemibold"
+      backgroundMode="Announcements"
+      style={{
+        paddingLeft: globalMargins.medium,
+        paddingRight: globalMargins.medium,
+        flexGrow: 1,
+        fontSize: 15,
+        textAlign: 'center',
+      }}
+    >
+      Set a timeout on your messages and watch them E X P L O D E
+    </Text>
+  </Box>
+)
+
+const announcementContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  backgroundColor: globalColors.blue,
+  padding: globalMargins.small,
+  paddingBottom: globalMargins.tiny,
 }
+
+type State = {selected: MessageExplodeDescription}
+class SetExplodePopup extends React.Component<Props, State> {
+  state = {selected: {text: 'Never', seconds: 0}}
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    return {selected: nextProps.selected || {text: 'Never', seconds: 0}}
+  }
+
+  setSelected = (value: number) => {
+    const selected = sortedDescriptions.find(item => item.seconds === value) || {text: 'Never', seconds: 0}
+    this.setState({selected})
+  }
+
+  render() {
+    const items = sortedDescriptions.map(item => ({label: item.text, value: item.seconds}))
+    return (
+      <FloatingPicker
+        header={this.props.isNew ? <Announcement /> : null}
+        items={items}
+        onSelect={this.setSelected}
+        onHidden={this.props.onHidden}
+        visible={this.props.visible}
+        selectedValue={this.state.selected.seconds}
+      />
+    )
+  }
+}
+
+export default SetExplodePopup
