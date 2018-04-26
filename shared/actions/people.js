@@ -128,23 +128,18 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
 
-  if (root === peopleTab && peoplePath.size === 1) {
-    if (_wasOnPeopleTab === false) {
-      return Saga.put(
-        PeopleGen.createGetPeopleData({
-          markViewed: false,
-          numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-        })
-      )
-    }
-    _wasOnPeopleTab = true
-  } else {
-    if (_wasOnPeopleTab === true) {
-      _wasOnPeopleTab = false
-      return Saga.put(PeopleGen.createMarkViewed())
-    }
+  if (root !== peopleTab && _wasOnPeopleTab && peoplePath.size === 1) {
     _wasOnPeopleTab = false
-  }
+    return Saga.put(PeopleGen.createMarkViewed())
+  } else if (root === peopleTab && !_wasOnPeopleTab) {
+    _wasOnPeopleTab = true
+    return Saga.put(
+      PeopleGen.createGetPeopleData({
+        markViewed: false,
+        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+      })
+    )
+  )
 }
 
 const networkErrors = [
