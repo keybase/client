@@ -192,6 +192,9 @@ type IsMasterKeyActiveArg struct {
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
 }
 
+type PingArg struct {
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	RecentPayments(context.Context, RecentPaymentsArg) ([]PaymentSummary, error)
@@ -199,6 +202,7 @@ type RemoteInterface interface {
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
+	Ping(context.Context) (string, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -301,6 +305,17 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ping": {
+				MakeArg: func() interface{} {
+					ret := make([]PingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.Ping(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -336,5 +351,10 @@ func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg)
 
 func (c RemoteClient) IsMasterKeyActive(ctx context.Context, __arg IsMasterKeyActiveArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) Ping(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.ping", []interface{}{PingArg{}}, &res)
 	return
 }

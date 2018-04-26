@@ -300,6 +300,10 @@
         }
       ],
       "response": "boolean"
+    },
+    "ping": {
+      "request": [],
+      "response": "string"
     }
   },
   "namespace": "stellar.1"

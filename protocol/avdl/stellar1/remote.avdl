@@ -81,4 +81,6 @@ protocol remote {
 
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
+
+  string ping();
 }
