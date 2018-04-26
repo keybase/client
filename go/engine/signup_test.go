@@ -78,7 +78,7 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 	mockGetPassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetPassphrase, nil); err != nil {
+	if err = tc.G.LoginState().LoginWithPrompt(NewMetaContextForTest(tc), fu.Username, nil, mockGetPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -161,18 +161,19 @@ func TestLocalKeySecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	m := NewMetaContextForTest(tc)
 	lks := libkb.NewLKSec(s.ppStream, s.uid, tc.G)
-	if err := lks.Load(nil); err != nil {
+	if err := lks.Load(m); err != nil {
 		t.Fatal(err)
 	}
 
 	text := "the people on the bus go up and down, up and down, up and down"
-	enc, err := lks.Encrypt([]byte(text))
+	enc, err := lks.Encrypt(m, []byte(text))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dec, _, _, err := lks.Decrypt(nil, enc)
+	dec, _, _, err := lks.Decrypt(m, enc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,7 +203,8 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 	arg.StoreSecret = true
 	s := SignupFakeUserWithArg(tc, fu, arg)
 
-	secret, err := s.lks.GetSecret(nil)
+	m := NewMetaContextForTest(tc)
+	secret, err := s.lks.GetSecret(m)
 	if err != nil {
 		t.Fatal(err)
 	}

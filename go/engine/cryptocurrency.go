@@ -52,7 +52,8 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "CryptocurrencyEngine")
 	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "CryptocurrencyEngine")
 
-	defer e.G().Trace("CryptocurrencyEngine", func() error { return err })()
+	mctx := NewMetaContext(e, ctx)
+	defer mctx.CTrace("CryptocurrencyEngine", func() error { return err })()
 
 	var typ libkb.CryptocurrencyType
 	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)
@@ -90,7 +91,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to register a cryptocurrency address"))
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(mctx, ctx.SecretKeyPromptArg(ska, "to register a cryptocurrency address"))
 	if err != nil {
 		return err
 	}

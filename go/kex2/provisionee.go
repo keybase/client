@@ -26,10 +26,10 @@ type provisionee struct {
 // management that a provisionee needs to do as part of the protocol.
 type Provisionee interface {
 	GetLogFactory() rpc.LogFactory
-	HandleHello(keybase1.HelloArg) (keybase1.HelloRes, error)
-	HandleHello2(keybase1.Hello2Arg) (keybase1.Hello2Res, error)
-	HandleDidCounterSign([]byte) error
-	HandleDidCounterSign2(keybase1.DidCounterSign2Arg) error
+	HandleHello(ctx context.Context, a keybase1.HelloArg) (keybase1.HelloRes, error)
+	HandleHello2(ctx context.Context, a keybase1.Hello2Arg) (keybase1.Hello2Res, error)
+	HandleDidCounterSign(ctx context.Context, b []byte) error
+	HandleDidCounterSign2(ctx context.Context, a keybase1.DidCounterSign2Arg) error
 }
 
 // ProvisioneeArg provides the details that a provisionee needs in order
@@ -60,9 +60,9 @@ func RunProvisionee(arg ProvisioneeArg) error {
 // Hello is called via the RPC server interface by the remote client.
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleHello()
-func (p *provisionee) Hello(_ context.Context, arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
+func (p *provisionee) Hello(ctx context.Context, arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	close(p.start)
-	res, err = p.arg.Provisionee.HandleHello(arg)
+	res, err = p.arg.Provisionee.HandleHello(ctx, arg)
 	if err != nil {
 		p.done <- err
 	}
@@ -72,9 +72,9 @@ func (p *provisionee) Hello(_ context.Context, arg keybase1.HelloArg) (res keyba
 // Hello2 is called via the RPC server interface by the remote client.
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleHello()
-func (p *provisionee) Hello2(_ context.Context, arg keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
+func (p *provisionee) Hello2(ctx context.Context, arg keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
 	close(p.start)
-	res, err = p.arg.Provisionee.HandleHello2(arg)
+	res, err = p.arg.Provisionee.HandleHello2(ctx, arg)
 	if err != nil {
 		p.done <- err
 	}
@@ -84,9 +84,9 @@ func (p *provisionee) Hello2(_ context.Context, arg keybase1.Hello2Arg) (res key
 // DidCounterSign is called via the RPC server interface by the remote client.
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleDidCounterSign()
-func (p *provisionee) DidCounterSign(_ context.Context, sig []byte) (err error) {
+func (p *provisionee) DidCounterSign(ctx context.Context, sig []byte) (err error) {
 	p.startedCounterSign <- struct{}{}
-	err = p.arg.Provisionee.HandleDidCounterSign(sig)
+	err = p.arg.Provisionee.HandleDidCounterSign(ctx, sig)
 	p.done <- err
 	return err
 }
@@ -94,9 +94,9 @@ func (p *provisionee) DidCounterSign(_ context.Context, sig []byte) (err error) 
 // DidCounterSign2 is called via the RPC server interface by the remote client.
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleDidCounterSign()
-func (p *provisionee) DidCounterSign2(_ context.Context, arg keybase1.DidCounterSign2Arg) (err error) {
+func (p *provisionee) DidCounterSign2(ctx context.Context, arg keybase1.DidCounterSign2Arg) (err error) {
 	p.startedCounterSign <- struct{}{}
-	err = p.arg.Provisionee.HandleDidCounterSign2(arg)
+	err = p.arg.Provisionee.HandleDidCounterSign2(ctx, arg)
 	p.done <- err
 	return err
 }

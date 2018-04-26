@@ -90,7 +90,7 @@ func (e *LoginOneshot) makeLoginChanges(ctx context.Context) (err error) {
 	defer e.G().CTrace(ctx, "LoginOneshot#makeLoginChanges", func() error { return err })()
 	var gerr error
 	err = e.G().LoginState().Account(func(a *libkb.Account) {
-		gerr = e.G().ActiveDevice.Set(e.G(), a, e.upak.GetUID(), e.deviceID, e.sigKey, e.encKey, e.deviceName)
+		gerr = e.G().ActiveDevice.Set(libkb.NewMetaContext(ctx, e.G()).WithLoginContext(a), e.upak.GetUID(), e.deviceID, e.sigKey, e.encKey, e.deviceName)
 	}, "LoginOneshot#makeLoginChanges")
 	if err != nil {
 		return err

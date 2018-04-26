@@ -61,6 +61,8 @@ func (e *PGPPurge) Run(ctx *Context) error {
 	}
 	e.me = me
 
+	m := NewMetaContext(e, ctx)
+
 	// get all PGP blocks in keyring
 	var blocks []*libkb.SKB
 	kerr := e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
@@ -74,7 +76,7 @@ func (e *PGPPurge) Run(ctx *Context) error {
 	}
 
 	// export each one to a file
-	if err := e.exportBlocks(ctx, blocks); err != nil {
+	if err := e.exportBlocks(m, ctx, blocks); err != nil {
 		return err
 	}
 
@@ -102,7 +104,7 @@ func (e *PGPPurge) KeyFiles() []string {
 	return e.filenames
 }
 
-func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
+func (e *PGPPurge) exportBlocks(m libkb.MetaContext, ctx *Context, blocks []*libkb.SKB) error {
 	sstore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
 	promptArg := libkb.SecretKeyPromptArg{
 		SecretUI: ctx.SecretUI,
@@ -111,7 +113,7 @@ func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
 
 	for i, block := range blocks {
 		block.SetUID(e.me.GetUID())
-		key, err := block.PromptAndUnlock(promptArg, sstore, e.me)
+		key, err := block.PromptAndUnlock(m, promptArg, sstore, e.me)
 		if err != nil {
 			return err
 		}

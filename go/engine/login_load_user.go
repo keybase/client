@@ -106,7 +106,7 @@ func (e *loginLoadUser) findUsername(ctx *Context) (string, error) {
 		username = lctx.LocalSession().GetUsername().String()
 		return nil
 	}
-	if err := e.G().LoginState().VerifyEmailAddress(e.usernameOrEmail, ctx.SecretUI, afterLogin); err != nil {
+	if err := e.G().LoginState().VerifyEmailAddress(NewMetaContext(e, ctx), e.usernameOrEmail, ctx.SecretUI, afterLogin); err != nil {
 		return "", err
 	}
 

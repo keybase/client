@@ -50,7 +50,7 @@ func (e *LoginOffline) Run(ctx *Context) error {
 func (e *LoginOffline) run(ctx *Context) error {
 	var gerr error
 	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		_, err := libkb.BootstrapActiveDeviceFromConfig(ctx.NetContext, e.G(), a, false)
+		_, err := libkb.BootstrapActiveDeviceFromConfig(NewMetaContext(e, ctx).WithLoginContext(a), false)
 		if err != nil {
 			gerr = libkb.NewLoginRequiredError(err.Error())
 		}

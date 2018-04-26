@@ -53,10 +53,11 @@ func (e *Unlock) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Unlock) Run(ctx *Context) error {
+	mctx := NewMetaContext(e, ctx)
 	if e.passphrase != "" {
-		_, err := e.G().LoginState().GetPassphraseStreamWithPassphrase(e.passphrase)
+		_, err := e.G().LoginState().GetPassphraseStreamWithPassphrase(mctx, e.passphrase)
 		return err
 	}
-	_, err := e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	_, err := e.G().LoginState().GetPassphraseStream(mctx, ctx.SecretUI)
 	return err
 }

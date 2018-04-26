@@ -106,10 +106,8 @@ func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
 
 // Run starts the engine.
 func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ SaltpackEncrypt::Run")
-	defer func() {
-		e.G().Log.Debug("- SaltpackEncrypt::Run -> %v", err)
-	}()
+	m := NewMetaContext(e, ctx)
+	defer m.CTrace("SaltpackEncrypt::Run", func() error { return err })()
 
 	var receivers []libkb.NaclDHKeyPublic
 
@@ -155,7 +153,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		dhKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
+		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
 		if err != nil {
 			return err
 		}
@@ -172,7 +170,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceSigningKeyType,
 		}
-		signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
+		signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
 		if err != nil {
 			return err
 		}

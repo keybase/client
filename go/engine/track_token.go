@@ -64,7 +64,9 @@ func (e *TrackToken) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *TrackToken) Run(ctx *Context) (err error) {
-	e.G().Trace("TrackToken", func() error { return err })()
+	m := NewMetaContext(e, ctx)
+	defer m.CTrace("TrackToken#Run", func() error { return err })()
+
 	if len(e.arg.Token) == 0 {
 		err = fmt.Errorf("missing TrackToken argument")
 		return err
@@ -81,7 +83,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	}
 
 	if outcome.TrackStatus() == keybase1.TrackStatus_UPDATE_OK && !e.arg.Options.ForceRetrack {
-		e.G().Log.Debug("tracking statement up-to-date.")
+		m.CDebugf("tracking statement up-to-date.")
 		return nil
 	}
 
@@ -95,7 +97,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	}
 
 	if err = e.isTrackTokenStale(outcome); err != nil {
-		e.G().Log.Debug("Track statement is stale")
+		m.CDebugf("Track statement is stale")
 		return err
 	}
 
@@ -107,20 +109,20 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 
 	e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, libkb.SigVersion(*e.arg.Options.SigVersion), e.them, outcome)
 	if err != nil {
-		e.G().Log.Debug("tracking proof err: %s", err)
+		m.CDebugf("tracking proof err: %s", err)
 		return err
 	}
 	if e.trackStatementBytes, err = e.trackStatement.Marshal(); err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
+	m.CDebugf("| Tracking statement: %s", string(e.trackStatementBytes))
 
 	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
-		e.G().Log.Debug("| Local")
+		m.CDebugf("| Local")
 		err = e.storeLocalTrack()
 	} else {
-		err = e.storeRemoteTrack(ctx, signingKeyPub.GetKID())
+		err = e.storeRemoteTrack(m, ctx, signingKeyPub.GetKID())
 		if err == nil {
 			// if the remote track succeeded, remove local tracks
 			// (this also removes any snoozes)
@@ -201,11 +203,8 @@ func (e *TrackToken) storeLocalTrack() error {
 	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement, e.G())
 }
 
-func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err error) {
-	e.G().Log.Debug("+ StoreRemoteTrack")
-	defer func() {
-		e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
-	}()
+func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, ctx *Context, pubKID keybase1.KID) (err error) {
+	defer m.CTrace("TrackToken#StoreRemoteTrack", func() error { return err })()
 
 	// need unlocked signing key
 	me := e.arg.Me
@@ -214,7 +213,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err er
 		KeyType: libkb.DeviceSigningKeyType,
 	}
 	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
-	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(arg)
+	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, arg)
 	if err != nil {
 		return err
 	}

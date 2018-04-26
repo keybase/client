@@ -400,8 +400,12 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	return user, dev1, dev2, cleanup
 }
 
+func NewMetaContextForTest(tc libkb.TestContext) libkb.MetaContext {
+	return libkb.NewMetaContextForTest(tc)
+}
+
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().ResetAccount(u.Username)
+	err := tc.G.LoginState().ResetAccount(NewMetaContextForTest(tc), u.Username)
 	if err != nil {
 		tc.T.Fatalf("In account reset: %s", err)
 	}
@@ -410,7 +414,7 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 }
 
 func ResetAccountNoLogout(tc libkb.TestContext, u *FakeUser) {
-	err := tc.G.LoginState().ResetAccount(u.Username)
+	err := tc.G.LoginState().ResetAccount(NewMetaContextForTest(tc), u.Username)
 	if err != nil {
 		tc.T.Fatalf("In account reset: %s", err)
 	}

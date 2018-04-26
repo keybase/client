@@ -116,36 +116,32 @@ func (d *Delegator) CheckArgs() (err error) {
 // the delegator. This will check the given key first, then a device Key if we have one,
 // and otherwise will leave the signing key unset so that we will set it
 // as the eldest key on upload.
-// lctx can be nil.
-func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
-
-	d.G().Log.Debug("+ Delegator::LoadSigningKey")
-	defer func() {
-		d.G().Log.Debug("+ Delegator::LoadSigningKey -> %s, (found=%v)", ErrToOk(err), (d.GetSigningKey() != nil))
-	}()
+// m.LoginContext can be nil.
+func (d *Delegator) LoadSigningKey(m MetaContext, ui SecretUI) (err error) {
+	defer m.CTrace("Delegator#LoadSigningKey", func() error { return err })()
 
 	if d.ExistingKey != nil {
-		d.G().Log.Debug("| Was set ahead of time")
-		return
+		m.CDebugf("| Was set ahead of time")
+		return nil
 	}
 
 	if d.Me == nil {
 		d.Me, err = LoadMe(NewLoadUserPubOptionalArg(d.G()))
 		if err != nil {
-			return
-		} else if d.Me == nil {
-			d.G().Log.Debug("| Me didn't load")
-			return
+			return err
+		}
+		if d.Me == nil {
+			m.CDebugf("| Me didn't load")
+			return nil
 		}
 	}
 
 	if !d.Me.HasActiveKey() {
-		d.G().Log.Debug("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
-		return
+		m.CDebugf("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
+		return nil
 	}
 
 	arg := SecretKeyPromptArg{
-		LoginContext: lctx,
 		Ska: SecretKeyArg{
 			Me:      d.Me,
 			KeyType: DeviceSigningKeyType,
@@ -153,7 +149,7 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 		SecretUI: ui,
 		Reason:   "sign new key",
 	}
-	d.ExistingKey, err = d.G().Keyrings.GetSecretKeyWithPrompt(arg)
+	d.ExistingKey, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, arg)
 
 	return err
 }

@@ -9,13 +9,13 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
+func GetKeybasePassphrase(m MetaContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
 	resCh := make(chan keybase1.GetPassphraseRes)
 	errCh := make(chan error)
 	go func() {
-		arg := DefaultPassphrasePromptArg(g, username)
+		arg := DefaultPassphrasePromptArg(m, username)
 		arg.RetryLabel = retryMsg
-		res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+		res, err := GetPassphraseUntilCheckWithChecker(m, arg, newUIPrompter(ui), &CheckPassphraseSimple)
 		if err != nil {
 			errCh <- err
 			return
@@ -34,13 +34,13 @@ func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg stri
 	}
 }
 
-func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g)
+func GetSecret(m MetaContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
+	arg := DefaultPassphraseArg(m)
 	arg.WindowTitle = title
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
-	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheckWithChecker(m, arg, newUIPrompter(ui), &CheckPassphraseSimple)
 	if err != nil {
 		return res, err
 	}
@@ -48,8 +48,8 @@ func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, al
 	return res, nil
 }
 
-func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastErr error) (string, error) {
-	arg := DefaultPassphraseArg(g)
+func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr error) (string, error) {
+	arg := DefaultPassphraseArg(m)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
@@ -62,18 +62,18 @@ func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastE
 	if lastErr != nil {
 		arg.RetryLabel = lastErr.Error()
 	}
-	res, err := GetPassphraseUntilCheck(g, arg, newUIPrompter(ui), &PaperChecker{})
+	res, err := GetPassphraseUntilCheck(m, arg, newUIPrompter(ui), &PaperChecker{})
 	if err != nil {
 		return "", err
 	}
 	return res.Passphrase, nil
 }
 
-func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string, devices []*Device) (string, error) {
+func GetPaperKeyForCryptoPassphrase(m MetaContext, ui SecretUI, reason string, devices []*Device) (string, error) {
 	if len(devices) == 0 {
 		return "", errors.New("empty device list")
 	}
-	arg := DefaultPassphraseArg(g)
+	arg := DefaultPassphraseArg(m)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.ShowTyping.Allow = true
@@ -89,7 +89,7 @@ func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string
 		arg.Prompt = fmt.Sprintf("%s: please enter one of the following paper keys %s", reason, paperOpts)
 	}
 
-	res, err := GetPassphraseUntilCheck(g, arg, newUIPrompter(ui), &PaperChecker{})
+	res, err := GetPassphraseUntilCheck(m, arg, newUIPrompter(ui), &PaperChecker{})
 	if err != nil {
 		return "", err
 	}
@@ -114,15 +114,15 @@ func (u *uiPrompter) Prompt(arg keybase1.GUIEntryArg) (keybase1.GetPassphraseRes
 	return u.ui.GetPassphrase(arg, nil)
 }
 
-func GetPassphraseUntilCheckWithChecker(g *GlobalContext, arg keybase1.GUIEntryArg, prompter PassphrasePrompter, checker *Checker) (keybase1.GetPassphraseRes, error) {
+func GetPassphraseUntilCheckWithChecker(m MetaContext, arg keybase1.GUIEntryArg, prompter PassphrasePrompter, checker *Checker) (keybase1.GetPassphraseRes, error) {
 	if checker == nil {
 		return keybase1.GetPassphraseRes{}, errors.New("nil passphrase checker")
 	}
 	w := &CheckerWrapper{checker: *checker}
-	return GetPassphraseUntilCheck(g, arg, prompter, w)
+	return GetPassphraseUntilCheck(m, arg, prompter, w)
 }
 
-func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompter PassphrasePrompter, checker PassphraseChecker) (keybase1.GetPassphraseRes, error) {
+func GetPassphraseUntilCheck(m MetaContext, arg keybase1.GUIEntryArg, prompter PassphrasePrompter, checker PassphraseChecker) (keybase1.GetPassphraseRes, error) {
 	for i := 0; i < 10; i++ {
 		res, err := prompter.Prompt(arg)
 		if err != nil {
@@ -131,7 +131,7 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 		if checker == nil {
 			return res, nil
 		}
-		err = checker.Check(g, res.Passphrase)
+		err = checker.Check(m, res.Passphrase)
 		if err == nil {
 			return res, nil
 		}
@@ -140,7 +140,7 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
-func DefaultPassphraseArg(g *GlobalContext) keybase1.GUIEntryArg {
+func DefaultPassphraseArg(m MetaContext) keybase1.GUIEntryArg {
 	arg := keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",
@@ -157,8 +157,8 @@ func DefaultPassphraseArg(g *GlobalContext) keybase1.GUIEntryArg {
 	return arg
 }
 
-func DefaultPassphrasePromptArg(g *GlobalContext, username string) keybase1.GUIEntryArg {
-	arg := DefaultPassphraseArg(g)
+func DefaultPassphrasePromptArg(m MetaContext, username string) keybase1.GUIEntryArg {
+	arg := DefaultPassphraseArg(m)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
@@ -170,7 +170,7 @@ func DefaultPassphrasePromptArg(g *GlobalContext, username string) keybase1.GUIE
 // passphrase. Returns nil if the format is ok, or a descriptive
 // hint otherwise.
 type PassphraseChecker interface {
-	Check(*GlobalContext, string) error
+	Check(MetaContext, string) error
 }
 
 // CheckerWrapper wraps a Checker type to make it conform to the
@@ -181,7 +181,7 @@ type CheckerWrapper struct {
 
 // Check s using checker, respond with checker.Hint if check
 // fails.
-func (w *CheckerWrapper) Check(_ *GlobalContext, s string) error {
+func (w *CheckerWrapper) Check(m MetaContext, s string) error {
 	if w.checker.F(s) {
 		return nil
 	}
@@ -193,12 +193,12 @@ type PaperChecker struct{}
 
 // Check a paper key format.  Will return a detailed error message
 // specific to the problems found in s.
-func (p *PaperChecker) Check(g *GlobalContext, s string) error {
+func (p *PaperChecker) Check(m MetaContext, s string) error {
 	phrase := NewPaperKeyPhrase(s)
 
 	// check for empty
 	if len(phrase.String()) == 0 {
-		g.Log.Debug("paper phrase is empty")
+		m.CDebugf("paper phrase is empty")
 		return PassphraseError{Msg: "Empty paper key. Please try again."}
 	}
 
@@ -210,7 +210,7 @@ func (p *PaperChecker) Check(g *GlobalContext, s string) error {
 	// check for invalid words
 	invalids := phrase.InvalidWords()
 	if len(invalids) > 0 {
-		g.Log.Debug("paper phrase has invalid word(s) in it")
+		m.CDebugf("paper phrase has invalid word(s) in it")
 		var perr PassphraseError
 		if len(invalids) > 1 {
 			perr.Msg = fmt.Sprintf("Please try again. These words are invalid: %s", strings.Join(invalids, ", "))
@@ -223,12 +223,12 @@ func (p *PaperChecker) Check(g *GlobalContext, s string) error {
 	// check version
 	version, err := phrase.Version()
 	if err != nil {
-		g.Log.Debug("error getting paper key version: %s", err)
+		m.CDebugf("error getting paper key version: %s", err)
 		// despite the error, just tell the user there was a typo:
 		return PassphraseError{Msg: "It looks like there was a typo in the paper key. Please try again."}
 	}
 	if version != PaperKeyVersion {
-		g.Log.Debug("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
+		m.CDebugf("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
 		return PassphraseError{Msg: "It looks like there was a typo. The paper key you entered had an invalid version. Please try again."}
 	}
 

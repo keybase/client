@@ -30,6 +30,10 @@ type ChatTestContext struct {
 	ChatG *globals.ChatContext
 }
 
+func NewMetaContextForTest(c ChatTestContext) libkb.MetaContext {
+	return libkb.NewMetaContextForTest(c.TestContext)
+}
+
 func (c ChatTestContext) Context() *globals.Context {
 	return globals.NewContext(c.G, c.ChatG)
 }
