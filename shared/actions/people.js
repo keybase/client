@@ -116,8 +116,8 @@ const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => 
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
-  if (root === peopleTab && peoplePath.size === 2 && _wasOnPeopleTab) {
-    // Navigating away from the people tab root
+  if (root === peopleTab && peoplePath.size === 2 && peoplePath.get(1) === 'profile' && _wasOnPeopleTab) {
+    // Navigating away from the people tab root to a profile page.
     return Saga.put(PeopleGen.createMarkViewed())
   }
 }
