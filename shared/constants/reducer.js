@@ -23,14 +23,15 @@ import type {State as UnlockFolders} from '../constants/types/unlock-folders'
 import type {State as Users} from '../constants/types/users'
 import type {State as Waiting} from '../constants/types/waiting'
 import type {State as People} from '../constants/types/people'
+import type {State as Wallets} from '../constants/types/wallets'
 
 export type TypedState = $ReadOnly<{|
-  config: Config,
   chat2: Chat2,
+  config: Config,
   dev: Dev,
   devices: Devices,
-  entities: Entity,
   engine: Engine,
+  entities: Entity,
   favorite: Favorite,
   fs: FS,
   gregor: Gregor,
@@ -49,4 +50,5 @@ export type TypedState = $ReadOnly<{|
   unlockFolders: UnlockFolders,
   users: Users,
   waiting: Waiting,
+  wallets: Wallets,
 |}>

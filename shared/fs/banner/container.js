@@ -1,16 +1,17 @@
 // @flow
-import Files from './index'
+import Banner from './index'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../util/container'
-import {isLinux} from '../../constants/platform'
+import * as StateMappers from '../utils/state-mappers'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   path?: Types.Path,
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
   return {
     kbfsEnabled,
     showBanner: state.fs.flags.showBanner,
@@ -37,12 +38,16 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   path,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('FilesBanner'),
-  lifecycle({
-    componentDidMount() {
-      this.props.getFuseStatus()
-    },
-  })
-)(Files)
+const ConnectedBanner = isMobile
+  ? () => null
+  : compose(
+      connect(mapStateToProps, mapDispatchToProps, mergeProps),
+      setDisplayName('FilesBanner'),
+      lifecycle({
+        componentDidMount() {
+          this.props.getFuseStatus()
+        },
+      })
+    )(Banner)
+
+export default ConnectedBanner

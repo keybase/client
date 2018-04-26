@@ -1,71 +1,71 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
-import {createGetTeamOperations} from '../../../../actions/teams-gen'
-import {compose, connect, isMobile, lifecycle, type TypedState} from '../../../../util/container'
+import type {Component} from 'react'
+import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
+import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  const isSmallTeam = routeProps.get('isSmallTeam')
+type OwnProps = {
+  attachTo: ?Component<*, *>,
+  onHidden: () => void,
+  isSmallTeam: boolean,
+  teamname: string,
+  visible: boolean,
+}
+
+const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
   const _hasCanPerform = Constants.hasCanPerform(state, teamname)
+  const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
   return {
     _hasCanPerform,
+    badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
     isSmallTeam,
-    teamname,
     memberCount: Constants.getTeamMemberCount(state, teamname),
+    teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
-  const teamname = routeProps.get('teamname')
-  return {
-    _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
-    onAddPeople: () => {
-      !isMobile && dispatch(navigateUp())
-      dispatch(
-        navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
-          [teamsTab]
-        )
+const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+  _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
+  onAddPeople: () => {
+    dispatch(
+      navigateTo(
+        [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
+        [teamsTab]
       )
-      dispatch(switchTo([teamsTab]))
-    },
-    onClose: () => {
-      dispatch(navigateUp())
-    },
-    onInvite: () => {
-      !isMobile && dispatch(navigateUp())
-      dispatch(
-        navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
-          [teamsTab]
-        )
+    )
+    dispatch(switchTo([teamsTab]))
+  },
+  onInvite: () => {
+    dispatch(
+      navigateTo(
+        [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
+        [teamsTab]
       )
-      dispatch(switchTo([teamsTab]))
-    },
-    onLeaveTeam: () => {
-      !isMobile && dispatch(navigateUp())
-      dispatch(navigateAppend([{selected: 'reallyLeaveTeam', props: {teamname}}]))
-    },
-    onManageChannels: () => {
-      !isMobile && dispatch(navigateUp())
-      dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
-    },
-    onViewTeam: () => {
-      !isMobile && dispatch(navigateUp())
-      dispatch(navigateTo([{selected: 'team', props: {teamname}}], [teamsTab]))
-      dispatch(switchTo([teamsTab]))
-    },
-  }
-}
+    )
+    dispatch(switchTo([teamsTab]))
+  },
+  onLeaveTeam: () => {
+    dispatch(navigateAppend([{selected: 'reallyLeaveTeam', props: {teamname}}]))
+  },
+  onManageChannels: () => {
+    dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
+    dispatch(createAddTeamWithChosenChannels({teamname}))
+  },
+  onViewTeam: () => {
+    dispatch(navigateTo([{selected: 'team', props: {teamname}}], [teamsTab]))
+    dispatch(switchTo([teamsTab]))
+  },
+})
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
+  setDisplayName('TeamDropdownMenu'),
   lifecycle({
     componentDidMount() {
       if (!this.props._hasCanPerform) {

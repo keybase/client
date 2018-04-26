@@ -22,14 +22,14 @@ const commonInputProps: InputProps = {
 }
 
 const load = () => {
-  storiesOf('Common', module)
-    .add('Form w/ checkbox', () => (
+  storiesOf('Common/FormWithCheckbox', module)
+    .add('Single', () => (
       <FormWithCheckbox
         checkboxesProps={[{...commonCheckboxProps, label: 'checkbox'}]}
         inputProps={commonInputProps}
       />
     ))
-    .add('Form w/ multiple checkboxes', () => (
+    .add('Multiple', () => (
       <FormWithCheckbox
         checkboxesProps={[
           {...commonCheckboxProps, label: 'checkbox 1'},

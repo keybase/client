@@ -46,6 +46,11 @@ const traceInProgressKey = 'traceInProgress'
 
 const traceInProgress = (state: TypedState) => state.waiting.get(traceInProgressKey, 0) !== 0
 
+const processorProfileInProgressKey = 'processorProfileInProgress'
+
+const processorProfileInProgress = (state: TypedState) =>
+  state.waiting.get(processorProfileInProgressKey, 0) !== 0
+
 export const aboutTab = 'settingsTabs:aboutTab'
 export const advancedTab = 'settingsTabs:advancedTab'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
@@ -62,4 +67,11 @@ export const passphraseTab = 'settingsTabs:passphrase'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
-export {initialState, traceInProgressKey, traceInProgress}
+export const walletsTab = 'settingsTabs:walletsTab'
+export {
+  initialState,
+  traceInProgressKey,
+  traceInProgress,
+  processorProfileInProgressKey,
+  processorProfileInProgress,
+}

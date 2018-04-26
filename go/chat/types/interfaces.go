@@ -1,8 +1,10 @@
 package types
 
 import (
+	"io"
 	"regexp"
 
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -36,6 +38,11 @@ type NameInfoSource interface {
 	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
+	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool,
+		generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 }
 
 type UnboxConversationInfo interface {
@@ -49,8 +56,13 @@ type UnboxConversationInfo interface {
 type ConversationSource interface {
 	Offlinable
 
+	AcquireConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
+	ReleaseConversationLock(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
+	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
+		uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
@@ -58,11 +70,13 @@ type ConversationSource interface {
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
-	Clear(convID chat1.ConversationID, uid gregor1.UID) error
-	TransformSupersedes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
+	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
+	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
+	ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+		convID chat1.ConversationID, deleteID chat1.MessageID)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -175,7 +189,7 @@ type FetchRetrier interface {
 type ConvLoader interface {
 	Resumable
 
-	Queue(ctx context.Context, convID chat1.ConversationID) error
+	Queue(ctx context.Context, job ConvLoaderJob) error
 	Suspend(ctx context.Context) bool
 	Resume(ctx context.Context) bool
 }
@@ -212,4 +226,17 @@ type IdentifyNotifier interface {
 type UPAKFinder interface {
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
+}
+
+type ProgressReporter func(bytesCompleted, bytesTotal int64)
+
+type AttachmentFetcher interface {
+	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
+		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
+}
+
+type AttachmentURLSrv interface {
+	GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+		preview bool) string
+	GetAttachmentFetcher() AttachmentFetcher
 }

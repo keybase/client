@@ -3,7 +3,7 @@
     "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as Types from '../constants/types/chat2'",
     "import HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/teams'",
+    "import type {RetentionPolicy} from '../constants/types/teams'"
   ],
   "actions": {
     // Set the loading state. Loading true increments the value
@@ -13,7 +13,7 @@
     },
     // Sometimes we just want to clear the loading state and not do a true increment/decrement
     "clearLoading": {
-      "key": "string",
+      "key": "string"
     },
     // Select the pending conversation (building a search or a set of users from a folder)
     "setPendingSelected": {
@@ -22,31 +22,31 @@
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-        // why this happened, sometimes there's different side effects
-        "reason": [
-          "'clearSelected'", // deselect
-          "'desktopNotification'", // clicked notification
-          "'existingSearch'", // searching and found one
-          "'findNewestConversation'", // find a new chat to select
-          "'inboxBig'", // inbox row
-          "'inboxFilterArrow'", // arrow keys in inbox filter
-          "'inboxFilterChanged'", // inbox filter made first one selected
-          "'inboxSmall'", // inbox row
-          "'jumpFromReset'", // from older reset convo
-          "'jumpToReset'", // going to an older reset convo
-          "'justCreated'", // just made it and select it
-          "'manageView'", // clicked from manage screen
-          "'messageLink'", // link in a message
-          "'preview'", // preview from manage screen
-          "'push'", // from a push
-          "'savedLastState'", // last seen chat tab
-          "'startFoundExisting'", // starting a conversation and found one already
-          "'teamChat'", // from team
-        ]
+      // why this happened, sometimes there's different side effects
+      "reason": [
+        "'clearSelected'", // deselect
+        "'desktopNotification'", // clicked notification
+        "'existingSearch'", // searching and found one
+        "'findNewestConversation'", // find a new chat to select
+        "'inboxBig'", // inbox row
+        "'inboxFilterArrow'", // arrow keys in inbox filter
+        "'inboxFilterChanged'", // inbox filter made first one selected
+        "'inboxSmall'", // inbox row
+        "'jumpFromReset'", // from older reset convo
+        "'jumpToReset'", // going to an older reset convo
+        "'justCreated'", // just made it and select it
+        "'manageView'", // clicked from manage screen
+        "'messageLink'", // link in a message
+        "'preview'", // preview from manage screen
+        "'push'", // from a push
+        "'savedLastState'", // last seen chat tab
+        "'startFoundExisting'", // starting a conversation and found one already
+        "'teamChat'" // from team
+      ]
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
-    "startConversation":{
+    "startConversation": {
       "participants?": "?Array<string>",
       "tlf?": "?string",
       "fromAReset?": "boolean"
@@ -67,7 +67,7 @@
         "'inboxSyncedUnknown'",
         "'joinedAConversation'",
         "'leftAConversation'",
-        "'teamTypeChanged'",
+        "'teamTypeChanged'"
       ]
     },
     // Update the 'jump to conversation' filter
@@ -95,23 +95,23 @@
       "metas": "Array<Types.ConversationMeta>",
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
-      "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
+      "clearExistingMessages?": "boolean" // If true, clear out any message data we already have.
     },
     // Got some inbox errors
     "metaReceivedError": {
       "conversationIDKey": "Types.ConversationIDKey",
       "error": "?RPCChatTypes.InboxUIItemError",
-      "username": "?string",
+      "username": "?string"
     },
     // We got a status update saying it was blocked or ignored
     "metaDelete": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "selectSomethingElse": "boolean",
+      "selectSomethingElse": "boolean"
     },
     // We updated our view of a thread
     "metaUpdatePagination": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paginationKey": "?Types.PaginationKey",
+      "paginationKey": "?Types.PaginationKey"
     },
     // Add a new message
     "messagesAdd": {
@@ -121,7 +121,7 @@
       "context": [
         "{type: 'sent'}",
         "{type: 'incoming'}",
-        "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}",
+        "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
       ],
       "messages": "Array<Types.Message>"
     },
@@ -129,7 +129,7 @@
     "messageErrored": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
-      "outboxID": "Types.OutboxID",
+      "outboxID": "Types.OutboxID"
     },
     "setPendingMessageSubmitState": {
       "_description": "Sets pending messages in the store to the supplied state and logs the reason",
@@ -137,7 +137,8 @@
       "submitState": ["'failed'", "'pending'"]
     },
     "cancelPendingConversation": {
-      "_description": "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
+      "_description":
+        "Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox"
     },
     "retryPendingConversation": {
       "_description": "Retries sending the pending message that is currently stored in the metaMap"
@@ -147,6 +148,18 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "?Types.Ordinal",
       "editLastUser?": "string"
+    },
+    // Start quoting a message / or clear quoting
+    "messageSetQuoting": {
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      // Has to be a string because it can be "pending".
+      "targetConversationIDKey": "string",
+      "ordinal": "?Types.Ordinal"
+    },
+    // Reply privately to a message with quoting
+    "messageReplyPrivately": {
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     // Submit an edit to the daemon
     "messageEdit": {
@@ -161,7 +174,7 @@
       "text": "HiddenString",
       "mentionsAt": "I.Set<string>",
       "mentionsChannel": "'none' | 'all' | 'here'",
-      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>",
+      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
     },
     // Mark a message as deleted
     "messagesWereDeleted": {
@@ -189,12 +202,13 @@
       "pendingMode": "Types.PendingMode"
     },
     "setPendingStatus": {
-      "_description": "Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.",
+      "_description":
+        "Sets the `pendingStatus` of the currently pending conversation. This controls how the input box behaves in a pending conversation.",
       "pendingStatus": "Types.PendingStatus"
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Show a desktop notification
     "desktopNotification": {
@@ -210,25 +224,25 @@
     // Resend a message
     "messageRetry": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "outboxID": "Types.OutboxID",
+      "outboxID": "Types.OutboxID"
     },
     "joinConversation": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "leaveConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "dontNavigateToInbox?": "boolean",
+      "dontNavigateToInbox?": "boolean"
     },
     "muteConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "muted": "boolean"
     },
     "openFolder": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // If an implied team chat member resets you can start a new chat w/o any reset people
     "resetChatWithoutThem": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // If an implied team chat member resets you can add them back in
     "resetLetThemIn": {
@@ -248,79 +262,54 @@
     "sendToPendingConversation": {
       "users": "Array<string>",
       "sendingAction": [
-      "More.ReturnType<typeof createMessageSend>",
-      "More.ReturnType<typeof createAttachmentUpload>"
+        "More.ReturnType<typeof createMessageSend>",
+        "More.ReturnType<typeof createAttachmentUpload>"
       ]
     },
     // We've made a new conversation successfully and want to clean up the pending info now
-    "clearPendingConversation": {
-    },
-    // We want to ensure we have an attachment preview
-    "attachmentNeedsUpdating": {
+    "clearPendingConversation": {},
+    // We want to save an attachment to the local disk
+    "attachmentDownload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "isPreview": "boolean"
-    },
-    // Internal action: pull more attachment previews from the queue to request
-    "attachmentHandleQueue": { },
-    // Load an image attachment
-    "attachmentLoad": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "isPreview": "boolean"
+      "forShare?": "boolean",
     },
     // Update the loading bars
     "attachmentLoading": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
       "ratio": "number", // 0-1
-      "isPreview": "boolean",
-    },
-    // An attachment is done loading
-    "attachmentLoaded": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "path": "string",
-      "isPreview": "boolean",
-      "canError": {
-        "conversationIDKey": "Types.ConversationIDKey",
-        "ordinal": "Types.Ordinal",
-        "isPreview": "boolean",
-      }
-    },
-    // We want to save an attachment to the local disk
-    "attachmentDownload": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "isPreview": "boolean"
     },
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "path": "string",
+      "path?": "string",
+      "forShare?": "boolean",
     },
     // We want to upload an attachment
     "attachmentUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
-      "title": "string",
+      "title": "string"
     },
     // Update progress on an upload
     "attachmentUploading": {
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal",
-      "ratio": "number", // 0-1
+      "ratio": "number" // 0-1
     },
     // We're done uploading
     "attachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "ordinal": "Types.Ordinal"
     },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "placeholderID": "RPCChatTypes.MessageID",
-      "message": "Types.MessageAttachment",
+      "message": "Types.MessageAttachment"
     },
     // Update who's typing in a conversation
     "updateTypers": {
@@ -334,11 +323,11 @@
     // On startup we're automatically loading a thread sometimes. When we first view it we should
     // go through our marking as read logic
     "markInitiallyLoadedThreadAsRead": {
-      "conversationIDKey": "Types.ConversationIDKey",
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     // Server told us a conversation is out of date
     "markConversationsStale": {
-      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {},
@@ -346,19 +335,19 @@
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "ordinal": "Types.Ordinal"
     },
     // Save on mobile (camera roll)
     "messageAttachmentNativeSave": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
+      "ordinal": "Types.Ordinal"
     },
     // We're changing the notification settings
     "updateNotificationSettings": {
       "conversationIDKey": "Types.ConversationIDKey",
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
-      "notificationsGlobalIgnoreMentions": "boolean",
+      "notificationsGlobalIgnoreMentions": "boolean"
     },
     // We get new notification settings
     "notificationSettingsUpdated": {
@@ -373,20 +362,21 @@
     // Conversation was loaded and is offline
     "setConversationOffline": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "offline": "boolean",
+      "offline": "boolean"
     },
     "setConvRetentionPolicy": {
       "_description": "Sets the retention policy for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",
-      "policy": "RetentionPolicy",
+      "policy": "RetentionPolicy"
     },
     "updateConvRetentionPolicy": {
-      "_description": "Consume a service notification that a conversation's retention policy has been updated",
-      "conv": "RPCChatTypes.InboxUIItem",
+      "_description":
+        "Consume a service notification that a conversation's retention policy has been updated",
+      "conv": "RPCChatTypes.InboxUIItem"
     },
     "updateTeamRetentionPolicy": {
       "_description": "Consume a service notification that a team retention policy was updated",
-      "convs": "Array<RPCChatTypes.InboxUIItem>",
-    },
+      "convs": "Array<RPCChatTypes.InboxUIItem>"
+    }
   }
 }

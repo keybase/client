@@ -24,11 +24,10 @@ import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
-import {showMainWindow, saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
-import {tmpDir, tmpFile, stat, downloadFilePathNoSearch, downloadFilePath, copy} from '../../util/file'
+import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} from '../platform-specific'
+import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import flags from '../../util/feature-flags'
 
 const inboxQuery = {
   computeActiveList: true,
@@ -150,8 +149,10 @@ const rpcMetaRequestConversationIDKeys = (
       keys = [action.payload.conversationIDKey].filter(Boolean)
       break
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // errors if we don't handle any new actions
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
+      */
       throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
@@ -916,6 +917,35 @@ const getIdentifyBehavior = (state: TypedState, conversationIDKey: Types.Convers
     : RPCTypes.tlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, state: TypedState) => {
+  const {sourceConversationIDKey, ordinal} = action.payload
+  const you = state.config.username
+  const message = Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal)
+  if (!message) {
+    logger.warn("Can't find message to reply to", ordinal)
+    return
+  }
+
+  // Do we already have a convo for this author?
+  const newConversationIDKey =
+    you && Constants.findConversationFromParticipants(state, I.Set([message.author, you]))
+
+  return Saga.sequentially([
+    Saga.put(
+      Chat2Gen.createMessageSetQuoting({
+        ordinal,
+        sourceConversationIDKey,
+        targetConversationIDKey: newConversationIDKey || Constants.pendingConversationIDKey,
+      })
+    ),
+    Saga.put(
+      Chat2Gen.createStartConversation({
+        participants: [message.author],
+      })
+    ),
+  ])
+}
+
 const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => {
   const {conversationIDKey, text, ordinal} = action.payload
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
@@ -970,13 +1000,13 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
 // First we make the conversation, then on success we dispatch the piggybacking action
 const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPayload, state: TypedState) => {
   const tlfName = action.payload.users.join(',')
-  const membersType = flags.impTeamChatEnabled
-    ? RPCChatTypes.commonConversationMembersType.impteamnative
-    : RPCChatTypes.commonConversationMembersType.kbfs
+  const membersType = RPCChatTypes.commonConversationMembersType.impteamnative
 
   return Saga.sequentially([
     // Disable sending more into a pending conversation
     Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'waiting'})),
+    // Disable searching for more people once you've tried to send
+    Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
     // Try to make the conversation
     Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -990,10 +1020,10 @@ const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPay
 
 // Now actually send
 const sendToPendingConversationSuccess = (
-  results: [any, RPCChatTypes.NewConversationLocalRes],
+  results: [any, any, RPCChatTypes.NewConversationLocalRes],
   action: Chat2Gen.SendToPendingConversationPayload
 ) => {
-  const conversationIDKey = Types.conversationIDToKey(results[1].conv.info.id)
+  const conversationIDKey = Types.conversationIDToKey(results[2].conv.info.id)
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
     return
@@ -1089,7 +1119,7 @@ const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPaylo
   } else if (message.type === 'attachment') {
     retryAction = Chat2Gen.createAttachmentUpload({
       conversationIDKey: message.conversationIDKey,
-      path: message.devicePreviewPath,
+      path: message.previewURL,
       title: message.title,
     })
   }
@@ -1211,6 +1241,7 @@ const startConversation = (action: Chat2Gen.StartConversationPayload, state: Typ
   // we handled participants or tlfs
   if (participants) {
     users = participants
+    conversationIDKey = Constants.findConversationFromParticipants(state, I.Set(users))
   } else if (tlf) {
     const parts = tlf.split('/')
     if (parts.length >= 4) {
@@ -1266,7 +1297,11 @@ const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bo
 
 // Various things can cause us to lose our selection so this reselects the newest conversation
 const selectTheNewestConversation = (
-  action: Chat2Gen.MetasReceivedPayload | Chat2Gen.LeaveConversationPayload | Chat2Gen.MetaDeletePayload,
+  action:
+    | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.LeaveConversationPayload
+    | Chat2Gen.MetaDeletePayload
+    | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.metaDelete) {
@@ -1284,15 +1319,29 @@ const selectTheNewestConversation = (
     }
   }
 
-  const meta = state.chat2.metaMap
+  const metas = state.chat2.metaMap
     .filter(meta => meta.teamType !== 'big')
     .sort((a, b) => b.timestamp - a.timestamp)
-    .first()
+  let meta
+  if (action.type === TeamsGen.leaveTeam) {
+    // make sure we don't reselect the team chat if it happens to be first in the list
+    meta = metas.filter(meta => meta.teamname !== action.payload.teamname).first()
+  } else {
+    meta = metas.first()
+  }
   if (meta) {
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: meta.conversationIDKey,
         reason: 'findNewestConversation',
+      })
+    )
+  } else if (action.type === TeamsGen.leaveTeam) {
+    // the team we left is the only chat we had
+    return Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Types.stringToConversationIDKey(''),
+        reason: 'clearSelected',
       })
     )
   }
@@ -1362,123 +1411,23 @@ const updatePendingSelected = (
   }
 }
 
-// We keep a set of attachment previews to load
-let attachmentQueue = []
-const queueAttachmentToRequest = (action: Chat2Gen.AttachmentNeedsUpdatingPayload, state: TypedState) => {
-  const {conversationIDKey, ordinal, isPreview} = action.payload
-  attachmentQueue.push({conversationIDKey, isPreview, ordinal})
-  return Saga.put(Chat2Gen.createAttachmentHandleQueue())
-}
-
-// Watch the attachment queue and take one item. Choose the last items first since they're likely still visible
-const requestAttachment = (action: Chat2Gen.AttachmentHandleQueuePayload, state: TypedState) => {
-  if (!attachmentQueue.length) {
-    return
-  }
-
-  const toLoad = attachmentQueue.pop()
-  const toLoadActions = [Saga.put(Chat2Gen.createAttachmentLoad(toLoad))]
-  const loadSomeMoreActions = attachmentQueue.length ? [Saga.put(Chat2Gen.createAttachmentHandleQueue())] : []
-  const delayBeforeLoadingMoreActions =
-    toLoadActions.length && loadSomeMoreActions.length ? [Saga.call(Saga.delay, 100)] : []
-
-  const nextActions = [...toLoadActions, ...delayBeforeLoadingMoreActions, ...loadSomeMoreActions]
-
-  if (nextActions.length) {
-    return Saga.sequentially(nextActions)
-  }
-}
-
-// Load a preview or actual image
-function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
-  const {conversationIDKey, ordinal, isPreview} = action.payload
-  const state: TypedState = yield Saga.select()
-  const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
-
-  if (!message || message.type !== 'attachment') {
-    logger.warn('Bailing on unknown attachmentLoad', conversationIDKey, ordinal)
-    return
-  }
-
-  // done or in progress? bail
-  if (isPreview) {
-    if (message.devicePreviewPath || message.previewTransferState === 'downloading') {
-      logger.info('Bailing on attachmentLoad', conversationIDKey, ordinal, isPreview)
-      return
-    }
-  } else {
-    if (message.deviceFilePath || message.transferState === 'downloading') {
-      logger.info('Bailing on attachmentLoad', conversationIDKey, ordinal, isPreview)
-      return
-    }
-  }
-
-  const parts = message.fileName.split('.')
-  const fileName = tmpFile(
-    `kbchat-${conversationIDKey}-${Types.ordinalToNumber(ordinal)}.${isPreview ? 'preview' : 'download'}.${
-      parts[parts.length - 1]
-    }`
-  )
-
-  // Immediately show the loading
-  yield Saga.put(Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview, ordinal, ratio: 0.01}))
-  let alreadyLoaded = false
-  if (message.attachmentType === 'image') {
-    try {
-      const fileStat = yield Saga.call(stat, fileName)
-      const validSize = isPreview ? fileStat.size > 0 : fileStat.size === message.fileSize
-      // We don't have the preview size so assume if it has data its good, else use the filesize
-      if (validSize) {
-        yield Saga.put(
-          Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: fileName})
-        )
-        alreadyLoaded = true
-      } else {
-        logger.warn('Invalid attachment size', fileStat.size)
-      }
-    } catch (_) {}
-  }
-
-  // If we're loading the preview lets see if we downloaded previously once so show in finder / download state is correct
-  if (isPreview && !message.downloadPath) {
-    try {
-      const downloadPath = downloadFilePathNoSearch(message.fileName)
-      const fileStat = yield Saga.call(stat, downloadPath)
-      // already exists?
-      if (fileStat.size === message.fileSize) {
-        yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: downloadPath}))
-      }
-    } catch (_) {}
-  }
-
-  // We already loaded this file so lets bail
-  if (alreadyLoaded) {
-    return
-  }
-
-  // If its a non image and a preview lets just count it as loaded
-  if (isPreview && message.attachmentType !== 'image') {
-    yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: fileName}))
-    return
-  }
-
+function* downloadAttachment(fileName: string, conversationIDKey: any, message: any, ordinal: any) {
   // Start downloading
   let lastRatioSent = 0
   const downloadFileRpc = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
-      // Progress on download, not preview
-      'chat.1.chatUi.chatAttachmentDownloadProgress': isPreview
-        ? EngineRpc.passthroughResponseSaga
-        : function*({bytesComplete, bytesTotal}) {
-            const ratio = bytesComplete / bytesTotal
-            // Don't spam ourselves with updates
-            if (ratio - lastRatioSent > 0.05) {
-              lastRatioSent = ratio
-              yield Saga.put(Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview, ordinal, ratio}))
-            }
-            return EngineRpc.rpcResult()
-          },
+      'chat.1.chatUi.chatAttachmentDownloadProgress': function*({bytesComplete, bytesTotal}) {
+        const ratio = bytesComplete / bytesTotal
+        // Don't spam ourselves with updates
+        if (ratio - lastRatioSent > 0.05) {
+          lastRatioSent = ratio
+          yield Saga.put(
+            Chat2Gen.createAttachmentLoading({conversationIDKey, isPreview: false, ordinal, ratio})
+          )
+        }
+        return EngineRpc.rpcResult()
+      },
       'chat.1.chatUi.chatAttachmentDownloadStart': EngineRpc.passthroughResponseSaga,
     },
     RPCChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
@@ -1488,20 +1437,11 @@ function* attachmentLoad(action: Chat2Gen.AttachmentLoadPayload) {
       filename: fileName,
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       messageID: message.id,
-      preview: isPreview,
     }
   )
-
-  try {
-    const result = yield Saga.call(downloadFileRpc.run)
-    if (EngineRpc.isFinished(result)) {
-      yield Saga.put(Chat2Gen.createAttachmentLoaded({conversationIDKey, isPreview, ordinal, path: fileName}))
-    } else {
-      yield Saga.put(Chat2Gen.createAttachmentLoadedError({conversationIDKey, isPreview, ordinal}))
-    }
-  } catch (err) {
-    logger.warn('attachment failed to load:', err)
-    yield Saga.put(Chat2Gen.createAttachmentLoadedError({conversationIDKey, isPreview, ordinal}))
+  const result = yield Saga.call(downloadFileRpc.run)
+  if (EngineRpc.isFinished(result)) {
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, path: fileName}))
   }
 }
 
@@ -1521,34 +1461,9 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
     return
   }
 
-  // Have we downloaded it to cache yet?
-  if (!message.deviceFilePath) {
-    yield Saga.call(
-      attachmentLoad,
-      Chat2Gen.createAttachmentLoad({
-        conversationIDKey,
-        isPreview: false,
-        ordinal,
-      })
-    )
-    const state: TypedState = yield Saga.select()
-    message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
-    if (!message || message.type !== 'attachment' || !message.deviceFilePath) {
-      logger.warn("Attachment can't downloaded")
-      throw new Error('Error downloading attachment')
-    }
-  }
-
-  // Copy it over
+  // Download it
   const destPath = yield Saga.call(downloadFilePath, message.fileName)
-  yield Saga.call(copy, message.deviceFilePath, destPath)
-  yield Saga.put(
-    Chat2Gen.createAttachmentDownloaded({
-      conversationIDKey,
-      ordinal,
-      path: destPath,
-    })
-  )
+  yield Saga.call(downloadAttachment, destPath, conversationIDKey, message, ordinal)
 }
 
 // Upload an attachment
@@ -1633,7 +1548,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
   const postAttachment = new EngineRpc.EngineRpcCall(
     {
       'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
-      'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentPreviewUploadStart': function*(metadata) {
+        const ratio = 0
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        return EngineRpc.rpcResult()
+      },
       'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadOutboxID': EngineRpc.passthroughResponseSaga,
       'chat.1.chatUi.chatAttachmentUploadProgress': function*({bytesComplete, bytesTotal}) {
@@ -1645,7 +1564,11 @@ function* attachmentUpload(action: Chat2Gen.AttachmentUploadPayload) {
         }
         return EngineRpc.rpcResult()
       },
-      'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
+      'chat.1.chatUi.chatAttachmentUploadStart': function*(metadata) {
+        const ratio = 0
+        yield Saga.put(Chat2Gen.createAttachmentUploading({conversationIDKey, ordinal, ratio}))
+        return EngineRpc.rpcResult()
+      },
     },
     RPCChatTypes.localPostFileAttachmentLocalRpcChannelMap,
     `localPostFileAttachmentLocal-${conversationIDKey}-${path}`,
@@ -1838,22 +1761,11 @@ function* messageAttachmentNativeShare(action: Chat2Gen.MessageAttachmentNativeS
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.deviceFilePath) {
-    yield Saga.call(
-      attachmentLoad,
-      Chat2Gen.createAttachmentLoad({
-        conversationIDKey,
-        isPreview: false,
-        ordinal,
-      })
-    )
-    state = yield Saga.select()
-    message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
-    if (!message || message.type !== 'attachment' || !message.deviceFilePath) {
-      throw new Error("Couldn't download attachment")
-    }
-  }
-  yield Saga.call(showShareActionSheet, {url: message.deviceFilePath})
+  yield Saga.sequentially([
+    Saga.put(Chat2Gen.createAttachmentDownload({conversationIDKey, ordinal, forShare: true})),
+    Saga.call(downloadAndShowShareActionSheet, message.fileURL, message.fileType),
+    Saga.put(Chat2Gen.createAttachmentDownloaded({conversationIDKey, ordinal, forShare: true})),
+  ])
 }
 
 // Native save to camera roll
@@ -1864,24 +1776,9 @@ function* messageAttachmentNativeSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.deviceFilePath) {
-    yield Saga.call(
-      attachmentLoad,
-      Chat2Gen.createAttachmentLoad({
-        conversationIDKey,
-        isPreview: false,
-        ordinal,
-      })
-    )
-    state = yield Saga.select()
-    message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
-    if (!message || message.type !== 'attachment' || !message.deviceFilePath) {
-      throw new Error("Couldn't download attachment")
-    }
-  }
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield Saga.call(saveAttachmentDialog, message.deviceFilePath)
+    yield Saga.call(saveAttachmentDialog, message.fileURL)
   } catch (err) {
     logger.info('Failed to save attachment: ' + err)
     throw new Error('Save attachment failed. Enable photo access in privacy settings.')
@@ -1984,7 +1881,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEveryPure(Chat2Gen.desktopNotification, desktopNotify)
     // Auto select the latest convo
     yield Saga.safeTakeEveryPure(
-      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation, Chat2Gen.metaDelete],
+      [Chat2Gen.metasReceived, Chat2Gen.leaveConversation, Chat2Gen.metaDelete, TeamsGen.leaveTeam],
       selectTheNewestConversation
     )
   }
@@ -2053,11 +1950,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.cancelPendingConversation, cancelPendingConversation)
   yield Saga.safeTakeEveryPure(Chat2Gen.retryPendingConversation, retryPendingConversation)
 
-  // We've scrolled some new attachment rows into view, queue them up
-  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentNeedsUpdating, queueAttachmentToRequest)
-  // We have some items in the queue to process
-  yield Saga.safeTakeEveryPure(Chat2Gen.attachmentHandleQueue, requestAttachment)
-  yield Saga.safeTakeEvery(Chat2Gen.attachmentLoad, attachmentLoad)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentDownload, attachmentDownload)
   yield Saga.safeTakeEvery(Chat2Gen.attachmentUpload, attachmentUpload)
 
@@ -2087,6 +1979,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
+  yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
 }
 
 export default chat2Saga

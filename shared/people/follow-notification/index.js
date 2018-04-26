@@ -74,7 +74,11 @@ export const MultiFollowNotification = (props: Props) => {
         <Box style={multiIconContainerStyle}>
           <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
           <Box style={multiMetaContainerStyle}>
-            <Meta title={`+${props.newFollows.length + (props.numAdditional || 0)}`} style={multiMetaStyle} />
+            <Meta
+              title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
+              backgroundColor={globalColors.blue}
+              style={multiMetaStyle}
+            />
           </Box>
         </Box>
       }
@@ -127,7 +131,6 @@ const multiMetaContainerStyle = {
 
 const multiMetaStyle = {
   alignSelf: 'center',
-  backgroundColor: globalColors.blue,
   minWidth: isMobile ? 24 : 16,
   ...(isMobile ? undefined : {textAlign: 'center'}),
 }

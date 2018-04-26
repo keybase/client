@@ -1,14 +1,15 @@
 // @flow
 import * as Types from '../../constants/types/fs'
-import * as FsGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
 import {fsTab} from '../../constants/tabs'
 import {navigateAppend, navigateTo, navigateUp} from '../../actions/route-tree'
-import {isMobile, isLinux} from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 import FolderHeader from './header'
+import * as DispatchMappers from '../utils/dispatch-mappers'
+import * as StateMappers from '../utils/state-mappers'
 
 const mapStateToProps = (state: TypedState) => ({
-  kbfsEnabled: isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted),
+  kbfsEnabled: StateMappers.mapStateToKBFSEnabled(state),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -30,23 +31,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         },
       ])
     ),
-  _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _openFinderPopup: isMobile
-    ? () => undefined
-    : (evt?: SyntheticEvent<>) =>
-        dispatch(
-          navigateAppend([
-            {
-              props: {
-                targetRect: evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null,
-                position: 'bottom right',
-                onHidden: () => dispatch(navigateUp()),
-                onInstall: () => dispatch(FsGen.createInstallFuse()),
-              },
-              selected: 'finderAction',
-            },
-          ])
-        ),
+  _openInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
+  _openFinderPopup: DispatchMappers.mapDispatchToOpenFinderPopup(dispatch),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -64,6 +50,7 @@ const mergeProps = (
       isTlfNameItem: i === 2,
       isLastItem: i === elems.length - 1,
       name: e,
+      path: path,
       onOpenBreadcrumb: (evt?: SyntheticEvent<>) => _onOpenBreadcrumb(path, evt),
     }
   })

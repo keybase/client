@@ -2,7 +2,6 @@ package stellarsvc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -62,6 +61,38 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary)
 }
 
+func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "ExportSecretKeyLocal", func() error { return err })()
+	err = s.assertLoggedIn(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	// Prompt for passphrase
+	username := s.G().GetEnv().GetUsername().String()
+	arg := libkb.DefaultPassphrasePromptArg(s.G(), username)
+	arg.Prompt = arg.Prompt + " to export Stellar secret keys"
+	secretUI := s.uiSource.SecretUI(s.G(), 0)
+	ppRes, err := secretUI.GetPassphrase(arg, nil)
+	if err != nil {
+		return res, err
+	}
+	pwdOk := false
+	_, err = s.G().LoginState().VerifyPlaintextPassphrase(ppRes.Passphrase, func(lctx libkb.LoginContext) error {
+		pwdOk = true
+		return nil
+	})
+	if err != nil {
+		return res, err
+	}
+	if !pwdOk {
+		return res, libkb.PassphraseError{}
+	}
+
+	return stellar.ExportSecretKey(ctx, s.G(), accountID)
+}
+
 func (s *Server) OwnAccountLocal(ctx context.Context, accountID stellar1.AccountID) (isOwn bool, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "OwnAccountLocal", func() error { return err })()
@@ -86,7 +117,7 @@ func (s *Server) SendLocal(ctx context.Context, arg stellar1.SendLocalArg) (stel
 	return stellar.SendPayment(ctx, s.G(), s.remoter, stellar.RecipientInput(arg.Recipient), arg.Amount, arg.Note)
 }
 
-func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.RecentPaymentCLILocal, err error) {
+func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1.AccountID) (res []stellar1.PaymentCLILocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "RecentPaymentsCLILocal", func() error { return err })()
 	if err = s.assertLoggedIn(ctx); err != nil {
@@ -104,45 +135,13 @@ func (s *Server) RecentPaymentsCLILocal(ctx context.Context, accountID *stellar1
 	return stellar.RecentPaymentsCLILocal(ctx, s.G(), s.remoter, selectAccountID)
 }
 
-func (s *Server) WalletDumpLocal(ctx context.Context) (dump stellar1.Bundle, err error) {
+func (s *Server) PaymentDetailCLILocal(ctx context.Context, txID string) (res stellar1.PaymentCLILocal, err error) {
 	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletDumpLocal", func() error { return err })()
-	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return dump, errors.New("WalletDump only supported in devel run mode")
+	defer s.G().CTraceTimed(ctx, "PaymentDetailCLILocal", func() error { return err })()
+	if err = s.assertLoggedIn(ctx); err != nil {
+		return res, err
 	}
-
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "WalletDump", func() error { return err })()
-	err = s.assertLoggedIn(ctx)
-	if err != nil {
-		return dump, err
-	}
-
-	// verify passphrase
-	username := s.G().GetEnv().GetUsername().String()
-
-	arg := libkb.DefaultPassphrasePromptArg(s.G(), username)
-	secretUI := s.uiSource.SecretUI(s.G(), 0)
-	res, err := secretUI.GetPassphrase(arg, nil)
-	if err != nil {
-		return dump, err
-	}
-	pwdOk := false
-	_, err = s.G().LoginState().VerifyPlaintextPassphrase(res.Passphrase, func(lctx libkb.LoginContext) error {
-		pwdOk = true
-
-		return nil
-	})
-	if err != nil {
-		return dump, err
-	}
-	if !pwdOk {
-		return dump, libkb.PassphraseError{}
-	}
-
-	dump, _, err = remote.Fetch(ctx, s.G())
-
-	return dump, err
+	return stellar.PaymentDetailCLILocal(ctx, s.G(), s.remoter, txID)
 }
 
 // WalletInitLocal creates and posts an initial stellar bundle for a user.
@@ -170,7 +169,7 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 	return remote.SetAccountDefaultCurrency(ctx, s.G(), arg.AccountID, arg.Currency)
 }
 
-type exchangeRateMap map[string]remote.XLMExchangeRate
+type exchangeRateMap map[string]stellar1.OutsideExchangeRate
 
 // getLocalCurrencyAndExchangeRate gets display currency setting
 // for accountID and fetches exchange rate is set.
@@ -181,11 +180,9 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 	if err != nil {
 		return err
 	}
-
 	if displayCurrency == "" {
 		return nil
 	}
-
 	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
 		var err error
@@ -195,9 +192,7 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 		}
 		exchangeRates[displayCurrency] = rate
 	}
-
-	account.LocalCurrency = stellar1.LocalCurrencyCode(rate.Currency)
-	account.LocalExchangeRate = stellar1.LocalExchangeRate(rate.Price)
+	account.ExchangeRate = &rate
 	return nil
 }
 
@@ -254,12 +249,8 @@ func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.Loc
 	return ret, accountError
 }
 
-func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.LocalCurrencyCode) (res stellar1.LocalExchangeRate, err error) {
+func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.OutsideCurrencyCode) (res stellar1.OutsideExchangeRate, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)), func() error { return err })()
-	rate, err := remote.ExchangeRate(ctx, s.G(), string(currency))
-	if err != nil {
-		return res, err
-	}
-	return stellar1.LocalExchangeRate(rate.Price), nil
+	return remote.ExchangeRate(ctx, s.G(), string(currency))
 }

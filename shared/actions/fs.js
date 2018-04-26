@@ -16,11 +16,13 @@ import {
   installKBFSSuccess,
   installFuseSaga,
   installDokanSaga,
+  openSecurityPreferences,
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
+  copyToDownloadDir,
 } from './fs-platform-specific'
-import {isWindows} from '../constants/platform'
+import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
 import {type TypedState} from '../util/container'
 
@@ -155,9 +157,15 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         // avoid overriding existing files. Just download over them.
         localPath = Constants.downloadFilePathFromPathNoSearch(path)
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
         break
     }
@@ -189,20 +197,28 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // completePortion to 1.
     yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
 
-    // If this is for anyting other than a simple download, kick that off now
-    // that the file is available locally.
+    const mimeType = Constants.mimeTypeFromPathName(Types.getPathName(path))
+
+    // Kick off any post-download actions, now that the file is available locally.
     switch (intent) {
       case 'none':
+        yield Saga.call(copyToDownloadDir, localPath, mimeType)
         break
       case 'camera-roll':
         yield Saga.call(saveAttachmentDialog, localPath)
         break
       case 'share':
-        yield Saga.call(showShareActionSheet, {url: localPath})
+        yield Saga.call(showShareActionSheet, {url: localPath, mimeType})
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         break
     }
   } catch (error) {
@@ -232,27 +248,25 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   polling = true
   try {
     let status: RPCTypes.FSSyncStatus = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
-    let _kbfsUploading = false // Don't send duplicates else we get high cpu usage.
+    if (status.totalSyncingBytes <= 0) {
+      return
+    }
+
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+    yield Saga.put(FsGen.createSetFlags({syncing: true}))
+
     while (status.totalSyncingBytes > 0) {
-      if (!_kbfsUploading) {
-        _kbfsUploading = true
-        yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
-        yield Saga.put(FsGen.createSyncingStatus({isSyncing: true}))
-      }
       yield Saga.delay(2000)
       status = yield Saga.call(RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise)
     }
-    if (_kbfsUploading) {
-      yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-      yield Saga.put(FsGen.createSyncingStatus({isSyncing: false}))
-    }
   } finally {
     polling = false
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    yield Saga.put(FsGen.createSetFlags({syncing: false}))
   }
 }
 
 function _setupFSHandlers() {
-  console.log('SONGGAO-setupfshandler')
   return Saga.put((dispatch: Dispatch) => {
     engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
       dispatch(FsGen.createFsActivity())
@@ -277,9 +291,14 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
-  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
 
-  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
+  if (!isMobile) {
+    yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+
+    // TODO: enable these when we need it on mobile.
+    yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+    yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
+  }
 }
 
 export default fsSaga

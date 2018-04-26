@@ -26,9 +26,9 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
+      "intent": "Types.TransferIntent",
       "path": "Types.Path",
-      "localPath?": "string",
-      "intent": "Types.TransferIntent"
+      "localPath?": "string"
     },
     "downloadStarted": {
       "key": "string",
@@ -65,7 +65,9 @@
       "kbfsInstalling?": "boolean",
       "fuseInstalling?": "boolean",
       "kextPermissionError?": "boolean",
-      "showBanner?": "boolean"
+      "securityPrefsPropmted?": "boolean",
+      "showBanner?": "boolean",
+      "syncing?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {
@@ -77,9 +79,7 @@
     },
     "uninstallKBFS": {},
     "fsActivity": {},
-    "syncingStatus": {
-      "isSyncing": "boolean"
-    },
+    "openSecurityPreferences": {},
 
     "setupFSHandlers": {}
   }

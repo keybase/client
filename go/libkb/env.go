@@ -168,6 +168,10 @@ type TestParameters struct {
 
 	// On if, in test, we want to skip sending system chat messages
 	SkipSendingSystemChatMessages bool
+
+	// If we need to use the real clock for NIST generation (as in really
+	// whacky tests liks TestRekey).
+	UseTimeClockForNISTs bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -306,6 +310,10 @@ func (e *Env) GetLogDir() string          { return e.HomeFinder.LogDir() }
 
 func (e *Env) SendSystemChatMessages() bool {
 	return !e.Test.SkipSendingSystemChatMessages
+}
+
+func (e *Env) UseTimeClockForNISTs() bool {
+	return e.Test.UseTimeClockForNISTs
 }
 
 func (e *Env) GetRuntimeDir() string {
@@ -572,6 +580,12 @@ func (e *Env) GetAPIDump() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetAPIDump() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_API_DUMP") },
+	)
+}
+
+func (e *Env) GetAllowRoot() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_ROOT") },
 	)
 }
 
@@ -1352,4 +1366,15 @@ func GetPlatformString() string {
 		return "ios"
 	}
 	return runtime.GOOS
+}
+
+func IsMobilePlatform() bool {
+	s := GetPlatformString()
+	return (s == "ios" || s == "android")
+}
+
+func (e *Env) AllowPTrace() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_PTRACE") },
+	)
 }

@@ -1,7 +1,8 @@
 // @flow
 import React from 'react'
 import {Box} from '../../../common-adapters'
-import {storiesOf, action, unexpected} from '../../../stories/storybook'
+import {storiesOf, action} from '../../../stories/storybook'
+import * as PropProviders from '../../../stories/prop-providers'
 import {globalColors} from '../../../styles'
 import {SmallTeam} from './small-team'
 import {FilterSmallTeam} from './filter-small-team'
@@ -17,7 +18,6 @@ const simpleCommon = {
   iconHoverColor: globalColors.black_75,
   isMuted: false,
   isSelected: false,
-  onClickGear: unexpected('onClickGear'),
   onSelectConversation: action('onSelectConversation'),
   participants: ['chris'],
   rekeyInfo: null,
@@ -38,7 +38,6 @@ const mocks = [
     conversationIDKey: '3',
     hasUnread: false,
     hasBadge: false,
-    onClickGear: action('onClickGear'),
     showBold: false,
     snippet: 'elisa: Hopefully not',
     teamname: 'fortgreenmoms',
@@ -66,13 +65,23 @@ const mocks = [
   },
   {
     ...simpleCommon,
+    conversationIDKey: '5',
+    hasBadge: false,
+    hasResetUsers: true,
+    hasUnread: false,
+    participants: ['jzila'],
+    showBold: false,
+    snippet: 'I don\t know that I would want.',
+    timestamp: '5:12 pm',
+  },
+  {
+    ...simpleCommon,
     backgroundColor: globalColors.blue,
     conversationIDKey: '4',
     hasUnread: false,
     hasBadge: false,
     iconHoverColor: globalColors.white_75,
     isSelected: true,
-    onClickGear: action('onClickGear'),
     showBold: false,
     snippet: 'jork: what article?',
     subColor: globalColors.white,
@@ -92,8 +101,11 @@ const commonChannel = {
   isError: false,
 }
 
+const provider = PropProviders.compose(PropProviders.TeamDropdownMenu())
+
 const load = () => {
   storiesOf('Chat/Inbox', module)
+    .addDecorator(provider)
     .add('Simple', () => (
       <Box style={{width: 240}}>
         {mocks.map(m => (
@@ -109,7 +121,7 @@ const load = () => {
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <BigTeamHeader memberCount={30} onClickGear={action('onClickGear')} teamname="Keybase" />
+        <BigTeamHeader badgeSubscribe={false} memberCount={30} teamname="Keybase" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#general" />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#random" showBold={true} />
         <BigTeamChannel
@@ -120,7 +132,7 @@ const load = () => {
           hasUnread={true}
         />
         <BigTeamChannel {...commonChannel} teamname="Keybase" channelname="#video-games" isMuted={true} />
-        <BigTeamHeader memberCount={30} onClickGear={action('onClickGear')} teamname="techtonica" />
+        <BigTeamHeader badgeSubscribe={false} memberCount={30} teamname="techtonica" />
         <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#general" isSelected={true} />
         <BigTeamChannel {...commonChannel} teamname="techtonica" channelname="#ignore-selected-below" />
         <BigTeamChannel

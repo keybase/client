@@ -18,7 +18,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         if (item.type !== 'folder') return item
         const original = state.pathItems.get(path)
         if (!original || original.type !== 'folder') return item
-        if (original.progress === 'loaded' && item.progress !== 'pending') {
+        if (original.progress === 'loaded' && item.progress === 'pending') {
           // Don't override a loaded item into pending. This is specifically
           // for the case where user goes back out of a folder where we could
           // override the folder into an empty one. With this, next user
@@ -115,8 +115,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['flags'], action.payload)
     case FsGen.installKBFS:
       return state.mergeIn(['flags'], {kbfsInstalling: true})
-    case FsGen.syncingStatus:
-      return state.mergeIn(['flags'], {syncing: action.payload.isSyncing})
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
@@ -125,10 +123,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.uninstallKBFS:
     case FsGen.fsActivity:
     case FsGen.setupFSHandlers:
+    case FsGen.openSecurityPreferences:
       return state
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

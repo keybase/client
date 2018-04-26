@@ -5,6 +5,7 @@ import type {TextType} from './text'
 import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
+  key?: string,
   label?: string,
   labelComponent?: Node,
   onCheck: ?(newCheckedValue: boolean) => void,

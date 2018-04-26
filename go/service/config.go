@@ -39,9 +39,9 @@ func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalC
 	}
 }
 
-func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
+func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
-	if cs, err = libkb.GetCurrentStatus(h.G()); err == nil {
+	if cs, err = libkb.GetCurrentStatus(ctx, h.G()); err == nil {
 		res = cs.Export()
 	}
 	return
@@ -305,7 +305,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	tmp := fmt.Sprintf("%v", arg.Argv)
-	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite)\b`)
+	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite|wallet\s+send|wallet\s+import)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {
 		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
 	}

@@ -172,4 +172,4 @@ type IncomingSyncResult = SyncResult
 type IncomingVersionResult = String
 type RemindGetRemindersResult = ReminderSet
 
-export type IncomingCallMapType = {}
+export type IncomingCallMapType = {||}

@@ -25,7 +25,11 @@ func TestNoteBadKey(t *testing.T) {
 	pre := sampleNote()
 	encNote, err := noteEncryptHelper(context.Background(), pre, sk)
 	require.NoError(t, err)
-	sk[3] = 'c'
+	if sk[3] == 'c' {
+		sk[3] = 'd'
+	} else {
+		sk[3] = 'c'
+	}
 	_, err = noteDecryptHelper(context.Background(), encNote, sk)
 	require.Error(t, err)
 	require.Equal(t, "could not decrypt note secretbox", err.Error())
@@ -35,7 +39,11 @@ func TestNoteCorruptCiphertext(t *testing.T) {
 	sk := randomSymmetricKey(t)
 	pre := sampleNote()
 	encNote, err := noteEncryptHelper(context.Background(), pre, sk)
-	encNote.E[3] = 'c'
+	if encNote.E[3] == 'c' {
+		encNote.E[3] = 'd'
+	} else {
+		encNote.E[3] = 'c'
+	}
 	require.NoError(t, err)
 	_, err = noteDecryptHelper(context.Background(), encNote, sk)
 	require.Error(t, err)

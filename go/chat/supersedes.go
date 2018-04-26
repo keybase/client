@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -53,6 +54,7 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 		AtMentions:            superMsg.Valid().AtMentions,
 		AtMentionUsernames:    superMsg.Valid().AtMentionUsernames,
 		ChannelMention:        superMsg.Valid().ChannelMention,
+		ChannelNameMentions:   superMsg.Valid().ChannelNameMentions,
 	})
 	return &newMsg
 }
@@ -174,9 +176,20 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				continue
 			}
 			if !newMsg.IsValidFull() {
-				// Drop the message. It has been deleted locally but not superseded by anything.
-				// Could have been deleted by a delete-history or retention expunge.
-				continue
+				// Drop the message. It has been deleted locally but not
+				// superseded by anything.  Could have been deleted by a
+				// delete-history, retention expunge, or was an exploding
+				// message.
+				if newMsg.IsValid() {
+					// If we want to show the GUI that the message is exploded,
+					// don't hide these yet
+					mvalid := newMsg.Valid()
+					if !mvalid.IsExploding() || mvalid.HideExplosion(time.Now()) {
+						continue
+					}
+				} else {
+					continue
+				}
 			}
 			newMsgs = append(newMsgs, *newMsg)
 		} else {

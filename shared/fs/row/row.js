@@ -43,12 +43,12 @@ const RowMeta = ({badgeCount, isNew, isIgnored, needsRekey}) => {
     <Box style={{width: 0, display: 'flex'}}>
       {needsRekey && (
         <Box style={styleBadgeContainerRekey}>
-          <Meta title="rekey" style={badgeStyleRekey} />
+          <Meta title="rekey" backgroundColor={globalColors.red} />
         </Box>
       )}
       {isNew && (
         <Box style={styleBadgeContainerNew}>
-          <Meta title="new" style={badgeStyleNew} />
+          <Meta title="new" backgroundColor={globalColors.orange} />
         </Box>
       )}
       <Box style={styleBadgeContainer}>
@@ -86,16 +86,22 @@ export const Row = (props: RowProps) => (
             <Icon
               type="iconfont-finder"
               style={rowActionIconStyle}
+              fontSize={rowActionIconFontSize}
               onClick={props.openInFileUI}
               className="fs-path-item-hover-icon"
             />
           )}
-          <Icon
-            type="iconfont-ellipsis"
-            style={rowActionIconStyle}
-            onClick={props.onAction}
-            className="fs-path-item-hover-icon"
-          />
+          {// TODO: when we have share-to-app, we'll want to re-enable this on
+          // mobile, but filter out share/download in the popup menu.
+          // Currently it doesn't make sense to popup an empty menu.
+          (!isMobile || props.type !== 'folder') && (
+            <Icon
+              type="iconfont-ellipsis"
+              style={rowActionIconStyle}
+              onClick={props.onAction}
+              className="fs-path-item-hover-icon"
+            />
+          )}
         </Box>
       </HoverBox>
     </Box>
@@ -106,7 +112,7 @@ export const Row = (props: RowProps) => (
 export const Placeholder = () => (
   <Box style={stylesCommonRow}>
     <Box style={stylesRowBox}>
-      <Icon type={placeholderIcon} style={stylePlaceholderIcon} />
+      <Icon type={placeholderIcon} style={stylePlaceholderIcon} fontSize={32} />
       <Box style={folderBoxStyle}>
         <Box style={placeholderTextStyle} />
       </Box>
@@ -136,9 +142,10 @@ const folderBoxStyle = {
 }
 
 const rowActionIconStyle = {
-  fontSize: 16,
   marginLeft: globalMargins.small,
 }
+
+const rowActionIconFontSize = 16
 
 const stylesRowDivider = {
   marginLeft: isMobile ? 48 : 48,
@@ -157,6 +164,7 @@ const stylesRowBox = {
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
+  minHeight: isMobile ? 64 : 40,
 }
 
 const stylesRowContainer = {
@@ -172,7 +180,6 @@ const stylesRowRightBox = {
 }
 
 const stylePlaceholderIcon = {
-  fontSize: 32,
   marginRight: globalMargins.small,
 }
 
@@ -191,29 +198,20 @@ const rowTextStyles = memoize(color =>
 
 const styleBadgeContainer = {
   position: 'absolute',
-  left: 24,
-  top: -1,
+  left: isMobile ? -24 : 24,
+  top: isMobile ? -20 : -1,
+  zIndex: 200,
 }
 
 const styleBadgeContainerNew = {
   ...styleBadgeContainer,
-  left: 16,
+  left: isMobile ? -32 : 16,
 }
 
 const styleBadgeContainerRekey = {
   ...styleBadgeContainer,
-  top: 24,
-  left: 8,
-}
-
-const badgeStyleNew = {
-  color: globalColors.white,
-  backgroundColor: globalColors.orange,
-}
-
-const badgeStyleRekey = {
-  color: globalColors.white,
-  backgroundColor: globalColors.red,
+  top: isMobile ? 5 : 24,
+  left: isMobile ? -40 : 16,
 }
 
 const badgeStyleCount = {

@@ -39,7 +39,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 	numMessages := 0
 	getPresentMsg := func(msg *chat1.MessageUnboxed) *chat1.UIMessage {
 		if msg != nil {
-			uiMsg := utils.PresentMessageUnboxed(ctx, *msg, uid, s.G().TeamChannelSource)
+			uiMsg := utils.PresentMessageUnboxed(ctx, s.G(), *msg, uid, conversationID)
 			return &uiMsg
 		}
 		return nil

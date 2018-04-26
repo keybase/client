@@ -1,5 +1,10 @@
 // @flow
 
+// Add pluralization rules as necessary
+function pluralize(str: string): string {
+  return str.endsWith('s') ? str : `${str}s`
+}
+
 function toStringForLog(a: any): string {
   if (typeof a === 'string') {
     return a
@@ -11,4 +16,4 @@ function toStringForLog(a: any): string {
   return (a && a.toString && a.toString()) || 'Failed to turn item to string in toStringForLog'
 }
 
-export {toStringForLog}
+export {pluralize, toStringForLog}

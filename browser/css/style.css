@@ -2,6 +2,10 @@
   text-align: left;
 }
 
+.fixed-form form, form.fixed-form {
+  position: fixed !important;
+}
+
 li.keybase-reply form, form.keybase-reply {
   overflow: hidden;
   z-index: 9999;

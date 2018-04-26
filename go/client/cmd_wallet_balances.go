@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
 	"golang.org/x/net/context"
 )
 
@@ -22,6 +23,7 @@ func newCmdWalletBalances(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 	return cli.Command{
 		Name:        "balances",
+		Usage:       "Show account balances",
 		Description: "Show account balances",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "balances", c)
@@ -93,10 +95,10 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 		for _, balance := range acc.Balance {
 			localAmountStr := ""
 			if balance.Asset.IsNativeXLM() {
-				if acc.LocalCurrency != "" {
-					localAmount, err := acc.LocalExchangeRate.ConvertXLMToLocal(balance.Amount, 2)
+				if acc.ExchangeRate != nil {
+					localAmount, err := stellar.ConvertXLMToOutside(balance.Amount, *acc.ExchangeRate)
 					if err == nil {
-						localAmountStr = fmt.Sprintf(" (~%s %s)", localAmount, string(acc.LocalCurrency))
+						localAmountStr = fmt.Sprintf(" (~%s %s)", localAmount, string(acc.ExchangeRate.Currency))
 					} else {
 						c.G().Log.Warning("Unable to convert to local currency: %s", err)
 					}

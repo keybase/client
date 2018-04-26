@@ -91,7 +91,9 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type TransferType = 'upload' | 'download'
-export type TransferIntent = 'none' | 'camera-roll' | 'share'
+export type transferIntentMobile = 'camera-roll' | 'share'
+export type transferIntentWebview = 'web-view-text' | 'web-view'
+export type TransferIntent = 'none' | transferIntentMobile | transferIntentWebview
 
 export type _TransferMeta = {
   type: TransferType,
@@ -122,6 +124,7 @@ export type PathBreadcrumbItem = {
   isTlfNameItem: boolean,
   isLastItem: boolean,
   name: string,
+  path: Path,
   onOpenBreadcrumb: (evt?: SyntheticEvent<>) => void,
 }
 
@@ -130,6 +133,7 @@ export type _Flags = {
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
   kextPermissionError: boolean,
+  securityPrefsPropmted: boolean,
   showBanner: boolean,
   syncing: boolean,
 }
@@ -231,7 +235,7 @@ export const _getSortByComparer = (sortBy: SortBy): PathItemComparer => {
       return (a: PathItem, b: PathItem): number => a.name.localeCompare(b.name)
     case 'time':
       return (a: PathItem, b: PathItem): number =>
-        a.lastModifiedTimestamp - b.lastModifiedTimestamp || a.name.localeCompare(b.name)
+        b.lastModifiedTimestamp - a.lastModifiedTimestamp || a.name.localeCompare(b.name)
     default:
       throw new Error('invalid SortBy: ' + sortBy)
   }
@@ -324,3 +328,5 @@ export type FavoriteFolder = {
     can_self_help: boolean,
   },
 }
+
+export type FileViewType = 'text' | 'image' | 'default'

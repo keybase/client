@@ -53,6 +53,8 @@ type UserConfig struct {
 	importedID       keybase1.UID
 	importedSalt     []byte
 	importedDeviceID keybase1.DeviceID
+
+	isOneshot bool
 }
 
 //==================================================================
@@ -61,6 +63,7 @@ func (u UserConfig) GetUID() keybase1.UID            { return u.importedID }
 func (u UserConfig) GetUsername() NormalizedUsername { return u.Name }
 func (u UserConfig) GetSalt() []byte                 { return u.importedSalt }
 func (u UserConfig) GetDeviceID() keybase1.DeviceID  { return u.importedDeviceID }
+func (u UserConfig) IsOneshot() bool                 { return u.isOneshot }
 
 //==================================================================
 
@@ -78,6 +81,12 @@ func NewUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte, dev ke
 		tmp := dev.String()
 		ret.Device = &tmp
 	}
+	return ret
+}
+
+func NewOneshotUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte, dev keybase1.DeviceID) *UserConfig {
+	ret := NewUserConfig(id, name, salt, dev)
+	ret.isOneshot = true
 	return ret
 }
 

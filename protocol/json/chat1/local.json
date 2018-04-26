@@ -787,6 +787,15 @@
             "MerkleRoot"
           ],
           "name": "merkleRoot"
+        },
+        {
+          "type": [
+            null,
+            "MsgEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },
@@ -2510,6 +2519,13 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "ephemeralLifetime",
+          "type": [
+            null,
+            "gregor1.DurationSec"
+          ]
         }
       ],
       "response": "PostLocalNonblockRes"
@@ -2586,6 +2602,13 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "ephemeralLifetime",
+          "type": [
+            null,
+            "gregor1.DurationSec"
+          ]
         }
       ],
       "response": "PostLocalNonblockRes"
@@ -2927,6 +2950,13 @@
             null,
             "OutboxID"
           ]
+        },
+        {
+          "name": "ephemeralLifetime",
+          "type": [
+            null,
+            "gregor1.DurationSec"
+          ]
         }
       ],
       "response": "PostLocalRes"
@@ -2977,6 +3007,13 @@
           "type": [
             null,
             "OutboxID"
+          ]
+        },
+        {
+          "name": "ephemeralLifetime",
+          "type": [
+            null,
+            "gregor1.DurationSec"
           ]
         }
       ],

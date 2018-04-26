@@ -11,23 +11,64 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (err error) {
-
+func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamCLKRMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", msg.TeamID, msg.Generation), func() error { return err })()
 
-	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
-		team, err := Load(ctx, g, keybase1.LoadTeamArg{
-			ID:          teamID,
-			Public:      teamID.IsPublic(),
-			ForceRepoll: true,
-		})
-		if err != nil {
-			return err
+	teamID := msg.TeamID
+
+	var needTeamReload bool
+	loadTeamArg := keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: true,
+	}
+	team, err := Load(ctx, g, loadTeamArg)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() {
+		for _, uv := range msg.ResetUsersUntrusted {
+			// We don't use UIDMapper in sweepOpenTeamResetMembers, but
+			// since server just told us that these users have reset, we
+			// might as well use that knowledge to refresh cache.
+
+			// Use ClearUIDAtEldestSeqno instead of InformOfEldestSeqno
+			// because usually uv.UserEldestSeqno (the "new EldestSeqno")
+			// will be 0, because user has just reset and hasn't
+			// reprovisioned yet
+
+			g.UIDMapper.ClearUIDAtEldestSeqno(ctx, g, uv.Uid, uv.MemberEldestSeqno)
 		}
 
-		if team.Generation() > generation {
-			g.Log.CDebugf(ctx, "current team generation %d > team.clkr generation %d, not rotating", team.Generation(), generation)
+		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
+			// If sweepOpenTeamResetMembers does not do anything to
+			// the team, do not load team again later.
+			needTeamReload = needRP
+		}
+
+		// * NOTE * Still call the regular rotate key routine even if
+		// sweep succeeds and posts link.
+
+		// In normal case, it will reload team, see that generation is
+		// higher than one requested in CLKR (because we rotated key
+		// during sweeping), and then bail out.
+	}
+
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		if needTeamReload {
+			team2, err := Load(ctx, g, loadTeamArg)
+			if err != nil {
+				return err
+			}
+			team = team2
+		}
+		needTeamReload = true // subsequent calls to Load here need repoll.
+
+		if team.Generation() > msg.Generation {
+			g.Log.CDebugf(ctx, "current team generation %d > team.clkr generation %d, not rotating",
+				team.Generation(), msg.Generation)
 			return nil
 		}
 
@@ -40,6 +81,99 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 		g.Log.CDebugf(ctx, "success rotating team %s (%s)", team.Name(), teamID)
 		return nil
 	})
+}
+
+func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
+	team *Team, resetUsersUntrusted []keybase1.TeamCLKRResetUser) (needRepoll bool, err error) {
+	// When CLKR is invoked because of account reset and it's an open team,
+	// we go ahead and boot reset readers and writers out of the team. Key
+	// is also rotated in the process (in the same ChangeMembership link).
+	defer g.CTrace(ctx, "sweepOpenTeamResetMembers", func() error { return err })()
+
+	// Go through resetUsersUntrusted and fetch non-cached latest
+	// EldestSeqnos.
+	resetUsers := make(map[keybase1.UID]keybase1.Seqno)
+	for _, u := range resetUsersUntrusted {
+		if _, found := resetUsers[u.Uid]; found {
+			// User was in the list more than once.
+			continue
+		}
+
+		arg := libkb.NewLoadUserArg(g).
+			WithNetContext(ctx).
+			WithUID(u.Uid).
+			WithPublicKeyOptional().
+			WithForcePoll(true)
+		upak, _, err := g.GetUPAKLoader().LoadV2(arg)
+		if err == nil {
+			resetUsers[u.Uid] = upak.Current.EldestSeqno
+		} else {
+			g.Log.CDebugf(ctx, "Could not load uid:%s through UPAKLoader: %s", u.Uid)
+		}
+	}
+
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, attempt int) error {
+		if attempt > 0 {
+			var err error
+			team, err = Load(ctx, g, keybase1.LoadTeamArg{
+				ID:          team.ID,
+				Public:      team.ID.IsPublic(),
+				ForceRepoll: true,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		changeReq := keybase1.TeamChangeReq{None: []keybase1.UserVersion{}}
+
+		// We are iterating thorugh resetUsers map, which is map of
+		// uid->EldestSeqno that we loaded via UPAKLoader. Do not rely
+		// on server provided resetUsersUntrusted for EldestSeqnos,
+		// just use UIDs and see if these users are reset.
+
+		// We do not need to consider PUKless members here, because we
+		// are not auto-adding PUKless people to open teams (server
+		// doesn't send PUKless TARs in OPENREQ msg), so it shouldn't
+		// be an issue.
+		for uid, loadedSeqno := range resetUsers {
+			members := team.AllUserVersionsByUID(ctx, uid)
+			for _, memberUV := range members {
+				if memberUV.EldestSeqno == loadedSeqno {
+					// Member is the current incarnation of the user
+					// (or user has never reset).
+					continue
+				}
+				role, err := team.MemberRole(ctx, memberUV)
+				if err != nil {
+					continue
+				}
+				if role == keybase1.TeamRole_READER || role == keybase1.TeamRole_WRITER {
+					changeReq.None = append(changeReq.None, memberUV)
+				}
+			}
+		}
+
+		if len(changeReq.None) == 0 {
+			// no one to kick out
+			g.Log.CDebugf(ctx, "No one to remove from a CLKR list of %d users, after UPAKLoading %d of them",
+				len(resetUsersUntrusted), len(resetUsers))
+			return nil
+		}
+
+		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d removals (CLKR list was %d)",
+			len(changeReq.None), len(resetUsersUntrusted))
+		if err := team.ChangeMembershipPermanent(ctx, changeReq, false /* permanent */); err != nil {
+			return err
+		}
+
+		// Notify the caller that we posted a sig and they have to
+		// load team again.
+		needRepoll = true
+		return nil
+	})
+
+	return needRepoll, err
 }
 
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {

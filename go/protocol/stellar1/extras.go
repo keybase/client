@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -27,6 +26,10 @@ func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 
 func (k KeybaseTransactionID) String() string {
 	return string(k)
+}
+
+func (t TransactionID) String() string {
+	return string(t)
 }
 
 func ToTimeMs(t time.Time) TimeMs {
@@ -119,28 +122,4 @@ func AssetNative() Asset {
 		Code:   "",
 		Issuer: "",
 	}
-}
-
-func (b LocalExchangeRate) ConvertXLMToLocal(XLMAmount string, precision int) (localAmount string, err error) {
-	local, err := strconv.ParseFloat(XLMAmount, 64)
-	if err != nil {
-		return "", err
-	}
-
-	localAmount = strconv.FormatFloat(local*float64(b), 'f', precision, 64)
-	return localAmount, nil
-}
-
-func (b LocalExchangeRate) ConvertLocalToXLM(localAmount string, precision int) (XLMAmount string, err error) {
-	local, err := strconv.ParseFloat(localAmount, 64)
-	if err != nil {
-		return "", err
-	}
-
-	XLMAmount = strconv.FormatFloat(local/float64(b), 'f', precision, 64)
-	return XLMAmount, nil
-}
-
-func (b LocalExchangeRate) Format(fmt byte, precision int) string {
-	return strconv.FormatFloat(float64(b), fmt, precision, 32)
 }

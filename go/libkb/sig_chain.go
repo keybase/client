@@ -585,7 +585,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 			if first {
 				return cached, cki, SigchainV2StubbedFirstLinkError{}
 			}
-			if link.NeedsSignature() {
+			if !link.AllowStubbing() {
 				return cached, cki, SigchainV2StubbedSignatureNeededError{}
 			}
 			linkTypeV2, err := link.GetSigchainV2TypeFromV2Shell()

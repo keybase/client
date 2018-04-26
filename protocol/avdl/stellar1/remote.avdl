@@ -6,31 +6,10 @@ protocol remote {
 
   record Members {
     AccountID fromStellar;
-    string fromKeybase;
     keybase1.UserVersion from;
     keybase1.DeviceID fromDeviceID;
     AccountID toStellar;
-    string toKeybase;
     keybase1.UserVersion to;
-  }
-
-  record TransactionSummary {
-    TransactionID stellarID;
-    KeybaseTransactionID keybaseID;
-    TransactionStatus status;
-    string errMsg;
-
-    string noteB64; // b64-encoded EncryptedNote or empty string.
-
-    Asset asset;
-    string amount;
-    string displayAmount;
-    string displayCurrency;
-
-    Members members;
-
-    TimeMs ctime;
-    TimeMs rtime;
   }
 
   record Operation {
@@ -41,24 +20,6 @@ protocol remote {
 
     Asset asset;
     string amount;
-  }
-
-  record TransactionDetails {
-    TransactionID stellarID;
-    KeybaseTransactionID keybaseID;
-    string Hash;
-    int ledger;
-    int ledgerCloseTime;
-    AccountID sourceAccount;
-    string sourceAccountSequence;
-    int feePaid;
-
-    Members members;
-    string noteB64; // b64-encoded EncryptedNote or empty string.
-    array<string> signatures;
-    array<Operation> operations;
-
-    TimeMs ctime;
   }
 
   record PaymentPost {
@@ -107,13 +68,19 @@ protocol remote {
   }
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
+
   array<PaymentSummary> recentPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
-  TransactionDetails transaction(keybase1.UserVersion caller, TransactionID id);
+
+  // txID can be either a keybase or stellar transaction ID.
+  PaymentSummary paymentDetail(keybase1.UserVersion caller, string txID);
 
   // js can't handle uint64, so returning a string
   string accountSeqno(keybase1.UserVersion caller, AccountID accountID);
+
   PaymentResult submitPayment(keybase1.UserVersion caller, PaymentPost payment);
 
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
+
+  string ping();
 }

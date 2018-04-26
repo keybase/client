@@ -468,6 +468,7 @@ export const remoteMessageBoxedVersion = {
   vnone: 0,
   v1: 1,
   v2: 2,
+  v3: 3,
 }
 
 export const remoteNewConversationRemote2RpcChannelMap = (configKeys: Array<string>, request: RemoteNewConversationRemote2RpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.newConversationRemote2', request)
@@ -665,11 +666,9 @@ export type ChatUiChatThreadCachedRpcParam = $ReadOnly<{thread?: ?String, incomi
 
 export type ChatUiChatThreadFullRpcParam = $ReadOnly<{thread: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type ConvEphemeralMetadata = $ReadOnly<{lastKtime: Gregor1.Time}>
-
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 
-export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, ephemeralMetadata?: ?ConvEphemeralMetadata}>
+export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy}>
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 
@@ -753,7 +752,7 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
-export type EphemeralPurgePayload = $ReadOnly<{Action: String, convMetadata: {[key: string]: ConvEphemeralMetadata}, inboxVers: InboxVers}>
+export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
@@ -761,7 +760,7 @@ export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge}>
 
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, unreadUpdate?: ?UnreadUpdate}>
 
-export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>}>
+export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
 
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 
@@ -832,7 +831,7 @@ export type HeaderPlaintextMetaInfo = $ReadOnly<{crit: Boolean}>
 
 export type HeaderPlaintextUnsupported = $ReadOnly<{mi: HeaderPlaintextMetaInfo}>
 
-export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot}>
+export type HeaderPlaintextV1 = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, bodyHash: Hash, outboxInfo?: ?OutboxInfo, outboxID?: ?OutboxID, headerSignature?: ?SignatureInfo, merkleRoot?: ?MerkleRoot, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type HeaderPlaintextVersion =
   | 1 // V1_1
@@ -924,7 +923,7 @@ export type LocalMarkAsReadLocalRpcParam = $ReadOnly<{conversationID: Conversati
 
 export type LocalNewConversationLocalRpcParam = $ReadOnly<{tlfName: String, topicType: TopicType, tlfVisibility: Keybase1.TLFVisibility, topicName?: ?String, membersType: ConversationMembersType, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostDeleteHistoryByAgeRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, identifyBehavior: Keybase1.TLFIdentifyBehavior, age: Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -934,9 +933,9 @@ export type LocalPostDeleteHistoryUptoRpcParam = $ReadOnly<{conversationID: Conv
 
 export type LocalPostDeleteNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostEditNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, supersedes: MessageID, body: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalPostFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalFileSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostFileAttachmentLocalRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, visibility: Keybase1.TLFVisibility, attachment: LocalFileSource, preview?: ?MakePreviewRes, title: String, metadata: Bytes, identifyBehavior: Keybase1.TLFIdentifyBehavior, outboxID?: ?OutboxID, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPostHeadlineNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, headline: String, outboxID?: ?OutboxID, clientPrev: MessageID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -950,7 +949,7 @@ export type LocalPostMetadataNonblockRpcParam = $ReadOnly<{conversationID: Conve
 
 export type LocalPostMetadataRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, channelName: String, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type LocalPostTextNonblockRpcParam = $ReadOnly<{conversationID: ConversationID, tlfName: String, tlfPublic: Boolean, body: String, clientPrev: MessageID, outboxID?: ?OutboxID, identifyBehavior: Keybase1.TLFIdentifyBehavior, ephemeralLifetime?: ?Gregor1.DurationSec, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LocalPreviewConversationByIDLocalRpcParam = $ReadOnly<{convID: ConversationID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -996,10 +995,11 @@ export type MessageBoxedVersion =
   | 0 // VNONE_0
   | 1 // V1_1
   | 2 // V2_2
+  | 3 // V3_3
 
 export type MessageClientHeader = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, supersedes: MessageID, kbfsCryptKeysUsed?: ?Boolean, deletes?: ?Array<MessageID>, prev?: ?Array<MessagePreviousPointer>, deleteHistory?: ?MessageDeleteHistory, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
-export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type MessageClientHeaderVerified = $ReadOnly<{conv: ConversationIDTriple, tlfName: String, tlfPublic: Boolean, messageType: MessageType, prev?: ?Array<MessagePreviousPointer>, sender: Gregor1.UID, senderDevice: Gregor1.DeviceID, kbfsCryptKeysUsed?: ?Boolean, merkleRoot?: ?MerkleRoot, outboxID?: ?OutboxID, outboxInfo?: ?OutboxInfo, ephemeralMetadata?: ?MsgEphemeralMetadata, rtime: Gregor1.Time}>
 
 export type MessageConversationMetadata = $ReadOnly<{conversationTitle: String}>
 
@@ -1023,7 +1023,7 @@ export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, mes
 
 export type MessagePreviousPointer = $ReadOnly<{id: MessageID, hash: Hash}>
 
-export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time, explodedByUID?: ?Gregor1.UID}>
+export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, ctime: Gregor1.Time, now: Gregor1.Time}>
 
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
 
@@ -1352,13 +1352,15 @@ export type TopicType =
 
 export type TyperInfo = $ReadOnly<{uid: Keybase1.UID, username: String, deviceID: Keybase1.DeviceID, deviceName: String, deviceType: String}>
 
+export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, mimeType: String}>
+
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 
@@ -1447,4 +1449,4 @@ type RemoteSyncAllResult = SyncAllResult
 type RemoteSyncChatResult = SyncChatRes
 type RemoteSyncInboxResult = SyncInboxRes
 
-export type IncomingCallMapType = {'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (params: $ReadOnly<{sessionID: Int, outboxID: OutboxID}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentUploadStart'?: (params: $ReadOnly<{sessionID: Int, metadata: AssetMetadata, placeholderMsgID: MessageID}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentUploadProgress'?: (params: $ReadOnly<{sessionID: Int, bytesComplete: Long, bytesTotal: Long}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentUploadDone'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (params: $ReadOnly<{sessionID: Int, metadata: AssetMetadata}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentPreviewUploadDone'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentDownloadStart'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentDownloadProgress'?: (params: $ReadOnly<{sessionID: Int, bytesComplete: Long, bytesTotal: Long}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentDownloadDone'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatInboxUnverified'?: (params: $ReadOnly<{sessionID: Int, inbox: String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatInboxConversation'?: (params: $ReadOnly<{sessionID: Int, conv: String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatInboxFailed'?: (params: $ReadOnly<{sessionID: Int, convID: ConversationID, error: InboxUIItemError}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatThreadCached'?: (params: $ReadOnly<{sessionID: Int, thread?: ?String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatThreadFull'?: (params: $ReadOnly<{sessionID: Int, thread: String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatSearchHit'?: (params: $ReadOnly<{sessionID: Int, searchHit: ChatSearchHit}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatSearchDone'?: (params: $ReadOnly<{sessionID: Int, numHits: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatConfirmChannelDelete'?: (params: $ReadOnly<{sessionID: Int, channel: String}>, response: {error: RPCErrorHandler, result: (result: ChatUiChatConfirmChannelDeleteResult) => void}) => void, 'keybase.1.NotifyChat.NewChatActivity'?: (params: $ReadOnly<{uid: Keybase1.UID, activity: ChatActivity}>) => void, 'keybase.1.NotifyChat.ChatIdentifyUpdate'?: (params: $ReadOnly<{update: Keybase1.CanonicalTLFNameAndIDWithBreaks}>) => void, 'keybase.1.NotifyChat.ChatTLFFinalize'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem}>) => void, 'keybase.1.NotifyChat.ChatTLFResolve'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo}>) => void, 'keybase.1.NotifyChat.ChatInboxStale'?: (params: $ReadOnly<{uid: Keybase1.UID}>) => void, 'keybase.1.NotifyChat.ChatThreadsStale'?: (params: $ReadOnly<{uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>}>) => void, 'keybase.1.NotifyChat.ChatTypingUpdate'?: (params: $ReadOnly<{typingUpdates?: ?Array<ConvTypingUpdate>}>) => void, 'keybase.1.NotifyChat.ChatJoinedConversation'?: (params: $ReadOnly<{uid: Keybase1.UID, conv: InboxUIItem}>) => void, 'keybase.1.NotifyChat.ChatLeftConversation'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>) => void, 'keybase.1.NotifyChat.ChatResetConversation'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>) => void, 'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (params: $ReadOnly<{uid: Keybase1.UID}>) => void, 'keybase.1.NotifyChat.ChatInboxSynced'?: (params: $ReadOnly<{uid: Keybase1.UID, syncRes: ChatSyncResult}>) => void, 'keybase.1.NotifyChat.ChatSetConvRetention'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>) => void, 'keybase.1.NotifyChat.ChatSetTeamRetention'?: (params: $ReadOnly<{uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>}>) => void, 'keybase.1.NotifyChat.ChatKBFSToImpteamUpgrade'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>) => void}
+export type IncomingCallMapType = {|'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (params: $ReadOnly<{sessionID: Int, outboxID: OutboxID}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentUploadStart'?: (params: $ReadOnly<{sessionID: Int, metadata: AssetMetadata, placeholderMsgID: MessageID}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentUploadProgress'?: (params: $ReadOnly<{sessionID: Int, bytesComplete: Long, bytesTotal: Long}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentUploadDone'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (params: $ReadOnly<{sessionID: Int, metadata: AssetMetadata}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentPreviewUploadDone'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentDownloadStart'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentDownloadProgress'?: (params: $ReadOnly<{sessionID: Int, bytesComplete: Long, bytesTotal: Long}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatAttachmentDownloadDone'?: (params: $ReadOnly<{sessionID: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatInboxUnverified'?: (params: $ReadOnly<{sessionID: Int, inbox: String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatInboxConversation'?: (params: $ReadOnly<{sessionID: Int, conv: String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatInboxFailed'?: (params: $ReadOnly<{sessionID: Int, convID: ConversationID, error: InboxUIItemError}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatThreadCached'?: (params: $ReadOnly<{sessionID: Int, thread?: ?String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatThreadFull'?: (params: $ReadOnly<{sessionID: Int, thread: String}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatSearchHit'?: (params: $ReadOnly<{sessionID: Int, searchHit: ChatSearchHit}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatSearchDone'?: (params: $ReadOnly<{sessionID: Int, numHits: Int}>, response: CommonResponseHandler) => void, 'keybase.1.chatUi.chatConfirmChannelDelete'?: (params: $ReadOnly<{sessionID: Int, channel: String}>, response: {error: RPCErrorHandler, result: (result: ChatUiChatConfirmChannelDeleteResult) => void}) => void, 'keybase.1.NotifyChat.NewChatActivity'?: (params: $ReadOnly<{uid: Keybase1.UID, activity: ChatActivity}>) => void, 'keybase.1.NotifyChat.ChatIdentifyUpdate'?: (params: $ReadOnly<{update: Keybase1.CanonicalTLFNameAndIDWithBreaks}>) => void, 'keybase.1.NotifyChat.ChatTLFFinalize'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, finalizeInfo: ConversationFinalizeInfo, conv?: ?InboxUIItem}>) => void, 'keybase.1.NotifyChat.ChatTLFResolve'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, resolveInfo: ConversationResolveInfo}>) => void, 'keybase.1.NotifyChat.ChatInboxStale'?: (params: $ReadOnly<{uid: Keybase1.UID}>) => void, 'keybase.1.NotifyChat.ChatThreadsStale'?: (params: $ReadOnly<{uid: Keybase1.UID, updates?: ?Array<ConversationStaleUpdate>}>) => void, 'keybase.1.NotifyChat.ChatTypingUpdate'?: (params: $ReadOnly<{typingUpdates?: ?Array<ConvTypingUpdate>}>) => void, 'keybase.1.NotifyChat.ChatJoinedConversation'?: (params: $ReadOnly<{uid: Keybase1.UID, conv: InboxUIItem}>) => void, 'keybase.1.NotifyChat.ChatLeftConversation'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>) => void, 'keybase.1.NotifyChat.ChatResetConversation'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>) => void, 'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (params: $ReadOnly<{uid: Keybase1.UID}>) => void, 'keybase.1.NotifyChat.ChatInboxSynced'?: (params: $ReadOnly<{uid: Keybase1.UID, syncRes: ChatSyncResult}>) => void, 'keybase.1.NotifyChat.ChatSetConvRetention'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID, conv?: ?InboxUIItem}>) => void, 'keybase.1.NotifyChat.ChatSetTeamRetention'?: (params: $ReadOnly<{uid: Keybase1.UID, teamID: Keybase1.TeamID, convs?: ?Array<InboxUIItem>}>) => void, 'keybase.1.NotifyChat.ChatKBFSToImpteamUpgrade'?: (params: $ReadOnly<{uid: Keybase1.UID, convID: ConversationID}>) => void|}

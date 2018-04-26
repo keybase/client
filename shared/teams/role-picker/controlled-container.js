@@ -13,12 +13,14 @@ import {type TeamRoleType} from '../../constants/types/teams'
   onComplete gets selected role
   selectedRole sets a default role for the component
   allowOwner specifies whether the user can choose the 'owner' option
+  pluralizeRoleName speficifies whether to pluralize the role name or not
 */
 export type ControlledRolePickerProps = {
   onComplete: (role: TeamRoleType, sendNotification: boolean) => void,
   selectedRole?: TeamRoleType,
   allowOwner?: boolean,
   allowAdmin?: boolean,
+  pluralizeRoleName?: boolean,
   showNotificationCheckbox?: boolean,
   sendNotificationChecked?: boolean,
 }
@@ -28,6 +30,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const _onComplete = routeProps.get('onComplete')
   const allowAdmin = routeProps.get('allowAdmin')
   const allowOwner = routeProps.get('allowOwner')
+  const pluralizeRoleName = routeProps.get('pluralizeRoleName')
   const sendNotificationChecked = routeProps.get('sendNotificationChecked')
   const showSendNotification = routeProps.get('showNotificationCheckbox')
   return {
@@ -37,6 +40,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     confirm: false,
     controlled: true,
     currentType,
+    pluralizeRoleName,
     sendNotificationChecked,
     showSendNotification,
     username: '',

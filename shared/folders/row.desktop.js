@@ -60,17 +60,15 @@ class Avatars extends React.PureComponent<any> {
 class Modified extends React.PureComponent<any> {
   render() {
     const {smallMode, styles, modified} = this.props
-    const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
+    const iconColor = getStyle('BodySmall', styles.modifiedMode).color
     const boltStyle = {
-      fontSize: smallMode ? 10 : 10,
       alignSelf: 'center',
       ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
-      ...iconColor,
     }
 
     return (
       <Box style={stylesModified}>
-        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" />
+        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" color={iconColor} fontSize={10} />
         <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
           Modified {modified.when} by&nbsp;
         </Text>
@@ -89,22 +87,17 @@ class RowMeta extends React.PureComponent<any> {
       return
     }
 
-    const metaColors = {
+    const color = {
       new: globalColors.white,
       rekey: globalColors.white,
-    }
+    }[meta]
 
-    const metaBGColors = {
+    const backgroundColor = {
       new: globalColors.orange,
       rekey: globalColors.red,
-    }
+    }[meta]
 
-    const metaProps = {
-      title: meta || '',
-      style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {},
-    }
-
-    return <Meta {...metaProps} />
+    return <Meta title={meta || ''} color={color} backgroundColor={backgroundColor} />
   }
 }
 

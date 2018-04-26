@@ -16,11 +16,62 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+type txlogger struct {
+	transactions []stellar1.PaymentSummary
+	sync.Mutex
+}
+
+func (t *txlogger) Add(tx stellar1.PaymentSummary) {
+	t.Lock()
+	defer t.Unlock()
+	t.transactions = append([]stellar1.PaymentSummary{tx}, t.transactions...)
+}
+
+func (t *txlogger) Filter(accountID stellar1.AccountID, limit int) []stellar1.PaymentSummary {
+	t.Lock()
+	defer t.Unlock()
+
+	var res []stellar1.PaymentSummary
+	for _, tx := range t.transactions {
+		if limit > 0 && len(res) == limit {
+			break
+		}
+
+		if tx.From == accountID {
+			res = append(res, tx)
+			continue
+		}
+		if tx.To == accountID {
+			res = append(res, tx)
+			continue
+		}
+	}
+
+	return res
+}
+
+func (t *txlogger) Find(txID string) *stellar1.PaymentSummary {
+	for _, tx := range t.transactions {
+		if tx.StellarTxID.String() == txID {
+			return &tx
+		}
+		if tx.Keybase != nil && tx.Keybase.KbTxID.String() == txID {
+			return &tx
+		}
+	}
+	return nil
+}
+
+var txLog *txlogger
+
+func init() {
+	txLog = &txlogger{}
+}
+
 type FakeAccount struct {
-	accountID    stellar1.AccountID
-	secretKey    stellar1.SecretKey
-	balance      stellar1.Balance
-	transactions []stellar1.PaymentPost
+	accountID stellar1.AccountID
+	secretKey stellar1.SecretKey
+	balance   stellar1.Balance
 }
 
 func (a *FakeAccount) AddBalance(amt string) error {
@@ -64,6 +115,10 @@ func NewRemoteMock(g *libkb.GlobalContext) *RemoteMock {
 	}
 }
 
+func (r *RemoteMock) addTransaction(summary stellar1.PaymentSummary) {
+	txLog.Add(summary)
+}
+
 func (r *RemoteMock) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
 	r.Lock()
 	defer r.Unlock()
@@ -102,8 +157,6 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 		return stellar1.PaymentResult{}, libkb.NotFoundError{Msg: "source account not found"}
 	}
 
-	a.transactions = append(a.transactions, post)
-
 	if asset.Type != "native" {
 		return stellar1.PaymentResult{}, errors.New("can only handle native")
 	}
@@ -119,7 +172,6 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 	if ok {
 		// we know about destination as well
 		b.AddBalance(amount)
-		b.transactions = append(b.transactions, post)
 	}
 
 	result := stellar1.PaymentResult{
@@ -128,11 +180,35 @@ func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPa
 		Ledger:    1000,
 	}
 
+	summary := stellar1.PaymentSummary{
+		Keybase: &stellar1.PaymentSummaryKeybase{
+			Status:          stellar1.TransactionStatus_SUCCESS,
+			From:            post.Members.From,
+			FromDeviceID:    post.Members.FromDeviceID,
+			To:              &post.Members.To,
+			DisplayAmount:   &post.DisplayAmount,
+			DisplayCurrency: &post.DisplayCurrency,
+		},
+		From:   stellar1.AccountID(tx.SourceAccount.Address()),
+		To:     destination,
+		Amount: amount,
+		Asset:  asset,
+	}
+	r.addTransaction(summary)
+
 	return result, nil
 }
 
 func (r *RemoteMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
-	return nil, errors.New("RecentPayments hasn't been implemented in the RemoteMock yet")
+	return txLog.Filter(accountID, limit), nil
+}
+
+func (r *RemoteMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
+	p := txLog.Find(txID)
+	if p == nil {
+		return res, fmt.Errorf("RemoteMock: tx not found: '%v'", txID)
+	}
+	return *p, nil
 }
 
 func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {

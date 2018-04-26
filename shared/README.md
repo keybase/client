@@ -257,6 +257,14 @@ See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
 for how to increase the watch limit; I set mine to 65536.
 
+#### Native inspector
+
+If you get this error message on trying to open the inspector:
+
+`Expected to find exactly one React Native renderer on DevTools hook.`
+
+It might be because you're importing a library that attaches itself as a renderer, such as `react-dom`. If that's the case, you should make sure not to import any such module outside of a `.desktop.js` file, and if you have to, it should be predicated on `!isMobile` and use `require` to access the library.
+
 ### Dependency forks
 
 We have some custom forks of dependencies. This is usually a temporary fix and is something we want to avoid long term.

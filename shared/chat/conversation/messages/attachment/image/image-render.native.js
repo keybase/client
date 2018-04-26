@@ -4,9 +4,9 @@ import {NativeImage, NativeDimensions} from '../../../../../common-adapters/nati
 
 import type {ImageRenderProps} from './image-render'
 
-export function ImageRender({style, src}: ImageRenderProps) {
-  const source = typeof src === 'string' ? {uri: 'file://' + src} : src
-  return <NativeImage source={source} style={style} />
+export function ImageRender({onLoad, style, src}: ImageRenderProps) {
+  const source = typeof src === 'string' ? {uri: src} : src
+  return <NativeImage onLoad={onLoad} source={source} style={style} resizeMode="contain" />
 }
 
 export function imgMaxWidth() {

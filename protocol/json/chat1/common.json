@@ -492,18 +492,6 @@
     },
     {
       "type": "record",
-      "name": "ConvEphemeralMetadata",
-      "fields": [
-        {
-          "type": "gregor1.Time",
-          "name": "lastKtime"
-        }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
-    },
-    {
-      "type": "record",
       "name": "ConversationMetadata",
       "fields": [
         {
@@ -580,7 +568,9 @@
           },
           "name": "resetList"
         }
-      ]
+      ],
+      "mpackkey": "em",
+      "jsonkey": "em"
     },
     {
       "type": "record",
@@ -714,15 +704,6 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
-        },
-        {
-          "type": [
-            null,
-            "ConvEphemeralMetadata"
-          ],
-          "name": "ephemeralMetadata",
-          "mpackkey": "em",
-          "jsonkey": "em"
         }
       ]
     },
@@ -769,11 +750,10 @@
           "name": "ctime"
         },
         {
-          "type": [
-            null,
-            "gregor1.UID"
-          ],
-          "name": "explodedByUID"
+          "type": "gregor1.Time",
+          "name": "now",
+          "mpackkey": "n",
+          "jsonkey": "n"
         }
       ]
     },
@@ -812,18 +792,44 @@
         {
           "type": "gregor1.DurationSec",
           "name": "lifetime",
-          "mpackkey": "life",
-          "jsonkey": "life"
+          "mpackkey": "l",
+          "jsonkey": "l"
         },
         {
           "type": "keybase1.EkGeneration",
           "name": "generation",
-          "mpackkey": "gen",
-          "jsonkey": "gen"
+          "mpackkey": "g",
+          "jsonkey": "g"
         }
       ],
       "mpackkey": "em",
       "jsonkey": "em"
+    },
+    {
+      "type": "record",
+      "name": "EphemeralPurgeInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isActive",
+          "mpackkey": "a",
+          "jsonkey": "a"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "nextPurgeTime",
+          "mpackkey": "n",
+          "jsonkey": "n"
+        },
+        {
+          "type": "MessageID",
+          "name": "minUnexplodedID",
+          "mpackkey": "e",
+          "jsonkey": "e"
+        }
+      ],
+      "mpackkey": "pi",
+      "jsonkey": "pi"
     },
     {
       "type": "record",
@@ -988,6 +994,12 @@
           "name": "ephemeralMetadata",
           "mpackkey": "em",
           "jsonkey": "em"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "rtime",
+          "mpackkey": "rt",
+          "jsonkey": "rt"
         }
       ]
     },

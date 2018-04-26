@@ -25,10 +25,10 @@ const innerClick = evt => {
 const provider = compose(Avatar(['chrisnojima'], ['chrisnojima']), Usernames(['cecileb', 'chrisnojima']))
 
 const load = () => {
-  storiesOf('Common', module)
+  storiesOf('Common/NameWithIcon', module)
     .addDecorator(provider)
     .addDecorator(story => <ScrollView>{story()}</ScrollView>)
-    .add('Name with icon', () => (
+    .add('Vertical', () => (
       <React.Fragment>
         <NameWithIcon {...commonProps} username="ayoubd" isYou={true} metaOne="Danny Ayoub" size="default" />
         <NameWithIcon
@@ -56,7 +56,7 @@ const load = () => {
         />
       </React.Fragment>
     ))
-    .add('Name with icon horizontal', () => (
+    .add('Horizontal', () => (
       <React.Fragment>
         <NameWithIcon
           {...commonProps}
@@ -76,7 +76,7 @@ const load = () => {
         />
       </React.Fragment>
     ))
-    .add('Name with icon subcomponents', () => (
+    .add('Subcomponents', () => (
       <React.Fragment>
         <NameWithIcon
           {...commonProps}

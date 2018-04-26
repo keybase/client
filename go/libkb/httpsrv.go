@@ -72,6 +72,8 @@ func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address 
 	return listener, address, errors.New(errMsg)
 }
 
+var errHTTPServerAlreadyRunning = errors.New("http server already running")
+
 // HTTPSrv starts a simple HTTP server with a parameter for a module to provide a listener source
 type HTTPSrv struct {
 	sync.Mutex
@@ -96,7 +98,7 @@ func (h *HTTPSrv) Start() (err error) {
 	if h.active {
 		h.G().Log.Debug("HTTPSrv: already running, not starting again")
 		// Just bail out of this if we are already running
-		return nil
+		return errHTTPServerAlreadyRunning
 	}
 	h.ServeMux = http.NewServeMux()
 	listener, address, err := h.listenerSource.GetListener()

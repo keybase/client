@@ -81,7 +81,7 @@ func TestLoginAfterLoginStateReset(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	_ = CreateAndSignupFakeUser(tc, "li")
+	_ = SignupFakeUserStoreSecret(tc, "li")
 
 	tc.ResetLoginState()
 

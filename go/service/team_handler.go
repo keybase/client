@@ -75,7 +75,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 	}
 	r.G().Log.CDebugf(ctx, "team.clkr unmarshaled: %+v", msg)
 
-	if err := teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation)); err != nil {
+	if err := teams.HandleRotateRequest(ctx, r.G(), msg); err != nil {
 		return err
 	}
 

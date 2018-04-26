@@ -17,6 +17,7 @@ import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
+import {pluralize} from '../../util/string'
 
 export type RolePickerProps = {
   confirm: boolean,
@@ -25,6 +26,7 @@ export type RolePickerProps = {
   selectedRole: TeamRoleType,
   allowAdmin?: boolean,
   allowOwner?: boolean,
+  pluralizeRoleName?: boolean,
   sendNotification: boolean,
   teamname: string,
   sendNotificationChecked?: boolean,
@@ -41,6 +43,7 @@ const makeRoleOption = (
   role: TeamRoleType,
   selected: TeamRoleType,
   setSelected: TeamRoleType => void,
+  pluralizeRoleName?: boolean = false,
   disabled?: boolean = false
 ) => (
   <ClickableBox
@@ -57,21 +60,21 @@ const makeRoleOption = (
     }}
     onClick={() => setSelected(role)}
   >
-    <Icon type="iconfont-check" style={{alignSelf: 'center', color: globalColors.white}} />
+    <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
     <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
       <Box style={globalStyles.flexBoxRow}>
         {!!roleIconMap[role] && (
           <Icon
             type={roleIconMap[role]}
             style={{
-              color: selected === role ? globalColors.white : roleIconColorMap[role],
-              fontSize: 16,
               marginRight: globalMargins.xtiny,
             }}
+            color={selected === role ? globalColors.white : roleIconColorMap[role]}
+            fontSize={16}
           />
         )}
         <Text style={{color: selected === role ? globalColors.white : globalColors.black_75}} type="BodyBig">
-          {typeToLabel[role]}
+          {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
         </Text>
       </Box>
       <Text style={{color: selected === role ? globalColors.white : globalColors.black_40}} type="BodySmall">
@@ -89,6 +92,7 @@ export const RoleOptions = ({
   setSelectedRole,
   allowAdmin = true,
   allowOwner = true,
+  pluralizeRoleName = false,
   setSendNotification,
   sendNotification,
   sendNotificationChecked,
@@ -107,10 +111,10 @@ export const RoleOptions = ({
     <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
       <Text type="Header">{username ? `Select a role for ${username}:` : 'Select a role:'}</Text>
     </Box>
-    {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
-    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
-    {makeRoleOption('writer', selectedRole, setSelectedRole)}
-    {makeRoleOption('reader', selectedRole, setSelectedRole)}
+    {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName)}
+    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole, pluralizeRoleName)}
+    {makeRoleOption('writer', selectedRole, setSelectedRole, pluralizeRoleName)}
+    {makeRoleOption('reader', selectedRole, setSelectedRole, pluralizeRoleName)}
     {showSendNotification && (
       <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
@@ -140,7 +144,8 @@ const PermissionRow = (props: {can: boolean, permission: string}) => (
   >
     <Icon
       type={props.can ? 'iconfont-check' : 'iconfont-close'}
-      style={{color: props.can ? globalColors.green : globalColors.red, alignSelf: 'center'}}
+      style={{alignSelf: 'center'}}
+      color={props.can ? globalColors.green : globalColors.red}
     />
     <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
       {props.permission}

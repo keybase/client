@@ -9,6 +9,8 @@ import {type IconType} from '../common-adapters/icon'
 import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
+import * as mime from 'react-native-mime-types'
+import {lookupPatchedExt} from '../fs/utils/ext-list'
 
 export const defaultPath = '/keybase'
 
@@ -95,6 +97,7 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   kbfsInstalling: false,
   fuseInstalling: false,
   kextPermissionError: false,
+  securityPrefsPropmted: false,
   showBanner: false,
   syncing: false,
 })
@@ -221,14 +224,13 @@ const itemStylesTeamTlf = memoize((teamName: string) => ({
   textType: folderTextType,
 }))
 
-export const humanReadableFileSize = (meta: Types.PathItemMetadata) => {
+export const humanReadableFileSize = (size: number) => {
   const kib = 1024
   const mib = kib * kib
   const gib = mib * kib
   const tib = gib * kib
 
-  if (!meta || !meta.size) return ''
-  const size = meta.size
+  if (!size) return ''
   if (size >= tib) return `${Math.round(size / tib)} TB`
   if (size >= gib) return `${Math.round(size / gib)} GB`
   if (size >= mib) return `${Math.round(size / mib)} MB`
@@ -286,9 +288,15 @@ export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath
 export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
 
-export const isImage = (name: string): boolean => {
-  const lower = name.toLowerCase()
-  return ['.png', '.jpg', '.jpeg', '.mp4'].some(ext => lower.endsWith(ext))
+const mediaMimePrefixes = ['image', 'audio', 'video']
+
+export const isMedia = (name: string): boolean => {
+  const mimeType = mime.lookup(name)
+  if (!mimeType) return false
+  const firstSlashIndex = mimeType.indexOf('/')
+  if (firstSlashIndex === -1) return false
+  const mimePrefix = mimeType.substring(0, firstSlashIndex)
+  return mediaMimePrefixes.includes(mimePrefix)
 }
 
 export type FavoritesListResult = {
@@ -430,4 +438,22 @@ export const folderToFavoriteItems = (
       })
     )
   )
+}
+
+export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
+
+export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
+  const name = Types.getPathName(p)
+  const fromPatched = lookupPatchedExt(name)
+  if (fromPatched) {
+    return fromPatched
+  }
+  const mimeType = mime.lookup(name) || ''
+  if (mimeType.startsWith('text/')) {
+    return 'text'
+  }
+  if (mimeType.startsWith('image/')) {
+    return 'image'
+  }
+  return 'default'
 }

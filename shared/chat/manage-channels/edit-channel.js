@@ -14,7 +14,6 @@ type Props = {
   onConfirmedDelete: () => void,
   showDelete: boolean,
   deleteRenameDisabled: boolean,
-  waitingForSave: boolean,
 }
 
 type TextState = {
@@ -36,7 +35,7 @@ const EditChannelBare = (props: Props & TextState) => (
     <Box style={{position: 'relative'}}>
       <Input
         onChangeText={props.onChangeChannelName}
-        hintText={'Channel name'}
+        hintText="Channel name"
         editable={!props.deleteRenameDisabled}
         value={props.newChannelName}
       />
@@ -58,7 +57,7 @@ const EditChannelBare = (props: Props & TextState) => (
 
       <Input
         onChangeText={props.onChangeTopic}
-        hintText={'Description or topic (optional)'}
+        hintText="Description or topic (optional)"
         value={props.newTopic}
       />
     </Box>
@@ -76,7 +75,6 @@ const EditChannelBare = (props: Props & TextState) => (
         <Button
           type="Primary"
           label="Save"
-          waiting={props.waitingForSave}
           disabled={props.channelName === props.newChannelName && props.topic === props.newTopic}
           onClick={() => props.onSave(props.newChannelName, props.newTopic)}
           style={{marginLeft: globalMargins.tiny}}
@@ -136,4 +134,5 @@ const _bottomRowStyle = {
   ...(isMobile ? {} : {minWidth: '500px'}),
 }
 
+export type {Props}
 export default EditChannel

@@ -8,7 +8,7 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
 import {teamsTab} from '../../../constants/tabs'
-import {connect, type TypedState, isMobile} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 
@@ -48,33 +48,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
-  _onAddPeople: (teamname: string, target) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {
-            teamname,
-            position: 'bottom left',
-            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
-          },
-          selected: 'addPeopleHow',
-        },
-      ])
-    ),
-  _onOpenMenu: (teamname: string, isSmallTeam: boolean, target) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {
-            teamname,
-            isSmallTeam,
-            position: 'bottom left',
-            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
-          },
-          selected: 'infoPanelMenu',
-        },
-      ])
-    ),
   _onBack: () => dispatch(navigateUp && navigateUp()),
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
@@ -117,13 +90,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
-  onAddPeople: (target: ?Element) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
-  onClickGear: (target: ?Element) =>
-    dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,

@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
-import * as Types from '../../constants/types/chat2'
+import * as ChatTypes from '../../constants/types/chat2'
+import * as Types from '../../constants/types/teams'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import {isMobile} from '../../constants/platform'
@@ -12,45 +13,50 @@ const channels = [
     description: 'General things on things.',
     name: 'general',
     selected: true,
-    convID: Types.stringToConversationIDKey('1'),
+    convID: ChatTypes.stringToConversationIDKey('1'),
   },
   {
     description: 'Random things randomly discussed.',
     name: 'random',
     selected: true,
-    convID: Types.stringToConversationIDKey('2'),
+    convID: ChatTypes.stringToConversationIDKey('2'),
   },
   {
     description: 'Revenue data worth checking',
     name: 'revenue',
     selected: false,
-    convID: Types.stringToConversationIDKey('3'),
+    convID: ChatTypes.stringToConversationIDKey('3'),
   },
   {
     description: 'Talk to the sales team',
     name: 'sales',
     selected: false,
-    convID: Types.stringToConversationIDKey('4'),
+    convID: ChatTypes.stringToConversationIDKey('4'),
   },
   {
     description: 'True discussions on true news.',
     name: 'truechannel',
     selected: false,
-    convID: Types.stringToConversationIDKey('5'),
+    convID: ChatTypes.stringToConversationIDKey('5'),
   },
   {
     description: 'Boring things not worth discussing',
     name: 'zzz',
     selected: true,
-    convID: Types.stringToConversationIDKey('13'),
+    convID: ChatTypes.stringToConversationIDKey('13'),
   },
   {
     description: 'This is a very long long long description to test that things flow correctly',
     name: 'superlonglonglongnameforachannel',
     selected: true,
-    convID: Types.stringToConversationIDKey('21'),
+    convID: ChatTypes.stringToConversationIDKey('21'),
   },
 ]
+
+const channelState = channels.reduce((acc: Types.ChannelMembershipState, c) => {
+  acc[c.convID] = c.selected
+  return acc
+}, {})
 
 const load = () => {
   storiesOf('Chat/Teams', module)
@@ -69,11 +75,8 @@ const load = () => {
           unsavedSubscriptions={false}
           onSaveSubscriptions={action('onSaveSubscriptions')}
           onClickChannel={action('onClickChannel')}
-          waitingForSave={false}
-          nextChannelState={channels.reduce((acc, c) => {
-            acc[c.name] = c.selected
-            return acc
-          }, {})}
+          nextChannelState={channelState}
+          waitingForGet={false}
         />
       </Box>
     ))
@@ -92,11 +95,8 @@ const load = () => {
           unsavedSubscriptions={false}
           onSaveSubscriptions={action('onSaveSubscriptions')}
           onClickChannel={action('onClickChannel')}
-          waitingForSave={false}
-          nextChannelState={channels.reduce((acc, c) => {
-            acc[c.name] = c.selected
-            return acc
-          }, {})}
+          nextChannelState={channelState}
+          waitingForGet={false}
         />
       </Box>
     ))
@@ -115,11 +115,8 @@ const load = () => {
           unsavedSubscriptions={true}
           onSaveSubscriptions={action('onSaveSubscriptions')}
           onClickChannel={action('onClickChannel')}
-          waitingForSave={false}
-          nextChannelState={channels.reduce((acc, c) => {
-            acc[c.name] = c.selected
-            return acc
-          }, {})}
+          nextChannelState={channelState}
+          waitingForGet={false}
         />
       </Box>
     ))
@@ -135,7 +132,6 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={false}
-          waitingForSave={false}
         />
       </Box>
     ))
@@ -151,7 +147,6 @@ const load = () => {
           onConfirmedDelete={action('onConfirmedDelete')}
           showDelete={true}
           deleteRenameDisabled={true}
-          waitingForSave={false}
         />
       </Box>
     ))

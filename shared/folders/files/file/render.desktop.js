@@ -31,7 +31,9 @@ class FileRender extends Component<Props> {
               {this.props.modifiedMarker && (
                 <Icon
                   type="iconfont-thunderbolt"
-                  style={{fontSize: 10, marginRight: 1, color: pathStyleThemed[this.props.theme].color}}
+                  style={{marginRight: 1}}
+                  color={pathStyleThemed[this.props.theme].color}
+                  fontSize={10}
                 />
               )}
               <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>

@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import React, {Component} from 'react'
-import {HeaderHoc, HOCTimers} from '../common-adapters'
+import {HeaderHoc} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
 import {compose, connect, type TypedState} from '../util/container'
@@ -13,9 +13,9 @@ import {
   mobileOsVersion,
   version,
   logFileName,
-  traceDir,
+  pprofDir,
 } from '../constants/platform'
-import {type TimerProps} from '../common-adapters/hoc-timers'
+import HOCTimers, {type TimerProps} from '../common-adapters/hoc-timers'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 type State = {
@@ -74,7 +74,7 @@ class FeedbackContainer extends Component<Props, State> {
             this.state.feedback || '',
             this.state.sendLogs,
             logPath,
-            traceDir()
+            pprofDir()
           )
         })
         .then(logSendId => {
@@ -143,6 +143,7 @@ const extraChatLogs = (state: TypedState) => {
       pendingMode: chat.pendingMode,
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
       pendingSelected: chat.pendingSelected,
+      quotingMap: chat.quotingMap.get(c),
       unreadMap: chat.unreadMap.get(c),
     }).toJS()
   }

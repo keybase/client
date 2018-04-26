@@ -1340,6 +1340,7 @@ type HeaderPlaintextV1 struct {
 	OutboxID          *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	HeaderSignature   *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 	MerkleRoot        *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
+	EphemeralMetadata *MsgEphemeralMetadata    `codec:"em,omitempty" json:"em,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -1397,6 +1398,13 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.MerkleRoot),
+		EphemeralMetadata: (func(x *MsgEphemeralMetadata) *MsgEphemeralMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralMetadata),
 	}
 }
 
@@ -3847,13 +3855,14 @@ type PostLocalNonblockArg struct {
 }
 
 type PostTextNonblockArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
-	Body             string                       `codec:"body" json:"body"`
-	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Body              string                       `codec:"body" json:"body"`
+	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
 
 type PostDeleteNonblockArg struct {
@@ -3867,14 +3876,15 @@ type PostDeleteNonblockArg struct {
 }
 
 type PostEditNonblockArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
-	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
-	Body             string                       `codec:"body" json:"body"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic         bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Supersedes        MessageID                    `codec:"supersedes" json:"supersedes"`
+	Body              string                       `codec:"body" json:"body"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
 
 type PostHeadlineNonblockArg struct {
@@ -3968,29 +3978,31 @@ type GetMessagesLocalArg struct {
 }
 
 type PostAttachmentLocalArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	Visibility       keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	Attachment       LocalSource                  `codec:"attachment" json:"attachment"`
-	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title            string                       `codec:"title" json:"title"`
-	Metadata         []byte                       `codec:"metadata" json:"metadata"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	SessionID         int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
+	Attachment        LocalSource                  `codec:"attachment" json:"attachment"`
+	Preview           *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title             string                       `codec:"title" json:"title"`
+	Metadata          []byte                       `codec:"metadata" json:"metadata"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
 
 type PostFileAttachmentLocalArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	Visibility       keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	Attachment       LocalFileSource              `codec:"attachment" json:"attachment"`
-	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title            string                       `codec:"title" json:"title"`
-	Metadata         []byte                       `codec:"metadata" json:"metadata"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	SessionID         int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID    ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName           string                       `codec:"tlfName" json:"tlfName"`
+	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
+	Attachment        LocalFileSource              `codec:"attachment" json:"attachment"`
+	Preview           *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title             string                       `codec:"title" json:"title"`
+	Metadata          []byte                       `codec:"metadata" json:"metadata"`
+	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 }
 
 type DownloadAttachmentLocalArg struct {

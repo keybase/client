@@ -11,12 +11,12 @@ import {
   Avatar,
   Meta,
   Usernames,
-  HOCTimers,
 } from '../../common-adapters'
+import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 
 import {globalStyles, globalColors, globalMargins, platformStyles, transition, isMobile} from '../../styles'
 
-export type Props = {
+type _Props = {
   canDelete: boolean,
   canEdit: boolean,
   channelName: ?string,
@@ -37,9 +37,10 @@ export type Props = {
   onChannelClick: (SyntheticEvent<>) => void,
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
-  setTimeout: (() => void, number) => number,
   openUserTracker: (username: string) => void,
 }
+
+export type Props = _Props & TimerProps
 
 type State = {
   showingCopy: boolean,
@@ -107,6 +108,7 @@ class Row extends React.Component<Props, State> {
               <Icon
                 type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={_iconCaretStyle}
+                fontSize={isMobile ? 12 : 8}
               />
               <Avatar
                 size={isMobile ? 48 : 32}
@@ -118,7 +120,9 @@ class Row extends React.Component<Props, State> {
               <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Text>
-              {this.props.isNew && <Meta title="New" style={_metaStyle} />}
+              {this.props.isNew && (
+                <Meta title="new" style={_metaStyle} backgroundColor={globalColors.orange} />
+              )}
             </Box>
           </ClickableBox>
           {this.props.expanded && (
@@ -146,11 +150,9 @@ class Row extends React.Component<Props, State> {
                   <ClickableBox style={_copyStyle} onClick={this._onCopy}>
                     <Icon
                       type="iconfont-clipboard"
-                      style={{
-                        color: globalColors.white,
-                        fontSize: isMobile ? 20 : 16,
-                        ...(isMobile ? {} : {hoverColor: globalColors.blue5}),
-                      }}
+                      color={globalColors.white}
+                      fontSize={isMobile ? 20 : 16}
+                      hoverColor={isMobile ? undefined : globalColors.blue5}
                     />
                   </ClickableBox>
                 </Box>
@@ -358,20 +360,18 @@ const _rowBottomStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
-const _iconCaretStyle = {
-  ...(isMobile
-    ? {fontSize: 12}
-    : {
-        display: 'inline-block',
-        fontSize: 8,
-      }),
-  marginBottom: 2,
-  marginRight: globalMargins.tiny,
-}
+const _iconCaretStyle = platformStyles({
+  common: {
+    marginBottom: 2,
+    marginRight: globalMargins.tiny,
+  },
+  isElectron: {
+    display: 'inline-block',
+  },
+})
 
 const _metaStyle = {
   alignSelf: 'center',
-  backgroundColor: globalColors.orange,
   marginLeft: 6,
 }
 

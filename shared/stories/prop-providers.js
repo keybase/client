@@ -1,5 +1,5 @@
 // @flow
-import {action, createPropProvider} from './storybook'
+import {action, unexpected, createPropProvider} from './storybook'
 import {mockOwnToViewProps} from '../common-adapters/avatar'
 
 /**
@@ -20,6 +20,8 @@ const compose = (...providers: any[]) => {
  *          that are needed to derive view props
  *  Output: a map of DisplayName: Function(...) that returns the
  *          view props the connected component is concerned with
+ *
+ *  TODO (DA) Type these props with respective OwnProps where possible
  */
 
 const Usernames = (following: string[], you?: string) => ({
@@ -50,5 +52,25 @@ const Avatar = (following: string[], followers: string[]) => ({
   URLAvatar: (props: any) => props,
 })
 
+const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
+  TeamDropdownMenu: (props: any) => ({
+    _hasCanPerform: true,
+    _loadOperations: unexpected('_loadOperations'),
+    attachTo: props.attachTo,
+    badgeSubscribe: false,
+    canAddPeople: (adminTeams && adminTeams.includes(props.teamname)) || true,
+    isSmallTeam: props.isSmallTeam,
+    memberCount: (teamMemberCounts && teamMemberCounts[props.teamname]) || 100,
+    teamname: props.teamname,
+    visible: props.visible,
+    onAddPeople: action('onAddPeople'),
+    onHidden: props.onHidden,
+    onInvite: action('onInvite'),
+    onLeaveTeam: action('onLeaveTeam'),
+    onManageChannels: action('onManageChannels'),
+    onViewTeam: action('onViewTeam'),
+  }),
+})
+
 export {compose}
-export {Avatar, Usernames}
+export {Avatar, TeamDropdownMenu, Usernames}

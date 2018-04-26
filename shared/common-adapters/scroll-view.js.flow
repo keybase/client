@@ -1,9 +1,17 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
+  children?: React.Node,
   contentContainerStyle?: Object,
   style?: Object,
+
+  // mobile only
+  minimumZoomScale?: number,
+  maximumZoomScale?: number,
+  scrollsToTop?: boolean,
+  indicatorStyle?: string,
+  alwaysBounceVertical?: boolean,
 }
 
-export default class ScrollView extends Component<Props> {}
+export default class ScrollView extends React.Component<Props> {}

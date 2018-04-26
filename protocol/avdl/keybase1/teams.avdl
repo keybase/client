@@ -328,6 +328,16 @@ protocol teams {
     array<TeamNamePart> parts;
   }
 
+  // Sometimes during CLKR server will hint us that users are reset.
+  @lint("ignore")
+  record TeamCLKRResetUser {
+    UID uid;
+    @jsonkey("user_eldest")
+    Seqno userEldestSeqno;
+    @jsonkey("member_eldest")
+    Seqno memberEldestSeqno;
+  }
+
   // team.clkr gregor message body
   @lint("ignore")
   record TeamCLKRMsg {
@@ -335,6 +345,8 @@ protocol teams {
     TeamID teamID;
     PerTeamKeyGeneration generation;
     int score;
+    @jsonkey("reset_users")
+    array<TeamCLKRResetUser> resetUsersUntrusted;
   }
 
   record TeamResetUser {
@@ -701,7 +713,7 @@ protocol teams {
   // Accept an invite or request to join a team, try both.
   TeamAcceptOrRequestResult teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
 
-  array<TeamJoinRequest> teamListRequests(int sessionID);
+  array<TeamJoinRequest> teamListRequests(int sessionID, union { null, string } teamName);
 
   // List TeamAccessRequests from current user. Optionally can provide
   // a teamname, and API server will only return request for that team,

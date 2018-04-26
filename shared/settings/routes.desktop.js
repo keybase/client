@@ -12,12 +12,12 @@ import NotificationsContainer from './notifications/container'
 import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
 import RemoveDevice from '../devices/device-revoke/container'
-import InviteGenerated from './invite-generated'
+import InviteGenerated from './invite-generated/container'
 import DevMenu from '../dev/dev-menu'
-import DumbSheet from '../dev/dumb-sheet'
 import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
 import PlanDetails from './plan-details/container'
+import SecurityPrefs from '../fs/common/security-prefs-container.desktop'
 
 const routeTree = makeRouteDefNode({
   defaultSelected: Constants.landingTab,
@@ -68,12 +68,6 @@ const routeTree = makeRouteDefNode({
       ? {
           [Constants.devMenuTab]: {
             component: DevMenu,
-            children: {
-              dumbSheet: {
-                component: DumbSheet,
-                tags: makeLeafTags({modal: true}),
-              },
-            },
           },
         }
       : {}),
@@ -88,7 +82,11 @@ const routeTree = makeRouteDefNode({
     },
     [Constants.fsTab]: {
       component: FilesContainer,
-      children: {},
+      children: {
+        securityPrefs: {
+          component: SecurityPrefs,
+        },
+      },
     },
   },
 })

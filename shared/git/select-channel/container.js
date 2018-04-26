@@ -2,9 +2,8 @@
 import * as React from 'react'
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as I from 'immutable'
-import {getTeamConvIDs} from '../../constants/teams'
-import * as ChatTypes from '../../constants/types/chat2'
+import {getChannelsWaitingKey, getTeamChannelInfos} from '../../constants/teams'
+import {anyWaiting} from '../../constants/waiting'
 import {PopupDialog, HeaderHoc} from '../../common-adapters'
 import {
   connect,
@@ -24,41 +23,38 @@ export type SelectChannelProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  const _convIDs = getTeamConvIDs(state, teamname)
-  const _channelInfo = state.teams.getIn(['convIDToChannelInfo'], I.Map())
+  const {teamname, selected} = routeProps.get('teamname')
+  const _channelInfos = getTeamChannelInfos(state, teamname)
   return {
-    _channelInfo,
-    _convIDs,
-    waiting: !!state.waiting.get(`getChannels:${teamname}`),
-    loaded: !!_convIDs.size,
-    _selected: routeProps.get('selected'),
+    _channelInfos,
+    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
+    loaded: !!_channelInfos.size,
+    _selected: selected,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  _onSubmit: (channelName: string) =>
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        chatDisabled: false,
-        channelName,
-        teamname: routeProps.get('teamname'),
-        repoID: routeProps.get('repoID'),
-      })
-    ),
-  onCancel: () => dispatch(navigateUp()),
-  onLoad: () => dispatch(TeamsGen.createGetChannels({teamname: routeProps.get('teamname')})),
-})
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
+  const {teamname, repoID} = routeProps.get('teamname')
+  return {
+    _onSubmit: (channelName: string) =>
+      dispatch(
+        GitGen.createSetTeamRepoSettings({
+          chatDisabled: false,
+          channelName,
+          teamname: teamname,
+          repoID: repoID,
+        })
+      ),
+    onCancel: () => dispatch(navigateUp()),
+    onLoad: () => dispatch(TeamsGen.createGetChannels({teamname})),
+  }
+}
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const convIDs = stateProps._convIDs.toArray()
-  // Without the .filter we get a bunch of intermediate arrays of [undefined, undefined, ...] leading
-  // to React key prop errors
-  const channelNames = convIDs.reduce((result: Array<string>, id: ChatTypes.ConversationIDKey) => {
-    const channelname = stateProps._channelInfo.get(id, {}).channelname
-    !!channelname && result.push(channelname)
-    return result
-  }, [])
+  const channelNames = stateProps._channelInfos
+    .map(info => info.channelname)
+    .valueSeq()
+    .toArray()
   return {
     ...stateProps,
     ...dispatchProps,

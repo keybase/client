@@ -2,6 +2,7 @@
 import * as React from 'react'
 
 export type ImageRenderProps = {
+  onLoad: () => void,
   src: string,
   style: Object,
 }

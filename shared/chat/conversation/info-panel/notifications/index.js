@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box, Checkbox, Icon, RadioButton, ProgressIndicator, Text} from '../../../../common-adapters'
+import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import SaveIndicator from '../../../../common-adapters/save-indicator'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
@@ -10,27 +11,11 @@ export type Props = {
   desktop: Types.NotificationsType,
   mobile: Types.NotificationsType,
   muted: boolean,
-  saveState: SaveStateType,
+  saving: boolean,
   toggleMuted: () => void,
   updateDesktop: Types.NotificationsType => void,
   updateMobile: Types.NotificationsType => void,
   toggleChannelWide: () => void,
-}
-
-export const SaveStateComponent = ({saveState}: {saveState: SaveStateType}) => {
-  switch (saveState) {
-    case 'same':
-      return null
-    case 'saving':
-      return <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.medium}} />
-    case 'justSaved':
-      return [
-        <Icon key="0" type="iconfont-check" style={{color: globalColors.green}} />,
-        <Text key="1" type="BodySmall" style={{color: globalColors.green2}}>
-          &nbsp; Saved
-        </Text>,
-      ]
-  }
 }
 
 const UnmutedNotificationPrefs = (props: Props) => (
@@ -49,7 +34,9 @@ const UnmutedNotificationPrefs = (props: Props) => (
     <Box style={isMobile ? styleHeaderMobile : styleHeader}>
       <Text type="BodySmallSemibold">Desktop notifications</Text>
       <Icon
-        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+        style={{paddingLeft: globalMargins.xtiny}}
+        fontSize={isMobile ? 20 : 16}
+        color={globalColors.black_20}
         type="iconfont-notifications-desktop"
       />
     </Box>
@@ -82,8 +69,10 @@ const UnmutedNotificationPrefs = (props: Props) => (
     <Box style={styleHeader}>
       <Text type="BodySmallSemibold">Mobile notifications</Text>
       <Icon
-        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+        style={{paddingLeft: globalMargins.xtiny}}
+        fontSize={isMobile ? 20 : 16}
         type="iconfont-notifications-mobile"
+        color={globalColors.black_20}
       />
     </Box>
 
@@ -133,16 +122,14 @@ export const Notifications = (props: Props) => (
       <Icon
         type="iconfont-shh"
         style={{
-          color: globalColors.black_20,
           marginLeft: globalMargins.xtiny,
-          ...(isMobile ? {fontSize: 24} : {}),
         }}
+        fontSize={isMobile ? 24 : undefined}
+        color={globalColors.black_20}
       />
     </Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}
-    <Box style={styleSaveState}>
-      <SaveStateComponent saveState={props.saveState} />
-    </Box>
+    <SaveIndicator saving={props.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
   </Box>
 )
 
@@ -160,11 +147,4 @@ const styleHeaderMobile = {
 const styleRadioButton = {
   ...globalStyles.flexBoxRow,
   marginLeft: globalMargins.tiny,
-}
-
-const styleSaveState = {
-  ...globalStyles.flexBoxRow,
-  height: globalMargins.medium,
-  justifyContent: 'center',
-  alignItems: 'center',
 }

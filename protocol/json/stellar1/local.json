@@ -9,7 +9,7 @@
   "types": [
     {
       "type": "record",
-      "name": "RecentPaymentCLILocal",
+      "name": "PaymentCLILocal",
       "fields": [
         {
           "type": "TransactionID",
@@ -83,18 +83,6 @@
     },
     {
       "type": "record",
-      "name": "LocalCurrencyCode",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "LocalExchangeRate",
-      "fields": [],
-      "typedef": "float"
-    },
-    {
-      "type": "record",
       "name": "LocalOwnAccount",
       "fields": [
         {
@@ -117,12 +105,11 @@
           "name": "balance"
         },
         {
-          "type": "LocalCurrencyCode",
-          "name": "localCurrency"
-        },
-        {
-          "type": "LocalExchangeRate",
-          "name": "localExchangeRate"
+          "type": [
+            null,
+            "OutsideExchangeRate"
+          ],
+          "name": "exchangeRate"
         }
       ]
     }
@@ -173,8 +160,17 @@
       ],
       "response": {
         "type": "array",
-        "items": "RecentPaymentCLILocal"
+        "items": "PaymentCLILocal"
       }
+    },
+    "paymentDetailCLILocal": {
+      "request": [
+        {
+          "name": "txID",
+          "type": "string"
+        }
+      ],
+      "response": "PaymentCLILocal"
     },
     "walletInitLocal": {
       "request": [],
@@ -213,6 +209,15 @@
       ],
       "response": null
     },
+    "exportSecretKeyLocal": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "SecretKey"
+    },
     "setDisplayCurrency": {
       "request": [
         {
@@ -230,10 +235,10 @@
       "request": [
         {
           "name": "currency",
-          "type": "LocalCurrencyCode"
+          "type": "OutsideCurrencyCode"
         }
       ],
-      "response": "LocalExchangeRate"
+      "response": "OutsideExchangeRate"
     }
   },
   "namespace": "stellar.1"

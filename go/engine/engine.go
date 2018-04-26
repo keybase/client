@@ -5,15 +5,13 @@ package engine
 
 import (
 	"fmt"
-	"net/url"
-	"runtime/debug"
-
 	"github.com/keybase/client/go/libkb"
+	"runtime/debug"
 )
 
 type Prereqs struct {
-	Session bool
-	Device  bool
+	TemporarySession bool
+	Device           bool
 }
 
 type Engine interface {
@@ -27,38 +25,27 @@ type UIDelegateWanter interface {
 	WantDelegate(libkb.UIKind) bool
 }
 
-func runPrereqs(e Engine, ctx *Context) (err error) {
+func runPrereqs(e Engine, ctx *Context) error {
 	prq := e.Prereqs()
 
-	if prq.Session {
-		var ok bool
-		ok, _, err = IsLoggedIn(e, ctx)
-		if !ok {
-			urlError, isURLError := err.(*url.Error)
-			context := ""
-			if isURLError {
-				context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
-			}
-			err = libkb.LoginRequiredError{Context: context}
-		}
+	if prq.TemporarySession {
+		err := e.G().AssertTemporarySession(ctx.LoginContext)
 		if err != nil {
 			return err
 		}
 	}
 
 	if prq.Device {
-		var ok bool
-		ok, err = IsProvisioned(e, ctx)
+		ok, _, err := IsLoggedInWithError(e, ctx)
 		if err != nil {
 			return err
 		}
 		if !ok {
-			err = libkb.DeviceRequiredError{}
-			return err
+			return libkb.DeviceRequiredError{}
 		}
 	}
 
-	return
+	return nil
 
 }
 

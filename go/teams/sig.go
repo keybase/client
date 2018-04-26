@@ -18,15 +18,16 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
-		Me:         me,
-		LinkType:   libkb.LinkTypeTeamRoot,
-		SigningKey: key,
-		Seqno:      1,
-		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
-	}.ToJSON(me.G())
+		SigningUser: me,
+		Eldest:      me.GetEldestKID(),
+		LinkType:    libkb.LinkTypeTeamRoot,
+		SigningKey:  key,
+		Seqno:       1,
+		SigVersion:  libkb.KeybaseSignatureV2,
+		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+	}.ToJSON(g)
 	if err != nil {
 		return nil, err
 	}
@@ -52,20 +53,21 @@ func NewImplicitTeamName() (res keybase1.TeamName, err error) {
 	return res, err
 }
 
-func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
+func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
 		return nil, err
 	}
 	ret, err := libkb.ProofMetadata{
-		Me:         me,
-		LinkType:   libkb.LinkTypeNewSubteam,
-		SigningKey: key,
-		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
-		Seqno:      parentTeam.GetLatestSeqno() + 1,
-		PrevLinkID: prevLinkID,
-	}.ToJSON(me.G())
+		SigningUser: me,
+		Eldest:      me.GetEldestKID(),
+		LinkType:    libkb.LinkTypeNewSubteam,
+		SigningKey:  key,
+		SigVersion:  libkb.KeybaseSignatureV2,
+		SeqType:     seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
+		Seqno:       parentTeam.GetLatestSeqno() + 1,
+		PrevLinkID:  prevLinkID,
+	}.ToJSON(g)
 	if err != nil {
 		return nil, err
 	}
@@ -93,15 +95,16 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 	return ret, nil
 }
 
-func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
-		Me:         me,
-		LinkType:   libkb.LinkTypeSubteamHead,
-		SigningKey: key,
-		Seqno:      1,
-		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqTypeForTeamPublicness(subteamTeamSection.Public),
-	}.ToJSON(me.G())
+		SigningUser: me,
+		Eldest:      me.GetEldestKID(),
+		LinkType:    libkb.LinkTypeSubteamHead,
+		SigningKey:  key,
+		Seqno:       1,
+		SigVersion:  libkb.KeybaseSignatureV2,
+		SeqType:     seqTypeForTeamPublicness(subteamTeamSection.Public),
+	}.ToJSON(g)
 	if err != nil {
 		return nil, err
 	}
@@ -120,20 +123,21 @@ func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCT
 	return ret, nil
 }
 
-func RenameSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	prev, err := parentTeam.GetLatestLibkbLinkID()
 	if err != nil {
 		return nil, err
 	}
 	ret, err := libkb.ProofMetadata{
-		Me:         me,
-		LinkType:   libkb.LinkTypeRenameSubteam,
-		SigningKey: key,
-		Seqno:      parentTeam.GetLatestSeqno() + 1,
-		PrevLinkID: prev,
-		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
-	}.ToJSON(me.G())
+		SigningUser: me,
+		Eldest:      me.GetEldestKID(),
+		LinkType:    libkb.LinkTypeRenameSubteam,
+		SigningKey:  key,
+		Seqno:       parentTeam.GetLatestSeqno() + 1,
+		PrevLinkID:  prev,
+		SigVersion:  libkb.KeybaseSignatureV2,
+		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+	}.ToJSON(g)
 	if err != nil {
 		return nil, err
 	}
@@ -149,20 +153,21 @@ func RenameSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigC
 	return ret, nil
 }
 
-func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	prev, err := subteam.GetLatestLibkbLinkID()
 	if err != nil {
 		return nil, err
 	}
 	ret, err := libkb.ProofMetadata{
-		Me:         me,
-		LinkType:   libkb.LinkTypeRenameUpPointer,
-		SigningKey: key,
-		Seqno:      subteam.GetLatestSeqno() + 1,
-		PrevLinkID: prev,
-		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
-	}.ToJSON(me.G())
+		SigningUser: me,
+		Eldest:      me.GetEldestKID(),
+		LinkType:    libkb.LinkTypeRenameUpPointer,
+		SigningKey:  key,
+		Seqno:       subteam.GetLatestSeqno() + 1,
+		PrevLinkID:  prev,
+		SigVersion:  libkb.KeybaseSignatureV2,
+		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+	}.ToJSON(g)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +204,7 @@ func NewInviteID() SCTeamInviteID {
 	return SCTeamInviteID(hex.EncodeToString(b))
 }
 
-func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection,
+func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection,
 	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
@@ -208,15 +213,16 @@ func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libk
 	}
 
 	ret, err := libkb.ProofMetadata{
-		Me:         me,
-		LinkType:   linkType,
-		SigningKey: key,
-		Seqno:      seqno,
-		PrevLinkID: prev,
-		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
-		MerkleRoot: merkleRoot,
-	}.ToJSON(me.G())
+		LinkType:    linkType,
+		SigningUser: me,
+		Eldest:      me.GetEldestKID(),
+		SigningKey:  key,
+		Seqno:       seqno,
+		PrevLinkID:  prev,
+		SigVersion:  libkb.KeybaseSignatureV2,
+		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
+		MerkleRoot:  merkleRoot,
+	}.ToJSON(g)
 	if err != nil {
 		return nil, err
 	}

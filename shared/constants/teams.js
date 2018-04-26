@@ -4,6 +4,8 @@ import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import {getPathProps} from '../route-tree'
+import {teamsTab} from './tabs'
 
 import type {Service} from './types/search'
 import {type TypedState} from './reducer'
@@ -12,13 +14,18 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
 // Waiting keys
 // Add granularity as necessary
-export const teamWaitingKey = (teamname: string) => `team:${teamname}`
-export const settingsWaitingKey = (teamname: string) => `teamSettings:${teamname}`
-export const retentionWaitingKey = (teamname: string) => `teamRetention:${teamname}`
+export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
+export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
+export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
+export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
+  `teamAdd:${teamname};${username}`
+// also for pending invites, hence id rather than username
+export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
-  channelname: null,
-  description: null,
+  channelname: '',
+  description: '',
   participants: I.Set(),
 })
 
@@ -73,17 +80,18 @@ export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Re
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   channelCreationError: '',
-  convIDToChannelInfo: I.Map(),
+  teamsWithChosenChannels: I.Set(),
   loaded: false,
   sawChatBanner: false,
   sawSubteamsBanner: false,
   teamCreationError: '',
   teamCreationPending: false,
   teamAccessRequestsPending: I.Set(),
+  teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
-  teamNameToConvIDs: I.Map(),
+  teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
   teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
@@ -170,20 +178,21 @@ const userIsActiveInTeamHelper = (
   return member && member.active
 }
 
-const getConvIdsFromTeamName = (state: TypedState, teamname: string): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.teamNameToConvIDs.get(teamname, I.Set())
+const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
+  state.teams.teamsWithChosenChannels.has(teamname)
 
-const getTeamNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.teamNameToConvIDs.findKey(i => i.has(conversationIDKey))
+const getTeamChannelInfos = (
+  state: TypedState,
+  teamname: Types.Teamname
+): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
+  return state.teams.getIn(['teamNameToChannelInfos', teamname], I.Map())
+}
 
-const getChannelInfoFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.get(conversationIDKey, null)
-
-const getChannelNameFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'channelname'], null)
-
-const getTopicFromConvID = (state: TypedState, conversationIDKey: ChatTypes.ConversationIDKey) =>
-  state.teams.convIDToChannelInfo.getIn([conversationIDKey, 'description'], null)
+const getChannelInfoFromConvID = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  conversationIDKey: ChatTypes.ConversationIDKey
+): ?Types.ChannelInfo => getTeamChannelInfos(state, teamname).get(conversationIDKey)
 
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.getIn(['teamNameToRole', teamname], 'none')
@@ -200,8 +209,22 @@ const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number
 const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.getIn(['teamNameToID', teamname], '')
 
+const getTeamNameFromID = (state: TypedState, teamID: string): ?Types.Teamname =>
+  state.teams.teamNameToID.findKey(value => value === teamID)
+
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
+
+const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
+  const pathProps = getPathProps(state.routeTree.routeState, [teamsTab])
+  return pathProps.reduce((res, val) => {
+    const teamname = val.props.get('teamname')
+    if (val.node === 'team' && teamname) {
+      return res.concat(teamname)
+    }
+    return res
+  }, [])
+}
 
 /**
  * Gets whether the team is big or small for teams you are a member of
@@ -263,9 +286,6 @@ const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.M
 
 const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
   state.teams.getIn(['teamNameToRequests', teamname], I.Set())
-
-const getTeamConvIDs = (state: TypedState, teamname: Types.Teamname): I.Set<ChatTypes.ConversationIDKey> =>
-  state.teams.getIn(['teamNameToConvIDs', teamname], I.Set())
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
@@ -361,36 +381,35 @@ export const makeResetUser: I.RecordFactory<Types._ResetUser> = I.Record({
 })
 
 export {
-  getConvIdsFromTeamName,
   getRole,
   getCanPerform,
   hasCanPerform,
   getTeamMemberCount,
   userIsActiveInTeamHelper,
-  getTeamNameFromConvID,
+  getTeamChannelInfos,
   getChannelInfoFromConvID,
-  getChannelNameFromConvID,
   getTeamID,
   getTeamRetentionPolicy,
   getTeamMembers,
+  getTeamNameFromID,
   getTeamPublicitySettings,
   getTeamInvites,
   isInTeam,
   isInSomeTeam,
   isAccessRequestPending,
+  getSelectedTeamNames,
   getTeamSubteams,
   getTeamSettings,
   getTeamResetUsers,
   getTeamLoadingInvites,
   getTeamRequests,
-  getTeamConvIDs,
   getSortedTeamnames,
-  getTopicFromConvID,
   getTeamType,
   isAdmin,
   isBigTeam,
   isOwner,
   isSubteam,
+  isTeamWithChosenChannels,
   serviceRetentionPolicyToRetentionPolicy,
   retentionPolicyToServiceRetentionPolicy,
   baseRetentionPolicies,

@@ -29,7 +29,7 @@ func (e *HasServerKeys) Name() string {
 // Prereqs returns the engine prereqs.
 func (e *HasServerKeys) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

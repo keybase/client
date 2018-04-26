@@ -1,16 +1,18 @@
 // @flow
 import * as React from 'react'
-import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
-import {Avatar, Box, Text} from '../../../../common-adapters'
-import {globalStyles, isMobile} from '../../../../styles'
+import {Avatar, Box, FloatingMenu, Text} from '../../../../common-adapters'
+import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
 
 type Props = {
+  attachTo: ?React.Component<*, *>,
+  badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,
   memberCount: number,
   teamname: string,
+  visible: boolean,
   onAddPeople: () => void,
-  onClose: () => void,
+  onHidden: () => void,
   onInvite: () => void,
   onLeaveTeam: () => void,
   onManageChannels: () => void,
@@ -38,11 +40,27 @@ const InfoPanelMenu = (props: Props) => {
       onClick: props.onInvite,
     },
   ]
-  const channelItem = {
-    title: props.isSmallTeam ? 'Make chat channels...' : 'Manage chat channels',
-    onClick: props.onManageChannels,
-    subTitle: props.isSmallTeam ? 'Turns this into a big team' : undefined,
-  }
+  const channelItem = props.isSmallTeam
+    ? {
+        onClick: props.onManageChannels,
+        subTitle: 'Turns this into a big team',
+        title: 'Make chat channels...',
+      }
+    : {
+        onClick: props.onManageChannels,
+        title: 'Subscribe to channels...',
+        view: (
+          <Box style={globalStyles.flexBoxRow}>
+            <Text style={styleText} type={isMobile ? 'BodyBig' : 'Body'}>
+              Subscribe to channels...
+            </Text>
+            {props.badgeSubscribe && (
+              <Box style={collapseStyles([styleBadge, !isMobile && styleBadgeDesktop])} />
+            )}
+          </Box>
+        ),
+      }
+
   const items = [
     ...(props.canAddPeople ? addPeopleItems : []),
     {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
@@ -55,16 +73,36 @@ const InfoPanelMenu = (props: Props) => {
     view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
   }
 
-  return isMobile ? (
-    <PopupMenu header={header} onHidden={props.onClose} style={{overflow: 'visible'}} items={items} />
-  ) : (
-    <ModalLessPopupMenu
-      header={header}
-      onHidden={() => {}}
-      style={{overflow: 'visible', width: 200}}
+  return (
+    <FloatingMenu
+      attachTo={props.attachTo}
+      visible={props.visible}
       items={items}
+      header={header}
+      onHidden={props.onHidden}
+      position="bottom left"
+      closeOnSelect={true}
     />
   )
+}
+
+const styleBadge = {
+  backgroundColor: globalColors.blue,
+  borderRadius: 6,
+  height: 8,
+  margin: 6,
+  width: 8,
+}
+
+const styleBadgeDesktop = {
+  margin: 4,
+  marginTop: 5,
+  right: globalMargins.tiny,
+  position: 'absolute',
+}
+
+const styleText = {
+  color: isMobile ? globalColors.blue : undefined,
 }
 
 export {InfoPanelMenu}

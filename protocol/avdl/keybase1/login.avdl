@@ -27,12 +27,12 @@ protocol login {
     via email address does not work.
     */
   void login(int sessionID, string deviceType, string usernameOrEmail, ClientType clientType);
- 
+
   /**
     Login a user only if the user is on a provisioned device.  Username is optional.
     If noPassphrasePrompt is set, then only a stored secret will be used to unlock
     the device keys.
-    */ 
+    */
   void loginProvisionedDevice(int sessionID, string username, boolean noPassphrasePrompt);
 
   /**
@@ -81,4 +81,11 @@ protocol login {
     accountDelete is for devel/testing to delete the current user's account.
     */
   void accountDelete(int sessionID);
+
+  /**
+   loginOneshot allows a service to have a "onetime login", without
+   provisioning a device. It bootstraps credentials with the given
+   paperkey
+   */
+  void loginOneshot(int sessionID, string username, string paperKey);
 }

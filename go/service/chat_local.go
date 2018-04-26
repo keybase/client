@@ -5,6 +5,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -18,7 +19,7 @@ type chatLocalHandler struct {
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
-func newChatLocalHandler(xp rpc.Transporter, g *globals.Context, store *chat.AttachmentStore, gh *gregorHandler) *chatLocalHandler {
+func newChatLocalHandler(xp rpc.Transporter, g *globals.Context, store *attachments.Store, gh *gregorHandler) *chatLocalHandler {
 	h := &chatLocalHandler{
 		BaseHandler: NewBaseHandler(g.ExternalG(), xp),
 	}

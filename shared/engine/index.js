@@ -272,8 +272,8 @@ class Engine {
     const params = paramsIn || {}
     const channelConfig = Saga.singleFixedChannelConfig(configKeys)
     const channelMap = Saga.createChannelMap(channelConfig)
-    const empty: IncomingCallMapType = {}
-    const incomingCallMap: IncomingCallMapType = Object.keys(channelMap).reduce((acc, k) => {
+    const empty = {}
+    const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
       acc[k] = (params, response) => {
         Saga.putOnChannelMap(channelMap, k, {params, response})
       }
@@ -405,7 +405,7 @@ class Engine {
     this._incomingActionCreators[method] = actionCreator
   }
 
-  // DEPRECATED - use setIncomingActionCreator instead
+  // DEPRECATED - use setIncomingActionCreators instead
   setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
       rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})

@@ -8,7 +8,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type RecentPaymentCLILocal struct {
+type PaymentCLILocal struct {
 	StellarTxID     TransactionID `codec:"stellarTxID" json:"stellarTxID"`
 	Time            TimeMs        `codec:"time" json:"time"`
 	Status          string        `codec:"status" json:"status"`
@@ -25,8 +25,8 @@ type RecentPaymentCLILocal struct {
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
 }
 
-func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
-	return RecentPaymentCLILocal{
+func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
+	return PaymentCLILocal{
 		StellarTxID:  o.StellarTxID.DeepCopy(),
 		Time:         o.Time.DeepCopy(),
 		Status:       o.Status,
@@ -68,25 +68,12 @@ func (o RecentPaymentCLILocal) DeepCopy() RecentPaymentCLILocal {
 	}
 }
 
-type LocalCurrencyCode string
-
-func (o LocalCurrencyCode) DeepCopy() LocalCurrencyCode {
-	return o
-}
-
-type LocalExchangeRate float32
-
-func (o LocalExchangeRate) DeepCopy() LocalExchangeRate {
-	return o
-}
-
 type LocalOwnAccount struct {
-	AccountID         AccountID         `codec:"accountID" json:"accountID"`
-	IsPrimary         bool              `codec:"isPrimary" json:"isPrimary"`
-	Name              string            `codec:"name" json:"name"`
-	Balance           []Balance         `codec:"balance" json:"balance"`
-	LocalCurrency     LocalCurrencyCode `codec:"localCurrency" json:"localCurrency"`
-	LocalExchangeRate LocalExchangeRate `codec:"localExchangeRate" json:"localExchangeRate"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	IsPrimary    bool                 `codec:"isPrimary" json:"isPrimary"`
+	Name         string               `codec:"name" json:"name"`
+	Balance      []Balance            `codec:"balance" json:"balance"`
+	ExchangeRate *OutsideExchangeRate `codec:"exchangeRate,omitempty" json:"exchangeRate,omitempty"`
 }
 
 func (o LocalOwnAccount) DeepCopy() LocalOwnAccount {
@@ -105,8 +92,13 @@ func (o LocalOwnAccount) DeepCopy() LocalOwnAccount {
 			}
 			return ret
 		})(o.Balance),
-		LocalCurrency:     o.LocalCurrency.DeepCopy(),
-		LocalExchangeRate: o.LocalExchangeRate.DeepCopy(),
+		ExchangeRate: (func(x *OutsideExchangeRate) *OutsideExchangeRate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ExchangeRate),
 	}
 }
 
@@ -123,6 +115,10 @@ type SendLocalArg struct {
 
 type RecentPaymentsCLILocalArg struct {
 	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
+}
+
+type PaymentDetailCLILocalArg struct {
+	TxID string `codec:"txID" json:"txID"`
 }
 
 type WalletInitLocalArg struct {
@@ -143,26 +139,32 @@ type ImportSecretKeyLocalArg struct {
 	MakePrimary bool      `codec:"makePrimary" json:"makePrimary"`
 }
 
+type ExportSecretKeyLocalArg struct {
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type SetDisplayCurrencyArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 	Currency  string    `codec:"currency" json:"currency"`
 }
 
 type ExchangeRateLocalArg struct {
-	Currency LocalCurrencyCode `codec:"currency" json:"currency"`
+	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
-	RecentPaymentsCLILocal(context.Context, *AccountID) ([]RecentPaymentCLILocal, error)
+	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLILocal, error)
+	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
 	WalletDumpLocal(context.Context) (Bundle, error)
 	WalletGetLocalAccounts(context.Context) ([]LocalOwnAccount, error)
 	OwnAccountLocal(context.Context, AccountID) (bool, error)
 	ImportSecretKeyLocal(context.Context, ImportSecretKeyLocalArg) error
+	ExportSecretKeyLocal(context.Context, AccountID) (SecretKey, error)
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
-	ExchangeRateLocal(context.Context, LocalCurrencyCode) (LocalExchangeRate, error)
+	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -213,6 +215,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.RecentPaymentsCLILocal(ctx, (*typedArgs)[0].AccountID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"paymentDetailCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]PaymentDetailCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PaymentDetailCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PaymentDetailCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PaymentDetailCLILocal(ctx, (*typedArgs)[0].TxID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -282,6 +300,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"exportSecretKeyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ExportSecretKeyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ExportSecretKeyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ExportSecretKeyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ExportSecretKeyLocal(ctx, (*typedArgs)[0].AccountID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"setDisplayCurrency": {
 				MakeArg: func() interface{} {
 					ret := make([]SetDisplayCurrencyArg, 1)
@@ -333,9 +367,15 @@ func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res Pay
 	return
 }
 
-func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []RecentPaymentCLILocal, err error) {
+func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentCLILocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
 	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PaymentDetailCLILocal(ctx context.Context, txID string) (res PaymentCLILocal, err error) {
+	__arg := PaymentDetailCLILocalArg{TxID: txID}
+	err = c.Cli.Call(ctx, "stellar.1.local.paymentDetailCLILocal", []interface{}{__arg}, &res)
 	return
 }
 
@@ -365,12 +405,18 @@ func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecre
 	return
 }
 
+func (c LocalClient) ExportSecretKeyLocal(ctx context.Context, accountID AccountID) (res SecretKey, err error) {
+	__arg := ExportSecretKeyLocalArg{AccountID: accountID}
+	err = c.Cli.Call(ctx, "stellar.1.local.exportSecretKeyLocal", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCurrencyArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil)
 	return
 }
 
-func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency LocalCurrencyCode) (res LocalExchangeRate, err error) {
+func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
 	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
 	return

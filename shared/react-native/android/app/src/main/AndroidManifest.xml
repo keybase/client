@@ -1,10 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.keybase.ossifrage">
+  xmlns:tools="http://schemas.android.com/tools"
+  package="io.keybase.ossifrage">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <permission
         android:name="${applicationId}.permission.C2D_MESSAGE"
@@ -60,6 +62,15 @@
               <action android:name="com.google.android.c2dm.intent.RECEIVE" />
           </intent-filter>
       </service>
+      <provider
+          android:name="io.keybase.ossifrage.util.SharedFileProvider"
+          android:authorities="io.keybase.ossifrage.fileprovider"
+          android:exported="false"
+          android:grantUriPermissions="true">
+          <meta-data
+              android:name="android.support.FILE_PROVIDER_PATHS"
+              android:resource="@xml/fileprovider"/>
+      </provider>
 
 
     </application>
