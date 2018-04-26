@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import pluralize from 'pluralize'
 import * as Types from '../../../constants/types/teams'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
 // initial settings (except retention policy)

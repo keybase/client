@@ -1,6 +1,5 @@
 // @flow
 import React from 'react'
-import pluralize from 'pluralize'
 import {
   Avatar,
   Box,
@@ -18,6 +17,7 @@ import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
 import {roleIconMap, roleIconColorMap, roleDescMap, permissionMap} from './index.meta'
+import {pluralize} from '../../util/string'
 
 export type RolePickerProps = {
   confirm: boolean,
