@@ -21,7 +21,8 @@ import io.keybase.ossifrage.R;
 public class ShareFiles extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
-    private static final int MAX_TEXT_FILE_LINES = 1000;
+    private static final int MAX_TEXT_FILE_SIZE = 100 * 1024; // 100 kiB
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     public ShareFiles(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -42,7 +43,13 @@ public class ShareFiles extends ReactContextBaseJavaModule {
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 StringBuilder textBuilder = new StringBuilder();
                 String text;
-                for (int i=0; i < MAX_TEXT_FILE_LINES && (text = br.readLine()) != null; i++) {
+                boolean isFirst = true;
+                while (textBuilder.length() < MAX_TEXT_FILE_SIZE && (text = br.readLine()) != null) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        textBuilder.append(LINE_SEPARATOR);
+                    }
                     textBuilder.append(text);
                 }
                 intent.putExtra(Intent.EXTRA_TEXT, textBuilder.toString());
