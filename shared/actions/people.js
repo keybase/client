@@ -111,23 +111,39 @@ const _setupPeopleHandlers = () => {
     })
   })
 }
+
+const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => {
+  const list = I.List(action.payload.path)
+  const root = list.first()
+  const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
+  if (root === peopleTab && peoplePath.size === 2 && _wasOnPeopleTab) {
+    // Navigating away from the people tab root
+    return Saga.put(PeopleGen.createMarkViewed())
+  }
+}
+
 const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
 
-  if (root !== peopleTab && _wasOnPeopleTab && peoplePath.size === 1) {
-    _wasOnPeopleTab = false
-    return Saga.put(PeopleGen.createMarkViewed())
-  } else if (root === peopleTab && !_wasOnPeopleTab) {
+  if (root === peopleTab && peoplePath.size === 1) {
+    if (_wasOnPeopleTab === false) {
+      return Saga.put(
+        PeopleGen.createGetPeopleData({
+          markViewed: false,
+          numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+        })
+      )
+    }
     _wasOnPeopleTab = true
-    return Saga.put(
-      PeopleGen.createGetPeopleData({
-        markViewed: false,
-        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-      })
-    )
+  } else {
+    if (_wasOnPeopleTab === true) {
+      _wasOnPeopleTab = false
+      return Saga.put(PeopleGen.createMarkViewed())
+    }
+    _wasOnPeopleTab = false
   }
 }
 
@@ -152,6 +168,7 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
   yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
   yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteConstants.navigateTo, _onNavigateTo)
 }
 
 export default peopleSaga
