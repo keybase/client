@@ -1,15 +1,15 @@
 // @flow
 import * as I from 'immutable'
-import Files from './container'
-import FilePreview from './filepreview'
-import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
 import BreadcrumbPopupMenu from './popups/breadcrumb-popup-container'
+import Files from './container'
+import {BarePreview, NormalPreview} from './filepreview'
 import FinderPopupMenu from './finder-popup'
-import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import RowPopupMenu from './popups/row-action-popup-container'
-import TransferPopup from './popups/transfer-container'
 import SecurityPrefs from './common/security-prefs-container'
+import SortBarPopupMenu from './sortbar/sort-setting-popup.js'
+import TransferPopup from './popups/transfer-container'
 
 const _commonChildren = {
   finderAction: {
@@ -27,11 +27,23 @@ const _commonChildren = {
   securityPrefs: {
     component: SecurityPrefs,
   },
+  barePreview: () =>
+    makeRouteDefNode({
+      component: BarePreview,
+      children: _commonChildren,
+      tags: makeLeafTags({
+        hideStatusBar: true,
+        fullscreen: true,
+        title: 'Preview',
+      }),
+    }),
   preview: () =>
     makeRouteDefNode({
-      component: FilePreview,
+      component: NormalPreview,
       children: _commonChildren,
-      tags: makeLeafTags({title: 'Preview'}),
+      tags: makeLeafTags({
+        title: 'Preview',
+      }),
     }),
 }
 

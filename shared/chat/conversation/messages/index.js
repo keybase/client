@@ -74,8 +74,10 @@ class MessageFactory extends React.PureComponent<Props> {
       case 'deleted':
         return null
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(this.props.message.type: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.message.type);
+      */
         return null
     }
   }
