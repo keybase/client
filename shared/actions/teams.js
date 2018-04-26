@@ -237,8 +237,7 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
 }
 
 const _addToTeam = function*(action: TeamsGen.AddToTeamPayload) {
-  const {role, sendChatNotification, teamname, username} = action.payload
-  yield Saga.all([Saga.put(TeamsGen.createSetTeamInviteError({error: ''}))])
+  const {teamname, username, role, sendChatNotification} = action.payload
   const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
   yield Saga.put(createIncrementWaiting({key: waitingKeys}))
   try {
