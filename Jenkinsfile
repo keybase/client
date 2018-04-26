@@ -104,7 +104,7 @@ helpers.rootLinuxNode(env, {
             helpers.withKbweb() {
                 parallel (
                     test_linux_deps: {
-                        if (hasGoChanges) {
+                        if (true || hasGoChanges) {
                             // Build the client docker first so we can immediately kick off KBFS
                             dir('go') {
                                 sh "go install github.com/keybase/client/go/keybase"
