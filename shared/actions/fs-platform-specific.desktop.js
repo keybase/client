@@ -261,3 +261,7 @@ function installCachedDokan(): Promise<*> {
 export function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
+
+export function copyToDownloadDir(path: string): Promise<*> {
+  return new Promise((resolve, reject) => reject(new Error('unimplemented')))
+}

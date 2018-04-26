@@ -216,7 +216,10 @@ class Profile extends Component<Props, State> {
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine}>
         <Icon
-          {...shared.folderIconProps(folder, styleFolderIcon)}
+          type={shared.folderIconType(folder)}
+          fontSize={16}
+          color={globalColors.black_75}
+          style={styleFolderIcon}
           onClick={() => this.props.onFolderClick(folder)}
         />
         <Text
@@ -368,11 +371,11 @@ class Profile extends Component<Props, State> {
               title={null}
               onClick={this.props.onBack}
               style={styleBack}
-              iconStyle={{color: globalColors.white}}
+              iconColor={globalColors.white}
             />
           )}
           <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Icon style={styleSearch} type="iconfont-search" />
+            <Icon style={styleSearch} type="iconfont-search" color={globalColors.white_75} />
             <Text style={styleSearchText} type="Body">
               Search people
             </Text>
@@ -612,10 +615,7 @@ const styleFolderText = {
 }
 
 const styleFolderIcon = {
-  fontSize: 16,
   marginRight: globalMargins.tiny,
-  textAlign: 'center',
-  color: globalColors.black_75,
 }
 
 const styleMeta = {
@@ -635,7 +635,6 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.white_75,
   padding: globalMargins.xtiny,
 }
 
@@ -644,6 +643,7 @@ const styleSearchText = {
   fontSize: 15,
   position: 'relative',
   top: -1,
+  color: globalColors.white_75,
 }
 
 const styleShowcasedTeamContainer = {

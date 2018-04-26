@@ -42,21 +42,40 @@ func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ 
 //=============================================================================
 
 func urlReencode(s string) string {
-	// Use '+'-encoding for a smaller URL
+	// Reddit interprets plusses in the query string differently depending
+	// on whether the user is using the old or new (2018) design, and
+	// on whether it's the title or body of the post.
+	// old,     *, '+'   -> ' '
+	// old,     *, '%2B' -> '+'
+	// new, title, '+'   -> ' '
+	// new, title, '%2B' -> ' '
+	// new,  body, '+'   -> '+'
+	// new,  body, '%2B' -> '+'
+
+	// Examples:
+	// https://www.reddit.com/r/test/submit?text=content+fmt%0Aplus+x%2By%20z&title=title+fmt%0Aplus+x%2By%20z
+	// old: https://www.reddit.com/r/test/comments/8eee0e/title_fmt_plus_xy_z/
+	// new: https://www.reddit.com/r/test/comments/8eelwf/title_fmt_plus_x_y_z/
+
 	// Replace '(', ")" and "'" so that URL-detection works in Linux
 	// Padding is not needed now, but might be in the future depending on
 	// changes we make
-	s = strings.Replace(s, `%20`, "+", -1)
-	rxx := regexp.MustCompile(`[()']`)
+	rxx := regexp.MustCompile(`[()'+]`)
 	s = rxx.ReplaceAllStringFunc(s, func(r string) string {
-		if r == "(" {
+		switch r {
+		case `(`:
 			return `%28`
-		} else if r == ")" {
+		case `)`:
 			return `%29`
-		} else if r == "'" {
+		case `'`:
 			return `%27`
+		case `+`:
+			// HTTPArgs.EncodeToString has encoded ' ' -> '+'
+			// we recode '+' -> '%20'.
+			return `%20`
+		default:
+			return r
 		}
-		return ""
 	})
 	return s
 }
@@ -91,18 +110,19 @@ func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
 }
 
 func (t RedditServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.PostProofRes) (res string, err error) {
-
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return
 	}
 
-	q := urlReencode(libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString())
+	urlPre := libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString()
+	q := urlReencode(urlPre)
 
 	// The new reddit mobile site doesn't respect the post-pre-populate query
 	// parameters. Use the old mobile site until they fix this.
 	var host string
 	if ctx.GetAppType() == libkb.MobileAppType {
+		// 2018-04-24 - This mobile site doesn't seem to work at all
 		host = "i.reddit.com"
 	} else {
 		// Note that this is commonly libkb.NoAppType. Don't assume that we get
@@ -131,7 +151,8 @@ func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.Pr
 func (t RedditServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
-	return t.BaseCheckProofTextFull(text, id, sig)
+	// Anything is fine. We might get rid of the body later.
+	return nil
 }
 
 func (t RedditServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {

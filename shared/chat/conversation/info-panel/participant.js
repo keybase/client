@@ -46,7 +46,7 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
     <ClickableBox
       style={{...globalStyles.flexBoxRow}}
       onClick={props.toggleShowingMenu}
-      ref={isMobile ? undefined : props.setAttachmentRef}
+      ref={props.setAttachmentRef}
     >
       <AddPeopleHow
         attachTo={props.attachmentRef}
@@ -64,7 +64,7 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
           }}
         >
           <Box style={{width: isMobile ? 40 : 32, height: isMobile ? 40 : 32, ...globalStyles.flexBoxCenter}}>
-            <Icon type="iconfont-new" style={{fontSize: isMobile ? 24 : 16, color: globalColors.blue}} />
+            <Icon type="iconfont-new" fontSize={isMobile ? 24 : 16} color={globalColors.blue} />
           </Box>
           <Text type="BodyPrimaryLink" style={{marginLeft: globalMargins.small}}>
             Add someone

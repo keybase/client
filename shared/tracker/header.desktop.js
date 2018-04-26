@@ -1,7 +1,15 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  desktopStyles,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {SimpleProofState} from '../constants/types/tracker'
 
@@ -91,14 +99,16 @@ const styleHeader = {
   width: 320,
 }
 
-const styleClose = {
-  ...desktopStyles.clickable,
-  ...desktopStyles.windowDraggingClickable,
-  zIndex: 2,
-  position: 'absolute',
-  top: 7,
-  right: 9,
-}
+const styleClose: StylesCrossPlatform = collapseStyles([
+  desktopStyles.clickable,
+  desktopStyles.windowDraggingClickable,
+  {
+    zIndex: 2,
+    position: 'absolute',
+    top: 7,
+    right: 9,
+  },
+])
 
 const styleText = platformStyles({
   common: {

@@ -21,7 +21,7 @@ const headerButtonBoxStyle = {
 
 const HeaderButton = (props: HeaderButtonProps) => (
   <ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
-    <Icon type={props.iconType} style={createIconStyle} />
+    <Icon type={props.iconType} color={globalColors.blue} fontSize={isMobile ? 20 : 16} />
     <Text type="BodyBigLink" style={{margin: globalMargins.tiny}}>
       {props.label}
     </Text>
@@ -54,10 +54,5 @@ const Header = (props: Props) => (
     <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
   </Box>
 )
-
-const createIconStyle = {
-  color: globalColors.blue,
-  fontSize: isMobile ? 20 : 16,
-}
 
 export default Header

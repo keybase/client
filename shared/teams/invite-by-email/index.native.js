@@ -46,10 +46,10 @@ const AccessDenied = () => (
     <Icon
       type="iconfont-close"
       style={{
-        color: globalColors.red,
-        fontSize: globalMargins.xlarge,
         marginBottom: globalMargins.large,
       }}
+      color={globalColors.red}
+      fontSize={globalMargins.xlarge}
     />
     <Box>
       <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>

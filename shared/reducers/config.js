@@ -23,8 +23,6 @@ export default function(
         .set('menubarWindowID', state.menubarWindowID)
     case ConfigGen.pushLoaded:
       return state.set('pushLoaded', action.payload.pushLoaded)
-    case ConfigGen.configLoaded:
-      return state.set('config', action.payload.config)
     case ConfigGen.extendedConfigLoaded:
       return state.set('extendedConfig', action.payload.extendedConfig)
     case ConfigGen.changeKBFSPath:
@@ -95,6 +93,9 @@ export default function(
       return state.set('menubarWindowID', action.payload.id)
     case ConfigGen.setStartedDueToPush:
       return state.set('startedDueToPush', true)
+    case ConfigGen.configLoaded:
+      const {config} = action.payload
+      return state.set('version', config.version).set('versionShort', config.versionShort)
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -103,6 +104,7 @@ export default function(
     case ConfigGen.getExtendedStatus:
     case ConfigGen.persistRouteState:
     case ConfigGen.retryBootstrap:
+    case ConfigGen.loadConfig:
       return state
     default:
       // eslint-disable-next-line no-unused-expressions

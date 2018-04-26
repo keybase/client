@@ -10,6 +10,7 @@ import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
 import * as mime from 'react-native-mime-types'
+import {lookupPatchedExt} from '../fs/utils/ext-list'
 
 export const defaultPath = '/keybase'
 
@@ -439,4 +440,17 @@ export const folderToFavoriteItems = (
   )
 }
 
-export const mimeTypeFromPathItem = (p: Types.PathItem): string => mime.lookup(p.name) || ''
+export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
+
+export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
+  const name = Types.getPathName(p)
+  const fromPatched = lookupPatchedExt(name)
+  if (fromPatched) {
+    return fromPatched
+  }
+  const mimeType = mime.lookup(name) || ''
+  if (mimeType.startsWith('text/')) {
+    return 'text'
+  }
+  return 'default'
+}

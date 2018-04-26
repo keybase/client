@@ -59,7 +59,9 @@ class Git extends React.Component<Props, State> {
         <ClickableBox style={_headerStyle} onClick={this._toggleMenu}>
           <Icon
             type="iconfont-new"
-            style={{color: globalColors.blue, marginRight: globalMargins.tiny, fontSize: isMobile ? 20 : 16}}
+            style={{marginRight: globalMargins.tiny}}
+            color={globalColors.blue}
+            fontSize={isMobile ? 20 : 16}
           />
           <Text type="BodyBigLink">New encrypted git repository...</Text>
         </ClickableBox>

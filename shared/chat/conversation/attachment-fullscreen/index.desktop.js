@@ -26,7 +26,11 @@ class Fullscreen extends React.Component<Props, State> {
             </Text>
             <Icon
               type="iconfont-ellipsis"
-              style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
+              style={platformStyles({
+                common: {marginLeft: globalMargins.tiny},
+                isElectron: {cursor: 'pointer'},
+              })}
+              color={globalColors.black_40}
               onClick={event => {
                 const node = event.target instanceof window.HTMLElement ? event.target : null
                 this.props.onShowMenu(node ? node.getBoundingClientRect() : null)

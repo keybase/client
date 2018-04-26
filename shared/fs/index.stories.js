@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
@@ -59,6 +60,31 @@ const provider = createPropProvider({
     onInstall: action('onInstall'),
     onUninstall: action('onUninstall'),
   }),
+  FilePreviewDefaultView: () => ({
+    fileUIEnabled: false,
+    pathItem: Constants.makeFile({
+      name: 'bar.jpg',
+      size: 10240,
+      lastWriter: {uid: '', username: 'foo'},
+    }),
+    itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
+    onDownload: () => {},
+    onShowInFileUI: () => {},
+    onShare: () => {},
+    onSave: () => {},
+  }),
+  FilePreviewHeader: () => ({
+    pathItem: Constants.makeFile({
+      name: 'bar.jpg',
+      size: 10240,
+      lastWriter: {uid: '', username: 'foo'},
+    }),
+    onAction: () => {},
+    onBack: () => {},
+    onShowInFileUI: () => {},
+    loadFilePreview: () => {},
+    path: '/keybase/private/foo/bar.jpg',
+  }),
 })
 
 const load = () => {
@@ -75,23 +101,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Preview', () => (
-      <FilePreview
-        fileUIEnabled={false}
-        pathItem={Constants.makeFile({
-          name: 'bar.jpg',
-          size: 10240,
-          lastWriter: {uid: '', username: 'foo'},
-        })}
-        itemStyles={Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo')}
-        onAction={() => {}}
-        onBack={() => {}}
-        onDownload={() => {}}
-        onShowInFileUI={() => {}}
-        onShare={() => {}}
-        onSave={() => {}}
-      />
-    ))
+    .add('Preview', () => <FilePreview routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />)
 }
 
 export default load

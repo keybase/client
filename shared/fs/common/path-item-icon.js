@@ -21,7 +21,7 @@ const PathItemIcon = ({spec, style, small}: PathItemIconProps) => {
       // TODO: fix this when we have support for three avatars as in design.
       return <Avatar size={small ? 16 : 32} username={spec.usernames[0]} style={style} />
     case 'basic':
-      return <Icon type={spec.iconType} style={basicIconStyles(spec.iconColor, small, style)} />
+      return <Icon type={spec.iconType} style={basicIconStyles(small, style)} color={spec.iconColor} />
     default:
       return null
   }
@@ -29,11 +29,10 @@ const PathItemIcon = ({spec, style, small}: PathItemIconProps) => {
 
 // memoize uses first arg as cache key, so aggregate both parameters into an
 // object to avoid having a custom cache resolving function.
-const basicIconStyles = (color, small, appendStyle) =>
-  memoize(({color, appendStyle}) => ({
-    color,
+const basicIconStyles = (small, appendStyle) =>
+  memoize(({appendStyle}) => ({
     ...(small ? {width: 16, height: 16} : {}),
     ...(appendStyle || {}),
-  }))({color, appendStyle})
+  }))({appendStyle})
 
 export default PathItemIcon

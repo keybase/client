@@ -73,9 +73,9 @@ class ListRender extends Component<Props, State> {
             </Text>
             <Icon
               type={caretIcon}
+              fontSize={fontSizeIgnoreCaret}
+              color={headingColor}
               style={{
-                ...stylesIgnoreCaret,
-                color: headingColor,
                 marginLeft: globalMargins.xtiny,
               }}
             />
@@ -146,9 +146,7 @@ const stylesDividerBodyText = {
   textAlign: 'center',
 }
 
-const stylesIgnoreCaret = {
-  fontSize: 10,
-}
+const fontSizeIgnoreCaret = 10
 
 const stylesPrivate = {
   topBox: {

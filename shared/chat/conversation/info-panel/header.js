@@ -43,6 +43,7 @@ const _SmallTeamHeader = (props: SmallProps) => {
         onClick={props.toggleShowingMenu}
         ref={props.setAttachmentRef}
         style={iconStyle}
+        fontSize={gearIconSize}
       />
     </Box>
   )
@@ -54,7 +55,6 @@ const iconStyle = platformStyles({
     paddingLeft: 16,
     width: gearIconSize,
     height: gearIconSize,
-    fontSize: gearIconSize,
   },
   isMobile: {
     marginRight: 16,

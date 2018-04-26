@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import {platformText} from './shared'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {Props} from '.'
@@ -127,12 +127,14 @@ const styleContainer = {
   justifyContent: 'center',
 }
 
-const styleClose = {
-  ...desktopStyles.clickable,
-  position: 'absolute',
-  right: 16,
-  top: 16,
-}
+const styleClose = collapseStyles([
+  desktopStyles.clickable,
+  {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+  },
+])
 
 const styleInput = {
   alignSelf: 'center',

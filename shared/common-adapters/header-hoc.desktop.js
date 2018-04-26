@@ -24,7 +24,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
           )}
           {onCancel && (
             <Icon
-              style={{..._styleClose, ..._styleCloseThemed[theme]}}
+              style={collapseStyles([_styleClose, _styleCloseThemed[theme]])}
               type="iconfont-close"
               onClick={onCancel}
             />

@@ -16,7 +16,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
         <Text type="BodySmallSemibold" style={stylesDividerText}>
           Ignored folders
         </Text>
-        <Icon type={caretIcon} style={{color: globalColors.black_40}} />
+        <Icon type={caretIcon} color={globalColors.black_40} />
       </Box>
       {showIgnored && (
         <Box style={styles.bottomBox}>

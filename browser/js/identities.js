@@ -126,11 +126,14 @@ function User(username, service) {
   this.origin = service;
   this.services = {};
   this.services[service] = username;
+  this.extraReplyCls = "";
 }
 
 // Return a fresh copy equivalent to how it was initialized.
 User.prototype.clone = function() {
-  return new User(this.services[this.origin], this.origin);
+  user = new User(this.services[this.origin], this.origin);
+  user.extraReplyCls = this.extraReplyCls
+  return user
 }
 
 User.prototype.query = function() {

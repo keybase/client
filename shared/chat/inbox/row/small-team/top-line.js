@@ -103,7 +103,9 @@ class _SimpleTopLine extends React.Component<Props> {
             className="small-team-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
-            style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
+            color={this.props.subColor}
+            fontSize={14}
+            hoverColor={this.props.iconHoverColor}
           />
         )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
