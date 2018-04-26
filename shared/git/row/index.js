@@ -108,6 +108,7 @@ class Row extends React.Component<Props, State> {
               <Icon
                 type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={_iconCaretStyle}
+                fontSize={isMobile ? 12 : 8}
               />
               <Avatar
                 size={isMobile ? 40 : 24}
@@ -149,11 +150,9 @@ class Row extends React.Component<Props, State> {
                   <ClickableBox style={_copyStyle} onClick={this._onCopy}>
                     <Icon
                       type="iconfont-clipboard"
-                      style={{
-                        color: globalColors.white,
-                        fontSize: isMobile ? 20 : 16,
-                        ...(isMobile ? {} : {hoverColor: globalColors.blue5}),
-                      }}
+                      color={globalColors.white}
+                      fontSize={isMobile ? 20 : 16}
+                      hoverColor={isMobile ? undefined : globalColors.blue5}
                     />
                   </ClickableBox>
                 </Box>
@@ -361,16 +360,15 @@ const _rowBottomStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
-const _iconCaretStyle = {
-  ...(isMobile
-    ? {fontSize: 12}
-    : {
-        display: 'inline-block',
-        fontSize: 8,
-      }),
-  marginBottom: 2,
-  marginRight: globalMargins.tiny,
-}
+const _iconCaretStyle = platformStyles({
+  common: {
+    marginBottom: 2,
+    marginRight: globalMargins.tiny,
+  },
+  isElectron: {
+    display: 'inline-block',
+  },
+})
 
 const _metaStyle = {
   alignSelf: 'center',

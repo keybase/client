@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import type {Props, DefaultProps} from './header'
 import {Icon} from '../common-adapters'
-import {globalStyles, globalColors, desktopStyles, platformStyles} from '../styles'
+import {globalStyles, globalColors, desktopStyles, platformStyles, collapseStyles} from '../styles'
 
 class Header extends Component<Props> {
   static defaultProps: DefaultProps
@@ -12,12 +12,12 @@ class Header extends Component<Props> {
     const maybeWindowDraggingStyle = this.props.windowDragging ? desktopStyles.windowDragging : {}
     return (
       <div
-        style={{
-          ...styles.container,
-          ...maybeWindowDraggingStyle,
-          ...styles.defaultContainer,
-          ...this.props.style,
-        }}
+        style={collapseStyles([
+          styles.container,
+          maybeWindowDraggingStyle,
+          styles.defaultContainer,
+          this.props.style,
+        ])}
       >
         {this.props.children}
         {this.props.icon && <Icon type="icon-keybase-logo-24" />}
@@ -35,12 +35,12 @@ class Header extends Component<Props> {
     const maybeWindowDraggingStyle = this.props.windowDragging ? desktopStyles.windowDragging : {}
     return (
       <div
-        style={{
-          ...styles.container,
-          ...maybeWindowDraggingStyle,
-          ...styles.strongContainer,
-          ...this.props.style,
-        }}
+        style={collapseStyles([
+          styles.container,
+          maybeWindowDraggingStyle,
+          styles.strongContainer,
+          this.props.style,
+        ])}
       >
         {this.props.title && (
           <Text
@@ -76,12 +76,14 @@ class Header extends Component<Props> {
 Header.defaultProps = {type: 'Default', windowDragging: true}
 
 const styles = {
-  container: {
-    ...globalStyles.flexBoxRow,
-    ...desktopStyles.noSelect,
-    paddingLeft: 10,
-    paddingRight: 10,
-  },
+  container: collapseStyles([
+    globalStyles.flexBoxRow,
+    desktopStyles.noSelect,
+    {
+      paddingLeft: 10,
+      paddingRight: 10,
+    },
+  ]),
   logo: {
     width: 22,
     height: 22,
@@ -97,10 +99,7 @@ const styles = {
     paddingBottom: 12,
   },
 
-  closeIcon: {
-    ...desktopStyles.windowDraggingClickable,
-    ...desktopStyles.clickable,
-  },
+  closeIcon: collapseStyles([desktopStyles.windowDraggingClickable, desktopStyles.clickable]),
 }
 
 export default Header

@@ -92,7 +92,8 @@ class Fullscreen extends React.Component<Props, {loaded: boolean}> {
         </Box>
         <Icon
           type="iconfont-ellipsis"
-          style={{...styleHeaderFooter, color: globalColors.white}}
+          style={styleHeaderFooter}
+          color={globalColors.white}
           onClick={() => this.props.onShowMenu(null)}
         />
       </Box>

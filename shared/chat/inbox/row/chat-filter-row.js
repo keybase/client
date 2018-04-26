@@ -85,9 +85,9 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           key="0"
           type="iconfont-search"
           style={{
-            color: globalColors.black_20,
             marginRight: globalMargins.tiny,
           }}
+          color={globalColors.black_20}
         />,
         <Input
           hideUnderline={true}
@@ -113,10 +113,10 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           <Icon
             type="iconfont-search"
             style={{
-              color: globalColors.black_20,
-              fontSize: isMobile ? 14 : 16,
               marginLeft: globalMargins.tiny,
             }}
+            color={globalColors.black_20}
+            fontSize={isMobile ? 14 : 16}
           />
           <Text type="Body" style={{color: globalColors.black_40, marginLeft: globalMargins.tiny}}>
             Jump to chat
@@ -129,7 +129,9 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
         {children}
         <Icon
           type="iconfont-compose"
-          style={isMobile ? styleIconComposeMobile : styleIconCompose}
+          style={propsIconPlatform.style}
+          color={propsIconPlatform.color}
+          fontSize={propsIconPlatform.fontSize}
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading && (
@@ -177,15 +179,20 @@ const styleFilterContainerMobile = {
   marginRight: globalMargins.small,
 }
 
-const styleIconCompose = {
+const propsIconCompose = {
   color: globalColors.blue,
   fontSize: 16,
+  style: {},
 }
 
-const styleIconComposeMobile = {
-  ...styleIconCompose,
+const propsIconComposeMobile = {
+  ...propsIconCompose,
   fontSize: 20,
-  padding: globalMargins.xtiny,
+  style: {
+    padding: globalMargins.xtiny,
+  },
 }
+
+const propsIconPlatform = isMobile ? propsIconComposeMobile : propsIconCompose
 
 export default (isMobile ? ChatFilterRow : KeyHandler(ChatFilterRow))

@@ -8,6 +8,7 @@ import {
   globalColors,
   globalMargins,
   isMobile,
+  platformStyles,
 } from '../../../../styles'
 
 type Props = {
@@ -31,7 +32,7 @@ class BigTeamHeader extends React.PureComponent<Props> {
           onClick={props.onClickGear}
           style={collapseStyles([globalStyles.flexBoxRow, {position: 'relative'}])}
         >
-          <Icon className="icon" type="iconfont-gear" style={iconStyle} />
+          <Icon className="icon" type="iconfont-gear" fontSize={iconFontSize} color={globalColors.black_20} />
           <Box
             style={collapseStyles([badgeStyle, props.badgeSubscribe && {backgroundColor: globalColors.blue}])}
           />
@@ -41,21 +42,26 @@ class BigTeamHeader extends React.PureComponent<Props> {
   }
 }
 
-const teamRowContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-  flexShrink: 0,
-  maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  minHeight: isMobile ? globalMargins.large : globalMargins.medium,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-}
+const iconFontSize = isMobile ? 20 : 16
 
-const iconStyle = {
-  color: globalColors.black_20,
-  fontSize: isMobile ? 20 : 16,
-}
+const teamRowContainerStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexShrink: 0,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+  },
+  isElectron: {
+    ...desktopStyles.clickable,
+    maxHeight: globalMargins.medium,
+    minHeight: globalMargins.medium,
+  },
+  isMobile: {
+    maxHeight: globalMargins.large,
+    minHeight: globalMargins.large,
+  },
+})
 
 const teamStyle = {
   color: globalColors.darkBlue,

@@ -54,10 +54,10 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
       <Icon
         type="iconfont-people"
         style={{
-          color: globalColors.blue,
-          fontSize: 24,
           padding: globalMargins.xtiny,
         }}
+        color={globalColors.blue}
+        fontSize={24}
       />
     )}
 

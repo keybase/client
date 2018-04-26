@@ -47,7 +47,8 @@ const SmallTeamHeader = ({teamname, participantCount, onClick, onClickGear}: Sma
       <Icon
         type="iconfont-gear"
         onClick={_onClickGear}
-        style={{marginRight: 16, width: gearIconSize, height: gearIconSize, fontSize: gearIconSize}}
+        style={{marginRight: 16, width: gearIconSize, height: gearIconSize}}
+        fontSize={gearIconSize}
       />
     </ClickableBox>
   )

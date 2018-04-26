@@ -92,7 +92,9 @@ class SimpleTopLine extends React.Component<Props> {
             type="iconfont-gear"
             className="small-team-gear"
             onClick={this.props.onClickGear}
-            style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
+            color={this.props.subColor}
+            fontSize={14}
+            hoverColor={this.props.iconHoverColor}
           />
         )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}

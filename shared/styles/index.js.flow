@@ -84,4 +84,4 @@ declare export var isMobile: boolean
 declare export var isIPhoneX: boolean
 
 declare export var backgroundModeToColor: {[key: Background]: string}
-export type {StylesDesktop, StylesMobile, StylesCrossPlatform} from './css'
+export type {StylesDesktop, StylesMobile, StylesCrossPlatform, Color} from './css'
