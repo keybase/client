@@ -45,6 +45,11 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 }
 
 func (t *Team) CanSkipKeyRotation(now time.Time) bool {
+	// Only applies for >=50 member teams.
+	const MinTeamSize = 50
+	// Aim for one rotation every 24h.
+	const KeyRotateInterval = time.Duration(24) * time.Hour
+
 	if t.IsImplicit() {
 		// Do not do this optimization for implicit teams.
 		return false
@@ -55,14 +60,14 @@ func (t *Team) CanSkipKeyRotation(now time.Time) bool {
 	if err != nil {
 		return false
 	}
-	if len(members) < 50 {
+	if len(members) < MinTeamSize {
 		// Not a big team
 		return false
 	}
 
 	duration := now.Sub(time.Unix(int64(t.chain().GetLatestPerTeamKeyCTime()), 0))
-	if duration > time.Duration(24)*time.Hour {
-		// Last key rotation was more than 24 hours ago.
+	if duration > KeyRotateInterval {
+		// Last key rotation was more than predefined interval.
 		return false
 	}
 	// Time is big and key was rotated recently - can skip rotation.
