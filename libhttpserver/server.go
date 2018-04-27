@@ -5,6 +5,7 @@
 package libhttpserver
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -54,7 +55,7 @@ func (s *Server) handleInvalidToken(w http.ResponseWriter) {
 	io.WriteString(w, `
     <html>
         <head>
-            <title>.kbfs_http_token_invalid</title>
+            <title>KBFS HTTP Token Invalid</title>
         </head>
         <body>
             token invalid
@@ -67,25 +68,19 @@ func (s *Server) handleBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func (s *Server) getHTTPFileSystem(
-	req *http.Request) (toStrip string, fs http.FileSystem, err error) {
-	fields := strings.Split(req.URL.Path, "/")
+func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
+	toStrip string, fs http.FileSystem, err error) {
+	fields := strings.Split(requestPath, "/")
 	if len(fields) < 3 {
 		return "", nil, errors.New("bad path")
 	}
-	var tlfType tlf.Type
-	switch strings.ToLower(fields[0]) {
-	case "private":
-		tlfType = tlf.Private
-	case "public":
-		tlfType = tlf.Public
-	case "team":
-		tlfType = tlf.SingleTeam
-	default:
-		return "", nil, errors.New("unknown tlf type")
+
+	tlfType, err := tlf.ParseTlfType(fields[0])
+	if err != nil {
+		return "", nil, err
 	}
 
-	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(req.Context(),
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(ctx,
 		s.config.KBPKI(), s.config.MDOps(), fields[1], tlfType)
 	if err != nil {
 		return "", nil, err
@@ -96,18 +91,18 @@ func (s *Server) getHTTPFileSystem(
 	fav := tlfHandle.ToFavorite()
 	if fsCached, ok := s.fs.Get(fav); ok {
 		if tlfFS, ok := fsCached.(*libfs.FS); ok {
-			return toStrip, tlfFS.ToHTTPFileSystem(req.Context()), nil
+			return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 		}
 	}
 
-	tlfFS, err := libfs.NewFS(req.Context(),
+	tlfFS, err := libfs.NewFS(ctx,
 		s.config, tlfHandle, "", "", keybase1.MDPriorityNormal)
 	if err != nil {
 		return "", nil, err
 	}
 	s.fs.Add(fav, tlfFS)
 
-	return toStrip, tlfFS.ToHTTPFileSystem(req.Context()), nil
+	return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 }
 
 // serve accetps "/<fs path>?token=<token>"
@@ -119,7 +114,7 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 		s.handleInvalidToken(w)
 		return
 	}
-	toStrip, fs, err := s.getHTTPFileSystem(req)
+	toStrip, fs, err := s.getHTTPFileSystem(req.Context(), req.URL.Path)
 	if err != nil {
 		s.handleBadRequest(w)
 		return
