@@ -43,7 +43,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		// explicitly sync it.
 		keyring, err := tcX.G.GetPerUserKeyring()
 		require.NoError(t, err)
-		err = keyring.Sync(context.Background())
+		err = keyring.Sync(libkb.NewMetaContext(context.Background(), tcX.G))
 		require.NoError(t, err)
 
 		ekLib := tcX.G.GetEKLib()
