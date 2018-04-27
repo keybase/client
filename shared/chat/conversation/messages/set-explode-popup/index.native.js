@@ -77,6 +77,7 @@ class SetExplodePopup extends React.Component<Props, State> {
         onCancel={this.props.onHidden}
         onDone={this.onDone}
         prompt={<Prompt />}
+        promptString="Explode message after"
         visible={this.props.visible}
         selectedValue={this.state.selected.seconds}
       />

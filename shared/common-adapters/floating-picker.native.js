@@ -5,6 +5,7 @@ import Box, {Box2} from './box'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import FloatingBox from './floating-box.native'
+import {isAndroid} from '../constants/platform'
 
 type PickerItem = {label: string, value: string | number}
 
@@ -14,6 +15,7 @@ type Props = {
   onSelect: (string | number) => void,
   header?: Node,
   prompt?: Node,
+  promptString?: string, // used on android as title of selection popup
   onHidden: () => void,
   onCancel: () => void,
   onDone: () => void,
@@ -58,6 +60,11 @@ const FloatingPicker = (props: Props) => {
             <Picker
               selectedValue={props.selectedValue}
               onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
+              prompt={props.promptString}
+              style={
+                // Make sure we're far from the action buttons
+                isAndroid ? {marginBottom: globalMargins.large, marginTop: globalMargins.medium} : undefined
+              }
             >
               {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
             </Picker>
