@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type PreMentionHocProps, type Props} from '../normal/platform-index'
+import {type PreMentionHocProps, type Props} from '../platform-index'
 
 declare function mentionHoc(input: React.ComponentType<Props>): React.ComponentType<PreMentionHocProps>
 

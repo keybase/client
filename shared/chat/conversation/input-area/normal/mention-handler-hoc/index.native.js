@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {type Props, type PreMentionHocProps} from '../normal/platform-index'
-import {Input} from '../../../../common-adapters'
+import {type Props, type PreMentionHocProps} from '../platform-index'
+import {Input} from '../../../../../common-adapters'
 
 type MentionHocState = {
   pickSelectedCounter: number,
