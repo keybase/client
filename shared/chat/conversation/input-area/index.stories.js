@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {Set} from 'immutable'
-import {Input as TextInput} from '../../../common-adapters'
 import {Box2} from '../../../common-adapters/box'
 import {platformStyles} from '../../../styles'
 import * as PropProviders from '../../../stories/prop-providers'
@@ -51,25 +50,10 @@ const boxProps = {
 }
 
 class InputContainer extends React.Component<Props> {
-  _input: ?TextInput
-
-  constructor(props) {
-    super(props)
-    this._input = null
-  }
-
-  _inputSetRef = (ref: ?TextInput) => {
-    this._input = ref
-  }
-
   render = () => {
     const props: InputProps = {
       _quotingMessage: null,
       _editingMessage: null,
-
-      // Need to inject this manually since we're not loading from
-      // normal/container.js.
-      inputSelections: () => (this._input ? this._input.selections() : {}),
 
       conversationIDKey: stringToConversationIDKey('fake conversation id key'),
       channelName: 'somechannel',

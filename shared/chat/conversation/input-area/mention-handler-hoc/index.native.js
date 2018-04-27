@@ -29,8 +29,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       }
     }
 
-    inputSetRef = (input: ?Input) => {
-      this.props._inputSetRef(input)
+    _inputSetRef = (input: ?Input) => {
+      this.props.inputSetRef(input)
       this._inputRef = input
     }
 
@@ -157,7 +157,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         insertMention={this.insertMention}
         setMentionPopupOpen={this.setMentionPopupOpen}
         setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
-        inputSetRef={this.inputSetRef}
+        inputSetRef={this._inputSetRef}
         insertMentionMarker={this.insertMentionMarker}
         onBlur={this.onBlur}
         onFocus={this.onFocus}

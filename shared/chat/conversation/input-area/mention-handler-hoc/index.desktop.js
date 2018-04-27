@@ -43,8 +43,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this.setState({channelMentionFilter})
     }
 
-    inputSetRef = (input: ?Input) => {
-      this.props._inputSetRef(input)
+    _inputSetRef = (input: ?Input) => {
+      this.props.inputSetRef(input)
       this._inputRef = input
     }
 
@@ -221,7 +221,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         <InputComponent
           {...this.props}
           {...this.state}
-          inputSetRef={this.inputSetRef}
+          inputSetRef={this._inputSetRef}
           insertMention={this.insertMention}
           switchMention={this.switchMention}
           insertChannelMention={this.insertChannelMention}
