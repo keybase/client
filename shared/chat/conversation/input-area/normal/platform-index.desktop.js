@@ -5,7 +5,7 @@ import {Box, Icon, Input, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
-import {compose, withHandlers, withStateHandlers} from 'recompose'
+import {compose, withHandlers} from 'recompose'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
@@ -13,8 +13,6 @@ import type {PlatformInputProps} from './platform-index'
 
 type DesktopInputProps = {
   inputSelections: () => ?{selectionStart: number, selectionEnd: number},
-  emojiPickerOpen: boolean,
-  emojiPickerToggle: () => void,
   filePickerFiles: () => FileList | [],
   filePickerOpen: () => void,
   filePickerSetValue: (value: string) => void,
@@ -31,7 +29,22 @@ const MentionCatcher = ({onClick}) => (
   />
 )
 
-class PlatformInput extends Component<DesktopInputProps> {
+type State = {
+  emojiPickerOpen: boolean,
+}
+
+class PlatformInput extends Component<DesktopInputProps, State> {
+  constructor(props: DesktopInputProps) {
+    super(props)
+    this.state = {
+      emojiPickerOpen: false,
+    }
+  }
+
+  _emojiPickerToggle = () => {
+    this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
   componentDidMount() {
     this._registerBodyEvents(true)
   }
@@ -91,7 +104,7 @@ class PlatformInput extends Component<DesktopInputProps> {
 
   _pickerOnClick = emoji => {
     this._insertEmoji(emoji.colons)
-    this.props.emojiPickerToggle()
+    this._emojiPickerToggle()
   }
 
   _pickFile = () => {
@@ -202,11 +215,11 @@ class PlatformInput extends Component<DesktopInputProps> {
               onKeyUp={this.props.onKeyUp}
               onEnterKeyDown={this.props.onEnterKeyDown}
             />
-            {this.props.emojiPickerOpen && (
-              <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+            {this.state.emojiPickerOpen && (
+              <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
             <Icon
-              onClick={this.props.pendingWaiting ? undefined : this.props.emojiPickerToggle}
+              onClick={this.props.pendingWaiting ? undefined : this._emojiPickerToggle}
               style={styleIcon}
               type="iconfont-emoji"
             />
@@ -351,10 +364,6 @@ const styleFooter = platformStyles({
 })
 
 export default compose(
-  withStateHandlers(
-    {emojiPickerOpen: false},
-    {emojiPickerToggle: ({emojiPickerOpen}) => () => ({emojiPickerOpen: !emojiPickerOpen})}
-  ),
   withHandlers(props => {
     let fileInput: ?HTMLInputElement
     return {
