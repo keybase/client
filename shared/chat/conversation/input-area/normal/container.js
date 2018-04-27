@@ -114,23 +114,17 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
-  _editingMessage: stateProps._editingMessage,
-  _quotingMessage: stateProps._quotingMessage,
-  channelName: stateProps._meta.channelname,
-  clearInboxFilter: dispatchProps.clearInboxFilter,
   conversationIDKey: stateProps.conversationIDKey,
-  focusInputCounter: ownProps.focusInputCounter,
-  injectedInput: stateProps.injectedInput,
+  channelName: stateProps._meta.channelname,
   isEditing: !!stateProps._editingMessage,
-  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
-  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+  focusInputCounter: ownProps.focusInputCounter,
+  clearInboxFilter: dispatchProps.clearInboxFilter,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+  onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onCancelEditing: () => {
     dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
     dispatchProps._onCancelEditing(stateProps.conversationIDKey)
   },
-  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
-  onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onSubmit: (text: string) => {
     const em = stateProps._editingMessage
     if (em) {
@@ -145,10 +139,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     ownProps.onScrollDown()
   },
   pendingWaiting: stateProps.pendingWaiting,
+  typing: stateProps.typing,
+
+  _quotingMessage: stateProps._quotingMessage,
+  _editingMessage: stateProps._editingMessage,
+  injectedInput: stateProps.injectedInput,
+
+  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+
+  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
+
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
-  typing: stateProps.typing,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Input)
