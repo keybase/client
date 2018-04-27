@@ -2,10 +2,12 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import MessagePopupHeader from '../header'
-import {ModalLessPopupMenu} from '../../../../../common-adapters/popup-menu'
+import {FloatingMenu} from '../../../../../common-adapters/'
 import {fileUIName, isMobile} from '../../../../../styles'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
+  attachTo: ?React.Component<*, *>,
   message: Types.MessageAttachment,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
@@ -14,7 +16,9 @@ type Props = {
   onSaveAttachment: null | (() => void),
   onShareAttachment: null | (() => void),
   onShowInFinder: null | (() => void),
+  position: Position,
   style?: Object,
+  visible: boolean,
   yourMessage: boolean,
 }
 
@@ -56,12 +60,15 @@ const AttachmentPopupMenu = (props: Props) => {
     ),
   }
   return (
-    <ModalLessPopupMenu
+    <FloatingMenu
+      attachTo={props.attachTo}
       header={header}
       items={items}
       onHidden={props.onHidden}
-      closeOnClick={true}
+      closeOnSelect={true}
+      position={props.position}
       style={{...stylePopup, ...props.style}}
+      visible={props.visible}
     />
   )
 }

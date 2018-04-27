@@ -1,22 +1,36 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import AttachmentMessage from './attachment/container'
 import TextMessage from './text/container'
+import type {Position} from '../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  routeProps: I.RecordOf<{message: Types.MessageText}>,
-  onClosePopup: () => void,
+  attachTo: ?React.Component<*, *>,
+  message: Types.MessageText,
+  onHidden: () => void,
+  position: Position,
+  visible: boolean,
 }
 
 class MessageAction extends React.PureComponent<Props> {
   render() {
-    const message = this.props.routeProps.get('message')
-    return message.type === 'text' ? (
-      <TextMessage message={message} onClosePopup={this.props.onClosePopup} />
+    return this.props.message.type === 'text' ? (
+      <TextMessage
+        attachTo={this.props.attachTo}
+        message={this.props.message}
+        onHidden={this.props.onHidden}
+        position={this.props.position}
+        visible={this.props.visible}
+      />
     ) : (
-      <AttachmentMessage message={message} onClosePopup={this.props.onClosePopup} />
+      <AttachmentMessage
+        attachTo={this.props.attachTo}
+        message={this.props.message}
+        onHidden={this.props.onHidden}
+        position={this.props.position}
+        visible={this.props.visible}
+      />
     )
   }
 }
