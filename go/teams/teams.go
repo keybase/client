@@ -49,12 +49,12 @@ func (t *Team) CanSkipKeyRotation(now time.Time) bool {
 		// Do not do this optimization for implicit teams.
 		return false
 	}
+
 	// If cannot decide because of an error, return default false.
 	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
 	if err != nil {
 		return false
 	}
-
 	if len(members) < 50 {
 		// Not a big team
 		return false
@@ -65,7 +65,6 @@ func (t *Team) CanSkipKeyRotation(now time.Time) bool {
 		// Last key rotation was more than 24 hours ago.
 		return false
 	}
-
 	// Time is big and key was rotated recently - can skip rotation.
 	return true
 }
