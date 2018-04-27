@@ -16,7 +16,10 @@ const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFold
     {canChat && (
       <Icon
         onClick={onChat}
-        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
+        style={{
+          marginRight: globalMargins.tiny,
+        }}
+        fontSize={isMobile ? 20 : 16}
         type="iconfont-chat"
       />
     )}
@@ -24,7 +27,10 @@ const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFold
       canViewFolder && (
         <Icon
           onClick={onOpenFolder}
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
+          style={{
+            marginRight: globalMargins.tiny,
+          }}
+          fontSize={isMobile ? 20 : 16}
           type="iconfont-folder-private"
         />
       )}
@@ -32,9 +38,9 @@ const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFold
       onClick={evt => onShowMenu(isMobile ? undefined : evt.target)}
       type="iconfont-ellipsis"
       style={{
-        fontSize: isMobile ? 20 : 16,
         marginRight: globalMargins.tiny,
       }}
+      fontSize={isMobile ? 20 : 16}
     />
   </Box>
 )
