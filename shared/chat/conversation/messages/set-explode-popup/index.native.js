@@ -2,17 +2,20 @@
 import * as React from 'react'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {Box, Icon, Text, FloatingPicker} from '../../../../common-adapters/index.native'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/index.native'
+import {globalColors, globalMargins} from '../../../../styles'
 import type {Props} from '.'
 
 const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
 const Announcement = () => (
-  <Box style={announcementContainerStyle}>
-    <Box style={{marginTop: -10, marginBottom: -10}}>
-      <Icon type="iconfont-boom" color={globalColors.white} fontSize={48} />
-    </Box>
+  <Box2 direction="vertical" fullWidth={true} style={announcementContainerStyle}>
+    <Icon
+      type="iconfont-boom"
+      color={globalColors.white}
+      fontSize={48}
+      style={{marginTop: -10, marginBottom: -10}}
+    />
     <Text
       type="BodySemibold"
       backgroundMode="Announcements"
@@ -26,11 +29,10 @@ const Announcement = () => (
     >
       Set a timeout on your messages and watch them E X P L O D E
     </Text>
-  </Box>
+  </Box2>
 )
 
 const announcementContainerStyle = {
-  ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.blue,
   padding: globalMargins.small,
