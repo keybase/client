@@ -472,8 +472,6 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 	tc.G.Logout()
 	require.NoError(t, owner.Login(tc.G))
 
-	t.Logf("Created team %q", name)
-
 	err = ChangeTeamSettings(context.Background(), tc.G, name, keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_WRITER,
@@ -526,4 +524,31 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 	allUVs := members.AllUserVersions()
 	require.Len(t, allUVs, 1)
 	require.Contains(t, allUVs, keybase1.NewUserVersion(owner.User.GetUID(), owner.EldestSeqno))
+}
+
+func TestRemoveWithoutRotation(t *testing.T) {
+	tc, _, otherA, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
+
+	team, err := GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+
+	uv := keybase1.NewUserVersion(otherA.User.GetUID(), otherA.EldestSeqno)
+	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
+
+	opts := ChangeMembershipOptions{
+		DontRotateKey: true,
+	}
+	err = team.ChangeMembershipWithOptions(context.Background(), req, opts)
+	require.NoError(t, err)
+
+	require.EqualValues(t, 1, team.Generation())
+
+	team, err = GetForTestByStringName(context.Background(), tc.G, name)
+	require.NoError(t, err)
+	// Generation should still be one, ChangeMembership should not
+	// have posted new key.
+	require.EqualValues(t, 1, team.Generation())
 }

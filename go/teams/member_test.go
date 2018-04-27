@@ -49,6 +49,7 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 	}
 
 	name = createTeam(tc)
+	t.Logf("Created team %q", name)
 
 	return tc, owner, otherA, otherB, name
 }
