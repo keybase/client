@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Text, Box, Icon, PopupMenu} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
+import {Text, Box, Icon, FloatingMenu} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
 
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
@@ -29,7 +30,7 @@ type Props = {
   channelName: string,
   disabled: boolean,
   onConfirmedDelete: () => void,
-}
+} & FloatingMenuParentProps
 
 type State = {}
 
@@ -38,28 +39,26 @@ const stylePopup = {
   width: 196,
 }
 
-class DeleteChannel extends React.Component<Props, State> {
-  // The DOM manipulations below implicitly assume that we're on
-  // desktop. We'll probably have to handle mobile differently,
-  // anyway.
+class _DeleteChannel extends React.Component<Props, State> {
+  render() {
+    const {disabled} = this.props
 
-  _hidePopup = () => {
-    if (!isMobile) {
-      const ReactDOM = require('react-dom')
-      ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-    }
-  }
-
-  _onClick(event: SyntheticEvent<>) {
-    const target = (event.target: any)
-    const clientRect = target.getBoundingClientRect()
-
-    // Position next to button (client rect)
-    // TODO: Measure instead of pixel math
-    const x = clientRect.left - 32
-    let y = clientRect.top - 176
-    if (y < 10) y = 10
-    const style = {left: x, position: 'absolute', top: y}
+    const boxStyle = platformStyles({
+      common: {
+        ...globalStyles.flexBoxRow,
+        opacity: disabled ? 0.5 : undefined,
+      },
+      isElectron: {
+        position: 'absolute',
+        left: 0,
+      },
+      isMobile: {
+        paddingLeft: globalMargins.large,
+        paddingRight: globalMargins.large,
+        paddingTop: globalMargins.medium,
+        paddingBottom: globalMargins.medium,
+      },
+    })
 
     const header = {
       title: 'header',
@@ -69,44 +68,29 @@ class DeleteChannel extends React.Component<Props, State> {
     const items = [
       'Divider',
       {danger: true, onClick: this.props.onConfirmedDelete, title: 'Yes, delete channel'},
-      {title: 'Cancel'},
+      {onClick: this.props.toggleShowingMenu, title: 'Cancel'},
     ]
-    const popupComponent = (
-      <PopupMenu
-        header={header}
-        items={items}
-        onHidden={() => this._hidePopup()}
-        style={{...stylePopup, ...style}}
-      />
-    )
-    const container = document.getElementById('popupContainer')
-    if (!isMobile) {
-      const ReactDOM = require('react-dom')
-      // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
-    }
-  }
 
-  render() {
-    const {disabled} = this.props
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          position: 'absolute',
-          left: 0,
-          opacity: disabled ? 0.5 : undefined,
-        }}
-      >
+      <Box style={boxStyle}>
         <Icon
           type="iconfont-trash"
           style={{height: 14, marginRight: globalMargins.tiny}}
           color={globalColors.red}
         />
+        <FloatingMenu
+          header={header}
+          items={items}
+          attachTo={this.props.attachmentRef}
+          style={stylePopup}
+          visible={this.props.showingMenu}
+          onHidden={this.props.toggleShowingMenu}
+        />
         <Text
           type={disabled ? 'Body' : 'BodyPrimaryLink'}
           style={{color: globalColors.red}}
-          onClick={disabled ? undefined : e => this._onClick(e)}
+          onClick={this.props.toggleShowingMenu}
+          ref={this.props.setAttachmentRef}
         >
           Delete Channel
         </Text>
@@ -115,4 +99,5 @@ class DeleteChannel extends React.Component<Props, State> {
   }
 }
 
+const DeleteChannel = FloatingMenuParentHOC(_DeleteChannel)
 export default DeleteChannel
