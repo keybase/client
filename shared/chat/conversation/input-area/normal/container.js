@@ -17,7 +17,7 @@ import {
   type Dispatch,
 } from '../../../../util/container'
 import {isEqual, throttle} from 'lodash-es'
-import MentionHocInput, {type PropsFromContainer} from './index-shared'
+import Input, {type Props} from './index-shared'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -157,7 +157,7 @@ const throttled = throttle((f, param) => f(param), 1000)
 // With the heavy use of recompose below, it's pretty difficult to
 // figure out the types passed into the various handlers. This type is
 // good enough to use in the lifecycle methods.
-type LifecycleProps = PropsFromContainer & {
+type LifecycleProps = Props & {
   _quotingMessage: ?Types.Message,
   _editingMessage: ?Types.Message,
   setText: (string, skipUnsentSaving?: boolean) => void,
@@ -244,4 +244,4 @@ export default compose(
       }
     },
   })
-)(MentionHocInput)
+)(Input)

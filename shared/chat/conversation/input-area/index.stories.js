@@ -6,7 +6,7 @@ import {Box2} from '../../../common-adapters/box'
 import {platformStyles} from '../../../styles'
 import * as PropProviders from '../../../stories/prop-providers'
 import {action, storiesOf} from '../../../stories/storybook'
-import {default as Input, type PropsFromContainer} from './normal/index-shared'
+import Input, {type Props as InputProps} from './normal/index-shared'
 import {isMobile} from '../../../constants/platform'
 import {stringToConversationIDKey} from '../../../constants/types/chat2'
 
@@ -77,7 +77,7 @@ class InputContainer extends React.Component<Props, State> {
   }
 
   render = () => {
-    const props: PropsFromContainer = {
+    const props: InputProps = {
       _inputSetRef: this._inputSetRef,
       _onKeyDown: (e: SyntheticKeyboardEvent<>) => {
         action('_onKeyDown')(e.key)
