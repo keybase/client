@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
+import {type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {
   globalStyles,
   globalMargins,
@@ -11,6 +12,7 @@ import {
 } from '../../../../styles'
 import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
+import MessagePopup from '../message-popup'
 
 import type {Props} from '.'
 
@@ -86,14 +88,14 @@ const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
   )
 }
 
-class MessageWrapper extends React.PureComponent<Props> {
+class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
   render() {
     const props = this.props
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <Box style={collapseStyles([styles.flexOneRow, props.isSelected && styles.selected])}>
+        <Box style={collapseStyles([styles.flexOneRow, props.showingMenu && styles.selected])}>
           <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
             <Box style={globalStyles.flexBoxColumn}>
               <UserAvatar
@@ -127,7 +129,14 @@ class MessageWrapper extends React.PureComponent<Props> {
                   <props.innerClass message={props.message} isEditing={props.isEditing} />
                   {props.isEdited && <EditedMark />}
                 </Box>
-                {!isMobile && <MenuButton onClick={props.onShowMenu} />}
+                {!isMobile && <MenuButton ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
+                <MessagePopup
+                  attachTo={props.attachmentRef}
+                  message={props.message}
+                  onHidden={props.toggleShowingMenu}
+                  position="bottom left"
+                  visible={props.showingMenu}
+                />
                 {props.isRevoked && (
                   <Icon
                     type="iconfont-exclamation"
