@@ -13,6 +13,16 @@ type OwnProps = {
   onScrollDown: () => void,
 }
 
+const unsentText: {[Types.ConversationIDKey]: string} = {}
+
+const getUnsentText = (conversationIDKey: Types.ConversationIDKey): string => {
+  return unsentText[conversationIDKey] || ''
+}
+
+const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string) => {
+  unsentText[conversationIDKey] = text
+}
+
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
   const _editingMessage: ?Types.Message = editingOrdinal
@@ -112,6 +122,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   focusInputCounter: ownProps.focusInputCounter,
   injectedInput: stateProps.injectedInput,
   isEditing: !!stateProps._editingMessage,
+  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => {
     dispatchProps._onCancelQuoting(stateProps.conversationIDKey)

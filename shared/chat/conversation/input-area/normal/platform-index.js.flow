@@ -23,6 +23,8 @@ export type InputProps = CommonProps & {
   _editingMessage: ?Types.Message,
   injectedInput: string,
 
+  getUnsentText: () => string,
+  setUnsentText: (text: string) => void,
   onCancelQuoting: () => void,
   sendTyping: (typing: boolean) => void,
 }

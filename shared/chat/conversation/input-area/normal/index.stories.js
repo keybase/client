@@ -60,6 +60,11 @@ class InputContainer extends React.Component<Props> {
       isEditing: this.props.isEditing,
       focusInputCounter: 0,
       clearInboxFilter: action('clearInboxFilter'),
+      getUnsentText: () => {
+        action('getUnsentText')()
+        return ''
+      },
+      setUnsentText: action('setUnsentText'),
       inputBlur: action('inputBlur'),
       inputClear: action('inputClear'),
       inputFocus: action('inputFocus'),

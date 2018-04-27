@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
-import * as Types from '../../../../constants/types/chat2'
 import {isMobile} from '../../../../util/container'
 import MentionInput from './mention-input'
 import {type InputProps} from './platform-index'
@@ -12,8 +11,6 @@ type State = {
   text: string,
 }
 
-const unsentText: {[Types.ConversationIDKey]: string} = {}
-
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
@@ -23,14 +20,14 @@ class Input extends React.Component<InputProps, State> {
   constructor(props: InputProps) {
     super(props)
     this.state = {
-      text: unsentText[props.conversationIDKey] || '',
+      text: props.getUnsentText(),
     }
   }
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
     this.setState({text})
     if (!skipUnsentSaving) {
-      unsentText[this.props.conversationIDKey] = text
+      this.props.setUnsentText(text)
     }
 
     throttled(this.props.sendTyping, !!text)
@@ -93,7 +90,7 @@ class Input extends React.Component<InputProps, State> {
       !isMobile && this._inputMoveToEnd()
       this._inputFocus()
     } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
-      const text = unsentText[nextProps.conversationIDKey] || ''
+      const text = nextProps.getUnsentText()
       this._setText(text, true)
     }
 
