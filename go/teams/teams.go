@@ -1332,13 +1332,18 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, dontRotate
 	// if there are any removals happening, need to rotate the
 	// team key, and recipients will be all the users in the team
 	// after the removal.
-	if memSet.HasRemoval() && !dontRotateKey {
-		// key is rotating, so recipients needs to be all the remaining members
-		// of the team after the removal (and including any new members in this
-		// change)
-		t.G().Log.Debug("team change request contains removal, rotating team key")
-		boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
-		return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
+	if memSet.HasRemoval() {
+		if !dontRotateKey {
+			// key is rotating, so recipients needs to be all the remaining members
+			// of the team after the removal (and including any new members in this
+			// change)
+			t.G().Log.Debug("recipientBoxes: Team change request contains removal, rotating team key")
+			boxes, perTeamKey, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+			return boxes, implicitAdminBoxes, perTeamKey, teamEKPayload, err
+		}
+
+		// If we don't rotate key, continue with the usual boxing.
+		t.G().Log.Debug("recipientBoxes: Skipping key rotation")
 	}
 
 	// don't need keys for existing members, so remove them from the set
