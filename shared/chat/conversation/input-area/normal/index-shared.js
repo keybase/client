@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react'
+import * as I from 'immutable'
+import {Input as TextInput} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
 import {default as _Input} from '.'
@@ -8,7 +10,32 @@ import {throttle} from 'lodash-es'
 // For some reason, flow can't infer the type of mentionHoc here.
 const MentionHocInput: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
 
-type Props = PropsFromContainer & {
+type Props = {
+  // Subset of PreMentionHocProps.
+  conversationIDKey: Types.ConversationIDKey,
+  channelName: ?string,
+  isEditing: boolean,
+  focusInputCounter: number,
+  clearInboxFilter: () => void,
+  inputBlur: () => void,
+  inputClear: () => void,
+  inputFocus: () => void,
+  inputSetRef: (r: ?TextInput) => void,
+  inputValue: () => string,
+  onAttach: (paths: Array<string>) => void,
+  onEditLastMessage: () => void,
+  onCancelEditing: () => void,
+  onJoinChannel: () => void,
+  onLeaveChannel: () => void,
+  onSubmit: (text: string) => void,
+  pendingWaiting: boolean,
+  typing: I.Set<string>,
+
+  // From PropsFromContainer.
+  _inputSetRef: (?TextInput) => void,
+  _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
+
+  // Added.
   sendTyping: (typing: boolean) => void,
 }
 
@@ -39,7 +66,7 @@ class Input extends React.Component<Props, State> {
   }
 
   render = () => {
-    return <MentionHocInput {...this.props} />
+    return <MentionHocInput {...this.props} text={this.state.text} setText={this.setText} />
   }
 }
 

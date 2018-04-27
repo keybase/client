@@ -34,12 +34,7 @@ const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima'
 type Props = {
   isEditing: boolean,
   pendingWaiting: boolean,
-  text: string,
   typing: Set<string>,
-}
-
-type State = {
-  text: string,
 }
 
 // On mobile, we want full width and height. On desktop, we we want to
@@ -55,25 +50,16 @@ const boxProps = {
   }),
 }
 
-class InputContainer extends React.Component<Props, State> {
+class InputContainer extends React.Component<Props> {
   _input: ?TextInput
 
   constructor(props) {
     super(props)
-    this.state = {text: ''}
     this._input = null
-  }
-
-  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
-    return {text: nextProps.text}
   }
 
   _inputSetRef = (ref: ?TextInput) => {
     this._input = ref
-  }
-
-  _setText = (text: string) => {
-    this.setState({text})
   }
 
   render = () => {
@@ -110,8 +96,6 @@ class InputContainer extends React.Component<Props, State> {
         action('onSubmit')(text)
       },
       pendingWaiting: this.props.pendingWaiting,
-      setText: this._setText,
-      text: this.state.text,
       typing: this.props.typing,
 
       sendTyping: action('sendTyping'),
@@ -128,27 +112,18 @@ class InputContainer extends React.Component<Props, State> {
 const load = () => {
   storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
-    .add('Normal', () => <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set()} />)
+    .add('Normal', () => <InputContainer isEditing={false} pendingWaiting={false} typing={Set()} />)
     .add('Typing 1', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris'])} />
+      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris'])} />
     ))
     .add('Typing 2', () => (
-      <InputContainer isEditing={false} pendingWaiting={false} text="" typing={Set(['chris', 'strib'])} />
+      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris', 'strib'])} />
     ))
     .add('Typing 3', () => (
-      <InputContainer
-        isEditing={false}
-        pendingWaiting={false}
-        text=""
-        typing={Set(['chris', 'strib', 'fred'])}
-      />
+      <InputContainer isEditing={false} pendingWaiting={false} typing={Set(['chris', 'strib', 'fred'])} />
     ))
-    .add('Editing', () => (
-      <InputContainer isEditing={true} pendingWaiting={false} text="some text" typing={Set()} />
-    ))
-    .add('Pending waiting', () => (
-      <InputContainer isEditing={false} pendingWaiting={true} text="" typing={Set()} />
-    ))
+    .add('Editing', () => <InputContainer isEditing={true} pendingWaiting={false} typing={Set()} />)
+    .add('Pending waiting', () => <InputContainer isEditing={false} pendingWaiting={true} typing={Set()} />)
 }
 
 export default load
