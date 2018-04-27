@@ -65,8 +65,20 @@ class Input extends React.Component<Props, State> {
     throttled(this.props.sendTyping, !!text)
   }
 
+  _onSubmit = (text: string) => {
+    this.props.onSubmit(text)
+    this.setText('')
+  }
+
   render = () => {
-    return <MentionHocInput {...this.props} text={this.state.text} setText={this.setText} />
+    return (
+      <MentionHocInput
+        {...this.props}
+        onSubmit={this._onSubmit}
+        text={this.state.text}
+        setText={this.setText}
+      />
+    )
   }
 }
 

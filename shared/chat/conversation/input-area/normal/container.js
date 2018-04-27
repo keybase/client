@@ -8,7 +8,6 @@ import {formatTextForQuoting} from '../../../../util/chat'
 import {
   compose,
   withHandlers,
-  withProps,
   lifecycle,
   connect,
   isMobile,
@@ -118,19 +117,6 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   _editingMessage: stateProps._editingMessage,
-  _onSubmit: (text: string) => {
-    const em = stateProps._editingMessage
-    if (em) {
-      if (em.type === 'text' && em.text.stringValue() === text) {
-        dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-      } else {
-        dispatchProps._onEditMessage(em, text)
-      }
-    } else {
-      dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
-    }
-    ownProps.onScrollDown()
-  },
   _quotingMessage: stateProps._quotingMessage,
   channelName: stateProps._meta.channelname,
   clearInboxFilter: dispatchProps.clearInboxFilter,
@@ -145,6 +131,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   },
   onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  onSubmit: (text: string) => {
+    const em = stateProps._editingMessage
+    if (em) {
+      if (em.type === 'text' && em.text.stringValue() === text) {
+        dispatchProps._onCancelEditing(stateProps.conversationIDKey)
+      } else {
+        dispatchProps._onEditMessage(em, text)
+      }
+    } else {
+      dispatchProps._onPostMessage(stateProps.conversationIDKey, text)
+    }
+    ownProps.onScrollDown()
+  },
   pendingWaiting: stateProps.pendingWaiting,
   sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
   typing: stateProps.typing,
@@ -163,12 +162,6 @@ type LifecycleProps = Props & {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withProps(props => ({
-    onSubmit: (text: string) => {
-      props._onSubmit(text)
-      props.setText('')
-    },
-  })),
   withHandlers(props => {
     let input
     return {
