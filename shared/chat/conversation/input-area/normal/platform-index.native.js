@@ -8,7 +8,7 @@ import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from '.'
+import type {Props} from './platform-index'
 
 class ConversationInput extends Component<Props> {
   _openFilePicker = () => {

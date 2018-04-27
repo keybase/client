@@ -9,7 +9,7 @@ import {compose, withHandlers, withStateHandlers} from 'recompose'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from '.'
+import type {Props} from './platform-index'
 
 type InputProps = {
   inputSelections: () => ?{selectionStart: number, selectionEnd: number},
