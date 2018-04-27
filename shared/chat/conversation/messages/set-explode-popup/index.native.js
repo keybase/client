@@ -1,12 +1,9 @@
 // @flow
 import * as React from 'react'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingPicker} from '../../../../common-adapters/index.native'
 import {globalColors, globalMargins} from '../../../../styles'
 import type {Props} from '.'
-
-const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
 const Announcement = () => (
   <Box2 direction="vertical" fullWidth={true} style={announcementContainerStyle}>
@@ -39,6 +36,18 @@ const announcementContainerStyle = {
   paddingBottom: globalMargins.tiny,
 }
 
+const Prompt = () => (
+  <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
+    <Icon type="iconfont-bomb" fontSize={20} />
+    <Text type="BodySmallSemibold">Explode messages after:</Text>
+  </Box2>
+)
+
+const promptContainerStyle = {
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
 type State = {selected: MessageExplodeDescription}
 class SetExplodePopup extends React.Component<Props, State> {
   state = {selected: {text: 'Never', seconds: 0}}
@@ -48,7 +57,7 @@ class SetExplodePopup extends React.Component<Props, State> {
   }
 
   setSelected = (value: number | string) => {
-    const selected = sortedDescriptions.find(item => item.seconds === value) || {text: 'Never', seconds: 0}
+    const selected = this.props.items.find(item => item.seconds === value) || {text: 'Never', seconds: 0}
     this.setState({selected})
   }
 
@@ -58,7 +67,7 @@ class SetExplodePopup extends React.Component<Props, State> {
   }
 
   render() {
-    const items = sortedDescriptions.map(item => ({label: item.text, value: item.seconds}))
+    const items = this.props.items.map(item => ({label: item.text, value: item.seconds}))
     return (
       <FloatingPicker
         header={this.props.isNew ? <Announcement /> : null}
@@ -67,6 +76,7 @@ class SetExplodePopup extends React.Component<Props, State> {
         onHidden={this.props.onHidden}
         onCancel={this.props.onHidden}
         onDone={this.onDone}
+        prompt={<Prompt />}
         visible={this.props.visible}
         selectedValue={this.state.selected.seconds}
       />

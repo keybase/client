@@ -54,6 +54,7 @@ const FloatingPicker = (props: Props) => {
                 Done
               </Text>
             </Box2>
+            {props.prompt}
             <Picker
               selectedValue={props.selectedValue}
               onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
