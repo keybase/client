@@ -33,12 +33,9 @@ export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) 
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
-  '12': 'icon-placeholder-avatar-12',
   '16': 'icon-placeholder-avatar-16',
   '176': 'icon-placeholder-avatar-176',
-  '24': 'icon-placeholder-avatar-24',
   '32': 'icon-placeholder-avatar-32',
-  '40': 'icon-placeholder-avatar-40',
   '48': 'icon-placeholder-avatar-48',
   '64': 'icon-placeholder-avatar-64',
   '80': 'icon-placeholder-avatar-80',
@@ -46,12 +43,9 @@ const avatarPlaceHolders: {[key: string]: IconType} = {
 
 const teamPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-team-placeholder-avatar-112',
-  '12': 'icon-team-placeholder-avatar-12',
   '16': 'icon-team-placeholder-avatar-16',
   '176': 'icon-team-placeholder-avatar-176',
-  '24': 'icon-team-placeholder-avatar-24',
   '32': 'icon-team-placeholder-avatar-32',
-  '40': 'icon-team-placeholder-avatar-40',
   '48': 'icon-team-placeholder-avatar-48',
   '64': 'icon-team-placeholder-avatar-64',
   '80': 'icon-team-placeholder-avatar-80',

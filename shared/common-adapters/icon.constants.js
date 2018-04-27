@@ -1031,11 +1031,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-112.png'),
   },
-  'icon-placeholder-avatar-12': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-12.png'),
-  },
   'icon-placeholder-avatar-16': {
     isFont: false,
     extension: 'png',
@@ -1046,20 +1041,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-176.png'),
   },
-  'icon-placeholder-avatar-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-24.png'),
-  },
   'icon-placeholder-avatar-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-32.png'),
-  },
-  'icon-placeholder-avatar-40': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-40.png'),
   },
   'icon-placeholder-avatar-48': {
     isFont: false,
@@ -1356,11 +1341,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-112.png'),
   },
-  'icon-team-placeholder-avatar-12': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-team-placeholder-avatar-12.png'),
-  },
   'icon-team-placeholder-avatar-16': {
     isFont: false,
     extension: 'png',
@@ -1371,20 +1351,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-176.png'),
   },
-  'icon-team-placeholder-avatar-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-team-placeholder-avatar-24.png'),
-  },
   'icon-team-placeholder-avatar-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-team-placeholder-avatar-32.png'),
-  },
-  'icon-team-placeholder-avatar-40': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-team-placeholder-avatar-40.png'),
   },
   'icon-team-placeholder-avatar-48': {
     isFont: false,

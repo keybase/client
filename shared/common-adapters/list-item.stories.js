@@ -7,13 +7,13 @@ import Button from './button'
 import {action, storiesOf} from '../stories/storybook'
 import {globalColors} from '../styles'
 
-const actionButton = <Button label={'Action'} type={'Primary'} onClick={action('button')} />
+const actionButton = <Button label={'Action'} type={'Primary'} small={true} onClick={action('button')} />
 const load = () => {
   storiesOf('Common/ListItem', module)
     .add('Small with icon (desktop only)', () => (
       <ListItem
         type={'Small'}
-        icon={<Box style={{height: 24, width: 24, backgroundColor: globalColors.black_20}} />}
+        icon={<Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={actionButton}
       />
@@ -24,15 +24,6 @@ const load = () => {
         swipeToAction={true}
         icon={<Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
-        action={actionButton}
-      />
-    ))
-    .add('Small with avatar 40 (mobile only)', () => (
-      <ListItem
-        type={'Small'}
-        icon={<Box style={{height: 40, width: 40, backgroundColor: globalColors.black_20}} />}
-        body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
-        swipeToAction={true}
         action={actionButton}
       />
     ))
