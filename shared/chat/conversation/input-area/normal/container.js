@@ -7,7 +7,6 @@ import HiddenString from '../../../../util/hidden-string'
 import {formatTextForQuoting} from '../../../../util/chat'
 import {
   compose,
-  withHandlers,
   lifecycle,
   connect,
   isMobile,
@@ -162,25 +161,6 @@ type LifecycleProps = Props & {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withHandlers(props => {
-    let input
-    return {
-      _inputSetRef: props => i => (input = i),
-      _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
-        props._quotingMessage && props.onCancelQuoting()
-        if (e.key === 'ArrowUp' && !props.text) {
-          props.onEditLastMessage()
-        } else if (e.key === 'Escape') {
-          props.onCancelEditing()
-        }
-      },
-      inputBlur: props => () => input && input.blur(),
-      inputFocus: props => () => input && input.focus(),
-      inputMoveToEnd: props => () => input && input.moveCursorToEnd(),
-      inputGetRef: props => () => input,
-      inputSelections: props => () => (input && input.selections()) || {},
-    }
-  }),
   lifecycle({
     // The types for prevProps and nextProps aren't exact, but they're
     // good enough.
