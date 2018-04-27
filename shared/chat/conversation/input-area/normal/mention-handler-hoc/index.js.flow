@@ -1,9 +1,5 @@
 // @flow
-import * as React from 'react'
-import {type PlatformInputProps, type MentionInputProps} from '../platform-index'
+import {Component} from 'react'
+import {type MentionInputProps} from '../platform-index'
 
-declare function mentionHoc(
-  input: React.ComponentType<PlatformInputProps>
-): React.ComponentType<MentionInputProps>
-
-declare export default mentionHoc
+export default class MentionInput extends Component<MentionInputProps> {}

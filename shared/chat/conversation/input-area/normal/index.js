@@ -3,13 +3,10 @@ import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {isMobile} from '../../../../util/container'
-import mentionHoc from './mention-handler-hoc'
-import {default as _Input, type MentionInputProps, type InputProps} from './platform-index'
+import MentionInput from './mention-handler-hoc'
+import {type InputProps} from './platform-index'
 import {throttle} from 'lodash-es'
 import {formatTextForQuoting} from '../../../../util/chat'
-
-// For some reason, flow can't infer the type of mentionHoc here.
-const MentionInput: React.ComponentType<MentionInputProps> = mentionHoc(_Input)
 
 type State = {
   text: string,
