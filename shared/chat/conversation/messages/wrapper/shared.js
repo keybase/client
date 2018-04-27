@@ -126,7 +126,11 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
               )}
               <Box style={styles.textContainer} className="message">
                 <Box style={styles.flexOneColumn}>
-                  <props.innerClass message={props.message} isEditing={props.isEditing} />
+                  <props.innerClass
+                    message={props.message}
+                    isEditing={props.isEditing}
+                    toggleShowingMenu={props.toggleShowingMenu}
+                  />
                   {props.isEdited && <EditedMark />}
                 </Box>
                 {!isMobile && <MenuButton ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
