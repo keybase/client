@@ -93,7 +93,7 @@ class Input extends React.Component<Props, State> {
 
   _inputGetRef = () => this._input
 
-  _inputSelections = () => (this._input && this._input.selections()) || {}
+  _inputSelections = () => (this._input ? this._input.selections() : null)
 
   // The types for prevProps and nextProps aren't exact, but they're
   // good enough.
@@ -135,12 +135,11 @@ class Input extends React.Component<Props, State> {
     return (
       <MentionHocInput
         {...this.props}
-        _inputSetRef={this._inputSetRef}
         _onKeyDown={this._onKeyDown}
         inputBlur={this._inputBlur}
         inputFocus={this._inputFocus}
-        // TODO: Dedupe.
         inputSetRef={this._inputSetRef}
+        inputSelections={this._inputSelections}
         onSubmit={this._onSubmit}
         text={this.state.text}
         setText={this._setText}

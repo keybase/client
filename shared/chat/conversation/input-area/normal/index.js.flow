@@ -12,6 +12,7 @@ export type PreMentionHocProps = {
   clearInboxFilter: () => void,
   inputBlur: () => void,
   inputFocus: () => void,
+  inputSelections: () => ?{selectionStart: number, selectionEnd: number},
   inputSetRef: (r: ?TextInput) => void,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,

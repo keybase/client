@@ -12,7 +12,7 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 import type {Props} from '.'
 
 type InputProps = {
-  inputSelections: () => {selectionStart?: number, selectionEnd?: number},
+  inputSelections: () => ?{selectionStart: number, selectionEnd: number},
   emojiPickerOpen: boolean,
   emojiPickerToggle: () => void,
   filePickerFiles: () => FileList | [],
@@ -76,7 +76,10 @@ class ConversationInput extends Component<InputProps> {
   }
 
   _insertEmoji(emojiColons: string) {
-    const {selectionStart = 0, selectionEnd = 0} = this.props.inputSelections()
+    const {selectionStart, selectionEnd} = this.props.inputSelections() || {
+      selectionStart: 0,
+      selectionEnd: 0,
+    }
     const nextText = [
       this.props.text.substring(0, selectionStart),
       emojiColons,
