@@ -4,24 +4,36 @@ import {Component} from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Input as TextInput} from '../../../../common-adapters'
 
-export type PreMentionHocProps = {
+type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
   channelName: string,
   isEditing: boolean,
   focusInputCounter: number,
   clearInboxFilter: () => void,
-  inputBlur: () => void,
-  inputFocus: () => void,
-  inputSelections: () => ?{selectionStart: number, selectionEnd: number},
-  inputSetRef: (r: ?TextInput) => void,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onSubmit: (text: string) => void,
   pendingWaiting: boolean,
+  typing: I.Set<string>,
+}
+
+export type InputProps = CommonProps & {
+  _quotingMessage: ?Types.Message,
+  _editingMessage: ?Types.Message,
+  injectedInput: string,
+
+  onCancelQuoting: () => void,
+  sendTyping: (typing: boolean) => void,
+}
+
+export type MentionInputProps = CommonProps & {
+  inputBlur: () => void,
+  inputFocus: () => void,
+  inputSelections: () => ?{selectionStart: number, selectionEnd: number},
+  inputSetRef: (r: ?TextInput) => void,
   setText: (text: string) => void,
   text: string,
-  typing: I.Set<string>,
 
   // on desktop:
   onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
@@ -54,6 +66,6 @@ export type MentionHocProps = {
   setMentionPopupOpen: (setOpen: boolean) => void,
 }
 
-export type Props = PreMentionHocProps & MentionHocProps
+export type PlatformInputProps = MentionInputProps & MentionHocProps
 
-export default class Input extends Component<Props> {}
+export default class PlatformInput extends Component<PlatformInputProps> {}

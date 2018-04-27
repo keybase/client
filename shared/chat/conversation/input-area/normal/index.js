@@ -1,39 +1,15 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
 import {Input as TextInput} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {isMobile} from '../../../../util/container'
 import mentionHoc from './mention-handler-hoc'
-import {default as _Input, type PreMentionHocProps} from './platform-index'
+import {default as _Input, type MentionInputProps, type InputProps} from './platform-index'
 import {throttle} from 'lodash-es'
 import {formatTextForQuoting} from '../../../../util/chat'
 
 // For some reason, flow can't infer the type of mentionHoc here.
-const MentionHocInput: React.ComponentType<PreMentionHocProps> = mentionHoc(_Input)
-
-type Props = {
-  // Subset of PreMentionHocProps.
-  conversationIDKey: Types.ConversationIDKey,
-  channelName: string,
-  isEditing: boolean,
-  focusInputCounter: number,
-  clearInboxFilter: () => void,
-  onAttach: (paths: Array<string>) => void,
-  onEditLastMessage: () => void,
-  onCancelEditing: () => void,
-  onCancelQuoting: () => void,
-  onSubmit: (text: string) => void,
-  pendingWaiting: boolean,
-  typing: I.Set<string>,
-
-  // Added.
-  sendTyping: (typing: boolean) => void,
-
-  _quotingMessage: ?Types.Message,
-  _editingMessage: ?Types.Message,
-  injectedInput: string,
-}
+const MentionInput: React.ComponentType<MentionInputProps> = mentionHoc(_Input)
 
 type State = {
   text: string,
@@ -44,10 +20,10 @@ const unsentText: {[Types.ConversationIDKey]: string} = {}
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
-class Input extends React.Component<Props, State> {
+class Input extends React.Component<InputProps, State> {
   _input: ?TextInput
 
-  constructor(props: Props) {
+  constructor(props: InputProps) {
     super(props)
     this.state = {
       text: unsentText[props.conversationIDKey] || '',
@@ -95,16 +71,14 @@ class Input extends React.Component<Props, State> {
 
   _inputSelections = () => (this._input ? this._input.selections() : null)
 
-  // The types for prevProps and nextProps aren't exact, but they're
-  // good enough.
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: InputProps) {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
     }
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    const props: Props = this.props
+  componentWillReceiveProps(nextProps: InputProps) {
+    const props: InputProps = this.props
 
     // Fill in the input with an edit, quote, or unsent text
     if (
@@ -133,7 +107,7 @@ class Input extends React.Component<Props, State> {
 
   render = () => {
     return (
-      <MentionHocInput
+      <MentionInput
         {...this.props}
         inputBlur={this._inputBlur}
         inputFocus={this._inputFocus}
@@ -148,6 +122,6 @@ class Input extends React.Component<Props, State> {
   }
 }
 
-export type {Props}
+export type {InputProps as Props}
 
 export default Input

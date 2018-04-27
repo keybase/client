@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
-import {type PreMentionHocProps, type Props} from '../platform-index'
+import {type PlatformInputProps, type MentionInputProps} from '../platform-index'
 
-declare function mentionHoc(input: React.ComponentType<Props>): React.ComponentType<PreMentionHocProps>
+declare function mentionHoc(
+  input: React.ComponentType<PlatformInputProps>
+): React.ComponentType<MentionInputProps>
 
 declare export default mentionHoc

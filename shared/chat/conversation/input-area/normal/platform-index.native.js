@@ -8,9 +8,9 @@ import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from './platform-index'
+import type {PlatformInputProps} from './platform-index'
 
-class ConversationInput extends Component<Props> {
+class PlatformInput extends Component<PlatformInputProps> {
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -235,4 +235,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default ConversationInput
+export default PlatformInput

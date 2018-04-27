@@ -9,9 +9,9 @@ import {compose, withHandlers, withStateHandlers} from 'recompose'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from './platform-index'
+import type {PlatformInputProps} from './platform-index'
 
-type InputProps = {
+type DesktopInputProps = {
   inputSelections: () => ?{selectionStart: number, selectionEnd: number},
   emojiPickerOpen: boolean,
   emojiPickerToggle: () => void,
@@ -19,7 +19,7 @@ type InputProps = {
   filePickerOpen: () => void,
   filePickerSetValue: (value: string) => void,
   filePickerSetRef: (r: ?HTMLInputElement) => void,
-} & Props
+} & PlatformInputProps
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -31,7 +31,7 @@ const MentionCatcher = ({onClick}) => (
   />
 )
 
-class ConversationInput extends Component<InputProps> {
+class PlatformInput extends Component<DesktopInputProps> {
   componentDidMount() {
     this._registerBodyEvents(true)
   }
@@ -370,4 +370,4 @@ export default compose(
       },
     }
   })
-)(ConversationInput)
+)(PlatformInput)

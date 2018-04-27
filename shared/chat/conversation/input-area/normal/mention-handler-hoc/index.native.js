@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type Props, type PreMentionHocProps} from '../platform-index'
+import {type PlatformInputProps, type MentionInputProps} from '../platform-index'
 import {Input} from '../../../../../common-adapters'
 
 type MentionHocState = {
@@ -12,8 +12,8 @@ type MentionHocState = {
   _selection: {selectionStart: number, selectionEnd: number},
 }
 
-const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
-  class MentionHoc extends React.Component<PreMentionHocProps, MentionHocState> {
+const mentionHoc = (InputComponent: React.ComponentType<PlatformInputProps>) => {
+  class MentionHoc extends React.Component<MentionInputProps, MentionHocState> {
     state: MentionHocState
     _inputRef: ?Input
     constructor() {
