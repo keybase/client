@@ -40,7 +40,7 @@ type MentionInputProps = CommonProps & {
   onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 }
 
-type MentionHocProps = {
+type MentionProps = {
   insertMention: (u: string, options?: {notUser: boolean}) => void,
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
 
@@ -67,6 +67,6 @@ type MentionHocProps = {
   setMentionPopupOpen: (setOpen: boolean) => void,
 }
 
-type PlatformInputProps = MentionInputProps & MentionHocProps
+type PlatformInputProps = MentionInputProps & MentionProps
 
 export type {InputProps, MentionInputProps, PlatformInputProps}
