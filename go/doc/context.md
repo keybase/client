@@ -25,26 +25,26 @@ as we go.
 We have a long and sordid history here, and it might be worth explaining a little bit
 of what happened before we describe the strategy for going forward. When we first
 started this project, the Go standard `context.Context` hadn't fully formed yet,
-so we did incorporate it. Instead, we had a notion of `GlobalContext` which applied to
+so we didn't incorporate it. Instead, we had a notion of `GlobalContext` which applies to
 all threads. At first, all threads accessed this global context via a global variable `G`,
 but that strategy was terrible for many reasons, and made testing multiple instances of
-Keybase in the same address space near-impossible.  Thus, we embarked upon a length crusade
+Keybase in the same address space near-impossible. Thus, we embarked upon a lengthy crusade
 to retire to `G` variable and use a combination of dependency-injection and just passing `G`
 wherever we could.
 
 Around the same time, we started to adopt the `context.Context` standard, especially
 for logging with request-specific tags (useful for debugging). These attempts were sometimes
 at odds, so we would up with an inconsistent ordering and placement of these contexts
-when passed to function. Also, though were finally able to retire `G`, we did not succeed
+when passed to functions. Also, though were finally able to retire `G`, we did not succeed
 in fully threading `context.Context`s through the code; nor did we finish the project to always
 use `context.Context`-aware versions of logging functions.
 
 In addition, we've long had the LoginState/Account/LoginContext/Session family of objects
 to manage the user's logged-in state, and to shepherd the user through signup and device
-provisioning. We've experience growing pains and bugs around the current configuration
+provisioning. We've experienced growing pains and bugs around the current configuration
 and long for a simplification. In particular, we're not happy with the Go-channel-based
 synchronization primitives at the heart of the state maintenance here, since it's easy
-to code deadlocks hidden behind layers of abstraction.  Instead, we want a simple lock-based
+to hit deadlocks hidden behind layers of abstraction.  Instead, we want a simple lock-based
 model, where those locks are only held briefly, never during a network request (let's say).
 
 # Migration Strategy
@@ -53,14 +53,16 @@ model, where those locks are only held briefly, never during a network request (
 
 Status: **completed**
 
-It used to be the case we needed the exclusive lock over Account/LoginContext to make an
-API call, since it needed the user's session cookie (and CSRF token), and it was stored there.
-This setup made it very easy for API calls to fight over this locked resource and to stall,
-especially on application foregrounding or resumption from a long sleep. So the solution
-here is to authenticate a client to the server just based on a signature that the user can
-cook up with just her/his public key. Now, API calls are no longer dependent on
-Account/LoginContext, with the exception of provisioning and signup (i.e., before
-proper device keys are established).
+It used to be the case we needed the exclusive lock over Account/LoginContext
+to make an API call, since it needed the user's session cookie (and CSRF
+token), and it was stored there. This setup made it very easy for API calls to
+fight over this locked resource and to stall, especially on application
+foregrounding or resumption from a long sleep. So the solution here is to
+authenticate a client to the server just based on a signature that the user
+can cook up with just her/his public key. Now, API calls are no longer
+dependent on Account/LoginContext, and instead depend on `ActiveDevice`, with
+the exception of provisioning and signup (i.e., before proper device keys are
+established).
 
 ## Step 2: Propagate MetaContext from libkb outward
 
