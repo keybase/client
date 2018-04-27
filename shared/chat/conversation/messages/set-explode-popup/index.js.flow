@@ -9,6 +9,7 @@ export type Props = {
   isNew: boolean,
   selected: ?MessageExplodeDescription,
   onSelect: MessageExplodeDescription => void,
+  items: MessageExplodeDescription[],
 }
 
 declare export default class SetExplodingPopup extends React.Component<Props> {}
