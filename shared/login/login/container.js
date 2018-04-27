@@ -18,6 +18,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
+  _resetError: () => dispatch(LoginGen.createLoginError({error: ''})),
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
   onLogin: (user: string, passphrase: string) =>
@@ -53,6 +54,13 @@ export default compose(
         props.onLogin(props.selectedUser, props.passphrase)
       }
     },
-    selectedUserChange: props => user => props.setSelectedUser(user),
+    selectedUserChange: props => user => {
+      // Clear the error and reset the passphrase input when they switch users
+      if (props.error && user !== props.selectedUser) {
+        props._resetError()
+        props.passphraseChange()
+      }
+      props.setSelectedUser(user)
+    },
   })
 )(Login)
