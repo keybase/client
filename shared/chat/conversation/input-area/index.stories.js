@@ -5,7 +5,7 @@ import {Box2} from '../../../common-adapters/box'
 import {platformStyles} from '../../../styles'
 import * as PropProviders from '../../../stories/prop-providers'
 import {action, storiesOf} from '../../../stories/storybook'
-import Input, {type Props as InputProps} from './normal/index-shared'
+import Input, {type Props as InputProps} from './normal'
 import {isMobile} from '../../../constants/platform'
 import {stringToConversationIDKey} from '../../../constants/types/chat2'
 

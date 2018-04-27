@@ -6,7 +6,7 @@ import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
 import {connect, type TypedState, type Dispatch} from '../../../../util/container'
 import {isEqual} from 'lodash-es'
-import Input, {type Props} from './index-shared'
+import Input, {type Props} from '.'
 
 type OwnProps = {
   focusInputCounter: number,
