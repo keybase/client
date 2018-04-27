@@ -573,6 +573,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'attachment' && m.type === 'attachment') {
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
+      ret.set('id', old.id)
       ret.set('ordinal', old.ordinal)
       ret.set('downloadPath', old.downloadPath)
       if (old.previewURL && !m.previewURL) {
