@@ -5,19 +5,10 @@ import {Box, Icon, Input, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
-import {compose, withHandlers} from 'recompose'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
 import type {PlatformInputProps} from './platform-index'
-
-type DesktopInputProps = {
-  inputSelections: () => ?{selectionStart: number, selectionEnd: number},
-  filePickerFiles: () => FileList | [],
-  filePickerOpen: () => void,
-  filePickerSetValue: (value: string) => void,
-  filePickerSetRef: (r: ?HTMLInputElement) => void,
-} & PlatformInputProps
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -33,8 +24,10 @@ type State = {
   emojiPickerOpen: boolean,
 }
 
-class PlatformInput extends Component<DesktopInputProps, State> {
-  constructor(props: DesktopInputProps) {
+class PlatformInput extends Component<PlatformInputProps, State> {
+  _fileInput: ?HTMLInputElement
+
+  constructor(props: PlatformInputProps) {
     super(props)
     this.state = {
       emojiPickerOpen: false,
@@ -43,6 +36,20 @@ class PlatformInput extends Component<DesktopInputProps, State> {
 
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
+  _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
+
+  _filePickerOpen = () => {
+    this._fileInput && this._fileInput.click()
+  }
+
+  _filePickerSetRef = (r: ?HTMLInputElement) => {
+    this._fileInput = r
+  }
+
+  _filePickerSetValue = (value: string) => {
+    if (this._fileInput) this._fileInput.value = value
   }
 
   componentDidMount() {
@@ -108,7 +115,7 @@ class PlatformInput extends Component<DesktopInputProps, State> {
   }
 
   _pickFile = () => {
-    const fileList = this.props.filePickerFiles()
+    const fileList = this._filePickerFiles()
     const paths = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
@@ -123,7 +130,7 @@ class PlatformInput extends Component<DesktopInputProps, State> {
     if (paths) {
       this.props.onAttach(paths)
     }
-    this.props.filePickerSetValue('')
+    this._filePickerSetValue('')
   }
 
   _mentionCatcherClick = () => {
@@ -192,7 +199,7 @@ class PlatformInput extends Component<DesktopInputProps, State> {
             <input
               type="file"
               style={{display: 'none'}}
-              ref={this.props.filePickerSetRef}
+              ref={this._filePickerSetRef}
               onChange={this._pickFile}
               multiple={true}
             />
@@ -224,7 +231,7 @@ class PlatformInput extends Component<DesktopInputProps, State> {
               type="iconfont-emoji"
             />
             <Icon
-              onClick={this.props.pendingWaiting ? undefined : this.props.filePickerOpen}
+              onClick={this.props.pendingWaiting ? undefined : this._filePickerOpen}
               style={styleIcon}
               type="iconfont-attachment"
             />
@@ -363,20 +370,4 @@ const styleFooter = platformStyles({
   },
 })
 
-export default compose(
-  withHandlers(props => {
-    let fileInput: ?HTMLInputElement
-    return {
-      filePickerFiles: props => () => (fileInput && fileInput.files) || [],
-      filePickerOpen: props => () => {
-        fileInput && fileInput.click()
-      },
-      filePickerSetRef: props => (r: ?HTMLInputElement) => {
-        fileInput = r
-      },
-      filePickerSetValue: props => (value: string) => {
-        if (fileInput) fileInput.value = value
-      },
-    }
-  })
-)(PlatformInput)
+export default PlatformInput
