@@ -8,7 +8,7 @@ import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {PlatformInputProps} from './platform-index'
+import type {PlatformInputProps} from './types'
 
 const MentionCatcher = ({onClick}) => (
   <Box

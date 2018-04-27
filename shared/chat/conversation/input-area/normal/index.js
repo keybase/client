@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Input as TextInput} from '../../../../common-adapters'
 import {isMobile} from '../../../../util/container'
 import MentionInput from './mention-input'
-import {type InputProps} from './platform-index'
+import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
 import {formatTextForQuoting} from '../../../../util/chat'
 

@@ -1,0 +1,72 @@
+// @flow
+import * as I from 'immutable'
+import * as Types from '../../../../constants/types/chat2'
+import {Input as TextInput} from '../../../../common-adapters'
+
+type CommonProps = {
+  conversationIDKey: Types.ConversationIDKey,
+  channelName: string,
+  isEditing: boolean,
+  focusInputCounter: number,
+  clearInboxFilter: () => void,
+  onAttach: (paths: Array<string>) => void,
+  onEditLastMessage: () => void,
+  onCancelEditing: () => void,
+  onSubmit: (text: string) => void,
+  pendingWaiting: boolean,
+  typing: I.Set<string>,
+}
+
+type InputProps = CommonProps & {
+  _quotingMessage: ?Types.Message,
+  _editingMessage: ?Types.Message,
+  injectedInput: string,
+
+  getUnsentText: () => string,
+  setUnsentText: (text: string) => void,
+  onCancelQuoting: () => void,
+  sendTyping: (typing: boolean) => void,
+}
+
+type MentionInputProps = CommonProps & {
+  inputBlur: () => void,
+  inputFocus: () => void,
+  inputSelections: () => ?{selectionStart: number, selectionEnd: number},
+  inputSetRef: (r: ?TextInput) => void,
+  setText: (text: string) => void,
+  text: string,
+
+  // on desktop:
+  onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
+}
+
+type MentionHocProps = {
+  insertMention: (u: string, options?: {notUser: boolean}) => void,
+  insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
+
+  // on desktop:
+  onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
+  switchMention?: (u: string) => void,
+  switchChannelMention?: (c: string) => void,
+  upArrowCounter?: number,
+  downArrowCounter?: number,
+  // on mobile:
+  onChangeText?: (newText: string) => void,
+  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
+  onBlur?: () => void,
+  onFocus?: () => void,
+  insertMentionMarker?: () => void,
+
+  onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
+  pickSelectedCounter: number,
+  channelMentionFilter: string,
+  channelMentionPopupOpen: boolean,
+  setChannelMentionPopupOpen: (setOpen: boolean) => void,
+  mentionFilter: string,
+  mentionPopupOpen: boolean,
+  setMentionPopupOpen: (setOpen: boolean) => void,
+}
+
+type PlatformInputProps = MentionInputProps & MentionHocProps
+
+export type {InputProps, MentionInputProps, PlatformInputProps}
