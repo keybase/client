@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 import {Set} from 'immutable'
-import {Box2} from '../../../common-adapters/box'
-import {platformStyles} from '../../../styles'
-import * as PropProviders from '../../../stories/prop-providers'
-import {action, storiesOf} from '../../../stories/storybook'
-import Input, {type Props as InputProps} from './normal'
-import {isMobile} from '../../../constants/platform'
-import {stringToConversationIDKey} from '../../../constants/types/chat2'
+import {Box2} from '../../../../common-adapters/box'
+import {platformStyles} from '../../../../styles'
+import * as PropProviders from '../../../../stories/prop-providers'
+import {action, storiesOf} from '../../../../stories/storybook'
+import Input, {type Props as InputProps} from '.'
+import {isMobile} from '../../../../constants/platform'
+import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
 const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
   ChannelMentionHud: ownProps => {
