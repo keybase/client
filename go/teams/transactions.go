@@ -20,7 +20,7 @@ type AddMemberTx struct {
 	completedInvites map[keybase1.TeamInviteID]bool
 
 	// Do not rotate team key, even on member removals.
-	DontRotateKey bool
+	DontRotateKey *bool
 }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
@@ -627,7 +627,13 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}()
 	}
 
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, tx.DontRotateKey)
+	var dontRotate bool
+	if tx.DontRotateKey != nil {
+		dontRotate = *tx.DontRotateKey
+	} else {
+		dontRotate = team.CanSkipKeyRotation(team.G().Clock().Now())
+	}
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, dontRotate)
 	if err != nil {
 		return err
 	}

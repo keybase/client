@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -392,7 +391,6 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		tx := CreateAddMemberTx(team)
-		tx.DontRotateKey = team.CanSkipKeyRotation(time.Now())
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
 			err := tx.AddMemberByUV(ctx, uv, joinAsRole)
