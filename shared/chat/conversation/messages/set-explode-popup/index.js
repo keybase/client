@@ -1,11 +1,8 @@
 // @flow
 import * as React from 'react'
-import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
-import {platformStyles, collapseStyles, globalColors, globalMargins} from '../../../../styles'
-
-const sortedDescriptions = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
+import {platformStyles, globalColors, globalMargins} from '../../../../styles'
 
 type HeaderProps = {
   isNew: boolean,
@@ -19,7 +16,7 @@ const Header = (props: HeaderProps) => (
           type="iconfont-boom"
           color={globalColors.white}
           fontSize={48}
-          style={platformStyles({common: {display: 'block', lineHeight: 28, maxHeight: 28}})}
+          style={platformStyles({isElectron: {display: 'block', lineHeight: '28px', maxHeight: 28}})}
         />
         <Text type="BodySemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
           Set a timeout on your messages and watch them
@@ -70,7 +67,7 @@ type Props = {
 
 export default (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}
-  const listItems = sortedDescriptions.map(it => ({
+  const listItems = props.items.map(it => ({
     onClick: () => props.onSelect(it),
     title: it.text,
     view: <Item desc={it} selected={selected.seconds === it.seconds} onSelect={props.onSelect} />,
