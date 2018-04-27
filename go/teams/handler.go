@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -150,7 +151,14 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 
 		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d removals (CLKR list was %d)",
 			len(changeReq.None), len(resetUsersUntrusted))
-		if err := team.ChangeMembershipPermanent(ctx, changeReq, false /* permanent */); err != nil {
+
+		opts := ChangeMembershipOptions{
+			// Make it possible for user to come back in once they reprovision.
+			Permanent: false,
+			// Coming from CLKR, we want to ensure team key is rotated.
+			DontRotateKey: false,
+		}
+		if err := team.ChangeMembershipWithOptions(ctx, changeReq, opts); err != nil {
 			return err
 		}
 
@@ -384,6 +392,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		tx := CreateAddMemberTx(team)
+		tx.DontRotateKey = team.CanSkipKeyRotation(time.Now())
 		for _, tar := range msg.Tars {
 			uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
 			err := tx.AddMemberByUV(ctx, uv, joinAsRole)

@@ -6,7 +6,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -19,6 +18,9 @@ type AddMemberTx struct {
 	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
 
 	completedInvites map[keybase1.TeamInviteID]bool
+
+	// Do not rotate team key, even on member removals.
+	DontRotateKey bool
 }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
@@ -625,8 +627,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}()
 	}
 
-	shouldRotate := team.shouldRotateOnRemoval(time.Now())
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, shouldRotate)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, tx.DontRotateKey)
 	if err != nil {
 		return err
 	}

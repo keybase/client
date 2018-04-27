@@ -44,26 +44,30 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 	}
 }
 
-func (t *Team) shouldRotateOnRemoval(now time.Time) bool {
-	// If cannot decide because of an error, return default true.
+func (t *Team) CanSkipKeyRotation(now time.Time) bool {
+	if t.IsImplicit() {
+		// Do not do this optimization for implicit teams.
+		return false
+	}
+	// If cannot decide because of an error, return default false.
 	members, err := t.UsersWithRoleOrAbove(keybase1.TeamRole_READER)
 	if err != nil {
-		return true
+		return false
 	}
 
 	if len(members) < 50 {
 		// Not a big team
-		return true
+		return false
 	}
 
 	duration := now.Sub(time.Unix(int64(t.chain().GetLatestPerTeamKeyCTime()), 0))
 	if duration > time.Duration(24)*time.Hour {
 		// Last key rotation was more than 24 hours ago.
-		return true
+		return false
 	}
 
 	// Time is big and key was rotated recently - can skip rotation.
-	return false
+	return true
 }
 
 func (t *Team) chain() *TeamSigChainState {
@@ -454,7 +458,16 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 	return uids, nil
 }
 
-func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamChangeReq, permanent bool) (err error) {
+type ChangeMembershipOptions struct {
+	// Pass "permanent" flag, user will be requiest access back to the
+	// team (useful for open teams).
+	Permanent bool
+
+	// Do not rotate team key, even on member removals.
+	DontRotateKey bool
+}
+
+func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.TeamChangeReq, opts ChangeMembershipOptions) (err error) {
 	defer t.G().CTrace(ctx, "Team.ChangeMembershipPermanent", func() error { return err })()
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
@@ -462,8 +475,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 	}
 
 	// create the change membership section + secretBoxes
-	shouldRotate := t.shouldRotateOnRemoval(time.Now())
-	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, err := t.changeMembershipSection(ctx, req, shouldRotate)
+	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, err := t.changeMembershipSection(ctx, req, opts.DontRotateKey)
 	if err != nil {
 		return err
 	}
@@ -504,7 +516,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 		teamEKPayload:      teamEKPayload,
 	}
 
-	if permanent {
+	if opts.Permanent {
 		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
 	}
 
@@ -518,7 +530,7 @@ func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamC
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
-	return t.ChangeMembershipPermanent(ctx, req, false)
+	return t.ChangeMembershipWithOptions(ctx, req, ChangeMembershipOptions{})
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
@@ -1087,7 +1099,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	return &ret, nil
 }
 
-func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq, rotateIfHasRemoval bool) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, error) {
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq, dontRotateKey bool) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, error) {
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
@@ -1121,7 +1133,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	// create secret boxes for recipients, possibly rotating the key
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := t.recipientBoxes(ctx, memSet, true /* rotateIfHasRemoval */)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := t.recipientBoxes(ctx, memSet, dontRotateKey)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
@@ -1285,7 +1297,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 	return sigMultiItem, keybase1.LinkID(newLinkID.String()), nil
 }
 
-func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, rotateIfHasRemoval bool) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
+func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, dontRotateKey bool) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, *teamEKPayload, error) {
 
 	// get device key
 	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
@@ -1316,7 +1328,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, rotateIfHa
 	// if there are any removals happening, need to rotate the
 	// team key, and recipients will be all the users in the team
 	// after the removal.
-	if memSet.HasRemoval() && rotateIfHasRemoval {
+	if memSet.HasRemoval() && !dontRotateKey {
 		// key is rotating, so recipients needs to be all the remaining members
 		// of the team after the removal (and including any new members in this
 		// change)
