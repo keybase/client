@@ -25,18 +25,18 @@ type Props = {
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
+  onCancelQuoting: () => void,
   onJoinChannel: () => void,
   onLeaveChannel: () => void,
   onSubmit: (text: string) => void,
   pendingWaiting: boolean,
   typing: I.Set<string>,
 
-  // From PropsFromContainer.
-  _inputSetRef: (?TextInput) => void,
-  _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
-
   // Added.
   sendTyping: (typing: boolean) => void,
+
+  _quotingMessage: ?Types.Message,
+  _editingMessage: ?Types.Message,
 }
 
 type State = {
@@ -49,6 +49,8 @@ const unsentText: {[Types.ConversationIDKey]: string} = {}
 const throttled = throttle((f, param) => f(param), 1000)
 
 class Input extends React.Component<Props, State> {
+  _input: ?TextInput
+
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -56,7 +58,7 @@ class Input extends React.Component<Props, State> {
     }
   }
 
-  setText = (text: string, skipUnsentSaving?: boolean) => {
+  _setText = (text: string, skipUnsentSaving?: boolean) => {
     this.setState({text})
     if (!skipUnsentSaving) {
       unsentText[this.props.conversationIDKey] = text
@@ -67,16 +69,41 @@ class Input extends React.Component<Props, State> {
 
   _onSubmit = (text: string) => {
     this.props.onSubmit(text)
-    this.setText('')
+    this._setText('')
   }
+
+  _inputSetRef = (input: ?TextInput) => {
+    this._input = input
+  }
+
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    this.props._quotingMessage && this.props.onCancelQuoting()
+    if (e.key === 'ArrowUp' && !this.state.text) {
+      this.props.onEditLastMessage()
+    } else if (e.key === 'Escape') {
+      this.props.onCancelEditing()
+    }
+  }
+
+  _inputBlur = () => this._input && this._input.blur()
+
+  _inputFocus = () => this._input && this._input.focus()
+
+  _inputMoveToEnd = () => this._input && this._input.moveCursorToEnd()
+
+  _inputGetRef = () => this._input
+
+  _inputSelections = () => (this._input && this._input.selections()) || {}
 
   render = () => {
     return (
       <MentionHocInput
         {...this.props}
+        _inputSetRef={this._inputSetRef}
+        _onKeyDown={this._onKeyDown}
         onSubmit={this._onSubmit}
         text={this.state.text}
-        setText={this.setText}
+        setText={this._setText}
       />
     )
   }

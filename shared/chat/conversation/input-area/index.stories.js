@@ -64,10 +64,8 @@ class InputContainer extends React.Component<Props> {
 
   render = () => {
     const props: InputProps = {
-      _inputSetRef: this._inputSetRef,
-      _onKeyDown: (e: SyntheticKeyboardEvent<>) => {
-        action('_onKeyDown')(e.key)
-      },
+      _quotingMessage: null,
+      _editingMessage: null,
 
       // Need to inject this manually since we're not loading from
       // normal/container.js.
@@ -90,6 +88,7 @@ class InputContainer extends React.Component<Props> {
       },
       onEditLastMessage: action('onEditLastMessage'),
       onCancelEditing: action('onCancelEditing'),
+      onCancelQuoting: action('onCancelQuoting'),
       onJoinChannel: action('onJoinChannel'),
       onLeaveChannel: action('onLeaveChannel'),
       onSubmit: (text: string) => {
