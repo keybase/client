@@ -52,23 +52,11 @@ const boxProps = {
 class InputContainer extends React.Component<Props> {
   render = () => {
     const props: InputProps = {
-      _quotingMessage: null,
-      _editingMessage: null,
-
       conversationIDKey: stringToConversationIDKey('fake conversation id key'),
       channelName: 'somechannel',
       isEditing: this.props.isEditing,
       focusInputCounter: 0,
       clearInboxFilter: action('clearInboxFilter'),
-      getUnsentText: () => {
-        action('getUnsentText')()
-        return ''
-      },
-      setUnsentText: action('setUnsentText'),
-      inputBlur: action('inputBlur'),
-      inputClear: action('inputClear'),
-      inputFocus: action('inputFocus'),
-      inputSetRef: action('inputSetRef'),
       onAttach: (paths: Array<string>) => {
         // This will always be called with an empty array, since some
         // browsers don't have the path property set on File.
@@ -76,13 +64,25 @@ class InputContainer extends React.Component<Props> {
       },
       onEditLastMessage: action('onEditLastMessage'),
       onCancelEditing: action('onCancelEditing'),
-      onCancelQuoting: action('onCancelQuoting'),
       onSubmit: (text: string) => {
         action('onSubmit')(text)
       },
       pendingWaiting: this.props.pendingWaiting,
       typing: this.props.typing,
+
+      _quotingMessage: null,
+      _editingMessage: null,
+
       injectedInput: '',
+
+      getUnsentText: () => {
+        action('getUnsentText')()
+        return ''
+      },
+
+      setUnsentText: action('setUnsentText'),
+
+      onCancelQuoting: action('onCancelQuoting'),
 
       sendTyping: action('sendTyping'),
     }
