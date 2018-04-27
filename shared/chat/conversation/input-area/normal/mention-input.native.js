@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import PlatformInput, {type MentionInputProps} from '../platform-index'
-import {Input} from '../../../../../common-adapters'
+import PlatformInput, {type MentionInputProps} from './platform-index'
+import {Input} from '../../../../common-adapters'
 
 type MentionHocState = {
   pickSelectedCounter: number,

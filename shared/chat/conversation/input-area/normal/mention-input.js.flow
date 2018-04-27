@@ -1,5 +1,5 @@
 // @flow
 import {Component} from 'react'
-import {type MentionInputProps} from '../platform-index'
+import {type MentionInputProps} from './platform-index'
 
 export default class MentionInput extends Component<MentionInputProps> {}
