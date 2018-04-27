@@ -4,13 +4,13 @@ import * as I from 'immutable'
 import {Input as TextInput} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {isMobile} from '../../../../util/container'
-import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
-import {default as _Input} from '.'
+import mentionHoc from '../mention-handler-hoc'
+import {default as _Input, type PreMentionHocProps} from '.'
 import {throttle} from 'lodash-es'
 import {formatTextForQuoting} from '../../../../util/chat'
 
 // For some reason, flow can't infer the type of mentionHoc here.
-const MentionHocInput: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
+const MentionHocInput: React.ComponentType<PreMentionHocProps> = mentionHoc(_Input)
 
 type Props = {
   // Subset of PreMentionHocProps.
@@ -135,11 +135,11 @@ class Input extends React.Component<Props, State> {
     return (
       <MentionHocInput
         {...this.props}
-        _onKeyDown={this._onKeyDown}
         inputBlur={this._inputBlur}
         inputFocus={this._inputFocus}
         inputSetRef={this._inputSetRef}
         inputSelections={this._inputSelections}
+        onKeyDown={this._onKeyDown}
         onSubmit={this._onSubmit}
         text={this.state.text}
         setText={this._setText}

@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type Props} from '../normal'
-import {type PropsFromContainer} from '.'
+import {type Props, type PreMentionHocProps} from '../normal'
 import {Input} from '../../../../common-adapters'
 
 type MentionHocState = {
@@ -14,7 +13,7 @@ type MentionHocState = {
 }
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
-  class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {
+  class MentionHoc extends React.Component<PreMentionHocProps, MentionHocState> {
     state: MentionHocState
     _inputRef: ?Input
     constructor() {

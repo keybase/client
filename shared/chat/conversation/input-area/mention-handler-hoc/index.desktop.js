@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {type Props} from '../normal'
-import {type PropsFromContainer} from '.'
+import {type Props, type PreMentionHocProps} from '../normal'
 import {Input} from '../../../../common-adapters'
 
 type MentionHocState = {
@@ -15,7 +14,7 @@ type MentionHocState = {
 }
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
-  class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {
+  class MentionHoc extends React.Component<PreMentionHocProps, MentionHocState> {
     state: MentionHocState = {
       upArrowCounter: 0,
       downArrowCounter: 0,
@@ -90,8 +89,8 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
     }
 
-    onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-      this.props._onKeyDown(e)
+    _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+      this.props.onKeyDown(e)
       if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
         if (e.key === 'Tab') {
           e.preventDefault()
@@ -226,7 +225,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
           switchMention={this.switchMention}
           insertChannelMention={this.insertChannelMention}
           switchChannelMention={this.switchChannelMention}
-          onKeyDown={this.onKeyDown}
+          onKeyDown={this._onKeyDown}
           onKeyUp={this.onKeyUp}
           onEnterKeyDown={this.onEnterKeyDown}
           setMentionPopupOpen={this._setMentionPopupOpen}

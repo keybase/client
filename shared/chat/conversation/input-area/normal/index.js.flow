@@ -22,6 +22,9 @@ export type PreMentionHocProps = {
   setText: (text: string) => void,
   text: string,
   typing: I.Set<string>,
+
+  // on desktop:
+  onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 }
 
 export type MentionHocProps = {
@@ -29,7 +32,6 @@ export type MentionHocProps = {
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
 
   // on desktop:
-  onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
   switchMention?: (u: string) => void,
   switchChannelMention?: (c: string) => void,
