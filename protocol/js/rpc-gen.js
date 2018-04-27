@@ -1670,6 +1670,7 @@ export const teamsTeamApplication = {
   saltpack: 3,
   gitMetadata: 4,
   seitanInviteToken: 5,
+  stellarRelay: 6,
 }
 
 export const teamsTeamChangeMembershipRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamChangeMembershipRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
@@ -3720,6 +3721,7 @@ export type TeamApplication =
   | 3 // SALTPACK_3
   | 4 // GIT_METADATA_4
   | 5 // SEITAN_INVITE_TOKEN_5
+  | 6 // STELLAR_RELAY_6
 
 export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
 

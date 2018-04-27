@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/client/go/teams"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stellar/go/keypair"
 	"github.com/stretchr/testify/require"
@@ -20,6 +21,8 @@ import (
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	tc = externalstest.SetupTest(tb, name, depth+1)
+	stellar.ServiceInit(tc.G)
+	teams.ServiceInit(tc.G)
 	// use an insecure triplesec in tests
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
 		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
@@ -388,6 +391,45 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	checkPayment(payment)
 }
 
+// TODO CORE-7718 delete this test.
+// The functions it uses will be made private.
+// Use the exposed RPCs and inspection of the remote mock instead.
+func TestRelayTransferInnards(t *testing.T) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingFull, usettingWalletless})
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	stellarSender, err := stellar.LookupSenderPrimary(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+
+	u1, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcs[0].G, tcs[1].Fu.Username))
+	require.NoError(t, err)
+
+	t.Logf("create relay transfer")
+	appKey, err := stellar.KeyForRelayTransfer(context.Background(), tcs[0].G, tcs[0].Remote, u1, nil)
+	require.NoError(t, err)
+	out, err := stellar.CreateRelayTransfer(stellar.RelayPaymentInput{
+		From:          stellarSender.Signers[0],
+		AmountXLM:     "10.0005",
+		EncryptFor:    appKey,
+		SeqnoProvider: stellar.NewSeqnoProvider(context.Background(), tcs[0].Remote),
+	})
+	require.NoError(t, err)
+	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
+	require.True(t, len(out.FundTx.Signed) > 100)
+
+	t.Logf("decrypt")
+	appKey, err = stellar.KeyForRelayTransfer(context.Background(), tcs[0].G, tcs[0].Remote, u1, &appKey.KeyGeneration)
+	require.NoError(t, err)
+	relaySecretKey, err := stellar.DecryptRelaySecret(out.EncryptedSeed, appKey)
+	require.NoError(t, err)
+	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecretKey.SecureNoLogString())
+	require.NoError(t, err)
+	require.Equal(t, out.RelayAccountID, accountID)
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu     *kbtest.FakeUser
@@ -398,16 +440,31 @@ type TestContext struct {
 // Create n TestContexts with logged in users
 // Returns (FakeUsers, TestContexts, CleanupFunction)
 func setupNTests(t *testing.T, n int) ([]*TestContext, func()) {
-	return setupNTestsWithPukless(t, n, 0)
+	var settings []usetting
+	for i := 0; i < n; i++ {
+		settings = append(settings, usettingFull)
+	}
+	return setupTestsWithSettings(t, settings)
 }
 
-func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*TestContext, func()) {
-	require.True(t, n > 0, "must create at least 1 tc")
-	require.True(t, n >= nPukless, "more pukless users than total users requested")
+type usetting string
+
+const (
+	usettingFull       usetting = "full"
+	usettingWalletless usetting = "walletless"
+	usettingPukless    usetting = "pukless"
+)
+
+func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, func()) {
+	require.True(t, len(settings) > 0, "must create at least 1 tc")
 	var tcs []*TestContext
-	for i := 0; i < n; i++ {
+	for _, setting := range settings {
 		tc := SetupTest(t, "wall", 1)
-		if i >= n-nPukless {
+		switch setting {
+		case usettingFull:
+		case usettingWalletless:
+			tc.Tp.DisableAutoWallet = true
+		case usettingPukless:
 			tc.Tp.DisableUpgradePerUserKey = true
 		}
 		fu, err := kbtest.CreateAndSignupFakeUser("wall", tc.G)

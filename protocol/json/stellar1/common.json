@@ -172,6 +172,28 @@
     },
     {
       "type": "record",
+      "name": "EncryptedRelaySecret",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "OutsideCurrencyCode",
       "fields": [],
       "typedef": "string"

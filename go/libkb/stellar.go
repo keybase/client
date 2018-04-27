@@ -36,26 +36,26 @@ func MakeNaclSigningKeyPairFromStellarSecretKey(sec stellar1.SecretKey) (res Nac
 
 // ParseStellarSecretKey parses a secret key and returns it and the AccountID it is the master key of.
 // Returns helpful error messages than can be shown to users.
-func ParseStellarSecretKey(secStr string) (stellar1.SecretKey, stellar1.AccountID, error) {
+func ParseStellarSecretKey(secStr string) (stellar1.SecretKey, stellar1.AccountID, *keypair.Full, error) {
 	secStr = strings.ToUpper(secStr)
 	if len(secStr) != 56 {
-		return "", "", fmt.Errorf("stellar secret key must be 56 chars long: was %v", len(secStr))
+		return "", "", nil, fmt.Errorf("stellar secret key must be 56 chars long: was %v", len(secStr))
 	}
 	_, err := base32.StdEncoding.DecodeString(secStr)
 	if err != nil {
-		return "", "", fmt.Errorf("invalid characters in stellar secret key")
+		return "", "", nil, fmt.Errorf("invalid characters in stellar secret key")
 	}
 	kp, err := keypair.Parse(secStr)
 	if err != nil {
-		return "", "", fmt.Errorf("invalid stellar secret key: %v", err)
+		return "", "", nil, fmt.Errorf("invalid stellar secret key: %v", err)
 	}
 	switch kp := kp.(type) {
 	case *keypair.FromAddress:
-		return "", "", errors.New("unexpected stellar account ID, expected secret key")
+		return "", "", nil, errors.New("unexpected stellar account ID, expected secret key")
 	case *keypair.Full:
-		return stellar1.SecretKey(kp.Seed()), stellar1.AccountID(kp.Address()), nil
+		return stellar1.SecretKey(kp.Seed()), stellar1.AccountID(kp.Address()), kp, nil
 	default:
-		return "", "", fmt.Errorf("invalid stellar secret key")
+		return "", "", nil, fmt.Errorf("invalid stellar secret key")
 	}
 }
 

@@ -56,6 +56,15 @@ protocol common {
     TransactionID stellarID;
   }
 
+  // A stellar secret key encrypted for an iteam.
+  // Decrypts to a stellar1.SecretKey.
+  record EncryptedRelaySecret {
+    int v;               // version
+    bytes e;             // encrypted data
+    keybase1.BoxNonce n; // nonce
+    keybase1.PerTeamKeyGeneration gen; // key generation that was used
+  }
+
   @typedef("string") record OutsideCurrencyCode {}
 
   record OutsideExchangeRate {

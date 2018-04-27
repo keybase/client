@@ -181,6 +181,27 @@ func (o NoteContents) DeepCopy() NoteContents {
 	}
 }
 
+type EncryptedRelaySecret struct {
+	V   int                           `codec:"v" json:"v"`
+	E   []byte                        `codec:"e" json:"e"`
+	N   keybase1.BoxNonce             `codec:"n" json:"n"`
+	Gen keybase1.PerTeamKeyGeneration `codec:"gen" json:"gen"`
+}
+
+func (o EncryptedRelaySecret) DeepCopy() EncryptedRelaySecret {
+	return EncryptedRelaySecret{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N:   o.N.DeepCopy(),
+		Gen: o.Gen.DeepCopy(),
+	}
+}
+
 type OutsideCurrencyCode string
 
 func (o OutsideCurrencyCode) DeepCopy() OutsideCurrencyCode {
