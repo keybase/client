@@ -88,7 +88,7 @@ class InputContainer extends React.Component<Props, State> {
       },
 
       // Need to inject this manually since we're not loading from
-      // container/normal.js.
+      // normal/container.js.
       inputSelections: () => (this._input ? this._input.selections() : {}),
 
       conversationIDKey: stringToConversationIDKey('fake conversation id key'),
