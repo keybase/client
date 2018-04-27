@@ -270,11 +270,11 @@ protocol SimpleFS {
   FSSyncStatus simpleFSSyncStatus();
 
   @lint("ignore")
-  record SimpleFSHTTPServerAddressAndToken {
+  record SimpleFSGetHTTPAddressAndTokenResponse {
     string address;
     string token;
   }
 
   @lint("ignore")
-  SimpleFSHTTPServerAddressAndToken simpleFSGetHTTPServerAddressAndToken();
+  SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
 }

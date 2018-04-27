@@ -234,11 +234,11 @@ func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSy
 	return cli.SimpleFSSyncStatus(ctx)
 }
 
-// SimpleFSGetHTTPServerAddressAndToken implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSGetHTTPServerAddressAndToken(ctx context.Context) (keybase1.SimpleFSHTTPServerAddressAndToken, error) {
+// SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (keybase1.SimpleFSGetHTTPAddressAndTokenResponse, error) {
 	cli, err := s.client()
 	if err != nil {
-		return keybase1.SimpleFSHTTPServerAddressAndToken{}, err
+		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
 	}
-	return cli.SimpleFSGetHTTPServerAddressAndToken(ctx)
+	return cli.SimpleFSGetHTTPAddressAndToken(ctx)
 }

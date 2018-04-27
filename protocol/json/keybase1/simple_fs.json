@@ -371,7 +371,7 @@
     },
     {
       "type": "record",
-      "name": "SimpleFSHTTPServerAddressAndToken",
+      "name": "SimpleFSGetHTTPAddressAndTokenResponse",
       "fields": [
         {
           "type": "string",
@@ -655,9 +655,9 @@
       "response": "FSSyncStatus",
       "doc": "Get sync status."
     },
-    "simpleFSGetHTTPServerAddressAndToken": {
+    "SimpleFSGetHTTPAddressAndToken": {
       "request": [],
-      "response": "SimpleFSHTTPServerAddressAndToken",
+      "response": "SimpleFSGetHTTPAddressAndTokenResponse",
       "lint": "ignore"
     }
   },

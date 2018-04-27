@@ -661,13 +661,13 @@ func (o OpProgress) DeepCopy() OpProgress {
 	}
 }
 
-type SimpleFSHTTPServerAddressAndToken struct {
+type SimpleFSGetHTTPAddressAndTokenResponse struct {
 	Address string `codec:"address" json:"address"`
 	Token   string `codec:"token" json:"token"`
 }
 
-func (o SimpleFSHTTPServerAddressAndToken) DeepCopy() SimpleFSHTTPServerAddressAndToken {
-	return SimpleFSHTTPServerAddressAndToken{
+func (o SimpleFSGetHTTPAddressAndTokenResponse) DeepCopy() SimpleFSGetHTTPAddressAndTokenResponse {
+	return SimpleFSGetHTTPAddressAndTokenResponse{
 		Address: o.Address,
 		Token:   o.Token,
 	}
@@ -772,7 +772,7 @@ type SimpleFSDumpDebuggingInfoArg struct {
 type SimpleFSSyncStatusArg struct {
 }
 
-type SimpleFSGetHTTPServerAddressAndTokenArg struct {
+type SimpleFSGetHTTPAddressAndTokenArg struct {
 }
 
 type SimpleFSInterface interface {
@@ -828,7 +828,7 @@ type SimpleFSInterface interface {
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context) (FSSyncStatus, error)
-	SimpleFSGetHTTPServerAddressAndToken(context.Context) (SimpleFSHTTPServerAddressAndToken, error)
+	SimpleFSGetHTTPAddressAndToken(context.Context) (SimpleFSGetHTTPAddressAndTokenResponse, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -1151,13 +1151,13 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"simpleFSGetHTTPServerAddressAndToken": {
+			"SimpleFSGetHTTPAddressAndToken": {
 				MakeArg: func() interface{} {
-					ret := make([]SimpleFSGetHTTPServerAddressAndTokenArg, 1)
+					ret := make([]SimpleFSGetHTTPAddressAndTokenArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSGetHTTPServerAddressAndToken(ctx)
+					ret, err = i.SimpleFSGetHTTPAddressAndToken(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1312,7 +1312,7 @@ func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatu
 	return
 }
 
-func (c SimpleFSClient) SimpleFSGetHTTPServerAddressAndToken(ctx context.Context) (res SimpleFSHTTPServerAddressAndToken, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetHTTPServerAddressAndToken", []interface{}{SimpleFSGetHTTPServerAddressAndTokenArg{}}, &res)
+func (c SimpleFSClient) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (res SimpleFSGetHTTPAddressAndTokenResponse, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken", []interface{}{SimpleFSGetHTTPAddressAndTokenArg{}}, &res)
 	return
 }

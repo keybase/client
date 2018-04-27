@@ -83,9 +83,9 @@ export const SimpleFSSimpleFSDumpDebuggingInfoRpcChannelMap = (configKeys: Array
 
 export const SimpleFSSimpleFSDumpDebuggingInfoRpcPromise = (request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
-export const SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetHTTPServerAddressAndToken', request)
+export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', request)
 
-export const SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcPromise = (request: SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcParam): Promise<SimpleFSSimpleFSGetHTTPServerAddressAndTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetHTTPServerAddressAndToken', request, (error: RPCError, result: SimpleFSSimpleFSGetHTTPServerAddressAndTokenResult) => (error ? reject(error) : resolve(result))))
+export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise = (request: SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam): Promise<SimpleFSSimpleFSGetHTTPAddressAndTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', request, (error: RPCError, result: SimpleFSSimpleFSGetHTTPAddressAndTokenResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
 
@@ -3420,7 +3420,7 @@ export type SigsSigListJSONRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallM
 
 export type SigsSigListRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSHTTPServerAddressAndToken = $ReadOnly<{address: String, token: String}>
+export type SimpleFSGetHTTPAddressAndTokenResponse = $ReadOnly<{address: String, token: String}>
 
 export type SimpleFSListResult = $ReadOnly<{entries?: ?Array<Dirent>, progress: Progress}>
 
@@ -3436,7 +3436,7 @@ export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, des
 
 export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSGetHTTPAddressAndTokenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4220,7 +4220,7 @@ type SignupSignupResult = SignupRes
 type SigsSigListJSONResult = String
 type SigsSigListResult = ?Array<Sig>
 type SimpleFSSimpleFSCheckResult = OpProgress
-type SimpleFSSimpleFSGetHTTPServerAddressAndTokenResult = SimpleFSHTTPServerAddressAndToken
+type SimpleFSSimpleFSGetHTTPAddressAndTokenResult = SimpleFSGetHTTPAddressAndTokenResponse
 type SimpleFSSimpleFSGetOpsResult = ?Array<OpDescription>
 type SimpleFSSimpleFSMakeOpidResult = OpID
 type SimpleFSSimpleFSReadListResult = SimpleFSListResult
