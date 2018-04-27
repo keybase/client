@@ -1,17 +1,48 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../../constants/types/chat2'
 import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
 import {default as _Input} from '.'
+import {throttle} from 'lodash-es'
 
 // For some reason, flow can't infer the type of mentionHoc here.
 const MentionHocInput: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
 
-class Input extends React.Component<PropsFromContainer> {
-  render() {
+type Props = PropsFromContainer & {
+  sendTyping: (typing: boolean) => void,
+}
+
+type State = {
+  text: string,
+}
+
+const unsentText: {[Types.ConversationIDKey]: string} = {}
+
+// Standalone throttled function to ensure we never accidentally recreate it and break the throttling
+const throttled = throttle((f, param) => f(param), 1000)
+
+class Input extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      text: unsentText[props.conversationIDKey] || '',
+    }
+  }
+
+  setText = (text: string, skipUnsentSaving?: boolean) => {
+    this.setState({text})
+    if (!skipUnsentSaving) {
+      unsentText[this.props.conversationIDKey] = text
+    }
+
+    throttled(this.props.sendTyping, !!text)
+  }
+
+  render = () => {
     return <MentionHocInput {...this.props} />
   }
 }
 
-export type {PropsFromContainer as Props}
+export type {Props}
 
 export default Input

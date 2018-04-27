@@ -113,6 +113,8 @@ class InputContainer extends React.Component<Props, State> {
       setText: this._setText,
       text: this.state.text,
       typing: this.props.typing,
+
+      sendTyping: action('sendTyping'),
     }
 
     return (

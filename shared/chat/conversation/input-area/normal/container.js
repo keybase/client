@@ -8,7 +8,6 @@ import {formatTextForQuoting} from '../../../../util/chat'
 import {
   compose,
   withHandlers,
-  withStateHandlers,
   withProps,
   lifecycle,
   connect,
@@ -16,7 +15,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../../util/container'
-import {isEqual, throttle} from 'lodash-es'
+import {isEqual} from 'lodash-es'
 import Input, {type Props} from './index-shared'
 
 type OwnProps = {
@@ -151,9 +150,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   typing: stateProps.typing,
 })
 
-// Standalone throttled function to ensure we never accidentally recreate it and break the throttling
-const throttled = throttle((f, param) => f(param), 1000)
-
 // With the heavy use of recompose below, it's pretty difficult to
 // figure out the types passed into the various handlers. This type is
 // good enough to use in the lifecycle methods.
@@ -167,22 +163,6 @@ type LifecycleProps = Props & {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(
-    props => ({text: unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] || ''}),
-    {
-      _setText: () => (text: string) => ({text}),
-    }
-  ),
-  withProps(props => ({
-    setText: (text: string, skipUnsentSaving?: boolean) => {
-      props._setText(text)
-      if (!skipUnsentSaving) {
-        unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] = text
-      }
-
-      throttled(props.sendTyping, !!text)
-    },
-  })),
   withProps(props => ({
     onSubmit: (text: string) => {
       props._onSubmit(text)
