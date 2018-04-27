@@ -15,10 +15,10 @@ type InputProps = {
   inputSelections: () => {selectionStart?: number, selectionEnd?: number},
   emojiPickerOpen: boolean,
   emojiPickerToggle: () => void,
-  filePickerFiles: () => Array<any>,
+  filePickerFiles: () => FileList | [],
   filePickerOpen: () => void,
-  filePickerSetValue: (value: any) => void,
-  filePickerSetRef: (r: any) => void,
+  filePickerSetValue: (value: string) => void,
+  filePickerSetRef: (r: ?HTMLInputElement) => void,
 } & Props
 
 const MentionCatcher = ({onClick}) => (
@@ -45,9 +45,13 @@ class ConversationInput extends Component<InputProps> {
     if (!body) {
       return
     }
-    const f = add ? body.addEventListener : body.removeEventListener
-    f('keydown', this._globalKeyDownHandler)
-    f('keypress', this._globalKeyDownHandler)
+    if (add) {
+      body.addEventListener('keydown', this._globalKeyDownHandler)
+      body.addEventListener('keypress', this._globalKeyDownHandler)
+    } else {
+      body.removeEventListener('keydown', this._globalKeyDownHandler)
+      body.removeEventListener('keypress', this._globalKeyDownHandler)
+    }
   }
 
   _globalKeyDownHandler = (ev: KeyboardEvent) => {
@@ -89,11 +93,21 @@ class ConversationInput extends Component<InputProps> {
 
   _pickFile = () => {
     const fileList = this.props.filePickerFiles()
-    const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path).filter(Boolean) : []
+    const paths = fileList.length
+      ? Array.prototype.map
+          .call(fileList, (f: File) => {
+            // We rely on path being here, even though it's
+            // not part of the File spec.
+            // $ForceType
+            const path: string = f.path
+            return path
+          })
+          .filter(Boolean)
+      : []
     if (paths) {
       this.props.onAttach(paths)
     }
-    this.props.filePickerSetValue(null)
+    this.props.filePickerSetValue('')
   }
 
   _mentionCatcherClick = () => {
@@ -188,8 +202,16 @@ class ConversationInput extends Component<InputProps> {
             {this.props.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            <Icon onClick={this.props.emojiPickerToggle} style={styleIcon} type="iconfont-emoji" />
-            <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
+            <Icon
+              onClick={this.props.pendingWaiting ? undefined : this.props.emojiPickerToggle}
+              style={styleIcon}
+              type="iconfont-emoji"
+            />
+            <Icon
+              onClick={this.props.pendingWaiting ? undefined : this.props.filePickerOpen}
+              style={styleIcon}
+              type="iconfont-attachment"
+            />
           </Box>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
             <Text
@@ -331,16 +353,16 @@ export default compose(
     {emojiPickerToggle: ({emojiPickerOpen}) => () => ({emojiPickerOpen: !emojiPickerOpen})}
   ),
   withHandlers(props => {
-    let fileInput
+    let fileInput: ?HTMLInputElement
     return {
       filePickerFiles: props => () => (fileInput && fileInput.files) || [],
       filePickerOpen: props => () => {
         fileInput && fileInput.click()
       },
-      filePickerSetRef: props => (r: any) => {
+      filePickerSetRef: props => (r: ?HTMLInputElement) => {
         fileInput = r
       },
-      filePickerSetValue: props => (value: any) => {
+      filePickerSetValue: props => (value: string) => {
         if (fileInput) fileInput.value = value
       },
     }
