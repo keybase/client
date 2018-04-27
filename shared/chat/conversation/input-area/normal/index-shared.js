@@ -3,9 +3,11 @@ import * as React from 'react'
 import * as I from 'immutable'
 import {Input as TextInput} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
+import {isMobile} from '../../../../util/container'
 import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
 import {default as _Input} from '.'
 import {throttle} from 'lodash-es'
+import {formatTextForQuoting} from '../../../../util/chat'
 
 // For some reason, flow can't infer the type of mentionHoc here.
 const MentionHocInput: React.ComponentType<PropsFromContainer> = mentionHoc(_Input)
@@ -13,21 +15,14 @@ const MentionHocInput: React.ComponentType<PropsFromContainer> = mentionHoc(_Inp
 type Props = {
   // Subset of PreMentionHocProps.
   conversationIDKey: Types.ConversationIDKey,
-  channelName: ?string,
+  channelName: string,
   isEditing: boolean,
   focusInputCounter: number,
   clearInboxFilter: () => void,
-  inputBlur: () => void,
-  inputClear: () => void,
-  inputFocus: () => void,
-  inputSetRef: (r: ?TextInput) => void,
-  inputValue: () => string,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onCancelQuoting: () => void,
-  onJoinChannel: () => void,
-  onLeaveChannel: () => void,
   onSubmit: (text: string) => void,
   pendingWaiting: boolean,
   typing: I.Set<string>,
@@ -37,6 +32,7 @@ type Props = {
 
   _quotingMessage: ?Types.Message,
   _editingMessage: ?Types.Message,
+  injectedInput: string,
 }
 
 type State = {
@@ -85,9 +81,13 @@ class Input extends React.Component<Props, State> {
     }
   }
 
-  _inputBlur = () => this._input && this._input.blur()
+  _inputBlur = () => {
+    this._input && this._input.blur()
+  }
 
-  _inputFocus = () => this._input && this._input.focus()
+  _inputFocus = () => {
+    this._input && this._input.focus()
+  }
 
   _inputMoveToEnd = () => this._input && this._input.moveCursorToEnd()
 
@@ -95,12 +95,52 @@ class Input extends React.Component<Props, State> {
 
   _inputSelections = () => (this._input && this._input.selections()) || {}
 
+  // The types for prevProps and nextProps aren't exact, but they're
+  // good enough.
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
+      this._inputFocus()
+    }
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    const props: Props = this.props
+
+    // Fill in the input with an edit, quote, or unsent text
+    if (
+      (nextProps._quotingMessage && nextProps._quotingMessage !== props._quotingMessage) ||
+      nextProps._editingMessage !== props._editingMessage
+    ) {
+      this._setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
+      const injectedInput = nextProps.injectedInput
+      this._setText(
+        nextProps._quotingMessage && !nextProps._editingMessage
+          ? formatTextForQuoting(injectedInput)
+          : injectedInput,
+        true
+      )
+      !isMobile && this._inputMoveToEnd()
+      this._inputFocus()
+    } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
+      const text = unsentText[nextProps.conversationIDKey] || ''
+      this._setText(text, true)
+    }
+
+    if (nextProps.isEditing && !props.isEditing) {
+      this._inputFocus()
+    }
+  }
+
   render = () => {
     return (
       <MentionHocInput
         {...this.props}
         _inputSetRef={this._inputSetRef}
         _onKeyDown={this._onKeyDown}
+        inputBlur={this._inputBlur}
+        inputFocus={this._inputFocus}
+        // TODO: Dedupe.
+        inputSetRef={this._inputSetRef}
         onSubmit={this._onSubmit}
         text={this.state.text}
         setText={this._setText}

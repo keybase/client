@@ -4,15 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
-import {formatTextForQuoting} from '../../../../util/chat'
-import {
-  compose,
-  lifecycle,
-  connect,
-  isMobile,
-  type TypedState,
-  type Dispatch,
-} from '../../../../util/container'
+import {connect, type TypedState, type Dispatch} from '../../../../util/container'
 import {isEqual} from 'lodash-es'
 import Input, {type Props} from './index-shared'
 
@@ -20,9 +12,6 @@ type OwnProps = {
   focusInputCounter: number,
   onScrollDown: () => void,
 }
-
-// We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
-const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
@@ -114,7 +103,7 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   _editingMessage: stateProps._editingMessage,
   _quotingMessage: stateProps._quotingMessage,
   channelName: stateProps._meta.channelname,
@@ -144,57 +133,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ownProps.onScrollDown()
   },
   pendingWaiting: stateProps.pendingWaiting,
-  sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
+  sendTyping: (typing: boolean) => {
+    dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
+  },
   typing: stateProps.typing,
 })
 
-// With the heavy use of recompose below, it's pretty difficult to
-// figure out the types passed into the various handlers. This type is
-// good enough to use in the lifecycle methods.
-type LifecycleProps = Props & {
-  _quotingMessage: ?Types.Message,
-  _editingMessage: ?Types.Message,
-  setText: (string, skipUnsentSaving?: boolean) => void,
-  injectedInput: string,
-  inputMoveToEnd: () => void,
-}
-
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  lifecycle({
-    // The types for prevProps and nextProps aren't exact, but they're
-    // good enough.
-    componentDidUpdate(prevProps: LifecycleProps) {
-      if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
-        this.props.inputFocus()
-      }
-    },
-    componentWillReceiveProps(nextProps: LifecycleProps) {
-      const props: LifecycleProps = this.props
-
-      // Fill in the input with an edit, quote, or unsent text
-      if (
-        (nextProps._quotingMessage && nextProps._quotingMessage !== props._quotingMessage) ||
-        nextProps._editingMessage !== props._editingMessage
-      ) {
-        props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-        const injectedInput = nextProps.injectedInput
-        props.setText(
-          nextProps._quotingMessage && !nextProps._editingMessage
-            ? formatTextForQuoting(injectedInput)
-            : injectedInput,
-          true
-        )
-        !isMobile && props.inputMoveToEnd()
-        props.inputFocus()
-      } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
-        const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
-        props.setText(text, true)
-      }
-
-      if (nextProps.isEditing && !props.isEditing) {
-        props.inputFocus()
-      }
-    },
-  })
-)(Input)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Input)

@@ -80,7 +80,6 @@ class InputContainer extends React.Component<Props> {
       inputClear: action('inputClear'),
       inputFocus: action('inputFocus'),
       inputSetRef: action('inputSetRef'),
-      inputValue: action('inputValue'),
       onAttach: (paths: Array<string>) => {
         // This will always be called with an empty array, since some
         // browsers don't have the path property set on File.
@@ -89,13 +88,12 @@ class InputContainer extends React.Component<Props> {
       onEditLastMessage: action('onEditLastMessage'),
       onCancelEditing: action('onCancelEditing'),
       onCancelQuoting: action('onCancelQuoting'),
-      onJoinChannel: action('onJoinChannel'),
-      onLeaveChannel: action('onLeaveChannel'),
       onSubmit: (text: string) => {
         action('onSubmit')(text)
       },
       pendingWaiting: this.props.pendingWaiting,
       typing: this.props.typing,
+      injectedInput: '',
 
       sendTyping: action('sendTyping'),
     }
