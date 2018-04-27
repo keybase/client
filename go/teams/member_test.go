@@ -219,7 +219,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, boxes, _, _, _, err := tm.changeMembershipSection(context.TODO(), req)
+	_, boxes, _, _, _, err := tm.changeMembershipSection(context.TODO(), req, true /* rotateIfHasRemoval */)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,7 +252,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, boxes, _, _, _, err := tm.changeMembershipSection(context.TODO(), req)
+	_, boxes, _, _, _, err := tm.changeMembershipSection(context.TODO(), req, true /* rotateIfHasRemoval */)
 	if err != nil {
 		t.Fatal(err)
 	}

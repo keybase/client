@@ -270,6 +270,10 @@ protocol teams {
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
+    // Creation time of latest PerTeamKey, based on CTime from the
+    // link key appeared in.
+    UnixTime perTeamKeyCTime;
+
     // This is filled up to lastSeqno.
     map<Seqno, LinkID> linkIDs;
 

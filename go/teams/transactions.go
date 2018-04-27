@@ -6,6 +6,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -624,7 +625,8 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}()
 	}
 
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet)
+	shouldRotate := team.shouldRotateOnRemoval(time.Now())
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, shouldRotate)
 	if err != nil {
 		return err
 	}

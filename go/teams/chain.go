@@ -287,6 +287,10 @@ func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
+func (t *TeamSigChainState) GetLatestPerTeamKeyCTime() keybase1.UnixTime {
+	return t.inner.PerTeamKeyCTime
+}
+
 func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) (keybase1.PerTeamKey, error) {
 	res, ok := t.inner.PerTeamKeys[gen]
 	if !ok {
@@ -922,6 +926,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				UserLog:          make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:       make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:      perTeamKeys,
+				PerTeamKeyCTime:  keybase1.UnixTime(payload.Ctime),
 				LinkIDs:          make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks:     make(map[keybase1.Seqno]bool),
 				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
@@ -1112,6 +1117,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				return res, err
 			}
 			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
+			res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 		}
 
 		return res, nil
@@ -1150,6 +1156,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		res.newState = prevState.DeepCopy()
 		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
+		res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 
 		return res, nil
 	case libkb.LinkTypeLeave:
