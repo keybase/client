@@ -1,7 +1,7 @@
 // @flow
 import React, {type Node} from 'react'
 import {TouchableWithoutFeedback, Picker} from 'react-native'
-import Box from './box'
+import Box, {Box2} from './box'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import FloatingBox from './floating-box.native'
@@ -29,18 +29,23 @@ const FloatingPicker = (props: Props) => {
     <FloatingBox onHidden={() => {}}>
       <TouchableWithoutFeedback style={styleOverlayContainer} onPress={props.onHidden}>
         <Box style={styleOverlay}>
-          <Box style={styleMenu}>
+          <Box2 direction="vertical" fullWidth={true} style={styleMenu}>
             {props.header}
-            <Box style={styleActionButtons}>
-              <Box style={{flex: 1}}>
-                <Text
-                  type="BodySemibold"
-                  style={{color: globalColors.blue, fontSize: 17}}
-                  onClick={props.onCancel}
-                >
-                  Cancel
-                </Text>
-              </Box>
+            <Box2
+              direction="horizontal"
+              gap="small"
+              gapStart={true}
+              gapEnd={true}
+              fullWidth={true}
+              style={styleActionButtons}
+            >
+              <Text
+                type="BodySemibold"
+                style={{color: globalColors.blue, fontSize: 17, flex: 1}}
+                onClick={props.onCancel}
+              >
+                Cancel
+              </Text>
               <Text
                 type="BodySemibold"
                 style={{color: globalColors.blue, fontSize: 17}}
@@ -48,14 +53,14 @@ const FloatingPicker = (props: Props) => {
               >
                 Done
               </Text>
-            </Box>
+            </Box2>
             <Picker
               selectedValue={props.selectedValue}
               onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
             >
               {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
             </Picker>
-          </Box>
+          </Box2>
         </Box>
       </TouchableWithoutFeedback>
     </FloatingBox>
@@ -79,16 +84,14 @@ const styleOverlay = {
 }
 
 const styleMenu = {
-  ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-end',
   alignItems: 'stretch',
   backgroundColor: globalColors.white,
 }
 
 const styleActionButtons = {
-  ...globalStyles.flexBoxRow,
-  padding: globalMargins.small,
-  width: '100%',
+  paddingBottom: globalMargins.small,
+  paddingTop: globalMargins.small,
   height: 56,
   justifyContent: 'flex-end',
   alignItems: 'stretch',
