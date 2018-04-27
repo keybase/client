@@ -83,13 +83,13 @@ export const SimpleFSSimpleFSDumpDebuggingInfoRpcChannelMap = (configKeys: Array
 
 export const SimpleFSSimpleFSDumpDebuggingInfoRpcPromise = (request: SimpleFSSimpleFSDumpDebuggingInfoRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSDumpDebuggingInfo', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetHTTPServerAddressAndToken', request)
+
+export const SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcPromise = (request: SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcParam): Promise<SimpleFSSimpleFSGetHTTPServerAddressAndTokenResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetHTTPServerAddressAndToken', request, (error: RPCError, result: SimpleFSSimpleFSGetHTTPServerAddressAndTokenResult) => (error ? reject(error) : resolve(result))))
+
 export const SimpleFSSimpleFSGetOpsRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetOpsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetOps', request)
 
 export const SimpleFSSimpleFSGetOpsRpcPromise = (request: SimpleFSSimpleFSGetOpsRpcParam): Promise<SimpleFSSimpleFSGetOpsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetOps', request, (error: RPCError, result: SimpleFSSimpleFSGetOpsResult) => (error ? reject(error) : resolve(result))))
-
-export const SimpleFSSimpleFSGetTokenForHTTPServerRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSGetTokenForHTTPServerRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSGetTokenForHTTPServer', request)
-
-export const SimpleFSSimpleFSGetTokenForHTTPServerRpcPromise = (request: SimpleFSSimpleFSGetTokenForHTTPServerRpcParam): Promise<SimpleFSSimpleFSGetTokenForHTTPServerResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.SimpleFS.simpleFSGetTokenForHTTPServer', request, (error: RPCError, result: SimpleFSSimpleFSGetTokenForHTTPServerResult) => (error ? reject(error) : resolve(result))))
 
 export const SimpleFSSimpleFSListRecursiveRpcChannelMap = (configKeys: Array<string>, request: SimpleFSSimpleFSListRecursiveRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.SimpleFS.simpleFSListRecursive', request)
 
@@ -3420,6 +3420,8 @@ export type SigsSigListJSONRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallM
 
 export type SigsSigListRpcParam = $ReadOnly<{arg: SigListArgs, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type SimpleFSHTTPServerAddressAndToken = $ReadOnly<{address: String, token: String}>
+
 export type SimpleFSListResult = $ReadOnly<{entries?: ?Array<Dirent>, progress: Progress}>
 
 export type SimpleFSSimpleFSCancelRpcParam = $ReadOnly<{opID: OpID, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -3434,9 +3436,9 @@ export type SimpleFSSimpleFSCopyRpcParam = $ReadOnly<{opID: OpID, src: Path, des
 
 export type SimpleFSSimpleFSDumpDebuggingInfoRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSGetHTTPServerAddressAndTokenRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type SimpleFSSimpleFSGetTokenForHTTPServerRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type SimpleFSSimpleFSGetOpsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type SimpleFSSimpleFSListRecursiveRpcParam = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4218,8 +4220,8 @@ type SignupSignupResult = SignupRes
 type SigsSigListJSONResult = String
 type SigsSigListResult = ?Array<Sig>
 type SimpleFSSimpleFSCheckResult = OpProgress
+type SimpleFSSimpleFSGetHTTPServerAddressAndTokenResult = SimpleFSHTTPServerAddressAndToken
 type SimpleFSSimpleFSGetOpsResult = ?Array<OpDescription>
-type SimpleFSSimpleFSGetTokenForHTTPServerResult = String
 type SimpleFSSimpleFSMakeOpidResult = OpID
 type SimpleFSSimpleFSReadListResult = SimpleFSListResult
 type SimpleFSSimpleFSReadResult = FileContent

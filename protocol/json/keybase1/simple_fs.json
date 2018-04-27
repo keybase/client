@@ -368,6 +368,21 @@
           "name": "filesWritten"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSHTTPServerAddressAndToken",
+      "fields": [
+        {
+          "type": "string",
+          "name": "address"
+        },
+        {
+          "type": "string",
+          "name": "token"
+        }
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {
@@ -640,9 +655,9 @@
       "response": "FSSyncStatus",
       "doc": "Get sync status."
     },
-    "simpleFSGetTokenForHTTPServer": {
+    "simpleFSGetHTTPServerAddressAndToken": {
       "request": [],
-      "response": "string",
+      "response": "SimpleFSHTTPServerAddressAndToken",
       "lint": "ignore"
     }
   },

@@ -54,7 +54,7 @@ protocol SimpleFS {
     // cryptographically verified; users with write access to the TLF could
     // in theory spoof the last writer if they modify their client.
     User lastWriterUnverified;
-}
+  }
 
   @typedef("int")
   record ErrorNum {}
@@ -270,5 +270,11 @@ protocol SimpleFS {
   FSSyncStatus simpleFSSyncStatus();
 
   @lint("ignore")
-  string simpleFSGetTokenForHTTPServer();
+  record SimpleFSHTTPServerAddressAndToken {
+    string address;
+    string token;
+  }
+
+  @lint("ignore")
+  SimpleFSHTTPServerAddressAndToken simpleFSGetHTTPServerAddressAndToken();
 }
