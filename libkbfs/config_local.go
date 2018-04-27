@@ -34,8 +34,7 @@ const (
 	// Max supported size of a directory entry name.
 	maxNameBytesDefault = 255
 	// Maximum supported plaintext size of a directory in KBFS. TODO:
-	// increase this once we support levels of indirection for
-	// directories.
+	// increase this once we support levels of indirection for directories.
 	maxDirBytesDefault = MaxBlockSizeBytesDefault
 	// Default time after setting the rekey bit before prompting for a
 	// paper key.
@@ -105,6 +104,7 @@ type ConfigLocal struct {
 	kbfsService      *KBFSService
 	kbCtx            Context
 	rootNodeWrappers []func(Node) Node
+	localHTTPServer  LocalHTTPServer
 
 	maxNameBytes  uint32
 	maxDirBytes   uint64
@@ -1070,6 +1070,9 @@ func (c *ConfigLocal) BGFlushPeriod() time.Duration {
 
 // Shutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Shutdown(ctx context.Context) error {
+	if c.LocalHTTPServer() != nil {
+		c.LocalHTTPServer().Shutdown()
+	}
 	c.RekeyQueue().Shutdown()
 	if c.CheckStateOnShutdown() && c.allKnownConfigsForTesting != nil {
 		// Before we do anything, wait for all archiving and
@@ -1452,4 +1455,18 @@ func (c *ConfigLocal) AddRootNodeWrapper(f func(Node) Node) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.rootNodeWrappers = append(c.rootNodeWrappers, f)
+}
+
+// SetLocalHTTPServer sets the local HTTP server for the config.
+func (c *ConfigLocal) SetLocalHTTPServer(localHTTPServer LocalHTTPServer) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.localHTTPServer = localHTTPServer
+}
+
+// LocalHTTPServer returns the Config interface.
+func (c *ConfigLocal) LocalHTTPServer() LocalHTTPServer {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.localHTTPServer
 }

@@ -115,6 +115,10 @@ type InitParams struct {
 
 	// Mode describes how KBFS should initialize itself.
 	Mode string
+
+	// LocalHTTPServer is a local HTTP server used to serve content to the
+	// front end.
+	LocalHTTPServer LocalHTTPServer
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -572,7 +576,9 @@ func doInit(
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
 
-	config := NewConfigLocal(NewInitModeFromType(mode),
+	initMode := NewInitModeFromType(mode)
+
+	config := NewConfigLocal(initMode,
 		func(module string) logger.Logger {
 			mname := logPrefix
 			if module != "" {
@@ -740,6 +746,17 @@ func doInit(
 	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
 		params.BGFlushDirOpBatchSize)
 	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
+
+	if initMode.LocalHTTPServerEnabled() {
+		if params.LocalHTTPServer == nil {
+			return nil, errors.New("local HTTP server is enabled but " +
+				"params.LocalHTTPServer is nil")
+		}
+		config.SetLocalHTTPServer(params.LocalHTTPServer)
+		if err = params.LocalHTTPServer.Init(kbCtx.GetGlobalContext(), config); err != nil {
+			return nil, err
+		}
+	}
 
 	return config, nil
 }

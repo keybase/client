@@ -5924,6 +5924,18 @@ func (mr *MockInitModeMockRecorder) ClientType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClientType", reflect.TypeOf((*MockInitMode)(nil).ClientType))
 }
 
+// LocalHTTPServerEnabled mocks base method
+func (m *MockInitMode) LocalHTTPServerEnabled() bool {
+	ret := m.ctrl.Call(m, "LocalHTTPServerEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// LocalHTTPServerEnabled indicates an expected call of LocalHTTPServerEnabled
+func (mr *MockInitModeMockRecorder) LocalHTTPServerEnabled() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalHTTPServerEnabled", reflect.TypeOf((*MockInitMode)(nil).LocalHTTPServerEnabled))
+}
+
 // MockinitModeGetter is a mock of initModeGetter interface
 type MockinitModeGetter struct {
 	ctrl     *gomock.Controller
@@ -5969,6 +5981,41 @@ func (m *MockinitModeGetter) IsTestMode() bool {
 // IsTestMode indicates an expected call of IsTestMode
 func (mr *MockinitModeGetterMockRecorder) IsTestMode() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTestMode", reflect.TypeOf((*MockinitModeGetter)(nil).IsTestMode))
+}
+
+// MocklocalHTTPServerGetter is a mock of localHTTPServerGetter interface
+type MocklocalHTTPServerGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MocklocalHTTPServerGetterMockRecorder
+}
+
+// MocklocalHTTPServerGetterMockRecorder is the mock recorder for MocklocalHTTPServerGetter
+type MocklocalHTTPServerGetterMockRecorder struct {
+	mock *MocklocalHTTPServerGetter
+}
+
+// NewMocklocalHTTPServerGetter creates a new mock instance
+func NewMocklocalHTTPServerGetter(ctrl *gomock.Controller) *MocklocalHTTPServerGetter {
+	mock := &MocklocalHTTPServerGetter{ctrl: ctrl}
+	mock.recorder = &MocklocalHTTPServerGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MocklocalHTTPServerGetter) EXPECT() *MocklocalHTTPServerGetterMockRecorder {
+	return m.recorder
+}
+
+// LocalHTTPServer mocks base method
+func (m *MocklocalHTTPServerGetter) LocalHTTPServer() LocalHTTPServer {
+	ret := m.ctrl.Call(m, "LocalHTTPServer")
+	ret0, _ := ret[0].(LocalHTTPServer)
+	return ret0
+}
+
+// LocalHTTPServer indicates an expected call of LocalHTTPServer
+func (mr *MocklocalHTTPServerGetterMockRecorder) LocalHTTPServer() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalHTTPServer", reflect.TypeOf((*MocklocalHTTPServerGetter)(nil).LocalHTTPServer))
 }
 
 // MockConfig is a mock of Config interface
@@ -6208,6 +6255,18 @@ func (m *MockConfig) IsTestMode() bool {
 // IsTestMode indicates an expected call of IsTestMode
 func (mr *MockConfigMockRecorder) IsTestMode() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTestMode", reflect.TypeOf((*MockConfig)(nil).IsTestMode))
+}
+
+// LocalHTTPServer mocks base method
+func (m *MockConfig) LocalHTTPServer() LocalHTTPServer {
+	ret := m.ctrl.Call(m, "LocalHTTPServer")
+	ret0, _ := ret[0].(LocalHTTPServer)
+	return ret0
+}
+
+// LocalHTTPServer indicates an expected call of LocalHTTPServer
+func (mr *MockConfigMockRecorder) LocalHTTPServer() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalHTTPServer", reflect.TypeOf((*MockConfig)(nil).LocalHTTPServer))
 }
 
 // MaybeStartTrace mocks base method
@@ -7443,4 +7502,75 @@ func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
 func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh)
+}
+
+// MockLocalHTTPServer is a mock of LocalHTTPServer interface
+type MockLocalHTTPServer struct {
+	ctrl     *gomock.Controller
+	recorder *MockLocalHTTPServerMockRecorder
+}
+
+// MockLocalHTTPServerMockRecorder is the mock recorder for MockLocalHTTPServer
+type MockLocalHTTPServerMockRecorder struct {
+	mock *MockLocalHTTPServer
+}
+
+// NewMockLocalHTTPServer creates a new mock instance
+func NewMockLocalHTTPServer(ctrl *gomock.Controller) *MockLocalHTTPServer {
+	mock := &MockLocalHTTPServer{ctrl: ctrl}
+	mock.recorder = &MockLocalHTTPServerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockLocalHTTPServer) EXPECT() *MockLocalHTTPServerMockRecorder {
+	return m.recorder
+}
+
+// Init mocks base method
+func (m *MockLocalHTTPServer) Init(g *libkb.GlobalContext, config Config) error {
+	ret := m.ctrl.Call(m, "Init", g, config)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Init indicates an expected call of Init
+func (mr *MockLocalHTTPServerMockRecorder) Init(g, config interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockLocalHTTPServer)(nil).Init), g, config)
+}
+
+// NewToken mocks base method
+func (m *MockLocalHTTPServer) NewToken() (string, error) {
+	ret := m.ctrl.Call(m, "NewToken")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewToken indicates an expected call of NewToken
+func (mr *MockLocalHTTPServerMockRecorder) NewToken() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewToken", reflect.TypeOf((*MockLocalHTTPServer)(nil).NewToken))
+}
+
+// Shutdown mocks base method
+func (m *MockLocalHTTPServer) Shutdown() {
+	m.ctrl.Call(m, "Shutdown")
+}
+
+// Shutdown indicates an expected call of Shutdown
+func (mr *MockLocalHTTPServerMockRecorder) Shutdown() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockLocalHTTPServer)(nil).Shutdown))
+}
+
+// Address mocks base method
+func (m *MockLocalHTTPServer) Address() (string, error) {
+	ret := m.ctrl.Call(m, "Address")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Address indicates an expected call of Address
+func (mr *MockLocalHTTPServerMockRecorder) Address() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Address", reflect.TypeOf((*MockLocalHTTPServer)(nil).Address))
 }

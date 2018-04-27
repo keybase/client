@@ -108,6 +108,10 @@ func (md modeDefault) ClientType() keybase1.ClientType {
 	return keybase1.ClientType_KBFS
 }
 
+func (md modeDefault) LocalHTTPServerEnabled() bool {
+	return true
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -206,6 +210,10 @@ func (mm modeMinimal) ClientType() keybase1.ClientType {
 	return keybase1.ClientType_KBFS
 }
 
+func (mm modeMinimal) LocalHTTPServerEnabled() bool {
+	return false
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -246,6 +254,10 @@ func (mso modeSingleOp) TLFEditHistoryEnabled() bool {
 
 func (mso modeSingleOp) ClientType() keybase1.ClientType {
 	return keybase1.ClientType_NONE
+}
+
+func (mso modeSingleOp) LocalHTTPServerEnabled() bool {
+	return false
 }
 
 // Constrained mode:
@@ -305,6 +317,10 @@ func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
 
 func (mc modeConstrained) TLFEditHistoryEnabled() bool {
 	return false
+}
+
+func (mc modeConstrained) LocalHTTPServerEnabled() bool {
+	return true
 }
 
 // Wrapper for tests.

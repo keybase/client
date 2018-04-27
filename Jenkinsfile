@@ -366,6 +366,12 @@ def runNixTest(prefix) {
             sh './test.fuse -test.timeout 12m'
         }
     }
+    tests[prefix+'libhttpserver'] = {
+        dir('libhttpserver') {
+            sh 'go test -race -c'
+            sh './libhttpserver.test -test.timeout 30s'
+        }
+    }
     tests[prefix+'libpages'] = {
         dir('libpages') {
             sh 'go test -race -c'

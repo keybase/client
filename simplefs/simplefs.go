@@ -6,7 +6,6 @@ package simplefs
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -1317,6 +1316,13 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatu
 // SimpleFSGetHTTPAddressAndToken returns a random token to be used for the
 // local KBFS http server.
 func (k *SimpleFS) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (
-	keybase1.SimpleFSHTTPServerAddressAndToken, error) {
-	return keybase1.SimpleFSHTTPServerAddressAndToken{}, errors.New("not implemented")
+	resp keybase1.SimpleFSGetHTTPAddressAndTokenResponse, err error) {
+	if resp.Token, err = k.config.LocalHTTPServer().NewToken(); err != nil {
+		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
+	}
+	if resp.Address, err = k.config.LocalHTTPServer().Address(); err != nil {
+		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
+	}
+
+	return resp, nil
 }
