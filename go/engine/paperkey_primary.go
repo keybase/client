@@ -24,8 +24,6 @@ type PaperKeyPrimaryArgs struct {
 	SigningKey    libkb.GenericKey
 	EncryptionKey libkb.NaclDHKeyPair
 	Me            *libkb.User
-
-	LoginContext   libkb.LoginContext    // optional
 	PerUserKeyring *libkb.PerUserKeyring // optional
 }
 
@@ -74,7 +72,7 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		Me:             e.args.Me,
 		SigningKey:     e.args.SigningKey,
 		EncryptionKey:  e.args.EncryptionKey,
-		LoginContext:   e.args.LoginContext,
+		LoginContext:   ctx.LoginContext,
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
 	kgeng := NewPaperKeyGen(kgarg, e.G())

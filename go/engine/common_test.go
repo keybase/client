@@ -106,14 +106,15 @@ func MakeTestSignupEngineRunArg(fu *FakeUser) SignupEngineRunArg {
 }
 
 func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineRunArg) *SignupEngine {
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -151,14 +152,14 @@ func CreateAndSignupFakeUserSafe(g *libkb.GlobalContext, prefix string) (*FakeUs
 	}
 
 	arg := MakeTestSignupEngineRunArg(fu)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, g)
-	err = RunEngine(s, ctx)
+	s := NewSignupEngine(g, &arg)
+	err = RunEngine2(libkb.NewMetaContextTODO(g).WithUIs(uis), s)
 	if err != nil {
 		return nil, err
 	}
@@ -172,14 +173,14 @@ func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -200,14 +201,14 @@ func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod 
 	fu = NewFakeUserOrBust(tc.T, prefix)
 	arg := MakeTestSignupEngineRunArg(fu)
 	fmod(&arg)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -350,14 +351,14 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	arg := MakeTestSignupEngineRunArg(user)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: user.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    dev1.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: user.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, dev1.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(dev1.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(dev1).WithUIs(uis), s)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -372,7 +373,7 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	secUI.Passphrase = loginUI.PaperPhrase
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
-	ctx = &Context{
+	ctx := &Context{
 		ProvisionUI: provUI,
 		LogUI:       dev2.G.UI.GetLogUI(),
 		SecretUI:    secUI,

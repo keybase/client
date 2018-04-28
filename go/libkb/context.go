@@ -1,7 +1,9 @@
 package libkb
 
 import (
+	"fmt"
 	context "golang.org/x/net/context"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type MetaContext struct {
@@ -9,6 +11,7 @@ type MetaContext struct {
 	g            *GlobalContext
 	loginContext LoginContext
 	activeDevice *ActiveDevice
+	uis UIs
 }
 
 func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
@@ -58,3 +61,77 @@ func (m MetaContext) ActiveDevice() *ActiveDevice {
 func NewMetaContextTODO(g *GlobalContext) MetaContext {
 	return MetaContext{ctx: context.TODO(), g: g}
 }
+
+func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
+	m.uis.IdentifyUI = u
+	m.uis.IdentifyUIIsDelegated = true
+	return m
+}
+
+func (m MetaContext) WithSecretUI(u SecretUI) MetaContext {
+	m.uis.SecretUI = u
+	return m
+}
+
+func (m MetaContext) WithGPGUI(u GPGUI) MetaContext {
+	m.uis.GPGUI = u
+	return m
+}
+
+func (m MetaContext) UIs() UIs{
+	return m.uis
+}
+
+func (m MetaContext) WithUIs(u UIs) MetaContext {
+	m.uis = u
+	return m
+}
+
+type UIs struct {
+	GPGUI       GPGUI
+	LogUI       LogUI
+	LoginUI     LoginUI
+	SecretUI    SecretUI
+	IdentifyUI  IdentifyUI
+	PgpUI       PgpUI
+	ProveUI     ProveUI
+	ProvisionUI ProvisionUI
+	SaltpackUI  SaltpackUI
+
+	// Usually set to `NONE`, meaning none specified.
+	// But if we know it, specify the end client type here
+	// since some things like GPG shell-out work differently
+	// depending.
+	ClientType keybase1.ClientType
+
+	// Special-case flag for identifyUI -- if it's been delegated
+	// to the electron UI, then it's rate-limitable
+	IdentifyUIIsDelegated bool
+
+	SessionID int
+}
+
+func (e UIs) HasUI(kind UIKind) bool {
+	switch kind {
+	case GPGUIKind:
+		return e.GPGUI != nil
+	case LogUIKind:
+		return e.LogUI != nil
+	case LoginUIKind:
+		return e.LoginUI != nil
+	case SecretUIKind:
+		return e.SecretUI != nil
+	case IdentifyUIKind:
+		return e.IdentifyUI != nil
+	case PgpUIKind:
+		return e.PgpUI != nil
+	case ProveUIKind:
+		return e.ProveUI != nil
+	case ProvisionUIKind:
+		return e.ProvisionUI != nil
+	case SaltpackUIKind:
+		return e.SaltpackUI != nil
+	}
+	panic(fmt.Sprintf("unhandled kind: %d", kind))
+}
+
