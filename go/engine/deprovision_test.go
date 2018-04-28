@@ -62,14 +62,14 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	arg.StoreSecret = tc.G.SecretStore() != nil
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis),s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext, targ assertDeprovisionWith
 	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
-	ctx = &Context{
+	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
@@ -215,14 +215,14 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	arg := MakeTestSignupEngineRunArg(fu)
 
 	arg.StoreSecret = tc.G.SecretStore() != nil
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -258,7 +258,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	tc.G.Logout()
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, false /* doRevoke */)
-	ctx = &Context{
+	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
@@ -314,14 +314,14 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	arg.StoreSecret = tc.G.SecretStore() != nil
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -359,7 +359,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
-	ctx = &Context{
+	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}

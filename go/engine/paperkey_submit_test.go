@@ -23,14 +23,14 @@ func TestPaperKeySubmit(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	if err := RunEngine(s, ctx); err != nil {
+	s := NewSignupEngine(tc.G, &arg)
+	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
 		t.Fatal(err)
 	}
 
@@ -48,7 +48,7 @@ func TestPaperKeySubmit(t *testing.T) {
 	assertPaperKeyCached(tc, false)
 
 	// submit the paper key
-	ctx = &Context{
+	ctx := &Context{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
 	eng := NewPaperKeySubmit(tc.G, paperkey)
