@@ -253,7 +253,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			if conv == nil || conv.GetTopicType() == chat1.TopicType_CHAT {
 				if g.shouldSendNotifications() {
 					g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-						convID, update.FinalizeInfo, g.presentUIItem(conv))
+						convID, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 				} else {
 					supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 						ConvID:     convID,
@@ -380,10 +380,18 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	return false
 }
 
-func (g *PushHandler) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal, uid gregor1.UID) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(*conv, g.G().Env.GetUsername().String())
-		res = &pc
+		if conv.Error != nil {
+			// If we get a transient failure, add this to the retrier queue
+			if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
+				g.G().FetchRetrier.Failure(ctx, uid,
+					NewConversationRetry(g.G(), conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
+			}
+		} else {
+			pc := utils.PresentConversationLocal(*conv, g.G().Env.GetUsername().String())
+			res = &pc
+		}
 	}
 	return res
 }
@@ -478,7 +486,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 					Message: utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
 					ConvID:  nm.ConvID,
-					Conv:    g.presentUIItem(conv),
+					Conv:    g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
 					Pagination:                 utils.PresentPagination(page),
 				})
@@ -520,7 +528,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
 				MsgID:  nm.MsgID,
 				ConvID: nm.ConvID,
-				Conv:   g.presentUIItem(conv),
+				Conv:   g.presentUIItem(ctx, conv, uid),
 			})
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
@@ -540,7 +548,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
 				ConvID: nm.ConvID,
 				Status: nm.Status,
-				Conv:   g.presentUIItem(conv),
+				Conv:   g.presentUIItem(ctx, conv, uid),
 			})
 		case types.ActionSetAppNotificationSettings:
 			var nm chat1.SetAppNotificationSettingsPayload
@@ -594,7 +602,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			activity = new(chat1.ChatActivity)
 			*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv: *g.presentUIItem(conv),
+				Conv: *g.presentUIItem(ctx, conv, uid),
 			})
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
@@ -613,7 +621,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
 				ConvID:   nm.ConvID,
 				TeamType: nm.TeamType,
-				Conv:     g.presentUIItem(conv),
+				Conv:     g.presentUIItem(ctx, conv, uid),
 			})
 		case types.ActionExpunge:
 			var nm chat1.ExpungePayload
@@ -640,6 +648,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		}
 		if activity != nil {
 			g.notifyNewChatActivity(ctx, m.UID(), convID, conv, activity)
+		} else {
+			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
 	}(bctx)
 	return nil
@@ -675,7 +685,7 @@ func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 
 	kuid := keybase1.UID(uid.String())
 	if g.shouldSendNotifications() {
-		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, *g.presentUIItem(&conv))
+		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, *g.presentUIItem(ctx, &conv, uid))
 	} else {
 		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 			ConvID:     conv.GetConvID(),
@@ -963,7 +973,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		if conv.GetTopicType() == chat1.TopicType_CHAT {
 			if g.shouldSendNotifications() {
 				g.G().NotifyRouter.HandleChatSetConvRetention(ctx, keybase1.UID(uid.String()),
-					conv.GetConvID(), g.presentUIItem(conv))
+					conv.GetConvID(), g.presentUIItem(ctx, conv, uid))
 			} else {
 				supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 					ConvID:     conv.GetConvID(),
@@ -1021,7 +1031,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		var staleUpdates []chat1.ConversationStaleUpdate
 		for _, conv := range convs {
 			if conv.GetTopicType() == chat1.TopicType_CHAT {
-				convUIItems = append(convUIItems, *g.presentUIItem(&conv))
+				convUIItems = append(convUIItems, *g.presentUIItem(ctx, &conv, uid))
 				staleUpdates = append(staleUpdates, chat1.ConversationStaleUpdate{
 					ConvID:     conv.GetConvID(),
 					UpdateType: chat1.StaleUpdateType_CLEAR,
