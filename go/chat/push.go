@@ -602,7 +602,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			activity = new(chat1.ChatActivity)
 			*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv: *g.presentUIItem(ctx, conv, uid),
+				Conv:   g.presentUIItem(ctx, conv, uid),
+				ConvID: conv.GetConvID(),
 			})
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
@@ -685,7 +686,8 @@ func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 
 	kuid := keybase1.UID(uid.String())
 	if g.shouldSendNotifications() {
-		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, *g.presentUIItem(ctx, &conv, uid))
+		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv.GetConvID(),
+			g.presentUIItem(ctx, &conv, uid))
 	} else {
 		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 			ConvID:     conv.GetConvID(),
@@ -1031,7 +1033,10 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		var staleUpdates []chat1.ConversationStaleUpdate
 		for _, conv := range convs {
 			if conv.GetTopicType() == chat1.TopicType_CHAT {
-				convUIItems = append(convUIItems, *g.presentUIItem(ctx, &conv, uid))
+				uiItem := g.presentUIItem(ctx, &conv, uid)
+				if uiItem != nil {
+					convUIItems = append(convUIItems, *uiItem)
+				}
 				staleUpdates = append(staleUpdates, chat1.ConversationStaleUpdate{
 					ConvID:     conv.GetConvID(),
 					UpdateType: chat1.StaleUpdateType_CLEAR,

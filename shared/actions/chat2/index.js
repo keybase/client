@@ -119,7 +119,7 @@ const requestMeta = (action: Chat2Gen.MetaHandleQueuePayload, state: TypedState)
   const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
   metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
 
-  const conversationIDKeys = maybeUnbox.toArray()
+  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
   const toUnboxActions = conversationIDKeys.length
     ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))]
     : []
