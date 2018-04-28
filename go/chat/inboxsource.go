@@ -1148,11 +1148,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Expunge = conversationRemote.Expunge
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
-	if libkb.RandIntn(10) < 2 {
-		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			"HAH", conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-		return conversationLocal
-	}
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"
