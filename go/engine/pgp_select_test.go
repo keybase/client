@@ -20,15 +20,16 @@ func TestSelectEngine(t *testing.T) {
 	}
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipGPG = false
-	s := NewSignupEngine(&arg, tc.G)
+	s := NewSignupEngine(tc.G, &arg)
 	testui := &gpgtestui{}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    testui,
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
 	}
-	if err := RunEngine(s, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, s); err != nil {
 		t.Fatal(err)
 	}
 
@@ -51,7 +52,7 @@ func TestSelectEngine(t *testing.T) {
 		OnlyImport: false,
 	}
 	gpg := NewGPGImportKeyEngine(&garg, tc.G)
-	err = RunEngine(gpg, ctx)
+	err = RunEngine(gpg, engineContextFromMetaContext(m))
 
 	// The GPGImportKeyEngine converts a multi select on the same key into
 	// an update, so our test checks that the update code ran, by counting

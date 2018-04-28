@@ -39,6 +39,26 @@ type Context struct {
 	SessionID int
 }
 
+func engineContextFromMetaContext(m libkb.MetaContext) *Context {
+	uis := m.UIs()
+	return &Context{
+		GPGUI : uis.GPGUI,
+		LogUI : uis.LogUI,
+		LoginUI : uis.LoginUI,
+		SecretUI : uis.SecretUI,
+		IdentifyUI : uis.IdentifyUI,
+		PgpUI : uis.PgpUI,
+		ProveUI : uis.ProveUI,
+		ProvisionUI : uis.ProvisionUI,
+		LoginContext : m.LoginContext(),
+		NetContext : m.Ctx(),
+		SaltpackUI : uis.SaltpackUI,
+		ClientType : uis.ClientType,
+		IdentifyUIIsDelegated : uis.IdentifyUIIsDelegated,
+		SessionID : uis.SessionID,
+	}
+}
+
 func (c *Context) HasUI(kind libkb.UIKind) bool {
 	switch kind {
 	case libkb.GPGUIKind:

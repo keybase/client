@@ -898,14 +898,14 @@ func TestProvisionPaperOnly(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -930,7 +930,7 @@ func TestProvisionPaperOnly(t *testing.T) {
 	secUI.Passphrase = loginUI.PaperPhrase
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
-	ctx = &Context{
+	ctx := &Context{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -1044,14 +1044,14 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	err := RunEngine(s, ctx)
+	s := NewSignupEngine(tc.G, &arg)
+	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -1071,7 +1071,7 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	secUI := fu.NewSecretUI()
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
-	ctx = &Context{
+	ctx := &Context{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -1836,14 +1836,14 @@ func userPlusPaper(t *testing.T) (*FakeUser, string) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
 		SecretUI: fu.NewSecretUI(),
 		LoginUI:  loginUI,
 	}
-	s := NewSignupEngine(&arg, tc.G)
-	if err := RunEngine(s, ctx); err != nil {
+	s := NewSignupEngine(tc.G, &arg)
+	if err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s); err != nil {
 		t.Fatal(err)
 	}
 	Logout(tc)
