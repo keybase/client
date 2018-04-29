@@ -441,18 +441,31 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, localThread *chat1.ThreadView,
 	mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
+	shouldAppend := func(oldMsg chat1.MessageUnboxed) bool {
+		state, err := oldMsg.State()
+		if err != nil {
+			return true
+		}
+		switch state {
+		case chat1.MessageUnboxedState_VALID:
+			return false
+		default:
+			return true
+		}
+	}
 	switch mode {
 	case chat1.GetThreadNonblockCbMode_FULL:
 		return *remoteThread, nil
 	case chat1.GetThreadNonblockCbMode_INCREMENTAL:
 		if localThread != nil {
-			lm := make(map[chat1.MessageID]bool)
+			lm := make(map[chat1.MessageID]chat1.MessageUnboxed)
 			for _, m := range localThread.Messages {
-				lm[m.GetMessageID()] = true
+				lm[m.GetMessageID()] = m
 			}
 			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
-				if !lm[m.GetMessageID()] {
+				oldMsg, ok := lm[m.GetMessageID()]
+				if !ok || shouldAppend(oldMsg) {
 					res.Messages = append(res.Messages, m)
 				}
 			}
