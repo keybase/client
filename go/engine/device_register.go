@@ -20,7 +20,7 @@ type DeviceRegister struct {
 	libkb.Contextified
 }
 
-func NewDeviceRegister(args *DeviceRegisterArgs, g *libkb.GlobalContext) *DeviceRegister {
+func NewDeviceRegister(g *libkb.GlobalContext, args *DeviceRegisterArgs) *DeviceRegister {
 	return &DeviceRegister{
 		args:         args,
 		Contextified: libkb.NewContextified(g),
@@ -41,7 +41,7 @@ func (d *DeviceRegister) SubConsumers() []libkb.UIConsumer {
 
 func (d *DeviceRegister) Prereqs() Prereqs { return Prereqs{} }
 
-func (d *DeviceRegister) Run(ctx *Context) error {
+func (d *DeviceRegister) Run(m libkb.MetaContext) error {
 	if d.args.Me.HasCurrentDeviceInCurrentInstall() {
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
@@ -55,14 +55,14 @@ func (d *DeviceRegister) Run(ctx *Context) error {
 		return err
 	}
 
-	d.G().Log.Debug("Device name:   %s", d.args.Name)
-	d.G().Log.Debug("Device ID:     %s", d.deviceID)
+	m.CDebugf("Device name: %s", d.args.Name)
+	m.CDebugf("Device ID: %s", d.deviceID)
 
-	if wr := d.G().Env.GetConfigWriter(); wr != nil {
+	if wr := m.G().Env.GetConfigWriter(); wr != nil {
 		if err := wr.SetDeviceID(d.deviceID); err != nil {
 			return err
 		}
-		ctx.LogUI.Debug("Setting Device ID to %s", d.deviceID)
+		m.UIs().LogUI.Debug("Setting Device ID to %s", d.deviceID)
 	}
 
 	return nil

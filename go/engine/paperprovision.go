@@ -197,7 +197,7 @@ func (e *PaperProvisionEngine) Result() error {
 
 // copied from loginProvision
 func (e *PaperProvisionEngine) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
-	gen, clientLKS, err := fetchLKS(ctx, e.G(), encKey)
+	gen, clientLKS, err := fetchLKS(metaContextFromEngineContext(e.G(), ctx), encKey)
 	if err != nil {
 		return err
 	}
@@ -241,8 +241,8 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs
 // copied from loginProvision
 // makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *PaperProvisionEngine) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(args, e.G())
-	return RunEngine(eng, ctx)
+	eng := NewDeviceWrap(e.G(), args)
+	return RunEngine2(metaContextFromEngineContext(e.G(), ctx), eng)
 }
 
 // copied from loginProvision

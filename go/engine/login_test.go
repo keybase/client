@@ -1430,7 +1430,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		}
 
 		// run login on new device
-		ctx := &Context{
+		uis := libkb.UIs{
 			ProvisionUI: newTestProvisionUIGPGImport(),
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
@@ -1447,8 +1447,9 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		eng := newLoginProvision(tc2.G, &arg)
 		// use a gpg client that will fail to import any gpg key
 		eng.gpgCli = newGPGImportFailer(tc2.G)
+		m := NewMetaContextForTest(tc2).WithUIs(uis)
 
-		if err := RunEngine(eng, ctx); err != nil {
+		if err := RunEngine2(m, eng); err != nil {
 			t.Logf("test run %d:  RunEngine(Login) error: %s", i+1, err)
 			continue
 		}
@@ -1512,7 +1513,7 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 	provUI.abortSwitchToGPGSign = true
 
 	// run login on new device
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
@@ -1530,7 +1531,9 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 	// use a gpg client that will fail to import any gpg key
 	eng.gpgCli = newGPGImportFailer(tc2.G)
 
-	if err := RunEngine(eng, ctx); err == nil {
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+
+	if err := RunEngine2(m, eng); err == nil {
 		t.Fatal("provisioning worked despite not allowing switch to gpg sign")
 	}
 }
@@ -1815,14 +1818,15 @@ func TestProvisionNilUser(t *testing.T) {
 		User:       nil,
 	}
 	eng := newLoginProvision(tc.G, &arg)
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
 		LogUI:       tc.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
 	}
-	if err := RunEngine(eng, ctx); err == nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err == nil {
 		t.Fatal("loginprovision with nil user worked")
 	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
 		t.Errorf("err type: %T, expected libkb.InvalidArgumentError", err)

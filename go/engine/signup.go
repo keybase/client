@@ -188,14 +188,13 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 		SkipMail:   skipMail,
 		PDPKA5KID:  pdpkda5kid,
 	}
-	lctx := m.LoginContext()
-	res := joinEngine.Run(lctx, arg)
+	res := joinEngine.Run(m, arg)
 	if res.Err != nil {
 		return res
 	}
 
 	s.ppStream.SetGeneration(res.PpGen)
-	lctx.CreateStreamCache(s.tsec, s.ppStream)
+	m.LoginContext().CreateStreamCache(s.tsec, s.ppStream)
 
 	s.uid = res.UID
 	luArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(res.UID).WithPublicKeyOptional()
@@ -227,8 +226,8 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 		return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
 	}
 
-	eng := NewDeviceWrap(args, m.G())
-	if err := RunEngine(eng, engineContextFromMetaContext(m)); err != nil {
+	eng := NewDeviceWrap(m.G(), args)
+	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
 	s.signingKey = eng.SigningKey()

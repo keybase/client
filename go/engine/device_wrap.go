@@ -31,7 +31,7 @@ type DeviceWrapArgs struct {
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
-func NewDeviceWrap(args *DeviceWrapArgs, g *libkb.GlobalContext) *DeviceWrap {
+func NewDeviceWrap(g *libkb.GlobalContext, args *DeviceWrapArgs) *DeviceWrap {
 	return &DeviceWrap{
 		args:         args,
 		Contextified: libkb.NewContextified(g),
@@ -62,15 +62,14 @@ func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *DeviceWrap) Run(ctx *Context) error {
+func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 	regArgs := &DeviceRegisterArgs{
 		Me:   e.args.Me,
 		Name: e.args.DeviceName,
 		Lks:  e.args.Lks,
 	}
-	m := NewMetaContext(e, ctx)
-	regEng := NewDeviceRegister(regArgs, e.G())
-	if err := RunEngine(regEng, ctx); err != nil {
+	regEng := NewDeviceRegister(e.G(), regArgs)
+	if err := RunEngine2(m, regEng); err != nil {
 		return err
 	}
 
@@ -85,8 +84,8 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		IsEldest:       e.args.IsEldest,
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
-	kgEng := NewDeviceKeygen(kgArgs, e.G())
-	if err := RunEngine(kgEng, ctx); err != nil {
+	kgEng := NewDeviceKeygen(e.G(), kgArgs)
+	if err := RunEngine2(m, kgEng); err != nil {
 		return err
 	}
 
@@ -94,7 +93,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,
 	}
-	if err := kgEng.Push(m, ctx, pargs); err != nil {
+	if err := kgEng.Push(m, pargs); err != nil {
 		return err
 	}
 
@@ -102,11 +101,11 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	e.encryptionKey = kgEng.EncryptionKey()
 	// TODO get the per-user-key and save it if it was generated
 
-	if ctx.LoginContext != nil {
+	if lctx := m.LoginContext(); lctx != nil {
 
 		// Set the device id so that SetCachedSecretKey picks it up.
 		// Signup does this too, but by then it's too late.
-		if err := ctx.LoginContext.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
 			// Not fatal. Because, um, it was working ok before.
 			e.G().Log.Warning("error saving session file: %s", err)
 		}
@@ -114,8 +113,8 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		device := kgEng.device()
 
 		// cache the secret keys
-		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceSigningKeyType}, e.signingKey, device)
-		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey, device)
+		lctx.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceSigningKeyType}, e.signingKey, device)
+		lctx.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey, device)
 	}
 
 	return nil
