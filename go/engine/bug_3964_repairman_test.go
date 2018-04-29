@@ -303,11 +303,12 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	if encKey == nil {
 		t.Fatal("got back a nil decryption key")
 	}
-	_, clientHalf, err := fetchLKS(ctx, tctx.G, encKey)
+	m := NewMetaContextForTest(tctx).WithUIs(libkb.UIs{SecretUI: u.NewSecretUI()})
+	_, clientHalf, err := fetchLKS(m, encKey)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pps, err := tctx.G.LoginState().GetPassphraseStream(NewMetaContextForTest(tctx), ctx.SecretUI)
+	pps, err := tctx.G.LoginState().GetPassphraseStream(m, ctx.SecretUI)
 	if err != nil {
 		t.Fatal(err)
 	}
