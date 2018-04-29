@@ -280,7 +280,7 @@ func lastStr(strs []string) string {
 }
 
 // open tries to open a file.
-func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, dokan.CreateStatus, error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir openDir %v", path)
 
 	specialNode := handleTLFSpecialFile(lastStr(path), d.folder)
@@ -303,7 +303,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				return nil
 			})
 			if nhits != 1 {
-				return nil, false, dokan.ErrObjectNameNotFound
+				return nil, 0, dokan.ErrObjectNameNotFound
 			}
 			path[0] = hit
 		}
@@ -314,17 +314,18 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		// return the corresponding SpecialReadFile.
 		if leaf && strings.HasPrefix(path[0], libfs.FileInfoPrefix) {
 			if err := oc.ReturningFileAllowed(); err != nil {
-				return nil, false, err
+				return nil, 0, err
 			}
 			node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0][len(libfs.FileInfoPrefix):])
 			if err != nil {
-				return nil, false, err
+				return nil, 0, err
 			}
 			nmd, err := d.folder.fs.config.KBFSOps().GetNodeMetadata(ctx, node)
 			if err != nil {
-				return nil, false, err
+				return nil, 0, err
 			}
-			return &SpecialReadFile{read: fileInfo(nmd).read, fs: d.folder.fs}, false, nil
+			return &SpecialReadFile{read: fileInfo(nmd).read, fs: d.folder.fs},
+				dokan.ExistingFile, nil
 		}
 
 		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
@@ -338,13 +339,13 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			case notFound && oc.isCreation():
 				return d.create(ctx, oc, path[0])
 			case !notFound && oc.isExistingError():
-				return nil, false, dokan.ErrFileAlreadyExists
+				return nil, 0, dokan.ErrFileAlreadyExists
 			}
 		}
 
 		// Return errors from Lookup
 		if err != nil {
-			return nil, false, err
+			return nil, 0, err
 		}
 
 		if newNode != nil {
@@ -354,11 +355,11 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			// Symlinks don't have stored nodes, so they are impossible here.
 			switch x := f.(type) {
 			default:
-				return nil, false, fmt.Errorf("unhandled node type: %T", f)
+				return nil, 0, fmt.Errorf("unhandled node type: %T", f)
 			case nil:
 			case *File:
 				if err := oc.ReturningFileAllowed(); err != nil {
-					return nil, false, err
+					return nil, 0, err
 				}
 				x.refcount.Increase()
 				return openFile(ctx, oc, path, x)
@@ -370,17 +371,17 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		}
 		switch de.Type {
 		default:
-			return nil, false, fmt.Errorf("unhandled entry type: %v", de.Type)
+			return nil, 0, fmt.Errorf("unhandled entry type: %v", de.Type)
 		case libkbfs.File, libkbfs.Exec:
 			if err := oc.ReturningFileAllowed(); err != nil {
-				return nil, false, err
+				return nil, 0, err
 			}
 			child := newFile(d.folder, newNode, path[0], d.node)
 			f, _, err := openFile(ctx, oc, path, child)
 			if err == nil {
 				d.folder.lockedAddNode(newNode, child)
 			}
-			return f, false, err
+			return f, dokan.ExistingFile, err
 		case libkbfs.Dir:
 			child := newDir(d.folder, newNode, path[0], d.node)
 			d.folder.lockedAddNode(newNode, child)
@@ -391,10 +392,10 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		}
 	}
 	if err := oc.ReturningDirAllowed(); err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
 	d.refcount.Increase()
-	return d, true, nil
+	return d, dokan.ExistingDir, nil
 }
 
 type fileInfo libkbfs.NodeMetadata
@@ -404,25 +405,25 @@ func (fi fileInfo) read(ctx context.Context) ([]byte, time.Time, error) {
 	return bs, time.Time{}, err
 }
 
-func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dokan.File, bool, error) {
+func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dokan.File, dokan.CreateStatus, error) {
 	var err error
 	// Files only allowed as leafs...
 	if len(path) > 1 {
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	}
 	if oc.isTruncate() {
 		err = f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, 0)
 	}
 	if err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
-	return f, false, nil
+	return f, dokan.ExistingFile, nil
 }
 
-func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath, path []string, target string) (dokan.File, bool, error) {
+func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath, path []string, target string) (dokan.File, dokan.CreateStatus, error) {
 	// TODO handle file/directory type flags here from CreateOptions.
 	if !oc.reduceRedirectionsLeft() {
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	}
 	// Take relevant prefix of original path.
 	origPath = origPath[:len(origPath)-len(path)]
@@ -431,19 +432,19 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 		// have a libkbfs.Node to keep track of renames.
 		// Here we may get an error if the symlink destination does not exist.
 		// which is fine, treat such non-existing targets as symlinks to a file.
-		isDir, err := resolveSymlinkIsDir(ctx, oc, rootDir, origPath, target)
-		parent.folder.fs.log.CDebugf(ctx, "openSymlink leaf returned %v,%v => %v,%v", origPath, target, isDir, err)
-		return &Symlink{parent: parent, name: path[0], isTargetADirectory: isDir}, isDir, nil
+		cst, err := resolveSymlinkIsDir(ctx, oc, rootDir, origPath, target)
+		parent.folder.fs.log.CDebugf(ctx, "openSymlink leaf returned %v,%v => %v,%v", origPath, target, cst, err)
+		return &Symlink{parent: parent, name: path[0], isTargetADirectory: cst.IsDir()}, cst, nil
 	}
 	// reference symlink, symbolic links always use '/' instead of '\'.
 	if target == "" || target[0] == '/' {
-		return nil, false, dokan.ErrNotSupported
+		return nil, 0, dokan.ErrNotSupported
 	}
 
 	dst, err := resolveSymlinkPath(ctx, origPath, target)
 	parent.folder.fs.log.CDebugf(ctx, "openSymlink resolve returned %v,%v => %v,%v", origPath, target, dst, err)
 	if err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
 	dst = append(dst, path[1:]...)
 	return rootDir.open(ctx, oc, dst)
@@ -453,7 +454,7 @@ func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
 	return libkbfs.Excl(oc.CreateDisposition == dokan.FileCreate)
 }
 
-func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
+func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, cst dokan.CreateStatus, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
@@ -462,27 +463,28 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
 		ctx, d.node, name, isExec, excl)
 	if err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
 
 	child := newFile(d.folder, newNode, name, d.node)
 	d.folder.lockedAddNode(newNode, child)
-	return child, false, nil
+	return child, dokan.NewFile, nil
 }
 
-func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, isDir bool, err error) {
+func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (
+	f *Dir, cst dokan.CreateStatus, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
 		ctx, d.node, name)
 	if err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
 
 	child := newDir(d.folder, newNode, name, d.node)
 	d.folder.lockedAddNode(newNode, child)
-	return child, true, nil
+	return child, dokan.NewDir, nil
 }
 
 // FindFiles does readdir for dokan.
@@ -579,16 +581,16 @@ func resolveSymlinkPath(ctx context.Context, origPath []string, targetPath strin
 	return pathComponents, nil
 }
 
-func resolveSymlinkIsDir(ctx context.Context, oc *openContext, rootDir *Dir, origPath []string, targetPath string) (bool, error) {
+func resolveSymlinkIsDir(ctx context.Context, oc *openContext, rootDir *Dir, origPath []string, targetPath string) (dokan.CreateStatus, error) {
 	dst, err := resolveSymlinkPath(ctx, origPath, targetPath)
 	if err != nil {
-		return false, err
+		return dokan.NewFile, err
 	}
-	obj, isDir, err := rootDir.open(ctx, oc, dst)
+	obj, cst, err := rootDir.open(ctx, oc, dst)
 	if err == nil {
 		obj.Cleanup(ctx, nil)
 	}
-	return isDir, err
+	return cst, err
 }
 func isPathSeparator(r rune) bool {
 	return r == '/' || r == '\\'

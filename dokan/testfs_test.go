@@ -259,9 +259,9 @@ func (t emptyFS) ErrorPrint(err error) {
 	debug(err)
 }
 
-func (t emptyFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, bool, error) {
+func (t emptyFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, CreateStatus, error) {
 	debug("emptyFS.CreateFile")
-	return emptyFile{}, true, nil
+	return emptyFile{}, ExistingDir, nil
 }
 func (t emptyFile) CanDeleteFile(ctx context.Context, fi *FileInfo) error {
 	return ErrAccessDenied
@@ -333,22 +333,22 @@ func newTestFS() *testFS {
 	return &t
 }
 
-func (t *testFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, bool, error) {
+func (t *testFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, CreateStatus, error) {
 	path := fi.Path()
 	debug("testFS.CreateFile", path)
 	switch path {
 	case `\hello.txt`:
-		return testFile{}, false, nil
+		return testFile{}, ExistingFile, nil
 	case `\ram.txt`:
-		return t.ramFile, false, nil
+		return t.ramFile, ExistingFile, nil
 	// SL_OPEN_TARGET_DIRECTORY may get empty paths...
 	case `\`, ``:
 		if cd.CreateOptions&FileNonDirectoryFile != 0 {
-			return nil, true, ErrFileIsADirectory
+			return nil, 0, ErrFileIsADirectory
 		}
-		return testDir{}, true, nil
+		return testDir{}, ExistingDir, nil
 	}
-	return nil, false, ErrObjectNameNotFound
+	return nil, 0, ErrObjectNameNotFound
 }
 func (t *testFS) GetDiskFreeSpace(ctx context.Context) (FreeSpace, error) {
 	debug("testFS.GetDiskFreeSpace")

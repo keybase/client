@@ -239,20 +239,22 @@ func (oc *openContext) isOpenReparsePoint() bool {
 
 // returnDirNoCleanup returns a dir or nothing depending on the open
 // flags and does not call .Cleanup on error.
-func (oc *openContext) returnDirNoCleanup(f dokan.File) (dokan.File, bool, error) {
+func (oc *openContext) returnDirNoCleanup(f dokan.File) (
+	dokan.File, dokan.CreateStatus, error) {
 	if err := oc.ReturningDirAllowed(); err != nil {
-		return nil, true, err
+		return nil, 0, err
 	}
-	return f, true, nil
+	return f, dokan.ExistingDir, nil
 }
 
 // returnFileNoCleanup returns a file or nothing depending on the open
 // flags and does not call .Cleanup on error.
-func (oc *openContext) returnFileNoCleanup(f dokan.File) (dokan.File, bool, error) {
+func (oc *openContext) returnFileNoCleanup(f dokan.File) (
+	dokan.File, dokan.CreateStatus, error) {
 	if err := oc.ReturningFileAllowed(); err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
-	return f, false, nil
+	return f, dokan.ExistingFile, nil
 }
 
 func (oc *openContext) mayNotBeDirectory() bool {
@@ -268,7 +270,7 @@ func newSyntheticOpenContext() *openContext {
 }
 
 // CreateFile called from dokan, may be a file or directory.
-func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
+func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, dokan.CreateStatus, error) {
 	// Only allow the current user access
 	if !fi.IsRequestorUserSidEqualTo(currentUserSID) {
 		f.log.CErrorf(ctx, "FS CreateFile - Refusing real access: SID match error")
@@ -278,28 +280,28 @@ func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.Creat
 }
 
 // openRaw is a wrapper between CreateFile/CreateDirectory/OpenDirectory and open
-func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateData) (dokan.File, bool, error) {
+func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateData) (dokan.File, dokan.CreateStatus, error) {
 	ps, err := windowsPathSplit(fi.Path())
 	if err != nil {
 		f.log.CErrorf(ctx, "FS openRaw - path split error: %v", err)
-		return nil, false, err
+		return nil, 0, err
 	}
 	oc := openContext{fi: fi, CreateData: caf, redirectionsLeft: 30}
-	file, isd, err := f.open(ctx, &oc, ps)
+	file, cst, err := f.open(ctx, &oc, ps)
 	if err != nil {
 		f.log.CDebugf(ctx, "FS Open failed %#v with: %v", *caf, err)
 		err = errToDokan(err)
 	}
-	return file, isd, err
+	return file, cst, err
 }
 
 // open tries to open a file deferring to more specific implementations.
-func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, bool, error) {
+func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, dokan.CreateStatus, error) {
 	f.log.CDebugf(ctx, "FS Open: %q", ps)
 	psl := len(ps)
 	switch {
 	case psl < 1:
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	case psl == 1 && ps[0] == ``:
 		return oc.returnDirNoCleanup(f.root)
 
@@ -364,7 +366,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		// Refuse private directories while we are in a a generic error state.
 		if f.remoteStatus.ExtraFileName() == libfs.HumanErrorFileName {
 			f.log.CWarningf(ctx, "Refusing access to public directory while errors are present!")
-			return nil, false, dokan.ErrAccessDenied
+			return nil, 0, dokan.ErrAccessDenied
 		}
 		return f.root.public.open(ctx, oc, ps[1:])
 	case strings.ToUpper(PrivateName) == ps[0]:
@@ -374,7 +376,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		// Refuse private directories while we are in a error state.
 		if f.remoteStatus.ExtraFileName() != "" {
 			f.log.CWarningf(ctx, "Refusing access to private directory while errors are present!")
-			return nil, false, dokan.ErrAccessDenied
+			return nil, 0, dokan.ErrAccessDenied
 		}
 		return f.root.private.open(ctx, oc, ps[1:])
 	case strings.ToUpper(TeamName) == ps[0]:
@@ -384,11 +386,11 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		// Refuse team directories while we are in a error state.
 		if f.remoteStatus.ExtraFileName() != "" {
 			f.log.CWarningf(ctx, "Refusing access to team directory while errors are present!")
-			return nil, false, dokan.ErrAccessDenied
+			return nil, 0, dokan.ErrAccessDenied
 		}
 		return f.root.team.open(ctx, oc, ps[1:])
 	}
-	return nil, false, dokan.ErrObjectNameNotFound
+	return nil, 0, dokan.ErrObjectNameNotFound
 }
 
 // windowsPathSplit handles paths we get from Dokan.
@@ -468,13 +470,13 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	}
 	dstDirPath := dstPath[0 : len(dstPath)-1]
 
-	dstDir, dstIsDir, err := f.open(ctx, oc, dstDirPath)
-	f.log.CDebugf(ctx, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstIsDir, err, dstDir)
+	dstDir, dstCst, err := f.open(ctx, oc, dstDirPath)
+	f.log.CDebugf(ctx, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstCst, err, dstDir)
 	if err != nil {
 		return err
 	}
 	defer dstDir.Cleanup(ctx, nil)
-	if !dstIsDir {
+	if !dstCst.IsDir() {
 		return errors.New("Tried to move to a non-directory path")
 	}
 

@@ -15,9 +15,9 @@ type EmptyFolder struct {
 	emptyFile
 }
 
-func (ef *EmptyFolder) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
+func (ef *EmptyFolder) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, cst dokan.CreateStatus, err error) {
 	if len(path) != 0 {
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	}
 	return oc.returnDirNoCleanup(ef)
 }

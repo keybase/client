@@ -98,12 +98,17 @@ func kbfsLibdokanCreateFile(
 	if cancel != nil {
 		defer cancel()
 	}
-	fi, isDir, err := fs.CreateFile(ctx, makeFI(fname, pfi), &cd)
+	fi, status, err := fs.CreateFile(ctx, makeFI(fname, pfi), &cd)
 	if isDebug {
-		checkFileDirectoryFile(err, isDir, uint32(CreateOptions))
+		checkFileDirectoryFile(err, status.IsDir(), uint32(CreateOptions))
+		debugf("CreateFile result: %v new-entry: %v raw %v", status.IsDir(), status.IsNew(), status)
 	}
-	if isDir {
+	if status.IsDir() {
 		pfi.IsDirectory = 1
+	}
+	if err == nil && !status.IsNew() && cd.CreateDisposition == FileOpenIf {
+		debugf("CreateFile adding ErrObjectNameCollision")
+		err = ErrObjectNameCollision
 	}
 	return fiStore(pfi, fi, err)
 }
@@ -218,7 +223,7 @@ func kbfsLibdokanGetFileInformation(
 		defer cancel()
 	}
 	st, err := getfi(pfi).GetFileInformation(ctx, makeFI(fname, pfi))
-	debug("->", st, err)
+	debugf("-> %#v, %v", st, err)
 	if st != nil {
 		sbuf.dwFileAttributes = C.DWORD(st.FileAttributes)
 		sbuf.ftCreationTime = packTime(st.Creation)

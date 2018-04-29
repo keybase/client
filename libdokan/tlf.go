@@ -157,13 +157,14 @@ func (tlf *TLF) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st 
 }
 
 // open tries to open a file.
-func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (
+	dokan.File, dokan.CreateStatus, error) {
 	if len(path) == 0 {
 		if err := oc.ReturningDirAllowed(); err != nil {
-			return nil, true, err
+			return nil, 0, err
 		}
 		tlf.refcount.Increase()
-		return tlf, true, nil
+		return tlf, dokan.ExistingDir, nil
 	}
 
 	mode := libkbfs.ReadMode
@@ -174,15 +175,15 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 	dir, exitEarly, err :=
 		tlf.loadDirHelper(ctx, "open", mode, !oc.isCreation())
 	if err != nil {
-		return nil, false, err
+		return nil, 0, err
 	}
 	if exitEarly {
 		specialNode := handleTLFSpecialFile(lastStr(path), tlf.folder)
 		if specialNode != nil {
-			return specialNode, false, nil
+			return specialNode, dokan.ExistingFile, nil
 		}
 
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	}
 	return dir.open(ctx, oc, path)
 }

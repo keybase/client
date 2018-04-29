@@ -26,16 +26,16 @@ func (ProfileList) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (
 }
 
 // open tries to open a file.
-func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) (dokan.File, dokan.CreateStatus, error) {
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(ProfileList{})
 	}
 	if len(path) > 1 || !libfs.IsSupportedProfileName(path[0]) {
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	}
 	f := libfs.ProfileGet(path[0])
 	if f == nil {
-		return nil, false, dokan.ErrObjectNameNotFound
+		return nil, 0, dokan.ErrObjectNameNotFound
 	}
 	return oc.returnFileNoCleanup(&SpecialReadFile{read: f, fs: pl.fs})
 }
