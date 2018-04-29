@@ -73,8 +73,18 @@ func (m MetaContext) WithSecretUI(u SecretUI) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithGPGUI(u GPGUI) MetaContext {
+	m.uis.GPGUI = u
+	return m
+}
+
 func (m MetaContext) UIs() UIs{
 	return m.uis
+}
+
+func (m MetaContext) WithUIs(u UIs) MetaContext {
+	m.uis = u
+	return m
 }
 
 type UIs struct {
