@@ -396,7 +396,7 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 	// Get messages from local disk only
 	uid := h.G().Env.GetUID()
 	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination, 0)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -548,7 +548,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				h.clock.Sleep(*h.cachedThreadDelay)
 			}
 			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
-				uid, arg.Query, pagination)
+				uid, arg.Query, pagination, 10)
 			ch <- err
 		}()
 		select {
@@ -1170,7 +1170,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	if arg.ClientPrev == 0 {
 		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
 		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
-			&chat1.Pagination{Num: 1})
+			&chat1.Pagination{Num: 1}, 0)
 		if err != nil || len(thread.Messages) == 0 {
 			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
 			prevMsgID = 1

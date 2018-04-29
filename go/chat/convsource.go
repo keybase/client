@@ -204,7 +204,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
@@ -773,7 +773,7 @@ func newPullLocalResultCollector(num int) *pullLocalResultCollector {
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return tv, err
@@ -810,8 +810,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	if pagination != nil {
 		num = pagination.Num
 	}
-	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, newPullLocalResultCollector(num),
-		query, pagination)
+	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(num))
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
