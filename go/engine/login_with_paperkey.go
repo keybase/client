@@ -76,7 +76,7 @@ func (e *LoginWithPaperKey) Run(ctx *Context) error {
 		ctx.LoginContext = lctx
 
 		// Get the LKS client half.
-		gen, clientLKS, err := fetchLKS(ctx, e.G(), kp.encKey)
+		gen, clientLKS, err := fetchLKS(m, kp.encKey)
 		if err != nil {
 			return err
 		}

@@ -116,7 +116,7 @@ func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 
 // Run starts the engine.
 func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
-	m := NewMetaContext(e, ctx)
+	m := metaContextFromEngineContext(e.G(), ctx)
 	defer m.CTrace("SaltpackDecrypt::Run", func() error { return err })()
 
 	// We don't load this in the --paperkey case.
@@ -126,7 +126,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, _, err := getPaperKey(m, ctx, nil)
+		keypair, _, err := getPaperKey(m, nil)
 		if err != nil {
 			return err
 		}

@@ -59,6 +59,24 @@ func engineContextFromMetaContext(m libkb.MetaContext) *Context {
 	}
 }
 
+func metaContextFromEngineContext(g *libkb.GlobalContext, ctx *Context) libkb.MetaContext {
+	uis := libkb.UIs{
+		GPGUI : ctx.GPGUI,
+		LogUI : ctx.LogUI,
+		LoginUI : ctx.LoginUI,
+		SecretUI : ctx.SecretUI,
+		IdentifyUI : ctx.IdentifyUI,
+		PgpUI : ctx.PgpUI,
+		ProveUI : ctx.ProveUI,
+		ProvisionUI : ctx.ProvisionUI,
+		SaltpackUI : ctx.SaltpackUI,
+		ClientType : ctx.ClientType,
+		IdentifyUIIsDelegated : ctx.IdentifyUIIsDelegated,
+		SessionID : ctx.SessionID,
+	}
+	return libkb.NewMetaContext(ctx.GetNetContext(), g).WithLoginContext(ctx.LoginContext).WithUIs(uis)
+}
+
 func (c *Context) HasUI(kind libkb.UIKind) bool {
 	switch kind {
 	case libkb.GPGUIKind:
@@ -111,12 +129,16 @@ func (c *Context) WithTimeout(timeout time.Duration) (*Context, context.CancelFu
 	return c.WithNetContext(ctx), cancel
 }
 
-func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
+func SecretKeyPromptArg(ui libkb.SecretUI, ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
 	return libkb.SecretKeyPromptArg{
-		SecretUI: c.SecretUI,
+		SecretUI: ui,
 		Ska:      ska,
 		Reason:   reason,
 	}
+}
+
+func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
+	return SecretKeyPromptArg(c.SecretUI, ska, reason)
 }
 
 func (c *Context) CloneGlobalContextWithLogTags(g *libkb.GlobalContext, k string) *libkb.GlobalContext {

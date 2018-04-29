@@ -227,7 +227,7 @@ func (c *PassphraseChange) runForcedUpdate(m libkb.MetaContext, ctx *Context) (e
 	if kp == nil {
 		return libkb.NoSecretKeyError{}
 	}
-	ppGen, oldClientHalf, err := fetchLKS(ctx, c.G(), kp.encKey)
+	ppGen, oldClientHalf, err := fetchLKS(m, kp.encKey)
 	if err != nil {
 		return
 	}

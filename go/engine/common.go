@@ -173,7 +173,7 @@ func matchPaperKey(m libkb.MetaContext, ctx *Context, me *libkb.User, paper stri
 // fetchLKS gets the encrypted LKS client half from the server.
 // It uses encKey to decrypt it.  It also returns the passphrase
 // generation.
-func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
+func fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
 	arg := libkb.APIArg{
 		Endpoint:    "passphrase/recover",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -181,10 +181,10 @@ func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (li
 			"kid": encKey.GetKID(),
 		},
 	}
-	if ctx.LoginContext != nil {
-		arg.SessionR = ctx.LoginContext.LocalSession()
+	if lctx := m.LoginContext(); lctx != nil {
+		arg.SessionR = lctx.LocalSession()
 	}
-	res, err := g.API.Get(arg)
+	res, err := m.G().API.Get(arg)
 	var dummy libkb.LKSecClientHalf
 	if err != nil {
 		return 0, dummy, err

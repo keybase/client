@@ -132,7 +132,7 @@ func (e *Login) Run(ctx *Context) error {
 		User:       ueng.User(),
 	}
 	deng := newLoginProvision(e.G(), darg)
-	if err := RunEngine(deng, ctx); err != nil {
+	if err := RunEngine2(metaContextFromEngineContext(e.G(), ctx), deng); err != nil {
 		return err
 	}
 
