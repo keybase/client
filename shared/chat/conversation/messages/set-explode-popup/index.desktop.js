@@ -3,6 +3,7 @@ import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {platformStyles, globalColors, globalMargins} from '../../../../styles'
+import type {Props} from '.'
 
 type HeaderProps = {
   isNew: boolean,
@@ -54,16 +55,6 @@ const Item = (props: ItemProps) => (
     {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
   </Box2>
 )
-
-type Props = {
-  attachTo: ?React.Component<*, *>,
-  visible: boolean,
-  onHidden: () => void,
-  isNew: boolean,
-  selected: ?MessageExplodeDescription,
-  onSelect: MessageExplodeDescription => void,
-  items: MessageExplodeDescription[],
-}
 
 export default (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}

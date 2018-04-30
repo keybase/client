@@ -8,7 +8,7 @@ const items = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ?
 
 const common = {
   attachTo: null,
-  onHidden: () => {}, // pretty spammy otherwise
+  onHidden: action('onHidden'),
   onSelect: action('onSelect'),
   selected: null,
   items,
