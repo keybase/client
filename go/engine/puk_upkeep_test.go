@@ -14,10 +14,6 @@ func TestPerUserKeyUpkeep(t *testing.T) {
 	tc := SetupEngineTest(t, "pukup")
 	defer tc.Cleanup()
 
-	// Get a second device which will deprovision itself.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
 	fu := CreateAndSignupFakeUserPaper(tc, "pukup")
 	upkeep := func() *PerUserKeyUpkeep {
 		arg := &PerUserKeyUpkeepArgs{}
@@ -43,11 +39,12 @@ func TestPerUserKeyUpkeep(t *testing.T) {
 	t.Logf("second device deprovisions itself")
 	{
 		eng := NewDeprovisionEngine(tcY.G, fu.Username, true /* doRevoke */)
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tcY.G.UI.GetLogUI(),
 			SecretUI: fu.NewSecretUI(),
 		}
-		err := RunEngine(eng, ctx)
+		m := libkb.NewMetaContextTODO(tcY.G).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err, "deprovision")
 	}
 

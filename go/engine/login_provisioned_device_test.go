@@ -25,7 +25,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 	}
 	eng := NewLoginProvisionedDevice(tc.G, fu.Username)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	err := RunEngine2(m,eng)
+	err := RunEngine2(m, eng)
 	if err != errNoDevice {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)
 	}

@@ -44,7 +44,6 @@ func TestBackgroundIdentifier(t *testing.T) {
 	snoopCh := make(chan IdentifyJob, 100)
 
 	bgi := NewBackgroundIdentifier(tc.G, endCh)
-	ctx := Context{}
 	bgi.SetSnooperChannel(snoopCh)
 	bgi.testArgs = &BackgroundIdentifierTestArgs{
 		identify2TestArgs: &Identify2WithUIDTestArgs{
@@ -65,7 +64,7 @@ func TestBackgroundIdentifier(t *testing.T) {
 	}
 
 	go func() {
-		err = RunEngine(bgi, &ctx)
+		err = RunEngine2(NewMetaContextForTest(tc), bgi)
 	}()
 
 	pullExactlyOneJob := func() IdentifyJob {

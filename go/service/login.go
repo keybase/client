@@ -35,14 +35,15 @@ func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
 	return h.G().Logout()
 }
 
-func (h *LoginHandler) Deprovision(_ context.Context, arg keybase1.DeprovisionArg) error {
+func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) error {
 	eng := engine.NewDeprovisionEngine(h.G(), arg.Username, arg.DoRevoke)
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	return engine.RunEngine(eng, &ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) RecoverAccountFromEmailAddress(_ context.Context, email string) error {
@@ -125,8 +126,8 @@ func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.
 	eng := engine.NewLoginProvisionedDevice(h.G(), arg.Username)
 
 	uis := libkb.UIs{
-		LogUI:      h.getLogUI(arg.SessionID),
-		SessionID:  arg.SessionID,
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 
 	if arg.NoPassphrasePrompt {
@@ -156,10 +157,10 @@ func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisi
 		return errors.New("PGPProvision is a devel-only RPC")
 	}
 	uis := libkb.UIs{
-		LogUI:      h.getLogUI(arg.SessionID),
-		LoginUI:    h.getLoginUI(arg.SessionID),
-		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
-		SessionID:  arg.SessionID,
+		LogUI:     h.getLogUI(arg.SessionID),
+		LoginUI:   h.getLoginUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewPGPProvision(h.G(), arg.Username, arg.DeviceName, arg.Passphrase)
@@ -167,14 +168,14 @@ func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisi
 }
 
 func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
-	ectx := &engine.Context{
-		LogUI:      h.getLogUI(sessionID),
-		NetContext: ctx,
-		SessionID:  sessionID,
-		SecretUI:   h.getSecretUI(sessionID, h.G()),
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(sessionID),
+		SessionID: sessionID,
+		SecretUI:  h.getSecretUI(sessionID, h.G()),
 	}
 	eng := engine.NewAccountDelete(h.G())
-	return engine.RunEngine(eng, ectx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOneshotArg) error {

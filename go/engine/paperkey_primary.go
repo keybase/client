@@ -21,9 +21,9 @@ type PaperKeyPrimary struct {
 }
 
 type PaperKeyPrimaryArgs struct {
-	SigningKey    libkb.GenericKey
-	EncryptionKey libkb.NaclDHKeyPair
-	Me            *libkb.User
+	SigningKey     libkb.GenericKey
+	EncryptionKey  libkb.NaclDHKeyPair
+	Me             *libkb.User
 	PerUserKeyring *libkb.PerUserKeyring // optional
 }
 

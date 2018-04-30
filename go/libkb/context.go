@@ -2,8 +2,8 @@ package libkb
 
 import (
 	"fmt"
-	context "golang.org/x/net/context"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type MetaContext struct {
@@ -11,7 +11,7 @@ type MetaContext struct {
 	g            *GlobalContext
 	loginContext LoginContext
 	activeDevice *ActiveDevice
-	uis UIs
+	uis          UIs
 }
 
 func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
@@ -25,6 +25,11 @@ func (m MetaContext) WithLoginContext(l LoginContext) MetaContext {
 
 func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
 	m.activeDevice = a
+	return m
+}
+
+func (m MetaContext) WithCtx(c context.Context) MetaContext {
+	m.ctx = c
 	return m
 }
 
@@ -61,6 +66,9 @@ func (m MetaContext) ActiveDevice() *ActiveDevice {
 func NewMetaContextTODO(g *GlobalContext) MetaContext {
 	return MetaContext{ctx: context.TODO(), g: g}
 }
+func NewMetaContextBackground(g *GlobalContext) MetaContext {
+	return MetaContext{ctx: context.Background(), g: g}
+}
 
 func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
 	m.uis.IdentifyUI = u
@@ -78,7 +86,7 @@ func (m MetaContext) WithGPGUI(u GPGUI) MetaContext {
 	return m
 }
 
-func (m MetaContext) UIs() UIs{
+func (m MetaContext) UIs() UIs {
 	return m.uis
 }
 
@@ -134,4 +142,3 @@ func (e UIs) HasUI(kind UIKind) bool {
 	}
 	panic(fmt.Sprintf("unhandled kind: %d", kind))
 }
-
