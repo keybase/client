@@ -541,6 +541,11 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scephemeralkeybadgeneration: 2900,
+  scephemeralkeyunexpectedbox: 2901,
+  scephemeralkeymissingbox: 2902,
+  scephemeralkeywrongnumberofkeys: 2903,
+  scephemeralkeymismatchedkey: 2904,
   scstellarerror: 3100,
   scstellarbadinput: 3101,
   scstellarwrongrevision: 3102,
@@ -3640,6 +3645,11 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 2900 // SCEphemeralKeyBadGeneration_2900
+  | 2901 // SCEphemeralKeyUnexpectedBox_2901
+  | 2902 // SCEphemeralKeyMissingBox_2902
+  | 2903 // SCEphemeralKeyWrongNumberOfKeys_2903
+  | 2904 // SCEphemeralKeyMismatchedKey_2904
   | 3100 // SCStellarError_3100
   | 3101 // SCStellarBadInput_3101
   | 3102 // SCStellarWrongRevision_3102
