@@ -253,14 +253,13 @@ func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg)
 		SkipImport:           sarg.SkipImport,
 		OnlyImport:           sarg.OnlyImport,
 	}
-	gpg := engine.NewGPGImportKeyEngine(&arg, h.G())
-	ctx := &engine.Context{
-		GPGUI:      h.getGPGUI(sarg.SessionID),
-		SecretUI:   h.getSecretUI(sarg.SessionID, h.G()),
-		LogUI:      h.getLogUI(sarg.SessionID),
-		LoginUI:    h.getLoginUI(sarg.SessionID),
-		SessionID:  sarg.SessionID,
-		NetContext: nctx,
+	gpg := engine.NewGPGImportKeyEngine(h.G(), &arg)
+	uis := libkb.UIs{
+		GPGUI:     h.getGPGUI(sarg.SessionID),
+		SecretUI:  h.getSecretUI(sarg.SessionID, h.G()),
+		LogUI:     h.getLogUI(sarg.SessionID),
+		LoginUI:   h.getLoginUI(sarg.SessionID),
+		SessionID: sarg.SessionID,
 
 		// TODO: Pull this type from the connectionID, rather than always
 		// hardcoding CLI, which is all we use now. Note that if we did this, we'd
@@ -268,7 +267,9 @@ func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg)
 		// annoying TODO, so postpone until we have a Desktop use for PGPSelect.
 		ClientType: keybase1.ClientType_CLI,
 	}
-	return engine.RunEngine(gpg, ctx)
+	m := libkb.NewMetaContext(nctx, h.G()).WithUIs(uis)
+
+	return engine.RunEngine2(m, gpg)
 }
 
 func (h *PGPHandler) PGPUpdate(_ context.Context, arg keybase1.PGPUpdateArg) error {
