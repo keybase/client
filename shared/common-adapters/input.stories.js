@@ -11,8 +11,12 @@ const commonProps: Props = {
   onClick: action('onClick'),
   onEnterKeyDown: action('onEnterKeyDown'),
   onFocus: action('onFocus'),
-  onKeyDown: action('onKeyDown'),
-  onKeyUp: action('onKeyUp'),
+  onKeyDown: e => {
+    action('onKeyDown')(e.key)
+  },
+  onKeyUp: e => {
+    action('onKeyUp')(e.key)
+  },
   onSelectionChange: action('onSelectionChange'),
 }
 
