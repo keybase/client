@@ -29,6 +29,11 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+const makeMessageExplodable = {
+  exploded: false,
+  explodedBy: '',
+}
+
 export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
   ...makeMessageCommon,
   type: 'deleted',
@@ -36,6 +41,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -46,6 +52,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   attachmentType: 'file',
   fileURL: '',
   previewURL: '',

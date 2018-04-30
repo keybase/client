@@ -72,6 +72,8 @@ export type _MessageText = {
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
   errorReason: ?string,
+  exploded: boolean,
+  explodedBy: string, // only if 'explode now' happened
   hasBeenEdited: boolean,
   id: MessageID,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
@@ -100,6 +102,8 @@ export type _MessageAttachment = {
   deviceType: DeviceType,
   downloadPath: ?string, // string if downloaded
   errorReason: ?string,
+  exploded: boolean,
+  explodedBy: string,
   fileName: string,
   fileSize: number,
   hasBeenEdited: boolean,
