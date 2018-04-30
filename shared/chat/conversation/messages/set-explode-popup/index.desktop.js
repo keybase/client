@@ -65,7 +65,7 @@ export default (props: Props) => {
   }))
   listItems.unshift({
     title: 'Explode message after:',
-    view: <Text type="BodySmallSemibold">Explode message after:</Text>,
+    view: <Text type="BodySmallSemibold">Explode messages after:</Text>,
     disabled: true,
   })
   return (
