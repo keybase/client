@@ -49,7 +49,7 @@ const BarePreview = (props: ConnectedBarePreviewProps) => (
     </Box>
     <Box style={stylesContentContainer}>{getDisplayComponent(props.path, props.fileViewType)}</Box>
     <Box style={stylesFooter}>
-      <Icon type="iconfont-ellipsis" style={stylesText} onClick={props.onAction} />
+      <Icon type="iconfont-ellipsis" onClick={props.onAction} color={globalColors.white} />
     </Box>
   </Box>
 )

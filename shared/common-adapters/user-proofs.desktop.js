@@ -14,7 +14,6 @@ import {
   platformStyles,
   desktopStyles,
   collapseStyles,
-  type StylesCrossPlatform,
 } from '../styles'
 import {metaNone} from '../constants/tracker'
 
@@ -301,7 +300,7 @@ const iconContainer = {
   width: 24,
 }
 
-const styleService: StylesCrossPlatform = collapseStyles([
+const styleService = collapseStyles([
   desktopStyles.clickable,
   {
     marginRight: globalMargins.tiny,
@@ -313,7 +312,7 @@ const styleService: StylesCrossPlatform = collapseStyles([
   },
 ])
 
-const styleStatusIcon: StylesCrossPlatform = collapseStyles([
+const styleStatusIcon = collapseStyles([
   desktopStyles.clickable,
   {
     width: 20,

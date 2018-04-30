@@ -183,7 +183,7 @@ class SaveIndicator extends React.Component<Props, State> {
       case 'justSaved':
         return (
           <React.Fragment>
-            <Icon type="iconfont-check" style={{color: globalColors.green}} />
+            <Icon type="iconfont-check" color={globalColors.green} />
             <Text type="BodySmall" style={{color: globalColors.green2}}>
               &nbsp; Saved
             </Text>
