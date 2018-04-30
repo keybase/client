@@ -43,7 +43,7 @@ type PaperKeyGen struct {
 }
 
 // NewPaperKeyGen creates a PaperKeyGen engine.
-func NewPaperKeyGen(arg *PaperKeyGenArg, g *libkb.GlobalContext) *PaperKeyGen {
+func NewPaperKeyGen(g *libkb.GlobalContext, arg *PaperKeyGenArg) *PaperKeyGen {
 	return &PaperKeyGen{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -82,10 +82,9 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 }
 
 // Run starts the engine.
-func (e *PaperKeyGen) Run(ctx *Context) error {
-	m := NewMetaContext(e, ctx).WithLoginContext(e.arg.LoginContext)
+func (e *PaperKeyGen) Run(m libkb.MetaContext) error {
 	if !e.arg.SkipPush {
-		err := e.syncPUK(m, ctx)
+		err := e.syncPUK(m)
 		if err != nil {
 			return err
 		}
@@ -109,7 +108,7 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 	}
 
 	// push everything to the server
-	if err := e.push(m, ctx); err != nil {
+	if err := e.push(m); err != nil {
 		return err
 	}
 
@@ -134,7 +133,7 @@ func (e *PaperKeyGen) getUID() keybase1.UID {
 	return keybase1.UID("")
 }
 
-func (e *PaperKeyGen) syncPUK(m libkb.MetaContext, ctx *Context) error {
+func (e *PaperKeyGen) syncPUK(m libkb.MetaContext) error {
 	// Sync the per-user-key keyring before updating other things.
 	pukring, err := e.getPerUserKeyring()
 	if err != nil {
@@ -225,7 +224,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore() (libkb.LKSecClientHalf, lib
 	return clientHalf, dev.PPGen, nil
 }
 
-func (e *PaperKeyGen) push(m libkb.MetaContext, ctx *Context) error {
+func (e *PaperKeyGen) push(m libkb.MetaContext) error {
 	m.CDebugf("PaperKeyGen#push")
 	if e.arg.SkipPush {
 		return nil
@@ -250,15 +249,15 @@ func (e *PaperKeyGen) push(m libkb.MetaContext, ctx *Context) error {
 	foundStream := false
 	var ppgen libkb.PassphraseGeneration
 	var clientHalf libkb.LKSecClientHalf
-	if ctx.LoginContext != nil {
-		stream := ctx.LoginContext.PassphraseStreamCache().PassphraseStream()
+	if lctx := m.LoginContext(); lctx != nil {
+		stream := lctx.PassphraseStreamCache().PassphraseStream()
 		if stream != nil {
 			foundStream = true
 			ppgen = stream.Generation()
 			clientHalf = stream.LksClientHalf()
 		}
 	} else {
-		e.G().LoginState().Account(func(a *libkb.Account) {
+		m.G().LoginState().Account(func(a *libkb.Account) {
 			stream := a.PassphraseStream()
 			if stream == nil {
 				return
@@ -288,10 +287,10 @@ func (e *PaperKeyGen) push(m libkb.MetaContext, ctx *Context) error {
 
 	// post them to the server.
 	var sr libkb.SessionReader
-	if ctx.LoginContext != nil {
-		sr = ctx.LoginContext.LocalSession()
+	if lctx := m.LoginContext(); lctx != nil {
+		sr = lctx.LocalSession()
 	}
-	if err := libkb.PostDeviceLKS(ctx.GetNetContext(), e.G(), sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(m.Ctx(), e.G(), sr, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 
@@ -317,16 +316,16 @@ func (e *PaperKeyGen) push(m libkb.MetaContext, ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	pukBoxes, err := e.makePerUserKeyBoxes(m, ctx)
+	pukBoxes, err := e.makePerUserKeyBoxes(m)
 	if err != nil {
 		return err
 	}
 
 	m.CDebugf("PaperKeyGen#push running delegators")
-	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
+	return libkb.DelegatorAggregator(m.LoginContext(), []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
 }
 
-func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext, ctx *Context) ([]keybase1.PerUserKeyBox, error) {
+func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
 	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes")
 
 	var pukBoxes []keybase1.PerUserKeyBox

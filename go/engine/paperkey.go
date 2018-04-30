@@ -145,8 +145,8 @@ func (e *PaperKey) Run(ctx *Context) error {
 		LoginContext:   nil,
 		PerUserKeyring: nil,
 	}
-	e.gen = NewPaperKeyGen(kgarg, e.G())
-	if err := RunEngine(e.gen, ctx); err != nil {
+	e.gen = NewPaperKeyGen(e.G(), kgarg)
+	if err := RunEngine2(m, e.gen); err != nil {
 		return err
 	}
 

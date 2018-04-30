@@ -329,8 +329,8 @@ func matchingPaperKey(m libkb.MetaContext, secretUI libkb.SecretUI, arg keybase1
 		Passphrase: paperPhrase,
 		SkipPush:   true,
 	}
-	bkeng := NewPaperKeyGen(bkarg, m.G())
-	if err := RunEngine(bkeng, &Context{}); err != nil {
+	bkeng := NewPaperKeyGen(m.G(), bkarg)
+	if err := RunEngine2(m, bkeng); err != nil {
 		return nil, 0, err
 	}
 

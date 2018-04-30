@@ -36,7 +36,8 @@ func TestLoginOneshot(t *testing.T) {
 		Username: fu.NormalizedUsername().String(),
 		PaperKey: loginUI.PaperPhrase,
 	})
-	err = RunEngine(eng, &Context{})
+	m = NewMetaContextForTest(tc2)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 	err = AssertProvisioned(tc2)

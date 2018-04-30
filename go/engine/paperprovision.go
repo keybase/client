@@ -50,9 +50,8 @@ func (e *PaperProvisionEngine) RequiredUIs() []libkb.UIKind {
 }
 
 func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ PaperProvisionEngine Run")
-
-	defer e.G().Trace("PaperProvisionEngine#Run", func() error { return err })()
+	m := metaContextFromEngineContext(e.G(), ctx)
+	defer m.CTrace("PaperProvisionEngine#Run", func() error { return err })()
 
 	// clear out any existing session:
 	e.G().Logout()
@@ -73,7 +72,7 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 
 	// run the LoginLoadUser sub-engine to load a user
 	ueng := newLoginLoadUser(e.G(), e.Username)
-	if err = RunEngine2(metaContextFromEngineContext(e.G(), ctx), ueng); err != nil {
+	if err = RunEngine2(m, ueng); err != nil {
 		return err
 	}
 
@@ -90,8 +89,8 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 		Passphrase: libkb.PaperKeyPhrase(e.PaperKey),
 		SkipPush:   true,
 	}
-	bkeng := NewPaperKeyGen(bkarg, e.G())
-	if err := RunEngine(bkeng, ctx); err != nil {
+	bkeng := NewPaperKeyGen(e.G(), bkarg)
+	if err := RunEngine2(m, bkeng); err != nil {
 		return err
 	}
 
