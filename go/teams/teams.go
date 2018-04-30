@@ -70,7 +70,7 @@ func (t *Team) CanSkipKeyRotation(now time.Time) bool {
 		// Last key rotation was more than predefined interval.
 		return false
 	}
-	// Time is big and key was rotated recently - can skip rotation.
+	// Team is big and key was rotated recently - can skip rotation.
 	return true
 }
 
@@ -463,11 +463,12 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 }
 
 type ChangeMembershipOptions struct {
-	// Pass "permanent" flag, user will be requiest access back to the
-	// team (useful for open teams).
+	// Pass "permanent" flag, user will not be able to request access
+	// to the team again, admin will have to add them back.
 	Permanent bool
 
-	// Do not rotate team key, even on member removals.
+	// Do not rotate team key, even on member removals. Server will
+	// queue CLKR if client sends removals without rotation.
 	DontRotateKey bool
 }
 
