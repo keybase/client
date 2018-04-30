@@ -24,7 +24,6 @@ export type Props = {
   onAcceptProofs: () => void,
   onChangeFriendshipsTab: (currentFriendshipsTab: Types.FriendshipsTab) => void,
   onClickShowcaseOffer: () => void,
-  onClickShowcased: (target: ?HTMLElement, team: UserTeamShowcase) => void,
   onMissingProofClick: (missingProof: MissingProof) => void,
   onFolderClick: (folder: Folder) => void,
   onUserClick: (username: string) => void,
