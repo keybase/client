@@ -171,6 +171,7 @@ const TeamInfoWrapper = (props: Props) => {
       visible={props.visible}
       header={header}
       position="bottom left"
+      containerStyle={isMobile ? {} : {zIndex: 3}} // over zIndex that's set on user bio
       items={[]}
     />
   )

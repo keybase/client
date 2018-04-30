@@ -4,9 +4,11 @@ import FloatingBox from './floating-box'
 import type {Position} from './relative-popup-hoc'
 import PopupMenu, {type MenuItem, ModalLessPopupMenu} from './popup-menu'
 import {isMobile} from '../constants/platform'
+import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
   closeOnSelect?: boolean,
+  containerStyle?: StylesCrossPlatform,
   items: Array<MenuItem | 'Divider' | null>,
   header?: MenuItem,
   onHidden: () => void,
@@ -26,6 +28,7 @@ export default (props: Props) => {
       onHidden={props.onHidden}
       visible={props.visible}
       attachTo={props.attachTo}
+      containerStyle={props.containerStyle}
     >
       <PopupComponent
         header={props.header}
