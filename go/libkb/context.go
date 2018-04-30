@@ -76,6 +76,20 @@ func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithContextCancel() (MetaContext, func()) {
+	var f func()
+	m.ctx, f = context.WithCancel(m.ctx)
+	return m, f
+}
+
+func (m MetaContext) EnsureCtx() MetaContext {
+	if m.ctx == nil {
+		m.ctx = context.Background()
+		m.CDebugf("installing background context.Context")
+	}
+	return m
+}
+
 func (m MetaContext) WithSecretUI(u SecretUI) MetaContext {
 	m.uis.SecretUI = u
 	return m

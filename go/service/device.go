@@ -58,14 +58,14 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 // DeviceAdd starts the kex2 device provisioning on the
 // provisioner (device X/C1)
 func (h *DeviceHandler) DeviceAdd(c context.Context, sessionID int) error {
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		ProvisionUI: h.getProvisionUI(sessionID),
 		SecretUI:    h.getSecretUI(sessionID, h.G()),
 		SessionID:   sessionID,
-		NetContext:  c,
 	}
+	m := libkb.NewMetaContext(c, h.G()).WithUIs(uis)
 	eng := engine.NewDeviceAdd(h.G())
-	return engine.RunEngine(eng, ctx)
+	return engine.RunEngine2(m, eng)
 }
 
 // CheckDeviceNameFormat verifies that the device name has a valid
