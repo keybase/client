@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import type {Tab} from '../../constants/tabs'
 
 export type Props = {
@@ -9,4 +9,4 @@ export type Props = {
   badgeNumbers: {[key: string]: number},
 }
 
-export default class TabBar extends Component<Props> {}
+export default class TabBar extends React.Component<Props> {}

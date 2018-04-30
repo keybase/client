@@ -1817,7 +1817,7 @@ type serverChatListener struct {
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
-	joinedConv       chan chat1.InboxUIItem
+	joinedConv       chan *chat1.InboxUIItem
 	leftConv         chan chat1.ConversationID
 	resetConv        chan chat1.ConversationID
 	identifyUpdate   chan keybase1.CanonicalTLFNameAndIDWithBreaks
@@ -1857,7 +1857,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.expunge <- activity.Expunge()
 	}
 }
-func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
+func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
+	conv *chat1.InboxUIItem) {
 	n.joinedConv <- conv
 }
 func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
@@ -1893,7 +1894,7 @@ func newServerChatListener() *serverChatListener {
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
-		joinedConv:       make(chan chat1.InboxUIItem, buf),
+		joinedConv:       make(chan *chat1.InboxUIItem, buf),
 		leftConv:         make(chan chat1.ConversationID, buf),
 		resetConv:        make(chan chat1.ConversationID, buf),
 		identifyUpdate:   make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, buf),

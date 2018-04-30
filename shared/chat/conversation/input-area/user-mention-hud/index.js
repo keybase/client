@@ -1,13 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  compose,
-  withStateHandlers,
-  lifecycle,
-  withPropsOnChange,
-  withProps,
-  setDisplayName,
-} from '../../../../util/container'
+import {compose, withStateHandlers, lifecycle, withPropsOnChange, withProps} from '../../../../util/container'
 import {
   Avatar,
   Box,
@@ -115,7 +108,6 @@ const _withProps = ({users, filter, selectedIndex}) => {
 const MentionHud = compose(
   withStateHandlers({selectedIndex: 0}, {setSelectedIndex: () => selectedIndex => ({selectedIndex})}),
   withProps(_withProps),
-  setDisplayName('MentionHud'),
   lifecycle({
     componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {

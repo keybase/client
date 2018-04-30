@@ -28,7 +28,6 @@ import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} f
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import flags from '../../util/feature-flags'
 
 const inboxQuery = {
   computeActiveList: true,
@@ -109,6 +108,8 @@ const queueMetaToRequest = (action: Chat2Gen.MetaNeedsUpdatingPayload, state: Ty
   if (old !== metaQueue) {
     // only unboxMore if something changed
     return Saga.put(Chat2Gen.createMetaHandleQueue())
+  } else {
+    logger.info('skipping meta queue run, queue unchanged')
   }
 }
 
@@ -150,8 +151,10 @@ const rpcMetaRequestConversationIDKeys = (
       keys = [action.payload.conversationIDKey].filter(Boolean)
       break
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // errors if we don't handle any new actions
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
+      */
       throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
@@ -443,7 +446,10 @@ const onChatThreadStale = updates => {
   if (conversationIDKeys.length > 0) {
     return [
       Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
-      Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'onChatThreadStale'}),
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys,
+        force: true,
+      }),
     ]
   }
 }
@@ -999,9 +1005,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
 // First we make the conversation, then on success we dispatch the piggybacking action
 const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPayload, state: TypedState) => {
   const tlfName = action.payload.users.join(',')
-  const membersType = flags.impTeamChatEnabled
-    ? RPCChatTypes.commonConversationMembersType.impteamnative
-    : RPCChatTypes.commonConversationMembersType.kbfs
+  const membersType = RPCChatTypes.commonConversationMembersType.impteamnative
 
   return Saga.sequentially([
     // Disable sending more into a pending conversation

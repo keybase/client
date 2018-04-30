@@ -718,6 +718,10 @@ func CanExec(p string) error {
 }
 
 func CurrentBinaryRealpath() (string, error) {
+	if IsMobilePlatform() {
+		return "mobile-binary-location-unknown", nil
+	}
+
 	executable, err := os.Executable()
 	if err != nil {
 		return "", err

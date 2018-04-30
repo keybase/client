@@ -13,7 +13,7 @@ import type {Props} from '.'
 class ConversationInput extends Component<Props> {
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
-      if (response.didCancel) {
+      if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
       if (response.error) {
@@ -21,9 +21,7 @@ class ConversationInput extends Component<Props> {
         throw new Error(response.error)
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      if (!response.didCancel && this.props.conversationIDKey) {
-        this.props.onAttach([filename])
-      }
+      this.props.onAttach([filename])
     })
   }
 
@@ -97,8 +95,8 @@ class ConversationInput extends Component<Props> {
             text={this.props.text}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
+            pendingWaiting={this.props.pendingWaiting}
             openFilePicker={this._openFilePicker}
-            isLoading={this.props.isLoading}
             insertMentionMarker={this.props.insertMentionMarker}
           />
         </Box>
@@ -129,22 +127,27 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({text, onSubmit, isEditing, openFilePicker, insertMentionMarker, isLoading}) =>
+const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
   text ? (
     <Box style={styles.actionText}>
-      <Text type="BodyBigLink" style={isLoading ? styles.actionLoading : null} onClick={onSubmit}>
+      <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
     </Box>
   ) : (
     <Box style={styles.actionButtonContainer}>
       <Icon
-        onClick={insertMentionMarker}
+        onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
         style={styles.mentionMarkerStyle}
-        fontSize={21}
+        iconStyle={styles.actionButtonIcon}
       />
-      <Icon onClick={openFilePicker} type="iconfont-camera" style={styles.actionButton} fontSize={21} />
+      <Icon
+        onClick={pendingWaiting ? undefined : openFilePicker}
+        type="iconfont-camera"
+        style={styles.actionButton}
+        iconStyle={styles.actionButtonIcon}
+      />
     </Box>
   )
 
@@ -172,9 +175,6 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     paddingRight: globalMargins.tiny,
-  },
-  actionLoading: {
-    color: globalColors.grey,
   },
   actionText: {
     ...globalStyles.flexBoxColumn,

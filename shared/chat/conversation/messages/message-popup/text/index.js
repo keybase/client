@@ -2,10 +2,12 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import MessagePopupHeader from '../header'
-import {ModalLessPopupMenu} from '../../../../../common-adapters/popup-menu'
+import {FloatingMenu} from '../../../../../common-adapters/'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import {isMobile} from '../../../../../util/container'
 
 type Props = {
+  attachTo: ?React.Component<*, *>,
   message: Types.MessageText,
   onCopy: () => void,
   onDelete: null | (() => void),
@@ -15,8 +17,10 @@ type Props = {
   onQuote: null | (() => void),
   onReplyPrivately: null | (() => void),
   onViewProfile: () => void,
+  position: Position,
   showDivider: boolean,
   style?: Object,
+  visible: boolean,
   yourMessage: boolean,
 }
 
@@ -58,12 +62,15 @@ const TextPopupMenu = (props: Props) => {
     ),
   }
   return (
-    <ModalLessPopupMenu
-      closeOnClick={true}
+    <FloatingMenu
+      attachTo={props.attachTo}
+      closeOnSelect={true}
       header={header}
       items={items}
       onHidden={props.onHidden}
+      position={props.position}
       style={{...stylePopup, ...props.style}}
+      visible={props.visible}
     />
   )
 }

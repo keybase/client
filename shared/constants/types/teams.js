@@ -102,6 +102,7 @@ export type _State = {
   sawChatBanner: boolean,
   sawSubteamsBanner: boolean,
   teamAccessRequestsPending: I.Set<Teamname>,
+  teamInviteError: string,
   teamJoinError: string,
   teamJoinSuccess: boolean,
   teamJoinSuccessTeamName: string,

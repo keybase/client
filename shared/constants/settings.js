@@ -67,6 +67,7 @@ export const passphraseTab = 'settingsTabs:passphrase'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
+export const walletsTab = 'settingsTabs:walletsTab'
 export {
   initialState,
   traceInProgressKey,

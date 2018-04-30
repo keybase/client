@@ -1,5 +1,5 @@
 // @flow
-import * as I from 'immutable'
+import * as React from 'react'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -19,8 +19,7 @@ import {
   type Dispatch,
 } from '../../../../util/container'
 import {isEqual, throttle} from 'lodash-es'
-import {chatTab} from '../../../../constants/tabs'
-import mentionHoc from '../mention-handler-hoc'
+import mentionHoc, {type PropsFromContainer} from '../mention-handler-hoc'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -32,14 +31,14 @@ const unsentText = {}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
-  const _editingMessage = editingOrdinal
+  const _editingMessage: ?Types.Message = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const quote = Constants.getQuotingOrdinalAndSource(
     state,
     state.chat2.pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
   )
-  let _quotingMessage = null
+  let _quotingMessage: ?Types.Message = null
   if (quote) {
     const {ordinal, sourceConversationIDKey} = quote
     _quotingMessage = ordinal ? Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal) : null
@@ -63,9 +62,11 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
-  const injectedInputMessage = _editingMessage || _quotingMessage || null
-  const injectedInput =
-    injectedInputMessage && injectedInputMessage.type === 'text' && injectedInputMessage.text.stringValue()
+  const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
+  const injectedInput: string =
+    injectedInputMessage && injectedInputMessage.type === 'text'
+      ? injectedInputMessage.text.stringValue()
+      : ''
 
   return {
     _editingMessage,
@@ -112,10 +113,6 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _onStoreInputText: (conversationIDKey: Types.ConversationIDKey, inputText: string) =>
-    dispatch(
-      RouteTree.setRouteState(I.List([chatTab, conversationIDKey]), {inputText: new HiddenString(inputText)})
-    ),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
@@ -144,7 +141,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   focusInputCounter: ownProps.focusInputCounter,
   injectedInput: stateProps.injectedInput,
   isEditing: !!stateProps._editingMessage,
-  isLoading: false,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => {
     dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
@@ -159,6 +155,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
+
+// For some reason, flow can't infer the type of mentionHoc here.
+const MentionHocInput: React.ComponentType<PropsFromContainer> = mentionHoc(Input)
+
+// With the heavy use of recompose below, it's pretty difficult to
+// figure out the types passed into the various handlers. This type is
+// good enough to use in the lifecycle methods.
+type LifecycleProps = PropsFromContainer & {
+  _quotingMessage: ?Types.Message,
+  _editingMessage: ?Types.Message,
+  setText: (string, skipUnsentSaving?: boolean) => void,
+  injectedInput: string,
+  inputMoveToEnd: () => void,
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
@@ -204,35 +214,39 @@ export default compose(
     }
   }),
   lifecycle({
-    componentDidUpdate(prevProps) {
+    // The types for prevProps and nextProps aren't exact, but they're
+    // good enough.
+    componentDidUpdate(prevProps: LifecycleProps) {
       if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.inputFocus()
       }
     },
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: LifecycleProps) {
+      const props: LifecycleProps = this.props
+
       // Fill in the input with an edit, quote, or unsent text
       if (
-        (nextProps._quotingMessage && nextProps._quotingMessage !== this.props._quotingMessage) ||
-        nextProps._editingMessage !== this.props._editingMessage
+        (nextProps._quotingMessage && nextProps._quotingMessage !== props._quotingMessage) ||
+        nextProps._editingMessage !== props._editingMessage
       ) {
-        this.props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-        this.props.setText(
+        props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
+        const injectedInput = nextProps.injectedInput
+        props.setText(
           nextProps._quotingMessage && !nextProps._editingMessage
-            ? formatTextForQuoting(nextProps.injectedInput)
-            : nextProps.injectedInput,
+            ? formatTextForQuoting(injectedInput)
+            : injectedInput,
           true
         )
-        !isMobile && this.props.inputMoveToEnd()
-        this.props.inputFocus()
-      } else if (this.props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
+        !isMobile && props.inputMoveToEnd()
+        props.inputFocus()
+      } else if (props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
         const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
-        this.props.setText(text, true)
+        props.setText(text, true)
       }
 
-      if (nextProps.isEditing && !this.props.isEditing) {
-        this.props.inputFocus()
+      if (nextProps.isEditing && !props.isEditing) {
+        props.inputFocus()
       }
     },
-  }),
-  mentionHoc
-)(Input)
+  })
+)(MentionHocInput)

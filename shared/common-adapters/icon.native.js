@@ -108,7 +108,7 @@ class Icon extends React.PureComponent<Props> {
         iconStyle = collapseStyles([iconStyle, {color: props.color}])
       }
       icon = (
-        <Text style={iconStyle} type={props.type}>
+        <Text style={iconStyle} type={props.type} fontSize={props.fontSize}>
           {code}
         </Text>
       )
