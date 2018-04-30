@@ -27,11 +27,10 @@ func TestDeviceAddPUK(t *testing.T) {
 func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret) {
 	defer wg.Done()
 	f := func(lctx libkb.LoginContext) error {
-		ctx := &Context{
-			ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-			LoginContext: lctx,
-			NetContext:   context.TODO(),
+		uis := libkb.UIs{
+			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 		}
+		m := NewMetaContextForTest(*tcY).WithLoginContext(lctx).WithUIs(uis)
 		deviceID, err := libkb.NewDeviceID()
 		if err != nil {
 			t.Errorf("provisionee device id error: %s", err)
@@ -49,7 +48,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 			Type:        libkb.DeviceTypeDesktop,
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-		if err := RunEngine(provisionee, ctx); err != nil {
+		if err := RunEngine2(m, provisionee); err != nil {
 			t.Errorf("provisionee error: %s", err)
 			return err
 		}

@@ -259,7 +259,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	f := func(lctx libkb.LoginContext) error {
 		// run provisionee
 		m := m.WithLoginContext(lctx)
-		err := RunEngine(provisionee, engineContextFromMetaContext(m))
+		err := RunEngine2(m, provisionee)
 		if err != nil {
 			return err
 		}
@@ -1031,8 +1031,8 @@ func getPaperKey(m libkb.MetaContext, lastErr error) (pair *keypair, prefix stri
 		Passphrase: paperPhrase,
 		SkipPush:   true,
 	}
-	bkeng := NewPaperKeyGen(bkarg, m.G())
-	if err := RunEngine(bkeng, engineContextFromMetaContext(m)); err != nil {
+	bkeng := NewPaperKeyGen(m.G(), bkarg)
+	if err := RunEngine2(m, bkeng); err != nil {
 		return nil, prefix, err
 	}
 
