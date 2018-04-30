@@ -21,9 +21,11 @@ const commonProps: Props = {
   onSelectionChange: action('onSelectionChange'),
 }
 
-type UncontrolledTestProps = {}
+type TestProps = {
+  uncontrolled: boolean,
+}
 
-class UncontrolledTestInput extends React.Component<UncontrolledTestProps> {
+class TestInput extends React.Component<TestProps> {
   _input: ?Input
 
   _setInput = (ref: ?Input) => {
@@ -57,7 +59,12 @@ class UncontrolledTestInput extends React.Component<UncontrolledTestProps> {
           width: 420,
         }}
       >
-        <Input {...commonProps} onEnterKeyDown={this._replaceFoo} uncontrolled={true} ref={this._setInput} />
+        <Input
+          {...commonProps}
+          onEnterKeyDown={this._replaceFoo}
+          uncontrolled={this.props.uncontrolled}
+          ref={this._setInput}
+        />
         <Button type="Primary" label="Insert &quot;foo&quot; (enter)" onClick={this._replaceFoo} />
       </Box>
     )
@@ -66,7 +73,8 @@ class UncontrolledTestInput extends React.Component<UncontrolledTestProps> {
 
 const load = () => {
   storiesOf('Common/Input', module)
-    .add('Empty (uncontrolled)', () => <UncontrolledTestInput />)
+    .add('Empty (uncontrolled)', () => <TestInput uncontrolled={true} />)
+    .add('Empty (controlled)', () => <TestInput uncontrolled={false} />)
     .add('Filled', () => <Input {...commonProps} value="Hello, World!" />)
     .add('Filled Centered', () => (
       <Box
