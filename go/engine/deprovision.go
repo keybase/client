@@ -76,8 +76,8 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 			ForceSelf: true,
 			ForceLast: true,
 		}
-		revokeEng := NewRevokeDeviceEngine(revokeArg, e.G())
-		err = revokeEng.Run(engineContextFromMetaContext(m))
+		revokeEng := NewRevokeDeviceEngine(m.G(), revokeArg)
+		err = revokeEng.Run(m)
 		if err != nil {
 			m.CDebugf("DeprovisionEngine error during revoke: %s", err)
 			return err

@@ -3053,16 +3053,17 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 
 	t.Logf("revoke paper keys from X")
 	{
-		ctx := &Context{
+		uis := libkb.UIs{
 			LoginUI:  &libkb.TestLoginUI{Username: userX.Username},
 			LogUI:    tcX.G.UI.GetLogUI(),
 			SecretUI: &libkb.TestSecretUI{},
 		}
-		eng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{
+		eng := NewRevokeDeviceEngine(tcX.G, RevokeDeviceEngineArgs{
 			ID:        originalPaperKey,
 			ForceSelf: false,
-		}, tcX.G)
-		err := RunEngine(eng, ctx)
+		})
+		m := libkb.NewMetaContextTODO(tcX.G).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err, "revoke original paper key")
 	}
 
@@ -3254,16 +3255,17 @@ func TestProvisionAndRevoke(t *testing.T) {
 
 	// require.NoError(t, doRevokeDevice(tcY, userX, tcX.G.ActiveDevice.DeviceID(), false))
 	{
-		ctx := &Context{
+		uis := libkb.UIs{
 			LoginUI:  &libkb.TestLoginUI{Username: userX.Username},
 			LogUI:    tcY.G.UI.GetLogUI(),
 			SecretUI: &libkb.TestSecretUI{},
 		}
-		eng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{
+		eng := NewRevokeDeviceEngine(tcY.G, RevokeDeviceEngineArgs{
 			ID:        tcX.G.ActiveDevice.DeviceID(),
 			ForceSelf: false,
-		}, tcY.G)
-		err := RunEngine(eng, ctx)
+		})
+		m := libkb.NewMetaContextTODO(tcY.G).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err, "revoke original paper key")
 	}
 

@@ -31,22 +31,24 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device
 }
 
 func doRevokeKey(tc libkb.TestContext, u *FakeUser, kid keybase1.KID) error {
-	revokeEngine := NewRevokeKeyEngine(kid, tc.G)
-	ctx := &Context{
+	revokeEngine := NewRevokeKeyEngine(tc.G, kid)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	err := RunEngine(revokeEngine, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, revokeEngine)
 	return err
 }
 
 func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, forceSelf, forceLast bool) error {
-	revokeEngine := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: id, ForceSelf: forceSelf, ForceLast: forceLast}, tc.G)
-	ctx := &Context{
+	revokeEngine := NewRevokeDeviceEngine(tc.G, RevokeDeviceEngineArgs{ID: id, ForceSelf: forceSelf, ForceLast: forceLast})
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	err := RunEngine(revokeEngine, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, revokeEngine)
 	return err
 }
 

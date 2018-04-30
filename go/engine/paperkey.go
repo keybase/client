@@ -60,7 +60,7 @@ func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKey) Run(ctx *Context) error {
-	m := NewMetaContext(e, ctx)
+	m := metaContextFromEngineContext(e.G(), ctx)
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "PaperKey")
 	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "PaperKey")
 
@@ -95,8 +95,8 @@ func (e *PaperKey) Run(ctx *Context) error {
 	// Revoke all keys at once, not one-by-one. This way, a cancelation of the
 	// experience above will stop all operations
 	for _, bdev := range devicesToRevoke {
-		reng := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: bdev.ID}, e.G())
-		if err := RunEngine(reng, ctx); err != nil {
+		reng := NewRevokeDeviceEngine(m.G(), RevokeDeviceEngineArgs{ID: bdev.ID})
+		if err := RunEngine2(m, reng); err != nil {
 			// probably not a good idea to continue...
 			return err
 		}
