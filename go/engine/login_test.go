@@ -261,11 +261,12 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -373,11 +374,12 @@ func TestProvisionMobile(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -441,11 +443,12 @@ func TestProvisionWithRevoke(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -2069,11 +2072,12 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -2447,11 +2451,12 @@ func TestResetAccountKexProvision(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -2641,11 +2646,12 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -2728,11 +2734,12 @@ func TestResetMultipleDevices(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    u.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -2838,11 +2845,12 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -2928,11 +2936,12 @@ func TestProvisionerSecretStore(t *testing.T) {
 	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
 	errX := make(chan error, 1)
 	go func() {
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    &testNoPromptSecretUI{},
 			ProvisionUI: newTestProvisionUI(),
 		}
-		errX <- RunEngine(provisioner, ctx)
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		errX <- RunEngine2(m, provisioner)
 	}()
 	secretFromY := <-secretCh
 	go provisioner.AddSecret(secretFromY)
@@ -3103,11 +3112,12 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
@@ -3222,11 +3232,12 @@ func TestProvisionAndRevoke(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}

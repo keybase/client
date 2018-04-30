@@ -398,11 +398,12 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	go func() {
 		defer wg.Done()
 
-		ctx := &Context{
+		uis := libkb.UIs{
 			SecretUI:    userX.NewSecretUI(),
 			ProvisionUI: newTestProvisionUI(),
 		}
-		if err := RunEngine(provisioner, ctx); err != nil {
+		m := NewMetaContextForTest(tcX).WithUIs(uis)
+		if err := RunEngine2(m, provisioner); err != nil {
 			t.Errorf("provisioner error: %s", err)
 			return
 		}
