@@ -61,9 +61,7 @@ export default compose(
         props.onLogin(props.selectedUser, props.passphrase)
       }
     },
-    selectedUserChange: props => user => {
-      props.setSelectedUser(user)
-    },
+    selectedUserChange: props => user => props.setSelectedUser(user),
   }),
   lifecycle({
     componentDidUpdate(prevProps: Props) {
