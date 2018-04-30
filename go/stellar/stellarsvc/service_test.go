@@ -214,6 +214,8 @@ func TestBalances(t *testing.T) {
 	require.Len(t, balances, 1)
 	require.Equal(t, balances[0].Asset.Type, "native")
 	require.Equal(t, balances[0].Amount, "10000")
+
+	tcs[0].Srv.WalletGetLocalAccounts(context.Background())
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
