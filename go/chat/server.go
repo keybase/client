@@ -71,17 +71,15 @@ var _ chat1.LocalInterface = (*Server)(nil)
 
 func NewServer(g *globals.Context, store *attachments.Store, serverConn ServerConnection,
 	uiSource UISource) *Server {
-	delay := 10 * time.Second
 	return &Server{
-		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "Server", false),
-		serverConn:        serverConn,
-		uiSource:          uiSource,
-		store:             store,
-		boxer:             NewBoxer(g),
-		identNotifier:     NewCachingIdentifyNotifier(g),
-		clock:             clockwork.NewRealClock(),
-		remoteThreadDelay: &delay,
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		serverConn:    serverConn,
+		uiSource:      uiSource,
+		store:         store,
+		boxer:         NewBoxer(g),
+		identNotifier: NewCachingIdentifyNotifier(g),
+		clock:         clockwork.NewRealClock(),
 	}
 }
 
@@ -445,7 +443,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, localThread *chat1.ThreadView,
 	mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
 	defer func() {
-		if err != nil {
+		if err != nil || localThread == nil {
 			return
 		}
 		rm := make(map[chat1.MessageID]bool)
