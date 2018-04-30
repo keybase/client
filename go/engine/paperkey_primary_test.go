@@ -24,7 +24,7 @@ func TestPaperKeyPrimary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LoginUI: &libkb.TestLoginUI{},
 	}
 	args := &PaperKeyPrimaryArgs{
@@ -33,7 +33,8 @@ func TestPaperKeyPrimary(t *testing.T) {
 		EncryptionKey: encryptionKey,
 	}
 	eng := NewPaperKeyPrimary(tc.G, args)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
