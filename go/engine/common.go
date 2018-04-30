@@ -126,8 +126,8 @@ func matchPaperKey(m libkb.MetaContext, ctx *Context, me *libkb.User, paper stri
 		SkipPush:   true,
 		Me:         me,
 	}
-	bkeng := NewPaperKeyGen(bkarg, m.G())
-	if err := RunEngine(bkeng, ctx); err != nil {
+	bkeng := NewPaperKeyGen(m.G(), bkarg)
+	if err := RunEngine2(m, bkeng); err != nil {
 		return nil, err
 	}
 

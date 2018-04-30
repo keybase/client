@@ -75,8 +75,9 @@ func (e *PaperKeyPrimary) Run(ctx *Context) error {
 		LoginContext:   ctx.LoginContext,
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
-	kgeng := NewPaperKeyGen(kgarg, e.G())
-	if err := RunEngine(kgeng, ctx); err != nil {
+	kgeng := NewPaperKeyGen(e.G(), kgarg)
+	m := metaContextFromEngineContext(e.G(), ctx)
+	if err := RunEngine2(m, kgeng); err != nil {
 		return err
 	}
 

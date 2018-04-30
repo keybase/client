@@ -179,11 +179,12 @@ func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
 }
 
 func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOneshotArg) error {
-	ectx := &engine.Context{
-		LogUI:      h.getLogUI(arg.SessionID),
-		NetContext: ctx,
-		SessionID:  arg.SessionID,
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 	eng := engine.NewLoginOneshot(h.G(), arg)
-	return engine.RunEngine(eng, ectx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
+
 }
