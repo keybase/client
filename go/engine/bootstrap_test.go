@@ -48,8 +48,8 @@ func TestBootstrap(t *testing.T) {
 	}
 
 	beng := NewBootstrap(tc.G)
-	bctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(beng, bctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	status := beng.Status()
@@ -87,8 +87,8 @@ func TestBootstrapAfterSignup(t *testing.T) {
 	u1 := CreateAndSignupFakeUser(tc, "login")
 
 	beng := NewBootstrap(tc.G)
-	bctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(beng, bctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	status := beng.Status()

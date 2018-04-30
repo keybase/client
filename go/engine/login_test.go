@@ -3381,8 +3381,8 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 
 		// GetBootstrapStatus should return without error and with LoggedIn set to true.
 		beng := NewBootstrap(tc2.G)
-		bctx := &Context{NetContext: context.Background()}
-		if err := RunEngine(beng, bctx); err != nil {
+		m = NewMetaContextForTest(tc2)
+		if err := RunEngine2(m, beng); err != nil {
 			t.Fatal(err)
 		}
 		status := beng.Status()

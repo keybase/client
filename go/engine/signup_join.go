@@ -78,8 +78,8 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 	var res *libkb.APIRes
 	var ppGenTmp int
 	res, err = m.G().API.Post(libkb.APIArg{
-		Endpoint: "signup",
-		NetContext : m.Ctx(),
+		Endpoint:   "signup",
+		NetContext: m.Ctx(),
 		Args: libkb.HTTPArgs{
 			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
 			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
