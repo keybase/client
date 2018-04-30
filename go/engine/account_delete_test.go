@@ -22,11 +22,12 @@ func TestAccountDelete(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "acct")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 	eng := NewAccountDelete(tc.G)
-	err := RunEngine(eng, ctx)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
@@ -58,11 +59,12 @@ func TestAccountDeleteBadPassphrase(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "acct")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase + "xxx"},
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 	eng := NewAccountDelete(tc.G)
-	err := RunEngine(eng, ctx)
+	err := RunEngine2(m, eng)
 	require.Error(t, err)
 
 	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
@@ -84,11 +86,12 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
 	require.NoError(t, err)
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 	eng := NewAccountDelete(tc.G)
-	err = RunEngine(eng, ctx)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	i := newIdentify2WithUIDTester(tc.G)

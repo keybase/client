@@ -167,14 +167,14 @@ func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisi
 }
 
 func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
-	ectx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:      h.getLogUI(sessionID),
-		NetContext: ctx,
 		SessionID:  sessionID,
 		SecretUI:   h.getSecretUI(sessionID, h.G()),
 	}
 	eng := engine.NewAccountDelete(h.G())
-	return engine.RunEngine(eng, ectx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOneshotArg) error {
