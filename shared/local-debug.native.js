@@ -6,7 +6,7 @@
 import {NativeModules} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import {noop} from 'lodash-es'
-// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
+import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
@@ -20,7 +20,7 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   enableActionLogging: true, // Log actions to the log
@@ -32,7 +32,7 @@ let config = {
   isDevApplePushToken: false, // Use a dev push token
   isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
-  printBridgeB64: false, // Print raw b64 going over the wire
+  printBridgeB64: true, // Print raw b64 going over the wire
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printRPC: false, // Print rpc traffic
   reduxSagaLogger: false, // Print saga debug info
@@ -54,7 +54,7 @@ if (__DEV__) {
   config.userTimings = true
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
-  // MessageQueue.spy(msg => console._log('queuespy: ', msg))
+  // MessageQueue.spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))
 }
 
 if (PERF) {
