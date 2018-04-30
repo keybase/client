@@ -1073,7 +1073,7 @@ export type MessageUnboxedErrorType =
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
 
-export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID}>
+export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID, hidden: Boolean}>
 
 export type MessageUnboxedState =
   | 1 // VALID_1

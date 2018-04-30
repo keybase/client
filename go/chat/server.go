@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -70,15 +71,17 @@ var _ chat1.LocalInterface = (*Server)(nil)
 
 func NewServer(g *globals.Context, store *attachments.Store, serverConn ServerConnection,
 	uiSource UISource) *Server {
+	delay := 10 * time.Second
 	return &Server{
-		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Server", false),
-		serverConn:    serverConn,
-		uiSource:      uiSource,
-		store:         store,
-		boxer:         NewBoxer(g),
-		identNotifier: NewCachingIdentifyNotifier(g),
-		clock:         clockwork.NewRealClock(),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		serverConn:        serverConn,
+		uiSource:          uiSource,
+		store:             store,
+		boxer:             NewBoxer(g),
+		identNotifier:     NewCachingIdentifyNotifier(g),
+		clock:             clockwork.NewRealClock(),
+		remoteThreadDelay: &delay,
 	}
 }
 
@@ -441,6 +444,35 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, localThread *chat1.ThreadView,
 	mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
+	defer func() {
+		if err != nil {
+			return
+		}
+		rm := make(map[chat1.MessageID]bool)
+		for _, m := range res.Messages {
+			rm[m.GetMessageID()] = true
+		}
+		// Check for any stray placeholders in the local thread we sent, and set them to some
+		// undisplayable type
+		for _, m := range localThread.Messages {
+			state, err := m.State()
+			if err != nil {
+				continue
+			}
+			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
+				h.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
+					m.GetMessageID())
+				res.Messages = append(res.Messages, chat1.NewMessageUnboxedWithPlaceholder(
+					chat1.MessageUnboxedPlaceholder{
+						MessageID: m.GetMessageID(),
+						Hidden:    true,
+					},
+				))
+			}
+		}
+		sort.Sort(utils.ByMsgUnboxedMsgID(res.Messages))
+	}()
+
 	shouldAppend := func(oldMsg chat1.MessageUnboxed) bool {
 		state, err := oldMsg.State()
 		if err != nil {

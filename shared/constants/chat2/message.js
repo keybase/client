@@ -452,12 +452,18 @@ const placeholderUIMessageToMessage = (
   uiMessage: RPCChatTypes.UIMessage,
   p: RPCChatTypes.MessageUnboxedPlaceholder
 ) => {
-  return makeMessageText({
-    conversationIDKey,
-    errorReason: 'waiting for message from server...',
-    id: Types.numberToMessageID(p.messageID),
-    ordinal: Types.numberToOrdinal(p.messageID),
-  })
+  return !p.hidden
+    ? makeMessageText({
+        conversationIDKey,
+        errorReason: 'waiting for message from server...',
+        id: Types.numberToMessageID(p.messageID),
+        ordinal: Types.numberToOrdinal(p.messageID),
+      })
+    : makeMessageDeleted({
+        conversationIDKey,
+        id: Types.numberToMessageID(p.messageID),
+        ordinal: Types.numberToOrdinal(p.messageID),
+      })
 }
 
 const errorUIMessagetoMessage = (
