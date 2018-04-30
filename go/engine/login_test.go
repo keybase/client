@@ -2613,7 +2613,7 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// provisionee calls login:
-	ctx := &Context{
+	uis = libkb.UIs{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
 		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
@@ -2666,7 +2666,7 @@ func TestResetAccountLikeNistur(t *testing.T) {
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
 		SigVersion:    sigVersion,
 	}
-	ctx = &Context{
+	ctx := &Context{
 		LogUI:      tcY.G.UI.GetLogUI(),
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   &libkb.TestSecretUI{},
