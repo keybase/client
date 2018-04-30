@@ -4,10 +4,10 @@ import {type PreMentionHocProps, type Props} from '../normal'
 import {Input} from '../../../../common-adapters'
 
 export type PropsFromContainer = {
-  _inputSetRef: Input => void,
+  _inputSetRef: ?Input => void,
   _onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 } & PreMentionHocProps
 
-declare function mentionHoc(input: React.ComponentType<Props>): React.ComponentType<Props>
+declare function mentionHoc(input: React.ComponentType<Props>): React.ComponentType<PropsFromContainer>
 
 declare export default mentionHoc

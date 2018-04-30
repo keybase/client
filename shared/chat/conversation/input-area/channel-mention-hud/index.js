@@ -1,13 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  compose,
-  lifecycle,
-  setDisplayName,
-  withProps,
-  withPropsOnChange,
-  withStateHandlers,
-} from '../../../../util/container'
+import {compose, lifecycle, withProps, withPropsOnChange, withStateHandlers} from '../../../../util/container'
 import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 
@@ -77,11 +70,10 @@ const MentionHud = compose(
     return {
       data: fullList
         .filter(c => c.toLowerCase().indexOf(props.filter) >= 0)
-        .map((c, i) => ({channelName: c, selected: i === props.selectedIndex})),
+        .map((c, i) => ({channelName: c, key: c, selected: i === props.selectedIndex})),
       fullList,
     }
   }),
-  setDisplayName('ChannelMentionHud'),
   lifecycle({
     componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {

@@ -87,6 +87,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamCreationError: '',
   teamCreationPending: false,
   teamAccessRequestsPending: I.Set(),
+  teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',

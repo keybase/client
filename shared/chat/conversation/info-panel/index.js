@@ -256,8 +256,10 @@ const typeSizeEstimator = (row: Row): number => {
       return row.canSetRetention ? 84 : 49
 
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(row.type: empty)
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
       throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
@@ -369,8 +371,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(row.type: empty)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }

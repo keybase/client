@@ -9,10 +9,10 @@ type Props = {
   arrowColor: string,
   height: number,
   onClick: () => void,
-  onShowMenu: () => void,
   onShowInFinder: null | (() => void),
   path: string,
   title: string,
+  toggleShowingMenu: () => void,
   width: number,
   progress: number,
   progressLabel: string,
@@ -30,7 +30,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       <ClickableBox
         style={imageContainerStyle}
         onClick={this.props.onClick}
-        onLongPress={this.props.onShowMenu}
+        onLongPress={this.props.toggleShowingMenu}
       >
         <Text type="BodySemibold" style={titleStyle}>
           {this.props.title}

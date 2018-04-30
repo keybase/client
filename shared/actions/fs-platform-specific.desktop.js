@@ -263,5 +263,5 @@ export function installDokanSaga() {
 }
 
 export function copyToDownloadDir(path: string): Promise<*> {
-  return new Promise((resolve, reject) => reject(new Error('unimplemented')))
+  return new Promise((resolve, reject) => resolve())
 }

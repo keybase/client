@@ -126,8 +126,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openSecurityPreferences:
       return state
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }
