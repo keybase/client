@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const ordinal = ownProps.routeProps.get('ordinal')
   const message = Constants.getMessageMap(state, conversationIDKey).get(ordinal, blankMessage)
   return {
-    _message: message.type === 'attachment' ? message : blankMessage,
+    message: message.type === 'attachment' ? message : blankMessage,
   }
 }
 
@@ -33,16 +33,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: Ow
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
   },
-  _onShowMenu: (message: Types.MessageAttachment, targetRect: ?ClientRect) => {
-    dispatch(
-      navigateAppend([
-        {
-          props: {message, position: 'bottom left', targetRect},
-          selected: 'messageAction',
-        },
-      ])
-    )
-  },
   onClose: () => {
     dispatch(navigateUp())
   },
@@ -53,14 +43,14 @@ const mergeProps = (
   dispatchProps: More.ReturnType<typeof mapDispatchToProps>,
   ownProps: OwnProps
 ) => {
-  const message = stateProps._message
+  const message = stateProps.message
   return {
+    message,
     onClose: dispatchProps.onClose,
     onDownloadAttachment: message.downloadPath
       ? undefined
       : () => dispatchProps._onDownloadAttachment(message),
     onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
-    onShowMenu: (targetRect: ?ClientRect) => dispatchProps._onShowMenu(message, targetRect),
     path: message.fileURL || message.previewURL,
     progress: message.transferProgress,
     progressLabel: message.fileURL ? undefined : 'Loading',
