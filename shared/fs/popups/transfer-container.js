@@ -32,13 +32,11 @@ const mergeProps = (stateProps, {_onHidden, _dismissTransfer, _cancelTransfer}) 
     stateProps._pathItem.type,
     stateProps._username
   )
-  const some =
-    stateProps._transfers
-      .filter(ts => ts.meta.type === 'download' && ['cameral-roll', 'share'].includes(ts.meta.intent))
-      .entries()
-      .next().value || Constants.makeTransferState()
-  const [key, {meta: {intent}, state: {completePortion, endEstimate, isDone, error}}] =
-    some || Constants.makeTransfer()
+  const transferKV = stateProps._transfers
+    .filter(ts => ts.meta.type === 'download' && ['camera-roll', 'share'].includes(ts.meta.intent))
+    .entries()
+    .next().value || ['', Constants.makeTransfer()]
+  const [key, {meta: {intent}, state: {completePortion, endEstimate, isDone, error}}] = transferKV
   const onHidden = () => {
     isDone || _cancelTransfer(key)
     _onHidden()

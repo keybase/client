@@ -103,7 +103,7 @@ export type _MessageAttachment = {
   fileName: string,
   fileSize: number,
   hasBeenEdited: boolean,
-  id: MessageID,
+  id: MessageID, // that of first attachment message, not second attachment-uploaded message
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,

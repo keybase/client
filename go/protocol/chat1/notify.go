@@ -111,12 +111,20 @@ func (o ReadMessageInfo) DeepCopy() ReadMessageInfo {
 }
 
 type NewConversationInfo struct {
-	Conv InboxUIItem `codec:"conv" json:"conv"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o NewConversationInfo) DeepCopy() NewConversationInfo {
 	return NewConversationInfo{
-		Conv: o.Conv.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv),
 	}
 }
 
@@ -698,8 +706,9 @@ type ChatTypingUpdateArg struct {
 }
 
 type ChatJoinedConversationArg struct {
-	Uid  keybase1.UID `codec:"uid" json:"uid"`
-	Conv InboxUIItem  `codec:"conv" json:"conv"`
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 type ChatLeftConversationArg struct {

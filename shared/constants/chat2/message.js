@@ -573,6 +573,9 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
   if (old.type === 'attachment' && m.type === 'attachment') {
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
+      // We got an attachment-uploaded message. Hold on to the old ID
+      // because that's what the service expects to delete this message
+      ret.set('id', old.id)
       ret.set('ordinal', old.ordinal)
       ret.set('downloadPath', old.downloadPath)
       if (old.previewURL && !m.previewURL) {

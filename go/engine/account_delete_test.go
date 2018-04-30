@@ -107,3 +107,26 @@ func TestAccountDeleteIdentify(t *testing.T) {
 		t.Errorf("identify2 error: %T, expected libkb.UserDeletedError", err)
 	}
 }
+
+func TestAccountDeleteAfterRestart(t *testing.T) {
+	tc := SetupEngineTest(t, "acct")
+	defer tc.Cleanup()
+
+	fu := SignupFakeUserStoreSecret(tc, "acct")
+
+	simulateServiceRestart(t, tc, fu)
+	ctx := &Context{
+		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
+	}
+	eng := NewAccountDelete(tc.G)
+	err := RunEngine(eng, ctx)
+	require.NoError(t, err)
+
+	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
+	if err == nil {
+		t.Fatal("no error loading deleted user")
+	}
+	if _, ok := err.(libkb.DeletedError); !ok {
+		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
+	}
+}

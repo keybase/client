@@ -81,6 +81,14 @@ const EditChannelBare = (props: Props & TextState) => (
         />
       </ButtonBar>
     </Box>
+    {isMobile &&
+      props.showDelete && (
+        <DeleteChannel
+          channelName={props.channelName}
+          onConfirmedDelete={props.onConfirmedDelete}
+          disabled={props.deleteRenameDisabled}
+        />
+      )}
   </Box>
 )
 
