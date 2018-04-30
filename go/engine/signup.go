@@ -280,7 +280,7 @@ func (s *SignupEngine) genPaperKeys(m libkb.MetaContext) error {
 	}
 
 	eng := NewPaperKeyPrimary(m.G(), args)
-	return RunEngine(eng, engineContextFromMetaContext(m))
+	return RunEngine2(m, eng)
 }
 
 func (s *SignupEngine) checkGPG(m libkb.MetaContext) (bool, error) {

@@ -27,7 +27,6 @@ type PaperKeyGenArg struct {
 
 	SigningKey     libkb.GenericKey      // optional
 	EncryptionKey  libkb.NaclDHKeyPair   // optional
-	LoginContext   libkb.LoginContext    // optional
 	PerUserKeyring *libkb.PerUserKeyring // optional
 }
 
