@@ -527,7 +527,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 }
 
 func TestRemoveWithoutRotation(t *testing.T) {
-	tc, _, otherA, _, name := memberSetupMultiple(t)
+	tc, _, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherA.Username))
@@ -535,8 +535,14 @@ func TestRemoveWithoutRotation(t *testing.T) {
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	require.NoError(t, err)
 
-	uv := keybase1.NewUserVersion(otherA.User.GetUID(), otherA.EldestSeqno)
-	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
+	req := keybase1.TeamChangeReq{
+		Writers: []keybase1.UserVersion{
+			keybase1.NewUserVersion(otherB.User.GetUID(), otherB.EldestSeqno),
+		},
+		None: []keybase1.UserVersion{
+			keybase1.NewUserVersion(otherA.User.GetUID(), otherA.EldestSeqno),
+		},
+	}
 
 	opts := ChangeMembershipOptions{
 		DontRotateKey: true,
