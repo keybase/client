@@ -96,6 +96,11 @@ export type StylesCrossPlatform =
   | _StylesCrossPlatform
   | $ReadOnlyArray<_StylesCrossPlatform | null | false | void>
 
+export type StylesCrossPlatformWithSomeDisallowed<D> =
+  | null
+  | (_StylesCrossPlatform & D)
+  | $ReadOnlyArray<(_StylesCrossPlatform & D) | null | false | void>
+
 export type _StylesDesktop = {|
   alignContent?: string,
   alignItems?: string,

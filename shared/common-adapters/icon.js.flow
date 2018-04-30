@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from './icon.constants'
-import {type StylesCrossPlatform, type Color} from '../styles'
+import {type StylesCrossPlatformWithSomeDisallowed, type Color} from '../styles'
+
+// These must be passed as props
+type DisallowedStyles = {
+  color?: empty,
+  hoverColor?: empty,
+  fontSize?: empty,
+}
 
 export type Props = {
   type: IconType,
@@ -10,7 +17,7 @@ export type Props = {
   onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
-  style?: StylesCrossPlatform,
+  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>,
   opacity?: boolean,
   inheritColor?: boolean,
   underlayColor?: string,

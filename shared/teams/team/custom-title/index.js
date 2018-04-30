@@ -11,31 +11,25 @@ type Props = {
   canViewFolder: boolean,
 }
 
+const fontSize = isMobile ? 20 : 16
+
 const CustomComponent = ({onOpenFolder, onChat, onShowMenu, canChat, canViewFolder}: Props) => (
   <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 0}}>
-    {canChat && (
-      <Icon
-        onClick={onChat}
-        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-        type="iconfont-chat"
-      />
-    )}
+    {canChat && <Icon onClick={onChat} fontSize={fontSize} style={style} type="iconfont-chat" />}
     {!isMobile &&
       canViewFolder && (
-        <Icon
-          onClick={onOpenFolder}
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-          type="iconfont-folder-private"
-        />
+        <Icon onClick={onOpenFolder} fontSize={fontSize} style={style} type="iconfont-folder-private" />
       )}
     <Icon
       onClick={evt => onShowMenu(isMobile ? undefined : evt.target)}
       type="iconfont-ellipsis"
-      style={{
-        fontSize: isMobile ? 20 : 16,
-        marginRight: globalMargins.tiny,
-      }}
+      fontSize={fontSize}
+      style={style}
     />
   </Box>
 )
+
+const style = {
+  marginRight: globalMargins.tiny,
+}
 export default CustomComponent
