@@ -42,37 +42,37 @@ type Context struct {
 func engineContextFromMetaContext(m libkb.MetaContext) *Context {
 	uis := m.UIs()
 	return &Context{
-		GPGUI : uis.GPGUI,
-		LogUI : uis.LogUI,
-		LoginUI : uis.LoginUI,
-		SecretUI : uis.SecretUI,
-		IdentifyUI : uis.IdentifyUI,
-		PgpUI : uis.PgpUI,
-		ProveUI : uis.ProveUI,
-		ProvisionUI : uis.ProvisionUI,
-		LoginContext : m.LoginContext(),
-		NetContext : m.Ctx(),
-		SaltpackUI : uis.SaltpackUI,
-		ClientType : uis.ClientType,
-		IdentifyUIIsDelegated : uis.IdentifyUIIsDelegated,
-		SessionID : uis.SessionID,
+		GPGUI:                 uis.GPGUI,
+		LogUI:                 uis.LogUI,
+		LoginUI:               uis.LoginUI,
+		SecretUI:              uis.SecretUI,
+		IdentifyUI:            uis.IdentifyUI,
+		PgpUI:                 uis.PgpUI,
+		ProveUI:               uis.ProveUI,
+		ProvisionUI:           uis.ProvisionUI,
+		LoginContext:          m.LoginContext(),
+		NetContext:            m.Ctx(),
+		SaltpackUI:            uis.SaltpackUI,
+		ClientType:            uis.ClientType,
+		IdentifyUIIsDelegated: uis.IdentifyUIIsDelegated,
+		SessionID:             uis.SessionID,
 	}
 }
 
 func metaContextFromEngineContext(g *libkb.GlobalContext, ctx *Context) libkb.MetaContext {
 	uis := libkb.UIs{
-		GPGUI : ctx.GPGUI,
-		LogUI : ctx.LogUI,
-		LoginUI : ctx.LoginUI,
-		SecretUI : ctx.SecretUI,
-		IdentifyUI : ctx.IdentifyUI,
-		PgpUI : ctx.PgpUI,
-		ProveUI : ctx.ProveUI,
-		ProvisionUI : ctx.ProvisionUI,
-		SaltpackUI : ctx.SaltpackUI,
-		ClientType : ctx.ClientType,
-		IdentifyUIIsDelegated : ctx.IdentifyUIIsDelegated,
-		SessionID : ctx.SessionID,
+		GPGUI:                 ctx.GPGUI,
+		LogUI:                 ctx.LogUI,
+		LoginUI:               ctx.LoginUI,
+		SecretUI:              ctx.SecretUI,
+		IdentifyUI:            ctx.IdentifyUI,
+		PgpUI:                 ctx.PgpUI,
+		ProveUI:               ctx.ProveUI,
+		ProvisionUI:           ctx.ProvisionUI,
+		SaltpackUI:            ctx.SaltpackUI,
+		ClientType:            ctx.ClientType,
+		IdentifyUIIsDelegated: ctx.IdentifyUIIsDelegated,
+		SessionID:             ctx.SessionID,
 	}
 	return libkb.NewMetaContext(ctx.GetNetContext(), g).WithLoginContext(ctx.LoginContext).WithUIs(uis)
 }
