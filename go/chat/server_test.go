@@ -2409,20 +2409,60 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 				chat1.GetThreadNonblockArg{
 					ConversationID: conv.Id,
 					Query:          &query,
+					CbMode:         chat1.GetThreadNonblockCbMode_INCREMENTAL,
 				},
 			)
 			require.NoError(t, err)
 			close(cb)
 		}()
+		msgState := func(msg chat1.UIMessage) chat1.MessageUnboxedState {
+			state, err := msg.State()
+			require.NoError(t, err)
+			return state
+		}
+		confirmPlaceholder := func(msgID chat1.MessageID, msg chat1.UIMessage, hidden bool) {
+			require.Equal(t, msgID, msg.GetMessageID())
+			require.Equal(t, chat1.MessageUnboxedState_PLACEHOLDER, msgState(msg))
+			require.Equal(t, hidden, msg.Placeholder().Hidden)
+		}
+		confirmText := func(msgID chat1.MessageID, msg chat1.UIMessage, text string) {
+			require.Equal(t, msgID, msg.GetMessageID())
+			require.Equal(t, chat1.MessageUnboxedState_VALID, msgState(msg))
+			require.Equal(t, chat1.MessageType_TEXT, msg.GetMessageType())
+			require.Equal(t, text, msg.Valid().MessageBody.Text().Body)
+		}
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
 			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
 			require.Equal(t, msgIDs, utils.PluckUIMessageIDs(res.Thread.Messages))
+			confirmText(msgID3, res.Thread.Messages[0], "hi")
+			confirmPlaceholder(editMsgID2, res.Thread.Messages[1], false)
+			confirmPlaceholder(msgID2, res.Thread.Messages[2], false)
+			confirmPlaceholder(editMsgID1, res.Thread.Messages[3], false)
+			confirmPlaceholder(msgID1, res.Thread.Messages[4], false)
+			confirmPlaceholder(1, res.Thread.Messages[5], false)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
-
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
+			confirmPlaceholder(editMsgID2, res.Thread.Messages[0], true)
+			confirmText(msgID2, res.Thread.Messages[1], "HI")
+			confirmPlaceholder(editMsgID1, res.Thread.Messages[2], true)
+			confirmText(msgID1, res.Thread.Messages[3], "HI")
+			confirmPlaceholder(1, res.Thread.Messages[4], true)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
 	})
 }
 

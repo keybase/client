@@ -455,6 +455,7 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 				res = append(res, msg)
 			}
 		case chat1.MessageUnboxedState_PLACEHOLDER:
+			// We don't know what the type is for these, so just include them
 			res = append(res, msg)
 		default:
 			_, match := typmap[msg.GetMessageType()]
