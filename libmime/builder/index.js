@@ -119,6 +119,13 @@ function loadBluebird () {
   return Promise
 }
 
+function getExtensionTypePairs(types) {
+  return Object.keys(types).reduce( (accu, type) => {
+    types[type].extensions.forEach( (ext) => accu.push({ext, type}) )
+    return accu
+  }, []).sort( (a, b) => a.ext < b.ext ? -1 : a.ext === b.ext ? 0 : 1)
+}
+
 function printGo(types) {
   process.stdout.write(`// Copyright 2018 Keybase Inc. All rights reserved.\n`)
   process.stdout.write(`// Use of this source code is governed by a BSD\n`)
@@ -126,10 +133,8 @@ function printGo(types) {
   process.stdout.write(`// This file is auto-generated and should not be edited by hand.\n\n`)
   process.stdout.write(`package libmime\n\n`)
   process.stdout.write(`var mimeTypes = map[string]string{\n`)
-  Object.keys(types).forEach( (k) => {
-    types[k].extensions.forEach( (ext) => {
-      process.stdout.write(`\t".${ext}": "${k}",\n`)
-    })
+  getExtensionTypePairs(types).forEach( ({ext, type}) => {
+    process.stdout.write(`\t".${ext}": "${type}",\n`)
   })
   process.stdout.write(`}\n`)
 }

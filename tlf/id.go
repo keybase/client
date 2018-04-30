@@ -46,14 +46,21 @@ const (
 	SingleTeam
 )
 
+const (
+	strPrivate    = "private"
+	strPublic     = "public"
+	strSingleTeam = "singleTeam"
+	strTeam       = "team"
+)
+
 func (t Type) String() string {
 	switch t {
 	case Private:
-		return "private"
+		return strPrivate
 	case Public:
-		return "public"
+		return strPublic
 	case SingleTeam:
-		return "singleTeam"
+		return strSingleTeam
 	default:
 		return fmt.Sprintf("Unknown TLF type: %d", t)
 	}
@@ -85,14 +92,14 @@ func (e ErrUnknownTLFType) Error() string {
 	return "unknown TLF type: " + e.unknownType
 }
 
-// ParseTlfType parses str into a Type.
-func ParseTlfType(str string) (Type, error) {
+// ParseTlfTypeFromPath parses str into a Type.
+func ParseTlfTypeFromPath(str string) (Type, error) {
 	switch strings.ToLower(str) {
-	case "private":
+	case strPrivate:
 		return Private, nil
-	case "public":
+	case strPublic:
 		return Public, nil
-	case "team":
+	case strTeam:
 		return SingleTeam, nil
 	default:
 		return Unknown, ErrUnknownTLFType{unknownType: str}

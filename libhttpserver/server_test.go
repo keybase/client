@@ -24,6 +24,11 @@ func makeTestKBFSConfig(t *testing.T) (
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
+	defer func() {
+		if err != nil {
+			ioutil.RemoveAll(tempdir)
+		}
+	}()
 	err = cfg.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = cfg.EnableJournaling(

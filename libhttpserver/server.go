@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
@@ -26,8 +27,10 @@ import (
 const tokenCacheSize = 64
 const fsCacheSize = 64
 
-// Server is a local HTTP server for serving KBFS content to the front end.
+// Server is a local HTTP server for serving KBFS content over HTTP.
 type Server struct {
+	initOnce sync.Once
+
 	config libkbfs.Config
 	server *libkb.HTTPSrv
 
@@ -75,9 +78,17 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 		return "", nil, errors.New("bad path")
 	}
 
-	tlfType, err := tlf.ParseTlfType(fields[0])
+	tlfType, err := tlf.ParseTlfTypeFromPath(fields[0])
 	if err != nil {
 		return "", nil, err
+	}
+
+	toStrip = path.Join(fields[0], fields[1])
+
+	if fsCached, ok := s.fs.Get(toStrip); ok {
+		if tlfFS, ok := fsCached.(*libfs.FS); ok {
+			return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
+		}
 	}
 
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(ctx,
@@ -86,26 +97,18 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 		return "", nil, err
 	}
 
-	toStrip = path.Join(fields[0], fields[1])
-
-	fav := tlfHandle.ToFavorite()
-	if fsCached, ok := s.fs.Get(fav); ok {
-		if tlfFS, ok := fsCached.(*libfs.FS); ok {
-			return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
-		}
-	}
-
 	tlfFS, err := libfs.NewFS(ctx,
 		s.config, tlfHandle, "", "", keybase1.MDPriorityNormal)
 	if err != nil {
 		return "", nil, err
 	}
-	s.fs.Add(fav, tlfFS)
+
+	s.fs.Add(toStrip, tlfFS)
 
 	return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 }
 
-// serve accetps "/<fs path>?token=<token>"
+// serve accepts "/<fs path>?token=<token>"
 // For example:
 //     /team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
 func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
@@ -140,23 +143,25 @@ const requestPathRoot = "/files/"
 // Init implements the libkbfs.LocalHTTPServer interface.
 func (s *Server) Init(
 	g *libkb.GlobalContext, config libkbfs.Config) (err error) {
-	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
-		return err
-	}
-	if s.fs, err = lru.New(fsCacheSize); err != nil {
-		return err
-	}
-	s.config = config
-	s.server = libkb.NewHTTPSrv(
-		g, libkb.NewPortRangeListenerSource(portStart, portEnd))
-	// Have to start this first to populate the ServeMux object.
-	if err = s.server.Start(); err != nil {
-		return err
-	}
-	s.server.Handle(requestPathRoot,
-		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
-	libmime.Patch(overrideMimeType)
-	return nil
+	s.initOnce.Do(func() {
+		if s.tokens, err = lru.New(tokenCacheSize); err != nil {
+			return
+		}
+		if s.fs, err = lru.New(fsCacheSize); err != nil {
+			return
+		}
+		s.config = config
+		s.server = libkb.NewHTTPSrv(
+			g, libkb.NewPortRangeListenerSource(portStart, portEnd))
+		// Have to start this first to populate the ServeMux object.
+		if err = s.server.Start(); err != nil {
+			return
+		}
+		s.server.Handle(requestPathRoot,
+			http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
+		libmime.Patch(overrideMimeType)
+	})
+	return err
 }
 
 // Address implements the libkbfs.LocalHTTPServer interface.

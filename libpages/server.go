@@ -29,10 +29,6 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-func init() {
-	libmime.Patch(nil)
-}
-
 // ServerConfig holds configuration parameters for Server.
 type ServerConfig struct {
 	// If DomainWhitelist is non-nil and non-empty, only domains in the
@@ -563,6 +559,8 @@ func ListenAndServe(ctx context.Context,
 	config *ServerConfig, kbfsConfig libkbfs.Config) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	libmime.Patch(nil)
 
 	server := &Server{
 		config:     config,
