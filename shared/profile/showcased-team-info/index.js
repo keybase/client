@@ -2,8 +2,27 @@
 import * as React from 'react'
 import {Avatar, Box, Button, Meta, Text, Usernames} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-import PopupMenu, {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
-import type {Props} from '.'
+import FloatingMenu from '../../common-adapters/floating-menu'
+
+export type Props = {
+  attachTo: ?React.Component<*, *>,
+  description: string,
+  following: {[key: string]: true},
+  memberCount: number,
+  onHidden: () => void,
+  onJoinTeam: (teamname: string) => void,
+  onUserClick: (username: string) => void,
+  openTeam: boolean,
+  publicAdmins: Array<string>,
+  publicAdminsOthers: number,
+  style?: Object,
+  teamJoinError: string,
+  teamJoinSuccess: boolean,
+  teamname: string,
+  visible: boolean,
+  youAreInTeam: boolean,
+  youHaveRequestedAccess: boolean,
+}
 
 const TeamInfo = (props: Props) => (
   <Box
@@ -138,18 +157,16 @@ const styleWrap = {
 const TeamInfoWrapper = (props: Props) => {
   const header = {
     title: 'header',
-    view: <TeamInfo {...(props: Props)} />,
+    view: <TeamInfo {...props} />,
   }
-  let items = []
-
-  return isMobile ? (
-    <PopupMenu onHidden={props.onHidden} style={{overflow: 'visible'}} header={header} items={items} />
-  ) : (
-    <ModalLessPopupMenu
-      onHidden={() => {}}
-      style={{...props.style, overflow: 'visible', width: 220}}
+  return (
+    <FloatingMenu
+      attachTo={props.attachTo}
+      closeOnSelect={false}
+      onHidden={props.onHidden}
+      visible={props.visible}
       header={header}
-      items={items}
+      items={[]}
     />
   )
 }
