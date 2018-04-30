@@ -447,6 +447,25 @@ const outboxUIMessagetoMessage = (
   })
 }
 
+const placeholderUIMessageToMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  uiMessage: RPCChatTypes.UIMessage,
+  p: RPCChatTypes.MessageUnboxedPlaceholder
+) => {
+  return !p.hidden
+    ? makeMessageText({
+        conversationIDKey,
+        errorReason: 'waiting for message from server...',
+        id: Types.numberToMessageID(p.messageID),
+        ordinal: Types.numberToOrdinal(p.messageID),
+      })
+    : makeMessageDeleted({
+        conversationIDKey,
+        id: Types.numberToMessageID(p.messageID),
+        ordinal: Types.numberToOrdinal(p.messageID),
+      })
+}
+
 const errorUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
@@ -484,7 +503,10 @@ export const uiMessageToMessage = (
       }
       break
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
-      return null
+      if (uiMessage.placeholder) {
+        return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder)
+      }
+      break
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any

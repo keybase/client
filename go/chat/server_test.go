@@ -2343,6 +2343,129 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 	})
 }
 
+func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "GetThreadNonblockPlaceholders", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		editMsg := func(ctx context.Context, conv chat1.ConversationInfoLocal, msgID chat1.MessageID) chat1.MessageID {
+			postRes, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+				ConversationID: conv.Id,
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        conv.Triple,
+						MessageType: chat1.MessageType_EDIT,
+						TlfName:     conv.TlfName,
+						Supersedes:  msgID,
+					},
+					MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+						MessageID: msgID,
+						Body:      "HI",
+					}),
+				},
+			})
+			require.NoError(t, err)
+			return postRes.MessageID
+		}
+
+		uid := gregor1.UID(users[0].GetUID().ToBytes())
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		ctx := ctc.as(t, users[0]).startCtx
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
+		msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		editMsgID1 := editMsg(ctx, conv, msgID1)
+		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		editMsgID2 := editMsg(ctx, conv, msgID2)
+		msgID3 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		msgRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
+			ConversationID: conv.Id,
+			MessageIDs:     []chat1.MessageID{msgID3},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(msgRes.Messages))
+		msg3 := msgRes.Messages[0]
+		msgIDs := []chat1.MessageID{msgID3, editMsgID2, msgID2, editMsgID1, msgID1, 1}
+
+		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
+		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg3)
+		require.NoError(t, err)
+
+		delay := 10 * time.Minute
+		clock := clockwork.NewFakeClock()
+		ctc.as(t, users[0]).h.clock = clock
+		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		cb := make(chan struct{})
+		query := chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}
+		go func() {
+			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
+				chat1.GetThreadNonblockArg{
+					ConversationID: conv.Id,
+					Query:          &query,
+					CbMode:         chat1.GetThreadNonblockCbMode_INCREMENTAL,
+				},
+			)
+			require.NoError(t, err)
+			close(cb)
+		}()
+		msgState := func(msg chat1.UIMessage) chat1.MessageUnboxedState {
+			state, err := msg.State()
+			require.NoError(t, err)
+			return state
+		}
+		confirmPlaceholder := func(msgID chat1.MessageID, msg chat1.UIMessage, hidden bool) {
+			require.Equal(t, msgID, msg.GetMessageID())
+			require.Equal(t, chat1.MessageUnboxedState_PLACEHOLDER, msgState(msg))
+			require.Equal(t, hidden, msg.Placeholder().Hidden)
+		}
+		confirmText := func(msgID chat1.MessageID, msg chat1.UIMessage, text string) {
+			require.Equal(t, msgID, msg.GetMessageID())
+			require.Equal(t, chat1.MessageUnboxedState_VALID, msgState(msg))
+			require.Equal(t, chat1.MessageType_TEXT, msg.GetMessageType())
+			require.Equal(t, text, msg.Valid().MessageBody.Text().Body)
+		}
+		select {
+		case res := <-threadCb:
+			require.False(t, res.Full)
+			require.Equal(t, len(msgIDs), len(res.Thread.Messages))
+			require.Equal(t, msgIDs, utils.PluckUIMessageIDs(res.Thread.Messages))
+			confirmText(msgID3, res.Thread.Messages[0], "hi")
+			confirmPlaceholder(editMsgID2, res.Thread.Messages[1], false)
+			confirmPlaceholder(msgID2, res.Thread.Messages[2], false)
+			confirmPlaceholder(editMsgID1, res.Thread.Messages[3], false)
+			confirmPlaceholder(msgID1, res.Thread.Messages[4], false)
+			confirmPlaceholder(1, res.Thread.Messages[5], false)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		clock.Advance(20 * time.Minute)
+		select {
+		case res := <-threadCb:
+			require.True(t, res.Full)
+			require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
+			confirmPlaceholder(editMsgID2, res.Thread.Messages[0], true)
+			confirmText(msgID2, res.Thread.Messages[1], "HI")
+			confirmPlaceholder(editMsgID1, res.Thread.Messages[2], true)
+			confirmText(msgID1, res.Thread.Messages[3], "HI")
+			confirmPlaceholder(1, res.Thread.Messages[4], true)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no thread cb")
+		}
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "GetThread never finished")
+		}
+	})
+}
+
 func TestChatSrvGetThreadNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetThreadNonblock", 1)
