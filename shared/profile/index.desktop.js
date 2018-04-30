@@ -8,6 +8,7 @@ import moment from 'moment'
 import {
   Avatar,
   Box,
+  ClickableBox,
   Icon,
   Meta,
   PlatformIcon,
@@ -73,7 +74,7 @@ const _ShowcasedTeamRow = (
     team: UserTeamShowcase,
   } & FloatingMenuParentProps
 ) => (
-  <Box
+  <ClickableBox
     key={props.team.fqName}
     ref={props.setAttachmentRef}
     onClick={props.toggleShowingMenu}
@@ -94,7 +95,7 @@ const _ShowcasedTeamRow = (
       </Text>
       {props.team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
     </Box>
-  </Box>
+  </ClickableBox>
 )
 const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
 
@@ -420,11 +421,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     )}
                     {this.props.userInfo.showcasedTeams.length > 0
                       ? this.props.userInfo.showcasedTeams.map(team => (
-                          <ShowcasedTeamRow
-                            key={team.fqName}
-                            onClickShowcased={this.props.onClickShowcased}
-                            team={team}
-                          />
+                          <ShowcasedTeamRow key={team.fqName} team={team} />
                         ))
                       : showShowcaseTeamsOffer && (
                           <ShowcaseTeamsOffer onClickShowcaseOffer={this.props.onClickShowcaseOffer} />
