@@ -30,12 +30,17 @@ class UncontrolledTestInput extends React.Component<UncontrolledTestProps> {
     this._input = ref
   }
 
-  _insertText = () => {
+  _insertText = (textToInsert: string) => {
     if (this._input) {
-      this._input.transformText(textInfo => {
+      this._input.transformText(({text, selection}) => {
+        const newText = text.slice(0, selection.start) + textToInsert + text.slice(selection.end)
+        const pos = selection.start + textToInsert.length
         return {
-          text: textInfo.text + 'foo',
-          selection: textInfo.selection,
+          text: newText,
+          selection: {
+            start: pos,
+            end: pos,
+          },
         }
       })
     }
@@ -51,7 +56,7 @@ class UncontrolledTestInput extends React.Component<UncontrolledTestProps> {
         }}
       >
         <Input {...commonProps} uncontrolled={true} ref={this._setInput} />
-        <Button type="Primary" label="Insert &quot;foo&quot;" onClick={this._insertText} />
+        <Button type="Primary" label="Insert &quot;foo&quot;" onClick={() => this._insertText('foo')} />
       </Box>
     )
   }
