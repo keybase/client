@@ -3,9 +3,8 @@ import React, {type Node} from 'react'
 import {TouchableWithoutFeedback, Picker} from 'react-native'
 import Box, {Box2} from './box'
 import Text from './text'
-import {globalColors, globalMargins, globalStyles} from '../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../styles'
 import FloatingBox from './floating-box.native'
-import {isAndroid} from '../constants/platform'
 
 type PickerItem = {label: string, value: string | number}
 
@@ -61,10 +60,7 @@ const FloatingPicker = (props: Props) => {
               selectedValue={props.selectedValue}
               onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
               prompt={props.promptString}
-              style={
-                // Make sure we're far from the action buttons
-                isAndroid ? {marginBottom: globalMargins.large, marginTop: globalMargins.medium} : undefined
-              }
+              style={stylePickerAndroid}
             >
               {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
             </Picker>
@@ -104,5 +100,9 @@ const styleActionButtons = {
   justifyContent: 'flex-end',
   alignItems: 'stretch',
 }
+
+const stylePickerAndroid = styleSheetCreate(
+  platformStyles({isAndroid: {marginBottom: globalMargins.large, marginTop: globalMargins.medium}})
+)
 
 export {FloatingPicker}

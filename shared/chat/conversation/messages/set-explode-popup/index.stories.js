@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import {action, storiesOf} from '../../../../stories/storybook'
-import SetExplodingPopup from './'
+import SetExplodingPopup from '.'
 
 const items = messageExplodeDescriptions.sort((a, b) => (a.seconds < b.seconds ? 1 : 0))
 
