@@ -1,8 +1,15 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
 import HiddenString from '../../util/hidden-string'
-import Login from '.'
-import {compose, withStateHandlers, withHandlers, connect, type TypedState} from '../../util/container'
+import Login, {type Props} from '.'
+import {
+  compose,
+  lifecycle,
+  withStateHandlers,
+  withHandlers,
+  connect,
+  type TypedState,
+} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
 
 const mapStateToProps = (state: TypedState) => {
@@ -55,12 +62,21 @@ export default compose(
       }
     },
     selectedUserChange: props => user => {
-      // Clear the error and reset the passphrase input when they switch users
-      if (props.error && user !== props.selectedUser) {
-        props._resetError()
-        props.passphraseChange()
-      }
       props.setSelectedUser(user)
+    },
+  }),
+  lifecycle({
+    componentDidUpdate(prevProps: Props) {
+      // Clear the passphrase when there's an error.
+      // We’re doing this here because passphrase isn’t in the store.
+      // Otherwise, we’d use a saga.
+      if (this.props.error !== prevProps.error) {
+        this.props.passphraseChange()
+      }
+      // Same here but for clearing the error.
+      if (this.props.selectedUser !== prevProps.selectedUser) {
+        this.props._resetError()
+      }
     },
   })
 )(Login)
