@@ -240,7 +240,7 @@ func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 	Logout(dev)
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
 		LogUI:       dev.G.UI.GetLogUI(),
@@ -248,7 +248,8 @@ func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(dev.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(dev).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -73,7 +73,7 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 
 	// run the LoginLoadUser sub-engine to load a user
 	ueng := newLoginLoadUser(e.G(), e.Username)
-	if err = RunEngine(ueng, ctx); err != nil {
+	if err = RunEngine2(metaContextFromEngineContext(e.G(), ctx), ueng); err != nil {
 		return err
 	}
 

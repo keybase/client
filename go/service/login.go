@@ -108,36 +108,36 @@ func (h *LoginHandler) UnlockWithPassphrase(_ context.Context, arg keybase1.Unlo
 }
 
 func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
-	ectx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:       h.getLogUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID, h.G()),
 		GPGUI:       h.getGPGUI(arg.SessionID),
-		NetContext:  ctx,
 		SessionID:   arg.SessionID,
 	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
-	return engine.RunEngine(eng, ectx)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.LoginProvisionedDeviceArg) error {
 	eng := engine.NewLoginProvisionedDevice(h.G(), arg.Username)
 
-	ectx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:      h.getLogUI(arg.SessionID),
-		NetContext: ctx,
 		SessionID:  arg.SessionID,
 	}
 
 	if arg.NoPassphrasePrompt {
 		eng.SecretStoreOnly = true
 	} else {
-		ectx.LoginUI = h.getLoginUI(arg.SessionID)
-		ectx.SecretUI = h.getSecretUI(arg.SessionID, h.G())
+		uis.LoginUI = h.getLoginUI(arg.SessionID)
+		uis.SecretUI = h.getSecretUI(arg.SessionID, h.G())
 	}
 
-	return engine.RunEngine(eng, ectx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) error {
@@ -155,15 +155,15 @@ func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisi
 	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
 		return errors.New("PGPProvision is a devel-only RPC")
 	}
-	ectx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:      h.getLogUI(arg.SessionID),
 		LoginUI:    h.getLoginUI(arg.SessionID),
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
-		NetContext: ctx,
 		SessionID:  arg.SessionID,
 	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewPGPProvision(h.G(), arg.Username, arg.DeviceName, arg.Passphrase)
-	return engine.RunEngine(eng, ectx)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {

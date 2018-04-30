@@ -370,7 +370,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	secretCh := make(chan kex2.Secret)
 
 	// provisionee calls login:
-	ctx = &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
@@ -385,7 +385,8 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := RunEngine(eng, ctx); err != nil {
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Errorf("login error: %s", err)
 			return
 		}

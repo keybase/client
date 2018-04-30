@@ -1105,10 +1105,8 @@ func (d *Service) tryLogin() {
 
 			deng := engine.NewLoginProvisionedDevice(d.G(), "")
 			deng.SecretStoreOnly = true
-			ctx := &engine.Context{
-				NetContext: context.Background(),
-			}
-			if err := engine.RunEngine(deng, ctx); err != nil {
+			m := libkb.NewMetaContext(context.Background(), d.G())
+			if err := engine.RunEngine2(m, deng); err != nil {
 				d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
 			}
 		} else {

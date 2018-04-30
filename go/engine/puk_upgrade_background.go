@@ -121,6 +121,6 @@ func PerUserKeyUpgradeBackgroundRound(g *libkb.GlobalContext, ectx *Context) err
 
 	arg := &PerUserKeyUpgradeArgs{}
 	eng := NewPerUserKeyUpgrade(g, arg)
-	err = RunEngine(eng, ectx)
+	err = RunEngine2(metaContextFromEngineContext(g, ectx), eng)
 	return err
 }
