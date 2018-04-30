@@ -449,9 +449,14 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 			}
 			continue
 		}
-		if includeAllErrors && state == chat1.MessageUnboxedState_ERROR {
+		switch state {
+		case chat1.MessageUnboxedState_ERROR:
+			if includeAllErrors {
+				res = append(res, msg)
+			}
+		case chat1.MessageUnboxedState_PLACEHOLDER:
 			res = append(res, msg)
-		} else {
+		default:
 			_, match := typmap[msg.GetMessageType()]
 			if !useTypeFilter || match {
 				res = append(res, msg)
@@ -630,6 +635,13 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 	res := make([]chat1.MessageID, len(msgs))
 	for i, m := range msgs {
 		res[i] = m.GetMessageID()
+	}
+	return res
+}
+
+func PluckUIMessageIDs(msgs []chat1.UIMessage) (res []chat1.MessageID) {
+	for _, m := range msgs {
+		res = append(res, m.GetMessageID())
 	}
 	return res
 }
