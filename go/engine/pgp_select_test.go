@@ -51,8 +51,8 @@ func TestSelectEngine(t *testing.T) {
 		SkipImport: false,
 		OnlyImport: false,
 	}
-	gpg := NewGPGImportKeyEngine(&garg, tc.G)
-	err = RunEngine(gpg, engineContextFromMetaContext(m))
+	gpg := NewGPGImportKeyEngine(tc.G, &garg)
+	err = RunEngine2(m, gpg)
 
 	// The GPGImportKeyEngine converts a multi select on the same key into
 	// an update, so our test checks that the update code ran, by counting
