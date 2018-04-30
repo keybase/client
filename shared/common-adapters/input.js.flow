@@ -91,5 +91,5 @@ declare export default class Input extends Component<Props> {
     newSelectionStart: number,
     newSelectionEnd: number
   ) => void;
-  transformText: (fn: TextInfo => TextInfo) => void;
+  transformText: (fn: (TextInfo) => TextInfo) => void;
 }

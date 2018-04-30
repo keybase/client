@@ -4,7 +4,7 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
-import type {Props} from './input'
+import type {Props, TextInfo} from './input'
 
 type State = {
   value: string,
@@ -155,6 +155,23 @@ class Input extends React.PureComponent<Props, State> {
       this.props.onChangeText && this.props.onChangeText(nextValue || '')
       n.selectionStart = newSelectionStart
       n.selectionEnd = newSelectionEnd
+    }
+  }
+
+  transformText = (fn: TextInfo => TextInfo) => {
+    const n = this._input
+    if (n) {
+      const textInfo = {
+        text: n.value,
+        selection: {
+          start: n.selectionStart,
+          end: n.selectionEnd,
+        },
+      }
+      const newTextInfo = fn(textInfo)
+      n.value = newTextInfo.text
+      n.selectionStart = newTextInfo.selection.start
+      n.selectionEnd = newTextInfo.selection.end
     }
   }
 
