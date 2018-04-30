@@ -162,7 +162,7 @@ func TestDeviceHistoryPGP(t *testing.T) {
 	tc = SetupEngineTest(t, "devhist")
 	defer tc.Cleanup()
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -170,11 +170,12 @@ func TestDeviceHistoryPGP(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
-	ctx = &Context{}
+	ctx := &Context{}
 	heng := NewDeviceHistorySelf(tc.G)
 	if err := RunEngine(heng, ctx); err != nil {
 		t.Fatal(err)

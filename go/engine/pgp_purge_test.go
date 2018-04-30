@@ -90,7 +90,7 @@ func TestPGPPurgeSync(t *testing.T) {
 	tc = SetupEngineTest(t, "purge")
 	defer tc.Cleanup()
 
-	lctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -98,7 +98,8 @@ func TestPGPPurgeSync(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	leng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(leng, lctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, leng); err != nil {
 		t.Fatal(err)
 	}
 

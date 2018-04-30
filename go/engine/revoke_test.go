@@ -271,7 +271,7 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	secUI.Passphrase = paperkey
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: u.Username}
-	ctx = &Context{
+	uis := libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -279,7 +279,8 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	err = RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	t.Logf("tc2 revokes tc1 device:")
@@ -327,7 +328,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	secUI.Passphrase = paperkey
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: u.Username}
-	ctx = &Context{
+	uis := libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -335,7 +336,8 @@ func TestSignAfterRevoke(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	err = RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	t.Logf("tc2 revokes tc1 device:")
@@ -474,7 +476,7 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 	tc = SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -482,7 +484,8 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	testUserHasDeviceKey(tc)
