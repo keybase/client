@@ -284,16 +284,16 @@ func (s *SignupEngine) genPaperKeys(m libkb.MetaContext) error {
 }
 
 func (s *SignupEngine) checkGPG(m libkb.MetaContext) (bool, error) {
-	eng := NewGPGImportKeyEngine(nil, m.G())
-	return eng.WantsGPG(engineContextFromMetaContext(m))
+	eng := NewGPGImportKeyEngine(m.G(), nil)
+	return eng.WantsGPG(m)
 }
 
 func (s *SignupEngine) addGPG(m libkb.MetaContext, allowMulti bool, hasProvisionedDevice bool) (err error) {
 	defer m.CTrace(fmt.Sprintf("SignupEngine.addGPG(signingKey: %v)", s.signingKey), func() error { return err })()
 
 	arg := GPGImportKeyArg{Signer: s.signingKey, AllowMulti: allowMulti, Me: s.me, Lks: s.lks, HasProvisionedDevice: hasProvisionedDevice}
-	eng := NewGPGImportKeyEngine(&arg, m.G())
-	if err = RunEngine(eng, engineContextFromMetaContext(m)); err != nil {
+	eng := NewGPGImportKeyEngine(m.G(), &arg)
+	if err = RunEngine2(m, eng); err != nil {
 		return err
 	}
 
