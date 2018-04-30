@@ -214,8 +214,29 @@ func TestBalances(t *testing.T) {
 	require.Len(t, balances, 1)
 	require.Equal(t, balances[0].Asset.Type, "native")
 	require.Equal(t, balances[0].Amount, "10000")
+}
 
-	tcs[0].Srv.WalletGetLocalAccounts(context.Background())
+func TestGetLocalAccounts(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.True(t, created)
+	require.NoError(t, err)
+
+	tcs[0].Remote.ImportAccountsForUser(t, tcs[0].G)
+
+	accs, err := tcs[0].Srv.WalletGetLocalAccounts(context.Background())
+	require.NoError(t, err)
+
+	require.Len(t, accs, 1)
+	account := accs[0]
+	require.Len(t, account.Balance, 1)
+	require.Equal(t, account.Balance[0].Asset.Type, "native")
+	require.Equal(t, account.Balance[0].Amount, "0")
+	require.True(t, account.IsPrimary)
+	require.NotNil(t, account.ExchangeRate)
+	require.EqualValues(t, defaultOutsideCurrency, account.ExchangeRate.Currency)
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
