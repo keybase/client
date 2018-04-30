@@ -46,8 +46,8 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   )
 }
 
-const MenuButton = ({onClick}) => (
-  <Box className="menu-button">
+const MenuButton = ({onClick, setRef}) => (
+  <Box ref={setRef} className="menu-button">
     <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} fontSize={16} />
   </Box>
 )
@@ -133,7 +133,9 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
                   />
                   {props.isEdited && <EditedMark />}
                 </Box>
-                {!isMobile && <MenuButton ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />}
+                {!isMobile && (
+                  <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+                )}
                 <MessagePopup
                   attachTo={props.attachmentRef}
                   message={props.message}

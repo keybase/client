@@ -53,6 +53,8 @@ type State = {
 type Callbacks = {
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
+  // WARNING: Only use setAttachmentRef on class components. Otherwise the ref will be
+  // optimized out in production code!
   setAttachmentRef: ?(?React.Component<*, *>) => void,
 }
 
