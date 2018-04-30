@@ -828,6 +828,16 @@ type SimpleFSInterface interface {
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context) (FSSyncStatus, error)
+	// This RPC generates a random token to be used by a client that needs to
+	// access KBFS content through HTTP. It's fine to call this RPC more than once,
+	// but it's probably best to call this once and keep using it. Clients should
+	// be using HTTP GET methods, with requests in the form of:
+	//
+	// http://<address>/<kbfs_path>?token=<token>
+	//
+	// If the provided token is invalid, 403 Forbidden is returned, with a HTML
+	// document that has title of "KBFS HTTP Token Invalid". When receiving such
+	// response, client should call this RPC (again) to get a new token.
 	SimpleFSGetHTTPAddressAndToken(context.Context) (SimpleFSGetHTTPAddressAndTokenResponse, error)
 }
 
@@ -1312,6 +1322,16 @@ func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatu
 	return
 }
 
+// This RPC generates a random token to be used by a client that needs to
+// access KBFS content through HTTP. It's fine to call this RPC more than once,
+// but it's probably best to call this once and keep using it. Clients should
+// be using HTTP GET methods, with requests in the form of:
+//
+// http://<address>/<kbfs_path>?token=<token>
+//
+// If the provided token is invalid, 403 Forbidden is returned, with a HTML
+// document that has title of "KBFS HTTP Token Invalid". When receiving such
+// response, client should call this RPC (again) to get a new token.
 func (c SimpleFSClient) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (res SimpleFSGetHTTPAddressAndTokenResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken", []interface{}{SimpleFSGetHTTPAddressAndTokenArg{}}, &res)
 	return
