@@ -327,6 +327,10 @@ class Input extends React.PureComponent<Props, State> {
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
+    if (this.props.uncontrolled) {
+      delete commonProps['value']
+    }
+
     const singlelineProps = {
       ...commonProps,
       style: collapseStyles([inputStyle, this.props.inputStyle]),

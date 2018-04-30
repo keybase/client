@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import Button from './button'
 import Input, {type Props} from './input'
 import Box from './box'
 import {action, storiesOf} from '../stories/storybook'
@@ -20,9 +21,45 @@ const commonProps: Props = {
   onSelectionChange: action('onSelectionChange'),
 }
 
+type UncontrolledTestProps = {}
+
+class UncontrolledTestInput extends React.Component<UncontrolledTestProps> {
+  _input: ?Input
+
+  _setInput = (ref: ?Input) => {
+    this._input = ref
+  }
+
+  _insertText = () => {
+    if (this._input) {
+      this._input.transformText(textInfo => {
+        return {
+          text: textInfo.text + 'foo',
+          selection: textInfo.selection,
+        }
+      })
+    }
+  }
+
+  render = () => {
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          width: 420,
+        }}
+      >
+        <Input {...commonProps} uncontrolled={true} ref={this._setInput} />
+        <Button type="Primary" label="Insert &quot;foo&quot;" onClick={this._insertText} />
+      </Box>
+    )
+  }
+}
+
 const load = () => {
   storiesOf('Common/Input', module)
-    .add('Empty', () => <Input {...commonProps} />)
+    .add('Empty (uncontrolled)', () => <UncontrolledTestInput />)
     .add('Filled', () => <Input {...commonProps} value="Hello, World!" />)
     .add('Filled Centered', () => (
       <Box
