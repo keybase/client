@@ -71,6 +71,11 @@ export type Props = {
   uncontrolled?: boolean,
 }
 
+export type TextInfo = {
+  text: string,
+  selection: {start: number, end: number},
+}
+
 declare export default class Input extends Component<Props> {
   blur: () => void;
   focus: () => void;
@@ -86,4 +91,5 @@ declare export default class Input extends Component<Props> {
     newSelectionStart: number,
     newSelectionEnd: number
   ) => void;
+  transformText: (fn: TextInfo => TextInfo) => void;
 }
