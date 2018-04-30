@@ -92,13 +92,14 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 	t.Logf("locking keys")
 	err := tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearCachedSecretKeys()
+		a.ClearStreamCache()
 	}, "test")
 	require.NoError(t, err)
 	err = tc.G.SecretStore().ClearSecret(libkb.NormalizedUsername(u.Username))
 	require.NoError(t, err)
 
 	t.Logf("checking logged in status [before]")
-	AssertLoggedInLPK(&tc, true)
+	AssertLoggedInLPK(&tc, false)
 	t.Logf("checking unlocked status [before]")
 	AssertDeviceKeysLock(&tc, false)
 
@@ -141,13 +142,13 @@ func CreateAndSigunpLPK(tc libkb.TestContext, prefix string) (*FakeUser, string)
 }
 
 func AssertLoggedInLPK(tc *libkb.TestContext, shouldBeLoggedIn bool) {
-	sessionIsValid, err := tc.G.LoginState().LoggedInProvisionedCheck()
+
+	activeDeviceIsValid := tc.G.ActiveDevice.Valid()
 	t := tc.T
-	require.NoError(t, err)
 	if shouldBeLoggedIn {
-		require.Equal(t, true, sessionIsValid, "user should be logged in")
+		require.Equal(t, true, activeDeviceIsValid, "user should be logged in")
 	} else {
-		require.Equal(t, false, sessionIsValid, "user should not be logged in")
+		require.Equal(t, false, activeDeviceIsValid, "user should not be logged in")
 	}
 }
 

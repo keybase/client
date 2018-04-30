@@ -14,8 +14,10 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type ByUID []gregor1.UID
+// we will show some representation of an exploded message in the UI for a week
+const explosionLifetime = time.Hour * 24 * 7
 
+type ByUID []gregor1.UID
 type ConvIDShort = []byte
 
 func (b ByUID) Len() int      { return len(b) }
@@ -341,18 +343,70 @@ func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err er
 	return m.MessageBody.Deletehistory(), nil
 }
 
-func (m MessageUnboxedValid) GetEphemeralMetadata() *MsgEphemeralMetadata {
+func (m MessagePlaintext) IsExploding() bool {
+	return m.EphemeralMetadata() != nil
+}
+
+func (m MessagePlaintext) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
-func (m MessageUnboxedValid) IsEphemeralExpired() bool {
-	metadata := m.GetEphemeralMetadata()
-	expired := time.Now().Sub(m.ServerHeader.Ctime.Time()) >= time.Second*time.Duration(metadata.Lifetime)
-	return expired || m.ServerHeader.ExplodedByUID != nil
+func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
+	if o != nil && r != nil {
+		return *o == *r
+	}
+	return (o == nil) && (r == nil)
 }
 
 func (m MessageUnboxedValid) IsExploding() bool {
-	return m.GetEphemeralMetadata() != nil
+	return m.EphemeralMetadata() != nil
+}
+
+func (m MessageUnboxedValid) EphemeralMetadata() *MsgEphemeralMetadata {
+	return m.ClientHeader.EphemeralMetadata
+}
+
+func (m MessageUnboxedValid) Etime() gregor1.Time {
+	// The server sends us (untrusted) ctime of the message and server's view
+	// of now. We use these to calculate the remaining lifetime on an ephemeral
+	// message, returning an etime based on our received time.
+	metadata := m.EphemeralMetadata()
+	header := m.ServerHeader
+	originalLifetime := time.Second * time.Duration(metadata.Lifetime)
+	elapsedLifetime := header.Ctime.Time().Sub(header.Now.Time())
+	remainingLifetime := originalLifetime - elapsedLifetime
+	// If the server's view doesn't make sense, just use the signed lifetime
+	// from the message.
+	if remainingLifetime > originalLifetime {
+		remainingLifetime = originalLifetime
+	}
+	etime := m.ClientHeader.Rtime.Time().Add(remainingLifetime)
+	return gregor1.ToTime(etime)
+}
+
+func (m MessageUnboxedValid) RemainingLifetime() time.Duration {
+	remainingLifetime := m.Etime().Time().Sub(time.Now()).Round(time.Second)
+	return remainingLifetime
+}
+
+func (m MessageUnboxedValid) IsEphemeralExpired(now time.Time) bool {
+	if !m.IsExploding() {
+		return false
+	}
+	etime := m.Etime().Time()
+	return etime.Before(now) || etime.Equal(now)
+}
+
+func (m MessageUnboxedValid) HideExplosion(now time.Time) bool {
+	if !m.IsExploding() {
+		return false
+	}
+	etime := m.Etime()
+	return etime.Time().Add(explosionLifetime).Before(now)
+}
+
+func (m UIMessageValid) IsExploding() bool {
+	return m.EphemeralMetadata != nil
 }
 
 func (b MessageBody) IsNil() bool {
@@ -431,12 +485,12 @@ func (m MessageBoxed) KBFSEncrypted() bool {
 	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
 }
 
-func (m MessageBoxed) GetEphemeralMetadata() *MsgEphemeralMetadata {
+func (m MessageBoxed) EphemeralMetadata() *MsgEphemeralMetadata {
 	return m.ClientHeader.EphemeralMetadata
 }
 
 func (m MessageBoxed) IsExploding() bool {
-	return m.GetEphemeralMetadata() != nil
+	return m.EphemeralMetadata() != nil
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -605,6 +659,11 @@ func (f *ConversationFinalizeInfo) BeforeSummary() string {
 func (p Pagination) Eq(other Pagination) bool {
 	return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
 		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+}
+
+func (p Pagination) String() string {
+	return fmt.Sprintf("[Num: %d n: %s p: %s]", p.Num, hex.EncodeToString(p.Next),
+		hex.EncodeToString(p.Previous))
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {

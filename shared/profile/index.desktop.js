@@ -1,7 +1,7 @@
 // @flow
-import * as shared from './index.shared'
+import * as shared from './shared'
 import * as Constants from '../constants/tracker'
-import Friendships from './friendships'
+import Friendships from './friendships.desktop'
 import React, {PureComponent} from 'react'
 import {orderBy} from 'lodash-es'
 import moment from 'moment'
@@ -56,7 +56,7 @@ const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShow
 const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () => void}) => (
   <Box onClick={onClickShowcaseOffer} style={styleShowcasedTeamContainer}>
     <Box style={styleShowcasedTeamAvatar}>
-      <Icon type="icon-team-placeholder-avatar-24" size={24} style={{borderRadius: 5}} />
+      <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_20}} type="BodyPrimaryLink">
@@ -79,13 +79,13 @@ const ShowcasedTeamRow = ({
     style={styleShowcasedTeamContainer}
   >
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={team.fqName} size={24} />
+      <Avatar teamname={team.fqName} size={32} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
         {team.fqName}
       </Text>
-      {team.open && <Meta style={styleMeta} title="OPEN" />}
+      {team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
     </Box>
   </Box>
 )
@@ -208,26 +208,29 @@ class ProfileRender extends PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
-    // $FlowIssue
-    const target = findDOMNode(this._proofList.getRow(idx))
-    // $FlowIssue
+    // $ForceType
+    const target: ?Element = findDOMNode(this._proofList.getRow(idx))
+    if (!target) {
+      return
+    }
     const targetBox = target.getBoundingClientRect()
 
     if (!this._scrollContainer) {
       return
     }
 
-    const base = findDOMNode(this._scrollContainer)
-    // $FlowIssue
+    // $ForceType
+    const base: ?Element = findDOMNode(this._scrollContainer)
+    if (!base) {
+      return
+    }
     const baseBox = base.getBoundingClientRect()
 
     this.setState({
       proofMenuIndex: idx,
       popupMenuPosition: {
         position: 'absolute',
-        // $FlowIssue
         top: targetBox.bottom - baseBox.top + base.scrollTop,
-        // $FlowIssue
         right: base.clientWidth - (targetBox.right - baseBox.left),
       },
     })
@@ -277,7 +280,11 @@ class ProfileRender extends PureComponent<Props, State> {
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
-          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
+          <Icon
+            style={styleFolderIcon}
+            type={shared.folderIconType(folder)}
+            color={shared.folderIconColor(folder)}
+          />
         </Box>
         <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
           <Usernames
@@ -301,7 +308,7 @@ class ProfileRender extends PureComponent<Props, State> {
           onClick={() => this.setState({foldersExpanded: true})}
         >
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
-            <Icon type="iconfont-ellipsis" style={styleFolderIcon} />
+            <Icon type="iconfont-ellipsis" style={styleFolderIcon} textAlign="center" />
           </Box>
           <Text type="BodySmall" style={{color: globalColors.black_60, marginBottom: 2}}>
             + {this.props.tlfs.length - folders.length} more
@@ -334,7 +341,7 @@ class ProfileRender extends PureComponent<Props, State> {
               onClick={this.props.onBack}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: globalColors.white}}
-              iconStyle={{color: globalColors.white}}
+              iconColor={globalColors.white}
             />
           )}
           <Box
@@ -343,7 +350,7 @@ class ProfileRender extends PureComponent<Props, State> {
             onMouseLeave={() => this.setState({searchHovered: false})}
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Icon style={styleSearch} type="iconfont-search" />
+            <Icon style={styleSearch} type="iconfont-search" color={globalColors.white_75} />
             <Text style={styleSearchText} type="Body">
               Search people
             </Text>
@@ -461,7 +468,10 @@ class ProfileRender extends PureComponent<Props, State> {
             )}
           {proofMenuContent && (
             <PopupMenu
-              style={{...styleProofMenu, ...this.state.popupMenuPosition}}
+              style={
+                // $FlowIssue
+                {...styleProofMenu, ...this.state.popupMenuPosition}
+              }
               {...proofMenuContent}
               onHidden={() => this.handleHideMenu()}
             />
@@ -552,13 +562,10 @@ const styleFolderLine = {
 const styleFolderIcon = {
   width: 16,
   height: 16,
-  textAlign: 'center',
 }
 
 const styleMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
-  borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
 }
@@ -590,12 +597,12 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.white_75,
   padding: 3,
 }
 
 const styleSearchText = {
   ...styleSearch,
+  color: globalColors.white_75,
   position: 'relative',
   top: -1,
 }
@@ -603,18 +610,20 @@ const styleSearchText = {
 const styleShowcasedTeamContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
+  cursor: 'pointer',
   justifyContent: 'flex-start',
   minHeight: 32,
+  marginTop: globalMargins.xtiny,
 }
 
 const styleShowcasedTeamAvatar = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
-  height: globalMargins.medium,
-  minHeight: globalMargins.medium,
-  minWidth: globalMargins.medium,
-  width: globalMargins.medium,
+  height: 32,
+  minHeight: 32,
+  minWidth: 32,
+  width: 32,
 }
 
 const styleShowcasedTeamName = {

@@ -719,7 +719,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 		err = NotFoundError{}
 		return nil, err
 	case SCDeleted:
-		err = DeletedError{}
+		err = UserDeletedError{}
 		return nil, err
 	}
 

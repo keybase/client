@@ -1,5 +1,6 @@
 // @flow
 import logger from '../logger'
+import {Set} from 'immutable'
 import * as ConfigGen from './config-gen'
 import * as Types from '../constants/types/gregor'
 import * as FavoriteGen from './favorite-gen'
@@ -117,15 +118,24 @@ function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGener
   }
 }
 
-function* handleIntroBanners(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
+function* handleBannersAndBadges(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
-  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawChatBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawChatBanner())
   }
+
+  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
   if (sawSubteamsBanner) {
     yield Saga.put(TeamsGen.createSetTeamSawSubteamsBanner())
   }
+
+  const chosenChannels = items.find(i => i.item && i.item.category === 'chosenChannelsForTeam')
+  const teamsWithChosenChannelsStr =
+    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
+  const teamsWithChosenChannels = teamsWithChosenChannelsStr
+    ? Set(JSON.parse(teamsWithChosenChannelsStr))
+    : Set()
+  yield Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 }
 
 function _handlePushState(pushAction: GregorGen.PushStatePayload) {
@@ -138,7 +148,7 @@ function _handlePushState(pushAction: GregorGen.PushStatePayload) {
 
     return Saga.sequentially([
       Saga.call(handleTLFUpdate, nonNullItems),
-      Saga.call(handleIntroBanners, nonNullItems),
+      Saga.call(handleBannersAndBadges, nonNullItems),
     ])
   } else {
     logger.debug('Error in gregor pushState', pushAction.payload)

@@ -215,10 +215,10 @@ class UserInput extends Component<Props, State> {
                   onClick={onClickAddButton}
                   type="iconfont-add"
                   style={{
-                    fontSize: 16,
                     height: 16,
-                    color: globalColors.blue,
                   }}
+                  fontSize={16}
+                  color={globalColors.blue}
                 />
               )}
           </Box>

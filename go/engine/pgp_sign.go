@@ -27,7 +27,7 @@ type PGPSignArg struct {
 
 func (p *PGPSignEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

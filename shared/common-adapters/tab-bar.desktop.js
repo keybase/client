@@ -8,7 +8,14 @@ import Avatar from './avatar'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
+import {
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  desktopStyles,
+  collapseStyles,
+} from '../styles'
 
 // TODO this thing does 4 different things. a lot of the main nav logic is in here which isn't used by anything else. Split this apart!
 
@@ -115,7 +122,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
       >
         {this.props.selected && <HighlightLine />}
         <Avatar
-          size={24}
+          size={32}
           onClick={this.props.onClick}
           username={this.props.source.username}
           loadingColor={globalColors.blue3_40}
@@ -189,7 +196,11 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}
         onClick={this.props.onClick}
       >
-        <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
+        <Icon
+          type={this.props.source.icon}
+          style={collapseStyles([stylesIcon, this.props.styleIcon])}
+          color={color}
+        />
         {!!this.props.label && (
           <Text
             type="BodySemibold"

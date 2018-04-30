@@ -5,7 +5,6 @@ import {globalStyles, globalMargins, globalColors, fileUIName} from '../../../..
 
 type Props = {
   arrowColor: string,
-  loadPreview: null | (() => void),
   onDownload: null | (() => void),
   onShowInFinder: null | (() => void),
   title: string,
@@ -14,18 +13,6 @@ type Props = {
 }
 
 class FileAttachment extends React.PureComponent<Props> {
-  componentdidMount() {
-    if (this.props.loadPreview) {
-      this.props.loadPreview()
-    }
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.loadPreview && !this.props.loadPreview) {
-      nextProps.loadPreview()
-    }
-  }
-
   render() {
     const iconType = 'icon-file-24' // TODO other states
     return (
@@ -37,7 +24,7 @@ class FileAttachment extends React.PureComponent<Props> {
           </Box>
           {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-download" style={{color: this.props.arrowColor, maxHeight: 14}} />
+              <Icon type="iconfont-download" style={{maxHeight: 14}} color={this.props.arrowColor} />
             </Box>
           )}
           {!!this.props.progressLabel && (

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -377,6 +378,17 @@ func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID ch
 	return f.Lookup(ctx, tlfName, public)
 }
 
+func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
+func (f failingTlf) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
+	panic("unimplemented")
+}
+
 type failingUpak struct {
 	t *testing.T
 }
@@ -486,7 +498,7 @@ func TestGetThreadCaching(t *testing.T) {
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 
-	tc.ChatG.ConvSource.Clear(res.ConvID, u.User.GetUID().ToBytes())
+	tc.ChatG.ConvSource.Clear(context.TODO(), res.ConvID, u.User.GetUID().ToBytes())
 	tc.ChatG.ConvSource.Disconnected(ctx)
 	tc.ChatG.InboxSource.Disconnected(ctx)
 	t.Logf("make sure we get offline error")
@@ -613,7 +625,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	require.Equal(t, "MIKE: 2", thread.Messages[0].Valid().MessageBody.Text().Body)
 
 	// Make sure we don't consider it a hit if we end the fetch with a hole
-	require.NoError(t, tc.Context().ConvSource.Clear(convID, uid))
+	require.NoError(t, tc.Context().ConvSource.Clear(ctx, convID, uid))
 	_, _, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.Error(t, err)
 }
@@ -823,4 +835,66 @@ func TestConversationLockingDeadlock(t *testing.T) {
 
 	require.True(t, hcs.lockTab.Release(ctx, uid, conv2.GetConvID()))
 	require.True(t, hcs.lockTab.Release(ctx2, uid, conv3.GetConvID()))
+}
+
+func TestExpungeFromDelete(t *testing.T) {
+	ctx, world, ri2, _, sender, listener := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	if hcs == nil {
+		t.Skip()
+	}
+
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
+		u.Username, "hi"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
+		u.Username, "hi2"))
+
+	_, delMsg, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  3,
+		},
+		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: []chat1.MessageID{3},
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
+
+	select {
+	case <-listener.bgConvLoads:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no conv loader")
+	}
+
+	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2})
+	require.NoError(t, err)
+	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)
+	require.Error(t, err)
+	require.IsType(t, storage.MissError{}, err)
+
+	hcs.numExpungeReload = 1
+	hcs.ExpungeFromDelete(ctx, uid, conv.GetConvID(), 4)
+	select {
+	case <-listener.bgConvLoads:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no conv loader")
+	}
+	tv, err = hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tv.Messages))
+	require.Equal(t, chat1.MessageID(4), tv.Messages[0].GetMessageID())
 }

@@ -6,7 +6,7 @@ protocol local {
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
-  record RecentPaymentCLILocal {
+  record PaymentCLILocal {
     TransactionID stellarTxID;
     TimeMs time;
     string status;
@@ -23,14 +23,14 @@ protocol local {
     string note;
     string noteErr;
   }
-  array<RecentPaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+  array<PaymentCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
+
+  // txID can be either a keybase or stellar transaction ID.
+  PaymentCLILocal paymentDetailCLILocal(string txID);
 
   void walletInitLocal();
 
   Bundle walletDumpLocal();
-
-  @typedef("string") record LocalCurrencyCode {}
-  @typedef("float") record LocalExchangeRate {}
 
   // Account balance and its current value in selected currency.
   record LocalOwnAccount {
@@ -38,8 +38,7 @@ protocol local {
     boolean isPrimary;
     string name;
     array<Balance> balance;
-    LocalCurrencyCode localCurrency;
-    LocalExchangeRate localExchangeRate;
+    union { null, OutsideExchangeRate } exchangeRate;
   }
 
   array<LocalOwnAccount> walletGetLocalAccounts();
@@ -49,7 +48,10 @@ protocol local {
 
   void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
 
+  // prompts for passphrase
+  SecretKey exportSecretKeyLocal(AccountID accountID);
+
   void setDisplayCurrency(AccountID accountID, string currency);
 
-  LocalExchangeRate exchangeRateLocal(LocalCurrencyCode currency);
+  OutsideExchangeRate exchangeRateLocal(OutsideCurrencyCode currency);
 }

@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       })
     )
   },
-  _onSetTeamCreationError: (error: string) => {
+  onSetTeamCreationError: (error: string) => {
     dispatch(TeamsGen.createSetTeamCreationError({error}))
   },
   onBack: () => dispatch(navigateUp()),
@@ -34,14 +34,14 @@ export default compose(
     {name: ''},
     {
       onNameChange: () => (name: string) => ({name}),
-      onSubmit: ({name}, {_onCreateNewTeam}) => () => {
-        _onCreateNewTeam(name)
+      onSubmit: (_, {_onCreateNewTeam}) => teamname => {
+        _onCreateNewTeam(teamname)
       },
     }
   ),
   lifecycle({
     componentDidMount() {
-      this.props._onSetTeamCreationError('')
+      this.props.onSetTeamCreationError('')
     },
   })
 )(NewTeamDialog)

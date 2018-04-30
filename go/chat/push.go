@@ -476,7 +476,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(ctx, decmsg, uid, g.G().TeamChannelSource),
+					Message: utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,
@@ -815,7 +815,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 
 		// Just blow away anything we have locally, there might be unboxing errors in here during the
 		// transition.
-		if err = g.G().ConvSource.Clear(update.ConvID, uid); err != nil {
+		if err = g.G().ConvSource.Clear(ctx, update.ConvID, uid); err != nil {
 			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %s", err)
 		}
 

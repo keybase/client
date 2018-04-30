@@ -116,6 +116,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                       this.props.showTeam.fqName === team.fqName &&
                       this.props.selectedTeamRect && (
                         <Box key={team.fqName + 'popup'} style={{zIndex: 50}}>
+                          {/* $FlowIssue style will always be overridden */}
                           <ModalPopupComponent
                             {...this.props}
                             targetRect={this.props.selectedTeamRect}
@@ -134,13 +135,13 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                         ...globalStyles.flexBoxRow,
                         alignItems: 'center',
                         alignSelf: 'center',
-                        height: 24,
-                        minHeight: 24,
-                        minWidth: 24,
-                        width: 24,
+                        height: 32,
+                        minHeight: 32,
+                        minWidth: 32,
+                        width: 32,
                       }}
                     >
-                      <Avatar teamname={team.fqName} size={24} />
+                      <Avatar teamname={team.fqName} size={32} />
                     </Box>
                     <Box
                       style={{
@@ -152,7 +153,9 @@ export default class TrackerRender extends PureComponent<RenderProps> {
                       }}
                     >
                       <Text type="BodySemibold">{team.fqName}</Text>
-                      {team.open && <Meta title="OPEN" style={styleMeta} />}
+                      {team.open && (
+                        <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />
+                      )}
                     </Box>
                   </Box>
                 ))}
@@ -227,8 +230,6 @@ const styleFooter = {
 
 const styleMeta = {
   alignSelf: 'center',
-  backgroundColor: globalColors.green,
-  borderRadius: 1,
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
 }

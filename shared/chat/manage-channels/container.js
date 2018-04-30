@@ -1,10 +1,9 @@
 // @flow
-import logger from '../../logger'
-import {isEqual, pickBy} from 'lodash-es'
-import * as Types from '../../constants/types/teams'
+import {isEqual} from 'lodash-es'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import {type ChannelMembershipState} from '../../constants/types/teams'
 import ManageChannels from '.'
 import {
   connect,
@@ -17,20 +16,12 @@ import {
 } from '../../util/container'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
-import {
-  getCanPerform,
-  getConvIdsFromTeamName,
-  getChannelInfoFromConvID,
-  hasCanPerform,
-} from '../../constants/teams'
-import '../../constants/route-tree'
-
-type ChannelMembershipState = {[channelname: string]: boolean}
+import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   const teamname = routeProps.get('teamname')
-  const waitingForSave = anyWaiting(state, `saveChannel:${teamname}`, `getChannels:${teamname}`)
-  const convIDs = getConvIdsFromTeamName(state, teamname)
+  const waitingForGet = anyWaiting(state, getChannelsWaitingKey(teamname))
+  const channelInfos = getTeamChannelInfos(state, teamname)
   const you = state.config.username
   const yourOperations = getCanPerform(state, teamname)
   // We can get here without loading team operations
@@ -41,43 +32,26 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
     yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
   const canCreateChannels = yourOperations.createChannel
 
-  const channels = convIDs
-    .map(convID => {
-      const info: ?Types.ChannelInfo = getChannelInfoFromConvID(state, convID)
-
-      return info && info.channelname
-        ? {
-            description: info.description,
-            convID,
-            name: info.channelname,
-            selected: you && !!info.participants.get(you),
-          }
-        : null
-    })
+  const channels = channelInfos
+    .map((info, convID) => ({
+      description: info.description,
+      convID,
+      name: info.channelname,
+      selected: you && info.participants.has(you),
+    }))
+    .valueSeq()
     .toArray()
-    .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
   return {
     _hasOperations,
+    _you: you,
     canCreateChannels,
     canEditChannels,
     channels,
-    teamname: routeProps.get('teamname'),
-    waitingForSave,
+    teamname,
+    waitingForGet,
   }
-}
-
-const createSaveChannelMembership = (
-  teamname: string,
-  oldChannelState: ChannelMembershipState,
-  nextChannelState: ChannelMembershipState
-) => {
-  const channelsToChange = pickBy(
-    nextChannelState,
-    (inChannel: boolean, channelname: string) => inChannel !== oldChannelState[channelname]
-  )
-  return TeamsGen.createSaveChannelMembership({teamname, channelState: channelsToChange})
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
@@ -88,24 +62,39 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
     onBack: () => dispatch(navigateUp()),
     onClose: () => dispatch(navigateUp()),
     onEdit: conversationIDKey =>
-      dispatch(navigateAppend([{selected: 'editChannel', props: {conversationIDKey}}])),
+      dispatch(navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
     onCreate: () =>
       dispatch(navigateTo([{selected: 'createChannel', props: {teamname}}], routePath.butLast())),
     _saveSubscriptions: (
       oldChannelState: ChannelMembershipState,
-      nextChannelState: ChannelMembershipState
+      nextChannelState: ChannelMembershipState,
+      you: string
     ) => {
-      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
+      dispatch(
+        TeamsGen.createSaveChannelMembership({
+          teamname,
+          oldChannelState,
+          newChannelState: nextChannelState,
+          you,
+        })
+      )
       dispatch(navigateUp())
     },
     _onView: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
-      channel: string,
+      you: string,
       conversationIDKey: ChatTypes.ConversationIDKey
     ) => {
-      const selected = nextChannelState[channel]
-      dispatch(createSaveChannelMembership(teamname, oldChannelState, nextChannelState))
+      dispatch(
+        TeamsGen.createSaveChannelMembership({
+          teamname,
+          oldChannelState,
+          newChannelState: nextChannelState,
+          you,
+        })
+      )
+      const selected = nextChannelState[conversationIDKey]
       dispatch(
         Chat2Gen.createSelectConversation({conversationIDKey, reason: selected ? 'manageView' : 'preview'})
       )
@@ -118,7 +107,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withPropsOnChange(['channels'], props => ({
     oldChannelState: props.channels.reduce((acc, c) => {
-      acc[c.name] = c.selected
+      acc[c.convID] = c.selected
       return acc
     }, {}),
   })),
@@ -131,20 +120,15 @@ export default compose(
     }
   ),
   withHandlers({
-    onToggle: props => (channelname: string) =>
+    onToggle: props => (convID: ChatTypes.ConversationIDKey) =>
       props.setNextChannelState({
         ...props.nextChannelState,
-        [channelname]: !props.nextChannelState[channelname],
+        [convID]: !props.nextChannelState[convID],
       }),
     onSaveSubscriptions: props => () =>
-      props._saveSubscriptions(props.oldChannelState, props.nextChannelState),
+      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props._you),
     onClickChannel: props => (conversationIDKey: string) => {
-      const channel = props.channels.find(c => c.convID === conversationIDKey)
-      if (!channel) {
-        logger.warn('Attempted to navigate to a conversation ID that was not found in the channel list')
-        return
-      }
-      props._onView(props.oldChannelState, props.nextChannelState, channel, conversationIDKey)
+      props._onView(props.oldChannelState, props.nextChannelState, props._you, conversationIDKey)
     },
   }),
   lifecycle({

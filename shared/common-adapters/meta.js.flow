@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  title: string,
-  style?: Object,
-}
-
-declare export default class Meta extends Component<Props> {}

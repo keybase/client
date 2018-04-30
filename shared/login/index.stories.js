@@ -1,36 +1,17 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
-import {type Props, default as Login} from './login'
-import {action, storiesOf} from '../stories/storybook'
-
-const commonProps: Props = {
-  users: ['awendland'],
-  passphrase: '',
-  onForgotPassphrase: action('onForgotPassphrase'),
-  onSignup: action('onSignup'),
-  onBack: action('onBack'),
-  onSomeoneElse: action('onSomeoneElse'),
-  error: null,
-  waitingForResponse: false,
-  showTyping: false,
-  saveInKeychain: false,
-  selectedUser: null,
-  selectedUserChange: action('selectedUserChange'),
-  passphraseChange: action('passphraseChange'),
-  showTypingChange: action('showTypingChange'),
-  saveInKeychainChange: action('saveInKeychainChange'),
-  onSubmit: action('onSubmit'),
-  onLogin: action('onLogin'),
-  onFeedback: action('onFeedback'),
-}
+import {storiesOf} from '../stories/storybook'
+import forms from './forms/index.stories'
+import login from './login/index.stories'
+import register from './register/index.stories'
+import Error from './error.render'
 
 const load = () => {
-  storiesOf('Login', module)
-    .add('Single previous user', () => <Login {...commonProps} />)
-    .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
-    .add('Multiple previous users', () => (
-      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />
-    ))
+  storiesOf('Login', module).add('Error', () => <Error currentPath={I.Map({a: 1, b: 2, c: 3})} />)
+  forms()
+  login()
+  register()
 }
 
 export default load

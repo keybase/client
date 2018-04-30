@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import ReactDOM from 'react-dom'
 import {Text, Box, Icon, PopupMenu} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
 
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
@@ -45,7 +44,10 @@ class DeleteChannel extends React.Component<Props, State> {
   // anyway.
 
   _hidePopup = () => {
-    ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+    if (!isMobile) {
+      const ReactDOM = require('react-dom')
+      ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+    }
   }
 
   _onClick(event: SyntheticEvent<>) {
@@ -78,8 +80,11 @@ class DeleteChannel extends React.Component<Props, State> {
       />
     )
     const container = document.getElementById('popupContainer')
-    // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
-    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+    if (!isMobile) {
+      const ReactDOM = require('react-dom')
+      // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+    }
   }
 
   render() {
@@ -95,7 +100,8 @@ class DeleteChannel extends React.Component<Props, State> {
       >
         <Icon
           type="iconfont-trash"
-          style={{height: 14, color: globalColors.red, marginRight: globalMargins.tiny}}
+          style={{height: 14, marginRight: globalMargins.tiny}}
+          color={globalColors.red}
         />
         <Text
           type={disabled ? 'Body' : 'BodyPrimaryLink'}

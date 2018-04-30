@@ -26,9 +26,15 @@ const getTitle = (intent: Types.TransferIntent): string => {
       return 'Preparing to share...'
     case 'none':
       return ''
+    case 'web-view':
+    case 'web-view-text':
+      // TODO
+      return ''
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(intent: empty) // this breaks when a new intent is added but not handled here
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
       return ''
   }
 }

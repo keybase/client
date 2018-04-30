@@ -24,7 +24,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
     <ClickableBox style={stylesRow} onClick={onPress}>
       <Box style={stylesIconName}>
         <Box style={stylesIconContainer}>
-          <Icon style={stylesIcon} type={iconType} />
+          <Icon style={stylesIcon} type={iconType} color={colorIcon} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <Text type="BodySemiboldItalic" onClick={onPress}>
@@ -54,10 +54,10 @@ const ResetOption = ({onReset}) => (
           <Icon
             style={{
               ...stylesIcon,
-              fontSize: 24,
-              color: globalColors.black_40,
               marginRight: 0,
             }}
+            fontSize={24}
+            color={globalColors.black_40}
             type="iconfont-exclamation"
           />
         </Box>
@@ -146,10 +146,12 @@ const stylesIconContainer = {
   alignItems: 'center',
 }
 const stylesIcon = {
-  color: globalColors.black,
   marginLeft: 0,
   marginRight: globalMargins.small,
 }
+
+const colorIcon = globalColors.black
+
 const stylesWont = {
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box, Icon} from './'
 import EscapeHandler from '../util/escape-handler'
-import {globalColors, globalMargins, globalStyles} from '../styles'
+import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
 
 import type {Props} from './popup-dialog'
 
@@ -22,11 +22,15 @@ export function PopupDialog({
 }: Props) {
   return (
     <EscapeHandler onESC={onClose}>
-      <Box style={{...coverStyle, ...styleCover}} onClick={onClose}>
-        <Box style={{...containerStyle, ...(fill ? containerFillStyle : null), ...styleContainer}}>
-          <Icon type="iconfont-close" style={{...closeStyle, ...styleClose}} />
+      <Box style={collapseStyles([coverStyle, styleCover])} onClick={onClose}>
+        <Box style={collapseStyles([containerStyle, fill ? containerFillStyle : null, styleContainer])}>
+          <Icon
+            type="iconfont-close"
+            style={collapseStyles([closeStyle, styleClose])}
+            color={globalColors.white}
+          />
           <Box
-            style={{...clipContainerStyle, ...styleClipContainer}}
+            style={collapseStyles([clipContainerStyle, styleClipContainer])}
             onClick={allowClipBubbling ? undefined : stopBubbling}
           >
             {children}
@@ -78,7 +82,6 @@ const clipContainerStyle = {
 const closeStyle = {
   position: 'absolute',
   right: -16 - globalMargins.tiny + 2, // FIXME: 2px fudge since icon isn't sized to 16px extents
-  color: globalColors.white,
   cursor: 'pointer',
 }
 

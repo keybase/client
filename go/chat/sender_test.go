@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -131,6 +132,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 	res := kbtest.NewChatMockWorld(t, name, numUsers)
 	for _, w := range res.Tcs {
 		teams.ServiceInit(w.G)
+		ephemeral.ServiceInit(w.G)
 	}
 	return res
 }
@@ -159,6 +161,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		ri = gh.GetClient()
 	}
 	boxer := NewBoxer(g)
+	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
 	sender := NewNonblockingSender(g, baseSender)
@@ -172,7 +175,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
 	}
-	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
+	chatStorage := storage.New(g)
+	chatStorage.SetClock(world.Fc)
+	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
 	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.SetListener(&listener)
@@ -186,10 +191,10 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
 	g.FetchRetrier.Connected(context.TODO())
 	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
-	bgLoader := NewBackgroundConvLoader(g)
-	bgLoader.loads = listener.bgConvLoads
-	bgLoader.setTestingNameInfoSource(tlf)
-	g.ConvLoader = bgLoader
+	convLoader := NewBackgroundConvLoader(g)
+	convLoader.loads = listener.bgConvLoads
+	convLoader.setTestingNameInfoSource(tlf)
+	g.ConvLoader = convLoader
 	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())
 	chatSyncer := NewSyncer(g)
 	chatSyncer.isConnected = true
@@ -201,6 +206,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewCachingTeamChannelSource(g, getRI)
 	g.Searcher = NewSearcher(g)
+	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
@@ -939,7 +945,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, conv.GetConvID(), uid))
+	require.NoError(t, storage.New(tc.Context()).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
 
 	// Fetch a subset into the cache
 	_, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{

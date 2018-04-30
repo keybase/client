@@ -7,7 +7,7 @@ import type {Props} from '.'
 
 const ShhIcon = () => (
   <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={shhIconStyle} />
+    <Icon type="iconfont-shh" style={shhIconStyle} color={shhIconColor} fontSize={shhIconFontSize} />
   </Box>
 )
 
@@ -108,9 +108,11 @@ const styleLeft = {
 }
 
 const shhIconStyle = {
-  color: globalColors.black_20,
-  fontSize: 20,
   marginLeft: globalMargins.xtiny,
 }
+
+const shhIconColor = globalColors.black_20
+
+const shhIconFontSize = 20
 
 export {ChannelHeader, UsernameHeader}

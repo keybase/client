@@ -10,6 +10,10 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -374,6 +378,24 @@
     },
     {
       "type": "record",
+      "name": "UIAssetUrlInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "previewUrl"
+        },
+        {
+          "type": "string",
+          "name": "fullUrl"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -414,6 +436,13 @@
         {
           "type": [
             null,
+            "UIAssetUrlInfo"
+          ],
+          "name": "assetUrlInfo"
+        },
+        {
+          "type": [
+            null,
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
@@ -435,6 +464,13 @@
             "items": "UIChannelNameMention"
           },
           "name": "channelNameMentions"
+        },
+        {
+          "type": [
+            null,
+            "MsgEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata"
         }
       ]
     },

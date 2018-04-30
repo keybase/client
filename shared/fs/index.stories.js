@@ -1,10 +1,12 @@
 // @flow
+import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
+import * as Constants from '../constants/fs'
 import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors} from '../styles'
 import Files from '.'
-import FilePreview from './filepreview'
+import {NormalPreview} from './filepreview'
 
 const provider = createPropProvider({
   FileRow: ({path}: {path: Types.Path}) => ({
@@ -58,9 +60,32 @@ const provider = createPropProvider({
     onInstall: action('onInstall'),
     onUninstall: action('onUninstall'),
   }),
+  FilePreviewDefaultView: () => ({
+    fileUIEnabled: false,
+    pathItem: Constants.makeFile({
+      name: 'bar.jpg',
+      size: 10240,
+      lastWriter: {uid: '', username: 'foo'},
+    }),
+    itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
+    onDownload: () => {},
+    onShowInFileUI: () => {},
+    onShare: () => {},
+    onSave: () => {},
+  }),
+  FilePreviewHeader: () => ({
+    pathItem: Constants.makeFile({
+      name: 'bar.jpg',
+      size: 10240,
+      lastWriter: {uid: '', username: 'foo'},
+    }),
+    onAction: () => {},
+    onBack: () => {},
+    onShowInFileUI: () => {},
+    loadFilePreview: () => {},
+    path: '/keybase/private/foo/bar.jpg',
+  }),
 })
-
-const previewPathName = '/keybase/private/foo/bar.img'
 
 const load = () => {
   storiesOf('Files', module)
@@ -76,19 +101,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Preview', () => (
-      <FilePreview
-        path={Types.stringToPath(previewPathName)}
-        meta={{
-          badgeCount: 0,
-          name: previewPathName,
-          lastModifiedTimestamp: 1518029754000,
-          size: 15000,
-          lastWriter: {uid: '', username: 'foobar'},
-          progress: 'pending',
-        }}
-      />
-    ))
+    .add('Preview', () => <NormalPreview routeProps={I.Map({path: '/keybase/private/foo/bar.jpb'})} />)
 }
 
 export default load

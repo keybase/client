@@ -1,9 +1,9 @@
 // @flow
 import {MentionHud} from '.'
-import {connect} from '../../../../util/container'
+import {compose, connect, type TypedState, setDisplayName} from '../../../../util/container'
 import * as I from 'immutable'
 
-const mapStateToProps = (state, {filter, conversationIDKey}) => {
+const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
   return {
     _filter: filter,
     _infoMap: state.users.infoMap,
@@ -33,6 +33,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const ConnectedMentionHud = connect(mapStateToProps, () => ({}), mergeProps)(MentionHud)
-
-export default ConnectedMentionHud
+export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('UserMentionHud'))(
+  MentionHud
+)

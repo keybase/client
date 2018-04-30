@@ -31,11 +31,11 @@ const PlatformsExpandedMap = {
   pgp: true,
 }
 
-export const ProvablePlatforms = Object.keys(pickBy(ProvablePlatformsMap))
 export type ProvablePlatformsType = $Keys<typeof ProvablePlatformsMap>
+export const ProvablePlatforms: Array<*> = Object.keys(pickBy(ProvablePlatformsMap))
 
-export const PlatformsExpanded = Object.keys(pickBy(PlatformsExpandedMap))
 export type PlatformsExpandedType = $Keys<typeof PlatformsExpandedMap>
+export const PlatformsExpanded: Array<*> = Object.keys(pickBy(PlatformsExpandedMap))
 
 export type Exact<X> = $Shape<X> & X
 
@@ -51,10 +51,3 @@ export type PayloadType<F> = $PropertyType<ReturnType<F>, 'payload'>
 // eslint-disable-next-line
 export type _PropsOf<Props, C: Component<Props, *>> = Props
 export type PropsOf<C> = _PropsOf<*, C>
-
-export type DumbComponentMap<C: Component<*, *>> = {
-  component: Class<C>,
-  mocks: {
-    [key: string]: PropsOf<C> | {...$Exact<PropsOf<C>>, parentProps: Object},
-  },
-}

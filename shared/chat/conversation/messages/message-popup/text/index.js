@@ -12,36 +12,44 @@ type Props = {
   onDeleteMessageHistory: null | (() => void),
   onEdit: null | (() => void),
   onHidden: () => void,
+  onQuote: null | (() => void),
+  onReplyPrivately: null | (() => void),
+  onViewProfile: () => void,
   showDivider: boolean,
   style?: Object,
   yourMessage: boolean,
 }
 
 const TextPopupMenu = (props: Props) => {
-  const items = props.yourMessage
-    ? [
-        ...(props.showDivider ? ['Divider'] : []),
-        {onClick: props.onCopy, title: 'Copy Text'},
-        {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
-        {
-          danger: true,
-          disabled: !props.onDelete,
-          onClick: props.onDelete,
-          subTitle: 'Deletes this message for everyone',
-          title: 'Delete',
-        },
-        ...(props.onDeleteMessageHistory
-          ? [
-              'Divider',
-              {
-                danger: true,
-                onClick: props.onDeleteMessageHistory,
-                title: 'Delete this + everything above',
-              },
-            ]
-          : []),
-      ]
-    : [{onClick: props.onCopy, title: 'Copy Text'}]
+  const items = [
+    ...(props.showDivider ? ['Divider'] : []),
+    ...(props.yourMessage
+      ? [
+          {
+            danger: true,
+            disabled: !props.onDelete,
+            onClick: props.onDelete,
+            subTitle: 'Deletes this message for everyone',
+            title: 'Delete',
+          },
+        ]
+      : []),
+    ...(props.onDeleteMessageHistory
+      ? [
+          {
+            danger: true,
+            onClick: props.onDeleteMessageHistory,
+            title: 'Delete this + everything above',
+          },
+        ]
+      : []),
+    'Divider',
+    {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
+    {onClick: props.onCopy, title: 'Copy Text'},
+    {onClick: props.onQuote, title: 'Quote'},
+    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+    {onClick: props.onViewProfile, title: 'View Profile'},
+  ]
 
   const header = {
     title: 'header',

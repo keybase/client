@@ -882,6 +882,10 @@ export const identifyUiDismissReasonType = {
   handledElsewhere: 1,
 }
 
+export const implicitTeamMigrationFinalizeMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationFinalizeMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.finalizeMigration', request)
+
+export const implicitTeamMigrationFinalizeMigrationRpcPromise = (request: ImplicitTeamMigrationFinalizeMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.finalizeMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const implicitTeamMigrationStartMigrationRpcChannelMap = (configKeys: Array<string>, request: ImplicitTeamMigrationStartMigrationRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.implicitTeamMigration.startMigration', request)
 
 export const implicitTeamMigrationStartMigrationRpcPromise = (request: ImplicitTeamMigrationStartMigrationRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.implicitTeamMigration.startMigration', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -1015,6 +1019,10 @@ export const loginDeprovisionRpcPromise = (request: LoginDeprovisionRpcParam): P
 export const loginGetConfiguredAccountsRpcChannelMap = (configKeys: Array<string>, request: LoginGetConfiguredAccountsRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.getConfiguredAccounts', request)
 
 export const loginGetConfiguredAccountsRpcPromise = (request: LoginGetConfiguredAccountsRpcParam): Promise<LoginGetConfiguredAccountsResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.getConfiguredAccounts', request, (error: RPCError, result: LoginGetConfiguredAccountsResult) => (error ? reject(error) : resolve(result))))
+
+export const loginLoginOneshotRpcChannelMap = (configKeys: Array<string>, request: LoginLoginOneshotRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginOneshot', request)
+
+export const loginLoginOneshotRpcPromise = (request: LoginLoginOneshotRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.login.loginOneshot', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
 export const loginLoginProvisionedDeviceRpcChannelMap = (configKeys: Array<string>, request: LoginLoginProvisionedDeviceRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.login.loginProvisionedDevice', request)
 
@@ -2589,6 +2597,8 @@ export type ImplicitTeamConflictInfo = $ReadOnly<{generation: ConflictGeneration
 
 export type ImplicitTeamDisplayName = $ReadOnly<{isPublic: Boolean, writers: ImplicitTeamUserSet, readers: ImplicitTeamUserSet, conflictInfo?: ?ImplicitTeamConflictInfo}>
 
+export type ImplicitTeamMigrationFinalizeMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type ImplicitTeamMigrationStartMigrationRpcParam = $ReadOnly<{folder: Folder, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type ImplicitTeamUserSet = $ReadOnly<{keybaseUsers?: ?Array<String>, unresolvedUsers?: ?Array<SocialAssertion>}>
@@ -2718,6 +2728,8 @@ export type LoginClearStoredSecretRpcParam = $ReadOnly<{username: String, incomi
 export type LoginDeprovisionRpcParam = $ReadOnly<{username: String, doRevoke: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginGetConfiguredAccountsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type LoginLoginOneshotRpcParam = $ReadOnly<{username: String, paperKey: String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type LoginLoginProvisionedDeviceRpcParam = $ReadOnly<{username: String, noPassphrasePrompt: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -3671,7 +3683,9 @@ export type TeamApplication =
 
 export type TeamApplicationKey = $ReadOnly<{application: TeamApplication, keyGeneration: PerTeamKeyGeneration, key: Bytes32}>
 
-export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int}>
+export type TeamCLKRMsg = $ReadOnly<{teamID: TeamID, generation: PerTeamKeyGeneration, score: Int, resetUsersUntrusted?: ?Array<TeamCLKRResetUser>}>
+
+export type TeamCLKRResetUser = $ReadOnly<{uid: UID, userEldestSeqno: Seqno, memberEldestSeqno: Seqno}>
 
 export type TeamChangeReq = $ReadOnly<{owners?: ?Array<UserVersion>, admins?: ?Array<UserVersion>, writers?: ?Array<UserVersion>, readers?: ?Array<UserVersion>, none?: ?Array<UserVersion>, completedInvites: {[key: string]: UserVersionPercentForm}}>
 
@@ -3853,7 +3867,7 @@ export type TeamsTeamLeaveRpcParam = $ReadOnly<{name: String, permanent: Boolean
 
 export type TeamsTeamListMyAccessRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
-export type TeamsTeamListRequestsRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+export type TeamsTeamListRequestsRpcParam = $ReadOnly<{teamName?: ?String, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type TeamsTeamListSubteamsRecursiveRpcParam = $ReadOnly<{parentTeamName: String, forceRepoll: Boolean, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4263,7 +4277,7 @@ type UserLoadUserResult = User
 type UserMeUserVersionResult = UserVersion
 type UserSearchResult = ?Array<SearchResult>
 
-export type IncomingCallMapType = {
+export type IncomingCallMapType = {|
   'keybase.1.gpgUi.wantToAddGPGKey'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiWantToAddGPGKeyResult) => void}) => void,
   'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (params: $ReadOnly<{sessionID: Int}>, response: {error: RPCErrorHandler, result: (result: GpgUiConfirmDuplicateKeyChosenResult) => void}) => void,
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (params: $ReadOnly<{sessionID: Int, keys?: ?Array<GPGKey>}>, response: {error: RPCErrorHandler, result: (result: GpgUiSelectKeyAndPushOptionResult) => void}) => void,
@@ -4353,4 +4367,4 @@ export type IncomingCallMapType = {
   'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: $ReadOnly<{sessionID: Int, teamName: String}>, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmRootTeamDeleteResult) => void}) => void,
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: $ReadOnly<{sessionID: Int, teamName: String}>, response: {error: RPCErrorHandler, result: (result: TeamsUiConfirmSubteamDeleteResult) => void}) => void,
   'keybase.1.ui.promptYesNo'?: (params: $ReadOnly<{sessionID: Int, text: Text, promptDefault: PromptDefault}>, response: {error: RPCErrorHandler, result: (result: UiPromptYesNoResult) => void}) => void,
-}
+|}

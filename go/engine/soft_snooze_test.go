@@ -63,12 +63,10 @@ func TestSoftSnooze(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
-	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
+	fu := CreateAndSignupFakeUser(tc, "track")
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI

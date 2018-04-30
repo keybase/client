@@ -61,10 +61,10 @@ const CreateChannel = (props: Props) => (
 const Header = (props: Props) => (
   <Box style={_headerStyle}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
-      <Avatar isTeam={true} teamname={props.teamname} size={12} />
+      <Avatar isTeam={true} teamname={props.teamname} size={16} />
       <Text
         type="BodySmallSemibold"
-        style={{fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
+        style={{fontSize: 11, lineHeight: 16, marginLeft: globalMargins.xtiny}}
         lineClamp={1}
       >
         {props.teamname}

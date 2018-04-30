@@ -210,10 +210,6 @@
   }
 
   @mpackkey("em") @jsonkey("em")
-  record ConvEphemeralMetadata {
-    gregor1.Time lastKtime;
-  }
-
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -281,10 +277,6 @@
     Expunge expunge;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
-
-    // The last message id that was exploded.
-    @mpackkey("em") @jsonkey("em")
-    union { null, ConvEphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageSummary {
@@ -299,7 +291,9 @@
     MessageID messageID;
     MessageID supersededBy;
     gregor1.Time ctime;
-    union { null, gregor1.UID } explodedByUID;
+    // server's view of now(), used to calculate ephemeral lifetimes
+    @mpackkey("n") @jsonkey("n")
+    gregor1.Time now;
   }
 
   record MessagePreviousPointer {
@@ -314,10 +308,20 @@
 
   @mpackkey("em") @jsonkey("em")
   record MsgEphemeralMetadata {
-    @mpackkey("life") @jsonkey("life")
+    @mpackkey("l") @jsonkey("l")
     gregor1.DurationSec lifetime; // used to computed etime
-    @mpackkey("gen") @jsonkey("gen")
+    @mpackkey("g") @jsonkey("g")
     keybase1.EkGeneration generation;
+  }
+
+  @mpackkey("pi") @jsonkey("pi")
+  record EphemeralPurgeInfo {
+    @mpackkey("a") @jsonkey("a")
+    boolean isActive;
+    @mpackkey("n") @jsonkey("n")
+    gregor1.Time nextPurgeTime;
+    @mpackkey("e") @jsonkey("e")
+    MessageID minUnexplodedID;
   }
 
   // The Boxer's compareHeaders* functions checks each of these fields.
@@ -380,6 +384,11 @@
 
     @mpackkey("em") @jsonkey("em")
     union { null, MsgEphemeralMetadata } ephemeralMetadata;
+
+    // When putting a message in local storage we set the receivedTime
+    // ephemeral lifetime calculations
+    @mpackkey("rt") @jsonkey("rt")
+    gregor1.Time rtime;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)

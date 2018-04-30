@@ -65,12 +65,10 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
-	fu := CreateAndSignupFakeUser(tc, "track")
 
-	fakeClock := clockwork.NewFakeClock()
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
+	fu := CreateAndSignupFakeUser(tc, "track")
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI
@@ -198,13 +196,11 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "track")
 
 	// Tracking remote means we have to agree what time it is
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
+	fu := CreateAndSignupFakeUser(tc, "track")
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI
@@ -323,12 +319,10 @@ func TestTrackFailTempRecover(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
-	fu := CreateAndSignupFakeUser(tc, "track")
 
-	fakeClock := clockwork.NewFakeClock()
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
+	fu := CreateAndSignupFakeUser(tc, "track")
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI

@@ -31,7 +31,7 @@ class Avatars extends React.PureComponent<any> {
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
-          height: smallMode ? globalMargins.large : 56,
+          height: smallMode ? 40 : 56,
           justifyContent: 'flex-start',
           padding: globalMargins.xtiny,
           width: smallMode ? globalMargins.large : 56,
@@ -39,15 +39,15 @@ class Avatars extends React.PureComponent<any> {
       >
         {isTeam ? (
           <Avatar
-            size={smallMode ? 32 : 40}
+            size={smallMode ? 32 : 48}
             teamname={teamname}
             isTeam={true}
             style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
           />
         ) : (
           <MultiAvatar
-            singleSize={smallMode ? 32 : 40}
-            multiSize={smallMode ? 24 : 32}
+            singleSize={smallMode ? 32 : 48}
+            multiSize={smallMode ? 16 : 32}
             avatarProps={avatarProps}
             style={{opacity}}
           />
@@ -60,17 +60,15 @@ class Avatars extends React.PureComponent<any> {
 class Modified extends React.PureComponent<any> {
   render() {
     const {smallMode, styles, modified} = this.props
-    const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
+    const iconColor = getStyle('BodySmall', styles.modifiedMode).color
     const boltStyle = {
-      fontSize: smallMode ? 10 : 10,
       alignSelf: 'center',
       ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
-      ...iconColor,
     }
 
     return (
       <Box style={stylesModified}>
-        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" />
+        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" color={iconColor} fontSize={10} />
         <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
           Modified {modified.when} by&nbsp;
         </Text>
@@ -89,22 +87,17 @@ class RowMeta extends React.PureComponent<any> {
       return
     }
 
-    const metaColors = {
+    const color = {
       new: globalColors.white,
       rekey: globalColors.white,
-    }
+    }[meta]
 
-    const metaBGColors = {
+    const backgroundColor = {
       new: globalColors.orange,
       rekey: globalColors.red,
-    }
+    }[meta]
 
-    const metaProps = {
-      title: meta || '',
-      style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {},
-    }
-
-    return <Meta {...metaProps} />
+    return <Meta title={meta || ''} color={color} backgroundColor={backgroundColor} />
   }
 }
 

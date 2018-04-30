@@ -13,7 +13,7 @@ class Session {
   // Our id
   _id: SessionID
   // Map of methods => callbacks
-  _incomingCallMap: IncomingCallMapType
+  _incomingCallMap: IncomingCallMapType | {}
   // Let the outside know we're waiting
   _waitingHandler: ?WaitingHandlerType
   // Tell engine we're done
@@ -45,9 +45,8 @@ class Session {
     cancelHandler?: ?CancelHandlerType,
     dangling?: boolean = false
   ) {
-    const empty: IncomingCallMapType = {}
     this._id = sessionID
-    this._incomingCallMap = incomingCallMap || empty
+    this._incomingCallMap = incomingCallMap || {}
     this._waitingHandler = waitingHandler
     this._invoke = invoke
     this._endHandler = endHandler

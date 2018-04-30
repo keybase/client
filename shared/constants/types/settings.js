@@ -13,11 +13,11 @@ export type Invitation = {
   url: string,
 }
 
-export type InvitesState = {
+export type InvitesState = {|
   pendingInvites: Array<PendingInvite>,
   acceptedInvites: Array<AcceptedInvite>,
   error: ?Error,
-}
+|}
 
 export type NotificationsSettingsState = {
   name: string,
@@ -29,6 +29,8 @@ export type NotificationsGroupState = {
   settings: ?Array<NotificationsSettingsState>,
   unsubscribedFromAll: boolean,
 }
+
+export type NotificationGroups = 'email' | 'app_push' | 'sms'
 
 export type NotificationsState = {
   allowEdit: boolean,
@@ -79,6 +81,7 @@ type NotificationsTab = 'settingsTabs:notificationsTab'
 type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
+type WalletsTab = 'settingsTabs:walletsTab'
 
 export type Tab =
   | LandingTab
@@ -96,5 +99,6 @@ export type Tab =
   | FsTab
   | ScreenprotectorTab
   | PassphraseTab
+  | WalletsTab
 
 export type PlanLevel = string

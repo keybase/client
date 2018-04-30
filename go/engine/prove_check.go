@@ -38,7 +38,7 @@ func (e *ProveCheck) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *ProveCheck) Prereqs() Prereqs {
-	return Prereqs{Session: true}
+	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs.

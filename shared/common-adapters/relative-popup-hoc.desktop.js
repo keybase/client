@@ -6,10 +6,9 @@ import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
 import {connect, type Dispatch} from '../util/container'
+import {type StylesCrossPlatform, collapseStyles} from '../styles'
 
 import type {Position, RelativePopupHocType, RelativePopupProps} from './relative-popup-hoc'
-
-const modalRoot = document.getElementById('modal-root')
 
 class DOMNodeFinder extends React.Component<{
   setNode: (node: HTMLElement) => void,
@@ -28,7 +27,7 @@ class DOMNodeFinder extends React.Component<{
     return React.Children.only(children)
   }
 }
-
+const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{setNode: (node: HTMLElement) => void, children: React.Element<*>}> {
   el: HTMLElement
   constructor() {
@@ -37,6 +36,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 
   componentDidMount() {
+    const modalRoot = getModalRoot()
     modalRoot && modalRoot.appendChild(this.el)
     const firstChild = this.el.firstChild
     if (firstChild instanceof HTMLElement) {
@@ -45,6 +45,7 @@ class Modal extends React.Component<{setNode: (node: HTMLElement) => void, child
   }
 
   componentWillUnmount() {
+    const modalRoot = getModalRoot()
     modalRoot && modalRoot.removeChild(this.el)
   }
 
@@ -177,7 +178,7 @@ type ModalPositionRelativeProps<PP> = {
   targetRect: ?ClientRect,
   position: Position,
   onClosePopup: () => void,
-  style?: Object,
+  style?: StylesCrossPlatform,
 } & PP
 
 function ModalPositionRelative<PP>(
@@ -199,11 +200,10 @@ function ModalPositionRelative<PP>(
         return
       }
 
-      const style = {
-        ...computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
-        ...this.props.style,
-      }
-
+      const style = collapseStyles([
+        computePopupStyle(this.props.position, targetRect, popupNode.getBoundingClientRect()),
+        this.props.style,
+      ])
       this.setState({style})
     }
 

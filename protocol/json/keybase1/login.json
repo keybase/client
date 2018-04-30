@@ -213,6 +213,24 @@
       ],
       "response": null,
       "doc": "accountDelete is for devel/testing to delete the current user's account."
+    },
+    "loginOneshot": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "paperKey",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "loginOneshot allows a service to have a \"onetime login\", without\n   provisioning a device. It bootstraps credentials with the given\n   paperkey"
     }
   },
   "namespace": "keybase.1"

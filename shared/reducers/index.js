@@ -24,6 +24,7 @@ import tracker from './tracker'
 import unlockFolders from './unlock-folders'
 import users from './users'
 import waiting from './waiting'
+import wallets from './wallets'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
 import {reducerTimer} from '../dev/user-timings'
@@ -55,6 +56,7 @@ const reducers = {
   unlockFolders,
   users,
   waiting,
+  wallets,
 }
 
 const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)

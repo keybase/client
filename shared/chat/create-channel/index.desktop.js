@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Button, Icon, Input, PopupDialog, Text, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 
 import type {Props} from '.'
 
@@ -26,7 +26,7 @@ const errorHeader = (errorText: string) => {
 const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
-      <Avatar isTeam={true} teamname={props.teamname} size={24} />
+      <Avatar isTeam={true} teamname={props.teamname} size={32} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
@@ -82,10 +82,14 @@ const _boxStyle = {
   paddingRight: globalMargins.large,
 }
 
-const _backIcon = {
-  display: 'block',
-  marginRight: globalMargins.xtiny,
-}
+const _backIcon = platformStyles({
+  common: {
+    marginRight: globalMargins.xtiny,
+  },
+  isElectron: {
+    display: 'block',
+  },
+})
 
 const _backStyle = {
   ...globalStyles.flexBoxRow,

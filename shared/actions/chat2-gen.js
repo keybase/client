@@ -14,11 +14,7 @@ import type {RetentionPolicy} from '../constants/types/teams'
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentHandleQueue = 'chat2:attachmentHandleQueue'
-export const attachmentLoad = 'chat2:attachmentLoad'
-export const attachmentLoaded = 'chat2:attachmentLoaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
-export const attachmentNeedsUpdating = 'chat2:attachmentNeedsUpdating'
 export const attachmentUpload = 'chat2:attachmentUpload'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
@@ -43,9 +39,11 @@ export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
+export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSetEditing = 'chat2:messageSetEditing'
+export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
@@ -127,38 +125,17 @@ export const createAttachmentDownload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
     ordinal: Types.Ordinal,
-    path: string,
+    path?: string,
+    forShare?: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentDownloaded})
-export const createAttachmentHandleQueue = () => ({error: false, payload: undefined, type: attachmentHandleQueue})
-export const createAttachmentLoad = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentLoad})
-export const createAttachmentLoaded = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    path: string,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentLoaded})
-export const createAttachmentLoadedError = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: true, payload, type: attachmentLoaded})
 export const createAttachmentLoading = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -167,13 +144,6 @@ export const createAttachmentLoading = (
     isPreview: boolean,
   |}>
 ) => ({error: false, payload, type: attachmentLoading})
-export const createAttachmentNeedsUpdating = (
-  payload: $ReadOnly<{|
-    conversationIDKey: Types.ConversationIDKey,
-    ordinal: Types.Ordinal,
-    isPreview: boolean,
-  |}>
-) => ({error: false, payload, type: attachmentNeedsUpdating})
 export const createAttachmentUpload = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -268,6 +238,12 @@ export const createMessageErrored = (
     outboxID: Types.OutboxID,
   |}>
 ) => ({error: false, payload, type: messageErrored})
+export const createMessageReplyPrivately = (
+  payload: $ReadOnly<{|
+    sourceConversationIDKey: Types.ConversationIDKey,
+    ordinal: Types.Ordinal,
+  |}>
+) => ({error: false, payload, type: messageReplyPrivately})
 export const createMessageRetry = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -287,6 +263,13 @@ export const createMessageSetEditing = (
     editLastUser?: string,
   |}>
 ) => ({error: false, payload, type: messageSetEditing})
+export const createMessageSetQuoting = (
+  payload: $ReadOnly<{|
+    sourceConversationIDKey: Types.ConversationIDKey,
+    targetConversationIDKey: string,
+    ordinal: ?Types.Ordinal,
+  |}>
+) => ({error: false, payload, type: messageSetQuoting})
 export const createMessageWasEdited = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -434,11 +417,7 @@ export const createUpdateTypers = (payload: $ReadOnly<{|conversationToTypers: I.
 // Action Payloads
 export type AttachmentDownloadPayload = More.ReturnType<typeof createAttachmentDownload>
 export type AttachmentDownloadedPayload = More.ReturnType<typeof createAttachmentDownloaded>
-export type AttachmentHandleQueuePayload = More.ReturnType<typeof createAttachmentHandleQueue>
-export type AttachmentLoadPayload = More.ReturnType<typeof createAttachmentLoad>
-export type AttachmentLoadedPayload = More.ReturnType<typeof createAttachmentLoaded>
 export type AttachmentLoadingPayload = More.ReturnType<typeof createAttachmentLoading>
-export type AttachmentNeedsUpdatingPayload = More.ReturnType<typeof createAttachmentNeedsUpdating>
 export type AttachmentUploadPayload = More.ReturnType<typeof createAttachmentUpload>
 export type AttachmentUploadedPayload = More.ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = More.ReturnType<typeof createAttachmentUploading>
@@ -463,9 +442,11 @@ export type MessageDeleteHistoryPayload = More.ReturnType<typeof createMessageDe
 export type MessageDeletePayload = More.ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = More.ReturnType<typeof createMessageEdit>
 export type MessageErroredPayload = More.ReturnType<typeof createMessageErrored>
+export type MessageReplyPrivatelyPayload = More.ReturnType<typeof createMessageReplyPrivately>
 export type MessageRetryPayload = More.ReturnType<typeof createMessageRetry>
 export type MessageSendPayload = More.ReturnType<typeof createMessageSend>
 export type MessageSetEditingPayload = More.ReturnType<typeof createMessageSetEditing>
+export type MessageSetQuotingPayload = More.ReturnType<typeof createMessageSetQuoting>
 export type MessageWasEditedPayload = More.ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = More.ReturnType<typeof createMessagesAdd>
 export type MessagesWereDeletedPayload = More.ReturnType<typeof createMessagesWereDeleted>
@@ -509,12 +490,7 @@ export type UpdateTypersPayload = More.ReturnType<typeof createUpdateTypers>
 export type Actions =
   | More.ReturnType<typeof createAttachmentDownload>
   | More.ReturnType<typeof createAttachmentDownloaded>
-  | More.ReturnType<typeof createAttachmentHandleQueue>
-  | More.ReturnType<typeof createAttachmentLoad>
-  | More.ReturnType<typeof createAttachmentLoaded>
-  | More.ReturnType<typeof createAttachmentLoadedError>
   | More.ReturnType<typeof createAttachmentLoading>
-  | More.ReturnType<typeof createAttachmentNeedsUpdating>
   | More.ReturnType<typeof createAttachmentUpload>
   | More.ReturnType<typeof createAttachmentUploaded>
   | More.ReturnType<typeof createAttachmentUploading>
@@ -539,9 +515,11 @@ export type Actions =
   | More.ReturnType<typeof createMessageDeleteHistory>
   | More.ReturnType<typeof createMessageEdit>
   | More.ReturnType<typeof createMessageErrored>
+  | More.ReturnType<typeof createMessageReplyPrivately>
   | More.ReturnType<typeof createMessageRetry>
   | More.ReturnType<typeof createMessageSend>
   | More.ReturnType<typeof createMessageSetEditing>
+  | More.ReturnType<typeof createMessageSetQuoting>
   | More.ReturnType<typeof createMessageWasEdited>
   | More.ReturnType<typeof createMessagesAdd>
   | More.ReturnType<typeof createMessagesWereDeleted>

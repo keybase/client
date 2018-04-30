@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
@@ -53,7 +54,7 @@ type Service struct {
 	logForwarder         *logFwd
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
-	attachmentstore      *chat.AttachmentStore
+	attachmentstore      *attachments.Store
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -77,7 +78,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  chat.NewAttachmentStore(g.GetLog(), g.Env.GetRuntimeDir()),
+		attachmentstore:  attachments.NewStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
@@ -326,10 +327,11 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.tryLogin()
 	d.hourlyChecks()
-	d.slowChecks()
+	d.slowChecks() // 6 hours
 	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
+	d.chatEphemeralPurgeChecks()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -365,9 +367,10 @@ func (d *Service) createChatModules() {
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
+	chatStorage := storage.New(g)
 	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
-		boxer, storage.New(g), ri)
+		boxer, chatStorage, ri)
 	g.Searcher = chat.NewSearcher(g)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 
@@ -389,6 +392,9 @@ func (d *Service) createChatModules() {
 
 	// team channel source
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
+
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g,
+		chat.NewCachingAttachmentFetcher(g, d.attachmentstore, 1000), ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -549,8 +555,34 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
+func (d *Service) chatEphemeralPurgeChecks() {
+	ticker := libkb.NewBgTicker(5 * time.Minute)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping chatEphemeralPurgeChecks loop")
+		ticker.Stop()
+		return nil
+	})
+	go func() {
+		for {
+			<-ticker.C
+			uid := d.G().Env.GetUID()
+			if uid.IsNil() {
+				continue
+			}
+			gregorUID := gregor1.UID(uid.ToBytes())
+			d.G().Log.Debug("+ chat ephemeral purge loop")
+			g := globals.NewContext(d.G(), d.ChatG())
+			// Purge any conversations that have expired ephemeral messages
+			storage.New(g).QueueEphemeralBackgroundPurges(context.Background(), gregorUID)
+			// Check the outbox for stuck ephemeral messages that need purging
+			storage.NewOutbox(g, gregorUID).EphemeralPurge(context.Background())
+			d.G().Log.Debug("- chat ephemeral chat loop")
+		}
+	}()
+}
+
 func (d *Service) hourlyChecks() {
-	ticker := time.NewTicker(1 * time.Hour)
+	ticker := libkb.NewBgTicker(1 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping hourlyChecks loop")
 		ticker.Stop()
@@ -582,7 +614,7 @@ func (d *Service) hourlyChecks() {
 }
 
 func (d *Service) slowChecks() {
-	ticker := time.NewTicker(6 * time.Hour)
+	ticker := libkb.NewBgTicker(6 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping slowChecks loop")
 		ticker.Stop()
@@ -607,7 +639,7 @@ func (d *Service) tryGregordConnect() error {
 	// is down, it will still return false, along with the network error. We
 	// need to handle that case specifically, so that we still start the gregor
 	// connect loop.
-	loggedIn, err := d.G().LoginState().LoggedInProvisioned()
+	loggedIn, err := d.G().LoginState().LoggedInProvisioned(context.Background())
 	if err != nil {
 		// A network error means we *think* we're logged in, and we tried to
 		// confirm with the API server. In that case we'll swallow the error

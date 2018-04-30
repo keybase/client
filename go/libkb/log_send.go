@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // Logs is the struct to specify the path of log files
@@ -70,7 +71,7 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string, traceBundle []byte) (string, error) {
+func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string, traceBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -78,6 +79,14 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 
 	if feedback != "" {
 		mpart.WriteField("feedback", feedback)
+	}
+
+	if len(installID) > 0 {
+		mpart.WriteField("install_id", string(installID))
+	}
+
+	if !uid.IsNil() {
+		mpart.WriteField("uid", uid.String())
 	}
 
 	if err := addGzippedFile(mpart, "status_gz", "status.gz", status); err != nil {
@@ -442,7 +451,7 @@ func getTraceBundle(log logger.Logger, traceDir string) []byte {
 
 // LogSend sends the tails of log files to kb, and also the last
 // few trace output files.
-func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int) (string, error) {
+func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, numBytes int, uid keybase1.UID, installID InstallID) (string, error) {
 	logs := l.Logs
 	var kbfsLog string
 	var svcLog string
@@ -485,5 +494,5 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		gitLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, traceBundle)
+	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, traceBundle, uid, installID)
 }

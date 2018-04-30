@@ -129,9 +129,7 @@ func (e *PGPKeyImportEngine) Name() string {
 }
 
 func (e *PGPKeyImportEngine) Prereqs() Prereqs {
-	return Prereqs{
-		Session: true,
-	}
+	return Prereqs{}
 }
 
 func (e *PGPKeyImportEngine) RequiredUIs() []libkb.UIKind {
@@ -194,7 +192,6 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 		if err := e.testExisting(); err != nil {
 			return err
 		}
-
 		if err := e.loadDelegator(ctx); err != nil {
 			return err
 		}
@@ -212,7 +209,6 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 		if err := e.push(ctx); err != nil {
 			return err
 		}
-
 		if err := e.exportToGPG(ctx); err != nil {
 			return GPGExportingError{err, true /* inPGPGen */}
 		}

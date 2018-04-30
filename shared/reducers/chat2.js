@@ -221,26 +221,29 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', 0).set('transferState', null)
       })
-    case Chat2Gen.attachmentLoaded:
+    case Chat2Gen.attachmentDownload:
+      if (!action.payload.forShare) {
+        return messageMap
+      }
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
-        const path = action.error ? '' : action.payload.path
-        return action.payload.isPreview
-          ? message.set('devicePreviewPath', path).set('previewTransferState', null)
-          : message
-              .set('transferProgress', 0)
-              .set('transferState', null)
-              .set('deviceFilePath', path)
+        return message.set('transferState', 'downloading')
       })
     case Chat2Gen.attachmentDownloaded:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
+        if (action.payload.forShare) {
+          return message.set('transferState', null)
+        }
         const path = action.error ? '' : action.payload.path
-        return message.set('downloadPath', path)
+        return message
+          .set('downloadPath', path)
+          .set('transferProgress', 0)
+          .set('transferState', null)
       })
     case Chat2Gen.metasReceived:
       const existingPending = messageMap.get(Constants.pendingConversationIDKey)
@@ -380,6 +383,16 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           return editingMap.set(conversationIDKey, found)
         }
         return editingMap
+      })
+    case Chat2Gen.messageSetQuoting:
+      return state.update('quotingMap', quotingMap => {
+        const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
+        // clearing
+        if (!ordinal) {
+          return quotingMap.delete(targetConversationIDKey)
+        }
+        // quoting a specific message
+        return quotingMap.set(targetConversationIDKey, {sourceConversationIDKey, ordinal})
       })
     case Chat2Gen.messagesAdd: {
       const {messages, context} = action.payload
@@ -648,7 +661,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
-    case Chat2Gen.attachmentLoaded:
+    case Chat2Gen.attachmentDownload:
     case Chat2Gen.attachmentDownloaded:
     case Chat2Gen.markConversationsStale:
     case Chat2Gen.notificationSettingsUpdated:
@@ -663,10 +676,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
-    case Chat2Gen.attachmentDownload:
-    case Chat2Gen.attachmentHandleQueue:
-    case Chat2Gen.attachmentLoad:
-    case Chat2Gen.attachmentNeedsUpdating:
     case Chat2Gen.attachmentUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.exitSearch:
@@ -676,6 +685,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.loadOlderMessagesDueToScroll:
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
+    case Chat2Gen.messageReplyPrivately:
     case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
@@ -699,8 +709,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.retryPendingConversation:
       return state
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

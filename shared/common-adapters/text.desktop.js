@@ -55,6 +55,9 @@ class Text extends Component<Props> {
   }
 
   render() {
+    if (!this.props.type) {
+      throw new Error('Missing type on Text')
+    }
     const Span = glamorous.span(
       getStyle(
         this.props.type,

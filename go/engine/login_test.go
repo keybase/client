@@ -2493,6 +2493,9 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 		NoSave:     true,
 	})
 
+	// Reset LoginContext to be `nil`, so that way we get the tc.G.LoginState
+	// session token, rather than the old one in ctx.LoginContext.
+	ctx.LoginContext = nil
 	if err := RunEngine(peng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}

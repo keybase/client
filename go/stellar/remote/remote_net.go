@@ -11,6 +11,8 @@ type RemoteNet struct {
 	libkb.Contextified
 }
 
+var _ Remoter = (*RemoteNet)(nil)
+
 func NewRemoteNet(g *libkb.GlobalContext) *RemoteNet {
 	return &RemoteNet{Contextified: libkb.NewContextified(g)}
 }
@@ -29,4 +31,8 @@ func (r *RemoteNet) SubmitTransaction(ctx context.Context, payload libkb.JSONPay
 
 func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
 	return RecentPayments(ctx, r.G(), accountID, limit)
+}
+
+func (r *RemoteNet) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
+	return PaymentDetail(ctx, r.G(), txID)
 }

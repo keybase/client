@@ -1,78 +1,74 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Text, Icon} from '../../../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
+import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
+import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {
+  desktopStyles,
+  collapseStyles,
   globalStyles,
   globalColors,
   globalMargins,
-  glamorous,
   isMobile,
-  desktopStyles,
+  platformStyles,
 } from '../../../../styles'
 
 type Props = {
-  onClickGear: (evt?: SyntheticEvent<Element>) => void,
+  badgeSubscribe: boolean,
   memberCount: number,
   teamname: string,
-}
+} & FloatingMenuParentProps
 
-class BigTeamHeader extends React.PureComponent<Props> {
+class _BigTeamHeader extends React.PureComponent<Props> {
   render() {
     const props = this.props
 
     return (
-      <HeaderBox>
+      <Box style={teamRowContainerStyle}>
+        <TeamMenu
+          attachTo={props.attachmentRef}
+          visible={props.showingMenu}
+          onHidden={props.toggleShowingMenu}
+          teamname={props.teamname}
+          isSmallTeam={false}
+        />
         <Avatar teamname={props.teamname} size={32} />
         <Text type="BodySmallSemibold" style={teamStyle}>
           {props.teamname}
         </Text>
-        <Icon
-          className="icon"
-          type="iconfont-gear"
-          onClick={isMobile ? () => props.onClickGear() : props.onClickGear}
-          style={iconStyle}
-        />
-      </HeaderBox>
+        <ClickableBox
+          onClick={props.toggleShowingMenu}
+          ref={props.setAttachmentRef}
+          style={collapseStyles([globalStyles.flexBoxRow, {position: 'relative'}])}
+        >
+          <Icon className="icon" type="iconfont-gear" fontSize={iconFontSize} color={globalColors.black_20} />
+          <Box
+            style={collapseStyles([badgeStyle, props.badgeSubscribe && {backgroundColor: globalColors.blue}])}
+          />
+        </ClickableBox>
+      </Box>
     )
   }
 }
 
-const iconStyle = {
-  color: globalColors.black_20,
-  fontSize: isMobile ? 20 : 16,
-  padding: 4,
-  ...(isMobile
-    ? {
-        backgroundColor: globalColors.fastBlank,
-      }
-    : {
-        hoverColor: globalColors.black_75,
-      }),
-}
+const BigTeamHeader = FloatingMenuParentHOC(_BigTeamHeader)
 
-const teamRowContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-  flexShrink: 0,
-  maxHeight: 32,
-  minHeight: 32,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-}
+const iconFontSize = isMobile ? 22 : 16
 
-const HeaderBox = glamorous(Box)({
-  ...teamRowContainerStyle,
-  ...(isMobile
-    ? {}
-    : {
-        '& .icon': {
-          display: 'none !important',
-        },
-        ':hover .icon': {
-          display: 'inherit !important',
-        },
-      }),
+const teamRowContainerStyle = platformStyles({
+  common: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexShrink: 0,
+    paddingLeft: globalMargins.tiny,
+    paddingRight: globalMargins.tiny,
+    maxHeight: 32,
+    minHeight: 32,
+  },
+  isElectron: {
+    ...desktopStyles.clickable,
+  },
+  isMobile: {},
 })
 
 const teamStyle = {
@@ -85,6 +81,15 @@ const teamStyle = {
         backgroundColor: globalColors.fastBlank,
       }
     : {}),
+}
+
+const badgeStyle = {
+  borderRadius: 6,
+  height: 8,
+  top: -1,
+  right: isMobile ? -1 : -3,
+  position: 'absolute',
+  width: 8,
 }
 
 export {BigTeamHeader}

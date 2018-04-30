@@ -65,10 +65,7 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPEncrypt) Run(ctx *Context) error {
 	// verify valid options based on logged in state:
-	ok, uid, err := IsLoggedIn(e, ctx)
-	if err != nil {
-		return err
-	}
+	ok, uid := IsLoggedIn(e, ctx)
 
 	if !ok {
 		// not logged in.  this is fine, unless they requested signing the message.

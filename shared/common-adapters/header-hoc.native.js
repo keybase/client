@@ -26,7 +26,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
             </Text>
           )}
           {onBack && (
-            <BackButton iconStyle={_backButtonIconStyleThemed[theme]} style={_buttonStyle} onClick={onBack} />
+            <BackButton iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
           )}
         </Box>
         <Box style={_wrapperStyle}>
@@ -41,13 +41,9 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   return HeaderHocWrapper
 }
 
-const _backButtonIconStyleThemed = {
-  dark: {
-    color: globalColors.white,
-  },
-  light: {
-    color: globalColors.black_40,
-  },
+const _backButtonIconColorThemed = {
+  dark: globalColors.white,
+  light: globalColors.black_40,
 }
 
 const _containerStyle = {

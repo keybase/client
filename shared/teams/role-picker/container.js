@@ -30,7 +30,7 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
 }
 
 // TODO add stuff for edit membership options
-type DispatchProps = {
+type DispatchProps = {|
   _onAddMember: (
     teamname: Types.Teamname,
     username: string,
@@ -39,14 +39,13 @@ type DispatchProps = {
   ) => void,
   _onEditMember: (teamname: Types.Teamname, username: string, role: Types.TeamRoleType) => void,
   onCancel: () => void,
-}
+|}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(
       TeamsGen.createAddToTeam({
         teamname,
-        email: '',
         username,
         role,
         sendChatNotification: sendNotification,

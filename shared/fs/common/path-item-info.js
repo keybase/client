@@ -8,18 +8,19 @@ type Props = {
   lastModifiedTimestamp: number,
   lastWriter: string,
   wrap?: boolean,
+  startWithLastModified?: boolean,
 }
 
-const PathItemInfo = ({lastModifiedTimestamp, lastWriter, wrap}: Props) => (
-  <Box style={wrap ? timeWriterBoxStyleWithWrap : timeWriterBoxStyle}>
+const PathItemInfo = (props: Props) => (
+  <Box style={props.wrap ? timeWriterBoxStyleWithWrap : timeWriterBoxStyle}>
     <Text type="BodySmall" lineClamp={isMobile ? 1 : undefined}>
-      {formatTimeForFS(lastModifiedTimestamp)}
+      {(props.startWithLastModified ? 'Last modified ' : '') + formatTimeForFS(props.lastModifiedTimestamp)}
     </Text>
-    {lastWriter ? (
+    {props.lastWriter ? (
       <Text type="BodySmall" style={writerTextStyle} lineClamp={isMobile ? 1 : undefined}>
         &nbsp;by&nbsp;
         <Text type="BodySmall" style={writerStyle}>
-          {lastWriter}
+          {props.lastWriter}
         </Text>
       </Text>
     ) : (
@@ -34,8 +35,8 @@ const writerStyle = {
 
 const timeWriterBoxStyle = {
   ...globalStyles.flexBoxRow,
-  width: '100%',
 }
+
 const timeWriterBoxStyleWithWrap = {
   ...timeWriterBoxStyle,
   flexWrap: 'wrap',

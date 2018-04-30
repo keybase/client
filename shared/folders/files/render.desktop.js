@@ -43,7 +43,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
               key={p.name}
               type="Large"
               action={<Box />}
-              icon={<Avatar size={40} username={p.name} />}
+              icon={<Avatar size={48} username={p.name} />}
               body={
                 <Box style={globalStyles.flexBoxColumn}>
                   <Text type="Body" backgroundMode={backgroundMode}>

@@ -56,4 +56,11 @@ protocol common {
     TransactionID stellarID;
   }
 
+  @typedef("string") record OutsideCurrencyCode {}
+
+  record OutsideExchangeRate {
+    OutsideCurrencyCode currency; // Example: PLN
+    string rate; // Example: "0.9389014463" = PLN / XLM
+  }
+
 }

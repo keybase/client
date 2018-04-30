@@ -15,7 +15,7 @@ const sharedProps = {
 }
 
 const load = () => {
-  storiesOf('Edit team description', module)
+  storiesOf('Teams/Edit team description', module)
     .add('Description unchanged', () => (
       <Box style={storyWrapStyle}>
         <EditTeamDescription {...sharedProps} />

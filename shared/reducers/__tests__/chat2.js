@@ -99,5 +99,27 @@ describe('chat2 reducer', () => {
       const state2 = reducer(state1, clearAction)
       expect(state2.editingMap.get(conversationIDKey)).toEqual(undefined)
     })
+
+    it('set and clear quoted message works', () => {
+      const setAction = Chat2Gen.createMessageSetQuoting({
+        ordinal: Types.numberToOrdinal(1),
+        sourceConversationIDKey: conversationIDKey,
+        targetConversationIDKey: conversationIDKey,
+      })
+
+      const state1 = reducer(initialState, setAction)
+      expect(state1.quotingMap.get(conversationIDKey)).toEqual({
+        ordinal: Types.numberToOrdinal(1),
+        sourceConversationIDKey: conversationIDKey,
+      })
+
+      const clearAction = Chat2Gen.createMessageSetQuoting({
+        ordinal: null,
+        sourceConversationIDKey: conversationIDKey,
+        targetConversationIDKey: conversationIDKey,
+      })
+      const state2 = reducer(state1, clearAction)
+      expect(state2.quotingMap.get(conversationIDKey)).toEqual(undefined)
+    })
   })
 })

@@ -33,6 +33,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
         )
 
   return {
+    _fileName: pathItem.name,
     path,
     pathItem,
     isShare,
@@ -64,21 +65,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
             navigateAppend([
               {
                 props: {path, isShare: true},
-                selected: 'rowAction',
+                selected: 'pathItemAction',
               },
             ])
           ),
-      }
-    : {
-        showInFileUI: (path: Types.Path) =>
-          dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
-      }),
-
-  // We don't support share sheet on Android yet.
-  ...(isIOS
-    ? {
         shareNative: (path: Types.Path) => {
-          dispatch(FSGen.createDownload({path, intent: 'share'}))
+          dispatch(FSGen.createDownload({intent: 'share', path}))
           dispatch(
             navigateAppend([
               {
@@ -89,7 +81,10 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
           )
         },
       }
-    : {}),
+    : {
+        showInFileUI: (path: Types.Path) =>
+          dispatch(FSGen.createOpenInFileUI({path: Types.pathToString(path)})),
+      }),
 
   ...(!isIOS
     ? {
@@ -109,13 +104,12 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => showInFileUI(path),
     })
   isMobile &&
-    Constants.isImage(pathItem.name) &&
+    Constants.isMedia(pathItem.name) &&
     menuItems.push({
       title: 'Save',
       onClick: () => saveImage(path),
     })
-  // We don't support the share sheet on Android yet.
-  isIOS &&
+  isMobile &&
     menuItems.push({
       title: 'Share...',
       onClick: () => share(path),

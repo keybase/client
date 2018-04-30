@@ -5,7 +5,7 @@ import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
-import {globalStyles} from '../styles'
+import {globalStyles, collapseStyles} from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component<Props> {
@@ -20,8 +20,8 @@ export default class BackButton extends Component<Props> {
   render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
-        <Box style={{...styles.container, ...this.props.style}}>
-          <Icon type="iconfont-arrow-left" style={{...styles.icon, ...this.props.iconStyle}} />
+        <Box style={collapseStyles([styleContainer, this.props.style])}>
+          <Icon type="iconfont-arrow-left" fontSize={iconFontSize} />
           {(this.props.badgeNumber || 0) > 0 && (
             <Badge badgeNumber={this.props.badgeNumber} badgeStyle={{marginLeft: -3, marginTop: -12}} />
           )}
@@ -31,13 +31,10 @@ export default class BackButton extends Component<Props> {
   }
 }
 
-export const styles = {
-  container: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  icon: {
-    fontSize: 24,
-  },
+export const styleContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  marginRight: 8,
 }
+
+const iconFontSize = 24

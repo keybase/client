@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"sort"
 
@@ -25,6 +26,7 @@ type Outbox struct {
 }
 
 const outboxVersion = 4
+const ephemeralPurgeCutoff = time.Minute * 10
 
 type diskOutbox struct {
 	Version int                  `codec:"V"`
@@ -445,5 +447,59 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 		}
 	}
 
+	return nil
+}
+
+// This is called periodically to ensure exploding messages don't hang out too
+// long in the outbox (since they are not encrypted with ephemeral keys until
+// they leave it). Currently we purge anything that is in the error state and
+// has been in the outbox for > ephemeralPurgeCutoff minutes.
+func (o *Outbox) EphemeralPurge(ctx context.Context) (err error) {
+	defer o.Trace(ctx, func() error { return err }, "EphemeralPurge")()
+
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+
+	// Read outbox for the user
+	obox, rerr := o.readDiskOutbox(ctx)
+	if rerr != nil {
+		return o.maybeNuke(rerr, o.dbKey())
+	}
+
+	var purged, recs []chat1.OutboxRecord
+	now := o.clock.Now()
+	for _, obr := range obox.Records {
+		if obr.Msg.IsExploding() {
+			st, err := obr.State.State()
+			if err != nil {
+				o.Debug(ctx, "purging ephemeral message from outbox with error getting state: %s", err)
+				purged = append(purged, obr)
+				continue
+			}
+			if st == chat1.OutboxStateType_ERROR && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(now) {
+				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s", ephemeralPurgeCutoff, err)
+				purged = append(purged, obr)
+				continue
+			}
+		}
+		recs = append(recs, obr)
+	}
+
+	obox.Records = recs
+
+	// Write out box
+	if err := o.writeDiskBox(ctx, o.dbKey(), obox); err != nil {
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
+	}
+
+	if len(purged) > 0 {
+		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+			OutboxRecords:    purged,
+			IsEphemeralPurge: true,
+		})
+		o.G().NotifyRouter.HandleNewChatActivity(context.Background(),
+			keybase1.UID(o.GetUID().String()), &act)
+	}
 	return nil
 }

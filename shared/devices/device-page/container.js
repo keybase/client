@@ -3,7 +3,7 @@ import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DevicePage from '.'
 import moment from 'moment'
-import {connect, type TypedState} from '../../util/container'
+import {compose, connect, type TypedState, setDisplayName} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 import {type DeviceDetail} from '../../constants/types/devices'
 
@@ -59,9 +59,6 @@ const revokeName = type =>
   }[type])
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  bannerBackgroundColor: undefined,
-  bannerColor: undefined,
-  bannerDesc: null, // TODO at some point
   currentDevice: stateProps.device.currentDevice,
   deviceID: stateProps.device.deviceID,
   icon: icon(stateProps.device.type),
@@ -74,4 +71,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   type: stateProps.device.type,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(DevicePage)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('DevicePage')
+)(DevicePage)

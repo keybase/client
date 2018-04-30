@@ -5,6 +5,7 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type UserInfo struct {
@@ -20,7 +21,7 @@ type CurrentStatus struct {
 	User           *User
 }
 
-func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
+func GetCurrentStatus(ctx context.Context, g *GlobalContext) (res CurrentStatus, err error) {
 	cr := g.Env.GetConfig()
 	if cr == nil {
 		return
@@ -30,7 +31,7 @@ func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
 		res.Registered = true
 		res.User = NewUserThin(cr.GetUsername().String(), uid)
 	}
-	res.SessionIsValid, err = g.LoginState().LoggedInProvisionedCheck()
+	res.SessionIsValid, err = g.LoginState().LoggedInProvisioned(ctx)
 	res.LoggedIn = res.SessionIsValid
 	return
 }

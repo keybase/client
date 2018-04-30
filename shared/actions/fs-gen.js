@@ -27,10 +27,10 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const openInFileUI = 'fs:openInFileUI'
+export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
-export const syncingStatus = 'fs:syncingStatus'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
@@ -40,9 +40,9 @@ export const createCancelTransfer = (payload: $ReadOnly<{|key: string|}>) => ({e
 export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({error: false, payload, type: dismissTransfer})
 export const createDownload = (
   payload: $ReadOnly<{|
+    intent: Types.TransferIntent,
     path: Types.Path,
     localPath?: string,
-    intent: Types.TransferIntent,
   |}>
 ) => ({error: false, payload, type: download})
 export const createDownloadFinished = (
@@ -88,13 +88,16 @@ export const createInstallFuse = () => ({error: false, payload: undefined, type:
 export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
 export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
+export const createOpenSecurityPreferences = () => ({error: false, payload: undefined, type: openSecurityPreferences})
 export const createSetFlags = (
   payload: $ReadOnly<{|
     kbfsOpening?: boolean,
     kbfsInstalling?: boolean,
     fuseInstalling?: boolean,
     kextPermissionError?: boolean,
+    securityPrefsPropmted?: boolean,
     showBanner?: boolean,
+    syncing?: boolean,
   |}>
 ) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
@@ -104,7 +107,6 @@ export const createSortSetting = (
     sortSetting: Types.SortSetting,
   |}>
 ) => ({error: false, payload, type: sortSetting})
-export const createSyncingStatus = (payload: $ReadOnly<{|isSyncing: boolean|}>) => ({error: false, payload, type: syncingStatus})
 export const createTransferProgress = (
   payload: $ReadOnly<{|
     key: string,
@@ -134,10 +136,10 @@ export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
 export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
+export type OpenSecurityPreferencesPayload = More.ReturnType<typeof createOpenSecurityPreferences>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
-export type SyncingStatusPayload = More.ReturnType<typeof createSyncingStatus>
 export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
 export type UninstallKBFSPayload = More.ReturnType<typeof createUninstallKBFS>
@@ -163,10 +165,10 @@ export type Actions =
   | More.ReturnType<typeof createInstallFuseResult>
   | More.ReturnType<typeof createInstallKBFS>
   | More.ReturnType<typeof createOpenInFileUI>
+  | More.ReturnType<typeof createOpenSecurityPreferences>
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>
-  | More.ReturnType<typeof createSyncingStatus>
   | More.ReturnType<typeof createTransferProgress>
   | More.ReturnType<typeof createUninstallKBFS>
   | More.ReturnType<typeof createUninstallKBFSConfirm>

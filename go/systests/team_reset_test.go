@@ -557,7 +557,7 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	bob.readChats(team, 1)
 }
 
-func TestTeamOpenReset(t *testing.T) {
+func TestTeamResetOpen(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -568,9 +568,6 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
-	ann.setUIDMapperNoCachingMode(true)
-	bob.setUIDMapperNoCachingMode(true)
-
 	team := ann.createTeam([]*smuUser{bob})
 	divDebug(ctx, "team created (%s)", team.name)
 	ann.openTeam(team, keybase1.TeamRole_WRITER)
@@ -580,9 +577,13 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
+	// Expecting that CLKR handler will remove bob from the team.
 	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
 	t.Logf("details from poll: %+v", details)
-	ann.assertMemberInactive(team, bob)
+	teamObj := ann.loadTeam(team.name, false)
+	_, err := teamObj.UserVersionByUID(context.Background(), bob.uid())
+	require.Error(t, err, "expecting reset user to be removed from the team")
+	require.Contains(t, err.Error(), "did not find user")
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
@@ -590,8 +591,14 @@ func TestTeamOpenReset(t *testing.T) {
 	bob.requestAccess(team)
 	divDebug(ctx, "Bob requested access to open team after reset")
 
-	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(3), nil)
+	ann.pollForTeamSeqnoLink(team, teamObj.NextSeqno())
 	ann.assertMemberActive(team, bob)
+
+	// Generation should still be 2 - expecting just one rotate when
+	// bob is kicked out, and after he requests access again, he is
+	// just added in.
+	teamObj = ann.loadTeam(team.name, false)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), teamObj.Generation())
 }
 
 func TestTeamListAfterReset(t *testing.T) {

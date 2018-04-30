@@ -40,6 +40,12 @@ func makeMsgPlaintext(body string, uid gregor1.UID) chat1.MessagePlaintext {
 	}
 }
 
+func makeMsgPlaintextEphemeral(body string, uid gregor1.UID, ephemeralMetadata *chat1.MsgEphemeralMetadata) chat1.MessagePlaintext {
+	msg := makeMsgPlaintext(body, uid)
+	msg.ClientHeader.EphemeralMetadata = ephemeralMetadata
+	return msg
+}
+
 func TestChatOutbox(t *testing.T) {
 
 	_, ob, uid, cl := setupOutboxTest(t, "outbox")
@@ -132,4 +138,58 @@ func TestChatOutbox(t *testing.T) {
 	tv.Messages = nil
 	require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
 	require.Zero(t, len(tv.Messages))
+}
+
+func TestChatOutboxEphemeralPurge(t *testing.T) {
+
+	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+
+	var obrs []chat1.OutboxRecord
+	conv := makeConvo(gregor1.Time(5), 1, 1)
+
+	prevOrdinal := 1
+	ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
+	for i := 0; i < 5; i++ {
+		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintextEphemeral("hi", uid, ephemeralMetadata),
+			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		require.Equal(t, obr.Ordinal, prevOrdinal)
+		prevOrdinal++
+		require.NoError(t, err)
+		obrs = append(obrs, obr)
+		cl.Advance(time.Millisecond)
+	}
+
+	res, err := ob.PullAllConversations(context.TODO(), true, false)
+	require.NoError(t, err)
+	require.Equal(t, obrs, res, "wrong obids")
+
+	// Nothing is in the error state & expired, so we should not have purged anything
+	err = ob.EphemeralPurge(context.TODO())
+	require.NoError(t, err)
+
+	res, err = ob.PullAllConversations(context.TODO(), true, false)
+	require.NoError(t, err)
+	require.Equal(t, obrs, res, "wrong obids")
+
+	// Mark one as an error, but it is not considered expired
+	errRec := chat1.OutboxStateError{
+		Message: "failed",
+		Typ:     chat1.OutboxErrorType_MISC,
+	}
+	require.NoError(t, ob.MarkAsError(context.TODO(), obrs[0], errRec))
+	obrs[0].State = chat1.NewOutboxStateWithError(errRec)
+
+	err = ob.EphemeralPurge(context.TODO())
+	require.NoError(t, err)
+	res, err = ob.PullAllConversations(context.TODO(), true, false)
+	require.NoError(t, err)
+	require.Equal(t, obrs, res, "wrong obids")
+
+	// move the clock forward and it this should get purged
+	cl.Advance(ephemeralPurgeCutoff)
+	err = ob.EphemeralPurge(context.TODO())
+	require.NoError(t, err)
+	res, err = ob.PullAllConversations(context.TODO(), true, false)
+	require.NoError(t, err)
+	require.Equal(t, obrs[1:], res, "wrong obids")
 }

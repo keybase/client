@@ -18,8 +18,11 @@ const unexpected = (name: string) => () => {
  *                       The Provider will ignore all dispatched actions. It also wraps the component
  *                       tree in an <ErrorBoundary /> that adds auxiliary info in case of an error.
  */
+// Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
+// work around this issue
+let uniqueProviderKey = 1
 const createPropProvider = (map: SelectorMap) => (story: () => React.Node) => (
-  <Provider store={createStore(state => state, map)}>
+  <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, map)}>
     <StorybookErrorBoundary children={story()} />
   </Provider>
 )

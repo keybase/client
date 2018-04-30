@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Button, Icon, ButtonBar} from '../common-adapters'
-import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
+import {globalColors, globalStyles, desktopStyles, platformStyles, collapseStyles} from '../styles'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
@@ -27,7 +27,8 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
         {inviteLink && (
           <Box style={stylesLinkBox}>
             <Icon
-              style={{color: globalColors.black_10, marginTop: 3}}
+              style={{marginTop: 3}}
+              color={globalColors.black_10}
               type="iconfont-link"
               onClick={() => {
                 textRef && textRef.highlightText()
@@ -104,12 +105,14 @@ const stylesContainer = {
   padding: 24,
 }
 
-const stylesClose = {
-  ...desktopStyles.windowDraggingClickable,
-  position: 'absolute',
-  right: 8,
-  top: 8,
-}
+const stylesClose = collapseStyles([
+  desktopStyles.windowDraggingClickable,
+  {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+  },
+])
 
 const stylesLinkBox = {
   ...globalStyles.flexBoxRow,

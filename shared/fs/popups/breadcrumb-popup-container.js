@@ -33,6 +33,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       acc = Types.pathConcat(acc, elem)
       const currentPath = acc
       return {
+        path: currentPath,
         name: elem,
         styles: Constants.getItemStyles(currentElems, 'folder', _username),
         onOpenBreadcrumb: () => _onOpenBreadcrumb(currentPath),
