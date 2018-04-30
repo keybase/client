@@ -73,15 +73,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
-  onClickShowcased: (target, team) =>
-    dispatch(
-      navigateAppend([
-        {
-          props: {position: 'bottom left', targetRect: target && target.getBoundingClientRect(), team},
-          selected: 'showcasedTeamInfo',
-        },
-      ])
-    ),
   onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
   onEditAvatar: () => dispatch(navigateAppend(['editAvatar'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
@@ -155,7 +146,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onClickAvatar: () => dispatchProps.onClickAvatar(username),
     onClickFollowers: () => dispatchProps.onClickFollowers(username),
     onClickFollowing: () => dispatchProps.onClickFollowing(username),
-    onClickShowcased: (event, teamname) => dispatchProps.onClickShowcased(event, teamname),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
     onFollow: () => dispatchProps.onFollow(username),
     onSearch: () => dispatchProps.onSearch(),

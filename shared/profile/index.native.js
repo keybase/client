@@ -22,6 +22,8 @@ import {
   UserProofs,
 } from '../common-adapters/index.native'
 import UserActions from './user-actions'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import ShowcasedTeamInfo from './showcased-team-info/container'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
@@ -63,29 +65,30 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
   </ClickableBox>
 )
 
-const ShowcasedTeamRow = ({
-  onClickShowcased,
-  team,
-}: {
-  onClickShowcased: (event: ?HTMLElement, team: UserTeamShowcase) => void,
-  team: any,
-}) => (
-  <ClickableBox
-    key={team.fqName}
-    onClick={event => onClickShowcased(null, team)}
-    style={styleShowcasedTeamContainer}
-  >
+const _ShowcasedTeamRow = (
+  props: {
+    team: UserTeamShowcase,
+  } & FloatingMenuParentProps
+) => (
+  <ClickableBox key={props.team.fqName} onClick={props.toggleShowingMenu} style={styleShowcasedTeamContainer}>
+    <ShowcasedTeamInfo
+      attachTo={props.attachmentRef}
+      onHidden={props.toggleShowingMenu}
+      team={props.team}
+      visible={props.showingMenu}
+    />
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={team.fqName} size={40} />
+      <Avatar teamname={props.team.fqName} size={40} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-        {team.fqName}
+        {props.team.fqName}
       </Text>
-      {team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
+      {props.team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
     </Box>
   </ClickableBox>
 )
+const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
 
 class Profile extends Component<Props, State> {
   state = {
@@ -297,11 +300,7 @@ class Profile extends Component<Props, State> {
 
           {this.props.userInfo.showcasedTeams.length > 0
             ? this.props.userInfo.showcasedTeams.map(team => (
-                <ShowcasedTeamRow
-                  key={team.fqName}
-                  onClickShowcased={this.props.onClickShowcased}
-                  team={team}
-                />
+                <ShowcasedTeamRow key={team.fqName} team={team} />
               ))
             : showShowcaseTeamsOffer && (
                 <ShowcaseTeamsOffer onClickShowcaseOffer={this.props.onClickShowcaseOffer} />

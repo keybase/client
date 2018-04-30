@@ -16,8 +16,6 @@ import ControlledRolePicker from './role-picker/controlled-container'
 import Member from './team/member/container'
 import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
-import TeamMenu from './team/menu-container'
-import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import {isMobile} from '../constants/platform'
 
@@ -109,11 +107,6 @@ const teamRoute = makeRouteDefNode({
       children: {},
       component: MaybePopupHoc(true)(EditTeamDescription),
       tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    menu: {
-      children: {},
-      component: isMobile ? TeamMenu : RelativePopupHoc(TeamMenu),
-      tags: makeLeafTags({layerOnTop: true}),
     },
   },
   component: Team,
