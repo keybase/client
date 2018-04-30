@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Button, Meta, Text, Usernames} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 import FloatingMenu from '../../common-adapters/floating-menu'
 
 export type Props = {
@@ -15,7 +15,6 @@ export type Props = {
   openTeam: boolean,
   publicAdmins: Array<string>,
   publicAdminsOthers: number,
-  style?: Object,
   teamJoinError: string,
   teamJoinSuccess: boolean,
   teamname: string,
@@ -26,20 +25,25 @@ export type Props = {
 
 const TeamInfo = (props: Props) => (
   <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      textAlign: 'center',
-    }}
+    style={platformStyles({
+      common: {
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        textAlign: 'center',
+      },
+      isElectron: {
+        width: 220,
+      },
+    })}
   >
     <Box
       style={{
-        height: isMobile ? 64 : 40,
+        height: isMobile ? 64 : 48,
         marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
         marginBottom: globalMargins.xtiny,
       }}
     >
-      <Avatar teamname={props.teamname} size={isMobile ? 64 : 40} />
+      <Avatar teamname={props.teamname} size={isMobile ? 64 : 48} />
     </Box>
     <Text type="Header">{props.teamname}</Text>
 
@@ -166,6 +170,7 @@ const TeamInfoWrapper = (props: Props) => {
       onHidden={props.onHidden}
       visible={props.visible}
       header={header}
+      position="bottom left"
       items={[]}
     />
   )

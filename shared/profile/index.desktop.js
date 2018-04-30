@@ -20,6 +20,8 @@ import {
 } from '../common-adapters'
 import UserActions from './user-actions'
 import {PopupHeaderText} from '../common-adapters/popup-menu'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import ShowcasedTeamInfo from './showcased-team-info/container'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -66,29 +68,35 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
   </Box>
 )
 
-const ShowcasedTeamRow = ({
-  onClickShowcased,
-  team,
-}: {
-  onClickShowcased: (event: HTMLElement, team: UserTeamShowcase) => void,
-  team: UserTeamShowcase,
-}) => (
+const _ShowcasedTeamRow = (
+  props: {
+    team: UserTeamShowcase,
+  } & FloatingMenuParentProps
+) => (
   <Box
-    key={team.fqName}
-    onClick={event => onClickShowcased(event.target, team)}
+    key={props.team.fqName}
+    ref={props.setAttachmentRef}
+    onClick={props.toggleShowingMenu}
     style={styleShowcasedTeamContainer}
   >
+    <ShowcasedTeamInfo
+      attachTo={props.attachmentRef}
+      onHidden={props.toggleShowingMenu}
+      team={props.team}
+      visible={props.showingMenu}
+    />
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={team.fqName} size={24} />
+      <Avatar teamname={props.team.fqName} size={24} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-        {team.fqName}
+        {props.team.fqName}
       </Text>
-      {team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
+      {props.team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
     </Box>
   </Box>
 )
+const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
 
 class ProfileRender extends PureComponent<Props, State> {
   state: State
