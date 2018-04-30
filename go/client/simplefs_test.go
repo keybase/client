@@ -164,6 +164,11 @@ func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncSt
 	return keybase1.FSSyncStatus{}, nil
 }
 
+// SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (keybase1.SimpleFSGetHTTPAddressAndTokenResponse, error) {
+	return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, nil
+}
+
 /*
  file source cases:
  1. file
