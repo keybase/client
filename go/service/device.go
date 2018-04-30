@@ -43,13 +43,13 @@ func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1
 // DeviceHistoryList returns a list of all the devices for a user,
 // with detailed history and provisioner, revoker information.
 func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) ([]keybase1.DeviceDetail, error) {
-	ctx := &engine.Context{
-		LogUI:      h.getLogUI(sessionID),
-		NetContext: nctx,
-		SessionID:  sessionID,
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(sessionID),
+		SessionID: sessionID,
 	}
 	eng := engine.NewDeviceHistorySelf(h.G())
-	if err := engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(nctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng.Devices(), nil

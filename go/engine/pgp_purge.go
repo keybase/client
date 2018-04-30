@@ -54,14 +54,12 @@ func (e *PGPPurge) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPPurge) Run(ctx *Context) error {
+func (e *PGPPurge) Run(m libkb.MetaContext) error {
 	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
 	if err != nil {
 		return err
 	}
 	e.me = me
-
-	m := NewMetaContext(e, ctx)
 
 	// get all PGP blocks in keyring
 	var blocks []*libkb.SKB
@@ -76,7 +74,7 @@ func (e *PGPPurge) Run(ctx *Context) error {
 	}
 
 	// export each one to a file
-	if err := e.exportBlocks(m, ctx, blocks); err != nil {
+	if err := e.exportBlocks(m, blocks); err != nil {
 		return err
 	}
 
@@ -104,10 +102,10 @@ func (e *PGPPurge) KeyFiles() []string {
 	return e.filenames
 }
 
-func (e *PGPPurge) exportBlocks(m libkb.MetaContext, ctx *Context, blocks []*libkb.SKB) error {
+func (e *PGPPurge) exportBlocks(m libkb.MetaContext, blocks []*libkb.SKB) error {
 	sstore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
 	promptArg := libkb.SecretKeyPromptArg{
-		SecretUI: ctx.SecretUI,
+		SecretUI: m.UIs().SecretUI,
 		Reason:   "export private PGP key",
 	}
 
@@ -125,7 +123,7 @@ func (e *PGPPurge) exportBlocks(m libkb.MetaContext, ctx *Context, blocks []*lib
 
 		name := fmt.Sprintf("kb-%04d-%s.saltpack", i, pgpKey.GetFingerprint())
 		path := filepath.Join(e.G().Env.GetConfigDir(), name)
-		if err := e.encryptToFile(ctx, pgpKey, path); err != nil {
+		if err := e.encryptToFile(m, pgpKey, path); err != nil {
 			return err
 		}
 
@@ -135,7 +133,7 @@ func (e *PGPPurge) exportBlocks(m libkb.MetaContext, ctx *Context, blocks []*lib
 	return nil
 }
 
-func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filename string) error {
+func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, filename string) error {
 	out, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -157,6 +155,6 @@ func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filen
 			EncryptionOnlyMode: true,
 		},
 	}
-	eng := NewSaltpackEncrypt(arg, e.G())
-	return RunEngine(eng, ctx)
+	eng := NewSaltpackEncrypt(e.G(), arg)
+	return RunEngine2(m, eng)
 }

@@ -47,7 +47,7 @@ func TestSaltpackDecrypt(t *testing.T) {
 	// encrypt a message
 	msg := "10 days in Japan"
 	sink := libkb.NewBufferCloser()
-	ctx := &Context{
+	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
@@ -58,12 +58,15 @@ func TestSaltpackDecrypt(t *testing.T) {
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 	}
-	enc := NewSaltpackEncrypt(arg, tc.G)
+	enc := NewSaltpackEncrypt(tc.G, arg)
 	enc.skipTLFKeysForTesting = true
-	if err := RunEngine(enc, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.String()
+
+	ctx := engineContextFromMetaContext(m)
 
 	t.Logf("encrypted data: %s", out)
 
@@ -145,7 +148,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 	// encrypt a message
 	msg := "10 days in Japan"
 	sink := libkb.NewBufferCloser()
-	ctx := &Context{
+	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   proofUser.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
@@ -162,9 +165,10 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 			},
 		},
 	}
-	enc := NewSaltpackEncrypt(arg, tc.G)
+	enc := NewSaltpackEncrypt(tc.G, arg)
 	enc.skipTLFKeysForTesting = true
-	if err := RunEngine(enc, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.String()
@@ -174,9 +178,9 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 	sink = libkb.NewBufferCloser()
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = sink
-	enc = NewSaltpackEncrypt(arg, tc.G)
+	enc = NewSaltpackEncrypt(tc.G, arg)
 	enc.skipTLFKeysForTesting = true
-	if err := RunEngine(enc, ctx); err != nil {
+	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
 	}
 	outHidden := sink.String()
@@ -212,6 +216,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		}
 		return nil
 	}
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(dec, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -307,7 +312,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	// encrypt a message with encryption / tcZ
 	msg := "10 days in Japan"
 	sink := libkb.NewBufferCloser()
-	ctx := &Context{
+	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   encryptor.NewSecretUI(),
 		LogUI:      tcZ.G.UI.GetLogUI(),
@@ -327,12 +332,13 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 			EncryptionOnlyMode: true,
 		},
 	}
-	enc := NewSaltpackEncrypt(arg, tcZ.G)
+	enc := NewSaltpackEncrypt(tcZ.G, arg)
+	m := NewMetaContextForTest(tcZ).WithUIs(uis)
 	// The error messages in this test only work for visible recipients, which
 	// aren't the default anymore.
 	enc.visibleRecipientsForTesting = true
 
-	if err := RunEngine(enc, ctx); err != nil {
+	if err := RunEngine2(m, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.String()
@@ -350,7 +356,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		}
 		return nil
 	}
-	ctx = &Context{
+	ctx := &Context{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   userX.NewSecretUI(),
 		LogUI:      tcX.G.UI.GetLogUI(),
@@ -370,7 +376,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	secretCh := make(chan kex2.Secret)
 
 	// provisionee calls login:
-	uis := libkb.UIs{
+	uis = libkb.UIs{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),

@@ -16,9 +16,9 @@ func TestDeviceHistoryBasic(t *testing.T) {
 
 	CreateAndSignupFakeUserPaper(tc, "dhst")
 
-	ctx := &Context{}
 	eng := NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	devs := eng.Devices()
@@ -65,7 +65,8 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	u := CreateAndSignupFakeUserPaper(tc, "dhst")
 
 	eng := NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(eng, &Context{}); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -98,17 +99,15 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 		SecretUI: u.NewSecretUI(),
 		LogUI:    tc.G.UI.GetLogUI(),
 	}
-	m := NewMetaContextForTest(tc).WithUIs(uis)
+	m = NewMetaContextForTest(tc).WithUIs(uis)
 	reng := NewRevokeDeviceEngine(tc.G, RevokeDeviceEngineArgs{ID: paper.Device.DeviceID})
 	if err := RunEngine2(m, reng); err != nil {
 		t.Fatal(err)
 	}
 
-	ctx := engineContextFromMetaContext(m)
-
 	// get history after revoke
 	eng = NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -179,9 +178,8 @@ func TestDeviceHistoryPGP(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx := &Context{}
 	heng := NewDeviceHistorySelf(tc.G)
-	if err := RunEngine(heng, ctx); err != nil {
+	if err := RunEngine2(m, heng); err != nil {
 		t.Fatal(err)
 	}
 	devs := heng.Devices()

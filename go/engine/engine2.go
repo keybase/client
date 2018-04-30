@@ -6,6 +6,7 @@ package engine
 import (
 	"fmt"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"runtime/debug"
 )
 
@@ -16,8 +17,13 @@ type Engine2 interface {
 	G() *libkb.GlobalContext
 }
 
+func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID, err error) {
+	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
+	return ret, uid, err
+}
+
 func isLoggedInWithError(m libkb.MetaContext) (ret bool, err error) {
-	ret, _, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
+	ret, _, err = isLoggedInWithUIDAndError(m)
 	return ret, err
 }
 

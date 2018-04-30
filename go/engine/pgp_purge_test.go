@@ -20,13 +20,14 @@ func TestPGPPurgeLksec(t *testing.T) {
 	idUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:   &libkb.TestSecretUI{}, // empty on purpose...shouldn't be necessary
 		SaltpackUI: &fakeSaltpackUI{},
 		IdentifyUI: idUI,
 	}
 	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{})
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -45,13 +46,14 @@ func TestPGPPurgeRemove(t *testing.T) {
 	idUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:   &libkb.TestSecretUI{}, // empty on purpose...shouldn't be necessary
 		SaltpackUI: &fakeSaltpackUI{},
 		IdentifyUI: idUI,
 	}
 	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -70,7 +72,7 @@ func TestPGPPurgeRemove(t *testing.T) {
 	// redo, should purge 0 files
 
 	eng = NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -108,13 +110,14 @@ func TestPGPPurgeSync(t *testing.T) {
 	idUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	ctx := &Context{
+	uis = libkb.UIs{
 		SecretUI:   &libkb.TestSecretUI{}, // empty on purpose...shouldn't be necessary
 		SaltpackUI: &fakeSaltpackUI{},
 		IdentifyUI: idUI,
 	}
 	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{})
-	if err := RunEngine(eng, ctx); err != nil {
+	m = NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

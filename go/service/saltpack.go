@@ -73,7 +73,7 @@ func (h *SaltpackHandler) SaltpackDecrypt(_ context.Context, arg keybase1.Saltpa
 	return info, err
 }
 
-func (h *SaltpackHandler) SaltpackEncrypt(_ context.Context, arg keybase1.SaltpackEncryptArg) error {
+func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.SaltpackEncryptArg) error {
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -83,13 +83,14 @@ func (h *SaltpackHandler) SaltpackEncrypt(_ context.Context, arg keybase1.Saltpa
 		Source: src,
 	}
 
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewSaltpackEncrypt(earg, h.G())
-	return engine.RunEngine(eng, ctx)
+	eng := engine.NewSaltpackEncrypt(h.G(), earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *SaltpackHandler) SaltpackSign(_ context.Context, arg keybase1.SaltpackSignArg) error {

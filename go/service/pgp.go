@@ -282,16 +282,16 @@ func (h *PGPHandler) PGPUpdate(_ context.Context, arg keybase1.PGPUpdateArg) err
 }
 
 func (h *PGPHandler) PGPPurge(ctx context.Context, arg keybase1.PGPPurgeArg) (keybase1.PGPPurgeRes, error) {
-	ectx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:      h.getLogUI(arg.SessionID),
 		SessionID:  arg.SessionID,
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		NetContext: ctx,
 	}
 	eng := engine.NewPGPPurge(h.G(), arg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	var res keybase1.PGPPurgeRes
-	if err := engine.RunEngine(eng, ectx); err != nil {
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return res, err
 	}
 	res.Filenames = eng.KeyFiles()
