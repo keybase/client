@@ -28,9 +28,9 @@ const FloatingPicker = (props: Props) => {
   return (
     // onHidden required by the typing for desktop, not used on mobile
     <FloatingBox onHidden={() => {}}>
-      <TouchableWithoutFeedback style={styleOverlayContainer} onPress={props.onHidden}>
-        <Box style={styleOverlay}>
-          <Box2 direction="vertical" fullWidth={true} style={styleMenu}>
+      <TouchableWithoutFeedback style={styles.overlayContainer} onPress={props.onHidden}>
+        <Box style={[styles.overlayContainer, styles.overlay]}>
+          <Box2 direction="vertical" fullWidth={true} style={styles.menu}>
             {props.header}
             <Box2
               direction="horizontal"
@@ -38,20 +38,16 @@ const FloatingPicker = (props: Props) => {
               gapStart={true}
               gapEnd={true}
               fullWidth={true}
-              style={styleActionButtons}
+              style={styles.actionButtons}
             >
               <Text
                 type="BodySemibold"
-                style={{color: globalColors.blue, fontSize: 17, flex: 1}}
+                style={[styles.link, styles.cancelContainer]}
                 onClick={props.onCancel}
               >
                 Cancel
               </Text>
-              <Text
-                type="BodySemibold"
-                style={{color: globalColors.blue, fontSize: 17}}
-                onClick={props.onDone}
-              >
+              <Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
                 Done
               </Text>
             </Box2>
@@ -60,7 +56,7 @@ const FloatingPicker = (props: Props) => {
               selectedValue={props.selectedValue}
               onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
               prompt={props.promptString}
-              style={stylePickerAndroid}
+              style={styles.picker}
             >
               {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
             </Picker>
@@ -71,38 +67,45 @@ const FloatingPicker = (props: Props) => {
   )
 }
 
-const styleOverlayContainer = {
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
-}
-
-const styleOverlay = {
-  ...styleOverlayContainer,
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-end',
-  alignItems: 'stretch',
-  backgroundColor: globalColors.black_40,
-}
-
-const styleMenu = {
-  justifyContent: 'flex-end',
-  alignItems: 'stretch',
-  backgroundColor: globalColors.white,
-}
-
-const styleActionButtons = {
-  paddingBottom: globalMargins.small,
-  paddingTop: globalMargins.small,
-  height: 56,
-  justifyContent: 'flex-end',
-  alignItems: 'stretch',
-}
-
-const stylePickerAndroid = styleSheetCreate(
-  platformStyles({isAndroid: {marginBottom: globalMargins.large, marginTop: globalMargins.medium}})
-)
+const styles = styleSheetCreate({
+  overlayContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  overlay: {
+    ...globalStyles.flexBoxColumn,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    backgroundColor: globalColors.black_40,
+  },
+  menu: {
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    backgroundColor: globalColors.white,
+  },
+  cancelContainer: {
+    flex: 1,
+  },
+  link: {
+    color: globalColors.blue,
+    fontSize: 17,
+  },
+  actionButtons: {
+    paddingBottom: globalMargins.small,
+    paddingTop: globalMargins.small,
+    height: 56,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+  },
+  picker: platformStyles({
+    isAndroid: {
+      marginBottom: globalMargins.large,
+      marginTop: globalMargins.medium,
+    },
+  }),
+})
 
 export {FloatingPicker}
