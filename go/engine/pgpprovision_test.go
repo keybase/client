@@ -24,13 +24,14 @@ func TestPGPProvision(t *testing.T) {
 	defer tc2.Cleanup()
 
 	// run PGPProvision on new device
-	ctx := &Context{
+	uis := libkb.UIs{
 		LoginUI:  &libkb.TestLoginUI{Username: u1.Username},
 		SecretUI: &libkb.TestSecretUI{},
 		LogUI:    tc2.G.UI.GetLogUI(),
 	}
 	eng := NewPGPProvision(tc2.G, u1.Username, "new device", u1.Passphrase)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

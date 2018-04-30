@@ -225,15 +225,16 @@ func CreateAndSignupFakeUserWithPassphrase(tc libkb.TestContext, prefix, passphr
 }
 
 func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalContext) error {
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUI(),
 		LogUI:       g.UI.GetLogUI(),
 		GPGUI:       &gpgtestui{},
 		SecretUI:    secui,
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	li := NewLogin(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
-	return RunEngine(li, ctx)
+	return RunEngine2(m, li)
 }
 
 func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
@@ -373,7 +374,7 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 	secUI.Passphrase = loginUI.PaperPhrase
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
-	ctx := &Context{
+	uis = libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       dev2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -381,7 +382,8 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(dev2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m2 := NewMetaContextForTest(dev2).WithUIs(uis)
+	if err := RunEngine2(m2, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -425,10 +427,11 @@ func ResetAccountNoLogout(tc libkb.TestContext, u *FakeUser) {
 func ForcePUK(tc libkb.TestContext) {
 	arg := &PerUserKeyUpgradeArgs{}
 	eng := NewPerUserKeyUpgrade(tc.G, arg)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		tc.T.Fatal(err)
 	}
 }

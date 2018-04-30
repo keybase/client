@@ -619,13 +619,11 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 // Get a per-user key.
 // Wait for attempt but only warn on error.
 func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {
-	ectx := engine.Context{
-		NetContext: ctx,
-	}
+	m := libkb.NewMetaContext(ctx, g)
 	arg := &engine.PerUserKeyUpgradeArgs{}
 	eng := engine.NewPerUserKeyUpgrade(g, arg)
-	err := engine.RunEngine(eng, &ectx)
+	err := engine.RunEngine2(m, eng)
 	if err != nil {
-		g.Log.CDebugf(ctx, "PerUserKeyUpgrade failed (%s): %v", reason, err)
+		m.CDebugf("PerUserKeyUpgrade failed (%s): %v", reason, err)
 	}
 }
