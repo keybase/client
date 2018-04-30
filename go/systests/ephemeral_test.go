@@ -132,7 +132,7 @@ func TestResetMember(t *testing.T) {
 	require.NoError(t, err)
 	teamID := teamName.ToPrivateTeamID()
 
-	// reset bob, invaliding any userEK he has.
+	// Reset bob, invaliding any userEK he has.
 	bob.reset()
 
 	annEkLib := annG.GetEKLib()
@@ -146,8 +146,8 @@ func TestResetMember(t *testing.T) {
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 	require.NoError(t, annErr)
 
-	// bob should not have access to this teamEK since he does not have a valid
-	// userEK after resetting
+	// Bob should not have access to this teamEK since he's no longer in the
+	// team after resetting.
 	bobTeamEK, bobErr := getTeamEK(bobG, teamID, expectedGeneration)
 	require.Error(t, bobErr)
 
@@ -163,7 +163,9 @@ func TestResetMember(t *testing.T) {
 
 	expectedMetadata2 := teamEK2.Metadata
 	expectedGeneration2 := expectedMetadata2.Generation
-	require.Equal(t, expectedGeneration+1, expectedGeneration2)
+	// We can't require that the next generation is exactly 1 greater than the
+	// previous, because there's a race where a CLKR sneaks in here.
+	require.True(t, expectedGeneration < expectedGeneration2)
 
 	annTeamEK, annErr = getTeamEK(annG, teamID, expectedGeneration2)
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
