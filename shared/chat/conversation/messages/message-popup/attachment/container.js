@@ -1,4 +1,5 @@
 // @flow
+import type {Component} from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Route from '../../../../../actions/route-tree'
@@ -7,11 +8,15 @@ import * as Types from '../../../../../constants/types/chat2'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Attachment from '.'
 
 type OwnProps = {
+  attachTo: ?Component<*, *>,
   message: Types.MessageAttachment,
-  onClosePopup: () => void,
+  onHidden: () => void,
+  position: Position,
+  visible: boolean,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -72,17 +77,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const yourMessage = message.author === stateProps._you
   return {
+    attachTo: ownProps.attachTo,
     message,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)
       : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    onHidden: () => ownProps.onClosePopup(),
+    onHidden: () => ownProps.onHidden(),
     onSaveAttachment:
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
+    position: ownProps.position,
+    visible: ownProps.visible,
     yourMessage,
   }
 }
