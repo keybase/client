@@ -159,6 +159,10 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   transformText = (fn: TextInfo => TextInfo) => {
+    if (!this.props.uncontrolled) {
+      throw new Error('transformText can only be called on uncontrolled components')
+    }
+
     const n = this._input
     if (n) {
       const textInfo = {

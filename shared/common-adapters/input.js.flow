@@ -91,5 +91,7 @@ declare export default class Input extends Component<Props> {
     newSelectionStart: number,
     newSelectionEnd: number
   ) => void;
+  // transformText must only be called on uncontrolled Input
+  // components.
   transformText: (fn: (TextInfo) => TextInfo) => void;
 }
