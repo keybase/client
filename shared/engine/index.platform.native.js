@@ -78,7 +78,7 @@ function createClient(
   RNEmitter.addListener(nativeBridge.eventName, payload => {
     const buffer = toBuffer(toByteArray(payload))
     if (printBridgeB64) {
-      console._log(`PRINTBridge: JS got payload ${payload.length}: ${buffer.toString()}`)
+      console.log(`PRINTBridge: JS got payload ${payload.length}: ${buffer.toString()}`)
     }
 
     const measureName = `packetize${packetizeCount++}:${buffer.length}`
