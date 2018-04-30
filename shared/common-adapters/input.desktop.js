@@ -172,6 +172,9 @@ class Input extends React.PureComponent<Props, State> {
       n.value = newTextInfo.text
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
+
+      this.setState({value: newTextInfo.text})
+      this._autoResize()
     }
   }
 
