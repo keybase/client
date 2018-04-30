@@ -577,6 +577,7 @@ function* initalizeMyCodeStateForAddingADevice(): Generator<any, void, any> {
 function* _startLogin() {
   yield Saga.put(LoginGen.createSetRevokedSelf({revoked: ''}))
   yield Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: ''}))
+  yield Saga.put(LoginGen.createLoginError({error: ''}))
   yield Saga.put(navigateTo(['login', 'usernameOrEmail'], [loginTab]))
 
   yield Saga.call(initalizeMyCodeStateForLogin)
@@ -600,6 +601,7 @@ function* _startLogin() {
 
 function _relogin({payload: {usernameOrEmail, passphrase}}: LoginGen.ReloginPayload) {
   return Saga.call(Saga.sequentially, [
+    Saga.put(LoginGen.createLoginError({error: ''})),
     Saga.put(LoginGen.createSetRevokedSelf({revoked: ''})),
     Saga.put(LoginGen.createSetDeletedSelf({deletedUsername: ''})),
     Saga.call(Saga.sequentially, [
