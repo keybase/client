@@ -142,7 +142,6 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:             me,
 		SigningKey:     signingKey,
 		EncryptionKey:  encryptionKey,
-		LoginContext:   nil,
 		PerUserKeyring: nil,
 	}
 	e.gen = NewPaperKeyGen(e.G(), kgarg)
