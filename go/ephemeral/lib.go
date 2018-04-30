@@ -285,7 +285,24 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+	// There are plenty of race conditions where the PTK can change out from
+	// under us while we're in the middle of posting a new key, causing the
+	// post to fail. Detect this condition and retry.
 	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
+	tries := 0
+	maxTries := 3
+	for {
+		tries++
+		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
+		if err == nil || !libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigWrongKey) || tries >= maxTries {
+			return teamEK, err
+		}
+		e.G().Log.CDebugf(ctx, "GetOrCreateLatestTeamEK got a wrong KID error on try number %d. Retrying.", tries)
+	}
+}
+
+func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+	defer e.G().CTrace(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
 
 	e.Lock()
 	defer e.Unlock()

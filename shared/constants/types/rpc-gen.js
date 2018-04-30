@@ -442,6 +442,7 @@ export const constantsStatusCode = {
   sckeysyncedpgpnotfound: 929,
   sckeynomatchinggpg: 930,
   sckeyrevoked: 931,
+  scsigwrongkey: 1008,
   scsigoldseqno: 1010,
   scbadtracksession: 1301,
   scdevicebadname: 1404,
@@ -3540,6 +3541,7 @@ export type StatusCode =
   | 929 // SCKeySyncedPGPNotFound_929
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
+  | 1008 // SCSigWrongKey_1008
   | 1010 // SCSigOldSeqno_1010
   | 1301 // SCBadTrackSession_1301
   | 1404 // SCDeviceBadName_1404

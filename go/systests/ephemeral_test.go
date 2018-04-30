@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -137,6 +138,10 @@ func TestResetMember(t *testing.T) {
 
 	annEkLib := annG.GetEKLib()
 	teamEK, err := annEkLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
+	switch err := err.(type) {
+	case libkb.AppStatusError:
+		panic(fmt.Sprintf("JACK got error code %#v", err.Code))
+	}
 	require.NoError(t, err)
 
 	expectedMetadata := teamEK.Metadata
