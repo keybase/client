@@ -8,7 +8,7 @@ import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
 
-import type {KeyboardType, Props} from './input'
+import type {KeyboardType, Props, TextInfo} from './input'
 
 type State = {
   focused: boolean,
@@ -20,6 +20,8 @@ type State = {
 class Input extends Component<Props, State> {
   state: State
   _input: NativeTextInput | null
+  _text: string
+  _selection: {start: number, end: number}
 
   constructor(props: Props) {
     super(props)
@@ -30,6 +32,8 @@ class Input extends Component<Props, State> {
       value: props.value || '',
       selections: {selectionStart: 0, selectionEnd: 0},
     }
+    this._text = ''
+    this._selection = {start: 0, end: 0}
   }
 
   // Does nothing on mobile
@@ -79,6 +83,7 @@ class Input extends Component<Props, State> {
   }
 
   _onChangeText = (text: string) => {
+    this._text = text
     this.setState({value: text}, () => this.props.onChangeText && this.props.onChangeText(text))
   }
 
@@ -102,6 +107,24 @@ class Input extends Component<Props, State> {
     this._onChangeText(nextText)
     // TODO: Set selection to newSelectionStart/newSelectionEnd once
     // we're able to.
+  }
+
+  transformText = (fn: TextInfo => TextInfo) => {
+    if (!this.props.uncontrolled) {
+      throw new Error('transformText can only be called on uncontrolled components')
+    }
+
+    const n = this._input
+    if (n) {
+      const newTextInfo = fn({text: this._text, selection: this._selection})
+      n.setNativeProps({text: newTextInfo.text})
+      this._text = newTextInfo.text
+      setTimeout(() => {
+        // TODO: Work around bug, sanitize selection.
+        n.setNativeProps({selection: newTextInfo.selection})
+        this._selection = newTextInfo.selection
+      }, 0)
+    }
   }
 
   _onFocus = () => {
@@ -160,6 +183,7 @@ class Input extends Component<Props, State> {
     // https://github.com/facebook/react-native/issues/18579 .
     const selectionStart = Math.min(start, end)
     const selectionEnd = Math.max(start, end)
+    this._selection = {start: selectionStart, end: selectionEnd}
     const selection = {
       selectionStart,
       selectionEnd,
