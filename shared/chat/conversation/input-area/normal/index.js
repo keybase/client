@@ -93,10 +93,10 @@ class Input extends React.Component<InputProps, State> {
       <MentionInput
         {...this.props}
         onCancelQuoting={this._onCancelQuoting}
-        inputSetRef={this._inputSetRef}
         onSubmit={this._onSubmit}
-        text={this.state.text}
+        inputSetRef={this._inputSetRef}
         setText={this._setText}
+        text={this.state.text}
       />
     )
   }
