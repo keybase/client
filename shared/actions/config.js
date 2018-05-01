@@ -84,7 +84,7 @@ const getExtendedStatus = (): AsyncAction => dispatch => {
 
 const registerListeners = (): AsyncAction => dispatch => {
   dispatch(GregorCreators.listenForNativeReachabilityEvents)
-  dispatch(GregorCreators.registerGregorListeners())
+  dispatch(GregorCreators.registerGregorListeners)
   // TODO: DESKTOP-6661 - Refactor `registerReachability` out of `actions/config.js`
   dispatch(GregorCreators.registerReachability())
   dispatch(PinentryGen.createRegisterPinentryListener())
