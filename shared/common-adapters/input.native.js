@@ -128,7 +128,10 @@ class Input extends Component<Props, State> {
     checkTextInfo(newTextInfo)
     this.setNativeProps({text: newTextInfo.text})
     this._lastNativeText = newTextInfo.text
-    // TODO: Check returned selection against text.
+    // Setting both the text and the selection at the same time
+    // doesn't seem to work, but setting a short timeout to set the
+    // selection does.
+    //
     // TODO: Use timer HOC.
     setTimeout(() => {
       // TODO: Sanitize selection.
