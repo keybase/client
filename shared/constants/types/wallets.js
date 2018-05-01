@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 
-// An asset that is held by a wallet
+// An asset that is held by an account
 export type _Asset = {
   balance: string,
   code: string, // Up to 12-character e.g. BTC, BOFAUSD
@@ -10,10 +10,10 @@ export type _Asset = {
 }
 export type Asset = I.RecordOf<_Asset>
 
-// Reserves held against a wallet's XLM balance
+// Reserves held against an account's XLM balance
 export type _Reserve = {
   amount: string,
-  description: string, // e.g. 'account' or 'XLM/Stellar.org trust line'
+  description: string, // e.g. 'account' or 'KEYZ/keybase.io trust line'
 }
 export type Reserve = I.RecordOf<_Reserve>
 
