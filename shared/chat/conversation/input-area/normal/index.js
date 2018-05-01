@@ -50,9 +50,9 @@ class Input extends React.Component<InputProps, State> {
     this._input && this._input.focus()
   }
 
-  _inputMoveToEnd = () => this._input && this._input.moveCursorToEnd()
-
-  _inputGetRef = () => this._input
+  _inputMoveToEnd = () => {
+    this._input && this._input.moveCursorToEnd()
+  }
 
   componentDidUpdate(prevProps: InputProps) {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
