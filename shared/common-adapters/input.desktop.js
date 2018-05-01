@@ -67,13 +67,17 @@ class Input extends React.PureComponent<Props, State> {
     return {start: selectionStart, end: selectionEnd}
   }
 
-  _onChange = (event: {target: {value: ?string}}) => {
+  _onChangeText = (text: string) => {
     if (!this.props.uncontrolled) {
-      this.setState({value: event.target.value || ''})
+      this.setState({value: text})
     }
     this._autoResize()
 
-    this.props.onChangeText && this.props.onChangeText(event.target.value || '')
+    this.props.onChangeText && this.props.onChangeText(text)
+  }
+
+  _onChange = (event: {target: {value: ?string}}) => {
+    this._onChangeText(event.target.value || '')
   }
 
   _smartAutoresize = {
@@ -134,11 +138,7 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
-    if (!this.props.uncontrolled) {
-      throw new Error('transformText can only be called on uncontrolled components')
-    }
-
+  _transformText = (fn: TextInfo => TextInfo) => {
     const n = this._input
     if (n) {
       const textInfo = {
@@ -156,6 +156,14 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
+  transformText = (fn: TextInfo => TextInfo) => {
+    if (!this.props.uncontrolled) {
+      throw new Error('transformText can only be called on uncontrolled components')
+    }
+
+    this._transformText(fn)
+  }
+
   _onCompositionStart = () => {
     this._isComposingIME = true
   }
@@ -170,40 +178,20 @@ class Input extends React.PureComponent<Props, State> {
     }
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
-        // Do nothing unless multiline.
+        // If multiline, inject a newline.
+        //
+        // TODO: scroll to new position.
         if (this.props.multiline) {
-          // Inject newline.
-          //
-          // TODO: scroll to new position.
-          if (this.props.uncontrolled) {
-            this.transformText(({text, selection}) => {
-              const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
-              const pos = selection.start + 1
-              const newSelection = {start: pos, end: pos}
-              return {
-                text: newText,
-                selection: newSelection,
-              }
-            })
-            const value = this.getValue()
-            this.props.onChangeText && this.props.onChangeText(value)
-          } else {
-            this.setState(
-              ({value}) => {
-                const selection = this.selection()
-                const text = value || ''
-                const newValue = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
-                // TODO: Update selection.
-                return {
-                  value: newValue,
-                }
-              },
-              () => {
-                const value = this.getValue()
-                this.props.onChangeText && this.props.onChangeText(value)
-              }
-            )
-          }
+          this._transformText(({text, selection}) => {
+            const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
+            const pos = selection.start + 1
+            const newSelection = {start: pos, end: pos}
+            return {
+              text: newText,
+              selection: newSelection,
+            }
+          })
+          this._onChangeText(this.getValue())
         }
       } else {
         this.props.onEnterKeyDown(e)
