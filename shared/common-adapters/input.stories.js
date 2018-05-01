@@ -6,21 +6,24 @@ import Box from './box'
 import {action, storiesOf} from '../stories/storybook'
 import {globalStyles} from '../styles'
 
+const onKeyDown = action('onKeyDown')
+const onKeyUp = action('onKeyUp')
+
 const commonProps: Props = {
   onBlur: action('onBlur'),
   onChangeText: action('onChangeText'),
   onClick: action('onClick'),
   onEnterKeyDown: action('onEnterKeyDown'),
   onFocus: action('onFocus'),
-  onKeyDown: e => {
-    action('onKeyDown')(e.key)
-  },
-  onKeyUp: e => {
-    action('onKeyUp')(e.key)
-  },
+  onKeyDown: e => onKeyDown(e.key),
+  onKeyUp: e => onKeyUp(e.key),
 }
 
-class TestInput extends React.Component<{}> {
+type TestInputProps = {
+  multiline: boolean,
+}
+
+class TestInput extends React.Component<TestInputProps> {
   _input: ?Input
 
   _setInput = (ref: ?Input) => {
@@ -54,7 +57,13 @@ class TestInput extends React.Component<{}> {
           width: 420,
         }}
       >
-        <Input {...commonProps} onEnterKeyDown={this._replaceFoo} uncontrolled={true} ref={this._setInput} />
+        <Input
+          {...commonProps}
+          multiline={this.props.multiline}
+          onEnterKeyDown={this._replaceFoo}
+          uncontrolled={true}
+          ref={this._setInput}
+        />
         <Button type="Primary" label="Insert &quot;foo&quot; (enter)" onClick={this._replaceFoo} />
       </Box>
     )
@@ -63,7 +72,8 @@ class TestInput extends React.Component<{}> {
 
 const load = () => {
   storiesOf('Common/Input', module)
-    .add('Empty (uncontrolled)', () => <TestInput />)
+    .add('Empty (uncontrolled)', () => <TestInput multiline={false} />)
+    .add('Empty (multiline) (uncontrolled)', () => <TestInput multiline={true} />)
     .add('Filled', () => <Input {...commonProps} value="Hello, World!" />)
     .add('Filled Centered', () => (
       <Box
