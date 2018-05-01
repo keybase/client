@@ -100,6 +100,11 @@ func (m MetaContext) WithGPGUI(u GPGUI) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithSaltpackUI(s SaltpackUI) MetaContext {
+	m.uis.SaltpackUI = s
+	return m
+}
+
 func (m MetaContext) UIs() UIs {
 	return m.uis
 }

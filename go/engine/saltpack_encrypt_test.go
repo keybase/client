@@ -204,9 +204,8 @@ func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 			Source: strings.NewReader(encsink.String()),
 			Sink:   decsink,
 		}
-		deceng := NewSaltpackDecrypt(decarg, tc.G)
-		ctx := engineContextFromMetaContext(m)
-		if err := RunEngine(deceng, ctx); err != nil {
+		deceng := NewSaltpackDecrypt(tc.G, decarg)
+		if err := RunEngine2(m, deceng); err != nil {
 			t.Fatal(err)
 		}
 
@@ -290,9 +289,8 @@ func TestSaltpackEncryptAnonymousEncryptionOnly(t *testing.T) {
 			Source: strings.NewReader(encsink.String()),
 			Sink:   decsink,
 		}
-		deceng := NewSaltpackDecrypt(decarg, tc.G)
-		ctx := engineContextFromMetaContext(m)
-		if err := RunEngine(deceng, ctx); err != nil {
+		deceng := NewSaltpackDecrypt(tc.G, decarg)
+		if err := RunEngine2(m, deceng); err != nil {
 			t.Fatal(err)
 		}
 
@@ -462,9 +460,8 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 		Source: strings.NewReader(string(out)),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(decarg, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	err := RunEngine(dec, ctx)
+	dec := NewSaltpackDecrypt(tc.G, decarg)
+	err := RunEngine2(m, dec)
 	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
 		t.Fatalf("Expected err type %T, but got %T", libkb.NoDecryptionKeyError{}, err)
 	}
@@ -472,10 +469,10 @@ func TestSaltpackEncryptNoSelf(t *testing.T) {
 	Logout(tc)
 	u1.Login(tc.G)
 
-	ctx.SecretUI = u1.NewSecretUI()
+	m = m.WithSecretUI(u1.NewSecretUI())
 	decarg.Source = strings.NewReader(string(out))
-	dec = NewSaltpackDecrypt(decarg, tc.G)
-	err = RunEngine(dec, ctx)
+	dec = NewSaltpackDecrypt(tc.G, decarg)
+	err = RunEngine2(m, dec)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -521,9 +518,8 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 		Source: strings.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewSaltpackDecrypt(decarg, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewSaltpackDecrypt(tc.G, decarg)
+	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := decoded.String()
