@@ -38,9 +38,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   _setMentionFilter = (mentionFilter: string) => this.setState({mentionFilter})
   _setChannelMentionFilter = (channelMentionFilter: string) => this.setState({channelMentionFilter})
 
-  _triggerPickSelectedCounter = () =>
-    this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
-
   _isPopupOpen = () => this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
 
   _getWordAtCursor = (text: string) => {
