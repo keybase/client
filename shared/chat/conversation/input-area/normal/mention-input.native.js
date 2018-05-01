@@ -85,13 +85,17 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     }
   }
 
+  _getText = () => {
+    return this._inputRef ? this._inputRef.getValue() : ''
+  }
+
   onBlur = () => {
     this.state.channelMentionPopupOpen && this.setChannelMentionPopupOpen(false)
     this.state.mentionPopupOpen && this.setMentionPopupOpen(false)
   }
 
   onFocus = () => {
-    this.onChangeText(this.props.text)
+    this.onChangeText(this._getText())
   }
 
   insertMentionMarker = () => {
@@ -139,7 +143,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       {
         _selection: selection,
       },
-      () => this.onChangeText(this.props.text)
+      () => this.onChangeText(this._getText())
     )
 
   render = () => (
