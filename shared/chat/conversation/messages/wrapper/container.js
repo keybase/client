@@ -2,7 +2,6 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as ProfileGen from '../../../../actions/profile-gen'
-import * as Route from '../../../../actions/route-tree'
 import * as TrackerGen from '../../../../actions/tracker-gen'
 import * as Types from '../../../../constants/types/chat2'
 import Wrapper from '.'
@@ -12,7 +11,7 @@ import {isMobile} from '../../../../constants/platform'
 
 const howLongBetweenTimestampsMs = 1000 * 60 * 15
 
-const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSelected, isEditing}): * => {
+const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEditing}): * => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
@@ -26,7 +25,6 @@ const mapStateToProps = (state: TypedState, {message, previous, innerClass, isSe
     isBroken,
     isEditing,
     isFollowing,
-    isSelected,
     isYou,
     message,
     messageFailed,
@@ -47,15 +45,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
-  _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {message, position: 'bottom left', targetRect},
-          selected: 'messageAction',
-        },
-      ])
-    ),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -99,7 +88,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     isEditing: stateProps.isEditing,
     isFollowing: stateProps.isFollowing,
     isRevoked: !!message.deviceRevokedAt,
-    isSelected: stateProps.isSelected,
     isYou: stateProps.isYou,
     message,
     messageFailed: stateProps.messageFailed,
@@ -112,7 +100,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onRetry: stateProps.isYou
       ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
       : null,
-    onShowMenu: (clientRect: ?ClientRect) => dispatchProps._onShowMenu(clientRect, message),
     orangeLineAbove: stateProps.orangeLineAbove,
     timestamp,
   }

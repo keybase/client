@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../constants/types/fs'
 import {globalStyles} from '../styles'
-import {Box, List} from '../common-adapters'
+import {Box, List, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
 import {Row, Placeholder} from './row'
@@ -19,9 +19,13 @@ class Files extends React.PureComponent<FolderProps> {
   _renderRowPlaceholder = index => <Placeholder key={index} />
 
   render() {
-    const list =
+    const content =
       this.props.progress === 'pending' ? (
         <List items={['1', '2', '3']} renderItem={this._renderRowPlaceholder} />
+      ) : this.props.items.length === 0 ? (
+        <Box style={stylesEmptyContainer}>
+          <Text type="BodySmall">This is an empty folder.</Text>
+        </Box>
       ) : (
         <List items={this.props.items} renderItem={this._renderRow} />
       )
@@ -30,7 +34,7 @@ class Files extends React.PureComponent<FolderProps> {
         <Box style={stylesContainer}>
           <FolderHeader path={this.props.path} />
           <SortBar path={this.props.path} />
-          {list}
+          {content}
           <Footer />
         </Box>
       </Box>
@@ -47,6 +51,14 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.fullHeight,
   flex: 1,
+}
+
+const stylesEmptyContainer = {
+  ...globalStyles.flexBoxColumn,
+  ...globalStyles.fullHeight,
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
 }
 
 export default Files

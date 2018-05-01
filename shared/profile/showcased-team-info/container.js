@@ -1,20 +1,28 @@
 // @flow
+import {type Component} from 'react'
 import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import {parsePublicAdmins} from '../../util/teams'
 import {isInTeam, isAccessRequestPending} from '../../constants/teams'
+import {type UserTeamShowcase} from '../../constants/types/rpc-gen'
 
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = {
+  attachTo: ?Component<*, *>,
+  onHidden: () => void,
+  team: UserTeamShowcase,
+  visible: boolean,
+}
+
+const mapStateToProps = (state: TypedState, {team}: OwnProps) => {
   const username = state.config.username
   const following = state.config.following.toObject()
   if (!username || !following) {
     throw new Error('Not logged in')
   }
 
-  const team = routeProps.get('team')
   const description = team.description
   const memberCount = team.numMembers
   const openTeam = team.open
@@ -41,18 +49,16 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
-  const teamname = routeProps.get('team').fqName
+const mapDispatchToProps = (dispatch: Dispatch, {team}: OwnProps) => {
+  const teamname = team.fqName
   return {
     _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
     _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
       dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
-    onHidden: () => dispatch(navigateUp()),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: username => {
-      dispatch(navigateUp())
       dispatch(ProfileGen.createShowUserProfile({username}))
     },
   }

@@ -84,6 +84,7 @@ export {
   makeMessageDeleted,
   makePendingAttachmentMessage,
   makePendingTextMessage,
+  messageExplodeDescriptions,
   pathToAttachmentType,
   rpcErrorToString,
   uiMessageEditToMessage,

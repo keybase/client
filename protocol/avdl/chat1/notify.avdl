@@ -32,7 +32,8 @@ protocol NotifyChat {
   }
 
   record NewConversationInfo {
-    InboxUIItem conv;
+    ConversationID convID;
+    union { null, InboxUIItem } conv;
   }
 
   record SetStatusInfo {
@@ -144,7 +145,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatJoinedConversation(keybase1.UID uid, InboxUIItem conv);
+  void ChatJoinedConversation(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
 
   @notify("")
   @lint("ignore")

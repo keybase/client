@@ -1146,6 +1146,10 @@
         {
           "type": "MessageID",
           "name": "messageID"
+        },
+        {
+          "type": "boolean",
+          "name": "hidden"
         }
       ]
     },

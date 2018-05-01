@@ -51,7 +51,7 @@ type NotifyListener interface {
 	ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)
 	ChatInboxSyncStarted(uid keybase1.UID)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
-	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
+	ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID, conv *chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
 	ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)
 	ChatSetConvRetention(uid keybase1.UID, convID chat1.ConversationID)
@@ -96,10 +96,12 @@ func (n *NoopNotifyListener) ChatTLFResolve(uid keybase1.UID, convID chat1.Conve
 func (n *NoopNotifyListener) ChatInboxStale(uid keybase1.UID) {}
 func (n *NoopNotifyListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 }
-func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)         {}
-func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                                  {}
-func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                              {}
-func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)        {}
+func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {}
+func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                          {}
+func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                      {}
+func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
+	conv *chat1.InboxUIItem) {
+}
 func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)     {}
 func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)    {}
 func (n *NoopNotifyListener) Chat(uid keybase1.UID, convID chat1.ConversationID)                     {}
@@ -767,7 +769,7 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 }
 
 func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
-	conv chat1.InboxUIItem) {
+	convID chat1.ConversationID, conv *chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}
@@ -780,8 +782,9 @@ func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid key
 				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).ChatJoinedConversation(context.Background(), chat1.ChatJoinedConversationArg{
-					Uid:  uid,
-					Conv: conv,
+					Uid:    uid,
+					ConvID: convID,
+					Conv:   conv,
 				})
 				wg.Done()
 			}()
@@ -790,7 +793,7 @@ func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid key
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.ChatJoinedConversation(uid, conv)
+		n.listener.ChatJoinedConversation(uid, convID, conv)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatJoinedConversation notification")
 }

@@ -80,6 +80,11 @@
     "uninstallKBFS": {},
     "fsActivity": {},
     "openSecurityPreferences": {},
+    "refreshLocalHTTPServerInfo": {},
+    "localHTTPServerInfo": {
+      "address": "string",
+      "token": "string"
+    },
 
     "setupFSHandlers": {}
   }
