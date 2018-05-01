@@ -14,13 +14,20 @@ func dontOverride(ext string, mimeType string) (newExt string, newMimeType strin
 }
 
 // Patch patches the mime types Go uses by calling mime.AddExtensionType on
-// each from a private list in this package. Optionally provide a non-nil
-// Overrider to override any mime type defined in the list.
-func Patch(override Overrider) {
+// each from a private list in this package.  Both parameters are optional.
+// Provide a non-nil Overrider to override any mime type defined in the list.
+// Provide a non-nil additional map (ext->mimeType) to add additional mime
+// types.
+func Patch(override Overrider, additional map[string]string) {
 	if override == nil {
 		override = dontOverride
 	}
 	for ext, mimeType := range mimeTypes {
 		mime.AddExtensionType(override(ext, mimeType))
+	}
+	if additional != nil {
+		for ext, mimeType := range additional {
+			mime.AddExtensionType(override(ext, mimeType))
+		}
 	}
 }

@@ -158,6 +158,32 @@ func overrideMimeType(ext, mimeType string) (newExt, newMimeType string) {
 	return ext, mimeType
 }
 
+// NOTE: if you change anything here, make sure to change
+// keybase/client:shared/fs/utils/ext-list.js:patchedExtToFileViewTypes too.
+var additionalMimeTypes = map[string]string{
+	".go":    "text/plain",
+	".py":    "text/plain",
+	".zsh":   "text/plain",
+	".fish":  "text/plain",
+	".cs":    "text/plain",
+	".rb":    "text/plain",
+	".m":     "text/plain",
+	".mm":    "text/plain",
+	".swift": "text/plain",
+	".flow":  "text/plain",
+
+	".php":  "text/plain",
+	".pl":   "text/plain",
+	".sh":   "text/plain",
+	".js":   "text/plain",
+	".json": "text/plain",
+	".sql":  "text/plain",
+	".rs":   "text/plain",
+	".xml":  "text/plain",
+	".tex":  "text/plain",
+	".pub":  "text/plain",
+}
+
 const portStart = 7000
 const portEnd = 8000
 const requestPathRoot = "/files/"
@@ -182,7 +208,7 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	}
 	s.server.Handle(requestPathRoot,
 		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
-	libmime.Patch(overrideMimeType)
+	libmime.Patch(overrideMimeType, additionalMimeTypes)
 	return s, nil
 }
 
