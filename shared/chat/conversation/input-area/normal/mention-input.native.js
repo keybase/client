@@ -159,7 +159,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionHocState> {
       insertMentionMarker={this.insertMentionMarker}
       onBlur={this.onBlur}
       onFocus={this.onFocus}
-      onEnterKeyDown={this.onEnterKeyDown}
       onChangeText={this.onChangeText}
       onSelectionChange={this.onSelectionChange}
     />

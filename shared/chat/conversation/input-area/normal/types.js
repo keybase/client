@@ -41,6 +41,7 @@ type MentionProps = {
   // on desktop:
   onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
+  onEnterKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   switchMention?: (u: string) => void,
   switchChannelMention?: (c: string) => void,
   upArrowCounter?: number,
@@ -52,7 +53,6 @@ type MentionProps = {
   onFocus?: () => void,
   insertMentionMarker?: () => void,
 
-  onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
   pickSelectedCounter: number,
   channelMentionFilter: string,
   channelMentionPopupOpen: boolean,

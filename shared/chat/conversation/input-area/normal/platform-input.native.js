@@ -80,6 +80,7 @@ class PlatformInput extends Component<PlatformInputProps> {
             hideUnderline={true}
             hintText={hintText}
             multiline={true}
+            onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
             onChangeText={this.props.onChangeText}
             ref={this.props.inputSetRef}
