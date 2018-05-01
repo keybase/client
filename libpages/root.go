@@ -73,8 +73,21 @@ type Root struct {
 // and is useful for caching a *libfs.FS object without the downside of caching
 // a libkbfs.Node that can be obsolete when it's renamed or removed.
 type CacheableFS struct {
-	fs     *libfs.FS
-	subdir string
+	endOfLifeTrackingCtx context.Context
+	fs                   *libfs.FS
+	subdir               string
+}
+
+// IsEndOfLife returns true if fs has reached the end of life, because of a
+// handle change for example. In this case user should not use this fs anymore,
+// but instead make a new one.
+func (fs CacheableFS) IsEndOfLife() bool {
+	select {
+	case <-fs.endOfLifeTrackingCtx.Done():
+		return true
+	default:
+		return false
+	}
 }
 
 // Use returns a *libfs.FS to use.
@@ -121,9 +134,14 @@ func (r *Root) MakeFS(
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
+		endOfLifeCtx, err := tlfFS.SubscribeToEndOfLife()
+		if err != nil {
+			return CacheableFS{}, tlf.ID{}, nil, err
+		}
 		cacheableFS := CacheableFS{
-			fs:     tlfFS,
-			subdir: r.PathUnparsed,
+			endOfLifeTrackingCtx: endOfLifeCtx,
+			fs:                   tlfFS,
+			subdir:               r.PathUnparsed,
 		}
 		if _, err = cacheableFS.Use(); err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err

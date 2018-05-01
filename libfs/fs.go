@@ -841,3 +841,29 @@ func (fs *FS) ToHTTPFileSystem(ctx context.Context) http.FileSystem {
 func (fs *FS) RootNode() libkbfs.Node {
 	return fs.root
 }
+
+type folderHandleChangeObserver func()
+
+func (folderHandleChangeObserver) LocalChange(
+	context.Context, libkbfs.Node, libkbfs.WriteRange) {
+}
+func (folderHandleChangeObserver) BatchChanges(
+	context.Context, []libkbfs.NodeChange, []libkbfs.NodeID) {
+}
+func (o folderHandleChangeObserver) TlfHandleChange(
+	context.Context, *libkbfs.TlfHandle) {
+	o()
+}
+
+// SubscribeToEndOfLife returns a context that will be canceled when this *FS
+// reaches end-of-life, meaning if user of this object caches it for long term
+// use, it should invalide this entry and create a new one using NewFS.
+func (fs *FS) SubscribeToEndOfLife() (ctx context.Context, err error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	if err = fs.config.Notifier().RegisterForChanges(
+		[]libkbfs.FolderBranch{fs.root.GetFolderBranch()},
+		folderHandleChangeObserver(cancel)); err != nil {
+		return nil, err
+	}
+	return ctx, nil
+}

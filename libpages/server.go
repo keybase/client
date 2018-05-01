@@ -112,8 +112,12 @@ type Server struct {
 func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 	siteCached, ok := s.siteCache.Get(root)
 	if ok {
-		if s, ok := siteCached.(*site); ok {
-			return s, nil
+		if st, ok := siteCached.(*site); ok {
+			if !st.fs.IsEndOfLife() {
+				return st, nil
+			}
+			s.config.Logger.Info("fs end of life",
+				zap.String("root", fmt.Sprintf("%#+v", root)))
 		}
 		s.config.Logger.Error("nasty entry in s.siteCache",
 			zap.String("reflect_type", reflect.TypeOf(siteCached).String()))

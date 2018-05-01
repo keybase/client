@@ -17,6 +17,7 @@ import (
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -33,6 +34,7 @@ type Server struct {
 
 	config libkbfs.Config
 	server *libkb.HTTPSrv
+	logger logger.Logger
 
 	tokens *lru.Cache
 	fs     *lru.Cache
@@ -71,6 +73,20 @@ func (s *Server) handleBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
+type endOfLifeTrackingFS struct {
+	fs  *libfs.FS
+	ctx context.Context
+}
+
+func (e endOfLifeTrackingFS) isEndOfLife() bool {
+	select {
+	case <-e.ctx.Done():
+		return true
+	default:
+		return false
+	}
+}
+
 func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	toStrip string, fs http.FileSystem, err error) {
 	fields := strings.Split(requestPath, "/")
@@ -86,8 +102,10 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	toStrip = path.Join(fields[0], fields[1])
 
 	if fsCached, ok := s.fs.Get(toStrip); ok {
-		if tlfFS, ok := fsCached.(*libfs.FS); ok {
-			return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
+		if fsCachedTyped, ok := fsCached.(endOfLifeTrackingFS); ok {
+			if !fsCachedTyped.isEndOfLife() {
+				return toStrip, fsCachedTyped.fs.ToHTTPFileSystem(ctx), nil
+			}
 		}
 	}
 
@@ -103,7 +121,12 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 		return "", nil, err
 	}
 
-	s.fs.Add(toStrip, tlfFS)
+	fsLifeCtx, err := tlfFS.SubscribeToEndOfLife()
+	if err != nil {
+		return "", nil, err
+	}
+
+	s.fs.Add(toStrip, endOfLifeTrackingFS{fs: tlfFS, ctx: fsLifeCtx})
 
 	return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 }
@@ -112,13 +135,16 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 // For example:
 //     /team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
 func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
+	s.logger.Info("incoming request from %q: %s", req.UserAgent(), req.URL)
 	token := req.URL.Query().Get("token")
 	if len(token) == 0 || !s.tokens.Contains(token) {
+		s.logger.Info("invalid token %q", token)
 		s.handleInvalidToken(w)
 		return
 	}
 	toStrip, fs, err := s.getHTTPFileSystem(req.Context(), req.URL.Path)
 	if err != nil {
+		s.logger.Warning("bad request. error=%v", err)
 		s.handleBadRequest(w)
 		return
 	}
@@ -144,6 +170,7 @@ const requestPathRoot = "/files/"
 func (s *Server) Init(
 	g *libkb.GlobalContext, config libkbfs.Config) (err error) {
 	s.initOnce.Do(func() {
+		s.logger = config.MakeLogger("HTTP")
 		if s.tokens, err = lru.New(tokenCacheSize); err != nil {
 			return
 		}
