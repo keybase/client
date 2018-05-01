@@ -251,7 +251,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               rowsMax={5}
               onChangeText={this.props.onChangeText}
               onKeyDown={this._onKeyDown}
-              onKeyUp={this.props.onKeyUp}
               onEnterKeyDown={this.props.onEnterKeyDown}
             />
             {this.state.emojiPickerOpen && (

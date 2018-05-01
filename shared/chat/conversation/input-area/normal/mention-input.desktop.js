@@ -104,67 +104,58 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         } else {
           this._triggerDownArrowCounter()
         }
-        return
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         this._triggerUpArrowCounter()
-        return
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
         this._triggerDownArrowCounter()
-        return
       } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         this._setMentionPopupOpen(false)
-        this._setChannelMentionPopupOpen(false)
-        return
-      }
-    }
-
-    if (e.key === '@') {
-      this._setMentionPopupOpen(true)
-    } else if (e.key === '#') {
-      this._setChannelMentionPopupOpen(true)
-    }
-
-    const text = this._inputRef ? this._inputRef.getValue() : ''
-    if (this.state.mentionPopupOpen && e.key === 'Backspace') {
-      const lastChar = text[text.length - 1]
-      if (lastChar === '@') {
-        this._setMentionPopupOpen(false)
-      }
-    }
-    if (this.state.channelMentionPopupOpen && e.key === 'Backspace') {
-      const lastChar = text[text.length - 1]
-      if (lastChar === '#') {
         this._setChannelMentionPopupOpen(false)
       }
     }
   }
 
-  onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
-    // Ignore moving within the list
-    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
-      if (['ArrowUp', 'ArrowDown', 'Shift', 'Tab'].includes(e.key)) {
-        // handled above in _onKeyDown
+  _onChangeText = (nextText: string) => {
+    this.props.onChangeText(nextText)
+    const selection = (this._inputRef ? this._inputRef.selections() : null) || {
+      selectionStart: 0,
+      selectionEnd: 0,
+    }
+    const {selectionStart} = selection
+    const word = this._getWordAtCursor(nextText, selectionStart)
+    const isPopupOpen = this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
+    if (!isPopupOpen && selection.selectionStart === selection.selectionEnd) {
+      if (word[0] === '@') {
+        this._setMentionPopupOpen(true)
+        this._setMentionFilter(word.substring(1))
+      } else if (word[0] === '#') {
+        this._setChannelMentionPopupOpen(true)
+        this._setChannelMentionFilter(word.substring(1))
+      }
+    } else if (selection.selectionStart !== selection.selectionEnd) {
+      this.state.mentionPopupOpen && this._setMentionPopupOpen(false) && this._setMentionFilter('')
+      this.state.channelMentionPopupOpen &&
+        this._setChannelMentionPopupOpen(false) &&
+        this._setChannelMentionFilter('')
+    } else {
+      // Close popups if word doesn't begin with marker anymore
+      if (this.state.mentionPopupOpen && word[0] !== '@') {
+        this._setMentionFilter('')
+        this._setMentionPopupOpen(false)
+        return
+      } else if (this.state.channelMentionPopupOpen && word[0] !== '#') {
+        this._setChannelMentionFilter('')
+        this._setChannelMentionPopupOpen(false)
         return
       }
-    }
 
-    // Get the word typed so far
-    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen || e.key === 'Backspace') {
-      const text = this._inputRef ? this._inputRef.getValue() : ''
-      const selection = this._inputRef ? this._inputRef.selections() : null
-      const start = selection ? selection.selectionStart : 0
-      const wordSoFar = this._getWordAtCursor(text, start)
-      if (wordSoFar && wordSoFar[0] === '@') {
-        !this.state.mentionPopupOpen && this._setMentionPopupOpen(true)
-        this._setMentionFilter(wordSoFar.substring(1))
-      } else if (wordSoFar && wordSoFar[0] === '#') {
-        !this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(true)
-        this._setChannelMentionFilter(wordSoFar.substring(1))
-      } else {
-        this.state.mentionPopupOpen && this._setMentionPopupOpen(false)
-        this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(false)
+      // we haven't exited a mention, set filters
+      if (this.state.mentionPopupOpen) {
+        this._setMentionFilter(word.substring(1))
+      } else if (this.state.channelMentionPopupOpen) {
+        this._setChannelMentionFilter(word.substring(1))
       }
     }
   }
@@ -230,7 +221,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         insertChannelMention={this.insertChannelMention}
         switchChannelMention={this.switchChannelMention}
         onKeyDown={this._onKeyDown}
-        onKeyUp={this.onKeyUp}
+        onChangeText={this._onChangeText}
         onEnterKeyDown={this.onEnterKeyDown}
         setMentionPopupOpen={this._setMentionPopupOpen}
         setChannelMentionPopupOpen={this._setChannelMentionPopupOpen}

@@ -48,9 +48,9 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _onChangeText = (nextText: string) => {
     this.props.onChangeText(nextText)
-    const {selectionStart} = this.state._selection
-    const word = this._getWordAtCursor(nextText, selectionStart)
     const selection = this.state._selection
+    const {selectionStart} = selection
+    const word = this._getWordAtCursor(nextText, selectionStart)
     if (!this._isPopupOpen() && selection.selectionStart === selection.selectionEnd) {
       if (word[0] === '@') {
         this.setMentionPopupOpen(true)
