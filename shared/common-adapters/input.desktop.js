@@ -67,7 +67,9 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   _onChange = (event: {target: {value: ?string}}) => {
-    this.setState({value: event.target.value || ''})
+    if (!this.props.uncontrolled) {
+      this.setState({value: event.target.value || ''})
+    }
     this._autoResize()
 
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
@@ -176,8 +178,13 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
         // inject newline
-        // TODO: Figure out.
-        // this.setValue(this.getValue() + '\n')
+        if (this.props.uncontrolled) {
+          this.transformText(({text, selection}) => ({text: text + '\n', selection}))
+        } else {
+          this.setState(({value}) => ({
+            value: value ? value + '\n' : value,
+          }))
+        }
       } else {
         this.props.onEnterKeyDown(e)
       }
@@ -287,7 +294,7 @@ class Input extends React.PureComponent<Props, State> {
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
     }
 
-    const value = this._input ? this._input.value : ''
+    const value = this.getValue()
 
     const floatingHintText =
       !!value.length &&
