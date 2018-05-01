@@ -24,26 +24,8 @@ class Input extends React.Component<InputProps, State> {
     }
   }
 
-  _setText = (text: string, skipUnsentSaving?: boolean) => {
-    this.setState({text})
-    if (!skipUnsentSaving) {
-      this.props.setUnsentText(text)
-    }
-
-    throttled(this.props.sendTyping, !!text)
-  }
-
-  _onSubmit = (text: string) => {
-    this.props.onSubmit(text)
-    this._setText('')
-  }
-
   _inputSetRef = (input: ?TextInput) => {
     this._input = input
-  }
-
-  _onCancelQuoting = () => {
-    this.props._quotingMessage && this.props.onCancelQuoting()
   }
 
   _inputFocus = () => {
@@ -54,13 +36,25 @@ class Input extends React.Component<InputProps, State> {
     this._input && this._input.moveCursorToEnd()
   }
 
-  componentDidUpdate(prevProps: InputProps) {
-    if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
-      this._inputFocus()
-    }
+  _onCancelQuoting = () => {
+    this.props._quotingMessage && this.props.onCancelQuoting()
   }
 
-  componentWillReceiveProps(nextProps: InputProps) {
+  _onSubmit = (text: string) => {
+    this.props.onSubmit(text)
+    this._setText('')
+  }
+
+  _setText = (text: string, skipUnsentSaving?: boolean) => {
+    this.setState({text})
+    if (!skipUnsentSaving) {
+      this.props.setUnsentText(text)
+    }
+
+    throttled(this.props.sendTyping, !!text)
+  }
+
+  componentWillReceiveProps = (nextProps: InputProps) => {
     const props: InputProps = this.props
 
     // Fill in the input with an edit, quote, or unsent text
@@ -84,6 +78,12 @@ class Input extends React.Component<InputProps, State> {
     }
 
     if (nextProps.isEditing && !props.isEditing) {
+      this._inputFocus()
+    }
+  }
+
+  componentDidUpdate = (prevProps: InputProps) => {
+    if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
     }
   }
