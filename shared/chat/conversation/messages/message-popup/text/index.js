@@ -25,6 +25,7 @@ type Props = {
 }
 
 const TextPopupMenu = (props: Props) => {
+  console.warn({props})
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
     ...(props.yourMessage
@@ -47,7 +48,7 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    'Divider',
+    ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
     {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
     {onClick: props.onCopy, title: 'Copy Text'},
     {onClick: props.onQuote, title: 'Quote'},
