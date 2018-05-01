@@ -7,8 +7,9 @@ import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
+import HOCTimers, {type TimerProps} from './hoc-timers'
 
-import type {KeyboardType, Props, Selection, TextInfo} from './input'
+import type {KeyboardType, Props as _Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
@@ -17,6 +18,8 @@ type State = {
   // Only changed for controlled components.
   value?: string,
 }
+
+type Props = _Props & TimerProps
 
 class Input extends Component<Props, State> {
   state: State
@@ -131,9 +134,7 @@ class Input extends Component<Props, State> {
     // Setting both the text and the selection at the same time
     // doesn't seem to work, but setting a short timeout to set the
     // selection does.
-    //
-    // TODO: Use timer HOC.
-    setTimeout(() => {
+    this.props.setTimeout(() => {
       // It's possible that, by the time this runs, the selection is
       // out of bounds with respect to the current text value. So fix
       // it up if necessary.
@@ -375,4 +376,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default Input
+export default HOCTimers(Input)
