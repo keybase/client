@@ -126,6 +126,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
     dispatchProps._onCancelEditing(stateProps.conversationIDKey)
   },
+  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
   onSubmit: (text: string) => {
     const em = stateProps._editingMessage
     if (em) {
@@ -148,9 +149,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
 
   getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
   setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
-
-  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
-
   sendTyping: (typing: boolean) => {
     dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
