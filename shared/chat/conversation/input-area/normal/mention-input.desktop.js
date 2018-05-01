@@ -119,14 +119,11 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _onChangeText = (nextText: string) => {
     this.props.onChangeText(nextText)
-    const selection = (this._inputRef ? this._inputRef.selections() : null) || {
-      selectionStart: 0,
-      selectionEnd: 0,
-    }
-    const {selectionStart} = selection
+    const selection = this._inputRef ? this._inputRef.selection() : {start: 0, end: 0}
+    const {start: selectionStart} = selection
     const word = this._getWordAtCursor(nextText, selectionStart)
     const isPopupOpen = this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
-    if (!isPopupOpen && selection.selectionStart === selection.selectionEnd) {
+    if (!isPopupOpen && selection.start === selection.end) {
       if (word[0] === '@') {
         this._setMentionPopupOpen(true)
         this._setMentionFilter(word.substring(1))
@@ -134,7 +131,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
         this._setChannelMentionPopupOpen(true)
         this._setChannelMentionFilter(word.substring(1))
       }
-    } else if (selection.selectionStart !== selection.selectionEnd) {
+    } else if (selection.start !== selection.end) {
       this.state.mentionPopupOpen && this._setMentionPopupOpen(false) && this._setMentionFilter('')
       this.state.channelMentionPopupOpen &&
         this._setChannelMentionPopupOpen(false) &&

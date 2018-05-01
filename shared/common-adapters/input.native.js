@@ -14,7 +14,6 @@ type State = {
   focused: boolean,
   height: ?number,
   value: string,
-  selections: {selectionStart: number, selectionEnd: number},
 }
 
 class Input extends Component<Props, State> {
@@ -30,7 +29,6 @@ class Input extends Component<Props, State> {
       focused: false,
       height: null,
       value: props.value || '',
-      selections: {selectionStart: 0, selectionEnd: 0},
     }
     this._text = ''
     this._selection = {start: 0, end: 0}
@@ -172,21 +170,10 @@ class Input extends Component<Props, State> {
     const selectionStart = Math.min(start, end)
     const selectionEnd = Math.max(start, end)
     this._selection = {start: selectionStart, end: selectionEnd}
-    const selection = {
-      selectionStart,
-      selectionEnd,
-    }
-    this.setState(
-      {
-        selections: selection,
-      },
-      () => this.props.onSelectionChange && this.props.onSelectionChange(selection)
-    )
   }
 
-  // WARNING may not be up to date in time sensitive situations
-  selections() {
-    return this.state.selections
+  selection() {
+    return this._selection
   }
 
   render() {

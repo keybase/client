@@ -54,11 +54,11 @@ class Input extends React.PureComponent<Props, State> {
     this._onChange({target: {value: ''}})
   }
 
-  selections = () => {
+  selection = () => {
     const n = this._input
     if (n) {
       const {selectionStart, selectionEnd} = n
-      return {selectionStart, selectionEnd}
+      return {start: selectionStart, end: selectionEnd}
     }
   }
 

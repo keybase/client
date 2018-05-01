@@ -71,9 +71,11 @@ export type Props = {
   uncontrolled?: boolean,
 }
 
+export type Selection = {start: number, end: number}
+
 export type TextInfo = {
   text: string,
-  selection: {start: number, end: number},
+  selection: Selection,
 }
 
 declare export default class Input extends Component<Props> {
@@ -82,7 +84,7 @@ declare export default class Input extends Component<Props> {
   select: () => void;
   moveCursorToEnd: () => void;
   getValue: () => string;
-  selections: () => ?{selectionStart: number, selectionEnd: number};
+  selection: () => Selection;
   // transformText must only be called on uncontrolled Input
   // components.
   transformText: (fn: (TextInfo) => TextInfo) => void;
