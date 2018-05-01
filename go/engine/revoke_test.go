@@ -161,13 +161,14 @@ func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
 
 	t.Logf("generate second paper key")
 	{
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
 		eng := NewPaperKey(tc.G)
-		err := RunEngine(eng, ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err)
 		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
 	}
@@ -254,12 +255,13 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 
 	t.Logf("create a paperkey")
 	beng := NewPaperKey(tc1.G)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc1.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	err := RunEngine(beng, ctx)
+	m := NewMetaContextForTest(tc1).WithUIs(uis)
+	err := RunEngine2(m, beng)
 	require.NoError(t, err)
 	paperkey := beng.Passphrase()
 
@@ -273,7 +275,7 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	secUI.Passphrase = paperkey
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: u.Username}
-	uis := libkb.UIs{
+	uis = libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -281,7 +283,7 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
@@ -311,12 +313,13 @@ func TestSignAfterRevoke(t *testing.T) {
 
 	t.Logf("create a paperkey")
 	beng := NewPaperKey(tc1.G)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc1.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	err := RunEngine(beng, ctx)
+	m := NewMetaContextForTest(tc1).WithUIs(uis)
+	err := RunEngine2(m, beng)
 	require.NoError(t, err)
 	paperkey := beng.Passphrase()
 
@@ -330,7 +333,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	secUI.Passphrase = paperkey
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: u.Username}
-	uis := libkb.UIs{
+	uis = libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -338,7 +341,7 @@ func TestSignAfterRevoke(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 

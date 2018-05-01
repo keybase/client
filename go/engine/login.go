@@ -99,7 +99,7 @@ func (e *Login) Run(m libkb.MetaContext) error {
 
 	// run the LoginLoadUser sub-engine to load a user
 	m.CDebugf("loading login user for %q", e.usernameOrEmail)
-	ueng := newLoginLoadUser(e.G(), e.usernameOrEmail)
+	ueng := newLoginLoadUser(m.G(), e.usernameOrEmail)
 	if err := RunEngine2(m, ueng); err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (e *Login) Run(m libkb.MetaContext) error {
 		ClientType: e.clientType,
 		User:       ueng.User(),
 	}
-	deng := newLoginProvision(e.G(), darg)
+	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (e *Login) Run(m libkb.MetaContext) error {
 
 // notProvisionedErr will return true if err signifies that login
 // failed because this device has not yet been provisioned.
-func (e *Login) notProvisionedErr(err error) bool {
+func (e *Login) notProvisionedErr(m libkb.MetaContext, err error) bool {
 	if err == errNoDevice {
 		return true
 	}
@@ -153,7 +153,7 @@ func (e *Login) notProvisionedErr(err error) bool {
 		return true
 	}
 
-	e.G().Log.Debug("notProvisioned, not handling error %s (err type: %T)", err, err)
+	m.CDebugf("notProvisioned, not handling error %s (err type: %T)", err, err)
 	return false
 }
 
@@ -182,9 +182,9 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return loggedInOK, nil
 	}
 
-	e.G().Log.Debug("user is logged in, checking if on a revoked device")
+	m.CDebugf("user is logged in, checking if on a revoked device")
 	validDevice := false
-	err = e.G().GetFullSelfer().WithSelfForcePoll(m.Ctx(), func(me *libkb.User) error {
+	err = m.G().GetFullSelfer().WithSelfForcePoll(m.Ctx(), func(me *libkb.User) error {
 		validDevice = me.HasCurrentDeviceInCurrentInstall()
 		return nil
 	})
@@ -236,7 +236,7 @@ func (e *Login) checkLoggedIn(m libkb.MetaContext) (bool, error) {
 }
 
 func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, error) {
-	eng := NewLoginProvisionedDevice(e.G(), username)
+	eng := NewLoginProvisionedDevice(m.G(), username)
 	err := RunEngine2(m, eng)
 	if err == nil {
 		// login successful
@@ -248,7 +248,7 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 
 	// if this device has been provisioned already and there was an error, then
 	// return that error.  Otherwise, ignore it and keep going.
-	if !e.notProvisionedErr(err) {
+	if !e.notProvisionedErr(m, err) {
 		return false, err
 	}
 

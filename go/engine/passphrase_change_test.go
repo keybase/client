@@ -389,17 +389,18 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
+	m = m.WithSecretUI(&libkb.TestSecretUI{Passphrase: backupPassphrase})
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
@@ -411,6 +412,7 @@ func TestPassphraseChangeUnknownBackupKey(t *testing.T) {
 		Force:      true,
 	}
 	eng := NewPassphraseChange(arg, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -431,17 +433,18 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
+	m = m.WithSecretUI(&libkb.TestSecretUI{Passphrase: backupPassphrase})
 
 	Logout(tc)
 
@@ -451,6 +454,7 @@ func TestPassphraseChangeLoggedOutBackupKey(t *testing.T) {
 		Force:      true,
 	}
 	eng := NewPassphraseChange(arg, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -481,13 +485,14 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	tc.ResetLoginState()
 
 	secretUI := libkb.TestSecretUI{}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &secretUI,
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -496,7 +501,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	}
 
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
+	m = m.WithSecretUI(&libkb.TestSecretUI{Passphrase: backupPassphrase})
 
 	Logout(tc)
 
@@ -505,6 +510,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 		Passphrase: newPassphrase,
 		Force:      true,
 	}
+	ctx := engineContextFromMetaContext(m)
 	eng := NewPassphraseChange(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
@@ -604,18 +610,18 @@ func TestPassphraseChangeLoggedOutBackupKeyPlusPGP(t *testing.T) {
 
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
-
+	m = m.WithSecretUI(&libkb.TestSecretUI{Passphrase: backupPassphrase})
 	Logout(tc)
 
 	newPassphrase := "password1234"
@@ -624,6 +630,7 @@ func TestPassphraseChangeLoggedOutBackupKeyPlusPGP(t *testing.T) {
 		Force:      true,
 	}
 	eng := NewPassphraseChange(arg, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -674,13 +681,14 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	tc.ResetLoginState()
 
 	secretUI := libkb.TestSecretUI{}
-	ctx := &Context{
+	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &secretUI,
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m = NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -689,7 +697,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	}
 
 	backupPassphrase := beng.Passphrase()
-	ctx.SecretUI = &libkb.TestSecretUI{Passphrase: backupPassphrase}
+	m = m.WithSecretUI(&libkb.TestSecretUI{Passphrase: backupPassphrase})
 
 	Logout(tc)
 
@@ -699,6 +707,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 		Force:      true,
 	}
 	pceng := NewPassphraseChange(pcarg, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(pceng, ctx); err != nil {
 		t.Fatal(err)
 	}

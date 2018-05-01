@@ -59,12 +59,11 @@ func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PaperKey) Run(ctx *Context) error {
-	m := metaContextFromEngineContext(e.G(), ctx)
-	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "PaperKey")
-	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "PaperKey")
+func (e *PaperKey) Run(m libkb.MetaContext) error {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "PaperKey")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "PaperKey")
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
@@ -78,7 +77,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 	var needReload bool
 	var devicesToRevoke []*libkb.Device
 	for i, bdev := range cki.PaperDevices() {
-		revoke, err := ctx.LoginUI.PromptRevokePaperKeys(context.TODO(),
+		revoke, err := m.UIs().LoginUI.PromptRevokePaperKeys(context.TODO(),
 			keybase1.PromptRevokePaperKeysArg{
 				Device: *bdev.ProtExport(),
 				Index:  i,
@@ -104,7 +103,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 
 	if needReload {
-		me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+		me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 		if err != nil {
 			return err
 		}
@@ -114,7 +113,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska1, "You must sign your new paper key"))
+	signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska1, "You must sign your new paper key"))
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encryptionKeyGeneric, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska2, "You must encrypt for your new paper key"))
+	encryptionKeyGeneric, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska2, "You must encrypt for your new paper key"))
 	if err != nil {
 		return err
 	}
@@ -144,12 +143,12 @@ func (e *PaperKey) Run(ctx *Context) error {
 		EncryptionKey:  encryptionKey,
 		PerUserKeyring: nil,
 	}
-	e.gen = NewPaperKeyGen(e.G(), kgarg)
+	e.gen = NewPaperKeyGen(m.G(), kgarg)
 	if err := RunEngine2(m, e.gen); err != nil {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPaperKeyPhrase(m.Ctx(), keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
+	return m.UIs().LoginUI.DisplayPaperKeyPhrase(m.Ctx(), keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
 
 }
 
