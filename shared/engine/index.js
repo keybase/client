@@ -143,10 +143,10 @@ class Engine {
 
   // Default handlers for incoming messages
   _setupCoreHandlers() {
-    this.setIncomingHandler('keybase.1.logUi.log', (param, response) => {
+    this.setIncomingActionCreators('keybase.1.logUi.log', (param, response) => {
       const logParam: LogUiLogRpcParam = param
       log(logParam)
-      response && response.result && response.result()
+      if (response && response.result) return [response.result()]
     })
   }
 
