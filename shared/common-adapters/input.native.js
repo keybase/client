@@ -35,6 +35,10 @@ class Input extends Component<Props, State> {
     this._selection = {start: 0, end: 0}
   }
 
+  _setInputRef = (ref: NativeTextInput | null) => {
+    this._input = ref
+  }
+
   // Does nothing on mobile
   select = () => {}
   // Does nothing on mobile
@@ -258,9 +262,7 @@ class Input extends Component<Props, State> {
       onSubmitEditing: this.props.onEnterKeyDown,
       onEndEditing: this.props.onEndEditing,
       placeholder: this.props.hintText,
-      ref: (r: NativeTextInput | null) => {
-        this._input = r
-      },
+      ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
       value,
       secureTextEntry: this.props.type === 'password',
