@@ -126,14 +126,15 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       this._setChannelMentionPopupOpen(true)
     }
 
+    const text = this._inputRef ? this._inputRef.getValue() : ''
     if (this.state.mentionPopupOpen && e.key === 'Backspace') {
-      const lastChar = this.props.text[this.props.text.length - 1]
+      const lastChar = text[text.length - 1]
       if (lastChar === '@') {
         this._setMentionPopupOpen(false)
       }
     }
     if (this.state.channelMentionPopupOpen && e.key === 'Backspace') {
-      const lastChar = this.props.text[this.props.text.length - 1]
+      const lastChar = text[text.length - 1]
       if (lastChar === '#') {
         this._setChannelMentionPopupOpen(false)
       }
@@ -209,8 +210,9 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   _onSubmit = () => {
-    if (this.props.text) {
-      this.props.onSubmit(this.props.text)
+    const text = this._inputRef ? this._inputRef.getValue() : ''
+    if (text) {
+      this.props.onSubmit(text)
     }
   }
 

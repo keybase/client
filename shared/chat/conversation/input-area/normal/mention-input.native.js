@@ -47,7 +47,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   onChangeText = (nextText: string) => {
-    this.props.setText(nextText)
     const {selectionStart} = this.state._selection
     const word = this._getWordAtCursor(nextText, selectionStart)
     const selection = this.state._selection
