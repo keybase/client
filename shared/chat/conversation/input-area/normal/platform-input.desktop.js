@@ -74,6 +74,10 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    if (this.props.pendingWaiting) {
+      return
+    }
+
     this.props.onCancelQuoting()
     const text = this._input ? this._input.getValue() : ''
     if (e.key === 'ArrowUp' && !text) {
@@ -171,7 +175,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _onFocus = () => {
-    this.props.clearInboxFilter()
+    if (!this.props.pendingWaiting) {
+      this.props.clearInboxFilter()
+    }
   }
 
   render() {
