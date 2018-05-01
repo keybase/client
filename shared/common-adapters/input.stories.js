@@ -8,12 +8,13 @@ import {globalStyles} from '../styles'
 
 const onKeyDown = action('onKeyDown')
 const onKeyUp = action('onKeyUp')
+const onEnterKeyDown = action('onEnterKeyDown')
 
 const commonProps: Props = {
   onBlur: action('onBlur'),
   onChangeText: action('onChangeText'),
   onClick: action('onClick'),
-  onEnterKeyDown: action('onEnterKeyDown'),
+  onEnterKeyDown: e => onEnterKeyDown(e.key),
   onFocus: action('onFocus'),
   onKeyDown: e => onKeyDown(e.key),
   onKeyUp: e => onKeyUp(e.key),
@@ -46,7 +47,10 @@ class TestInput extends React.Component<TestInputProps> {
     }
   }
 
-  _replaceFoo = () => this._replaceText('foo')
+  _replaceFoo = e => {
+    this._replaceText('foo')
+    onEnterKeyDown(e)
+  }
 
   render = () => {
     return (
