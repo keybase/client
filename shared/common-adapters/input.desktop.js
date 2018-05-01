@@ -173,6 +173,7 @@ class Input extends React.PureComponent<Props, State> {
         },
       }
       const newTextInfo = fn(textInfo)
+      // TODO: Check returned selection against text.
       n.value = newTextInfo.text
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end

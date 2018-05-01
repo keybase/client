@@ -119,8 +119,10 @@ class Input extends Component<Props, State> {
       const newTextInfo = fn({text: this._text, selection: this._selection})
       n.setNativeProps({text: newTextInfo.text})
       this._text = newTextInfo.text
+      // TODO: Check returned selection against text.
+      // TODO: Use timer HOC.
       setTimeout(() => {
-        // TODO: Work around bug, sanitize selection.
+        // TODO: Sanitize selection.
         n.setNativeProps({selection: newTextInfo.selection})
         this._selection = newTextInfo.selection
       }, 0)
