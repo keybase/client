@@ -18,10 +18,8 @@ func TestPerUserKeyUpkeep(t *testing.T) {
 	upkeep := func() *PerUserKeyUpkeep {
 		arg := &PerUserKeyUpkeepArgs{}
 		eng := NewPerUserKeyUpkeep(tc.G, arg)
-		ctx := &Context{
-			LogUI: tc.G.UI.GetLogUI(),
-		}
-		err := RunEngine(eng, ctx)
+		m := NewMetaContextForTestWithLogUI(tc)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err)
 		return eng
 	}
@@ -76,10 +74,8 @@ func TestPerUserKeyUpkeepNoPUK(t *testing.T) {
 	upkeep := func() *PerUserKeyUpkeep {
 		arg := &PerUserKeyUpkeepArgs{}
 		eng := NewPerUserKeyUpkeep(tc.G, arg)
-		ctx := &Context{
-			LogUI: tc.G.UI.GetLogUI(),
-		}
-		err := RunEngine(eng, ctx)
+		m := NewMetaContextForTestWithLogUI(tc)
+		err := RunEngine2(m, eng)
 		require.NoError(t, err)
 		return eng
 	}
