@@ -49,7 +49,7 @@ class Input extends Component<Props, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
     if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
       return {value: nextProps.value || ''}
     }
@@ -106,11 +106,11 @@ class Input extends Component<Props, State> {
     }
   }
 
-  focus() {
+  focus = () => {
     this._input && this._input.focus()
   }
 
-  blur() {
+  blur = () => {
     this._input && this._input.blur()
   }
 
@@ -144,13 +144,13 @@ class Input extends Component<Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  _lineHeight() {
+  _lineHeight = () => {
     if (this.props.small) {
       return 20
     } else return 28
   }
 
-  _underlineColor() {
+  _underlineColor = () => {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -162,12 +162,12 @@ class Input extends Component<Props, State> {
     return this.state.focused ? globalColors.blue : globalColors.black_10_on_white
   }
 
-  _rowsToHeight(rows) {
+  _rowsToHeight = rows => {
     const border = this.props.hideUnderline ? 0 : 1
     return rows * this._lineHeight() + border
   }
 
-  _containerStyle(underlineColor) {
+  _containerStyle = underlineColor => {
     return this.props.small
       ? {
           ...globalStyles.flexBoxRow,
@@ -193,7 +193,7 @@ class Input extends Component<Props, State> {
     this._lastNativeSelection = {start, end}
   }
 
-  render() {
+  render = () => {
     const underlineColor = this._underlineColor()
     const lineHeight = this._lineHeight()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)

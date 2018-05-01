@@ -51,18 +51,18 @@ class Input extends React.PureComponent<Props, State> {
     this._input = ref
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
     this._autoResize()
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
     if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
       return {value: nextProps.value || ''}
     }
     return null
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
     if (this.state.value !== prevState.value) {
       this._autoResize()
     }
@@ -278,7 +278,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  render() {
+  render = () => {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
