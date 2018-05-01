@@ -10,8 +10,9 @@ func TestScanKeys(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "login")
+	m := NewMetaContextForTest(tc).WithSecretUI(fu.NewSecretUI())
 
-	sk, err := NewScanKeys(fu.NewSecretUI(), tc.G)
+	sk, err := NewScanKeys(m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,13 +22,14 @@ func TestScanKeys(t *testing.T) {
 	}
 }
 
-// TestScanKeysSync checks a user with a synced
+// TestScanKeysSync checks a user with a synced PGP key
 func TestScanKeysSync(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
 	fu := createFakeUserWithPGPOnly(t, tc)
+	m := NewMetaContextForTest(tc).WithSecretUI(fu.NewSecretUI())
 
-	sk, err := NewScanKeys(fu.NewSecretUI(), tc.G)
+	sk, err := NewScanKeys(m)
 	if err != nil {
 		t.Fatal(err)
 	}
