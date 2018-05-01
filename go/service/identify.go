@@ -281,15 +281,15 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 
 			iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 			logui := h.getLogUI(arg.SessionID)
-			engCtx := engine.Context{
+			uis := libkb.UIs{
 				LogUI:      logui,
 				IdentifyUI: iui,
 				SessionID:  arg.SessionID,
-				NetContext: subctx,
 			}
 
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
-			err := engine.RunEngine(eng, &engCtx)
+			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
+			err := engine.RunEngine2(m, eng)
 			idRes := eng.Result()
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)

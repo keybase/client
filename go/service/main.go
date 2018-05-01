@@ -437,7 +437,8 @@ func (d *Service) identifySelf() {
 		NeedProofSet:     true,
 	}
 	eng := engine.NewIdentify2WithUID(d.G(), &arg)
-	if err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()}); err != nil {
+	m := libkb.NewMetaContextBackground(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
 		d.G().Log.Debug("identifySelf: identify error %s", err)
 	}
 	d.G().Log.Debug("identifySelf: identify success on uid %s", uid)

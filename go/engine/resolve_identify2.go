@@ -113,8 +113,8 @@ func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
 
 	// For testing
 	e.i2eng.testArgs = e.testArgs
-
-	return RunEngine(e.i2eng, ctx)
+	m := metaContextFromEngineContext(e.G(), ctx)
+	return RunEngine2(m, e.i2eng)
 }
 
 func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
