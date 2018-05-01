@@ -97,6 +97,7 @@ class PlatformInput extends Component<PlatformInputProps> {
             onSelectionChange={this.props.onSelectionChange}
             small={true}
             style={styles.input}
+            uncontrolled={true}
             {...multilineOpts}
           />
 
