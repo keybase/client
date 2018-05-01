@@ -900,8 +900,7 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{
 		noMe: true,
 	}
-	ctx := Context{IdentifyUI: i}
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -923,9 +922,7 @@ func TestIdentify2NoSigchain(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	ctx := Context{IdentifyUI: i}
-
-	err := eng.Run(&ctx)
+	err := eng.Run(identify2MetaContext(tc, i))
 	if err != nil {
 		t.Fatalf("identify2 failed on user with no keys: %s", err)
 	}

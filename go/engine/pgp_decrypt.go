@@ -113,7 +113,8 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		m := metaContextFromEngineContext(e.G(), ctx)
+		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
 		signByUser := eng.Result().Upk
@@ -139,7 +140,8 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		m := metaContextFromEngineContext(e.G(), ctx)
+		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
 	}

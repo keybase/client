@@ -126,13 +126,14 @@ func TestLoginWithPaperKeyLoggedInAndLocked(t *testing.T) {
 func CreateAndSigunpLPK(tc libkb.TestContext, prefix string) (*FakeUser, string) {
 	u := CreateAndSignupFakeUser(tc, prefix)
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	beng := NewPaperKey(tc.G)
-	if err := RunEngine(beng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, beng); err != nil {
 		tc.T.Fatal(err)
 	}
 

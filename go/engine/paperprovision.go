@@ -49,8 +49,7 @@ func (e *PaperProvisionEngine) RequiredUIs() []libkb.UIKind {
 	}
 }
 
-func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
-	m := metaContextFromEngineContext(e.G(), ctx)
+func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("PaperProvisionEngine#Run", func() error { return err })()
 
 	// clear out any existing session:
@@ -114,7 +113,7 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 	}
 
 	// Make new device keys and sign them with this paper key
-	err = e.paper(ctx, kp)
+	err = e.paper(m, kp)
 	if err != nil {
 		return err
 	}
@@ -153,31 +152,31 @@ func (e *PaperProvisionEngine) uidByKID(kid keybase1.KID) (keybase1.UID, error) 
 }
 
 // copied more or less from loginProvision.paper()
-func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
+func (e *PaperProvisionEngine) paper(m libkb.MetaContext, kp *keypair) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
+		m = m.WithLoginContext(lctx)
 
 		// need lksec to store device keys locally
-		if err := e.fetchLKS(ctx, kp.encKey); err != nil {
+		if err := e.fetchLKS(m, kp.encKey); err != nil {
 			return err
 		}
 
 		lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 
-		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
+		if err := e.makeDeviceKeysWithSigner(m, kp.sigKey); err != nil {
 			return err
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 		}
 		return nil
 	}
 
 	// need a session to continue to provision, login with paper sigKey
-	return e.G().LoginState().LoginWithKey(NewMetaContext(e, ctx), e.User, kp.sigKey, afterLogin)
+	return e.G().LoginState().LoginWithKey(m, e.User, kp.sigKey, afterLogin)
 }
 
 func (e *PaperProvisionEngine) sendNotification() {
@@ -195,8 +194,8 @@ func (e *PaperProvisionEngine) Result() error {
 }
 
 // copied from loginProvision
-func (e *PaperProvisionEngine) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
-	gen, clientLKS, err := fetchLKS(metaContextFromEngineContext(e.G(), ctx), encKey)
+func (e *PaperProvisionEngine) fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) error {
+	gen, clientLKS, err := fetchLKS(m, encKey)
 	if err != nil {
 		return err
 	}
@@ -207,8 +206,8 @@ func (e *PaperProvisionEngine) fetchLKS(ctx *Context, encKey libkb.GenericKey) e
 // copied from loginProvision
 // makeDeviceKeysWithSigner creates device keys given a signing
 // key.
-func (e *PaperProvisionEngine) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
-	args, err := e.makeDeviceWrapArgs(ctx)
+func (e *PaperProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, signer libkb.GenericKey) error {
+	args, err := e.makeDeviceWrapArgs(m)
 	if err != nil {
 		return err
 	}
@@ -216,15 +215,15 @@ func (e *PaperProvisionEngine) makeDeviceKeysWithSigner(ctx *Context, signer lib
 	args.IsEldest = false // just to be explicit
 	args.EldestKID = e.User.GetEldestKID()
 
-	return e.makeDeviceKeys(ctx, args)
+	return e.makeDeviceKeys(m, args)
 }
 
 // copied from loginProvision
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
 // It ensures that LKSec is created.  It also gets a new device
 // name for this device.
-func (e *PaperProvisionEngine) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
-	if err := e.ensureLKSec(ctx); err != nil {
+func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWrapArgs, error) {
+	if err := e.ensureLKSec(m); err != nil {
 		return nil, err
 	}
 
@@ -239,19 +238,19 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs
 
 // copied from loginProvision
 // makeDeviceKeys uses DeviceWrap to generate device keys.
-func (e *PaperProvisionEngine) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(e.G(), args)
-	return RunEngine2(metaContextFromEngineContext(e.G(), ctx), eng)
+func (e *PaperProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
+	eng := NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, eng)
 }
 
 // copied from loginProvision
 // ensureLKSec ensures we have LKSec for saving device keys.
-func (e *PaperProvisionEngine) ensureLKSec(ctx *Context) error {
+func (e *PaperProvisionEngine) ensureLKSec(m libkb.MetaContext) error {
 	if e.lks != nil {
 		return nil
 	}
 
-	pps, err := e.ppStream(ctx)
+	pps, err := e.ppStream(m)
 	if err != nil {
 		return err
 	}
@@ -262,11 +261,11 @@ func (e *PaperProvisionEngine) ensureLKSec(ctx *Context) error {
 
 // copied from loginProvision
 // ppStream gets the passphrase stream from the cache
-func (e *PaperProvisionEngine) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
-	if ctx.LoginContext == nil {
+func (e *PaperProvisionEngine) ppStream(m libkb.MetaContext) (*libkb.PassphraseStream, error) {
+	if m.LoginContext() == nil {
 		return nil, errors.New("loginProvision: ppStream() -> nil ctx.LoginContext")
 	}
-	cached := ctx.LoginContext.PassphraseStreamCache()
+	cached := m.LoginContext().PassphraseStreamCache()
 	if cached == nil {
 		return nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
 	}

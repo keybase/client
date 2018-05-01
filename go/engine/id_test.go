@@ -21,13 +21,14 @@ func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, 
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 	}
 
 	eng := NewResolveThenIdentify2(tc.G, &arg)
-	err = RunEngine(eng, &ctx)
+	m := NewMetaContextForTest(*tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		return idUI, nil, err
 	}
