@@ -47,7 +47,7 @@ function* _listenSaga(): Saga.SagaGenerator<any, any> {
   const setHandlers = (dispatch, getState) => {
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
     Object.keys(listeners).forEach(key => {
-      engine().setIncomingHandler(key, listeners[key])
+      engine().setIncomingActionCreators(key, () => [listeners[key]])
     })
   }
   yield Saga.put(setHandlers)

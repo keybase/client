@@ -14,6 +14,7 @@ let lastLoggedInNotifyUsername = null
 // We get a counter for badge state, if we get one that's less than what we've seen we toss it
 let lastBadgeStateVersion = -1
 
+// TODO: DESKTOP-6662 - Move notification listeners to their own actions
 export default function(dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {
   const throttledDispatch = throttle(action => dispatch(action), 1000, {
     leading: false,

@@ -6,7 +6,7 @@ import {remote} from 'electron'
 import {isWindows} from '../constants/platform'
 import dumpLogs from '../logger/dump-log-fs'
 
-// TODO(mm) Move these to their own actions
+// TODO: DESKTOP-6662 - Move notification listeners to their own actions
 export default function(
   dispatch: Dispatch,
   getState: () => Object,
