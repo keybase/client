@@ -85,13 +85,18 @@ class Input extends React.PureComponent<Props, State> {
     return {start: selectionStart, end: selectionEnd}
   }
 
-  _onChangeText = (text: string) => {
-    if (!this.props.uncontrolled) {
-      this.setState({value: text})
-    }
-    this._autoResize()
+  _onChangeTextDone = () => {
+    const value = this.getValue()
+    this.props.onChangeText && this.props.onChangeText(value)
+  }
 
-    this.props.onChangeText && this.props.onChangeText(text)
+  _onChangeText = (text: string) => {
+    this._autoResize()
+    if (this.props.uncontrolled) {
+      this._onChangeTextDone()
+    } else {
+      this.setState({value: text}, this._onChangeTextDone)
+    }
   }
 
   _onChange = (event: {target: {value: ?string}}) => {

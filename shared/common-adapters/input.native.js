@@ -92,12 +92,17 @@ class Input extends Component<Props, State> {
     return this._lastNativeSelection || {start: 0, end: 0}
   }
 
+  _onChangeTextDone = () => {
+    const value = this.getValue()
+    this.props.onChangeText && this.props.onChangeText(value)
+  }
+
   _onChangeText = (text: string) => {
     this._lastNativeText = text
     if (this.props.uncontrolled) {
-      this.props.onChangeText && this.props.onChangeText(text)
+      this._onChangeTextDone()
     } else {
-      this.setState({value: text}, () => this.props.onChangeText && this.props.onChangeText(text))
+      this.setState({value: text}, this._onChangeTextDone)
     }
   }
 
