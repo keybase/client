@@ -134,13 +134,6 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
-  moveCursorToEnd = () => {
-    const n = this._input
-    if (n && this.props.value) {
-      n.selectionStart = n.selectionEnd = this.props.value.length
-    }
-  }
-
   transformText = (fn: TextInfo => TextInfo) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')

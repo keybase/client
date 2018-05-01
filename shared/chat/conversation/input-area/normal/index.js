@@ -22,7 +22,12 @@ class Input extends React.Component<InputProps> {
   }
 
   _inputMoveToEnd = () => {
-    this._input && this._input.moveCursorToEnd()
+    if (this._input) {
+      this._input.transformText(({text, selection}) => ({
+        text,
+        selection: {start: text.length, end: text.length},
+      }))
+    }
   }
 
   _onCancelQuoting = () => {

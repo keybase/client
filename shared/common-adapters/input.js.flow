@@ -81,7 +81,6 @@ declare export default class Input extends Component<Props> {
   blur: () => void;
   focus: () => void;
   select: () => void;
-  moveCursorToEnd: () => void;
   getValue: () => string;
   selection: () => Selection;
   // transformText must only be called on uncontrolled Input

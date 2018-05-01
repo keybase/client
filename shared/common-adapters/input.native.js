@@ -44,8 +44,6 @@ class Input extends Component<Props, State> {
 
   // Does nothing on mobile
   select = () => {}
-  // Does nothing on mobile
-  moveCursorToEnd = () => {}
 
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
