@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
@@ -311,7 +312,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := stellar1.SendLocalArg{
-		Recipient: tcs[1].Fu.Username,
+		Recipient: strings.ToUpper(tcs[1].Fu.Username),
 		Amount:    "100",
 		Asset:     stellar1.Asset{Type: "native"},
 	}
@@ -408,11 +409,14 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("create relay transfer")
-	appKey, err := stellar.KeyForRelayTransfer(context.Background(), tcs[0].G, tcs[0].Remote, u1, nil)
+	recipient, err := stellar.LookupRecipient(context.Background(), tcs[0].G, stellar.RecipientInput(u1.GetNormalizedName()))
+	require.NoError(t, err)
+	appKey, teamID, err := stellar.RelayTransferKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
 	out, err := stellar.CreateRelayTransfer(stellar.RelayPaymentInput{
 		From:          stellarSender.Signers[0],
 		AmountXLM:     "10.0005",
+		Note:          "hey",
 		EncryptFor:    appKey,
 		SeqnoProvider: stellar.NewSeqnoProvider(context.Background(), tcs[0].Remote),
 	})
@@ -421,13 +425,15 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.True(t, len(out.FundTx.Signed) > 100)
 
 	t.Logf("decrypt")
-	appKey, err = stellar.KeyForRelayTransfer(context.Background(), tcs[0].G, tcs[0].Remote, u1, &appKey.KeyGeneration)
+	appKey, err = stellar.RelayTransferKeyForDecryption(context.Background(), tcs[0].G, teamID, appKey.KeyGeneration)
 	require.NoError(t, err)
-	relaySecretKey, err := stellar.DecryptRelaySecret(out.EncryptedSeed, appKey)
+	relaySecrets, err := stellar.DecryptRelaySecret(out.Encrypted, appKey)
 	require.NoError(t, err)
-	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecretKey.SecureNoLogString())
+	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)
 	require.Equal(t, out.RelayAccountID, accountID)
+	require.Len(t, relaySecrets.StellarID, 64)
+	require.Equal(t, "hey", relaySecrets.Note)
 }
 
 type TestContext struct {

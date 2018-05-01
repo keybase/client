@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -177,9 +178,11 @@ type RecipientInput string
 
 type Recipient struct {
 	Input RecipientInput
-	User  *libkb.User
+	// These 3 fields are nullable.
+	User      *libkb.User
+	Assertion *keybase1.SocialAssertion
 	// Recipient may not have a stellar wallet ready to receive
-	AccountID *stellarnet.AddressStr
+	AccountID *stellarnet.AddressStr // User entered G... OR target has receiving address
 }
 
 // TODO: handle stellar federation address rebecca*keybase.io (or rebecca*anything.wow)
@@ -197,6 +200,7 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 		return nil
 	}
 
+	// A Stellar address
 	if to[0] == 'G' && len(to) > 16 {
 		err := storeAddress(string(to))
 		if err != nil {
@@ -205,7 +209,35 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 		return res, nil
 	}
 
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, string(to)).WithNetContext(ctx))
+	expr, err := externals.AssertionParse(string(to))
+	if err != nil {
+		g.Log.CDebugf(ctx, "error parsing assertion")
+		return res, fmt.Errorf("invalid recipient '%v': %v", to, err)
+	}
+	socExpr, err := expr.ToSocialAssertion()
+	if err == nil {
+		res.Assertion = &socExpr
+	}
+	username := string(to)
+	switch expr := expr.(type) {
+	case libkb.AssertionKeybase:
+		k, v, err := expr.ToLookup()
+		if !(err == nil && k == "username") {
+			g.Log.CDebugf(ctx, "error unpacking keybase assertion: key:'%v' err:%v", k, err)
+			return res, fmt.Errorf("invalid recipient '%v'", to)
+		}
+		username = v
+	default:
+		// TODO CORE-7781 support resolving non-keybase assertions
+		//                If expr does not resolve use it as SBS.
+		//                If expr resolves and verifies use the user.
+		//                If expr resolves but fails verification ERROR OUT. Do not use as SBS.
+		//                   We don't want to cause impteam conflicts and confusion.
+		g.Log.CDebugf(ctx, "non-keybase resolution %T", expr)
+		return res, fmt.Errorf("invalid recipient '%v'", to)
+	}
+
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, username).WithNetContext(ctx))
 	if err != nil {
 		return res, err
 	}
@@ -246,6 +278,11 @@ func makePostFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID
 
 // SendPayment sends XLM
 // `note` is optional. An empty string will not attach a note.
+// Recipient:
+// Stellar address        : Standard payment
+// User with wallet ready : Standard payment
+// User without a wallet  : Relay payment
+// Unresolved assertion   : Relay payment
 func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, to RecipientInput, amount string, note string) (stellar1.PaymentResult, error) {
 	var err error
 	defer g.CTraceTimed(ctx, "Stellar.SendPayment", func() error { return err })()
@@ -266,7 +303,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	}
 
 	if recipient.AccountID == nil {
-		return sendRelayPayment(ctx, g, remoter, primarySeed, recipient, amount)
+		return sendRelayPayment(ctx, g, remoter, primarySeed, recipient, amount, note)
 	}
 
 	primarySeed2, err := stellarnet.NewSeedStr(primarySeed.SecureNoLogString())
@@ -311,7 +348,6 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 
 	if len(note) > 0 {
 		noteClear := stellar1.NoteContents{
-			Version:   1,
 			Note:      note,
 			StellarID: stellar1.TransactionID(txID),
 		}
@@ -335,26 +371,24 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 // sendRelayPayment sends XLM through a relay account.
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter,
-	from stellar1.SecretKey, recipient Recipient, amount string) (res stellar1.PaymentResult, err error) {
+	from stellar1.SecretKey, recipient Recipient, amount, note string) (res stellar1.PaymentResult, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.sendRelayPayment", func() error { return err })()
-	if recipient.User == nil {
-		// TODO support SBS assertions?
-		return res, fmt.Errorf("no user in recipient")
-	}
-	appKey, err := KeyForRelayTransfer(ctx, g, remoter, recipient.User, nil)
+	appKey, teamID, err := RelayTransferKey(ctx, g, recipient)
 	if err != nil {
 		return res, err
 	}
 	_, err = CreateRelayTransfer(RelayPaymentInput{
 		From:          from,
 		AmountXLM:     amount,
+		Note:          note,
 		EncryptFor:    appKey,
 		SeqnoProvider: NewSeqnoProvider(ctx, remoter),
 	})
 	if err != nil {
 		return res, err
 	}
-	// TODO CORE-7718
+	// TODO CORE-7718 the rest of relay transfers implementation
+	_ = teamID
 	return res, fmt.Errorf("keybase user %s does not have a wallet", recipient.User.GetNormalizedName().String())
 }
 

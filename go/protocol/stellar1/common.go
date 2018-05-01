@@ -168,14 +168,12 @@ func (o NoteRecipient) DeepCopy() NoteRecipient {
 }
 
 type NoteContents struct {
-	Version   int           `codec:"version" json:"version"`
 	Note      string        `codec:"note" json:"note"`
 	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
 }
 
 func (o NoteContents) DeepCopy() NoteContents {
 	return NoteContents{
-		Version:   o.Version,
 		Note:      o.Note,
 		StellarID: o.StellarID.DeepCopy(),
 	}
@@ -199,6 +197,20 @@ func (o EncryptedRelaySecret) DeepCopy() EncryptedRelaySecret {
 		})(o.E),
 		N:   o.N.DeepCopy(),
 		Gen: o.Gen.DeepCopy(),
+	}
+}
+
+type RelayContents struct {
+	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
+	Sk        SecretKey     `codec:"sk" json:"sk"`
+	Note      string        `codec:"note" json:"note"`
+}
+
+func (o RelayContents) DeepCopy() RelayContents {
+	return RelayContents{
+		StellarID: o.StellarID.DeepCopy(),
+		Sk:        o.Sk.DeepCopy(),
+		Note:      o.Note,
 	}
 }
 

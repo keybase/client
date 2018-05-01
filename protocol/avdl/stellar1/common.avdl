@@ -51,7 +51,6 @@ protocol common {
   }
 
   record NoteContents {
-    int version;
     string note;
     TransactionID stellarID;
   }
@@ -63,6 +62,12 @@ protocol common {
     bytes e;             // encrypted data
     keybase1.BoxNonce n; // nonce
     keybase1.PerTeamKeyGeneration gen; // key generation that was used
+  }
+
+  record RelayContents {
+    TransactionID stellarID;
+    SecretKey sk;
+    string note;
   }
 
   @typedef("string") record OutsideCurrencyCode {}

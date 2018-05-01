@@ -157,10 +157,6 @@
       "name": "NoteContents",
       "fields": [
         {
-          "type": "int",
-          "name": "version"
-        },
-        {
           "type": "string",
           "name": "note"
         },
@@ -189,6 +185,24 @@
         {
           "type": "keybase1.PerTeamKeyGeneration",
           "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RelayContents",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "SecretKey",
+          "name": "sk"
+        },
+        {
+          "type": "string",
+          "name": "note"
         }
       ]
     },
