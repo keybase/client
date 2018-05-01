@@ -125,12 +125,13 @@ func getActiveDevicesAndKeys(tc *kbtest.ChatTestContext, u *kbtest.FakeUser) ([]
 }
 
 func doRevokeDevice(tc *kbtest.ChatTestContext, u *kbtest.FakeUser, id keybase1.DeviceID, force bool) error {
-	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: id, ForceSelf: force}, tc.G)
-	ctx := &engine.Context{
+	revokeEngine := engine.NewRevokeDeviceEngine(tc.G, engine.RevokeDeviceEngineArgs{ID: id, ForceSelf: force})
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	err := engine.RunEngine(revokeEngine, ctx)
+	m := libkb.NewMetaContextTODO(tc.G).WithUIs(uis)
+	err := engine.RunEngine2(m, revokeEngine)
 	return err
 }
 

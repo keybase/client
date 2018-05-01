@@ -21,6 +21,10 @@ func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID,
 	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
 	return ret, uid, err
 }
+func isLoggedIn(m libkb.MetaContext) (ret bool, uid keybase1.UID) {
+	ret, uid, _ = libkb.BootstrapActiveDeviceWithMetaContext(m)
+	return ret, uid
+}
 
 func isLoggedInWithError(m libkb.MetaContext) (ret bool, err error) {
 	ret, _, err = isLoggedInWithUIDAndError(m)
