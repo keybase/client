@@ -106,11 +106,15 @@ func kbfsLibdokanCreateFile(
 	if status.IsDir() {
 		pfi.IsDirectory = 1
 	}
-	if err == nil && !status.IsNew() && cd.CreateDisposition == FileOpenIf {
+	if err == nil && !status.IsNew() && cd.CreateDisposition.isSignalExisting() {
 		debugf("CreateFile adding ErrObjectNameCollision")
 		err = ErrObjectNameCollision
 	}
 	return fiStore(pfi, fi, err)
+}
+
+func (cd CreateDisposition) isSignalExisting() bool {
+	return cd == FileOpenIf || cd == FileSupersede || cd == FileOverwriteIf
 }
 
 func globalContext() context.Context {
