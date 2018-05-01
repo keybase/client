@@ -111,8 +111,8 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		Me:      e.arg.Me,
 		Options: e.arg.Options,
 	}
-	teng := NewTrackToken(targ, e.G())
-	return RunEngine(teng, ctx)
+	teng := NewTrackToken(e.G(), targ)
+	return RunEngine2(m, teng)
 }
 
 func (e *TrackEngine) User() *libkb.User {

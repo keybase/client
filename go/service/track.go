@@ -49,18 +49,19 @@ func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) (keybase1
 	return res, err
 }
 
-func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithTokenArg) error {
+func (h *TrackHandler) TrackWithToken(ctx context.Context, arg keybase1.TrackWithTokenArg) error {
 	earg := engine.TrackTokenArg{
 		Token:   arg.TrackToken,
 		Options: arg.Options,
 	}
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewTrackToken(&earg, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewTrackToken(h.G(), &earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *TrackHandler) DismissWithToken(ctx context.Context, arg keybase1.DismissWithTokenArg) error {
