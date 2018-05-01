@@ -177,10 +177,9 @@ class Input extends React.PureComponent<Props, State> {
     }
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
-        // inject newline
+        // Inject newline.
         //
         // TODO: scroll to new position.
-        // TODO: trigger changeText event.
         if (this.props.uncontrolled) {
           this.transformText(({text, selection}) => {
             const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
@@ -191,10 +190,24 @@ class Input extends React.PureComponent<Props, State> {
               selection: newSelection,
             }
           })
+          const value = this.getValue()
+          this.props.onChangeText && this.props.onChangeText(value)
         } else {
-          this.setState(({value}) => ({
-            value: value ? value + '\n' : value,
-          }))
+          this.setState(
+            ({value}) => {
+              const selection = this.selection()
+              const text = value || ''
+              const newValue = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
+              // TODO: Update selection.
+              return {
+                value: newValue,
+              }
+            },
+            () => {
+              const value = this.getValue()
+              this.props.onChangeText && this.props.onChangeText(value)
+            }
+          )
         }
       } else {
         this.props.onEnterKeyDown(e)
