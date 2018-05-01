@@ -1,14 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import {isMobile} from '../../../../../util/container'
+import type {DeviceType} from '../../../../constants/types/devices'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
   attachTo: ?React.Component<*, *>,
-  message: Types.MessageText,
+  author: string,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
   onCopy: () => void,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
@@ -20,28 +23,52 @@ type Props = {
   position: Position,
   showDivider: boolean,
   style?: Object,
+  timestamp: number,
   visible: boolean,
   yourMessage: boolean,
 }
 
 const ExplodingPopupMenu = (props: Props) => {
-  const {message} = props
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
-    {danger: true, disabled: !props.onExplodeNow, onClick: props.onExplodeNow, title: 'Explode now'},
+    ...(props.yourMessage
+      ? [
+          {
+            danger: true,
+            disabled: !props.onDelete,
+            onClick: props.onDelete,
+            subTitle: 'Deletes this message for everyone',
+            title: 'Delete',
+          },
+        ]
+      : []),
+    ...(props.onDeleteMessageHistory
+      ? [
+          {
+            danger: true,
+            onClick: props.onDeleteMessageHistory,
+            title: 'Delete this + everything above',
+          },
+        ]
+      : []),
+    ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
     {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
+    {onClick: props.onCopy, title: 'Copy Text'},
+    {onClick: props.onQuote, title: 'Quote'},
+    {onClick: props.onReplyPrivately, title: 'Reply Privately'},
+    {onClick: props.onViewProfile, title: 'View Profile'},
   ]
 
   const header = {
     title: 'header',
     view: (
       <MessagePopupHeader
-        author={message.author}
-        deviceName={message.deviceName}
-        deviceRevokedAt={message.deviceRevokedAt}
-        deviceType={message.deviceType}
+        author={props.author}
+        deviceName={props.deviceName}
+        deviceRevokedAt={props.deviceRevokedAt}
+        deviceType={props.deviceType}
         isLast={!items.length}
-        timestamp={message.timestamp}
+        timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />
     ),

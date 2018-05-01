@@ -1,14 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import {isMobile} from '../../../../../util/container'
+import type {DeviceType} from '../../../../constants/types/devices'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
   attachTo: ?React.Component<*, *>,
-  message: Types.MessageText,
+  author: string,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
   onCopy: () => void,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
@@ -20,12 +23,12 @@ type Props = {
   position: Position,
   showDivider: boolean,
   style?: Object,
+  timestamp: number,
   visible: boolean,
   yourMessage: boolean,
 }
 
 const TextPopupMenu = (props: Props) => {
-  const {message} = props
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
     ...(props.yourMessage
@@ -60,12 +63,12 @@ const TextPopupMenu = (props: Props) => {
     title: 'header',
     view: (
       <MessagePopupHeader
-        author={message.author}
-        deviceName={message.deviceName}
-        deviceRevokedAt={message.deviceRevokedAt}
-        deviceType={message.deviceType}
+        author={props.author}
+        deviceName={props.deviceName}
+        deviceRevokedAt={props.deviceRevokedAt}
+        deviceType={props.deviceType}
         isLast={!items.length}
-        timestamp={message.timestamp}
+        timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />
     ),

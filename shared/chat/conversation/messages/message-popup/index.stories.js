@@ -9,7 +9,7 @@ import HiddenString from '../../../../util/hidden-string'
 
 const textMessage = makeMessageText({
   author: 'cjb',
-  deviceName: 'myDevice',
+  deviceRevokedAt: null,
   text: new HiddenString('blah'),
   timestamp: 1525190235719,
 })
@@ -37,7 +37,7 @@ const load = () => {
     .add('Text', () => (
       <TextPopupMenu
         {...defaultProps}
-        message={textMessage}
+        {...textMessage}
         onCopy={action('onCopy')}
         onDelete={action('onDelete')}
         onDeleteMessageHistory={action('onDeleteMessageHistory')}
@@ -52,7 +52,7 @@ const load = () => {
     .add('Attachment', () => (
       <AttachmentPopupMenu
         {...defaultProps}
-        message={attachmentMessage}
+        {...attachmentMessage}
         onDelete={action('onDelete')}
         onDeleteMessageHistory={action('onDeleteMessageHistory')}
         onDownload={action('onDownload')}
@@ -65,6 +65,7 @@ const load = () => {
     .add('Exploding', () => (
       <ExplodingPopupMenu
         {...defaultProps}
+        {...textMessage}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
       />
