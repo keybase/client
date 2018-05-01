@@ -26,6 +26,11 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
   _inputRef: ?Input
 
+  _inputSetRef = (input: ?Input) => {
+    this.props.inputSetRef(input)
+    this._inputRef = input
+  }
+
   _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
     this.setState({mentionPopupOpen})
   }
@@ -40,11 +45,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _setChannelMentionFilter = (channelMentionFilter: string) => {
     this.setState({channelMentionFilter})
-  }
-
-  _inputSetRef = (input: ?Input) => {
-    this.props.inputSetRef(input)
-    this._inputRef = input
   }
 
   insertMention = (u: string, options?: {notUser: boolean}) => {

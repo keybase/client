@@ -10,31 +10,44 @@ type MentionState = {
   channelMentionFilter: string,
   mentionPopupOpen: boolean,
   channelMentionPopupOpen: boolean,
+
+  // Desktop only.
+  upArrowCounter: number,
+  downArrowCounter: number,
 }
 
 class MentionInput extends React.Component<MentionInputProps, MentionState> {
-  state: MentionState
-  _inputRef: ?Input
-  constructor() {
-    super()
-    this.state = {
-      pickSelectedCounter: 0,
-      mentionFilter: '',
-      channelMentionFilter: '',
-      mentionPopupOpen: false,
-      channelMentionPopupOpen: false,
-    }
+  state: MentionState = {
+    upArrowCounter: 0,
+    downArrowCounter: 0,
+    pickSelectedCounter: 0,
+    mentionFilter: '',
+    channelMentionFilter: '',
+    mentionPopupOpen: false,
+    channelMentionPopupOpen: false,
   }
+  _inputRef: ?Input
 
   _inputSetRef = (input: ?Input) => {
     this.props.inputSetRef(input)
     this._inputRef = input
   }
 
-  setMentionPopupOpen = (mentionPopupOpen: boolean) => this.setState({mentionPopupOpen})
-  setChannelMentionPopupOpen = (channelMentionPopupOpen: boolean) => this.setState({channelMentionPopupOpen})
-  _setMentionFilter = (mentionFilter: string) => this.setState({mentionFilter})
-  _setChannelMentionFilter = (channelMentionFilter: string) => this.setState({channelMentionFilter})
+  _setMentionPopupOpen = (mentionPopupOpen: boolean) => {
+    this.setState({mentionPopupOpen})
+  }
+
+  _setChannelMentionPopupOpen = (channelMentionPopupOpen: boolean) => {
+    this.setState({channelMentionPopupOpen})
+  }
+
+  _setMentionFilter = (mentionFilter: string) => {
+    this.setState({mentionFilter})
+  }
+
+  _setChannelMentionFilter = (channelMentionFilter: string) => {
+    this.setState({channelMentionFilter})
+  }
 
   _isPopupOpen = () => this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
 
@@ -51,26 +64,26 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     const word = this._getWordAtCursor(nextText, selectionStart)
     if (!this._isPopupOpen() && selection.start === selection.end) {
       if (word[0] === '@') {
-        this.setMentionPopupOpen(true)
+        this._setMentionPopupOpen(true)
         this._setMentionFilter(word.substring(1))
       } else if (word[0] === '#') {
-        this.setChannelMentionPopupOpen(true)
+        this._setChannelMentionPopupOpen(true)
         this._setChannelMentionFilter(word.substring(1))
       }
     } else if (selection.start !== selection.end) {
-      this.state.mentionPopupOpen && this.setMentionPopupOpen(false) && this._setMentionFilter('')
+      this.state.mentionPopupOpen && this._setMentionPopupOpen(false) && this._setMentionFilter('')
       this.state.channelMentionPopupOpen &&
-        this.setChannelMentionPopupOpen(false) &&
+        this._setChannelMentionPopupOpen(false) &&
         this._setChannelMentionFilter('')
     } else {
       // Close popups if word doesn't begin with marker anymore
       if (this.state.mentionPopupOpen && word[0] !== '@') {
         this._setMentionFilter('')
-        this.setMentionPopupOpen(false)
+        this._setMentionPopupOpen(false)
         return
       } else if (this.state.channelMentionPopupOpen && word[0] !== '#') {
         this._setChannelMentionFilter('')
-        this.setChannelMentionPopupOpen(false)
+        this._setChannelMentionPopupOpen(false)
         return
       }
 
@@ -88,8 +101,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   onBlur = () => {
-    this.state.channelMentionPopupOpen && this.setChannelMentionPopupOpen(false)
-    this.state.mentionPopupOpen && this.setMentionPopupOpen(false)
+    this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(false)
+    this.state.mentionPopupOpen && this._setMentionPopupOpen(false)
   }
 
   onFocus = () => {
@@ -142,8 +155,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       {...this.state}
       insertChannelMention={this.insertChannelMention}
       insertMention={this.insertMention}
-      setMentionPopupOpen={this.setMentionPopupOpen}
-      setChannelMentionPopupOpen={this.setChannelMentionPopupOpen}
+      setMentionPopupOpen={this._setMentionPopupOpen}
+      setChannelMentionPopupOpen={this._setChannelMentionPopupOpen}
       inputSetRef={this._inputSetRef}
       insertMentionMarker={this.insertMentionMarker}
       onBlur={this.onBlur}
