@@ -322,7 +322,7 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 	tsec := m.LoginContext().PassphraseStreamCache().Triplesec()
 	sgen := m.LoginContext().GetStreamGeneration()
 
-	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
 		Gen:              &gen,
 		PushSecret:       true,
 		Lks:              s.lks,
@@ -331,5 +331,5 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 		PreloadStreamGen: sgen,
 	})
 
-	return RunEngine(eng, engineContextFromMetaContext(m))
+	return RunEngine2(m, eng)
 }

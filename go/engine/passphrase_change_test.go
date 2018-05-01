@@ -654,15 +654,15 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 			SubkeyBits:  768,
 		},
 		PushSecret: true,
-		Ctx:        tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	err := RunEngine(eng, ctx)
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -674,7 +674,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	tc.ResetLoginState()
 
 	secretUI := libkb.TestSecretUI{}
-	ctx = &Context{
+	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &secretUI,
@@ -716,7 +716,6 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := createFakeUserWithPGPSibkeyPushed(tc)
-	m := NewMetaContextForTest(tc)
 
 	// create/push another pgp key
 	parg := PGPKeyImportEngineArg{
@@ -727,15 +726,15 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		PushSecret: true,
 		NoSave:     true,
 		AllowMulti: true,
-		Ctx:        tc.G,
 	}
 	parg.Gen.MakeAllIds(tc.G)
-	pctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	peng := NewPGPKeyImportEngine(parg)
-	err := RunEngine(peng, pctx)
+	peng := NewPGPKeyImportEngine(tc.G, parg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, peng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -845,15 +844,15 @@ func TestPassphraseGenerationStored(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
-		Ctx: tc.G,
 	}
 	pgpArg.Gen.MakeAllIds(tc.G)
-	pgpEng := NewPGPKeyImportEngine(pgpArg)
-	pgpCtx := &Context{
+	pgpEng := NewPGPKeyImportEngine(tc.G, pgpArg)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 	}
-	err = RunEngine(pgpEng, pgpCtx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, pgpEng)
 	if err != nil {
 		t.Fatal(err)
 	}

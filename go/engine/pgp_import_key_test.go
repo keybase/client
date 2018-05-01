@@ -20,25 +20,26 @@ func TestPGPImportAndExport(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	// try all four permutations of push options:
 
 	fp, _, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), false, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err = RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
 	fp, _, key = armorKey(t, tc, u.Email)
-	eng, err = NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -49,6 +50,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		},
 	}
 
+	ctx := engineContextFromMetaContext(m)
 	xe := NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)
@@ -94,7 +96,7 @@ func TestPGPImportPublicKey(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpsave")
 	defer tc.Cleanup()
 
-	_, err := NewPGPKeyImportEngineFromBytes([]byte(pubkeyIssue325), false, tc.G)
+	_, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(pubkeyIssue325), false)
 	if err == nil {
 		t.Fatal("import of public key didn't generate error")
 	}
@@ -118,13 +120,14 @@ func testImportKey(t *testing.T, which string, armor string, pp string) {
 
 	CreateAndSignupFakeUser(tc, "login")
 	secui := &libkb.TestSecretUI{Passphrase: pp}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(armor), false, tc.G)
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(armor), false)
 	eng.arg.OnlySave = true
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = RunEngine(eng, ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +140,7 @@ func TestPGPImportGPGExport(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "pgp")
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
 
 	// before running, they should have no pgp keys in key family or in gpg
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
@@ -168,10 +171,10 @@ func TestPGPImportGPGExport(t *testing.T) {
 		PushSecret: true,
 		AllowMulti: true,
 		DoExport:   true,
-		Ctx:        tc.G,
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
