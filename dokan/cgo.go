@@ -102,6 +102,9 @@ func kbfsLibdokanCreateFile(
 	if isDebug {
 		checkFileDirectoryFile(err, status.IsDir(), uint32(CreateOptions))
 		debugf("CreateFile result: %v new-entry: %v raw %v", status.IsDir(), status.IsNew(), status)
+		if err == nil && status&isValid == 0 {
+			debugf("CreateFile invalid status for successful operation!")
+		}
 	}
 	if status.IsDir() {
 		pfi.IsDirectory = 1
