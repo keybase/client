@@ -37,11 +37,8 @@ func TestPerUserKeyUpkeepBackgroundUnnecessary(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err := RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
@@ -117,11 +114,8 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpkeepBackground(tc.G, arg)
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
-
-	err = RunEngine(eng, ctx)
+	m := NewMetaContextForTestWithLogUI(tc)
+	err = RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")

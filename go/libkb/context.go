@@ -4,6 +4,7 @@ import (
 	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type MetaContext struct {
@@ -55,6 +56,9 @@ func (m MetaContext) CDebugf(f string, args ...interface{}) {
 func (m MetaContext) CWarningf(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CWarningf(m.ctx, f, args...)
 }
+func (m MetaContext) CErrorf(f string, args ...interface{}) {
+	m.g.Log.CloneWithAddedDepth(1).CErrorf(m.ctx, f, args...)
+}
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
 	if m.activeDevice != nil {
@@ -79,6 +83,18 @@ func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
 func (m MetaContext) WithContextCancel() (MetaContext, func()) {
 	var f func()
 	m.ctx, f = context.WithCancel(m.ctx)
+	return m, f
+}
+
+func (m MetaContext) BackgroundWithCancel() (MetaContext, func()) {
+	var f func()
+	m.ctx, f = context.WithCancel(context.Background())
+	return m, f
+}
+
+func (m MetaContext) WithTimeout(timeout time.Duration) (MetaContext, func()) {
+	var f func()
+	m.ctx, f = context.WithTimeout(m.ctx, timeout)
 	return m, f
 }
 

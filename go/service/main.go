@@ -688,10 +688,10 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 
 	eng := engine.NewPerUserKeyUpgradeBackground(d.G(), &engine.PerUserKeyUpgradeBackgroundArgs{})
 	go func() {
-		ectx := &engine.Context{NetContext: context.Background()}
-		err := engine.RunEngine(eng, ectx)
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			d.G().Log.Warning("per-user-key background upgrade error: %v", err)
+			m.CWarningf("per-user-key background upgrade error: %v", err)
 		}
 	}()
 
@@ -705,10 +705,10 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 func (d *Service) runBackgroundPerUserKeyUpkeep() {
 	eng := engine.NewPerUserKeyUpkeepBackground(d.G(), &engine.PerUserKeyUpkeepBackgroundArgs{})
 	go func() {
-		ectx := &engine.Context{NetContext: context.Background()}
-		err := engine.RunEngine(eng, ectx)
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			d.G().Log.Warning("per-user-key background upkeep error: %v", err)
+			m.CWarningf("per-user-key background upkeep error: %v", err)
 		}
 	}()
 
@@ -722,10 +722,10 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 func (d *Service) runBackgroundWalletInit() {
 	eng := engine.NewWalletInitBackground(d.G(), &engine.WalletInitBackgroundArgs{})
 	go func() {
-		ectx := &engine.Context{NetContext: context.Background()}
-		err := engine.RunEngine(eng, ectx)
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			d.G().Log.Warning("background WalletInit error: %v", err)
+			m.CWarningf("background WalletInit error: %v", err)
 		}
 	}()
 
@@ -739,10 +739,10 @@ func (d *Service) runBackgroundWalletInit() {
 func (d *Service) runBackgroundWalletUpkeep() {
 	eng := engine.NewWalletUpkeepBackground(d.G(), &engine.WalletUpkeepBackgroundArgs{})
 	go func() {
-		ectx := &engine.Context{NetContext: context.Background()}
-		err := engine.RunEngine(eng, ectx)
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
 		if err != nil {
-			d.G().Log.Warning("background WalletUpkeep error: %v", err)
+			m.CWarningf("background WalletUpkeep error: %v", err)
 		}
 	}()
 
