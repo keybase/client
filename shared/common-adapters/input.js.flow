@@ -51,6 +51,11 @@ export type Props = {
   // TODO: Have a separate onSubmitEditing prop.
   onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
 
+  // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
+  // i'm afraid of touching this now while I'm fixing a crash.
+  // If true it won't use its internal value to drive its rendering
+  uncontrolled?: boolean,
+
   // Desktop only.
   onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
@@ -63,10 +68,6 @@ export type Props = {
   keyboardType?: KeyboardType,
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
-  // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
-  // i'm afraid of touching this now while I'm fixing a crash.
-  // If true it won't use its internal value to drive its rendering
-  uncontrolled?: boolean,
 }
 
 export type Selection = {start: number, end: number}

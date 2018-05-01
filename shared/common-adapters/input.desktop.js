@@ -50,10 +50,6 @@ class Input extends React.PureComponent<Props, State> {
     this.setState({value: value || ''})
   }
 
-  clearValue = () => {
-    this._onChange({target: {value: ''}})
-  }
-
   selection = () => {
     const n = this._input
     if (n) {
