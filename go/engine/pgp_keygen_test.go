@@ -15,7 +15,7 @@ func TestPGPKeyGenPush(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "pgp")
 	pgpUI := &TestPgpUI{ShouldPush: true}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 		PgpUI:    pgpUI,
@@ -33,7 +33,8 @@ func TestPGPKeyGenPush(t *testing.T) {
 		PrimaryBits: 768,
 		SubkeyBits:  768,
 	}
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -44,6 +45,7 @@ func TestPGPKeyGenPush(t *testing.T) {
 		},
 	}
 	xe := NewPGPKeyExportEngine(xarg, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +60,7 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "pgp")
 	pgpUI := &TestPgpUI{ShouldPush: false}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 		PgpUI:    pgpUI,
@@ -76,7 +78,8 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 		PrimaryBits: 768,
 		SubkeyBits:  768,
 	}
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -87,6 +90,7 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 		},
 	}
 	xe := NewPGPKeyExportEngine(xarg, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)
 	}

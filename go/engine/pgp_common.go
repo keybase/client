@@ -12,21 +12,21 @@ import (
 )
 
 // OutputSignatureSuccess prints the details of a successful verification.
-func OutputSignatureSuccess(ctx *Context, fingerprint libkb.PGPFingerprint, owner *libkb.User, signatureTime time.Time) error {
+func OutputSignatureSuccess(m libkb.MetaContext, fingerprint libkb.PGPFingerprint, owner *libkb.User, signatureTime time.Time) error {
 	arg := keybase1.OutputSignatureSuccessArg{
 		Fingerprint: fingerprint.String(),
 		Username:    owner.GetName(),
 		SignedAt:    keybase1.TimeFromSeconds(signatureTime.Unix()),
 	}
-	return ctx.PgpUI.OutputSignatureSuccess(ctx.GetNetContext(), arg)
+	return m.UIs().PgpUI.OutputSignatureSuccess(m.Ctx(), arg)
 }
 
 // OutputSignatureSuccessNonKeybase prints the details of successful signature verification
 // when signing key is not known to keybase.
-func OutputSignatureSuccessNonKeybase(ctx *Context, keyID uint64, signatureTime time.Time) error {
+func OutputSignatureSuccessNonKeybase(m libkb.MetaContext, keyID uint64, signatureTime time.Time) error {
 	arg := keybase1.OutputSignatureSuccessNonKeybaseArg{
 		KeyID:    fmt.Sprintf("%X", keyID),
 		SignedAt: keybase1.TimeFromSeconds(signatureTime.Unix()),
 	}
-	return ctx.PgpUI.OutputSignatureSuccessNonKeybase(ctx.GetNetContext(), arg)
+	return m.UIs().PgpUI.OutputSignatureSuccessNonKeybase(m.Ctx(), arg)
 }

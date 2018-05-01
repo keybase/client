@@ -21,12 +21,12 @@ func TestPGPKeyfinder(t *testing.T) {
 	trackAlice(tc, u, sigVersion)
 	defer untrackAlice(tc, u, sigVersion)
 
-	ctx := &Context{}
 	arg := &PGPKeyfinderArg{
 		Usernames: []string{"t_alice", "t_bob", "t_charlie"},
 	}
-	eng := NewPGPKeyfinder(arg, tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPKeyfinder(tc.G, arg)
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -40,12 +40,12 @@ func TestPGPKeyfinderLoggedOut(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPKeyfinder")
 	defer tc.Cleanup()
 
-	ctx := &Context{}
 	arg := &PGPKeyfinderArg{
 		Usernames: []string{"t_alice", "t_bob", "t_charlie"},
 	}
-	eng := NewPGPKeyfinder(arg, tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPKeyfinder(tc.G, arg)
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
