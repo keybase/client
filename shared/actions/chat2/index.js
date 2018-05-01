@@ -229,7 +229,7 @@ const unboxRows = (
         ...inboxQuery,
         convIDs: conversationIDKeys.map(Types.keyToConversationID),
       },
-      skipUnverified: false,
+      skipUnverified: true,
     },
     false,
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
