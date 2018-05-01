@@ -26,6 +26,7 @@ type Props = {
 
 const TextPopupMenu = (props: Props) => {
   console.warn({props})
+  const {message} = props
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
     ...(props.yourMessage
@@ -59,7 +60,15 @@ const TextPopupMenu = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <MessagePopupHeader message={props.message} isLast={!items.length} yourMessage={props.yourMessage} />
+      <MessagePopupHeader
+        author={message.author}
+        deviceName={message.deviceName}
+        deviceRevokedAt={message.deviceRevokedAt}
+        deviceType={message.deviceType}
+        isLast={!items.length}
+        timestamp={message.timestamp}
+        yourMessage={props.yourMessage}
+      />
     ),
   }
   return (

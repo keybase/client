@@ -23,6 +23,7 @@ type Props = {
 }
 
 const AttachmentPopupMenu = (props: Props) => {
+  const {message} = props
   const items = [
     'Divider',
     ...(props.yourMessage
@@ -56,7 +57,15 @@ const AttachmentPopupMenu = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <MessagePopupHeader message={props.message} isLast={!items.length} yourMessage={props.yourMessage} />
+      <MessagePopupHeader
+        author={message.author}
+        deviceName={message.deviceName}
+        deviceRevokedAt={message.deviceRevokedAt}
+        deviceType={message.deviceType}
+        isLast={!items.length}
+        timestamp={message.timestamp}
+        yourMessage={props.yourMessage}
+      />
     ),
   }
   return (
