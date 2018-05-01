@@ -1,8 +1,15 @@
 // @flow
 import * as LoginGen from '../../actions/login-gen'
 import HiddenString from '../../util/hidden-string'
-import Login from '.'
-import {compose, withStateHandlers, withHandlers, connect, type TypedState} from '../../util/container'
+import Login, {type Props} from '.'
+import {
+  compose,
+  lifecycle,
+  withStateHandlers,
+  withHandlers,
+  connect,
+  type TypedState,
+} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
 
 const mapStateToProps = (state: TypedState) => {
@@ -18,6 +25,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
+  _resetError: () => dispatch(LoginGen.createLoginError({error: ''})),
   onFeedback: () => dispatch(navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createOpenAccountResetPage()),
   onLogin: (user: string, passphrase: string) =>
@@ -54,5 +62,19 @@ export default compose(
       }
     },
     selectedUserChange: props => user => props.setSelectedUser(user),
+  }),
+  lifecycle({
+    componentDidUpdate(prevProps: Props) {
+      // Clear the passphrase when there's an error.
+      // We’re doing this here because passphrase isn’t in the store.
+      // Otherwise, we’d use a saga.
+      if (this.props.error !== prevProps.error) {
+        this.props.passphraseChange()
+      }
+      // Same here but for clearing the error.
+      if (this.props.selectedUser !== prevProps.selectedUser) {
+        this.props._resetError()
+      }
+    },
   })
 )(Login)

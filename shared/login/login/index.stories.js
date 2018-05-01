@@ -4,7 +4,7 @@ import Login, {type Props} from '.'
 import {action, storiesOf} from '../../stories/storybook'
 
 const commonProps: Props = {
-  error: null,
+  error: '',
   onBack: action('onBack'),
   onFeedback: action('onFeedback'),
   onForgotPassphrase: action('onForgotPassphrase'),
