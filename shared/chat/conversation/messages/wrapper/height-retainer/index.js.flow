@@ -1,0 +1,11 @@
+// @flow
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../../../../../styles'
+
+export type Props = {
+  children?: React.Node,
+  style?: StylesCrossPlatform,
+  retainHeight: boolean,
+  replacementImageURI: string,
+}
+export default class HeightRetainer extends React.Component<Props, *> {}
