@@ -32,7 +32,7 @@ class Input extends Component<Props, State> {
       height: null,
     }: State)
     if (!props.uncontrolled) {
-      this.state['value'] = text
+      this.state.value = text
     }
     this._text = text
     this._selection = {start: 0, end: 0}
@@ -84,8 +84,12 @@ class Input extends Component<Props, State> {
     }
   }
 
-  getValue(): string {
+  getValue = (): string => {
     return this.props.uncontrolled ? this._text : this.state.value || ''
+  }
+
+  selection = () => {
+    return this._selection
   }
 
   _onChangeText = (text: string) => {
@@ -182,10 +186,6 @@ class Input extends Component<Props, State> {
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
     this._selection = {start, end}
-  }
-
-  selection = () => {
-    return this._selection
   }
 
   render() {

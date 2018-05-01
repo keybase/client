@@ -7,22 +7,34 @@ import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyle
 import type {Props, TextInfo} from './input'
 
 type State = {
-  value: string,
   focused: boolean,
+  // Only changed for controlled components.
+  value?: string,
 }
 
 class Input extends React.PureComponent<Props, State> {
   state: State
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
+  _text: string
+  _selection: {start: number, end: number}
 
   constructor(props: Props) {
     super(props)
 
-    this.state = {
+    const text = props.value || ''
+    this.state = ({
       focused: false,
-      value: props.value || '',
+    }: State)
+    if (!props.uncontrolled) {
+      this.state.value = text
     }
+    this._text = text
+    this._selection = {start: 0, end: 0}
+  }
+
+  _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
+    this._input = ref
   }
 
   componentDidMount() {
@@ -30,7 +42,7 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.hasOwnProperty('value')) {
+    if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
       return {value: nextProps.value || ''}
     }
     return null
@@ -43,11 +55,7 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   getValue = (): string => {
-    return this.state.value || ''
-  }
-
-  setValue = (value: string) => {
-    this.setState({value: value || ''})
+    return this.props.uncontrolled ? this._text : this.state.value || ''
   }
 
   selection = () => {
@@ -92,14 +100,11 @@ class Input extends React.PureComponent<Props, State> {
 
       // See if we've gone up in size, if so keep track of the input at that point
       if (n.scrollHeight > rect.height) {
-        this._smartAutoresize.pivotLength = this.state.value.length
+        this._smartAutoresize.pivotLength = n.value.length
         n.style.height = `${n.scrollHeight}px`
       } else {
         // see if we went back down in height
-        if (
-          this._smartAutoresize.pivotLength !== -1 &&
-          this.state.value.length <= this._smartAutoresize.pivotLength
-        ) {
+        if (this._smartAutoresize.pivotLength !== -1 && n.value.length <= this._smartAutoresize.pivotLength) {
           this._smartAutoresize.pivotLength = -1
           n.style.height = '1px'
           n.style.height = `${n.scrollHeight}px`
@@ -171,7 +176,8 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
         // inject newline
-        this.setValue(this.getValue() + '\n')
+        // TODO: Figure out.
+        // this.setValue(this.getValue() + '\n')
       } else {
         this.props.onEnterKeyDown(e)
       }
@@ -281,13 +287,15 @@ class Input extends React.PureComponent<Props, State> {
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
     }
 
+    const value = this._input ? this._input.value : ''
+
     const floatingHintText =
-      !!this.state.value.length &&
+      !!value.length &&
       (this.props.hasOwnProperty('floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    const commonProps = {
+    const commonProps: {value?: string} = {
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
@@ -300,15 +308,12 @@ class Input extends React.PureComponent<Props, State> {
       onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,
       readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? 'readonly' : undefined,
-      ref: r => {
-        this._input = r
-      },
-      value: this.state.value,
+      ref: this._setInputRef,
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
-    if (this.props.uncontrolled) {
-      delete commonProps['value']
+    if (!this.props.uncontrolled) {
+      commonProps.value = value
     }
 
     const singlelineProps = {
