@@ -182,10 +182,7 @@ export const createDesktopNotification = (
   |}>
 ) => ({error: false, payload, type: desktopNotification})
 export const createExitSearch = (payload: $ReadOnly<{|canceled: boolean|}>) => ({error: false, payload, type: exitSearch})
-export const createInboxRefresh = (payload: $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>) => {
-  console._log('aaaa calling inbox refresh')
-return ({error: false, payload, type: inboxRefresh})
-}
+export const createInboxRefresh = (payload: $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>) => ({error: false, payload, type: inboxRefresh})
 export const createJoinConversation = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: joinConversation})
 export const createLeaveConversation = (
   payload: $ReadOnly<{|

@@ -180,14 +180,9 @@ export const localGetInboxAndUnboxLocalRpcChannelMap = (configKeys: Array<string
 
 export const localGetInboxAndUnboxLocalRpcPromise = (request: LocalGetInboxAndUnboxLocalRpcParam): Promise<LocalGetInboxAndUnboxLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request, (error: RPCError, result: LocalGetInboxAndUnboxLocalResult) => (error ? reject(error) : resolve(result))))
 
-export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxNonblockLocalRpcParam): EngineChannel => {
-  console._log('aaaa makinginbox call')
- return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
-}
+export const localGetInboxNonblockLocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxNonblockLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxNonblockLocal', request)
 
-export const localGetInboxNonblockLocalRpcPromise = (request: LocalGetInboxNonblockLocalRpcParam): Promise<LocalGetInboxNonblockLocalResult> => {
-  console._log('aaaa makinginbox call')
-  return new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error: RPCError, result: LocalGetInboxNonblockLocalResult) => (error ? reject(error) : resolve(result))))}
+export const localGetInboxNonblockLocalRpcPromise = (request: LocalGetInboxNonblockLocalRpcParam): Promise<LocalGetInboxNonblockLocalResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('chat.1.local.getInboxNonblockLocal', request, (error: RPCError, result: LocalGetInboxNonblockLocalResult) => (error ? reject(error) : resolve(result))))
 
 export const localGetInboxSummaryForCLILocalRpcChannelMap = (configKeys: Array<string>, request: LocalGetInboxSummaryForCLILocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getInboxSummaryForCLILocal', request)
 
