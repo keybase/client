@@ -534,14 +534,18 @@ func mustJoinConversationByID(t *testing.T, ctc *chatTestContext, asUser *kbtest
 // Consumes expunge notifications from `listener` and returns the latest one.
 // `upto` is optional (0 means any)
 func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, listener *serverChatListener, convID chat1.ConversationID, uptoWant chat1.MessageID) chat1.ExpungeInfo {
-	t.Logf("sweepPollForDeletion(convID: %v)", convID)
+	t.Logf("sweepPollForDeletion(convID: %v, uptoWant: %v", convID, uptoWant)
 	tc := ctc.as(t, asUser)
 	maxTime := 5 * time.Second
 	afterCh := time.After(maxTime)
 	var foundTaskCount int
 	var upto chat1.MessageID
 	for i := 0; ; i++ {
-		res, err := tc.ri.RetentionSweepConv(tc.startCtx, convID)
+		ctx := Context(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
+		trace, _ := CtxTrace(ctx)
+		t.Logf("+ RetentionSweepConv(%v) (uptoWant %v) [chat-trace=%v]", convID.String(), uptoWant, trace)
+		res, err := tc.ri.RetentionSweepConv(ctx, convID)
+		t.Logf("- RetentionSweepConv res: %+v", res)
 		require.NoError(t, err)
 		if res.FoundTask {
 			foundTaskCount++
@@ -553,7 +557,7 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 			if upto >= uptoWant {
 				return expungeInfo
 			}
-			t.Logf("sweepPollForDeletion ignoring expungeInfo: %v", expungeInfo.Expunge)
+			t.Logf("sweepPollForDeletion ignoring expungeInfo: %+v (uptoWant:%v)", expungeInfo.Expunge, uptoWant)
 		}
 		time.Sleep(10 * time.Millisecond)
 		select {
