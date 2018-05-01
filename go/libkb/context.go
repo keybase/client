@@ -50,6 +50,13 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 	return CTrace(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
+func (m MetaContext) CTraceTimed(msg string, f func() error) func() {
+	return CTraceTimed(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f, m.G().Clock())
+}
+func (m MetaContext) CTraceOK(msg string, f func() bool) func() {
+	return CTraceOK(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
+}
+
 func (m MetaContext) CDebugf(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CDebugf(m.ctx, f, args...)
 }
@@ -92,10 +99,20 @@ func (m MetaContext) BackgroundWithCancel() (MetaContext, func()) {
 	return m, f
 }
 
+func (m MetaContext) BackgroundWithLogTags() MetaContext {
+	m.ctx = CopyTagsToBackground(m.ctx)
+	return m
+}
+
 func (m MetaContext) WithTimeout(timeout time.Duration) (MetaContext, func()) {
 	var f func()
 	m.ctx, f = context.WithTimeout(m.ctx, timeout)
 	return m, f
+}
+
+func (m MetaContext) WithLogTag(k string) MetaContext {
+	m.ctx = WithLogTag(m.ctx, k)
+	return m
 }
 
 func (m MetaContext) EnsureCtx() MetaContext {
@@ -108,6 +125,11 @@ func (m MetaContext) EnsureCtx() MetaContext {
 
 func (m MetaContext) WithSecretUI(u SecretUI) MetaContext {
 	m.uis.SecretUI = u
+	return m
+}
+
+func (m MetaContext) WithIdentifyUI(u IdentifyUI) MetaContext {
+	m.uis.IdentifyUI = u
 	return m
 }
 

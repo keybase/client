@@ -181,11 +181,12 @@ func TestPukRollNewUserEK(t *testing.T) {
 
 	// Do a PUK roll.
 	rollEngine := engine.NewPerUserKeyRoll(tc.G, &engine.PerUserKeyRollArgs{})
-	ctx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: user.NewSecretUI(),
 	}
-	err = engine.RunEngine(rollEngine, ctx)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, rollEngine)
 	require.NoError(t, err)
 
 	// Finally, confirm that the roll above also rolled a new userEK.

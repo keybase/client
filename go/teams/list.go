@@ -138,7 +138,7 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	if err != nil {
 		return "", "", err
 	}
-	fullName, err = engine.GetFullName(ctx, g, uid)
+	fullName, err = engine.GetFullName(libkb.NewMetaContext(ctx, g), uid)
 	if err != nil {
 		return "", "", err
 	}

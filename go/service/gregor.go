@@ -1098,7 +1098,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli
 		h.G().Log.Debug("got nil SecretUI")
 		return errors.New("got nil SecretUI")
 	}
-	engineContext := engine.Context{
+	uis := libkb.UIs{
 		IdentifyUI: identifyUI,
 		SecretUI:   secretUI,
 	}
@@ -1108,9 +1108,10 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli
 		// TODO: text here?
 	}
 	identifyArg := keybase1.Identify2Arg{Uid: uid, Reason: identifyReason}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	identifyEng := engine.NewIdentify2WithUID(h.G(), &identifyArg)
 	identifyEng.SetResponsibleGregorItem(item)
-	return identifyEng.Run(&engineContext)
+	return identifyEng.Run(m)
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cli gregor1.IncomingInterface,

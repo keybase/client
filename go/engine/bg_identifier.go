@@ -341,7 +341,7 @@ func (b *BackgroundIdentifier) runOne(m libkb.MetaContext, u keybase1.UID) (err 
 	if b.testArgs != nil {
 		eng.testArgs = b.testArgs.identify2TestArgs
 	}
-	err = RunEngine(eng, engineContextFromMetaContext(m))
+	err = RunEngine2(m, eng)
 	if err == nil {
 		err = trackBreaksToError(eng.Result().TrackBreaks)
 	}
