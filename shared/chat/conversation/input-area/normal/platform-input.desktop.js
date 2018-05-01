@@ -80,9 +80,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
 
     this.props.onCancelQuoting()
     const text = this._input ? this._input.getValue() : ''
-    if (e.key === 'ArrowUp' && !text) {
+    if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       this.props.onEditLastMessage()
-    } else if (e.key === 'Escape') {
+    } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
     }
     this.props.onKeyDown && this.props.onKeyDown(e)
