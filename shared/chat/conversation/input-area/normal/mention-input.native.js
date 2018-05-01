@@ -4,7 +4,7 @@ import PlatformInput from './platform-input'
 import {type MentionInputProps} from './types'
 import {Input} from '../../../../common-adapters'
 
-type MentionHocState = {
+type MentionState = {
   pickSelectedCounter: number,
   mentionFilter: string,
   channelMentionFilter: string,
@@ -13,8 +13,8 @@ type MentionHocState = {
   _selection: {selectionStart: number, selectionEnd: number},
 }
 
-class MentionInput extends React.Component<MentionInputProps, MentionHocState> {
-  state: MentionHocState
+class MentionInput extends React.Component<MentionInputProps, MentionState> {
+  state: MentionState
   _inputRef: ?Input
   constructor() {
     super()
