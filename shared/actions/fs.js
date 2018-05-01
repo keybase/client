@@ -267,10 +267,8 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
 }
 
 function _setupFSHandlers() {
-  return Saga.put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
-      dispatch(FsGen.createFsActivity())
-    })
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => {
+    return [FsGen.createFsActivity()]
   })
 }
 
