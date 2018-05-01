@@ -53,9 +53,8 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 		Token:   idUI.Token,
 		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
-	teng := NewTrackToken(&targ, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		tc.T.Fatal(err)
 	}
 
@@ -102,9 +101,8 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	}
 
 	// Track tracy
-	teng := NewTrackToken(&targ, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -139,8 +137,8 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	targ.Options.ExpiringLocal = true
 	targ.Token = idUI.Token
 	// Track tracy
-	teng = NewTrackToken(&targ, tc.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng = NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -237,9 +235,8 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	}
 
 	// Track tracy
-	teng := NewTrackToken(&targ, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -274,8 +271,8 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	targ.Options.ExpiringLocal = true
 	targ.Token = idUI.Token
 	// Track tracy
-	teng = NewTrackToken(&targ, tc.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng = NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -360,9 +357,8 @@ func TestTrackFailTempRecover(t *testing.T) {
 	}
 
 	// Track tracy
-	teng := NewTrackToken(&targ, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -403,8 +399,8 @@ func TestTrackFailTempRecover(t *testing.T) {
 
 	targ.Token = idUI.Token
 	// Track tracy
-	teng = NewTrackToken(&targ, tc.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng = NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -498,9 +494,8 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 		Token:   idUI.Token,
 		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
-	teng := NewTrackToken(&targ, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		tc.T.Fatal(err)
 	}
 

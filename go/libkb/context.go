@@ -66,6 +66,9 @@ func (m MetaContext) CWarningf(f string, args ...interface{}) {
 func (m MetaContext) CErrorf(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CErrorf(m.ctx, f, args...)
 }
+func (m MetaContext) CInfof(f string, args ...interface{}) {
+	m.g.Log.CloneWithAddedDepth(1).CInfof(m.ctx, f, args...)
+}
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
 	if m.activeDevice != nil {
@@ -150,6 +153,14 @@ func (m MetaContext) UIs() UIs {
 func (m MetaContext) WithUIs(u UIs) MetaContext {
 	m.uis = u
 	return m
+}
+
+func (m MetaContext) SecretKeyPromptArg(ska SecretKeyArg, reason string) SecretKeyPromptArg {
+	return SecretKeyPromptArg{
+		SecretUI: m.uis.SecretUI,
+		Ska:      ska,
+		Reason:   reason,
+	}
 }
 
 type UIs struct {
