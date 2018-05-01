@@ -66,7 +66,7 @@ func (mi *MountInterrupter) Done() {
 	if mi.fun != nil {
 		err := mi.fun()
 		if err != nil {
-			mi.log.Error("Mount interrupter callback failed: ", err)
+			mi.log.Errorf("Mount interrupter callback failed: %v", err)
 			return
 		}
 	}

@@ -37,7 +37,7 @@ type FileSystem interface {
 	WithContext(context.Context) (context.Context, context.CancelFunc)
 
 	// CreateFile is called to open and create files.
-	CreateFile(ctx context.Context, fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
+	CreateFile(ctx context.Context, fi *FileInfo, data *CreateData) (file File, status CreateStatus, err error)
 
 	// GetDiskFreeSpace returns information about disk free space.
 	// Called quite often by Explorer.
@@ -52,6 +52,37 @@ type FileSystem interface {
 	// ErrorPrint is called when dokan needs notify the program of an error message.
 	// A sensible approach is to print the error.
 	ErrorPrint(error)
+}
+
+// CreateStatus marks status of successfull create/open operations.
+type CreateStatus uint32
+
+const (
+	// 1 Bit 0 == always set for valid values,
+	// 2 Bit 1 == directory or not
+	// 4 Bit 2 == new or not
+	isValid = 1
+	isDir   = 2
+	isNew   = 4
+
+	// NewDir for newly created directories.
+	NewDir = CreateStatus(isNew | isDir | isValid)
+	// NewFile for newly created files.
+	NewFile = CreateStatus(isNew | isValid)
+	// ExistingDir for newly created directories.
+	ExistingDir = CreateStatus(isDir | isValid)
+	// ExistingFile for newly created files.
+	ExistingFile = CreateStatus(isValid)
+)
+
+// IsDir tells whether a CreateStatus is about a directory or a file.
+func (cst CreateStatus) IsDir() bool {
+	return (cst & 2) != 0
+}
+
+// IsNew tells whether a CreateStatus is about a new or existing object.
+func (cst CreateStatus) IsNew() bool {
+	return (cst & 4) != 0
 }
 
 // MountFlag is the type for Dokan mount flags.

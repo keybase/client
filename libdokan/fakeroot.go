@@ -13,16 +13,16 @@ type fakeRoot struct {
 	EmptyFolder
 }
 
-func openFakeRoot(ctx context.Context, fs *FS, fi *dokan.FileInfo) (dokan.File, bool, error) {
+func openFakeRoot(ctx context.Context, fs *FS, fi *dokan.FileInfo) (dokan.File, dokan.CreateStatus, error) {
 	path := fi.Path()
 	fs.log.CDebugf(ctx, "openFakeRoot %q", path)
 	switch path {
 	case `\` + WrongUserErrorFileName:
-		return stringReadFile(WrongUserErrorContents), false, nil
+		return stringReadFile(WrongUserErrorContents), dokan.ExistingFile, nil
 	case `\`:
-		return &fakeRoot{}, true, nil
+		return &fakeRoot{}, dokan.ExistingDir, nil
 	}
-	return nil, false, dokan.ErrAccessDenied
+	return nil, 0, dokan.ErrAccessDenied
 }
 
 // FindFiles for dokan.
