@@ -13,7 +13,8 @@ import type {KeyboardType, Props, TextInfo} from './input'
 type State = {
   focused: boolean,
   height: ?number,
-  value: string,
+  // Only changed for controlled components.
+  value?: string,
 }
 
 class Input extends Component<Props, State> {
@@ -26,10 +27,12 @@ class Input extends Component<Props, State> {
     super(props)
 
     const text = props.value || ''
-    this.state = {
+    this.state = ({
       focused: false,
       height: null,
-      value: text,
+    }: State)
+    if (!props.uncontrolled) {
+      this.state['value'] = text
     }
     this._text = text
     this._selection = {start: 0, end: 0}
@@ -51,7 +54,7 @@ class Input extends Component<Props, State> {
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.hasOwnProperty('value')) {
+    if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
       return {value: nextProps.value || ''}
     }
     return null
@@ -82,7 +85,7 @@ class Input extends Component<Props, State> {
   }
 
   getValue(): string {
-    return this._text
+    return this.props.uncontrolled ? this._text : this.state.value || ''
   }
 
   _onChangeText = (text: string) => {
@@ -173,15 +176,15 @@ class Input extends Component<Props, State> {
   }
 
   _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
-    let {start, end} = event.nativeEvent.selection
+    let {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
-    const selectionStart = Math.min(start, end)
-    const selectionEnd = Math.max(start, end)
-    this._selection = {start: selectionStart, end: selectionEnd}
+    const start = Math.min(_start, _end)
+    const end = Math.max(_start, _end)
+    this._selection = {start, end}
   }
 
-  selection() {
+  selection = () => {
     return this._selection
   }
 
@@ -249,7 +252,7 @@ class Input extends Component<Props, State> {
     // We want to be able to set the selection property,
     // too. Unfortunately, that triggers an Android crash:
     // https://github.com/facebook/react-native/issues/18316 .
-    const commonProps = {
+    const commonProps: {value?: string} = {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
       editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
@@ -264,14 +267,13 @@ class Input extends Component<Props, State> {
       placeholder: this.props.hintText,
       ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
-      value,
       secureTextEntry: this.props.type === 'password',
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
-    if (this.props.uncontrolled) {
-      delete commonProps['value']
+    if (!this.props.uncontrolled) {
+      commonProps.value = value
     }
 
     const singlelineProps = {
