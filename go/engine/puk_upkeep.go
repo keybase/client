@@ -58,69 +58,68 @@ func (e *PerUserKeyUpkeep) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PerUserKeyUpkeep) Run(ctx *Context) (err error) {
-	defer e.G().CTrace(ctx.GetNetContext(), "PerUserKeyUpkeep", func() error { return err })()
-	return e.inner(ctx)
+func (e *PerUserKeyUpkeep) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PerUserKeyUpkeep", func() error { return err })()
+	return e.inner(m)
 }
 
-func (e *PerUserKeyUpkeep) inner(ctx *Context) error {
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep load self")
+func (e *PerUserKeyUpkeep) inner(m libkb.MetaContext) error {
+	m.CDebugf("PerUserKeyUpkeep load self")
 
 	uid := e.G().GetMyUID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
 
-	loadArg := libkb.NewLoadUserArg(e.G()).
-		WithNetContext(ctx.GetNetContext()).
+	loadArg := libkb.NewLoadUserArgWithMetaContext(m).
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	upak, me, err := e.G().GetUPAKLoader().LoadV2(loadArg)
+	upak, me, err := m.G().GetUPAKLoader().LoadV2(loadArg)
 	if err != nil {
 		return err
 	}
 	// `me` could be nil.
 
 	var shouldRollKey bool
-	shouldRollKey, err = e.shouldRollKey(ctx, uid, &upak.Current)
+	shouldRollKey, err = e.shouldRollKey(m, uid, &upak.Current)
 	if err != nil {
 		return err
 	}
 	if !shouldRollKey {
-		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep skipping")
+		m.CDebugf("PerUserKeyUpkeep skipping")
 		return nil
 	}
 
 	// Roll the key
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep rolling key")
+	m.CDebugf("PerUserKeyUpkeep rolling key")
 	arg := &PerUserKeyRollArgs{
 		Me: me,
 	}
-	eng := NewPerUserKeyRoll(e.G(), arg)
-	err = RunEngine(eng, ctx)
+	eng := NewPerUserKeyRoll(m.G(), arg)
+	err = RunEngine2(m, eng)
 	e.DidRollKey = eng.DidNewKey
 	return err
 }
 
 // Whether we should roll the per-user-key.
-func (e *PerUserKeyUpkeep) shouldRollKey(ctx *Context, uid keybase1.UID, upak *keybase1.UserPlusKeysV2) (bool, error) {
+func (e *PerUserKeyUpkeep) shouldRollKey(m libkb.MetaContext, uid keybase1.UID, upak *keybase1.UserPlusKeysV2) (bool, error) {
 
 	if len(upak.PerUserKeys) == 0 {
-		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep has no per-user-key")
+		m.CDebugf("PerUserKeyUpkeep has no per-user-key")
 		return false, nil
 	}
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep has %v per-user-keys", len(upak.PerUserKeys))
+	m.CDebugf("PerUserKeyUpkeep has %v per-user-keys", len(upak.PerUserKeys))
 
 	lastPuk := upak.PerUserKeys[len(upak.PerUserKeys)-1]
 	if !lastPuk.SignedByKID.IsValid() {
 		return false, errors.New("latest per-user-key had invalid signed-by KID")
 	}
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep last key signed by KID: %v", lastPuk.SignedByKID.String())
-	return !e.keyIsActiveSibkey(ctx, lastPuk.SignedByKID, upak), nil
+	m.CDebugf("PerUserKeyUpkeep last key signed by KID: %v", lastPuk.SignedByKID.String())
+	return !e.keyIsActiveSibkey(m, lastPuk.SignedByKID, upak), nil
 }
 
-func (e *PerUserKeyUpkeep) keyIsActiveSibkey(ctx *Context, kid keybase1.KID, upak *keybase1.UserPlusKeysV2) bool {
+func (e *PerUserKeyUpkeep) keyIsActiveSibkey(m libkb.MetaContext, kid keybase1.KID, upak *keybase1.UserPlusKeysV2) bool {
 	for _, dkey := range upak.DeviceKeys {
 		active := dkey.Base.Revocation == nil
 		if active && dkey.Base.IsSibkey && dkey.Base.Kid.Equal(kid) {

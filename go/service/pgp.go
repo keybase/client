@@ -274,14 +274,15 @@ func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg)
 	return engine.RunEngine2(m, gpg)
 }
 
-func (h *PGPHandler) PGPUpdate(_ context.Context, arg keybase1.PGPUpdateArg) error {
-	ctx := engine.Context{
+func (h *PGPHandler) PGPUpdate(ctx context.Context, arg keybase1.PGPUpdateArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewPGPUpdateEngine(h.G(), arg.Fingerprints, arg.All)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *PGPHandler) PGPPurge(ctx context.Context, arg keybase1.PGPPurgeArg) (keybase1.PGPPurgeRes, error) {

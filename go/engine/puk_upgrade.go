@@ -94,8 +94,8 @@ func (e *PerUserKeyUpgrade) inner(m libkb.MetaContext) error {
 	arg := &PerUserKeyRollArgs{
 		Me: me,
 	}
-	eng := NewPerUserKeyRoll(e.G(), arg)
-	err = RunEngine(eng, engineContextFromMetaContext(m))
+	eng := NewPerUserKeyRoll(m.G(), arg)
+	err = RunEngine2(m, eng)
 	e.DidNewKey = eng.DidNewKey
 
 	if eng.DidNewKey {

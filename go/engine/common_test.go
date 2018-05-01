@@ -406,6 +406,9 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 func NewMetaContextForTest(tc libkb.TestContext) libkb.MetaContext {
 	return libkb.NewMetaContextForTest(tc)
 }
+func NewMetaContextForTestWithLogUI(tc libkb.TestContext) libkb.MetaContext {
+	return libkb.NewMetaContextForTestWithLogUI(tc)
+}
 
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	err := tc.G.LoginState().ResetAccount(NewMetaContextForTest(tc), u.Username)

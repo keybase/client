@@ -172,8 +172,8 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 		// We're sending a key update, then.
 		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
-		eng := NewPGPUpdateEngine([]string{fp}, false, e.G())
-		err = RunEngine(eng, engineContextFromMetaContext(m))
+		eng := NewPGPUpdateEngine(e.G(), []string{fp}, false)
+		err = RunEngine2(m, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints
 
 		return err
