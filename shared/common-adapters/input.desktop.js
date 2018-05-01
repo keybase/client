@@ -12,6 +12,24 @@ type State = {
   value?: string,
 }
 
+const checkTextInfo = ({text, selection}: TextInfo) => {
+  if (selection.end > text.length) {
+    throw new Error(`selection end=${selection.end} must be <= text length=${text.length}`)
+  }
+
+  if (selection.end < 0) {
+    throw new Error(`selection end=${selection.end} must be >= 0`)
+  }
+
+  if (selection.start > selection.end) {
+    throw new Error(`selection start=${selection.start} must be <= selection end=${selection.end}`)
+  }
+
+  if (selection.start < 0) {
+    throw new Error(`selection start=${selection.start} must be >= 0`)
+  }
+}
+
 class Input extends React.PureComponent<Props, State> {
   state: State
   _input: HTMLTextAreaElement | HTMLInputElement | null
@@ -149,7 +167,7 @@ class Input extends React.PureComponent<Props, State> {
         },
       }
       const newTextInfo = fn(textInfo)
-      // TODO: Check returned selection against text.
+      checkTextInfo(newTextInfo)
       n.value = newTextInfo.text
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end

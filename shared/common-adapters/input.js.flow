@@ -83,7 +83,7 @@ declare export default class Input extends Component<Props> {
   select: () => void;
   getValue: () => string;
   selection: () => Selection;
-  // transformText must only be called on uncontrolled Input
+  // transformText must be called only on uncontrolled Input
   // components.
   transformText: (fn: (TextInfo) => TextInfo) => void;
 }
