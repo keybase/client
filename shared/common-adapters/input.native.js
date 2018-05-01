@@ -134,9 +134,16 @@ class Input extends Component<Props, State> {
     //
     // TODO: Use timer HOC.
     setTimeout(() => {
-      // TODO: Sanitize selection.
-      this.setNativeProps({selection: newTextInfo.selection})
-      this._lastNativeSelection = newTextInfo.selection
+      // It's possible that, by the time this runs, the selection is
+      // out of bounds with respect to the current text value. So fix
+      // it up if necessary.
+      const text = this.getValue()
+      let {start, end} = newTextInfo.selection
+      end = Math.max(0, Math.min(end, text.length))
+      start = Math.max(0, Math.min(start, end))
+      const selection = {start, end}
+      this.setNativeProps({selection})
+      this._lastNativeSelection = selection
     }, 0)
   }
 
