@@ -9,10 +9,8 @@ import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import Inbox from './inbox/container'
 import InfoPanel from './conversation/info-panel/container'
 import ManageChannels from './manage-channels/container'
-import MessagePopup from './conversation/messages/message-popup'
 import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
-import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import InboxAndConversation from './inbox-and-conversation'
 import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
@@ -26,11 +24,18 @@ const editChannel = {
   children: {},
 }
 
+const createChannel = {
+  component: CreateChannel,
+  tags: makeLeafTags({hideStatusBar: true}),
+  children: {},
+}
+
 const manageChannels = {
   component: ManageChannels,
   tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
   children: {
     editChannel,
+    createChannel,
   },
 }
 
@@ -41,6 +46,7 @@ const retentionWarning = {
 }
 
 const infoPanelChildren = {
+  createChannel,
   editChannel,
   manageChannels,
   reallyLeaveTeam: {
@@ -67,13 +73,7 @@ const conversationRoute = makeRouteDefNode({
     attachmentFullscreen: {
       component: AttachmentFullscreen,
       tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
-      children: {
-        messageAction: {
-          component: RelativePopupHoc(MessagePopup),
-          children: {},
-          tags: makeLeafTags({layerOnTop: true}),
-        },
-      },
+      children: {},
     },
     attachmentGetTitles: {
       component: AttachmentGetTitles,
@@ -91,17 +91,7 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: false}),
       children: {},
     },
-    messageAction: {
-      component: RelativePopupHoc(MessagePopup),
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-    createChannel: {
-      component: CreateChannel,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-
+    createChannel,
     enterPaperkey: {
       component: EnterPaperkey,
     },

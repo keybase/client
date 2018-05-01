@@ -8,7 +8,6 @@ import {
   platformStyles,
   desktopStyles,
   collapseStyles,
-  type StylesCrossPlatform,
 } from '../styles'
 import {stateColors} from '../util/tracker'
 import type {SimpleProofState} from '../constants/types/tracker'
@@ -99,7 +98,7 @@ const styleHeader = {
   width: 320,
 }
 
-const styleClose: StylesCrossPlatform = collapseStyles([
+const styleClose = collapseStyles([
   desktopStyles.clickable,
   desktopStyles.windowDraggingClickable,
   {

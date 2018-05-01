@@ -74,7 +74,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   forgotPasswordSuccess: false,
   justDeletedSelf: null,
   justRevokedSelf: null,
-  loginError: null,
+  loginError: '',
   registerUserPassError: null,
   registerUserPassLoading: false,
   waitingForResponse: false,

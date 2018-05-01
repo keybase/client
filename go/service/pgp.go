@@ -247,10 +247,11 @@ func (h *PGPHandler) PGPDeletePrimary(ctx context.Context, sessionID int) (err e
 
 func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg) error {
 	arg := engine.GPGImportKeyArg{
-		Query:      sarg.FingerprintQuery,
-		AllowMulti: sarg.AllowMulti,
-		SkipImport: sarg.SkipImport,
-		OnlyImport: sarg.OnlyImport,
+		HasProvisionedDevice: true,
+		Query:                sarg.FingerprintQuery,
+		AllowMulti:           sarg.AllowMulti,
+		SkipImport:           sarg.SkipImport,
+		OnlyImport:           sarg.OnlyImport,
 	}
 	gpg := engine.NewGPGImportKeyEngine(&arg, h.G())
 	ctx := &engine.Context{

@@ -28,8 +28,10 @@ const Header = (props: HeaderProps) => (
       )}
     </Box>
     <Box style={stylesHeaderIcons}>
-      {!isMobile && <Icon type="iconfont-finder" style={stylesHeaderIcon} onClick={props.onShowInFileUI} />}
-      <Icon type="iconfont-ellipsis" style={stylesHeaderIcon} onClick={props.onAction} />
+      {!isMobile && (
+        <Icon type="iconfont-finder" style={stylesHeaderIcon} onClick={props.onShowInFileUI} fontSize={16} />
+      )}
+      <Icon type="iconfont-ellipsis" style={stylesHeaderIcon} onClick={props.onAction} fontSize={16} />
     </Box>
   </Box>
 )
@@ -43,15 +45,11 @@ const filePreviewHeaderStyle = platformStyles({
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexGrow,
     alignItems: 'center',
-    justifyContent: 'center',
     borderBottomWidth: 0,
+    justifyContent: 'center',
   },
-  isMobile: {
-    height: 64,
-  },
-  isElectron: {
-    height: 48,
-  },
+  isElectron: {height: 48},
+  isMobile: {height: 64},
 })
 
 const stylesHeaderIcons = {
@@ -60,7 +58,6 @@ const stylesHeaderIcons = {
 }
 
 const stylesHeaderIcon = {
-  fontSize: 16,
   marginRight: globalMargins.small,
 }
 

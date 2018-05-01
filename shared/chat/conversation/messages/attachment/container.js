@@ -6,14 +6,15 @@ import ImageAttachment from './image/container'
 
 type Props = {
   message: Types.MessageAttachment,
+  toggleShowingMenu: () => void,
 }
 
 class Attachment extends React.PureComponent<Props> {
   render() {
     if (this.props.message.attachmentType === 'image') {
-      return <ImageAttachment message={this.props.message} />
+      return <ImageAttachment message={this.props.message} toggleShowingMenu={this.props.toggleShowingMenu} />
     }
-    return <FileAttachment message={this.props.message} />
+    return <FileAttachment message={this.props.message} toggleShowingMenu={this.props.toggleShowingMenu} />
   }
 }
 

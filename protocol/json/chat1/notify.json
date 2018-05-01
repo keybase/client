@@ -82,7 +82,14 @@
       "name": "NewConversationInfo",
       "fields": [
         {
-          "type": "InboxUIItem",
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
           "name": "conv"
         }
       ]
@@ -497,8 +504,15 @@
           "type": "keybase1.UID"
         },
         {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
           "name": "conv",
-          "type": "InboxUIItem"
+          "type": [
+            null,
+            "InboxUIItem"
+          ]
         }
       ],
       "response": null,

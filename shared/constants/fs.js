@@ -102,6 +102,11 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   syncing: false,
 })
 
+export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Record({
+  address: '',
+  token: '',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -109,6 +114,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
+  localHTTPServerInfo: makeLocalHTTPServer(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({

@@ -108,6 +108,8 @@ const queueMetaToRequest = (action: Chat2Gen.MetaNeedsUpdatingPayload, state: Ty
   if (old !== metaQueue) {
     // only unboxMore if something changed
     return Saga.put(Chat2Gen.createMetaHandleQueue())
+  } else {
+    logger.info('skipping meta queue run, queue unchanged')
   }
 }
 
@@ -444,7 +446,10 @@ const onChatThreadStale = updates => {
   if (conversationIDKeys.length > 0) {
     return [
       Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
-      Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'onChatThreadStale'}),
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys,
+        force: true,
+      }),
     ]
   }
 }

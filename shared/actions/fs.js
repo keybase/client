@@ -274,7 +274,20 @@ function _setupFSHandlers() {
   })
 }
 
+function refreshLocalHTTPServerInfo() {
+  return Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
+}
+
+function refreshLocalHTTPServerInfoResult({address, token}: RPCTypes.SimpleFSGetHTTPAddressAndTokenResponse) {
+  return Saga.put(FsGen.createLocalHTTPServerInfo({address, token}))
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(
+    FsGen.refreshLocalHTTPServerInfo,
+    refreshLocalHTTPServerInfo,
+    refreshLocalHTTPServerInfoResult
+  )
   yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
