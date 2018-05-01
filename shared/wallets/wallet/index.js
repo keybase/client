@@ -21,7 +21,6 @@ class Wallet extends React.PureComponent<Props> {
       color: this.props.isSelected ? globalColors.white : globalColors.darkBlue,
       backgroundColor: color,
       fontSize: 13,
-      marginLeft: this.props.keybaseUser ? globalMargins.xtiny : 0,
     }
     const amountStyle = {
       color: this.props.isSelected ? globalColors.white : globalColors.black_40,
@@ -31,13 +30,24 @@ class Wallet extends React.PureComponent<Props> {
     const props = this.props
     return (
       <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
-        <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal">
+        <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
           <Box2 direction="horizontal">
-            <Icon type={'iconfont-hand-wave'} color={globalColors.darkBlue} fontSize={28} />
+            <Icon
+              type={'iconfont-hand-wave'}
+              color={globalColors.darkBlue}
+              fontSize={28}
+              style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}}
+            />
           </Box2>
-          <Box2 direction="vertical" fullWidth={true}>
-            <Box2 direction="horizontal">
-              {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
+          <Box2 direction="vertical">
+            <Box2 direction="horizontal" fullWidth={true}>
+              {this.props.keybaseUser && (
+                <Avatar
+                  size={16}
+                  username={this.props.keybaseUser}
+                  style={{marginRight: globalMargins.xtiny}}
+                />
+              )}
               <Text type="BodySmall" style={titleStyle}>
                 {props.name}
               </Text>
@@ -77,15 +87,17 @@ class _AddWallet extends React.PureComponent<AddProps & FloatingMenuParentProps>
         style={{backgroundColor: globalColors.white}}
         ref={this.props.setAttachmentRef}
       >
-        <Box2 style={{height: rowHeight, alignItems: 'center'}} direction="horizontal">
-          <Icon
-            type="iconfont-new"
-            color={globalColors.blue}
-            style={{marginLeft: globalMargins.small, marginRight: globalMargins.xtiny}}
-          />
-          <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
-            Add a wallet
-          </Text>
+        <Box2 style={{height: rowHeight}} direction="horizontal" fullWidth={true}>
+          <Box2 direction="vertical">
+            <Icon
+              type="iconfont-new"
+              color={globalColors.blue}
+              style={{marginLeft: globalMargins.small, marginRight: globalMargins.xtiny}}
+            />
+          </Box2>
+          <Box2 direction="vertical">
+            <Text type="BodyBigLink">Add a wallet</Text>
+          </Box2>
         </Box2>
         <FloatingMenu
           attachTo={this.props.attachmentRef}
@@ -102,6 +114,6 @@ class _AddWallet extends React.PureComponent<AddProps & FloatingMenuParentProps>
 
 const AddWallet = FloatingMenuParentHOC(_AddWallet)
 
-const rowHeight = isMobile ? 64 : 56
+const rowHeight = isMobile ? 56 : 48
 
 export {Wallet, AddWallet}
