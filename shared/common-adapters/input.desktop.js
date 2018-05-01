@@ -4,7 +4,7 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
-import type {Props, TextInfo} from './input'
+import type {Props, Selection, TextInfo} from './input'
 
 type State = {
   focused: boolean,
@@ -76,7 +76,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  selection = () => {
+  selection = (): Selection => {
     const n = this._input
     if (!n) {
       return {start: 0, end: 0}
