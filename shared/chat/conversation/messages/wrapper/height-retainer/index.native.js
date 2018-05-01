@@ -9,13 +9,25 @@ type State = {
 }
 class HeightRetainer extends React.Component<Props, State> {
   state = {height: null}
+
   _onLayout = evt => {
-    if (evt && evt.layout) {
+    if (evt.nativeEvent && evt.nativeEvent.layout.height !== this.state.height) {
+      this.setState({height: evt.nativeEvent.layout.height})
     }
   }
 
   render() {
-    return <Box style={collapseStyles([this.props.style])}>{this.props.children}</Box>
+    return (
+      <Box
+        onLayout={this._onLayout}
+        style={collapseStyles([
+          this.props.style,
+          !!this.state.height && this.props.retainHeight && {height: this.state.height},
+        ])}
+      >
+        {!this.props.retainHeight && this.props.children}
+      </Box>
+    )
   }
 }
 

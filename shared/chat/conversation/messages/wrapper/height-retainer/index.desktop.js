@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {Box, Icon} from '../../../../../common-adapters'
+import {Box} from '../../../../../common-adapters'
 import {collapseStyles} from '../../../../../styles'
 import type {Props} from '.'
 
