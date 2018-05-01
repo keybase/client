@@ -5,29 +5,12 @@ import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
 import type {Props, Selection, TextInfo} from './input'
+import {checkTextInfo} from './input.shared'
 
 type State = {
   focused: boolean,
   // Only used for controlled components.
   value?: string,
-}
-
-const checkTextInfo = ({text, selection}: TextInfo) => {
-  if (selection.end > text.length) {
-    throw new Error(`selection end=${selection.end} must be <= text length=${text.length}`)
-  }
-
-  if (selection.end < 0) {
-    throw new Error(`selection end=${selection.end} must be >= 0`)
-  }
-
-  if (selection.start > selection.end) {
-    throw new Error(`selection start=${selection.start} must be <= selection end=${selection.end}`)
-  }
-
-  if (selection.start < 0) {
-    throw new Error(`selection start=${selection.start} must be >= 0`)
-  }
 }
 
 class Input extends React.PureComponent<Props, State> {
@@ -164,7 +147,7 @@ class Input extends React.PureComponent<Props, State> {
   _transformText = (fn: TextInfo => TextInfo) => {
     const n = this._input
     if (n) {
-      const textInfo = {
+      const textInfo: TextInfo = {
         text: n.value,
         selection: {
           start: n.selectionStart,

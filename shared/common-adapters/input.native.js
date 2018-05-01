@@ -9,6 +9,7 @@ import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../s
 import {isIOS, isAndroid} from '../constants/platform'
 
 import type {KeyboardType, Props, Selection, TextInfo} from './input'
+import {checkTextInfo} from './input.shared'
 
 type State = {
   focused: boolean,
@@ -119,10 +120,12 @@ class Input extends Component<Props, State> {
       throw new Error('transformText can only be called on uncontrolled components')
     }
 
-    const newTextInfo = fn({
-      text: this._lastNativeText || '',
-      selection: this._lastNativeSelection || {start: 0, end: 0},
-    })
+    const textInfo: TextInfo = {
+      text: this.getValue(),
+      selection: this.selection(),
+    }
+    const newTextInfo = fn(textInfo)
+    checkTextInfo(newTextInfo)
     this.setNativeProps({text: newTextInfo.text})
     this._lastNativeText = newTextInfo.text
     // TODO: Check returned selection against text.
