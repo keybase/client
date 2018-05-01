@@ -64,6 +64,7 @@ class InputContainer extends React.Component<Props> {
       },
       onEditLastMessage: action('onEditLastMessage'),
       onCancelEditing: action('onCancelEditing'),
+      onCancelQuoting: action('onCancelQuoting'),
       onSubmit: (text: string) => {
         action('onSubmit')(text)
       },
@@ -81,8 +82,6 @@ class InputContainer extends React.Component<Props> {
       },
 
       setUnsentText: action('setUnsentText'),
-
-      onCancelQuoting: action('onCancelQuoting'),
 
       sendTyping: action('sendTyping'),
     }
