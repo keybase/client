@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -396,7 +397,7 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 	// Get messages from local disk only
 	uid := h.G().Env.GetUID()
 	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination, 0)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -441,18 +442,60 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, localThread *chat1.ThreadView,
 	mode chat1.GetThreadNonblockCbMode) (res chat1.ThreadView, err error) {
+	defer func() {
+		if err != nil || localThread == nil {
+			return
+		}
+		rm := make(map[chat1.MessageID]bool)
+		for _, m := range res.Messages {
+			rm[m.GetMessageID()] = true
+		}
+		// Check for any stray placeholders in the local thread we sent, and set them to some
+		// undisplayable type
+		for _, m := range localThread.Messages {
+			state, err := m.State()
+			if err != nil {
+				continue
+			}
+			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
+				h.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
+					m.GetMessageID())
+				res.Messages = append(res.Messages, chat1.NewMessageUnboxedWithPlaceholder(
+					chat1.MessageUnboxedPlaceholder{
+						MessageID: m.GetMessageID(),
+						Hidden:    true,
+					},
+				))
+			}
+		}
+		sort.Sort(utils.ByMsgUnboxedMsgID(res.Messages))
+	}()
+
+	shouldAppend := func(oldMsg chat1.MessageUnboxed) bool {
+		state, err := oldMsg.State()
+		if err != nil {
+			return true
+		}
+		switch state {
+		case chat1.MessageUnboxedState_VALID:
+			return false
+		default:
+			return true
+		}
+	}
 	switch mode {
 	case chat1.GetThreadNonblockCbMode_FULL:
 		return *remoteThread, nil
 	case chat1.GetThreadNonblockCbMode_INCREMENTAL:
 		if localThread != nil {
-			lm := make(map[chat1.MessageID]bool)
+			lm := make(map[chat1.MessageID]chat1.MessageUnboxed)
 			for _, m := range localThread.Messages {
-				lm[m.GetMessageID()] = true
+				lm[m.GetMessageID()] = m
 			}
 			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
-				if !lm[m.GetMessageID()] {
+				oldMsg, ok := lm[m.GetMessageID()]
+				if !ok || shouldAppend(oldMsg) {
 					res.Messages = append(res.Messages, m)
 				}
 			}
@@ -548,7 +591,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				h.clock.Sleep(*h.cachedThreadDelay)
 			}
 			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
-				uid, arg.Query, pagination)
+				uid, arg.Query, pagination, 10)
 			ch <- err
 		}()
 		select {
@@ -1170,7 +1213,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	if arg.ClientPrev == 0 {
 		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
 		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
-			&chat1.Pagination{Num: 1})
+			&chat1.Pagination{Num: 1}, 0)
 		if err != nil || len(thread.Messages) == 0 {
 			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
 			prevMsgID = 1

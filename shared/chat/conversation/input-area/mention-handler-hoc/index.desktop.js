@@ -3,7 +3,6 @@ import * as React from 'react'
 import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
 import {Input} from '../../../../common-adapters'
-import logger from '../../../../logger'
 
 type MentionHocState = {
   upArrowCounter: number,
@@ -44,7 +43,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       this.setState({channelMentionFilter})
     }
 
-    inputSetRef = (input: Input) => {
+    inputSetRef = (input: ?Input) => {
       this.props._inputSetRef(input)
       this._inputRef = input
     }
@@ -56,9 +55,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
       // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
       if (options && options.notUser) {
-        if (this.props.text) {
-          this._onSubmit()
-        }
+        this._onSubmit()
       }
     }
 
@@ -73,9 +70,7 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
       // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
       // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
       if (options && options.notChannel) {
-        if (this.props.text) {
-          this._onSubmit()
-        }
+        this._onSubmit()
       }
     }
 
@@ -212,18 +207,13 @@ const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
         this._triggerPickSelectedCounter()
         return
       }
-      if (this.props.isLoading) {
-        logger.info('Ignoring chat submit while still loading')
-        return
-      }
-      if (this.props.text) {
-        this._onSubmit()
-      }
+      this._onSubmit()
     }
 
     _onSubmit = () => {
-      this.props.onSubmit(this.props.text)
-      this.props.setText('')
+      if (this.props.text) {
+        this.props.onSubmit(this.props.text)
+      }
     }
 
     render() {

@@ -118,16 +118,42 @@ func (t RedditServiceType) FormatProofText(ctx libkb.ProofContext, ppr *libkb.Po
 	urlPre := libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString()
 	q := urlReencode(urlPre)
 
-	// The new reddit mobile site doesn't respect the post-pre-populate query
-	// parameters. Use the old mobile site until they fix this.
+	chooseHost := func(untrustedHint, trustedDefault string) string {
+		allowedHosts := []string{
+			"reddit.com",
+			"www.reddit.com",
+			// 2017-04-18: The new reddit mobile site doesn't respect the post-pre-populate query parameters.
+			//             The i.reddit.com site may be better.
+			"i.reddit.com",
+			"old.reddit.com",
+		}
+		if untrustedHint == "" {
+			return trustedDefault
+		}
+		for _, h := range allowedHosts {
+			if untrustedHint == h {
+				return h
+			}
+		}
+		return trustedDefault
+	}
 	var host string
 	if ctx.GetAppType() == libkb.MobileAppType {
-		// 2018-04-24 - This mobile site doesn't seem to work at all
-		host = "i.reddit.com"
+		hostHint, err := ppr.Metadata.AtKey("mobile_host").GetString()
+		if err != nil {
+			hostHint = ""
+		}
+		host = chooseHost(hostHint, "old.reddit.com")
 	} else {
-		// Note that this is commonly libkb.NoAppType. Don't assume that we get
+		// Note that GetAppType() often returns libkb.NoAppType. Don't assume that we get
 		// libkb.DesktopAppType in the non-mobile case.
-		host = "www.reddit.com"
+		// Use the old reddit design until this bug is fixed:
+		// https://www.reddit.com/r/redesign/comments/8evfap/bug_post_contents_gets_dropped_when_using/
+		hostHint, err := ppr.Metadata.AtKey("other_host").GetString()
+		if err != nil {
+			hostHint = ""
+		}
+		host = chooseHost(hostHint, "old.reddit.com")
 	}
 
 	u := url.URL{

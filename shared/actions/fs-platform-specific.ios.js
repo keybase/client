@@ -18,5 +18,5 @@ export function uninstallKBFSConfirmSaga(): Promise<*> {
 export function uninstallKBFSSaga() {}
 export function uninstallKBFSSagaSuccess(result: RPCTypes.UninstallResult) {}
 export function copyToDownloadDir(path: string, mime: string): Promise<*> {
-  return new Promise((resolve, reject) => reject(new Error('unimplemented')))
+  return new Promise((resolve, reject) => resolve())
 }

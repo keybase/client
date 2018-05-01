@@ -15,7 +15,7 @@ const scrollViewDecorator = story => [
   <GatewayProvider key="gatewayprovider">
     <ScrollView
       style={{height: '100%', width: '100%'}}
-      contentContainerStyle={{minHeight: '100%', minWidht: '100%'}}
+      contentContainerStyle={{minHeight: '100%', minWidth: '100%'}}
     >
       {story()}
       <GatewayDest component={View} name="popup-root" />

@@ -1,0 +1,15 @@
+// @flow
+import * as React from 'react'
+import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
+
+export type Props = {
+  attachTo: ?React.Component<*, *>,
+  visible: boolean,
+  onHidden: () => void,
+  isNew: boolean,
+  selected: ?MessageExplodeDescription,
+  onSelect: MessageExplodeDescription => void,
+  items: MessageExplodeDescription[],
+}
+
+declare export default class SetExplodingPopup extends React.Component<Props> {}

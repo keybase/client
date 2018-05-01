@@ -57,9 +57,12 @@
       "participant": "string"
     },
     "addPeopleToTeam": {
-      "teamname": "string",
+      "destSubPath": "I.List<string>",
       "role": "string",
-      "sendChatNotification": "boolean"
+      "rootPath": "I.List<string>",
+      "sendChatNotification": "boolean",
+      "sourceSubPath": "I.List<string>",
+      "teamname": "string"
     },
     "inviteToTeamByEmail": {
       "teamname": "string",
@@ -122,6 +125,9 @@
     },
     "setTeamCreationPending": {
       "pending": "boolean"
+    },
+    "setTeamInviteError": {
+      "error": "string"
     },
     "setTeamJoinError": {
       "error": "string"
