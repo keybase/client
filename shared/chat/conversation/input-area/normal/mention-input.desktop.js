@@ -152,7 +152,10 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
     // Get the word typed so far
     if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen || e.key === 'Backspace') {
-      const wordSoFar = this._getWordAtCursor()
+      const text = this._inputRef ? this._inputRef.getValue() : ''
+      const selection = this._inputRef ? this._inputRef.selections() : null
+      const start = selection ? selection.selectionStart : 0
+      const wordSoFar = this._getWordAtCursor(text, start)
       if (wordSoFar && wordSoFar[0] === '@') {
         !this.state.mentionPopupOpen && this._setMentionPopupOpen(true)
         this._setMentionFilter(wordSoFar.substring(1))
@@ -166,36 +169,36 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     }
   }
 
-  _getWordAtCursor(): string {
-    const text = this._inputRef && this._inputRef.getValue()
-    const selections = this._inputRef && this._inputRef.selections()
-    if (text && selections && selections.selectionStart === selections.selectionEnd) {
-      const upToCursor = text.substring(0, selections.selectionStart)
-      const words = upToCursor.split(/ |\n/)
-      return words[words.length - 1]
-    }
-
-    return ''
+  _getWordAtCursor = (text: string, start: number) => {
+    const upToCursor = text.substring(0, start)
+    const words = upToCursor.split(/ |\n/)
+    return words[words.length - 1]
   }
 
   _replaceWordAtCursor(newWord: string): void {
-    const selections = this._inputRef && this._inputRef.selections()
-    const word = this._getWordAtCursor()
+    if (this._inputRef) {
+      this._inputRef.transformText(({text, selection}) => {
+        if (selection.start !== selection.end) {
+          return {text, selection}
+        }
+        const pos = selection.start
 
-    if (selections && selections.selectionStart === selections.selectionEnd) {
-      const startOfWordIdx = selections.selectionStart - word.length
-      if (startOfWordIdx >= 0) {
-        // Put the cursor at the end of newWord.
-        const newSelectionIndex = startOfWordIdx + newWord.length
-        this._inputRef &&
-          this._inputRef.replaceText(
-            newWord,
-            startOfWordIdx,
-            selections.selectionStart,
-            newSelectionIndex,
-            newSelectionIndex
-          )
-      }
+        const word = this._getWordAtCursor(text, pos)
+        const startOfWordIdx = pos - word.length
+        if (startOfWordIdx < 0) {
+          return {text, selection}
+        }
+
+        const newText = text.slice(0, startOfWordIdx) + newWord + text.slice(pos)
+        const newPos = startOfWordIdx + newWord.length
+        return {
+          text: newText,
+          selection: {
+            start: newPos,
+            end: newPos,
+          },
+        }
+      })
     }
   }
 
