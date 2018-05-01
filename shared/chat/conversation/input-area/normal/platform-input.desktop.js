@@ -73,6 +73,17 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     if (this._fileInput) this._fileInput.value = value
   }
 
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    this.props.onCancelQuoting()
+    const text = this._input ? this._input.getValue() : ''
+    if (e.key === 'ArrowUp' && !text) {
+      this.props.onEditLastMessage()
+    } else if (e.key === 'Escape') {
+      this.props.onCancelEditing()
+    }
+    this.props.onKeyDown && this.props.onKeyDown(e)
+  }
+
   componentDidMount() {
     this._registerBodyEvents(true)
   }
@@ -236,7 +247,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               multiline={true}
               rowsMin={1}
               rowsMax={5}
-              onKeyDown={this.props.onKeyDown}
+              onKeyDown={this._onKeyDown}
               onKeyUp={this.props.onKeyUp}
               onEnterKeyDown={this.props.onEnterKeyDown}
             />

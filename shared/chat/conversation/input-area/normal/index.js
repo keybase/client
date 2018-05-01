@@ -42,13 +42,8 @@ class Input extends React.Component<InputProps, State> {
     this._input = input
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+  _onCancelQuoting = () => {
     this.props._quotingMessage && this.props.onCancelQuoting()
-    if (e.key === 'ArrowUp' && !this.state.text) {
-      this.props.onEditLastMessage()
-    } else if (e.key === 'Escape') {
-      this.props.onCancelEditing()
-    }
   }
 
   _inputFocus = () => {
@@ -97,8 +92,8 @@ class Input extends React.Component<InputProps, State> {
     return (
       <MentionInput
         {...this.props}
+        onCancelQuoting={this._onCancelQuoting}
         inputSetRef={this._inputSetRef}
-        onKeyDown={this._onKeyDown}
         onSubmit={this._onSubmit}
         text={this.state.text}
         setText={this._setText}

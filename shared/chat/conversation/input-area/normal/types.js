@@ -12,6 +12,7 @@ type CommonProps = {
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
+  onCancelQuoting: () => void,
   onSubmit: (text: string) => void,
   pendingWaiting: boolean,
   typing: I.Set<string>,
@@ -24,7 +25,6 @@ type InputProps = CommonProps & {
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
-  onCancelQuoting: () => void,
   sendTyping: (typing: boolean) => void,
 }
 
@@ -32,9 +32,6 @@ type MentionInputProps = CommonProps & {
   inputSetRef: (r: ?TextInput) => void,
   setText: (text: string) => void,
   text: string,
-
-  // on desktop:
-  onKeyDown: (e: SyntheticKeyboardEvent<>) => void,
 }
 
 type MentionProps = {
@@ -42,6 +39,7 @@ type MentionProps = {
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
 
   // on desktop:
+  onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
   switchMention?: (u: string) => void,
   switchChannelMention?: (c: string) => void,

@@ -90,7 +90,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionHocState> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    this.props.onKeyDown(e)
     if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
       if (e.key === 'Tab') {
         e.preventDefault()
