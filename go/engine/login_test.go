@@ -895,13 +895,14 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 		Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
 	}
 
-	signEng := NewSaltpackSign(sarg, tc.G)
-	ctx := &Context{
+	signEng := NewSaltpackSign(tc.G, sarg)
+	uis := libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   &libkb.TestSecretUI{}, // empty
 	}
 
-	if err := RunEngine(signEng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, signEng); err != nil {
 		t.Fatal(err)
 	}
 }
