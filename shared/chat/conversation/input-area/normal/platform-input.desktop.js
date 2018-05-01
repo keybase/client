@@ -25,6 +25,7 @@ type State = {
 }
 
 class PlatformInput extends Component<PlatformInputProps, State> {
+  _input: ?Input
   _fileInput: ?HTMLInputElement
 
   constructor(props: PlatformInputProps) {
@@ -32,6 +33,15 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this.state = {
       emojiPickerOpen: false,
     }
+  }
+
+  _inputSetRef = (ref: ?Input) => {
+    this._input = ref
+    this.props.inputSetRef(ref)
+  }
+
+  _inputFocus = () => {
+    this._input && this._input.focus()
   }
 
   _emojiPickerToggle = () => {
@@ -91,7 +101,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
       'Enter',
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this.props.inputFocus()
+      this._inputFocus()
     }
   }
 
@@ -106,7 +116,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
       this.props.text.substring(selectionEnd),
     ].join('')
     this.props.setText(nextText)
-    this.props.inputFocus()
+    this._inputFocus()
   }
 
   _pickerOnClick = emoji => {
@@ -210,7 +220,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               onFocus={this._onFocus}
               small={true}
               style={styleInput}
-              ref={this.props.inputSetRef}
+              ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
               onChangeText={this.props.setText}
@@ -248,11 +258,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             >
               {isTyping(this.props.typing)}
             </Text>
-            <Text
-              type="BodySmall"
-              style={{...styleFooter, textAlign: 'right'}}
-              onClick={this.props.inputFocus}
-            >
+            <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this._inputFocus}>
               *bold*, _italics_, `code`, >quote
             </Text>
           </Box>
