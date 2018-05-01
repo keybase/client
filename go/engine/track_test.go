@@ -350,12 +350,13 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 				SigVersion:    &sv,
 			},
 		}
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			SecretUI: user.NewSecretUI(),
 		}
-		eng := NewTrackToken(&arg, tc.G)
-		return RunEngine(eng, ctx)
+		eng := NewTrackToken(tc.G, &arg)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		return RunEngine2(m, eng)
 	}
 
 	trackSucceed := func(tc libkb.TestContext, fui *FakeIdentifyUI) {

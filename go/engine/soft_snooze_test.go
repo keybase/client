@@ -96,9 +96,8 @@ func TestSoftSnooze(t *testing.T) {
 	}
 
 	// Track tracy
-	teng := NewTrackToken(&targ, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackToken(tc.G, &targ)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
