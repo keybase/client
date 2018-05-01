@@ -61,15 +61,18 @@ const (
 	// 1 Bit 0 == always set for valid values,
 	// 2 Bit 1 == directory or not
 	// 4 Bit 2 == new or not
+	isValid = 1
+	isDir   = 2
+	isNew   = 4
 
 	// NewDir for newly created directories.
-	NewDir = CreateStatus(4 | 2 | 1)
+	NewDir = CreateStatus(isNew | isDir | isValid)
 	// NewFile for newly created files.
-	NewFile = CreateStatus(4 | 0 | 1)
+	NewFile = CreateStatus(isNew | isValid)
 	// ExistingDir for newly created directories.
-	ExistingDir = CreateStatus(0 | 2 | 1)
+	ExistingDir = CreateStatus(isDir | isValid)
 	// ExistingFile for newly created files.
-	ExistingFile = CreateStatus(0 | 0 | 1)
+	ExistingFile = CreateStatus(isValid)
 )
 
 // IsDir tells whether a CreateStatus is about a directory or a file.
