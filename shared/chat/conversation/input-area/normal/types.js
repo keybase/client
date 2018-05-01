@@ -53,7 +53,6 @@ type MentionProps = {
   upArrowCounter?: number,
   downArrowCounter?: number,
   // on mobile:
-  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   onBlur?: () => void,
   onFocus?: () => void,
   insertMentionMarker?: () => void,

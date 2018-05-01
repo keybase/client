@@ -37,8 +37,6 @@ export type Props = {
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
   onFocus?: () => void,
-  // TODO: Implement this for desktop.
-  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   rowsMax?: number,
   maxLength?: number,
   rowsMin?: number,

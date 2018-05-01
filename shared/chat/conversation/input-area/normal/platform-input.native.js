@@ -94,7 +94,6 @@ class PlatformInput extends Component<PlatformInputProps> {
             // change to match desktop.
             onChangeText={this.props.onChangeText}
             ref={this._inputSetRef}
-            onSelectionChange={this.props.onSelectionChange}
             small={true}
             style={styles.input}
             uncontrolled={true}

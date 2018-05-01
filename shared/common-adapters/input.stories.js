@@ -18,7 +18,6 @@ const commonProps: Props = {
   onKeyUp: e => {
     action('onKeyUp')(e.key)
   },
-  onSelectionChange: action('onSelectionChange'),
 }
 
 class TestInput extends React.Component<{}> {

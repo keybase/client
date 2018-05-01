@@ -138,14 +138,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     }
   }
 
-  onSelectionChange = (selection: {selectionStart: number, selectionEnd: number}) =>
-    this.setState(
-      {
-        _selection: selection,
-      },
-      () => this._onChangeText(this._getText())
-    )
-
   render = () => (
     <PlatformInput
       {...this.props}
@@ -159,7 +151,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       onBlur={this.onBlur}
       onFocus={this.onFocus}
       onChangeText={this._onChangeText}
-      onSelectionChange={this.onSelectionChange}
     />
   )
 }
