@@ -405,16 +405,6 @@ class Engine {
     this._incomingActionCreators[method] = actionCreator
   }
 
-  // DEPRECATED - use setIncomingActionCreators instead
-  setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
-    if (this._incomingHandler[method]) {
-      rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})
-      return
-    }
-    rpcLog('engineInternal', 'registering incoming handler:', {method})
-    this._incomingHandler[method] = handler
-  }
-
   // Test want to fail on any error
   setFailOnError() {
     this._failOnError = true
@@ -483,7 +473,6 @@ class FakeEngine {
   listenOnConnect(key: string, f: () => void) {}
   listenOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
-  setIncomingHandler(name: string, callback: Function) {}
   setIncomingActionCreator(
     method: MethodKey,
     actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Action
