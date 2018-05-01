@@ -25,7 +25,6 @@ type Props = {
 }
 
 const TextPopupMenu = (props: Props) => {
-  console.warn({props})
   const {message} = props
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
