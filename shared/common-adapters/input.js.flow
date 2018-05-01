@@ -50,7 +50,7 @@ export type Props = {
   value?: ?string,
 
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
-  // Have a separate onSubmitEditing prop.
+  // TODO: Have a separate onSubmitEditing prop.
   onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
 
   // Desktop only.
