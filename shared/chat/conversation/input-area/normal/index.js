@@ -95,8 +95,6 @@ class Input extends React.Component<InputProps, State> {
         onCancelQuoting={this._onCancelQuoting}
         onSubmit={this._onSubmit}
         inputSetRef={this._inputSetRef}
-        setText={this._setText}
-        text={this.state.text}
       />
     )
   }

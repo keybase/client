@@ -245,7 +245,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
-              onChangeText={this.props.setText}
               uncontrolled={true}
               multiline={true}
               rowsMin={1}
