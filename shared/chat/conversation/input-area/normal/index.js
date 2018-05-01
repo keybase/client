@@ -51,10 +51,6 @@ class Input extends React.Component<InputProps, State> {
     }
   }
 
-  _inputBlur = () => {
-    this._input && this._input.blur()
-  }
-
   _inputFocus = () => {
     this._input && this._input.focus()
   }
@@ -103,8 +99,6 @@ class Input extends React.Component<InputProps, State> {
     return (
       <MentionInput
         {...this.props}
-        inputBlur={this._inputBlur}
-        inputFocus={this._inputFocus}
         inputSetRef={this._inputSetRef}
         inputSelections={this._inputSelections}
         onKeyDown={this._onKeyDown}

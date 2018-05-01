@@ -29,8 +29,6 @@ type InputProps = CommonProps & {
 }
 
 type MentionInputProps = CommonProps & {
-  inputBlur: () => void,
-  inputFocus: () => void,
   inputSelections: () => ?{selectionStart: number, selectionEnd: number},
   inputSetRef: (r: ?TextInput) => void,
   setText: (text: string) => void,
