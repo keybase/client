@@ -71,7 +71,7 @@ const BOOL isDebug = NO;
 #endif
 
   BOOL securityAccessGroupOverride = isSimulator;
-  BOOL skipLogFile = true;
+  BOOL skipLogFile = false;
 
   NSString * home = NSHomeDirectory();
 
@@ -232,7 +232,7 @@ const BOOL isDebug = NO;
   [self.resignImageView.layer removeAllAnimations];
   // Snapshot happens right after this call, force alpha immediately w/o animation else you'll get a half animated overlay
   self.resignImageView.alpha = 1;
-  
+
   const bool requestTime = KeybaseAppDidEnterBackground();
   if (requestTime && (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {
     UIApplication *app = [UIApplication sharedApplication];

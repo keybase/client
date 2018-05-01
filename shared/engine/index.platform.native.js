@@ -91,11 +91,6 @@ function createClient(
   return client
 }
 
-global.DEBUGprintBuffer = s => {
-  const buffer = toBuffer(toByteArray(s))
-  console._log('debug buffer', buffer.toString())
-}
-
 function resetClient(client: createClientType) {
   // Tell the RN bridge to reset itself
   nativeBridge.reset()

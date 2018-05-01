@@ -20,7 +20,7 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config = {
   enableActionLogging: true, // Log actions to the log
@@ -32,7 +32,7 @@ let config = {
   isDevApplePushToken: false, // Use a dev push token
   isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
   maskStrings: false, // Replace all hiddenstrings w/ fake values
-  printBridgeB64: true, // Print raw b64 going over the wire
+  printBridgeB64: false, // Print raw b64 going over the wire
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printRPC: false, // Print rpc traffic
   reduxSagaLogger: false, // Print saga debug info
@@ -42,9 +42,9 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = false
-  config.enableStoreLogging = true
-  config.immediateStateLogging = true
+  config.enableActionLogging = true
+  config.enableStoreLogging = false
+  config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
