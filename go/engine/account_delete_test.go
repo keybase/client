@@ -101,9 +101,9 @@ func TestAccountDeleteIdentify(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	ieng := NewIdentify2WithUID(tc.G, arg)
-	ictx := &Context{IdentifyUI: i}
-
-	err = RunEngine(ieng, ictx)
+	uis = libkb.UIs{IdentifyUI: i}
+	m = NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, ieng)
 	require.Error(t, err)
 
 	if _, ok := err.(libkb.UserDeletedError); !ok {

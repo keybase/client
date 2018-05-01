@@ -93,10 +93,10 @@ func TestUpkeep(t *testing.T) {
 	require.Equal(t, originalPukGen, pukGen)
 
 	t.Logf("rotate puk")
-	engCtx := &engine.Context{NetContext: context.Background()}
 	engArg := &engine.PerUserKeyRollArgs{}
 	eng := engine.NewPerUserKeyRoll(tcs[0].G, engArg)
-	err = engine.RunEngine(eng, engCtx)
+	m := libkb.NewMetaContextTODO(tcs[0].G)
+	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
 	require.True(t, eng.DidNewKey)
 

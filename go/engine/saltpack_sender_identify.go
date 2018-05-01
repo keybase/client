@@ -129,7 +129,7 @@ func (e *SaltpackSenderIdentify) identifySender(m libkb.MetaContext) (err error)
 	if lin, uid = isLoggedIn(m); lin && uid.Equal(e.res.Uid) {
 		e.res.SenderType = keybase1.SaltpackSenderType_SELF
 		if len(e.arg.userAssertion) == 0 {
-			e.G().Log.Debug("| Sender is self")
+			m.CDebugf("| Sender is self")
 			return nil
 		}
 	}
@@ -146,8 +146,7 @@ func (e *SaltpackSenderIdentify) identifySender(m libkb.MetaContext) (err error)
 		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewIdentify2WithUID(e.G(), &iarg)
-	ctx := engineContextFromMetaContext(m)
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		return err
 	}
 
