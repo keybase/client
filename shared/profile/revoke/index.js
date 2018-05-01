@@ -9,7 +9,6 @@ import {
   desktopStyles,
   platformStyles,
   collapseStyles,
-  type StylesCrossPlatform,
 } from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
@@ -76,7 +75,7 @@ const styleContainer = {
   ...desktopStyles.scrollable,
 }
 
-const styleClose: StylesCrossPlatform = collapseStyles([
+const styleClose = collapseStyles([
   {
     position: 'absolute',
     top: globalMargins.small,

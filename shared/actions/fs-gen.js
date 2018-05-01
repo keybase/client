@@ -26,8 +26,10 @@ export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
+export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
+export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
@@ -87,8 +89,15 @@ export const createFuseStatusResult = (
 export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
 export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
+export const createLocalHTTPServerInfo = (
+  payload: $ReadOnly<{|
+    address: string,
+    token: string,
+  |}>
+) => ({error: false, payload, type: localHTTPServerInfo})
 export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = () => ({error: false, payload: undefined, type: openSecurityPreferences})
+export const createRefreshLocalHTTPServerInfo = () => ({error: false, payload: undefined, type: refreshLocalHTTPServerInfo})
 export const createSetFlags = (
   payload: $ReadOnly<{|
     kbfsOpening?: boolean,
@@ -135,8 +144,10 @@ export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusRes
 export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
 export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
+export type LocalHTTPServerInfoPayload = More.ReturnType<typeof createLocalHTTPServerInfo>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type OpenSecurityPreferencesPayload = More.ReturnType<typeof createOpenSecurityPreferences>
+export type RefreshLocalHTTPServerInfoPayload = More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
@@ -164,8 +175,10 @@ export type Actions =
   | More.ReturnType<typeof createInstallFuse>
   | More.ReturnType<typeof createInstallFuseResult>
   | More.ReturnType<typeof createInstallKBFS>
+  | More.ReturnType<typeof createLocalHTTPServerInfo>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createOpenSecurityPreferences>
+  | More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>

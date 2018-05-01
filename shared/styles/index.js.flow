@@ -35,16 +35,6 @@ declare export var desktopStyles: {
   windowDraggingClickable?: CSS._StylesDesktop,
 }
 declare export var mobileStyles: {}
-declare export var globalMargins: {|
-  xtiny: number,
-  tiny: number,
-  xsmall: number,
-  small: number,
-  medium: number,
-  mediumLarge: number,
-  large: number,
-  xlarge: number,
-|}
 declare export var fileUIName: string
 declare export var statusBarHeight: number
 declare export var hairlineWidth: number
@@ -68,14 +58,6 @@ declare export var windowStyle: {
   height: number,
 }
 
-declare export function platformStyles({|
-  common?: CSS._StylesCrossPlatform,
-  isIOS?: CSS._StylesMobile,
-  isAndroid?: CSS._StylesMobile,
-  isMobile?: CSS._StylesMobile,
-  isElectron?: CSS._StylesDesktop,
-|}): CSS._StylesCrossPlatform
-
 declare export function glamorous(
   Component: any // React.ComponentType<P>
 ): (...styles: Array<any>) => any // React.Component<P>
@@ -83,5 +65,11 @@ declare export function glamorous(
 declare export var isMobile: boolean
 declare export var isIPhoneX: boolean
 
-declare export var backgroundModeToColor: {[key: Background]: string}
-export type {StylesDesktop, StylesMobile, StylesCrossPlatform, Color} from './css'
+export {platformStyles, globalMargins, backgroundModeToColor} from './shared'
+export type {
+  StylesDesktop,
+  StylesMobile,
+  StylesCrossPlatform,
+  Color,
+  StylesCrossPlatformWithSomeDisallowed,
+} from './css'

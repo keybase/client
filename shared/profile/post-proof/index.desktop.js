@@ -4,14 +4,7 @@ import * as React from 'react'
 import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../../common-adapters'
 import LinkWithIcon from '../link-with-icon'
 import {copyToClipboard} from 'electron'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  desktopStyles,
-  collapseStyles,
-  type StylesCrossPlatform,
-} from '../../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import type {Props} from '.'
 
 const PostProof = (props: Props) => {
@@ -133,7 +126,7 @@ const styleContainer = {
   ...desktopStyles.scrollable,
 }
 
-const styleClose: StylesCrossPlatform = collapseStyles([
+const styleClose = collapseStyles([
   {
     position: 'absolute',
     top: globalMargins.small,

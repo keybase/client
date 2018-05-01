@@ -115,6 +115,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['flags'], action.payload)
     case FsGen.installKBFS:
       return state.mergeIn(['flags'], {kbfsInstalling: true})
+    case FsGen.localHTTPServerInfo:
+      return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
@@ -124,6 +126,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.fsActivity:
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
+    case FsGen.refreshLocalHTTPServerInfo:
       return state
     default:
       /*::

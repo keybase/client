@@ -13,31 +13,21 @@ type Props = {
   teamname: string,
 }
 
+const fontSize = isMobile ? 20 : 16
+
 const _CustomComponent = (props: Props & FloatingMenuParentProps) => (
-  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', alignItems: 'center', right: 0}}>
-    {props.canChat && (
-      <Icon
-        onClick={props.onChat}
-        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-        type="iconfont-chat"
-      />
-    )}
+  <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', position: 'absolute', right: 0}}>
+    {props.canChat && <Icon onClick={props.onChat} fontSize={fontSize} style={style} type="iconfont-chat" />}
     {!isMobile &&
       props.canViewFolder && (
-        <Icon
-          onClick={props.onOpenFolder}
-          style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
-          type="iconfont-folder-private"
-        />
+        <Icon onClick={props.onOpenFolder} fontSize={fontSize} style={style} type="iconfont-folder-private" />
       )}
     <Icon
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}
       type="iconfont-ellipsis"
-      style={{
-        fontSize: isMobile ? 20 : 16,
-        marginRight: globalMargins.tiny,
-      }}
+      fontSize={fontSize}
+      style={style}
     />
     <TeamMenu
       attachTo={props.attachmentRef}
@@ -47,5 +37,9 @@ const _CustomComponent = (props: Props & FloatingMenuParentProps) => (
     />
   </Box>
 )
+
+const style = {
+  marginRight: globalMargins.tiny,
+}
 const CustomComponent = FloatingMenuParentHOC(_CustomComponent)
 export default CustomComponent
