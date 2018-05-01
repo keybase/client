@@ -131,6 +131,16 @@ func (m MetaContext) WithSecretUI(u SecretUI) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithLogUI(u LogUI) MetaContext {
+	m.uis.LogUI = u
+	return m
+}
+
+func (m MetaContext) WithPgpUI(u PgpUI) MetaContext {
+	m.uis.PgpUI = u
+	return m
+}
+
 func (m MetaContext) WithIdentifyUI(u IdentifyUI) MetaContext {
 	m.uis.IdentifyUI = u
 	return m
@@ -209,4 +219,16 @@ func (e UIs) HasUI(kind UIKind) bool {
 		return e.SaltpackUI != nil
 	}
 	panic(fmt.Sprintf("unhandled kind: %d", kind))
+}
+
+type MetaContextified struct {
+	m MetaContext
+}
+
+func (m MetaContextified) M() MetaContext {
+	return m.m
+}
+
+func NewMetaContextified(m MetaContext) MetaContextified {
+	return MetaContextified{m: m}
 }
