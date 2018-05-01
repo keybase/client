@@ -146,7 +146,7 @@ class Engine {
     this.setIncomingActionCreators('keybase.1.logUi.log', (param, response) => {
       const logParam: LogUiLogRpcParam = param
       log(logParam)
-      if (response && response.result) return [response.result()]
+      response && response.result && response.result()
     })
   }
 
