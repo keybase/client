@@ -3,6 +3,12 @@ import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import {Input as TextInput} from '../../../../common-adapters'
 
+// There are three components in this directory:
+//
+//   Input, with props InputProps, which wraps
+//     MentionInput, with props MentionInputProps, which wraps
+//       PlatformInput, with props PlatformInputProps.
+
 type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
   channelName: string,
