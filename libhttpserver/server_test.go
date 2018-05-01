@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,6 +40,15 @@ func makeTestKBFSConfig(t *testing.T) (
 		err := ioutil.RemoveAll(tempdir)
 		require.NoError(t, err)
 	}
+
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, cfg.KBPKI(), cfg.MDOps(), "alice,bob", tlf.Private)
+	require.NoError(t, err)
+
+	root, _, err := cfg.KBFSOps().GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	_, _, err = cfg.KBFSOps().CreateFile(ctx, root, "test.txt", false, false)
+	require.NoError(t, err)
 
 	return cfg, shutdown
 }
@@ -70,6 +80,11 @@ func TestServerDefault(t *testing.T) {
 		"http://%s/files/private/alice,bob/non-existent?token=%s", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	resp, err = http.Get(fmt.Sprintf(
+		"http://%s/files/private/alice,bob/test.txt?token=%s", addr, token))
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/blah/alice,bob/non-existent?token=%s", addr, token))
