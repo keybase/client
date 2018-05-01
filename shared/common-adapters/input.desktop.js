@@ -8,7 +8,7 @@ import type {Props, TextInfo} from './input'
 
 type State = {
   focused: boolean,
-  // Only changed for controlled components.
+  // Only used for controlled components.
   value?: string,
 }
 
@@ -170,37 +170,40 @@ class Input extends React.PureComponent<Props, State> {
     }
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
-        // Inject newline.
-        //
-        // TODO: scroll to new position.
-        if (this.props.uncontrolled) {
-          this.transformText(({text, selection}) => {
-            const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
-            const pos = selection.start + 1
-            const newSelection = {start: pos, end: pos}
-            return {
-              text: newText,
-              selection: newSelection,
-            }
-          })
-          const value = this.getValue()
-          this.props.onChangeText && this.props.onChangeText(value)
-        } else {
-          this.setState(
-            ({value}) => {
-              const selection = this.selection()
-              const text = value || ''
-              const newValue = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
-              // TODO: Update selection.
+        // Do nothing unless multiline.
+        if (this.props.multiline) {
+          // Inject newline.
+          //
+          // TODO: scroll to new position.
+          if (this.props.uncontrolled) {
+            this.transformText(({text, selection}) => {
+              const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
+              const pos = selection.start + 1
+              const newSelection = {start: pos, end: pos}
               return {
-                value: newValue,
+                text: newText,
+                selection: newSelection,
               }
-            },
-            () => {
-              const value = this.getValue()
-              this.props.onChangeText && this.props.onChangeText(value)
-            }
-          )
+            })
+            const value = this.getValue()
+            this.props.onChangeText && this.props.onChangeText(value)
+          } else {
+            this.setState(
+              ({value}) => {
+                const selection = this.selection()
+                const text = value || ''
+                const newValue = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
+                // TODO: Update selection.
+                return {
+                  value: newValue,
+                }
+              },
+              () => {
+                const value = this.getValue()
+                this.props.onChangeText && this.props.onChangeText(value)
+              }
+            )
+          }
         }
       } else {
         this.props.onEnterKeyDown(e)
