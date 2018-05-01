@@ -3283,7 +3283,6 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 		ctx := ctc.as(t, users[0]).startCtx
-		<-ctc.as(t, users[1]).h.G().ConvLoader.Stop(ctx)
 
 		listener := newServerChatListener()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
@@ -3327,7 +3326,6 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 		ctx := ctc.as(t, users[0]).startCtx
-		<-ctc.as(t, users[1]).h.G().ConvLoader.Stop(ctx)
 
 		for i, u := range users {
 			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
