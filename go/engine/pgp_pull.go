@@ -154,7 +154,8 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 		ForPGPPull: true,
 	}
 	ieng := NewResolveThenIdentify2WithTrack(e.G(), &iarg, topts)
-	if err := RunEngine(ieng, ctx); err != nil {
+	m := metaContextFromEngineContext(e.G(), ctx)
+	if err := RunEngine2(m, ieng); err != nil {
 		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}

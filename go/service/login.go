@@ -68,15 +68,16 @@ func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearSt
 	return libkb.ClearStoredSecret(h.G(), libkb.NewNormalizedUsername(arg.Username))
 }
 
-func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
-	ctx := &engine.Context{
+func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		LoginUI:   h.getLoginUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: sessionID,
 	}
 	eng := engine.NewPaperKey(h.G())
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) PaperKeySubmit(_ context.Context, arg keybase1.PaperKeySubmitArg) error {

@@ -76,7 +76,8 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	}
 
 	ieng := NewResolveThenIdentify2WithTrack(e.G(), arg, e.arg.Options)
-	if err := RunEngine(ieng, ctx); err != nil {
+	m := metaContextFromEngineContext(e.G(), ctx)
+	if err := RunEngine2(m, ieng); err != nil {
 		return err
 	}
 

@@ -196,7 +196,6 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 		}
 		veng := NewSaltpackVerify(tc.G, varg)
 
-
 		m = m.WithSaltpackUI(fakeSaltpackUI{})
 
 		if err := RunEngine2(m, veng); err != nil {
@@ -361,8 +360,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	// Delegate a new paper key so that we have something active after we
 	// revoke the current device.
 	paperEng := NewPaperKey(tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(paperEng, ctx); err != nil {
+	if err := RunEngine2(m, paperEng); err != nil {
 		t.Fatal(err)
 	}
 

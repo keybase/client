@@ -18,7 +18,8 @@ import (
 
 func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
 	ctx = libkb.WithLogTag(ctx, "DG")
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
+	m := libkb.NewMetaContext(ctx, t.G())
+	defer m.CTraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
 	args := arg.Args
 	log := func(format string, args ...interface{}) {
 		t.G().Log.CInfof(ctx, format, args...)
@@ -46,10 +47,8 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			CanSuppressUI:    true,
 			IdentifyBehavior: idBehavior,
 		})
-		err := engine.RunEngine(eng, &engine.Context{
-			IdentifyUI: iui,
-			NetContext: ctx,
-		})
+		m = m.WithUIs(libkb.UIs{IdentifyUI: iui})
+		err := engine.RunEngine2(m, eng)
 		log("GetProofSet: %v", spew.Sdump(eng.GetProofSet()))
 		log("ConfirmResult: %v", spew.Sdump(eng.ConfirmResult()))
 		eres := eng.Result()

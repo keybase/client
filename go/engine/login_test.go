@@ -1090,7 +1090,7 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	secUI := fu.NewSecretUI()
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
-	ctx := &Context{
+	uis = libkb.UIs{
 		ProvisionUI: provUI,
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    secUI,
@@ -1098,8 +1098,9 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -2356,13 +2357,14 @@ func TestResetAccountPaper(t *testing.T) {
 	}
 	testUserHasDeviceKey(tc)
 
-	pctx := &Context{
+	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
 	peng := NewPaperKey(tc.G)
-	if err := RunEngine(peng, pctx); err != nil {
+	m = NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, peng); err != nil {
 		t.Fatal(err)
 	}
 	if len(peng.Passphrase()) == 0 {

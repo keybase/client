@@ -38,13 +38,14 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 		NeedProofSet:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		tc.T.Fatal(err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
@@ -53,6 +54,7 @@ func _testTrackTokenIdentify2(t *testing.T, sigVersion libkb.SigVersion) {
 		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 	teng := NewTrackToken(&targ, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(teng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}
@@ -81,7 +83,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 		NeedProofSet:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
@@ -89,7 +91,8 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 
 	// Identify tracy; all proofs should work
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
@@ -100,6 +103,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 
 	// Track tracy
 	teng := NewTrackToken(&targ, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(teng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +113,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
 	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
+	m = m.WithIdentifyUI(idUI)
 
 	// Advance so that our previous cached success is out of
 	// cache
@@ -119,7 +123,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 
 	// Should  get an error
-	if err := RunEngine(eng, ctx); err == nil {
+	if err := RunEngine2(m, eng); err == nil {
 		t.Fatal("Expected identify error")
 	}
 
@@ -145,7 +149,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	var err error
 	// Should not get an error
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		t.Logf("Identify failure: %v", err)
 		t.Fatal("Expected to pass identify")
 	}
@@ -171,7 +175,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	eng = NewResolveThenIdentify2(tc.G, arg)
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	// Should get an error
-	if err = RunEngine(eng, ctx); err == nil {
+	if err = RunEngine2(m, eng); err == nil {
 		t.Fatal("Expected rooter to fail")
 	}
 	t.Logf("Identify failure: %v", err)
@@ -213,7 +217,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 		NeedProofSet:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
@@ -221,7 +225,8 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// Identify tracy; all proofs should work
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	// Leaving LocalOnly off here will result in remote tracking
@@ -233,6 +238,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 
 	// Track tracy
 	teng := NewTrackToken(&targ, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(teng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +248,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
 	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
+	m = m.WithIdentifyUI(idUI)
 
 	// Advance so that our previous cached success is out of
 	// cache
@@ -252,7 +258,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 
 	// Should  get an error
-	if err := RunEngine(eng, ctx); err == nil {
+	if err := RunEngine2(m, eng); err == nil {
 		t.Fatal("Expected identify error")
 	}
 
@@ -278,7 +284,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	var err error
 	// Should not get an error
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		t.Logf("Identify failure: %v", err)
 		t.Fatal("Expected to pass identify")
 	}
@@ -299,7 +305,7 @@ func _testTrackRemoteThenLocalTemp(t *testing.T, sigVersion libkb.SigVersion) {
 	eng = NewResolveThenIdentify2(tc.G, arg)
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	// Should get an error
-	if err = RunEngine(eng, ctx); err == nil {
+	if err = RunEngine2(m, eng); err == nil {
 		t.Fatal("Expected rooter to fail")
 	}
 	t.Logf("Identify failure: %v", err)
@@ -335,7 +341,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 		NeedProofSet:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
@@ -343,7 +349,8 @@ func TestTrackFailTempRecover(t *testing.T) {
 
 	// Identify tracy; all proofs should work
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
@@ -354,6 +361,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 
 	// Track tracy
 	teng := NewTrackToken(&targ, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(teng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -363,7 +371,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Now make her Rooter proof fail with a 429
 	flakeyAPI.flakeOut = true
 	idUI = &FakeIdentifyUI{}
-	ctx.IdentifyUI = idUI
+	m = m.WithIdentifyUI(idUI)
 
 	// Advance so that our previous cached success is out of
 	// cache
@@ -373,7 +381,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 
 	// Should  get an error
-	if err := RunEngine(eng, ctx); err == nil {
+	if err := RunEngine2(m, eng); err == nil {
 		t.Fatal("Expected identify error")
 	}
 
@@ -408,7 +416,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
 	var err error
 	// Should not get an error
-	if err = RunEngine(eng, ctx); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		t.Logf("Identify failure: %v", err)
 		t.Fatal("Expected to pass identify")
 	}
@@ -423,7 +431,6 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Advance the clock to make sure local temp track goes away
 	fakeClock.Advance(tc.G.Env.GetLocalTrackMaxAge() + time.Minute)
 
-	m := metaContextFromEngineContext(tc.G, ctx)
 	if err := eng.i2eng.createIdentifyState(m); err != nil {
 		t.Fatal(err)
 	}
@@ -475,14 +482,15 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 		NeedProofSet:     true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   fu.NewSecretUI(),
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 	eng.SetResponsibleGregorItem(&responsibleGregorItem)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		tc.T.Fatal(err)
 	}
 	sv := keybase1.SigVersion(sigVersion)
@@ -491,6 +499,7 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 		Options: keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
 	teng := NewTrackToken(&targ, tc.G)
+	ctx := engineContextFromMetaContext(m)
 	if err := RunEngine(teng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}
