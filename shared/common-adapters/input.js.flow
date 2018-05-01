@@ -83,14 +83,6 @@ declare export default class Input extends Component<Props> {
   moveCursorToEnd: () => void;
   getValue: () => string;
   selections: () => ?{selectionStart: number, selectionEnd: number};
-  replaceText: (
-    text: string,
-    startIdx: number,
-    endIdx: number,
-    // The selection parameters are desktop-only, for now.
-    newSelectionStart: number,
-    newSelectionEnd: number
-  ) => void;
   // transformText must only be called on uncontrolled Input
   // components.
   transformText: (fn: (TextInfo) => TextInfo) => void;

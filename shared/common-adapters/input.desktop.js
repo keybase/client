@@ -137,27 +137,6 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  replaceText = (
-    text: string,
-    startIdx: number,
-    endIdx: number,
-    newSelectionStart: number,
-    newSelectionEnd: number
-  ) => {
-    const n = this._input
-    if (n) {
-      const v = n.value
-      const nextValue = v.slice(0, startIdx) + text + v.slice(endIdx)
-      n.value = nextValue
-      this.setState({value: nextValue})
-      this._autoResize()
-
-      this.props.onChangeText && this.props.onChangeText(nextValue || '')
-      n.selectionStart = newSelectionStart
-      n.selectionEnd = newSelectionEnd
-    }
-  }
-
   transformText = (fn: TextInfo => TextInfo) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')

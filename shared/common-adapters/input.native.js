@@ -95,20 +95,6 @@ class Input extends Component<Props, State> {
     this._input && this._input.blur()
   }
 
-  replaceText = (
-    text: string,
-    startIdx: number,
-    endIdx: number,
-    newSelectionStart: number,
-    newSelectionEnd: number
-  ) => {
-    const v = this.getValue()
-    const nextText = v.slice(0, startIdx) + text + v.slice(endIdx)
-    this._onChangeText(nextText)
-    // TODO: Set selection to newSelectionStart/newSelectionEnd once
-    // we're able to.
-  }
-
   transformText = (fn: TextInfo => TextInfo) => {
     if (!this.props.uncontrolled) {
       throw new Error('transformText can only be called on uncontrolled components')
