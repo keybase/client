@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box} from '../../common-adapters'
-import {storiesOf} from '../../stories/storybook'
+import {storiesOf, action} from '../../stories/storybook'
 import {Wallet, AddWallet} from '../../wallets/wallet'
 
 const common = {
@@ -9,7 +9,7 @@ const common = {
   name: '',
   keybaseUser: '',
   contents: '',
-  onSelect: () => {},
+  onSelect: action('onSelect'),
 }
 
 const mocks = [
@@ -31,7 +31,7 @@ const load = () => {
   storiesOf('Stellar', module).add('Wallet List', () => (
     <Box style={{width: 240}}>
       {mocks.map(m => <Wallet key={m.name} {...m} />)}
-      <AddWallet showingMenu={true} onAddNew={() => {}} onLinkExisting={() => {}} />
+      <AddWallet showingMenu={true} onAddNew={action('onAddNew')} onLinkExisting={action('onAddExisting')} />
     </Box>
   ))
 }
