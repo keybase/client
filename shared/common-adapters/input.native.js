@@ -25,12 +25,13 @@ class Input extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
+    const text = props.value || ''
     this.state = {
       focused: false,
       height: null,
-      value: props.value || '',
+      value: text,
     }
-    this._text = ''
+    this._text = text
     this._selection = {start: 0, end: 0}
   }
 
@@ -77,12 +78,16 @@ class Input extends Component<Props, State> {
   }
 
   getValue(): string {
-    return this.state.value || ''
+    return this._text
   }
 
   _onChangeText = (text: string) => {
     this._text = text
-    this.setState({value: text}, () => this.props.onChangeText && this.props.onChangeText(text))
+    if (this.props.uncontrolled) {
+      this.props.onChangeText && this.props.onChangeText(text)
+    } else {
+      this.setState({value: text}, () => this.props.onChangeText && this.props.onChangeText(text))
+    }
   }
 
   focus() {
