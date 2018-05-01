@@ -6,7 +6,7 @@
 import {NativeModules} from 'react-native'
 import * as DevGen from './actions/dev-gen'
 import {noop} from 'lodash-es'
-import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
+// import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
@@ -20,7 +20,7 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   enableActionLogging: true, // Log actions to the log

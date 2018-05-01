@@ -51,7 +51,7 @@ const inboxRefresh = (
       'chat.1.chatUi.chatInboxUnverified': function*({
         inbox,
       }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-        // fork so we can return quickly. TODO change EngineRpcCall to just pass a callback so we can do this whenever maybe
+        // fork so we can reply quickly. TODO change EngineRpcCall to just pass a callback so we can do this whenever maybe
         yield Saga.fork(function*() {
           yield Saga.call(Saga.delay, 1)
           const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
