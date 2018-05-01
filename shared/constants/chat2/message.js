@@ -29,6 +29,11 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
+  ...makeMessageCommon,
+  type: 'placeholder',
+})
+
 export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
   ...makeMessageCommon,
   type: 'deleted',
@@ -47,14 +52,14 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
   attachmentType: 'file',
-  fileURL: '',
-  previewURL: '',
-  fileType: '',
   downloadPath: null,
   fileName: '',
   fileSize: 0,
+  fileType: '',
+  fileURL: '',
   previewHeight: 0,
   previewTransferState: null,
+  previewURL: '',
   previewWidth: 0,
   submitState: null,
   title: '',
@@ -453,9 +458,8 @@ const placeholderUIMessageToMessage = (
   p: RPCChatTypes.MessageUnboxedPlaceholder
 ) => {
   return !p.hidden
-    ? makeMessageText({
+    ? makeMessagePlaceholder({
         conversationIDKey,
-        errorReason: 'waiting for message from server...',
         id: Types.numberToMessageID(p.messageID),
         ordinal: Types.numberToOrdinal(p.messageID),
       })
@@ -491,22 +495,22 @@ export const uiMessageToMessage = (
       if (uiMessage.valid) {
         return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.error:
       if (uiMessage.error) {
         return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
         return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
       if (uiMessage.placeholder) {
         return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder)
       }
-      break
+      return null
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
