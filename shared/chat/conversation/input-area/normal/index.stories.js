@@ -49,49 +49,47 @@ const boxProps = {
   }),
 }
 
-class InputContainer extends React.Component<Props> {
-  render = () => {
-    const props: InputProps = {
-      conversationIDKey: stringToConversationIDKey('fake conversation id key'),
-      channelName: 'somechannel',
-      isEditing: this.props.isEditing,
-      focusInputCounter: 0,
-      clearInboxFilter: action('clearInboxFilter'),
-      onAttach: (paths: Array<string>) => {
-        // This will always be called with an empty array, since some
-        // browsers don't have the path property set on File.
-        action('onAttach').apply(null, paths)
-      },
-      onEditLastMessage: action('onEditLastMessage'),
-      onCancelEditing: action('onCancelEditing'),
-      onCancelQuoting: action('onCancelQuoting'),
-      onSubmit: (text: string) => {
-        action('onSubmit')(text)
-      },
-      pendingWaiting: this.props.pendingWaiting,
-      typing: this.props.typing,
+const InputContainer = (props: Props) => {
+  const inputProps: InputProps = {
+    conversationIDKey: stringToConversationIDKey('fake conversation id key'),
+    channelName: 'somechannel',
+    isEditing: props.isEditing,
+    focusInputCounter: 0,
+    clearInboxFilter: action('clearInboxFilter'),
+    onAttach: (paths: Array<string>) => {
+      // This will always be called with an empty array, since some
+      // browsers don't have the path property set on File.
+      action('onAttach').apply(null, paths)
+    },
+    onEditLastMessage: action('onEditLastMessage'),
+    onCancelEditing: action('onCancelEditing'),
+    onCancelQuoting: action('onCancelQuoting'),
+    onSubmit: (text: string) => {
+      action('onSubmit')(text)
+    },
+    pendingWaiting: props.pendingWaiting,
+    typing: props.typing,
 
-      _quotingMessage: null,
-      _editingMessage: null,
+    _quotingMessage: null,
+    _editingMessage: null,
 
-      injectedInput: '',
+    injectedInput: '',
 
-      getUnsentText: () => {
-        action('getUnsentText')()
-        return this.props.isEditing ? 'some text' : ''
-      },
+    getUnsentText: () => {
+      action('getUnsentText')()
+      return props.isEditing ? 'some text' : ''
+    },
 
-      setUnsentText: action('setUnsentText'),
+    setUnsentText: action('setUnsentText'),
 
-      sendTyping: action('sendTyping'),
-    }
-
-    return (
-      <Box2 {...boxProps}>
-        <Input {...props} />
-      </Box2>
-    )
+    sendTyping: action('sendTyping'),
   }
+
+  return (
+    <Box2 {...boxProps}>
+      <Input {...inputProps} />
+    </Box2>
+  )
 }
 
 const load = () => {
