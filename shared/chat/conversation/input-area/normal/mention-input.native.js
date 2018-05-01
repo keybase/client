@@ -40,16 +40,16 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _isPopupOpen = () => this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
 
-  _getWordAtCursor = (text: string) => {
-    const {selectionStart} = this.state._selection
-    const upToCursor = text.substring(0, selectionStart)
+  _getWordAtCursor = (text: string, start: number) => {
+    const upToCursor = text.substring(0, start)
     const words = upToCursor.split(/ |\n/)
     return words[words.length - 1]
   }
 
   onChangeText = (nextText: string) => {
     this.props.setText(nextText)
-    const word = this._getWordAtCursor(nextText)
+    const {selectionStart} = this.state._selection
+    const word = this._getWordAtCursor(nextText, selectionStart)
     const selection = this.state._selection
     if (!this._isPopupOpen() && selection.selectionStart === selection.selectionEnd) {
       if (word[0] === '@') {
@@ -108,24 +108,29 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   _replaceWordAtCursor = (newWord: string) => {
-    const selections = this.state._selection
-    const word = this._getWordAtCursor(this.props.text)
+    if (this._inputRef) {
+      this._inputRef.transformText(({text, selection}) => {
+        if (selection.start !== selection.end) {
+          return {text, selection}
+        }
+        const pos = selection.start
 
-    if (selections && selections.selectionStart === selections.selectionEnd) {
-      const startOfWordIdx = selections.selectionStart - word.length
-      if (startOfWordIdx >= 0) {
-        // Put the cursor at the end of newWord.
-        // NOTE: This doesn't work yet; see comments in input.native.js.
-        const newSelectionIndex = startOfWordIdx + newWord.length
-        this._inputRef &&
-          this._inputRef.replaceText(
-            newWord,
-            startOfWordIdx,
-            selections.selectionStart,
-            newSelectionIndex,
-            newSelectionIndex
-          )
-      }
+        const word = this._getWordAtCursor(text, pos)
+        const startOfWordIdx = pos - word.length
+        if (startOfWordIdx < 0) {
+          return {text, selection}
+        }
+
+        const newText = text.slice(0, startOfWordIdx) + newWord + text.slice(pos)
+        const newPos = startOfWordIdx + newWord.length
+        return {
+          text: newText,
+          selection: {
+            start: newPos,
+            end: newPos,
+          },
+        }
+      })
     }
   }
 
