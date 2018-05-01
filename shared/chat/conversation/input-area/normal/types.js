@@ -36,6 +36,7 @@ type InputProps = CommonProps & {
 
 type MentionInputProps = CommonProps & {
   inputSetRef: (r: ?TextInput) => void,
+  onChangeText: (newText: string) => void,
 
   // TODO: Support initialText.
 }
@@ -53,7 +54,6 @@ type MentionProps = {
   upArrowCounter?: number,
   downArrowCounter?: number,
   // on mobile:
-  onChangeText?: (newText: string) => void,
   onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   onBlur?: () => void,
   onFocus?: () => void,

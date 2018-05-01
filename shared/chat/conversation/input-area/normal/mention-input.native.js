@@ -46,7 +46,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     return words[words.length - 1]
   }
 
-  onChangeText = (nextText: string) => {
+  _onChangeText = (nextText: string) => {
+    this.props.onChangeText(nextText)
     const {selectionStart} = this.state._selection
     const word = this._getWordAtCursor(nextText, selectionStart)
     const selection = this.state._selection
@@ -94,7 +95,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   onFocus = () => {
-    this.onChangeText(this._getText())
+    this._onChangeText(this._getText())
   }
 
   insertMentionMarker = () => {
@@ -142,7 +143,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       {
         _selection: selection,
       },
-      () => this.onChangeText(this._getText())
+      () => this._onChangeText(this._getText())
     )
 
   render = () => (
@@ -157,7 +158,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       insertMentionMarker={this.insertMentionMarker}
       onBlur={this.onBlur}
       onFocus={this.onFocus}
-      onChangeText={this.onChangeText}
+      onChangeText={this._onChangeText}
       onSelectionChange={this.onSelectionChange}
     />
   )

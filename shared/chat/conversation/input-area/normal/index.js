@@ -34,16 +34,21 @@ class Input extends React.Component<InputProps> {
     this._setText('')
   }
 
+  _onChangeText = (text: string) => {
+    this.props.setUnsentText(text)
+    throttled(this.props.sendTyping, !!text)
+  }
+
   _setText = (text: string, skipUnsentSaving?: boolean) => {
     this._input &&
       this._input.transformText(() => ({
         text,
         selection: {start: text.length, end: text.length},
       }))
+
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-
     throttled(this.props.sendTyping, !!text)
   }
 
@@ -88,6 +93,7 @@ class Input extends React.Component<InputProps> {
         onCancelQuoting={this._onCancelQuoting}
         onSubmit={this._onSubmit}
         inputSetRef={this._inputSetRef}
+        onChangeText={this._onChangeText}
       />
     )
   }
