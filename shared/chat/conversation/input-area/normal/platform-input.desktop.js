@@ -44,17 +44,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this._input && this._input.focus()
   }
 
-  _inputSelections = () => {
-    const selections = this._input ? this._input.selections() : null
-    if (selections) {
-      return selections
-    }
-    return {
-      selectionStart: 0,
-      selectionEnd: 0,
-    }
-  }
-
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
   }
@@ -134,14 +123,20 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   _insertEmoji(emojiColons: string) {
-    const {selectionStart, selectionEnd} = this._inputSelections()
-    const nextText = [
-      this.props.text.substring(0, selectionStart),
-      emojiColons,
-      this.props.text.substring(selectionEnd),
-    ].join('')
-    this.props.setText(nextText)
-    this._inputFocus()
+    if (this._input) {
+      this._input.transformText(({text, selection}) => {
+        const newText = text.slice(0, selection.start) + emojiColons + text.slice(selection.end)
+        const pos = selection.start + emojiColons.length
+        return {
+          text: newText,
+          selection: {
+            start: pos,
+            end: pos,
+          },
+        }
+      })
+      this._inputFocus()
+    }
   }
 
   _pickerOnClick = emoji => {
