@@ -16,14 +16,15 @@ func TestPGPExportOptions(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	fp, kid, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err = RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -59,6 +60,7 @@ func TestPGPExportOptions(t *testing.T) {
 		{false, kid.String()[0:5], true, 0, 0, 0},
 	}
 
+	ctx := engineContextFromMetaContext(m)
 	for i, test := range table {
 		ec, err := pgpExport(ctx, tc.G, test.secret, test.query, test.exact)
 		if err != nil {
@@ -156,14 +158,15 @@ func TestPGPExportEncryption(t *testing.T) {
 	pgpPassphrase := "hello_pgp" + u.Passphrase
 	secui := &PGPTestSecretUI{}
 	secui.Passphrase = pgpPassphrase
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	fp, _, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err = RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -179,6 +182,7 @@ func TestPGPExportEncryption(t *testing.T) {
 		Options:   opts,
 		Encrypted: true,
 	}
+	ctx := engineContextFromMetaContext(m)
 	xe := NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)

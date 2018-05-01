@@ -2536,8 +2536,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 		SubkeyBits:  1024,
 	}
 	gen.AddDefaultUID(tc.G)
-	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
-		Ctx:        tc.G,
+	peng := NewPGPKeyImportEngine(tc.G, PGPKeyImportEngineArg{
 		Gen:        &gen,
 		PushSecret: true,
 		NoSave:     true,
@@ -2545,8 +2544,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 
 	// Reset LoginContext to be `nil`, so that way we get the tc.G.LoginState
 	// session token, rather than the old one in ctx.LoginContext.
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(peng, ctx); err != nil {
+	if err := RunEngine2(m, peng); err != nil {
 		tc.T.Fatal(err)
 	}
 
