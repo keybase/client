@@ -41,13 +41,6 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   _triggerPickSelectedCounter = () =>
     this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
 
-  onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    e.preventDefault()
-    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
-      this._triggerPickSelectedCounter()
-    }
-  }
-
   _isPopupOpen = () => this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
 
   _getWordAtCursor = (text: string) => {
