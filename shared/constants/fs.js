@@ -463,3 +463,8 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   }
   return 'default'
 }
+
+export const generateURL = (path: Types.Path, address: string, token: string): string => {
+  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
+  return `http://${address}/files${stripKeybase}?token=${token}`
+}

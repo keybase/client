@@ -2,6 +2,8 @@
 
 import * as Types from '../../constants/types/fs'
 
+// NOTE: if you change anything here, make sure to change
+// `libhttpserver.additionalMimeTypes` in in keybase/kbfs too.
 const patchedExtToFileViewTypes = {
   // not exist in mime-db
   '.go': 'text',
@@ -25,6 +27,7 @@ const patchedExtToFileViewTypes = {
   '.rs': 'text',
   '.xml': 'text',
   '.tex': 'text',
+  '.pub': 'text',
 }
 
 export const lookupPatchedExt = (name: string): ?Types.FileViewType => {

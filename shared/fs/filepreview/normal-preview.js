@@ -7,18 +7,20 @@ import {globalStyles, globalColors, globalMargins, platformStyles} from '../../s
 import {Box} from '../../common-adapters'
 import Footer from '../footer/container'
 import Header from './header-container'
-import {getDisplayComponent} from './common'
+import View from './view-container'
 
 type NormalPreviewProps = {
   path: Types.Path,
-  fileViewType: Types.FileViewType,
+  fileViewType?: Types.FileViewType, // can be set by default-view-container.js for type override
 }
 
 const NormalPreview = ({path, fileViewType}: NormalPreviewProps) => (
   <Box style={styleOuterContainer}>
     <Header path={path} />
     <Box style={stylesGreyContainer}>
-      <Box style={stylesContentContainer}>{getDisplayComponent(path, fileViewType)}</Box>
+      <Box style={stylesContentContainer}>
+        <View path={path} fileViewType={fileViewType} />
+      </Box>
     </Box>
     <Footer />
   </Box>
@@ -52,8 +54,7 @@ const stylesContentContainer = platformStyles({
   },
 })
 
-export default mapProps(({routeProps}): NormalPreviewProps => {
-  const path = Types.stringToPath(routeProps.get('path') || Constants.defaultPath)
-  const fileViewType = routeProps.get('fileViewType') || Constants.viewTypeFromPath(path)
-  return {path, fileViewType}
-})(NormalPreview)
+export default mapProps(({routeProps}): NormalPreviewProps => ({
+  path: Types.stringToPath(routeProps.get('path') || Constants.defaultPath),
+  fileViewType: routeProps.get('fileViewType'),
+}))(NormalPreview)
