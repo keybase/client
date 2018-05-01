@@ -84,6 +84,6 @@ declare export default class Input extends Component<Props> {
   getValue: () => string;
   selection: () => Selection;
   // transformText must be called only on uncontrolled Input
-  // components.
+  // components. The transformation may be done asynchronously.
   transformText: (fn: (TextInfo) => TextInfo) => void;
 }
