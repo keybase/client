@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libhttpserver"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/simplefs"
 	"golang.org/x/net/context"
@@ -87,7 +86,6 @@ func startMounting(ctx context.Context,
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
-	options.KbfsParams.LocalHTTPServer = &libhttpserver.Server{}
 	// Hook git implementation in.
 	shutdownGit := func() {}
 	options.KbfsParams.CreateGitHandlerInstance =

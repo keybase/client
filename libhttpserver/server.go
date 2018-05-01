@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"path"
 	"strings"
-	"sync"
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
@@ -30,8 +29,6 @@ const fsCacheSize = 64
 
 // Server is a local HTTP server for serving KBFS content over HTTP.
 type Server struct {
-	initOnce sync.Once
-
 	config libkbfs.Config
 	server *libkb.HTTPSrv
 	logger logger.Logger
@@ -40,11 +37,10 @@ type Server struct {
 	fs     *lru.Cache
 }
 
-var _ libkbfs.LocalHTTPServer = (*Server)(nil)
-
 const tokenByteSize = 16
 
-// NewToken implements the libkbfs.LocalHTTPServer interface..
+// NewToken returns a new random token that a HTTP client can use to load
+// content from the server.
 func (s *Server) NewToken() (token string, err error) {
 	buf := make([]byte, tokenByteSize)
 	if _, err = rand.Read(buf); err != nil {
@@ -166,37 +162,36 @@ const portStart = 7000
 const portEnd = 8000
 const requestPathRoot = "/files/"
 
-// Init implements the libkbfs.LocalHTTPServer interface.
-func (s *Server) Init(
-	g *libkb.GlobalContext, config libkbfs.Config) (err error) {
-	s.initOnce.Do(func() {
-		s.logger = config.MakeLogger("HTTP")
-		if s.tokens, err = lru.New(tokenCacheSize); err != nil {
-			return
-		}
-		if s.fs, err = lru.New(fsCacheSize); err != nil {
-			return
-		}
-		s.config = config
-		s.server = libkb.NewHTTPSrv(
-			g, libkb.NewPortRangeListenerSource(portStart, portEnd))
-		// Have to start this first to populate the ServeMux object.
-		if err = s.server.Start(); err != nil {
-			return
-		}
-		s.server.Handle(requestPathRoot,
-			http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
-		libmime.Patch(overrideMimeType)
-	})
-	return err
+// New creates and starts a new server.
+func New(g *libkb.GlobalContext, config libkbfs.Config) (
+	s *Server, err error) {
+	s = &Server{}
+	s.logger = config.MakeLogger("HTTP")
+	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
+		return nil, err
+	}
+	if s.fs, err = lru.New(fsCacheSize); err != nil {
+		return nil, err
+	}
+	s.config = config
+	s.server = libkb.NewHTTPSrv(
+		g, libkb.NewPortRangeListenerSource(portStart, portEnd))
+	// Have to start this first to populate the ServeMux object.
+	if err = s.server.Start(); err != nil {
+		return nil, err
+	}
+	s.server.Handle(requestPathRoot,
+		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
+	libmime.Patch(overrideMimeType)
+	return s, nil
 }
 
-// Address implements the libkbfs.LocalHTTPServer interface.
+// Address returns the address that the server is listening on.
 func (s *Server) Address() (string, error) {
 	return s.server.Addr()
 }
 
-// Shutdown implements the libkbfs.LocalHTTPServer interface.
+// Shutdown shuts down the server.
 func (s *Server) Shutdown() {
 	s.server.Stop()
 }

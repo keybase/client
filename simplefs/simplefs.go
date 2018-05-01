@@ -16,10 +16,12 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libhttpserver"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	billy "gopkg.in/src-d/go-billy.v4"
@@ -92,6 +94,8 @@ type SimpleFS struct {
 	// inProgress is for keeping state of operations in progress,
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
+
+	localHTTPServer *libhttpserver.Server
 }
 
 type inprogress struct {
@@ -111,21 +115,26 @@ type handle struct {
 // make sure the interface is implemented
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
-// NewSimpleFS creates a new SimpleFS instance.
-func NewSimpleFS(config libkbfs.Config) keybase1.SimpleFSInterface {
-	return newSimpleFS(config)
+func newSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) *SimpleFS {
+	log := config.MakeLogger("simplefs")
+	localHTTPServer, err := libhttpserver.New(g, config)
+	if err != nil {
+		log.Fatalf("initializing localHTTPServer error: %v", err)
+	}
+	return &SimpleFS{
+		config:          config,
+		handles:         map[keybase1.OpID]*handle{},
+		inProgress:      map[keybase1.OpID]*inprogress{},
+		log:             log,
+		newFS:           defaultNewFS,
+		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
+		localHTTPServer: localHTTPServer,
+	}
 }
 
-func newSimpleFS(config libkbfs.Config) *SimpleFS {
-	log := config.MakeLogger("simplefs")
-	return &SimpleFS{
-		config:     config,
-		handles:    map[keybase1.OpID]*handle{},
-		inProgress: map[keybase1.OpID]*inprogress{},
-		log:        log,
-		newFS:      defaultNewFS,
-		idd:        libkbfs.NewImpatientDebugDumperForForcedDumps(config),
-	}
+// NewSimpleFS creates a new SimpleFS instance.
+func NewSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) keybase1.SimpleFSInterface {
+	return newSimpleFS(g, config)
 }
 
 func (k *SimpleFS) makeContext(ctx context.Context) context.Context {
@@ -1317,10 +1326,10 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatu
 // local KBFS http server.
 func (k *SimpleFS) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (
 	resp keybase1.SimpleFSGetHTTPAddressAndTokenResponse, err error) {
-	if resp.Token, err = k.config.LocalHTTPServer().NewToken(); err != nil {
+	if resp.Token, err = k.localHTTPServer.NewToken(); err != nil {
 		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
 	}
-	if resp.Address, err = k.config.LocalHTTPServer().Address(); err != nil {
+	if resp.Address, err = k.localHTTPServer.Address(); err != nil {
 		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
 	}
 

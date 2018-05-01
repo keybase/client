@@ -59,14 +59,15 @@ var _ keybase1.ImplicitTeamMigrationInterface = (*KeybaseDaemonRPC)(nil)
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
-	debug bool, createSimpleFS func(Config) keybase1.SimpleFSInterface,
+	debug bool, createSimpleFS func(
+		*libkb.GlobalContext, Config) keybase1.SimpleFSInterface,
 	createGitHandler func(Config) keybase1.KBFSGitInterface,
 ) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(config, kbCtx, log)
 	k.config = config
 	k.daemonLog = logger.New("daemon")
 	if createSimpleFS != nil {
-		k.simplefs = createSimpleFS(config)
+		k.simplefs = createSimpleFS(kbCtx.GetGlobalContext(), config)
 	}
 	if createGitHandler != nil {
 		k.gitHandler = createGitHandler(config)

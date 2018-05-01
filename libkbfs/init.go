@@ -88,7 +88,8 @@ type InitParams struct {
 
 	// CreateSimpleFSInstance creates a SimpleFSInterface from config.
 	// If this is nil then simplefs will be omitted in the rpc api.
-	CreateSimpleFSInstance func(Config) keybase1.SimpleFSInterface
+	CreateSimpleFSInstance func(
+		*libkb.GlobalContext, Config) keybase1.SimpleFSInterface
 
 	// CreateGitHandlerInstance creates a KBFSGitInterface from config.
 	// If this is nil then git will be omitted in the rpc api.
@@ -115,10 +116,6 @@ type InitParams struct {
 
 	// Mode describes how KBFS should initialize itself.
 	Mode string
-
-	// LocalHTTPServer is a local HTTP server used to serve content to the
-	// front end.
-	LocalHTTPServer LocalHTTPServer
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -746,17 +743,6 @@ func doInit(
 	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
 		params.BGFlushDirOpBatchSize)
 	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
-
-	if initMode.LocalHTTPServerEnabled() {
-		if params.LocalHTTPServer == nil {
-			return nil, errors.New("local HTTP server is enabled but " +
-				"params.LocalHTTPServer is nil")
-		}
-		config.SetLocalHTTPServer(params.LocalHTTPServer)
-		if err = params.LocalHTTPServer.Init(kbCtx.GetGlobalContext(), config); err != nil {
-			return nil, err
-		}
-	}
 
 	return config, nil
 }

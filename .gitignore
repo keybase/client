@@ -1,5 +1,6 @@
 # Generated during `go build`
 kbfsfuse/kbfsfuse
+kbfsdokan/kbfsdokan
 # Generated when running `kbfsfuse` without specifying `--server-root-dir`
 kbfsfuse/kbfs_branches/
 kbfsfuse/kbfs_handles/

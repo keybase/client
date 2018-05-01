@@ -1811,9 +1811,6 @@ type InitMode interface {
 	// ClientType indicates the type we should advertise to the
 	// Keybase service.
 	ClientType() keybase1.ClientType
-	// LocalHTTPServerEnabled returns true if the local HTTP server for the
-	// front end should be enabled in this init mode.
-	LocalHTTPServerEnabled() bool
 }
 
 type initModeGetter interface {
@@ -1822,10 +1819,6 @@ type initModeGetter interface {
 
 	// IsTestMode() inidicates whether KBFS is running in a test.
 	IsTestMode() bool
-}
-
-type localHTTPServerGetter interface {
-	LocalHTTPServer() LocalHTTPServer
 }
 
 // Config collects all the singleton instance instantiations needed to
@@ -1848,7 +1841,6 @@ type Config interface {
 	diskLimiterGetter
 	syncedTlfGetterSetter
 	initModeGetter
-	localHTTPServerGetter
 	Tracer
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
@@ -2155,18 +2147,4 @@ type BlockRetriever interface {
 		prefetchStatus PrefetchStatus) error
 	// TogglePrefetcher creates a new prefetcher.
 	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
-}
-
-// LocalHTTPServer defines an interface for the local HTTP server used to serve
-// content to front end.
-type LocalHTTPServer interface {
-	// Init initializes the server, and starts the listener.
-	Init(g *libkb.GlobalContext, config Config) error
-	// NewToken returns a new random token that a HTTP client can use to load
-	// content from the server.
-	NewToken() (string, error)
-	// Shutdown shuts down the server.
-	Shutdown()
-	// Address returns the address that the server is listening on.
-	Address() (string, error)
 }
