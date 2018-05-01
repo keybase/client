@@ -78,7 +78,7 @@ class InputContainer extends React.Component<Props> {
 
       getUnsentText: () => {
         action('getUnsentText')()
-        return ''
+        return this.props.isEditing ? 'some text' : ''
       },
 
       setUnsentText: action('setUnsentText'),
