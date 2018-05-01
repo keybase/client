@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Inbox from '..'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
 import {debounce} from 'lodash-es'
 import {connect, compose, lifecycle, withStateHandlers, withProps, isMobile} from '../../../util/container'
 import type {TypedState, Dispatch} from '../../../util/container'
@@ -22,7 +21,6 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
     filter,
     isLoading: !state.chat2.loadingMap.isEmpty(),
     neverLoaded: state.chat2.metaMap.isEmpty(),
-    teamsLoaded: state.teams.loaded,
   }
 }
 
@@ -53,7 +51,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
       focusFilter()
     }
   },
-  getTeams: () => dispatch(TeamsGen.createGetTeams()),
   onNewChat: () => {
     dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
     if (isMobile) {
@@ -79,7 +76,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navi
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _onHotkey: dispatchProps._onHotkey,
   filter: stateProps.filter,
-  getTeams: dispatchProps.getTeams,
   isLoading: stateProps.isLoading,
   neverLoaded: stateProps.neverLoaded,
   onNewChat: dispatchProps.onNewChat,
@@ -99,7 +95,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
   smallIDsHidden: stateProps.smallIDsHidden,
   smallTeamsExpanded: stateProps.smallTeamsExpanded,
-  teamsLoaded: stateProps.teamsLoaded,
   toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
 })
 
@@ -116,11 +111,6 @@ export default compose(
     componentDidMount() {
       if (this.props.neverLoaded && !this.props.isLoading) {
         this.props.refreshInbox()
-      }
-
-      if (!this.props.teamsLoaded) {
-        // Get team counts for team headers in the inbox
-        this.props.getTeams()
       }
     },
     componentDidUpdate(prevProps) {

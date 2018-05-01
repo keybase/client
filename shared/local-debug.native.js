@@ -20,7 +20,7 @@ window.console._error = window.console.error
 window.console._info = window.console.info
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config = {
   enableActionLogging: true, // Log actions to the log
@@ -42,9 +42,9 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
-  config.enableStoreLogging = false
-  config.immediateStateLogging = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
+  config.immediateStateLogging = true
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true

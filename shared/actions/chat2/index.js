@@ -51,19 +51,23 @@ const inboxRefresh = (
       'chat.1.chatUi.chatInboxUnverified': function*({
         inbox,
       }: RPCChatTypes.ChatUiChatInboxUnverifiedRpcParam) {
-        const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-        const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
-        // We get a subset of meta information from the cache even in the untrusted payload
-        const metas = items
-          .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-          .filter(Boolean)
-        // Check if some of our existing stored metas might no longer be valid
-        const clearExistingMetas =
-          action.type === Chat2Gen.inboxRefresh &&
-          ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
-        const clearExistingMessages =
-          action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
+        // fork so we can return quickly. TODO change EngineRpcCall to just pass a callback so we can do this whenever maybe
+        yield Saga.fork(function*() {
+          yield Saga.call(Saga.delay, 1)
+          const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+          const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+          // We get a subset of meta information from the cache even in the untrusted payload
+          const metas = items
+            .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
+            .filter(Boolean)
+          // Check if some of our existing stored metas might no longer be valid
+          const clearExistingMetas =
+            action.type === Chat2Gen.inboxRefresh &&
+            ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
+          const clearExistingMessages =
+            action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
+          yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
+        })
         return EngineRpc.rpcResult()
       },
     },
