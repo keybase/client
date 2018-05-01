@@ -16,8 +16,6 @@ class Input extends React.PureComponent<Props, State> {
   state: State
   _input: HTMLTextAreaElement | HTMLInputElement | null
   _isComposingIME: boolean = false
-  _text: string
-  _selection: {start: number, end: number}
 
   constructor(props: Props) {
     super(props)
@@ -29,8 +27,6 @@ class Input extends React.PureComponent<Props, State> {
     if (!props.uncontrolled) {
       this.state.value = text
     }
-    this._text = text
-    this._selection = {start: 0, end: 0}
   }
 
   _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
@@ -55,15 +51,20 @@ class Input extends React.PureComponent<Props, State> {
   }
 
   getValue = (): string => {
-    return this.props.uncontrolled ? this._text : this.state.value || ''
+    if (this.props.uncontrolled) {
+      return this._input ? this._input.value : ''
+    } else {
+      return this.state.value || ''
+    }
   }
 
   selection = () => {
     const n = this._input
-    if (n) {
-      const {selectionStart, selectionEnd} = n
-      return {start: selectionStart, end: selectionEnd}
+    if (!n) {
+      return {start: 0, end: 0}
     }
+    const {selectionStart, selectionEnd} = n
+    return {start: selectionStart, end: selectionEnd}
   }
 
   _onChange = (event: {target: {value: ?string}}) => {
