@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import PlatformInput from './platform-index'
+import PlatformInput from './platform-input'
 import {type MentionInputProps} from './types'
 import {Input} from '../../../../common-adapters'
 
