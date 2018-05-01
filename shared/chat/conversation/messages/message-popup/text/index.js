@@ -3,7 +3,7 @@ import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
 import {isMobile} from '../../../../../util/container'
-import type {DeviceType} from '../../../../constants/types/devices'
+import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
