@@ -59,8 +59,6 @@ class Input extends React.Component<InputProps, State> {
 
   _inputGetRef = () => this._input
 
-  _inputSelections = () => (this._input ? this._input.selections() : null)
-
   componentDidUpdate(prevProps: InputProps) {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
       this._inputFocus()
@@ -100,7 +98,6 @@ class Input extends React.Component<InputProps, State> {
       <MentionInput
         {...this.props}
         inputSetRef={this._inputSetRef}
-        inputSelections={this._inputSelections}
         onKeyDown={this._onKeyDown}
         onSubmit={this._onSubmit}
         text={this.state.text}
