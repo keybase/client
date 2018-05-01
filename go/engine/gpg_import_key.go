@@ -212,8 +212,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 
 	m.CDebugf("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
-	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
-		Ctx:         m.G(),
+	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
 		Pregen:      bundle,
 		SigningKey:  e.arg.Signer,
 		Me:          me,
@@ -224,7 +223,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		GPGFallback: true,
 	})
 
-	if err = RunEngine(eng, engineContextFromMetaContext(m)); err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 
 		// It's important to propagate a CanceledError unmolested,
 		// since the UI needs to know that. See:

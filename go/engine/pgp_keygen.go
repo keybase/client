@@ -53,7 +53,7 @@ func (e *PGPKeyGen) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPKeyGen) Run(ctx *Context) error {
 
-	m := NewMetaContext(e, ctx)
+	m := metaContextFromEngineContext(e.G(), ctx)
 
 	// generate a new pgp key with defaults (and no push)
 	var genArg libkb.PGPGenArg
@@ -62,13 +62,12 @@ func (e *PGPKeyGen) Run(ctx *Context) error {
 	}
 	genArg.Ids = libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)
 	arg := PGPKeyImportEngineArg{
-		Ctx:        e.G(),
 		AllowMulti: true,
 		OnlySave:   true,
 		Gen:        &genArg,
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPKeyImportEngine(m.G(), arg)
+	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
 

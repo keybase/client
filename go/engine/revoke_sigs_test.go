@@ -19,7 +19,7 @@ func TestRevokeSig(t *testing.T) {
 	assertNumDevicesAndKeys(tc, u, 2, 5)
 
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
@@ -35,15 +35,17 @@ func TestRevokeSig(t *testing.T) {
 			SubkeyBits:  768,
 		},
 		AllowMulti: true,
-		Ctx:        tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
-	pgpEngine := NewPGPKeyImportEngine(arg)
-	err := RunEngine(pgpEngine, ctx)
+	pgpEngine := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, pgpEngine)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assertNumDevicesAndKeys(tc, u, 2, 6)
+
+	ctx := engineContextFromMetaContext(m)
 
 	// First test that a bad sig id fails the revoke.
 	revokeEngine := NewRevokeSigsEngine([]string{"9999"}, tc.G)

@@ -175,17 +175,18 @@ func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, signer *libkb.Use
 	return res
 }
 
-func (h *PGPHandler) PGPImport(_ context.Context, arg keybase1.PGPImportArg) error {
-	ctx := &engine.Context{
+func (h *PGPHandler) PGPImport(ctx context.Context, arg keybase1.PGPImportArg) error {
+	uis := libkb.UIs{
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	eng, err := engine.NewPGPKeyImportEngineFromBytes(arg.Key, arg.PushSecret, h.G())
+	eng, err := engine.NewPGPKeyImportEngineFromBytes(h.G(), arg.Key, arg.PushSecret)
 	if err != nil {
 		return err
 	}
-	err = engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
 	return err
 }
 
@@ -218,15 +219,16 @@ func (h *PGPHandler) PGPExportByFingerprint(_ context.Context, arg keybase1.PGPE
 	return h.export(arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(arg, h.G()))
 }
 
-func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) error {
-	ctx := &engine.Context{
+func (h *PGPHandler) PGPKeyGen(ctx context.Context, arg keybase1.PGPKeyGenArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	earg := engine.ImportPGPKeyImportEngineArg(h.G(), arg)
-	eng := engine.NewPGPKeyImportEngine(earg)
-	return engine.RunEngine(eng, ctx)
+	earg := engine.ImportPGPKeyImportEngineArg(arg)
+	eng := engine.NewPGPKeyImportEngine(h.G(), earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *PGPHandler) PGPKeyGenDefault(ctx context.Context, arg keybase1.PGPKeyGenDefaultArg) error {
