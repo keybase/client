@@ -267,9 +267,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
 }
 
 function _setupFSHandlers() {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => {
-    return [FsGen.createFsActivity()]
-  })
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
 }
 
 function refreshLocalHTTPServerInfo() {
