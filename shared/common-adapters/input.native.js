@@ -8,7 +8,7 @@ import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
 
-import type {KeyboardType, Props, TextInfo} from './input'
+import type {KeyboardType, Props, Selection, TextInfo} from './input'
 
 type State = {
   focused: boolean,
@@ -20,8 +20,8 @@ type State = {
 class Input extends Component<Props, State> {
   state: State
   _input: NativeTextInput | null
-  _text: string
-  _selection: {start: number, end: number}
+  _lastNativeText: ?string
+  _lastNativeSelection: ?{start: number, end: number}
 
   constructor(props: Props) {
     super(props)
@@ -34,8 +34,6 @@ class Input extends Component<Props, State> {
     if (!props.uncontrolled) {
       this.state.value = text
     }
-    this._text = text
-    this._selection = {start: 0, end: 0}
   }
 
   _setInputRef = (ref: NativeTextInput | null) => {
@@ -83,15 +81,19 @@ class Input extends Component<Props, State> {
   }
 
   getValue = (): string => {
-    return this.props.uncontrolled ? this._text : this.state.value || ''
+    if (this.props.uncontrolled) {
+      return this._lastNativeText || ''
+    } else {
+      return this.state.value || ''
+    }
   }
 
-  selection = () => {
-    return this._selection
+  selection = (): Selection => {
+    return this._lastNativeSelection || {start: 0, end: 0}
   }
 
   _onChangeText = (text: string) => {
-    this._text = text
+    this._lastNativeText = text
     if (this.props.uncontrolled) {
       this.props.onChangeText && this.props.onChangeText(text)
     } else {
@@ -112,19 +114,19 @@ class Input extends Component<Props, State> {
       throw new Error('transformText can only be called on uncontrolled components')
     }
 
-    const n = this._input
-    if (n) {
-      const newTextInfo = fn({text: this._text, selection: this._selection})
-      n.setNativeProps({text: newTextInfo.text})
-      this._text = newTextInfo.text
-      // TODO: Check returned selection against text.
-      // TODO: Use timer HOC.
-      setTimeout(() => {
-        // TODO: Sanitize selection.
-        n.setNativeProps({selection: newTextInfo.selection})
-        this._selection = newTextInfo.selection
-      }, 0)
-    }
+    const newTextInfo = fn({
+      text: this._lastNativeText || '',
+      selection: this._lastNativeSelection || {start: 0, end: 0},
+    })
+    this.setNativeProps({text: newTextInfo.text})
+    this._lastNativeText = newTextInfo.text
+    // TODO: Check returned selection against text.
+    // TODO: Use timer HOC.
+    setTimeout(() => {
+      // TODO: Sanitize selection.
+      this.setNativeProps({selection: newTextInfo.selection})
+      this._lastNativeSelection = newTextInfo.selection
+    }, 0)
   }
 
   _onFocus = () => {
@@ -183,7 +185,7 @@ class Input extends Component<Props, State> {
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
-    this._selection = {start, end}
+    this._lastNativeSelection = {start, end}
   }
 
   render() {
