@@ -333,8 +333,9 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
 		eng := NewResolveThenIdentify2(tc.G, iarg)
-		ctx := Context{IdentifyUI: fui}
-		if err := RunEngine(eng, &ctx); err != nil {
+		uis := libkb.UIs{IdentifyUI: fui}
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		if err := RunEngine2(m, eng); err != nil {
 			t.Fatal(err)
 		}
 	}

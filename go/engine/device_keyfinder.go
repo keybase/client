@@ -91,9 +91,8 @@ func (e *DeviceKeyfinder) identifyUser(m libkb.MetaContext, user string) error {
 		AlwaysBlock:      true,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
-	ctx := engineContextFromMetaContext(m)
 	eng := NewResolveThenIdentify2(m.G(), &arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		return libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
 	}
 	return e.addUser(m, eng.Result())
