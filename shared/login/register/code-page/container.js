@@ -77,7 +77,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(LoginGen.createSetCameraBrokenMode({codePageCameraBrokenMode})),
   setCodePageMode: codePageMode => dispatch(LoginGen.createSetCodePageMode({codePageMode})),
   textEntered: (phrase: string) =>
-    dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase)})),
+    dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase.trim())})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)
