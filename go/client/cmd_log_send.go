@@ -104,6 +104,10 @@ func (c *CmdLogSend) Run() error {
 	if logs.Install != "" {
 		defer os.Remove(logs.Install)
 	}
+	// So far, watchdog logs are Windows only
+	if logs.Watchdog != "" {
+		defer os.Remove(logs.Watchdog)
+	}
 
 	logSendContext := libkb.LogSendContext{
 		Contextified: libkb.NewContextified(c.G()),
@@ -217,6 +221,11 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	if err != nil {
 		c.G().Log.Errorf("Error (InstallLogPath): %s", err)
 	}
+	
+	watchdogLogPath, err := install.WatchdogLogPath(filepath.Join(logDir, "watchdog*.log"))
+	if err != nil {
+		c.G().Log.Errorf("Error (WatchdogLogPath): %s", err)
+	}	
 	traceDir := logDir
 	if status != nil {
 		return libkb.Logs{
@@ -229,6 +238,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 			Git:     status.Git.Log,
 			Install: installLogPath,
 			Trace:   traceDir,
+			Watchdog: watchdogLogPath,
 		}
 	}
 
@@ -241,6 +251,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 		Git:     filepath.Join(logDir, libkb.GitLogFileName),
 		Install: installLogPath,
 		Trace:   traceDir,
+		Watchdog: watchdogLogPath,
 	}
 }
 

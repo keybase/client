@@ -105,6 +105,11 @@ func InstallLogPath() (string, error) {
 	return "", nil
 }
 
+// WatchdogLogPath doesn't exist on linux as an independent log file
+func WatchdogLogPath() (string, error) {
+	return "", nil
+}
+
 func SystemLogPath() string {
 	return ""
 }
