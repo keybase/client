@@ -109,7 +109,7 @@ func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
 			"sig":                libkb.S{Val: sig},
 			"downgrade_lease_id": libkb.S{Val: string(lease.LeaseID)},
 		},
-		NetContext : m.Ctx(),
+		NetContext: m.Ctx(),
 	})
 	if err != nil {
 		return err

@@ -328,7 +328,7 @@ func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) 
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, skaSig, "to revoke another key"))
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(skaSig, "to revoke another key"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -340,7 +340,7 @@ func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) 
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, skaEnc, "to revoke another key"))
+	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(skaEnc, "to revoke another key"))
 	if err != nil {
 		return nil, nil, err
 	}

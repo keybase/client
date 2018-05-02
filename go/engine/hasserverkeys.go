@@ -49,7 +49,7 @@ func (e *HasServerKeys) Run(m libkb.MetaContext) error {
 		Endpoint:    "key/fetch_private",
 		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:   m.Ctx(),
+		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err

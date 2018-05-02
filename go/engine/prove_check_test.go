@@ -64,8 +64,7 @@ func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
 	}
 
 	checkEng := NewProveCheck(tc.G, eng.sigID)
-	ctx := engineContextFromMetaContext(m)
-	err = RunEngine(checkEng, ctx)
+	err = RunEngine2(m, checkEng)
 	if err != nil {
 		t.Fatal(err)
 	}
