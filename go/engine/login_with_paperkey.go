@@ -45,35 +45,32 @@ func (e *LoginWithPaperKey) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *LoginWithPaperKey) Run(ctx *Context) error {
-	m := NewMetaContext(e, ctx)
-	me, err := libkb.LoadMe(libkb.NewLoadUserForceArg(e.G()))
+func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
 	if err != nil {
 		return err
 	}
 
-	kp, err := findDeviceKeys(ctx, e, me)
-	mctx := NewMetaContext(e, ctx)
+	kp, err := findDeviceKeys(m, me)
 	if err == nil {
 		// Device keys are unlocked. Just log in with them.
 		m.CDebugf("Logging in with unlocked device key")
-		err = e.G().LoginState().LoginWithKey(mctx, me, kp.sigKey, nil)
+		err = e.G().LoginState().LoginWithKey(m, me, kp.sigKey, nil)
 		return err
 	}
 
 	// Prompts for a paper key.
 	m.CDebugf("No device keys available; getting paper key")
-	kp, err = findPaperKeys(m, ctx, me)
+	kp, err = findPaperKeys(m, me)
 	if err != nil {
 		return err
 	}
 
 	m.CDebugf("Logging in")
-	err = m.G().LoginState().LoginWithKey(mctx, me, kp.sigKey, func(lctx libkb.LoginContext) error {
+	err = m.G().LoginState().LoginWithKey(m, me, kp.sigKey, func(lctx libkb.LoginContext) error {
 		// Now we're logged in.
 		m = m.WithLoginContext(lctx)
 		m.CDebugf("Logged in")
-		ctx.LoginContext = lctx
 
 		// Get the LKS client half.
 		gen, clientLKS, err := fetchLKS(m, kp.encKey)
@@ -107,7 +104,7 @@ func (e *LoginWithPaperKey) Run(ctx *Context) error {
 		m.CDebugf("Stored secret with LKS from paperkey")
 
 		// This could prompt but shouldn't because of the secret store.
-		err = e.unlockDeviceKeys(m, ctx, me)
+		err = e.unlockDeviceKeys(m, me)
 		if err != nil {
 			return err
 		}
@@ -119,25 +116,25 @@ func (e *LoginWithPaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	e.G().Log.Debug("LoginWithPaperkey success, sending login notification")
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	e.G().Log.Debug("LoginWithPaperkey success, calling login hooks")
-	e.G().CallLoginHooks()
+	m.CDebugf("LoginWithPaperkey success, sending login notification")
+	m.G().NotifyRouter.HandleLogin(string(m.G().Env.GetUsername()))
+	m.CDebugf("LoginWithPaperkey success, calling login hooks")
+	m.G().CallLoginHooks()
 
 	return nil
 }
 
-func (e *LoginWithPaperKey) unlockDeviceKeys(m libkb.MetaContext, ctx *Context, me *libkb.User) error {
+func (e *LoginWithPaperKey) unlockDeviceKeys(m libkb.MetaContext, me *libkb.User) error {
 	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	_, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "unlock device keys"))
 	if err != nil {
 		return err
 	}
 	ska.KeyType = libkb.DeviceEncryptionKeyType
-	_, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	_, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "unlock device keys"))
 	if err != nil {
 		return err
 	}

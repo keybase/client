@@ -3394,8 +3394,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 		// LoginOffline will run when service restarts.
 		// Since this was GPG sign, there will be no secret stored.
 		oeng := NewLoginOffline(tc2.G)
-		octx := &Context{NetContext: context.Background()}
-		oerr := RunEngine(oeng, octx)
+		oerr := RunEngine2(m, oeng)
 		if oerr != nil {
 			t.Fatalf("LoginOffline failed after gpg sign + svc restart: %s", oerr)
 		}

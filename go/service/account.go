@@ -25,13 +25,14 @@ func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandl
 	}
 }
 
-func (h *AccountHandler) PassphraseChange(_ context.Context, arg keybase1.PassphraseChangeArg) error {
-	eng := engine.NewPassphraseChange(&arg, h.G())
-	ctx := &engine.Context{
+func (h *AccountHandler) PassphraseChange(ctx context.Context, arg keybase1.PassphraseChangeArg) error {
+	eng := engine.NewPassphraseChange(h.G(), &arg)
+	uis := libkb.UIs{
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {

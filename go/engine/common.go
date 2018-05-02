@@ -44,17 +44,16 @@ type keypair struct {
 }
 
 // findDeviceKeys looks for device keys and unlocks them.
-func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
-	mctx := NewMetaContext(e, ctx)
+func findDeviceKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
 	// need to be logged in to get a device key (unlocked)
-	lin, _ := IsLoggedIn(e, ctx)
+	lin, _ := isLoggedIn(m)
 	if !lin {
 		return nil, libkb.LoginRequiredError{}
 	}
 
 	// Get unlocked device for decryption and signing
 	// passing in nil SecretUI since we don't know the passphrase.
-	e.G().Log.Debug("findDeviceKeys: getting device encryption key")
+	m.CDebugf("findDeviceKeys: getting device encryption key")
 	parg := libkb.SecretKeyPromptArg{
 		Ska: libkb.SecretKeyArg{
 			Me:      me,
@@ -62,18 +61,18 @@ func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
 		},
 		Reason: "change passphrase",
 	}
-	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(mctx, parg)
+	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		return nil, err
 	}
-	mctx.CDebugf("findDeviceKeys: got device encryption key")
-	mctx.CDebugf("findDeviceKeys: getting device signing key")
+	m.CDebugf("findDeviceKeys: got device encryption key")
+	m.CDebugf("findDeviceKeys: getting device signing key")
 	parg.Ska.KeyType = libkb.DeviceSigningKeyType
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(mctx, parg)
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, parg)
 	if err != nil {
 		return nil, err
 	}
-	mctx.CDebugf("findDeviceKeys: got device signing key")
+	m.CDebugf("findDeviceKeys: got device signing key")
 
 	return &keypair{encKey: encKey, sigKey: sigKey}, nil
 }
@@ -82,7 +81,7 @@ func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
 // does, it prompts for a paperkey phrase.  This is used to
 // regenerate paper keys, which are then matched against the
 // paper keys found in the keyfamily.
-func findPaperKeys(m libkb.MetaContext, ctx *Context, me *libkb.User) (*keypair, error) {
+func findPaperKeys(m libkb.MetaContext, me *libkb.User) (*keypair, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
@@ -92,17 +91,17 @@ func findPaperKeys(m libkb.MetaContext, ctx *Context, me *libkb.User) (*keypair,
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := libkb.GetPaperKeyPassphrase(m, ctx.SecretUI, me.GetName(), nil)
+	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, me.GetName(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return matchPaperKey(m, ctx, me, passphrase)
+	return matchPaperKey(m, me, passphrase)
 }
 
 // matchPaperKey checks to make sure paper is a valid paper phrase and that it exists
 // in the user's keyfamily.
-func matchPaperKey(m libkb.MetaContext, ctx *Context, me *libkb.User, paper string) (*keypair, error) {
+func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*keypair, error) {
 	cki := me.GetComputedKeyInfos()
 	if cki == nil {
 		return nil, fmt.Errorf("no computed key infos")
