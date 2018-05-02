@@ -137,9 +137,9 @@ func TestFavoriteList(t *testing.T) {
 	addfav(makeFave(u.Username, "t_charlie"), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 	addfav(makeFave(u.Username, "t_bob"), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 
-	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 	favs := eng.Result().FavoriteFolders
@@ -149,14 +149,15 @@ func TestFavoriteList(t *testing.T) {
 }
 
 func addfav(name string, folderType keybase1.FolderType, created bool, idUI libkb.IdentifyUI, tc libkb.TestContext, expectedFaves *favorites) {
-	ctx := &Context{
+	uis := libkb.UIs{
 		IdentifyUI: idUI,
 	}
 	arg := keybase1.FavoriteAddArg{
 		Folder: keybase1.Folder{Name: name, FolderType: folderType, Created: created},
 	}
-	eng := NewFavoriteAdd(&arg, tc.G)
-	err := RunEngine(eng, ctx)
+	eng := NewFavoriteAdd(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -167,12 +168,12 @@ func addfav(name string, folderType keybase1.FolderType, created bool, idUI libk
 }
 
 func rmfav(name string, folderType keybase1.FolderType, tc libkb.TestContext, expectedFaves *favorites) {
-	ctx := &Context{}
 	arg := keybase1.FavoriteIgnoreArg{
 		Folder: keybase1.Folder{Name: name, FolderType: folderType},
 	}
-	eng := NewFavoriteIgnore(&arg, tc.G)
-	err := RunEngine(eng, ctx)
+	eng := NewFavoriteIgnore(tc.G, &arg)
+	m := libkb.NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -182,9 +183,9 @@ func rmfav(name string, folderType keybase1.FolderType, tc libkb.TestContext, ex
 }
 
 func listfav(tc libkb.TestContext) *favorites {
-	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
-	err := RunEngine(eng, ctx)
+	m := libkb.NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

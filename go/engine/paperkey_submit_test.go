@@ -48,11 +48,9 @@ func TestPaperKeySubmit(t *testing.T) {
 	assertPaperKeyCached(tc, false)
 
 	// submit the paper key
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-	}
+	m := NewMetaContextForTestWithLogUI(tc)
 	eng := NewPaperKeySubmit(tc.G, paperkey)
-	if err := RunEngine(eng, ctx); err != nil {
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

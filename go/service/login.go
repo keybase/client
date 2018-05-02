@@ -80,13 +80,14 @@ func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) error {
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) PaperKeySubmit(_ context.Context, arg keybase1.PaperKeySubmitArg) error {
-	ctx := &engine.Context{
+func (h *LoginHandler) PaperKeySubmit(ctx context.Context, arg keybase1.PaperKeySubmitArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewPaperKeySubmit(h.G(), arg.PaperPhrase)
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
@@ -143,14 +144,14 @@ func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.
 }
 
 func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) error {
-	ectx := &engine.Context{
+	uis := libkb.UIs{
 		LogUI:      h.getLogUI(sessionID),
 		SecretUI:   h.getSecretUI(sessionID, h.G()),
-		NetContext: ctx,
 		SessionID:  sessionID,
 	}
 	eng := engine.NewLoginWithPaperKey(h.G())
-	return engine.RunEngine(eng, ectx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisionArg) error {

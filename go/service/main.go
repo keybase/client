@@ -325,7 +325,8 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
-	d.tryLogin()
+	ctx := context.Background()
+	d.tryLogin(ctx)
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.createChatModules()
@@ -518,6 +519,8 @@ func (d *Service) addGlobalHooks() {
 
 func (d *Service) StartLoopbackServer() error {
 
+	ctx := context.Background()
+
 	var l net.Listener
 	var err error
 
@@ -531,7 +534,7 @@ func (d *Service) StartLoopbackServer() error {
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.
-	d.tryLogin()
+	d.tryLogin(ctx)
 
 	go d.ListenLoop(l)
 
@@ -1081,13 +1084,13 @@ var tryLoginOnce sync.Once
 // If that fails for any reason, LoginProvisionedDevice is used, which should get
 // around any issue where the session.json file is out of date or missing since the
 // last time the service started.
-func (d *Service) tryLogin() {
+func (d *Service) tryLogin(ctx context.Context) {
 	tryLoginOnce.Do(func() {
 		eng := engine.NewLoginOffline(d.G())
-		ctx := &engine.Context{}
-		if err := engine.RunEngine(eng, ctx); err != nil {
-			d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
-			d.G().Log.Debug("trying LoginProvisionedDevice")
+		m := libkb.NewMetaContext(ctx, d.G())
+		if err := engine.RunEngine2(m, eng); err != nil {
+			m.CDebugf("error running LoginOffline on service startup: %s", err)
+			m.CDebugf("trying LoginProvisionedDevice")
 
 			// Standalone mode quirk here. We call tryLogin when client is
 			// launched in standalone to unlock the same keys that we would
@@ -1099,19 +1102,18 @@ func (d *Service) tryLogin() {
 			// usage flags entirely. Then this will not be needed because
 			// Keyrings will always be loaded.
 
-			if d.G().Keyrings == nil {
-				d.G().Log.Debug("tryLogin: Configuring Keyrings")
-				d.G().ConfigureKeyring()
+			if m.G().Keyrings == nil {
+				m.CDebugf("tryLogin: Configuring Keyrings")
+				m.G().ConfigureKeyring()
 			}
 
 			deng := engine.NewLoginProvisionedDevice(d.G(), "")
 			deng.SecretStoreOnly = true
-			m := libkb.NewMetaContext(context.Background(), d.G())
 			if err := engine.RunEngine2(m, deng); err != nil {
-				d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
+				m.CDebugf("error running LoginProvisionedDevice on service startup: %s", err)
 			}
 		} else {
-			d.G().Log.Debug("success running LoginOffline on service startup")
+			m.CDebugf("success running LoginOffline on service startup")
 		}
 	})
 }
