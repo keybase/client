@@ -43,7 +43,7 @@ class PlatformInput extends Component<PlatformInputProps> {
     }
   }
 
-  render() {
+  render = () => {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     let hintText = 'Write a message'

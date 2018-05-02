@@ -91,15 +91,15 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
     this._registerBodyEvents(true)
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     this._registerBodyEvents(false)
   }
 
-  _registerBodyEvents(add: boolean) {
+  _registerBodyEvents = (add: boolean) => {
     const body = document.body
     if (!body) {
       return
@@ -134,7 +134,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
-  _insertEmoji(emojiColons: string) {
+  _insertEmoji = (emojiColons: string) => {
     if (this._input) {
       this._input.transformText(({text, selection}) => {
         const newText = text.slice(0, selection.start) + emojiColons + text.slice(selection.end)
@@ -189,7 +189,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
-  render() {
+  render = () => {
     let hintText = 'Write a message'
     if (this.props.isEditing) {
       hintText = 'Edit your message'
