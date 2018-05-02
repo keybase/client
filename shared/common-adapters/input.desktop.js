@@ -186,7 +186,7 @@ class Input extends React.PureComponent<Props, State> {
       if (e.altKey || e.ctrlKey) {
         // If multiline, inject a newline.
         //
-        // TODO: scroll to new position.
+        // TODO: This is buggy on Linux.
         if (this.props.multiline) {
           this._transformText(({text, selection}) => {
             const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
