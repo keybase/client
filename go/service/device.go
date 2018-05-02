@@ -28,13 +28,14 @@ func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DeviceHandler
 }
 
 // DeviceList returns a list of all the devices for a user.
-func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1.Device, error) {
-	ctx := &engine.Context{
+func (h *DeviceHandler) DeviceList(ctx context.Context, sessionID int) ([]keybase1.Device, error) {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SessionID: sessionID,
 	}
 	eng := engine.NewDevList(h.G())
-	if err := engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng.List(), nil
