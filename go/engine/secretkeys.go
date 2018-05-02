@@ -42,18 +42,17 @@ func (e *SecretKeysEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *SecretKeysEngine) Run(ctx *Context) (err error) {
-	m := NewMetaContext(e, ctx)
+func (e *SecretKeysEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("SecretKeysEngine#Run", func() error { return err })()
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
 
 	// Clear out all the cached secret key state. This forces a password prompt
 	// below.
-	e.G().LoginState().Account(func(a *libkb.Account) {
+	m.G().LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
 		a.ClearCachedSecretKeys()
 		a.ClearKeyring()
@@ -63,7 +62,7 @@ func (e *SecretKeysEngine) Run(ctx *Context) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "to revoke another key"))
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "to revoke another key"))
 	if err != nil {
 		return err
 	}
@@ -77,7 +76,7 @@ func (e *SecretKeysEngine) Run(ctx *Context) (err error) {
 	m.CDebugf("| got signing key")
 
 	ska.KeyType = libkb.DeviceEncryptionKeyType
-	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "to revoke another key"))
+	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "to revoke another key"))
 	if err != nil {
 		return err
 	}

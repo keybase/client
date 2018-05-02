@@ -72,17 +72,18 @@ func (h *PGPHandler) PGPSign(ctx context.Context, arg keybase1.PGPSignArg) (err 
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *PGPHandler) PGPPull(_ context.Context, arg keybase1.PGPPullArg) error {
+func (h *PGPHandler) PGPPull(ctx context.Context, arg keybase1.PGPPullArg) error {
 	earg := engine.PGPPullEngineArg{
 		UserAsserts: arg.UserAsserts,
 	}
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:      h.getLogUI(arg.SessionID),
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewPGPPullEngine(&earg, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewPGPPullEngine(h.G(), &earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *PGPHandler) PGPEncrypt(ctx context.Context, arg keybase1.PGPEncryptArg) error {

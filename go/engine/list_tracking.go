@@ -41,7 +41,7 @@ type ListTrackingEngine struct {
 	libkb.Contextified
 }
 
-func NewListTrackingEngine(arg *ListTrackingEngineArg, g *libkb.GlobalContext) *ListTrackingEngine {
+func NewListTrackingEngine(g *libkb.GlobalContext, arg *ListTrackingEngineArg) *ListTrackingEngine {
 	return &ListTrackingEngine{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -58,17 +58,17 @@ func (e *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKin
 
 func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
-func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
+func (e *ListTrackingEngine) Run(m libkb.MetaContext) (err error) {
 
-	arg := libkb.NewLoadUserArg(e.G())
+	arg := libkb.NewLoadUserArgWithMetaContext(m)
 
 	if len(e.arg.ForAssertion) > 0 {
-		arg = libkb.NewLoadUserByNameArg(e.G(), e.arg.ForAssertion)
+		arg = arg.WithName(e.arg.ForAssertion)
 	} else {
-		arg = libkb.NewLoadUserArg(e.G()).WithSelf(true)
+		arg = arg.WithSelf(true)
 	}
 
-	err = e.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
+	err = m.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
 		if user == nil {
 			return libkb.UserNotFoundError{}
 		}
@@ -86,9 +86,9 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 		sort.Sort(trackList)
 
 		if e.arg.JSON {
-			return e.runJSON(trackList, e.arg.Verbose)
+			return e.runJSON(m, trackList, e.arg.Verbose)
 		}
-		return e.runTable(trackList)
+		return e.runTable(m, trackList)
 	})
 
 	return err
@@ -126,10 +126,10 @@ func filterRxx(trackList TrackList, filter string) (ret TrackList, err error) {
 	}), nil
 }
 
-func (e *ListTrackingEngine) linkPGPKeys(link *libkb.TrackChainLink) (res []keybase1.PublicKey) {
+func (e *ListTrackingEngine) linkPGPKeys(m libkb.MetaContext, link *libkb.TrackChainLink) (res []keybase1.PublicKey) {
 	trackedKeys, err := link.GetTrackedKeys()
 	if err != nil {
-		e.G().Log.Warning("Bad track of %s: %s", link.ToDisplayString(), err)
+		m.CWarningf("Bad track of %s: %s", link.ToDisplayString(), err)
 		return res
 	}
 
@@ -174,7 +174,7 @@ func (e *ListTrackingEngine) linkWebProofs(link *libkb.TrackChainLink) (res []ke
 	return res
 }
 
-func (e *ListTrackingEngine) runTable(trackList TrackList) error {
+func (e *ListTrackingEngine) runTable(m libkb.MetaContext, trackList TrackList) error {
 	for _, link := range trackList {
 		uid, err := link.GetTrackedUID()
 		if err != nil {
@@ -186,7 +186,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) error {
 			TrackTime:    keybase1.ToTime(link.GetCTime()),
 			Uid:          keybase1.UID(uid),
 		}
-		entry.Proofs.PublicKeys = e.linkPGPKeys(link)
+		entry.Proofs.PublicKeys = e.linkPGPKeys(m, link)
 		entry.Proofs.Social = e.linkSocialProofs(link)
 		entry.Proofs.Web = e.linkWebProofs(link)
 		e.tableResult = append(e.tableResult, entry)
@@ -194,7 +194,7 @@ func (e *ListTrackingEngine) runTable(trackList TrackList) error {
 	return nil
 }
 
-func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) error {
+func (e *ListTrackingEngine) runJSON(m libkb.MetaContext, trackList TrackList, verbose bool) error {
 	var tmp []*jsonw.Wrapper
 	for _, link := range trackList {
 		var rec *jsonw.Wrapper
@@ -202,7 +202,7 @@ func (e *ListTrackingEngine) runJSON(trackList TrackList, verbose bool) error {
 		if verbose {
 			rec = link.UnmarshalPayloadJSON()
 		} else if rec, e2 = condenseRecord(link); e2 != nil {
-			e.G().Log.Warning("In conversion to JSON: %s", e2)
+			m.CWarningf("In conversion to JSON: %s", e2)
 		}
 		if e2 == nil {
 			tmp = append(tmp, rec)
