@@ -37,8 +37,6 @@ type InputProps = CommonProps & {
 type MentionInputProps = CommonProps & {
   inputSetRef: (r: ?TextInput) => void,
   onChangeText: (newText: string) => void,
-
-  // TODO: Support initialText.
 }
 
 type MentionProps = {
