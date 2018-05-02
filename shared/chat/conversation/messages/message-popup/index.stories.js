@@ -28,7 +28,6 @@ const defaultProps = {
   toggleMuted: action('toggleMuted'),
   updateDesktop: action('updateDesktop'),
   updateMobile: action('updateMobile'),
-  // FIXME: Visible needs to be true for storybook, but false for shots.
   visible: true,
   yourMessage: true,
 }
@@ -67,7 +66,7 @@ const load = () => {
       <ExplodingPopupMenu
         {...defaultProps}
         {...textMessage}
-        explodesAt={1525350235}
+        explodesAt={2000000000}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
         position={'top left'}
