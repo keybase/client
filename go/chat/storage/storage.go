@@ -644,6 +644,31 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	return &expunge, nil
 }
 
+func (s *Storage) ClearBelow(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgID chat1.MessageID) (err Error) {
+	defer s.Trace(ctx, func() error { return err }, "ClearBelow")()
+	// All public functions get locks to make access to the database single threaded.
+	// They should never be called from private functions.
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	s.Debug(ctx, "ClearBelow: convID: %s uid: %s msgID: %d", convID, uid, msgID)
+
+	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	if ierr != nil {
+		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+	}
+	ctx, err = s.engine.Init(ctx, key, convID, uid)
+	if err != nil {
+		return err
+	}
+
+	var msgIDs []chat1.MessageID
+	for m := msgID - 1; m > 0; m-- {
+		msgIDs = append(msgIDs, m)
+	}
+	return s.engine.ClearMessages(ctx, convID, uid, msgIDs)
+}
+
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,
 	pagination *chat1.Pagination) ResultCollector {
 	var num int
