@@ -119,7 +119,14 @@ class ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
 
 const ExplodingPopupMenu = (props: Props & TimerProps) => {
   const items = [
-    {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
+    ...(props.onEdit
+      ? [
+          {
+            onClick: props.onEdit,
+            title: 'Edit',
+          },
+        ]
+      : []),
     ...(props.yourMessage
       ? [
           {

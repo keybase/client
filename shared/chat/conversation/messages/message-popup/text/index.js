@@ -52,7 +52,14 @@ const TextPopupMenu = (props: Props) => {
         ]
       : []),
     ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
-    {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
+    ...(props.onEdit
+      ? [
+          {
+            onClick: props.onEdit,
+            title: 'Edit',
+          },
+        ]
+      : []),
     {onClick: props.onCopy, title: 'Copy Text'},
     {onClick: props.onQuote, title: 'Quote'},
     {onClick: props.onReplyPrivately, title: 'Reply Privately'},
