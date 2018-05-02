@@ -60,14 +60,11 @@ func (h *AccountHandler) EmailChange(nctx context.Context, arg keybase1.EmailCha
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *AccountHandler) HasServerKeys(_ context.Context, sessionID int) (keybase1.HasServerKeysRes, error) {
+func (h *AccountHandler) HasServerKeys(ctx context.Context, sessionID int) (res keybase1.HasServerKeysRes, err error) {
 	arg := keybase1.HasServerKeysArg{SessionID: sessionID}
-	var res keybase1.HasServerKeysRes
-	eng := engine.NewHasServerKeys(&arg, h.G())
-	ctx := &engine.Context{
-		SessionID: arg.SessionID,
-	}
-	err := engine.RunEngine(eng, ctx)
+	eng := engine.NewHasServerKeys(h.G())
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(libkb.UIs{SessionID:arg.SessionID})
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		return res, err
 	}
