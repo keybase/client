@@ -101,6 +101,8 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
+    const value = this.getValue()
+
     // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
     // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
     if (this.props.smartAutoresize) {
@@ -113,11 +115,11 @@ class Input extends React.PureComponent<Props, State> {
 
       // See if we've gone up in size, if so keep track of the input at that point
       if (n.scrollHeight > rect.height) {
-        this._smartAutoresize.pivotLength = n.value.length
+        this._smartAutoresize.pivotLength = value.length
         n.style.height = `${n.scrollHeight}px`
       } else {
         // see if we went back down in height
-        if (this._smartAutoresize.pivotLength !== -1 && n.value.length <= this._smartAutoresize.pivotLength) {
+        if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
           this._smartAutoresize.pivotLength = -1
           n.style.height = '1px'
           n.style.height = `${n.scrollHeight}px`
@@ -159,6 +161,8 @@ class Input extends React.PureComponent<Props, State> {
       n.value = newTextInfo.text
       n.selectionStart = newTextInfo.selection.start
       n.selectionEnd = newTextInfo.selection.end
+
+      this._autoResize()
     }
   }
 
@@ -185,8 +189,6 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
         // If multiline, inject a newline.
-        //
-        // TODO: This is buggy on Linux.
         if (this.props.multiline) {
           this._transformText(({text, selection}) => {
             const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
