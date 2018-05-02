@@ -49,10 +49,13 @@ export type Props = {
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
 
+  // Looks like desktop only, but used on mobile for onSubmitEditing (!).
+  // TODO: Have a separate onSubmitEditing prop.
+  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
+
   // Desktop only.
   onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   onKeyUp?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
-  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
 
   // Mobile only
   onEndEditing?: ?() => void,

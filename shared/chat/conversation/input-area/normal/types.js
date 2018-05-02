@@ -1,39 +1,53 @@
 // @flow
 import * as I from 'immutable'
-import {Component} from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {Input as TextInput} from '../../../../common-adapters'
 
-export type PreMentionHocProps = {
+// There are three components in this directory:
+//
+//   Input, with props InputProps, which wraps
+//     MentionInput, with props MentionInputProps, which wraps
+//       PlatformInput, with props PlatformInputProps.
+
+type CommonProps = {
   conversationIDKey: Types.ConversationIDKey,
-  channelName: ?string,
+  channelName: string,
   isEditing: boolean,
   focusInputCounter: number,
   clearInboxFilter: () => void,
-  inputBlur: () => void,
-  inputClear: () => void,
-  inputFocus: () => void,
-  inputSetRef: (r: ?TextInput) => void,
-  inputValue: () => string,
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
-  onJoinChannel: () => void,
-  onLeaveChannel: () => void,
+  onCancelQuoting: () => void,
   onSubmit: (text: string) => void,
   pendingWaiting: boolean,
-  setText: (text: string) => void,
-  text: string,
   typing: I.Set<string>,
 }
 
-export type MentionHocProps = {
+type InputProps = CommonProps & {
+  _quotingMessage: ?Types.Message,
+  _editingMessage: ?Types.Message,
+  injectedInput: string,
+
+  getUnsentText: () => string,
+  setUnsentText: (text: string) => void,
+  sendTyping: (typing: boolean) => void,
+}
+
+type MentionInputProps = CommonProps & {
+  inputSetRef: (r: ?TextInput) => void,
+  setText: (text: string) => void,
+  text: string,
+}
+
+type MentionProps = {
   insertMention: (u: string, options?: {notUser: boolean}) => void,
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
 
   // on desktop:
   onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
+  onEnterKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   switchMention?: (u: string) => void,
   switchChannelMention?: (c: string) => void,
   upArrowCounter?: number,
@@ -45,7 +59,6 @@ export type MentionHocProps = {
   onFocus?: () => void,
   insertMentionMarker?: () => void,
 
-  onEnterKeyDown: (e: SyntheticKeyboardEvent<>) => void,
   pickSelectedCounter: number,
   channelMentionFilter: string,
   channelMentionPopupOpen: boolean,
@@ -55,6 +68,6 @@ export type MentionHocProps = {
   setMentionPopupOpen: (setOpen: boolean) => void,
 }
 
-export type Props = PreMentionHocProps & MentionHocProps
+type PlatformInputProps = MentionInputProps & MentionProps
 
-export default class Input extends Component<Props> {}
+export type {InputProps, MentionInputProps, PlatformInputProps}
