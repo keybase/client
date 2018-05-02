@@ -27,15 +27,21 @@ export const Asset = (props: Props) => {
           <Box2 direction="horizontal" gap="tiny" style={labelContainerStyle}>
             <Icon type={caratType} style={{lineHeight: 2}} />
             <Box2 direction="vertical">
-              <Text type="BodySemibold">{props.name}</Text>
-              <Text type="BodySmall">{props.issuer}</Text>
+              <Text type="BodySemibold" lineClamp={1}>
+                {props.name}
+              </Text>
+              <Text type="BodySmall" lineClamp={1}>
+                {props.issuer}
+              </Text>
             </Box2>
           </Box2>
           <Box2 direction="vertical" style={balanceContainerStyle} fullHeight={true}>
-            <Text type="BodySemibold" style={{color: '#814cf4', fontWeight: '800'}}>
+            <Text type="BodySemibold" lineClamp={1} style={{color: '#814cf4', fontWeight: '800'}}>
               {props.balance} {props.code}
             </Text>
-            <Text type="BodySmall">{props.equivBalance}</Text>
+            <Text type="BodySmall" lineClamp={1}>
+              {props.equivBalance}
+            </Text>
           </Box2>
         </Box2>
       </ClickableBox>
@@ -43,7 +49,11 @@ export const Asset = (props: Props) => {
         <Box2
           direction="horizontal"
           fullWidth={true}
-          style={{justifyContent: 'flex-end', paddingRight: globalMargins.small}}
+          style={{
+            justifyContent: 'flex-end',
+            paddingBottom: globalMargins.tiny,
+            paddingRight: globalMargins.small,
+          }}
         >
           {!!props.reserves.length && (
             <BalanceSummary
@@ -95,10 +105,10 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
     </Box2>
     {props.reserves.map(reserve => (
       <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-        <Text type="Body" style={leftColTextStyle}>
+        <Text type="Body" lineClamp={1} style={leftColTextStyle}>
           Reserve ({reserve.description})
         </Text>
-        <Text type="Body" selectable={true}>
+        <Text type="Body" lineClamp={1} selectable={true}>
           -{reserve.amount}
         </Text>
       </Box2>

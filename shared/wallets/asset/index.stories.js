@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/wallets'
 import {withStateHandlers} from '../../util/container'
-import {Box} from '../../common-adapters'
+import {Box, Divider} from '../../common-adapters'
 import {action, storiesOf} from '../../stories/storybook'
 import Asset from '.'
 
@@ -50,15 +50,15 @@ const btc = {
   reserves: [],
 }
 
-const batexcellent = {
+const btexcadv = {
   availableToSend: '',
   balance: '0.0284664',
-  code: 'BATEXCELLENT',
+  code: 'BTEXCADV',
   equivAvailableToSend: '',
   equivBalance: '',
   issuer: 'Unknown',
   issuerAddress: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
-  name: 'BATEXCELLENT',
+  name: 'BTEXCADV',
   reserves: [],
 }
 
@@ -78,9 +78,12 @@ const load = () => {
     .add('List', () => (
       <React.Fragment>
         <AssetWithExpanded {...native} />
+        <Divider />
         <AssetWithExpanded {...keyz} />
+        <Divider />
         <AssetWithExpanded {...btc} />
-        <AssetWithExpanded {...batexcellent} />
+        <Divider />
+        <AssetWithExpanded {...btexcadv} />
       </React.Fragment>
     ))
 }
