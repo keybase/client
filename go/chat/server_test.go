@@ -3399,6 +3399,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 
 		// This will take at least 1 second.
 		sweepPollForDeletion(t, ctc, users[0], listener, convB.Id, latestMsg(convB.Id)+1)
+		t.Fatalf("TOO FAR")
 		sweepPollForDeletion(t, ctc, users[0], listener, convA.Id, latestMsg(convA.Id)+1)
 		sweepNoDeletion(t, ctc, users[0], convC.Id)
 
