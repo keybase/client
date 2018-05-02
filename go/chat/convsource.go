@@ -252,7 +252,7 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
-func (s *RemoteConversationSource) ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+func (s *RemoteConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID) {
 }
 
@@ -1013,28 +1013,26 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	return nil
 }
 
-func (s *HybridConversationSource) ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, deleteID chat1.MessageID) {
-	defer s.Trace(ctx, func() error { return nil }, "ExpungeFromDelete")()
+	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()
 
 	// Check to see if we have the message stored
 	stored, err := s.storage.FetchMessages(ctx, convID, uid, []chat1.MessageID{deleteID})
 	if err == nil && stored[0] != nil {
 		// Any error is grounds to load this guy into the conv loader aggressively
-		s.Debug(ctx, "ExpungeFromDelete: delete message stored, doing nothing")
+		s.Debug(ctx, "ClearFromDelete: delete message stored, doing nothing")
 		return
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.Debug(ctx, "ExpungeFromDelete: delete not found, expunging")
+	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
 	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-			expunge := chat1.Expunge{
-				Upto: tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID()),
-			}
-			if err := s.Expunge(ctx, convID, uid, expunge); err != nil {
-				s.Debug(ctx, "ExpungeFromDelete: failed to expunge messages: %s", err)
+			bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
+			if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
+				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))
 }
