@@ -32,8 +32,15 @@ class PlatformInput extends Component<PlatformInputProps> {
     })
   }
 
+  _getText = () => {
+    return this._input ? this._input.getValue() : ''
+  }
+
   _onSubmit = () => {
-    this.props.onSubmit(this._input ? this._input.getValue() : '')
+    const text = this._getText()
+    if (text) {
+      this.props.onSubmit(text)
+    }
   }
 
   render() {
@@ -102,7 +109,7 @@ class PlatformInput extends Component<PlatformInputProps> {
 
           {this.props.typing.size > 0 && <Typing />}
           <Action
-            hasText={this._input ? !!this._input.getValue() : false}
+            hasText={!!this._getText()}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             pendingWaiting={this.props.pendingWaiting}
