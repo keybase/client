@@ -66,7 +66,7 @@ func (n NullConfiguration) GetAutoFork() (bool, bool)                           
 func (n NullConfiguration) GetRunMode() (RunMode, error)                                   { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                                    { return false, false }
 func (n NullConfiguration) GetLogFile() string                                             { return "" }
-func (n NullConfiguration) GetLogPrefix() string                                             { return "" }
+func (n NullConfiguration) GetLogPrefix() string                                           { return "" }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)                       { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)                           { return 0, false }
 func (n NullConfiguration) GetTorMode() (TorMode, error)                                   { return TorNone, nil }
