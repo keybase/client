@@ -247,7 +247,8 @@ function installCachedDokan() {
       return
     }
     const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-    const args = [binPath, 'ctl', 'watchdog2']
+    const wdLogPath = binPath.replace('keybase.exe', 'watchdog')
+    const args = [binPath, 'ctl', 'watchdog2', '--log-prefix=' + wdLogPath]
 
     spawn(rqPath, args, {
       detached: true,
