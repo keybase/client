@@ -2,8 +2,9 @@
 import * as React from 'react'
 import {Avatar, Box2, FloatingMenu, Icon, Text} from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked} from '../../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
+import HOCTimers, {type TimerProps} from '../../../../../common-adapters/hoc-timers'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -28,109 +29,100 @@ type State = {
   secondsLeft: number,
 }
 
-function secondsToDHMS(seconds: number): string {
-  let mins = Math.floor(seconds / 60)
-  let hours = Math.floor(mins / 60)
-  let days = Math.floor(hours / 24)
-  let secs = seconds % 60
-  hours = hours % 24
-  mins = mins % 60
-
-  return `${days}d ${hours}h ${mins}m ${secs}s`
-}
-
-class ExplodingPopupHeader extends React.Component<Props, State> {
-  timer: ?IntervalID
-  state = {
-    secondsLeft: 0,
-  }
-
-  constructor() {
-    super()
-    this.timer = null
-  }
-
-  componentWillMount() {
-    if (!__STORYBOOK__) {
-      this.timer = setInterval(() => this.tick(), 1000)
+const ExplodingPopupHeader = HOCTimers(
+  class _ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
+    timer: ?IntervalID
+    state = {
+      secondsLeft: 0,
     }
-    this.tick()
-  }
 
-  componentWillUnmount() {
-    this.timer && clearInterval(this.timer)
-  }
-
-  tick() {
-    const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-    let secondsLeft = this.props.explodesAt - now
-    if (secondsLeft < 0) {
-      secondsLeft = 0
+    constructor() {
+      super()
+      this.timer = null
     }
-    this.setState({secondsLeft})
-  }
 
-  render() {
-    const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
-    const whoRevoked = yourMessage ? 'You' : author
-    return (
-      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
-        <Icon
-          style={{marginBottom: globalMargins.tiny}}
-          type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
-        />
-        <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black}}>
-            EXPLODING MESSAGE
-          </Text>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            by
-          </Text>
-          <Avatar style={styleAvatar} username={author} size={12} />
-          <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
-            {author}
-          </Text>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            using device&nbsp;{deviceName}
-          </Text>
-        </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodySmall" style={{color: globalColors.black_40}}>
-            {formatTimeForPopup(timestamp)}
-          </Text>
-        </Box2>
-        {deviceRevokedAt && (
-          <PopupHeaderText
-            color={globalColors.white}
-            backgroundColor={globalColors.blue}
-            style={styleRevokedAt}
+    componentWillMount() {
+      if (!__STORYBOOK__) {
+        this.timer = this.props.setInterval(() => this.tick(), 1000)
+      }
+      this.tick()
+    }
+
+    componentWillUnmount() {
+      this.timer && this.props.clearInterval(this.timer)
+    }
+
+    tick() {
+      const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
+      let secondsLeft = this.props.explodesAt - now
+      if (secondsLeft < 0) {
+        secondsLeft = 0
+      }
+      this.setState({secondsLeft})
+    }
+
+    render() {
+      const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
+      const whoRevoked = yourMessage ? 'You' : author
+      return (
+        <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
+          <Icon
+            style={{marginBottom: globalMargins.tiny}}
+            type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
+          />
+          <Box2 direction="horizontal">
+            <Text type="BodySmall" style={{color: globalColors.black}}>
+              EXPLODING MESSAGE
+            </Text>
+          </Box2>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall" style={{color: globalColors.black_40}}>
+              by
+            </Text>
+            <Avatar style={styleAvatar} username={author} size={12} />
+            <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
+              {author}
+            </Text>
+          </Box2>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall" style={{color: globalColors.black_40}}>
+              using device&nbsp;{deviceName}
+            </Text>
+          </Box2>
+          <Box2 direction="horizontal">
+            <Text type="BodySmall" style={{color: globalColors.black_40}}>
+              {formatTimeForPopup(timestamp)}
+            </Text>
+          </Box2>
+          {deviceRevokedAt && (
+            <PopupHeaderText
+              color={globalColors.white}
+              backgroundColor={globalColors.blue}
+              style={styleRevokedAt}
+            >
+              {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+            </PopupHeaderText>
+          )}
+          <Box2
+            direction="vertical"
+            gap="xsmall"
+            fullWidth={true}
+            gapEnd={true}
+            gapStart={true}
+            style={{
+              backgroundColor: this.state.secondsLeft < oneHourInSecs ? globalColors.red : globalColors.black,
+              marginTop: globalMargins.tiny,
+            }}
           >
-            {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-          </PopupHeaderText>
-        )}
-        <Box2
-          direction="vertical"
-          gap="xsmall"
-          fullWidth={true}
-          gapEnd={true}
-          gapStart={true}
-          style={{
-            backgroundColor: this.state.secondsLeft < oneHourInSecs ? globalColors.red : globalColors.black,
-            marginTop: globalMargins.tiny,
-          }}
-        >
-          <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-            {secondsToDHMS(this.state.secondsLeft)}
-          </Text>
+            <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
+              {secondsToDHMS(this.state.secondsLeft)}
+            </Text>
+          </Box2>
         </Box2>
-      </Box2>
-    )
+      )
+    }
   }
-}
+)
 
 const ExplodingPopupMenu = (props: Props) => {
   const items = [
@@ -151,6 +143,7 @@ const ExplodingPopupMenu = (props: Props) => {
     title: 'header',
     view: <ExplodingPopupHeader {...props} />,
   }
+
   return (
     <FloatingMenu
       attachTo={props.attachTo}
