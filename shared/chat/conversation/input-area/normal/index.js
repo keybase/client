@@ -58,6 +58,11 @@ class Input extends React.Component<InputProps> {
     throttled(this.props.sendTyping, !!text)
   }
 
+  componentDidMount = () => {
+    const text = this.props.getUnsentText()
+    this._setText(text, true)
+  }
+
   componentWillReceiveProps = (nextProps: InputProps) => {
     const props: InputProps = this.props
 
