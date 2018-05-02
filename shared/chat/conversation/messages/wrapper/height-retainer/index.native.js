@@ -4,7 +4,7 @@ import {Box, NativeImage} from '../../../../../common-adapters/index.native'
 import {collapseStyles} from '../../../../../styles'
 import type {Props} from '.'
 
-const explodedUllustrationURL = require('../../../../../images/icons/icon-shh-24.png')
+const explodedUllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-1.png')
 
 type State = {
   height: ?number,

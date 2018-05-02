@@ -7,8 +7,8 @@ import {Box} from '../../../../../common-adapters'
 import {collapseStyles} from '../../../../../styles'
 import type {Props} from '.'
 
-const explodedIllustration = resolveRootAsURL('../images/icons/icon-shh-24.png')
-const explodedIllustrationUrl = urlsToImgSet({'24': explodedIllustration}, 24)
+const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-1.png')
+const explodedIllustrationUrl = urlsToImgSet({'34': explodedIllustration}, 34)
 
 type State = {
   height: ?number,
@@ -38,6 +38,7 @@ class HeightRetainer extends React.Component<Props, State> {
               height: this.state.height,
               backgroundImage: explodedIllustrationUrl,
               backgroundRepeat: 'repeat',
+              backgroundSize: 'auto 17px',
             },
         ])}
       >
