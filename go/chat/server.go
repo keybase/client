@@ -619,7 +619,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		}
 		var pthread *string
 		if resThread != nil {
-			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
+			pstr := "<nil>"
+			if resThread.Pagination != nil {
+				pstr = resThread.Pagination.String()
+			}
+			h.Debug(ctx, "GetThreadNonblock: sending cached response: messages: %d pager: %s",
+				len(resThread.Messages), pstr)
 			var jsonPt []byte
 			var err error
 
@@ -666,7 +671,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
-		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(rthread.Messages))
+		pstr := "<nil>"
+		if rthread.Pagination != nil {
+			pstr = rthread.Pagination.String()
+		}
+		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
+			len(rthread.Messages), pstr)
 		uires := utils.PresentThreadView(bctx, h.G(), uid, rthread, arg.ConversationID)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {

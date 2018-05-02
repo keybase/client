@@ -306,7 +306,17 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) E
 
 func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) Error {
+	msgIDs := make([]chat1.MessageID, len(msgs))
+	msgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	for index, msg := range msgs {
+		msgMap[msg.GetMessageID()] = msg
+		msgIDs[index] = msg.GetMessageID()
+	}
+	return be.writeMessagesIDMap(ctx, convID, uid, msgIDs, msgMap)
+}
 
+func (be *blockEngine) writeMessagesIDMap(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgIDs []chat1.MessageID, msgMap map[chat1.MessageID]chat1.MessageUnboxed) Error {
 	var err Error
 	var maxB block
 	var newBlock block
@@ -318,15 +328,14 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 	if err != nil {
 		return err
 	}
-
 	// Sanity check
-	if len(msgs) == 0 {
+	if len(msgIDs) == 0 {
 		return nil
 	}
 
 	// Get the maximum  block (create it if we need to)
-	maxID := msgs[0].GetMessageID()
-	be.Debug(ctx, "writeMessages: maxID: %d num: %d", maxID, len(msgs))
+	maxID := msgIDs[0]
+	be.Debug(ctx, "writeMessages: maxID: %d num: %d", maxID, len(msgIDs))
 	if maxB, err = be.getBlock(ctx, bi, maxID); err != nil {
 		if _, ok := err.(MissError); !ok {
 			return err
@@ -346,13 +355,12 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 
 	// Append to the block
 	newBlock = maxB
-	for index, msg := range msgs {
-		msgID := msg.GetMessageID()
+	for index, msgID := range msgIDs {
 		if be.getBlockNumber(msgID) != newBlock.BlockID {
 			be.Debug(ctx, "writeMessages: crossed block boundary, aborting and writing out: msgID: %d", msgID)
 			break
 		}
-		newBlock.Msgs[be.getBlockPosition(msgID)] = msg
+		newBlock.Msgs[be.getBlockPosition(msgID)] = msgMap[msgID]
 		lastWritten = index
 	}
 
@@ -362,8 +370,8 @@ func (be *blockEngine) WriteMessages(ctx context.Context, convID chat1.Conversat
 	}
 
 	// We didn't write everything out in this block, move to another one
-	if lastWritten < len(msgs)-1 {
-		return be.WriteMessages(ctx, convID, uid, msgs[lastWritten+1:])
+	if lastWritten < len(msgIDs)-1 {
+		return be.writeMessagesIDMap(ctx, convID, uid, msgIDs[lastWritten+1:], msgMap)
 	}
 	return nil
 }
@@ -434,4 +442,13 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 		return be.ReadMessages(ctx, res, convID, uid, lastAdded-1)
 	}
 	return nil
+}
+
+func (be *blockEngine) ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgIDs []chat1.MessageID) Error {
+	msgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	for _, msgID := range msgIDs {
+		msgMap[msgID] = chat1.MessageUnboxed{}
+	}
+	return be.writeMessagesIDMap(ctx, convID, uid, msgIDs, msgMap)
 }

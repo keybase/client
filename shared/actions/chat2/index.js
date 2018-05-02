@@ -63,7 +63,7 @@ const inboxRefresh = (
           ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
         const clearExistingMessages =
           action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
+        yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
         return EngineRpc.rpcResult()
       },
     },
@@ -225,7 +225,7 @@ const unboxRows = (
         ...inboxQuery,
         convIDs: conversationIDKeys.map(Types.keyToConversationID),
       },
-      skipUnverified: false,
+      skipUnverified: true,
     },
     false,
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
@@ -478,6 +478,7 @@ const setupChatHandlers = () => {
     'chat.1.NotifyChat.NewChatActivity',
     (payload: {activity: RPCChatTypes.ChatActivity}, ignore1, ignore2, getState) => {
       const activity: RPCChatTypes.ChatActivity = payload.activity
+      logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
           return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage, getState()) : null

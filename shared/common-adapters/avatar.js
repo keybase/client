@@ -155,7 +155,7 @@ const _reallyAskForUserData = debounce(() => {
     _askQueue = {}
     _askDispatch(ConfigGen.createLoadAvatars({usernames}))
   }
-}, 300)
+}, 100)
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _askForTeamUserData: (teamname: string) =>
