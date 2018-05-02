@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -364,7 +365,14 @@ func (g *GlobalContext) ConfigureLogging() error {
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
 	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
+		filePrefix := g.Env.GetLogPrefix()
+		if filePrefix != "" {
+			filePrefix = filePrefix + strings.Replace(time.Now().Format(time.RFC3339Nano), ":", "-", -1)
+			logFile = filePrefix + ".log"
+		} else {
+			logFile = g.Env.GetDefaultLogFile()
+		}
+		g.Log.Configure(style, debug, logFile)
 	} else {
 		g.Log.Configure(style, debug, logFile)
 		g.Log.RotateLogFile()

@@ -112,11 +112,6 @@ func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
 }
 func (p CommandLine) GetLogFile() string {
-	filePrefix := p.GetGString("log-prefix")
-	if filePrefix != "" {
-		filePrefix = filePrefix + strings.Replace(time.Now().Format(time.RFC3339Nano), ":", "-", -1)
-		return filePrefix + ".log"
-	}
 	return p.GetGString("log-file")
 }
 
