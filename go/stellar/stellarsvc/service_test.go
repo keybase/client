@@ -436,6 +436,17 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.Equal(t, "hey", relaySecrets.Note)
 }
 
+func TestGetAvailableCurrencies(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	res, err := tcs[0].Srv.GetAvailableCurrencies(context.Background())
+	require.NoError(t, err)
+
+	require.Equal(t, res["USD"], "US Dollar")
+	require.Equal(t, res["EUR"], "Euro")
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu     *kbtest.FakeUser

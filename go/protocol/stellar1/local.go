@@ -152,6 +152,9 @@ type ExchangeRateLocalArg struct {
 	Currency OutsideCurrencyCode `codec:"currency" json:"currency"`
 }
 
+type GetAvailableCurrenciesArg struct {
+}
+
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
@@ -165,6 +168,7 @@ type LocalInterface interface {
 	ExportSecretKeyLocal(context.Context, AccountID) (SecretKey, error)
 	SetDisplayCurrency(context.Context, SetDisplayCurrencyArg) error
 	ExchangeRateLocal(context.Context, OutsideCurrencyCode) (OutsideExchangeRate, error)
+	GetAvailableCurrencies(context.Context) (map[OutsideCurrencyCode]string, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -348,6 +352,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getAvailableCurrencies": {
+				MakeArg: func() interface{} {
+					ret := make([]GetAvailableCurrenciesArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetAvailableCurrencies(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -419,5 +434,10 @@ func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCur
 func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
 	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetAvailableCurrencies(ctx context.Context) (res map[OutsideCurrencyCode]string, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableCurrencies", []interface{}{GetAvailableCurrenciesArg{}}, &res)
 	return
 }

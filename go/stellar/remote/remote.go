@@ -389,3 +389,31 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 	_, err := g.API.Post(apiArg)
 	return err
 }
+
+type currenciesResult struct {
+	Status     libkb.AppStatus   `json:"status"`
+	Currencies map[string]string `json:"currencies"`
+}
+
+func (b *currenciesResult) GetAppStatus() *libkb.AppStatus {
+	return &b.Status
+}
+
+func GetSupportedCurrencies(ctx context.Context, g *libkb.GlobalContext) (ret map[stellar1.OutsideCurrencyCode]string, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/currencies",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		NetContext:  ctx,
+	}
+
+	var res currenciesResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return nil, err
+	}
+
+	ret = make(map[stellar1.OutsideCurrencyCode]string)
+	for code, desc := range res.Currencies {
+		ret[stellar1.OutsideCurrencyCode(code)] = desc
+	}
+	return ret, nil
+}

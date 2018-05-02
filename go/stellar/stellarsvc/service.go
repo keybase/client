@@ -258,3 +258,9 @@ func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.Outsid
 	defer s.G().CTraceTimed(ctx, fmt.Sprintf("ExchangeRateLocal(%s)", string(currency)), func() error { return err })()
 	return remote.ExchangeRate(ctx, s.G(), string(currency))
 }
+
+func (s *Server) GetAvailableCurrencies(ctx context.Context) (res map[stellar1.OutsideCurrencyCode]string, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetAvailableCurrencies", func() error { return err })()
+	return remote.GetSupportedCurrencies(ctx, s.G())
+}
