@@ -140,6 +140,12 @@ export type _Flags = {
 
 export type Flags = I.RecordOf<_Flags>
 
+export type _LocalHTTPServer = {
+  address: string,
+  token: string,
+}
+export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
+
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
@@ -147,6 +153,7 @@ export type _State = {
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
+  localHTTPServerInfo: LocalHTTPServer,
 }
 export type State = I.RecordOf<_State>
 

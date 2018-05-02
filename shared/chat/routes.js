@@ -24,11 +24,18 @@ const editChannel = {
   children: {},
 }
 
+const createChannel = {
+  component: CreateChannel,
+  tags: makeLeafTags({hideStatusBar: true}),
+  children: {},
+}
+
 const manageChannels = {
   component: ManageChannels,
   tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
   children: {
     editChannel,
+    createChannel,
   },
 }
 
@@ -39,6 +46,7 @@ const retentionWarning = {
 }
 
 const infoPanelChildren = {
+  createChannel,
   editChannel,
   manageChannels,
   reallyLeaveTeam: {
@@ -83,12 +91,7 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: false}),
       children: {},
     },
-    createChannel: {
-      component: CreateChannel,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-
+    createChannel,
     enterPaperkey: {
       component: EnterPaperkey,
     },

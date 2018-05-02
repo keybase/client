@@ -40,7 +40,7 @@ export type _State = {
   forgotPasswordSuccess: boolean,
   justDeletedSelf: ?string,
   justRevokedSelf: ?string,
-  loginError: ?string,
+  loginError: string,
   registerUserPassError: ?string,
   registerUserPassLoading: boolean,
   waitingForResponse: boolean,

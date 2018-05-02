@@ -837,7 +837,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	require.True(t, hcs.lockTab.Release(ctx2, uid, conv3.GetConvID()))
 }
 
-func TestExpungeFromDelete(t *testing.T) {
+func TestClearFromDelete(t *testing.T) {
 	ctx, world, ri2, _, sender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
@@ -887,7 +887,7 @@ func TestExpungeFromDelete(t *testing.T) {
 	require.IsType(t, storage.MissError{}, err)
 
 	hcs.numExpungeReload = 1
-	hcs.ExpungeFromDelete(ctx, uid, conv.GetConvID(), 4)
+	hcs.ClearFromDelete(ctx, uid, conv.GetConvID(), 4)
 	select {
 	case <-listener.bgConvLoads:
 	case <-time.After(20 * time.Second):

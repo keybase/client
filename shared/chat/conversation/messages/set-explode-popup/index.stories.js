@@ -12,7 +12,7 @@ const common = {
   onSelect: action('onSelect'),
   selected: null,
   items,
-  visible: false, // TODO (for storyshots, see DESKTOP-6620)
+  visible: true,
 }
 
 const load = () => {

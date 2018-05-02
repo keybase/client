@@ -6,7 +6,7 @@ export type Props = {
   onForgotPassphrase: () => void,
   onSignup: () => void,
   onSomeoneElse: () => void,
-  error: ?string,
+  error: string,
   waitingForResponse: boolean,
   passphrase: string,
   showTyping: boolean,
