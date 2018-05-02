@@ -25,24 +25,23 @@ func NewSigsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SigsHandler {
 	}
 }
 
-func (h *SigsHandler) SigList(_ context.Context, arg keybase1.SigListArg) ([]keybase1.Sig, error) {
-	eng, err := h.run(arg.Arg)
+func (h *SigsHandler) SigList(ctx context.Context, arg keybase1.SigListArg) ([]keybase1.Sig, error) {
+	eng, err := h.run(ctx, arg.Arg)
 	if err != nil {
 		return nil, err
 	}
 	return eng.Sigs(), nil
 }
 
-func (h *SigsHandler) SigListJSON(_ context.Context, arg keybase1.SigListJSONArg) (string, error) {
-	eng, err := h.run(arg.Arg)
+func (h *SigsHandler) SigListJSON(ctx context.Context, arg keybase1.SigListJSONArg) (string, error) {
+	eng, err := h.run(ctx, arg.Arg)
 	if err != nil {
 		return "", err
 	}
 	return eng.JSON()
 }
 
-func (h *SigsHandler) run(args keybase1.SigListArgs) (*engine.SigsList, error) {
-	ctx := &engine.Context{}
+func (h *SigsHandler) run(ctx context.Context, args keybase1.SigListArgs) (*engine.SigsList, error) {
 
 	ea := engine.SigsListArgs{
 		Username: args.Username,
@@ -64,8 +63,9 @@ func (h *SigsHandler) run(args keybase1.SigListArgs) (*engine.SigsList, error) {
 		f(args.Types.IsSelf, "self")
 		ea.Types = t
 	}
-	eng := engine.NewSigsList(ea, h.G())
-	if err := engine.RunEngine(eng, ctx); err != nil {
+	eng := engine.NewSigsList(h.G(), ea)
+	m := libkb.NewMetaContext(ctx, h.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
 		return nil, err
 	}
 	return eng, nil

@@ -47,12 +47,13 @@ func (h *RevokeHandler) RevokeDevice(ctx context.Context, arg keybase1.RevokeDev
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *RevokeHandler) RevokeSigs(_ context.Context, arg keybase1.RevokeSigsArg) error {
-	ctx := engine.Context{
+func (h *RevokeHandler) RevokeSigs(ctx context.Context, arg keybase1.RevokeSigsArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewRevokeSigsEngine(arg.SigIDQueries, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewRevokeSigsEngine(h.G(), arg.SigIDQueries)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }

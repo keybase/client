@@ -52,12 +52,11 @@ func (e *Unlock) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Unlock) Run(ctx *Context) error {
-	mctx := NewMetaContext(e, ctx)
+func (e *Unlock) Run(m libkb.MetaContext) error {
 	if e.passphrase != "" {
-		_, err := e.G().LoginState().GetPassphraseStreamWithPassphrase(mctx, e.passphrase)
+		_, err := m.G().LoginState().GetPassphraseStreamWithPassphrase(m, e.passphrase)
 		return err
 	}
-	_, err := e.G().LoginState().GetPassphraseStream(mctx, ctx.SecretUI)
+	_, err := m.G().LoginState().GetPassphraseStream(m, m.UIs().SecretUI)
 	return err
 }

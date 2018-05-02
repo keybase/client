@@ -39,8 +39,8 @@ func TestProfileEdit(t *testing.T) {
 
 	update := func(b, n, l string) {
 		eng := NewProfileEdit(tc.G, keybase1.ProfileEditArg{Location: l, FullName: n, Bio: b})
-		ctx := Context{}
-		err := eng.Run(&ctx)
+		m := NewMetaContextForTest(tc)
+		err := eng.Run(m)
 		if err != nil {
 			t.Fatal(err)
 		}
