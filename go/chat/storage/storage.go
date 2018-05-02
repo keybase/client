@@ -738,6 +738,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	default:
 		return chat1.ThreadView{}, err
 	}
+	s.Debug(ctx, "Fetch: using max deleted upto: %v for pager", maxDeletedUpto)
 
 	// Form paged result
 	var tres chat1.ThreadView
