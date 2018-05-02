@@ -24,6 +24,7 @@ type Syncer struct {
 	offlinables []types.Offlinable
 
 	notificationLock  sync.Mutex
+	lastLoadedLock    sync.Mutex
 	clock             clockwork.Clock
 	sendDelay         time.Duration
 	shutdownCh        chan struct{}
@@ -276,7 +277,7 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
 			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
-				conv.GetConvID().Eq(s.lastLoadedConv) {
+				conv.GetConvID().Eq(s.GetSelectedConversation()) {
 				include = true
 			}
 		default:
@@ -406,9 +407,15 @@ func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
 	s.offlinables = append(s.offlinables, offlinable)
 }
 
+func (s *Syncer) GetSelectedConversation() chat1.ConversationID {
+	s.lastLoadedLock.Lock()
+	defer s.lastLoadedLock.Unlock()
+	return s.lastLoadedConv
+}
+
 func (s *Syncer) SelectConversation(ctx context.Context, convID chat1.ConversationID) {
-	s.Lock()
-	defer s.Unlock()
+	s.lastLoadedLock.Lock()
+	defer s.lastLoadedLock.Unlock()
 	s.Debug(ctx, "SelectConversation: setting last loaded conv to: %s", convID)
 	s.lastLoadedConv = convID
 }
