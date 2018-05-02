@@ -44,16 +44,16 @@ func (e *ListTrackers2Engine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *ListTrackers2Engine) lookupUID() error {
+func (e *ListTrackers2Engine) lookupUID(m libkb.MetaContext) error {
 	if len(e.arg.Assertion) == 0 {
-		e.uid = e.G().GetMyUID()
+		e.uid = m.G().GetMyUID()
 		if !e.uid.Exists() {
 			return libkb.NoUIDError{}
 		}
 		return nil
 	}
 
-	larg := libkb.NewLoadUserPubOptionalArg(e.G()).WithName(e.arg.Assertion)
+	larg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithName(e.arg.Assertion)
 	u, err := libkb.LoadUser(larg)
 	if err != nil {
 		return err
@@ -62,12 +62,12 @@ func (e *ListTrackers2Engine) lookupUID() error {
 	return nil
 }
 
-func (e *ListTrackers2Engine) Run(ctx *Context) error {
-	if err := e.lookupUID(); err != nil {
+func (e *ListTrackers2Engine) Run(m libkb.MetaContext) error {
+	if err := e.lookupUID(m); err != nil {
 		return err
 	}
-	callerUID := e.G().Env.GetUID()
-	ts := libkb.NewTracker2Syncer(e.G(), callerUID, e.arg.Reverse)
+	callerUID := m.G().Env.GetUID()
+	ts := libkb.NewTracker2Syncer(m.G(), callerUID, e.arg.Reverse)
 	if err := libkb.RunSyncer(ts, e.uid, false, nil); err != nil {
 		return err
 	}

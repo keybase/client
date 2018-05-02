@@ -284,7 +284,7 @@ func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 }
 
 func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: u.NewSecretUI(),
 	}
 	me, err := libkb.LoadMe(libkb.LoadUserArg{Contextified: libkb.NewContextified(tctx.G)})
@@ -296,7 +296,8 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
+	m := NewMetaContextForTest(tctx).WithUIs(uis)
+	arg := m.SecretKeyPromptArg(ska, "tracking signature")
 	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(NewMetaContextForTest(tctx), arg)
 	if err != nil {
 		t.Fatal(err)
@@ -304,12 +305,11 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	if encKey == nil {
 		t.Fatal("got back a nil decryption key")
 	}
-	m := NewMetaContextForTest(tctx).WithUIs(libkb.UIs{SecretUI: u.NewSecretUI()})
 	_, clientHalf, err := fetchLKS(m, encKey)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pps, err := tctx.G.LoginState().GetPassphraseStream(m, ctx.SecretUI)
+	pps, err := tctx.G.LoginState().GetPassphraseStream(m, m.UIs().SecretUI)
 	if err != nil {
 		t.Fatal(err)
 	}

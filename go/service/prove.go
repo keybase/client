@@ -82,10 +82,10 @@ func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofA
 	return res, err
 }
 
-func (ph *ProveHandler) CheckProof(_ context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
+func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	eng := engine.NewProveCheck(ph.G(), arg.SigID)
-	ctx := &engine.Context{}
-	if err = engine.RunEngine(eng, ctx); err != nil {
+	m := libkb.NewMetaContext(ctx, ph.G())
+	if err = engine.RunEngine2(m, eng); err != nil {
 		return
 	}
 	found, status, state, text := eng.Results()

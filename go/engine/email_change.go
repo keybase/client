@@ -91,7 +91,7 @@ func (c *EmailChange) Run(m libkb.MetaContext) (err error) {
 			"sig":         libkb.S{Val: sig},
 			"signing_kid": libkb.S{Val: signingKey.GetKID().String()},
 		},
-		NetContext : m.Ctx(),
+		NetContext: m.Ctx(),
 	})
 
 	if err != nil {

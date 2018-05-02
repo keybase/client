@@ -90,7 +90,7 @@ func (e *CryptocurrencyEngine) Run(m libkb.MetaContext) (err error) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska, "to register a cryptocurrency address"))
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "to register a cryptocurrency address"))
 	if err != nil {
 		return err
 	}

@@ -187,12 +187,12 @@ func (e *LoginProvisionedDevice) unlockDeviceKeys(m libkb.MetaContext, me *libkb
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	_, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska, "unlock device keys"))
+	_, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "unlock device keys"))
 	if err != nil {
 		return err
 	}
 	ska.KeyType = libkb.DeviceEncryptionKeyType
-	_, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska, "unlock device keys"))
+	_, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "unlock device keys"))
 	if err != nil {
 		return err
 	}

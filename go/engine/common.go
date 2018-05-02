@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // IsLoggedInWithError conveys if the user is in a logged-in state or not.
@@ -24,19 +23,6 @@ import (
 // Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
 // flow and therefore will try its best to unlocked locked keys if it can
 // without user interaction.
-func IsLoggedInWithError(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
-	ret, uid, err = bootstrap(e, ctx)
-	return ret, uid, err
-}
-
-func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID) {
-	ret, uid, _ = IsLoggedInWithError(e, ctx)
-	return ret, uid
-}
-
-func bootstrap(e Engine, ctx *Context) (ok bool, uid keybase1.UID, err error) {
-	return libkb.BootstrapActiveDeviceWithMetaContext(NewMetaContext(e, ctx))
-}
 
 type keypair struct {
 	encKey libkb.GenericKey

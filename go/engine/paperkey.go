@@ -113,7 +113,7 @@ func (e *PaperKey) Run(m libkb.MetaContext) error {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska1, "You must sign your new paper key"))
+	signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska1, "You must sign your new paper key"))
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (e *PaperKey) Run(m libkb.MetaContext) error {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encryptionKeyGeneric, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska2, "You must encrypt for your new paper key"))
+	encryptionKeyGeneric, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska2, "You must encrypt for your new paper key"))
 	if err != nil {
 		return err
 	}

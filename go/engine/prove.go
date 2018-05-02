@@ -264,7 +264,7 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 			"post":     libkb.S{Val: txt},
 			"username": libkb.S{Val: p.arg.Username},
 		},
-		NetContext : m.Ctx(),
+		NetContext: m.Ctx(),
 	}
 	_, err := m.G().API.Post(apiArg)
 	if err != nil {

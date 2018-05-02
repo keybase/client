@@ -589,7 +589,7 @@ func TestPassphraseChangePGP3Sec(t *testing.T) {
 		SecretUI: secui,
 	}
 	eng := NewPassphraseChange(tc.G, arg)
-	m :=  NewMetaContextForTest(tc).WithUIs(uis)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}

@@ -67,7 +67,7 @@ func (e *FavoriteAdd) Run(m libkb.MetaContext) error {
 	_, err := m.G().API.Post(libkb.APIArg{
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext : m.Ctx(),
+		NetContext:  m.Ctx(),
 		Args: libkb.HTTPArgs{
 			"tlf_name":    libkb.S{Val: e.arg.Folder.Name},
 			"folder_type": libkb.I{Val: int(e.arg.Folder.FolderType)},

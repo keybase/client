@@ -28,9 +28,9 @@ func _testListTrackers(t *testing.T, sigVersion libkb.SigVersion) {
 	defer untrackAlice(tc, fu, sigVersion)
 
 	uid := libkb.UsernameToUID("t_alice")
-	e := NewListTrackers(uid, tc.G)
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
-	if err := RunEngine(e, ctx); err != nil {
+	e := NewListTrackers(tc.G, uid)
+	m := NewMetaContextForTestWithLogUI(tc)
+	if err := RunEngine2(m, e); err != nil {
 		t.Fatal(err)
 	}
 	buid := libkb.UsernameToUID(fu.Username)

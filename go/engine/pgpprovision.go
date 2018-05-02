@@ -140,7 +140,7 @@ func (e *PGPProvision) syncedPGPKey(m libkb.MetaContext) (libkb.GenericKey, erro
 	m.CDebugf("got synced secret key")
 
 	// unlock it
-	parg := SecretKeyPromptArg(m.UIs().SecretUI, libkb.SecretKeyArg{}, "sign new device")
+	parg := m.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
 	unlocked, err := key.PromptAndUnlock(m, parg, nil, e.user)
 	if err != nil {
 		return nil, err

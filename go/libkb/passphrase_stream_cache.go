@@ -12,12 +12,6 @@ type PassphraseStreamCache struct {
 	passphraseStream *PassphraseStream
 }
 
-type PassphraseStreamCacheReader interface {
-	Triplesec() Triplesec
-	PassphraseStream() *PassphraseStream
-	Valid() bool
-}
-
 func NewPassphraseStreamCache(tsec Triplesec, ps *PassphraseStream) *PassphraseStreamCache {
 	return &PassphraseStreamCache{
 		tsec:             tsec,

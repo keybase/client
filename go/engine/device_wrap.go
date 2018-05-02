@@ -68,7 +68,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		Name: e.args.DeviceName,
 		Lks:  e.args.Lks,
 	}
-	regEng := NewDeviceRegister(e.G(), regArgs)
+	regEng := NewDeviceRegister(m.G(), regArgs)
 	if err := RunEngine2(m, regEng); err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		IsEldest:       e.args.IsEldest,
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
-	kgEng := NewDeviceKeygen(e.G(), kgArgs)
+	kgEng := NewDeviceKeygen(m.G(), kgArgs)
 	if err := RunEngine2(m, kgEng); err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		// Signup does this too, but by then it's too late.
 		if err := lctx.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
 			// Not fatal. Because, um, it was working ok before.
-			e.G().Log.Warning("error saving session file: %s", err)
+			m.CWarningf("error saving session file: %s", err)
 		}
 
 		device := kgEng.device()

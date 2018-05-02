@@ -94,7 +94,6 @@ func (s *SignupEngine) Run(m libkb.MetaContext) error {
 			return err
 		}
 
-		m = m.WithLoginContext(a)
 		if err := s.registerDevice(m, s.arg.DeviceName); err != nil {
 			return err
 		}
