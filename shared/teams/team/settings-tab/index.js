@@ -38,7 +38,8 @@ type NewSettings = {|
 |}
 
 // new settings
-type State = NewSettings & {|
+type State = {|
+  ...NewSettings,
   publicitySettingsChanged: boolean,
   retentionPolicyChanged: boolean,
   retentionPolicyDecreased: boolean,
@@ -47,7 +48,7 @@ type State = NewSettings & {|
 type SettingProps = {|
   ...Props,
   ...State,
-  setBoolSettings: (key: $Keys<State>) => (newSetting: boolean) => void,
+  setBoolSettings: (key: *) => (newSetting: boolean) => void,
   onSetOpenTeamRole?: () => void,
 |}
 
@@ -215,7 +216,7 @@ export class Settings extends React.Component<Props, State> {
     })
   }
 
-  setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
+  setBoolSettings = (key: *) => (newSetting: boolean) => {
     this.setState({[key]: newSetting})
   }
 

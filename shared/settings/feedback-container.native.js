@@ -26,10 +26,11 @@ type State = {
   sendError: ?Error,
 }
 
-type Props = {
+type Props = {|
+  ...TimerProps,
   status: Object,
   chat: Object,
-} & TimerProps
+|}
 
 class FeedbackContainer extends Component<Props, State> {
   mounted = false
@@ -172,4 +173,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   title: 'Feedback',
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc, HOCTimers)(FeedbackContainer)
+export default compose(HOCTimers, connect(mapStateToProps, mapDispatchToProps), HeaderHoc)(FeedbackContainer)
