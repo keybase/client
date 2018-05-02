@@ -1023,12 +1023,12 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.Debug(ctx, "ClearFromDelete: delete not found, expunging")
+	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
 	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
-			if err := s.storage.ClearBelow(ctx, convID, uid, bound); err != nil {
+			if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
 				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))

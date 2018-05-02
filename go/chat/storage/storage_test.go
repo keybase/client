@@ -848,7 +848,7 @@ func TestStorageClearMessages(t *testing.T) {
 	tv, err := storage.Fetch(ctx, conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 20, len(tv.Messages))
-	require.NoError(t, storage.ClearBelow(ctx, conv.GetConvID(), uid, 10))
+	require.NoError(t, storage.ClearBefore(ctx, conv.GetConvID(), uid, 10))
 	tv, err = storage.Fetch(ctx, conv, uid, NewInsatiableResultCollector(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 11, len(tv.Messages))
