@@ -29,7 +29,6 @@ import (
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libhttpserver"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/simplefs"
 )
@@ -166,7 +165,6 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		// before KBFS-on-mobile is ready.
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
-		kbfsParams.LocalHTTPServer = &libhttpserver.Server{}
 		kbfsConfig, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
 			kbCtx.Log)

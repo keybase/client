@@ -63,7 +63,7 @@ const inboxRefresh = (
           ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
         const clearExistingMessages =
           action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
+        yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
         return EngineRpc.rpcResult()
       },
     },
@@ -225,7 +225,7 @@ const unboxRows = (
         ...inboxQuery,
         convIDs: conversationIDKeys.map(Types.keyToConversationID),
       },
-      skipUnverified: false,
+      skipUnverified: true,
     },
     false,
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
