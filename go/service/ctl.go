@@ -4,12 +4,10 @@
 package service
 
 import (
-	"golang.org/x/net/context"
-
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 type CtlHandler struct {
@@ -42,31 +40,27 @@ func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	return c.G().ConfigReload()
 }
 
-func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(sessionID),
-		SessionID: sessionID,
-	}
+func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
+	logui := c.getLogUI(sessionID)
 
 	fn, err := c.G().LocalDb.Nuke()
 	if err != nil {
-		ctx.LogUI.Warning("Failed to nuke DB: %s", err)
+		logui.Warning("Failed to nuke DB: %s", err)
 		return err
 	}
-	ctx.LogUI.Warning("Nuking database %s", fn)
+	logui.Warning("Nuking database %s", fn)
 
 	fn, err = c.G().LocalChatDb.Nuke()
 	if err != nil {
-		ctx.LogUI.Warning("Failed to nuke chat DB: %s", err)
+		logui.Warning("Failed to nuke chat DB: %s", err)
 		return err
 	}
-	ctx.LogUI.Warning("Nuking chat database %s", fn)
+	logui.Warning("Nuking chat database %s", fn)
 
 	teamLoader := c.G().GetTeamLoader()
 	if teamLoader != nil {
 		teamLoader.ClearMem()
 	}
-
 	// Now drop caches, since we had the DB's state in-memory too.
 	return c.G().ConfigureCaches()
 }

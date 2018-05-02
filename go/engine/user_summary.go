@@ -16,7 +16,7 @@ type UserSummary struct {
 	libkb.Contextified
 }
 
-func NewUserSummary(uids []keybase1.UID, g *libkb.GlobalContext) *UserSummary {
+func NewUserSummary(g *libkb.GlobalContext, uids []keybase1.UID) *UserSummary {
 	return &UserSummary{
 		uids:         uids,
 		Contextified: libkb.NewContextified(g),
@@ -44,7 +44,7 @@ func (e *UserSummary) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *UserSummary) Run(ctx *Context) error {
+func (e *UserSummary) Run(m libkb.MetaContext) error {
 	sums, err := e.get()
 	if err != nil {
 		return err

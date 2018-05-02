@@ -24,11 +24,12 @@ func NewScanProofsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ScanProof
 }
 
 // ScanProofs creates a ScanProofsEngine and runs it.
-func (h *ScanProofsHandler) ScanProofs(_ context.Context, arg keybase1.ScanProofsArg) error {
-	ctx := engine.Context{
+func (h *ScanProofsHandler) ScanProofs(ctx context.Context, arg keybase1.ScanProofsArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewScanProofsEngine(arg.Infile, arg.Indices, arg.Sigid, arg.Ratelimit, arg.Cachefile, arg.Ignorefile, h.G())
-	return engine.RunEngine(eng, &ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }

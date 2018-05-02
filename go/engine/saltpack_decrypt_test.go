@@ -66,7 +66,6 @@ func TestSaltpackDecrypt(t *testing.T) {
 	}
 	out := sink.String()
 
-
 	t.Logf("encrypted data: %s", out)
 
 	// decrypt it

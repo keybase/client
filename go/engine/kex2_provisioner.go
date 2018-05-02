@@ -133,7 +133,7 @@ func (e *Kex2Provisioner) loadSecretKeys(m libkb.MetaContext) (err error) {
 		Me:      e.me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	e.signingKey, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska1, "new device install"))
+	e.signingKey, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska1, "new device install"))
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (e *Kex2Provisioner) loadSecretKeys(m libkb.MetaContext) (err error) {
 		Me:      e.me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska2, "new device install"))
+	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska2, "new device install"))
 	if err != nil {
 		return err
 	}

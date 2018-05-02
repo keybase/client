@@ -82,7 +82,7 @@ func (e *SaltpackSign) loadKey(m libkb.MetaContext) error {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	key, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska, "signing a message/file"))
+	key, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "signing a message/file"))
 	if err != nil {
 		return err
 	}

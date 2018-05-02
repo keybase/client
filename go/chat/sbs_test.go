@@ -52,20 +52,21 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 		Auto:     true,
 	}
 
-	eng := engine.NewProve(&arg, g)
+	eng := engine.NewProve(g, &arg)
 
 	proveUI := &ProveRooterUI{Username: fu.Username}
 
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 
-	require.NoError(t, engine.RunEngine(eng, &ctx))
+	require.NoError(t, engine.RunEngine2(m, eng))
 
 	checkEng := engine.NewProveCheck(g, eng.SigID())
-	require.NoError(t, engine.RunEngine(checkEng, &ctx))
+	require.NoError(t, engine.RunEngine2(m, checkEng))
 	found, status, state, text := checkEng.Results()
 	if !found {
 		t.Errorf("proof not found, expected to be found")

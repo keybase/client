@@ -142,7 +142,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
 		m.CDebugf("| GetSecretKeyWithPrompt")
-		key, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, ska, "decrypting a message/file"))
+		key, err = m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "decrypting a message/file"))
 		if err != nil {
 			return err
 		}

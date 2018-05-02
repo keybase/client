@@ -151,7 +151,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, secretKeyArgDH, "encrypting a message/file"))
+		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceSigningKeyType,
 		}
-		signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, SecretKeyPromptArg(m.UIs().SecretUI, secretKeyArgSigning, "signing a message/file"))
+		signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
 		if err != nil {
 			return err
 		}

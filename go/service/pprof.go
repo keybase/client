@@ -12,13 +12,11 @@ import (
 	"runtime/trace"
 	"time"
 
-	"golang.org/x/net/context"
-
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 type PprofHandler struct {
@@ -145,11 +143,8 @@ func (cpuProfiler) Stop() {
 }
 
 func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	return doTimedProfile(ctx.LogUI, c.G().Log, cpuProfiler{}, arg.ProfileFile, arg.ProfileDurationSeconds)
+	logui := c.getLogUI(arg.SessionID)
+	return doTimedProfile(logui, c.G().Log, cpuProfiler{}, arg.ProfileFile, arg.ProfileDurationSeconds)
 }
 
 func (c *PprofHandler) logDir(logDirForMobile string) string {
@@ -162,11 +157,8 @@ func (c *PprofHandler) logDir(logDirForMobile string) string {
 }
 
 func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogProcessorProfileArg) (err error) {
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	return doTimedProfileInDir(ctx.LogUI, c.G().Log, cpuProfiler{}, c.logDir(arg.LogDirForMobile), arg.ProfileDurationSeconds)
+	logui := c.getLogUI(arg.SessionID)
+	return doTimedProfileInDir(logui, c.G().Log, cpuProfiler{}, c.logDir(arg.LogDirForMobile), arg.ProfileDurationSeconds)
 }
 
 type traceProfiler struct{}
@@ -191,22 +183,12 @@ func (traceProfiler) Stop() {
 	trace.Stop()
 }
 
-func (c *PprofHandler) trace(ctx engine.Context, traceFile string, traceDurationSeconds keybase1.DurationSec) (err error) {
-	return doTimedProfile(ctx.LogUI, c.G().Log, traceProfiler{}, traceFile, traceDurationSeconds)
-}
-
 func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	return doTimedProfile(ctx.LogUI, c.G().Log, traceProfiler{}, arg.TraceFile, arg.TraceDurationSeconds)
+	logui := c.getLogUI(arg.SessionID)
+	return doTimedProfile(logui, c.G().Log, traceProfiler{}, arg.TraceFile, arg.TraceDurationSeconds)
 }
 
 func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(arg.SessionID),
-		SessionID: arg.SessionID,
-	}
-	return doTimedProfileInDir(ctx.LogUI, c.G().Log, traceProfiler{}, c.logDir(arg.LogDirForMobile), arg.TraceDurationSeconds)
+	logui := c.getLogUI(arg.SessionID)
+	return doTimedProfileInDir(logui, c.G().Log, traceProfiler{}, c.logDir(arg.LogDirForMobile), arg.TraceDurationSeconds)
 }

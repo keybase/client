@@ -251,14 +251,13 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	return c, nil
 }
 
-func (h ConfigHandler) SetUserConfig(_ context.Context, arg keybase1.SetUserConfigArg) (err error) {
-	eng := engine.NewUserConfigEngine(&engine.UserConfigEngineArg{
+func (h ConfigHandler) SetUserConfig(ctx context.Context, arg keybase1.SetUserConfigArg) (err error) {
+	eng := engine.NewUserConfigEngine(h.G(), &engine.UserConfigEngineArg{
 		Key:   arg.Key,
 		Value: arg.Value,
-	}, h.G())
-
-	ctx := &engine.Context{}
-	err = engine.RunEngine(eng, ctx)
+	})
+	m := libkb.NewMetaContext(ctx, h.G())
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		return err
 	}
