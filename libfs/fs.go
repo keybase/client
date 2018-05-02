@@ -855,15 +855,17 @@ func (o folderHandleChangeObserver) TlfHandleChange(
 	o()
 }
 
-// SubscribeToEndOfLife returns a context that will be canceled when this *FS
+// SubscribeToEndOfLife returns a channel that will be closed when this *FS
 // reaches end-of-life, meaning if user of this object caches it for long term
 // use, it should invalide this entry and create a new one using NewFS.
-func (fs *FS) SubscribeToEndOfLife() (ctx context.Context, err error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	if err = fs.config.Notifier().RegisterForChanges(
+func (fs *FS) SubscribeToEndOfLife() (<-chan struct{}, error) {
+	c := make(chan struct{})
+	once := &sync.Once{}
+	cancel := folderHandleChangeObserver(func() { once.Do(func() { close(c) }) })
+	if err := fs.config.Notifier().RegisterForChanges(
 		[]libkbfs.FolderBranch{fs.root.GetFolderBranch()},
 		folderHandleChangeObserver(cancel)); err != nil {
 		return nil, err
 	}
-	return ctx, nil
+	return c, nil
 }

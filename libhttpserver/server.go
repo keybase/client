@@ -70,13 +70,13 @@ func (s *Server) handleBadRequest(w http.ResponseWriter) {
 }
 
 type endOfLifeTrackingFS struct {
-	fs  *libfs.FS
-	ctx context.Context
+	fs *libfs.FS
+	ch <-chan struct{}
 }
 
 func (e endOfLifeTrackingFS) isEndOfLife() bool {
 	select {
-	case <-e.ctx.Done():
+	case <-e.ch:
 		return true
 	default:
 		return false
@@ -117,12 +117,12 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 		return "", nil, err
 	}
 
-	fsLifeCtx, err := tlfFS.SubscribeToEndOfLife()
+	fsLifeCh, err := tlfFS.SubscribeToEndOfLife()
 	if err != nil {
 		return "", nil, err
 	}
 
-	s.fs.Add(toStrip, endOfLifeTrackingFS{fs: tlfFS, ctx: fsLifeCtx})
+	s.fs.Add(toStrip, endOfLifeTrackingFS{fs: tlfFS, ch: fsLifeCh})
 
 	return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 }
@@ -131,16 +131,16 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 // For example:
 //     /team/keybase/file.txt?token=1234567890abcdef1234567890abcdef
 func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
-	s.logger.Info("incoming request from %q: %s", req.UserAgent(), req.URL)
+	s.logger.Debug("Incoming request from %q: %s", req.UserAgent(), req.URL)
 	token := req.URL.Query().Get("token")
 	if len(token) == 0 || !s.tokens.Contains(token) {
-		s.logger.Info("invalid token %q", token)
+		s.logger.Info("Invalid token %q", token)
 		s.handleInvalidToken(w)
 		return
 	}
 	toStrip, fs, err := s.getHTTPFileSystem(req.Context(), req.URL.Path)
 	if err != nil {
-		s.logger.Warning("bad request. error=%v", err)
+		s.logger.Warning("Bad request; error=%v", err)
 		s.handleBadRequest(w)
 		return
 	}
@@ -171,17 +171,16 @@ var additionalMimeTypes = map[string]string{
 	".mm":    "text/plain",
 	".swift": "text/plain",
 	".flow":  "text/plain",
-
-	".php":  "text/plain",
-	".pl":   "text/plain",
-	".sh":   "text/plain",
-	".js":   "text/plain",
-	".json": "text/plain",
-	".sql":  "text/plain",
-	".rs":   "text/plain",
-	".xml":  "text/plain",
-	".tex":  "text/plain",
-	".pub":  "text/plain",
+	".php":   "text/plain",
+	".pl":    "text/plain",
+	".sh":    "text/plain",
+	".js":    "text/plain",
+	".json":  "text/plain",
+	".sql":   "text/plain",
+	".rs":    "text/plain",
+	".xml":   "text/plain",
+	".tex":   "text/plain",
+	".pub":   "text/plain",
 }
 
 const portStart = 7000
@@ -208,7 +207,7 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	}
 	s.server.Handle(requestPathRoot,
 		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
-	libmime.Patch(overrideMimeType, additionalMimeTypes)
+	libmime.Patch(additionalMimeTypes, overrideMimeType)
 	return s, nil
 }
 
