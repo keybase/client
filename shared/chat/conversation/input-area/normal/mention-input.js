@@ -59,16 +59,17 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
 
   _replaceWordAtCursor = (newWord: string) => {
     if (this._inputRef) {
-      this._inputRef.transformText(({text, selection}) => {
+      this._inputRef.transformText(textInfo => {
+        const {text, selection} = textInfo
         if (selection.start !== selection.end) {
-          return {text, selection}
+          return textInfo
         }
         const pos = selection.start
 
         const word = this._getWordAtCursor(text, pos)
         const startOfWordIdx = pos - word.length
         if (startOfWordIdx < 0) {
-          return {text, selection}
+          return textInfo
         }
 
         const newText = text.slice(0, startOfWordIdx) + newWord + text.slice(pos)
