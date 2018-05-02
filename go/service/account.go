@@ -51,13 +51,13 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.Passph
 }
 
 func (h *AccountHandler) EmailChange(nctx context.Context, arg keybase1.EmailChangeArg) error {
-	ctx := &engine.Context{
+	uis := libkb.UIs {
 		SessionID:  arg.SessionID,
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
-		NetContext: nctx,
 	}
-	eng := engine.NewEmailChange(&arg, h.G())
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(nctx, h.G()).WithUIs(uis)
+	eng := engine.NewEmailChange(h.G(), &arg)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *AccountHandler) HasServerKeys(ctx context.Context, sessionID int) (res keybase1.HasServerKeysRes, err error) {
