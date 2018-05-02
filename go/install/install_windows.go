@@ -166,6 +166,43 @@ func InstallLogPath() (string, error) {
 	return logName, err
 }
 
+// WatchdogLogPath combines a handful of watchdog logs in to one for
+// server upload.
+func WatchdogLogPath(logGlobPath string) (string, error) {
+	// Get the 5 newest watchdog logs - sorting by name works because timestamp
+	watchdogLogFiles, err := filepath.Glob(logGlobPath)
+	sort.Sort(sort.Reverse(sort.StringSlice(watchdogLogFiles)))
+	if len(watchdogLogFiles) > 5 {
+		watchdogLogFiles = watchdogLogFiles[:5]
+	}
+
+	logName, logFile, err := libkb.OpenTempFile("KeybaseWatchdogUpload", ".log", 0)
+	defer logFile.Close()
+	if err != nil {
+		return "", err
+	}
+
+	if len(watchdogLogFiles) == 0 {
+		fmt.Fprintf(logFile, "   --- NO WATCHDOG LOGS FOUND!?! ---\n")
+	}
+	for _, path := range watchdogLogFiles {
+		fmt.Fprintf(logFile, "   --- %s ---\n", path)
+
+		// append the files
+		logContent, err := ioutil.ReadFile(path)
+
+		if err == nil {
+			//And we add its content to the "final" variable
+			_, err = logFile.Write(logContent)
+		} 
+		if err != nil  {
+			fmt.Fprintf(logFile, "error: %s\n", err.Error())
+		}
+	}
+
+	return logName, err
+}
+
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
 	cmd := exec.Command("cmd", "ver")
