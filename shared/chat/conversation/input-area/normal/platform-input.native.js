@@ -8,9 +8,9 @@ import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from '.'
+import type {PlatformInputProps} from './types'
 
-class ConversationInput extends Component<Props> {
+class PlatformInput extends Component<PlatformInputProps> {
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -65,6 +65,7 @@ class ConversationInput extends Component<Props> {
         )}
         <Box style={styles.container}>
           {this.props.isEditing && (
+            // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
               <Text type="BodySmall">Editing:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
@@ -80,7 +81,10 @@ class ConversationInput extends Component<Props> {
             hideUnderline={true}
             hintText={hintText}
             multiline={true}
+            onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
+            // TODO: Call onCancelQuoting on text change or selection
+            // change to match desktop.
             onChangeText={this.props.onChangeText}
             ref={this.props.inputSetRef}
             onSelectionChange={this.props.onSelectionChange}
@@ -235,4 +239,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default ConversationInput
+export default PlatformInput

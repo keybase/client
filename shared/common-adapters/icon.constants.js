@@ -136,6 +136,16 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-facebook-visibility.gif'),
   },
+  'icon-fancy-bomb-129-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-bomb-129-96.png'),
+  },
+  'icon-fancy-bomb-86-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-bomb-86-64.png'),
+  },
   'icon-fancy-chat-103-x-75': {
     isFont: false,
     extension: 'png',

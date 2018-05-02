@@ -5,21 +5,10 @@ import {Box, Icon, Input, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles} from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
-import {compose, withHandlers, withStateHandlers} from 'recompose'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from '.'
-
-type InputProps = {
-  inputSelections: () => {selectionStart?: number, selectionEnd?: number},
-  emojiPickerOpen: boolean,
-  emojiPickerToggle: () => void,
-  filePickerFiles: () => FileList | [],
-  filePickerOpen: () => void,
-  filePickerSetValue: (value: string) => void,
-  filePickerSetRef: (r: ?HTMLInputElement) => void,
-} & Props
+import type {PlatformInputProps} from './types'
 
 const MentionCatcher = ({onClick}) => (
   <Box
@@ -31,7 +20,76 @@ const MentionCatcher = ({onClick}) => (
   />
 )
 
-class ConversationInput extends Component<InputProps> {
+type State = {
+  emojiPickerOpen: boolean,
+}
+
+class PlatformInput extends Component<PlatformInputProps, State> {
+  _input: ?Input
+  _fileInput: ?HTMLInputElement
+
+  constructor(props: PlatformInputProps) {
+    super(props)
+    this.state = {
+      emojiPickerOpen: false,
+    }
+  }
+
+  _inputSetRef = (ref: ?Input) => {
+    this._input = ref
+    this.props.inputSetRef(ref)
+  }
+
+  _inputFocus = () => {
+    this._input && this._input.focus()
+  }
+
+  _inputSelections = () => {
+    const selections = this._input ? this._input.selections() : null
+    if (selections) {
+      return selections
+    }
+    return {
+      selectionStart: 0,
+      selectionEnd: 0,
+    }
+  }
+
+  _emojiPickerToggle = () => {
+    this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
+  }
+
+  _filePickerFiles = () => (this._fileInput && this._fileInput.files) || []
+
+  _filePickerOpen = () => {
+    this._fileInput && this._fileInput.click()
+  }
+
+  _filePickerSetRef = (r: ?HTMLInputElement) => {
+    this._fileInput = r
+  }
+
+  _filePickerSetValue = (value: string) => {
+    if (this._fileInput) this._fileInput.value = value
+  }
+
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    if (this.props.pendingWaiting) {
+      return
+    }
+
+    // TODO: Also call onCancelQuoting on mobile.
+    this.props.onCancelQuoting()
+
+    const text = this._input ? this._input.getValue() : ''
+    if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
+      this.props.onEditLastMessage()
+    } else if (e.key === 'Escape' && this.props.isEditing) {
+      this.props.onCancelEditing()
+    }
+    this.props.onKeyDown && this.props.onKeyDown(e)
+  }
+
   componentDidMount() {
     this._registerBodyEvents(true)
   }
@@ -71,28 +129,28 @@ class ConversationInput extends Component<InputProps> {
       'Enter',
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
-      this.props.inputFocus()
+      this._inputFocus()
     }
   }
 
   _insertEmoji(emojiColons: string) {
-    const {selectionStart = 0, selectionEnd = 0} = this.props.inputSelections()
+    const {selectionStart, selectionEnd} = this._inputSelections()
     const nextText = [
       this.props.text.substring(0, selectionStart),
       emojiColons,
       this.props.text.substring(selectionEnd),
     ].join('')
     this.props.setText(nextText)
-    this.props.inputFocus()
+    this._inputFocus()
   }
 
   _pickerOnClick = emoji => {
     this._insertEmoji(emoji.colons)
-    this.props.emojiPickerToggle()
+    this._emojiPickerToggle()
   }
 
   _pickFile = () => {
-    const fileList = this.props.filePickerFiles()
+    const fileList = this._filePickerFiles()
     const paths = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
@@ -107,7 +165,7 @@ class ConversationInput extends Component<InputProps> {
     if (paths) {
       this.props.onAttach(paths)
     }
-    this.props.filePickerSetValue('')
+    this._filePickerSetValue('')
   }
 
   _mentionCatcherClick = () => {
@@ -119,7 +177,9 @@ class ConversationInput extends Component<InputProps> {
   }
 
   _onFocus = () => {
-    this.props.clearInboxFilter()
+    if (!this.props.pendingWaiting) {
+      this.props.clearInboxFilter()
+    }
   }
 
   render() {
@@ -176,7 +236,7 @@ class ConversationInput extends Component<InputProps> {
             <input
               type="file"
               style={{display: 'none'}}
-              ref={this.props.filePickerSetRef}
+              ref={this._filePickerSetRef}
               onChange={this._pickFile}
               multiple={true}
             />
@@ -187,7 +247,7 @@ class ConversationInput extends Component<InputProps> {
               onFocus={this._onFocus}
               small={true}
               style={styleInput}
-              ref={this.props.inputSetRef}
+              ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
               onChangeText={this.props.setText}
@@ -195,20 +255,20 @@ class ConversationInput extends Component<InputProps> {
               multiline={true}
               rowsMin={1}
               rowsMax={5}
-              onKeyDown={this.props.onKeyDown}
+              onKeyDown={this._onKeyDown}
               onKeyUp={this.props.onKeyUp}
               onEnterKeyDown={this.props.onEnterKeyDown}
             />
-            {this.props.emojiPickerOpen && (
-              <EmojiPicker emojiPickerToggle={this.props.emojiPickerToggle} onClick={this._pickerOnClick} />
+            {this.state.emojiPickerOpen && (
+              <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
             <Icon
-              onClick={this.props.pendingWaiting ? undefined : this.props.emojiPickerToggle}
+              onClick={this.props.pendingWaiting ? undefined : this._emojiPickerToggle}
               style={styleIcon}
               type="iconfont-emoji"
             />
             <Icon
-              onClick={this.props.pendingWaiting ? undefined : this.props.filePickerOpen}
+              onClick={this.props.pendingWaiting ? undefined : this._filePickerOpen}
               style={styleIcon}
               type="iconfont-attachment"
             />
@@ -225,11 +285,7 @@ class ConversationInput extends Component<InputProps> {
             >
               {isTyping(this.props.typing)}
             </Text>
-            <Text
-              type="BodySmall"
-              style={{...styleFooter, textAlign: 'right'}}
-              onClick={this.props.inputFocus}
-            >
+            <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this._inputFocus}>
               *bold*, _italics_, `code`, >quote
             </Text>
           </Box>
@@ -347,24 +403,4 @@ const styleFooter = platformStyles({
   },
 })
 
-export default compose(
-  withStateHandlers(
-    {emojiPickerOpen: false},
-    {emojiPickerToggle: ({emojiPickerOpen}) => () => ({emojiPickerOpen: !emojiPickerOpen})}
-  ),
-  withHandlers(props => {
-    let fileInput: ?HTMLInputElement
-    return {
-      filePickerFiles: props => () => (fileInput && fileInput.files) || [],
-      filePickerOpen: props => () => {
-        fileInput && fileInput.click()
-      },
-      filePickerSetRef: props => (r: ?HTMLInputElement) => {
-        fileInput = r
-      },
-      filePickerSetValue: props => (value: string) => {
-        if (fileInput) fileInput.value = value
-      },
-    }
-  })
-)(ConversationInput)
+export default PlatformInput

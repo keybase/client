@@ -76,11 +76,11 @@ function createClient(
   let packetizeCount = 0
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, payload => {
+    const buffer = toBuffer(toByteArray(payload))
     if (printBridgeB64) {
-      console.log(`PRINTBridge: JS got payload ${payload}`)
+      console.log(`PRINTBridge: JS got payload ${payload.length}: ${buffer.toString()}`)
     }
 
-    const buffer = toBuffer(toByteArray(payload))
     const measureName = `packetize${packetizeCount++}:${buffer.length}`
     measureStart(measureName)
     const ret = client.transport.packetize_data(buffer)

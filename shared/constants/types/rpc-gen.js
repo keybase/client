@@ -634,6 +634,10 @@ export const debuggingSecondStepRpcChannelMap = (configKeys: Array<string>, requ
 
 export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => (error ? reject(error) : resolve(result))))
 
+export const delegateUiCtlRegisterGregorFirehoseFilteredRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', request)
+
+export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
+
 export const delegateUiCtlRegisterGregorFirehoseRpcChannelMap = (configKeys: Array<string>, request: DelegateUiCtlRegisterGregorFirehoseRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.delegateUiCtl.registerGregorFirehose', request)
 
 export const delegateUiCtlRegisterGregorFirehoseRpcPromise = (request: DelegateUiCtlRegisterGregorFirehoseRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.delegateUiCtl.registerGregorFirehose', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2205,6 +2209,8 @@ export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int, incomingCallMap?: 
 
 export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type DelegateUiCtlRegisterGregorFirehoseFilteredRpcParam = $ReadOnly<{systems?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type DelegateUiCtlRegisterGregorFirehoseRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DelegateUiCtlRegisterHomeUIRpcParam = ?$ReadOnly<{incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
@@ -2351,7 +2357,7 @@ export type FileType =
   | 1 // DIRECTORY_1
   | 2 // FILE_2
 
-export type FindNextMDResponse = $ReadOnly<{merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
+export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
 

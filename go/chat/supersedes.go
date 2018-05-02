@@ -149,6 +149,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				delh, err := m.Valid().AsDeleteHistory()
 				if err == nil {
 					if delh.Upto > deleteHistoryUpto {
+						t.Debug(ctx, "found delete history: id: %v", m.GetMessageID())
 						deleteHistoryUpto = delh.Upto
 					}
 				}
@@ -169,10 +170,13 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			}
 			if newMsg == nil {
 				// Transform might return nil in case of a delete.
+				t.Debug(ctx, "skipping: %d because it was deleted", msg.GetMessageID())
 				continue
 			}
 			if newMsg.GetMessageID() < deleteHistoryUpto && chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
 				// Hide messages which are or should have been deleted by a DeleteHistory.
+				t.Debug(ctx, "skipping: %d because of delete history: %v", msg.GetMessageID(),
+					deleteHistoryUpto)
 				continue
 			}
 			if !newMsg.IsValidFull() {
@@ -185,9 +189,11 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 					// don't hide these yet
 					mvalid := newMsg.Valid()
 					if !mvalid.IsExploding() || mvalid.HideExplosion(time.Now()) {
+						t.Debug(ctx, "skipping: %d because not valid full", msg.GetMessageID())
 						continue
 					}
 				} else {
+					t.Debug(ctx, "skipping: %d because it is not valid", msg.GetMessageID())
 					continue
 				}
 			}

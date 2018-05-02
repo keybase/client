@@ -53,6 +53,7 @@ protocol metadata {
   }
 
   record FindNextMDResponse {
+     MerkleRoot kbfsRoot;
      array<bytes> merkleNodes;
      Seqno rootSeqno;
      HashMeta rootHash;

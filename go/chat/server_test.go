@@ -2380,14 +2380,28 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
+		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		editMsgID1 := editMsg(ctx, conv, msgID1)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
 		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		editMsgID2 := editMsg(ctx, conv, msgID2)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
 		msgID3 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		msgRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
 			ConversationID: conv.Id,
 			MessageIDs:     []chat1.MessageID{msgID3},
