@@ -195,32 +195,33 @@ func (h *PGPHandler) PGPImport(ctx context.Context, arg keybase1.PGPImportArg) e
 }
 
 type exporter interface {
-	engine.Engine
+	engine.Engine2
 	Results() []keybase1.KeyInfo
 }
 
-func (h *PGPHandler) export(sessionID int, ex exporter) ([]keybase1.KeyInfo, error) {
-	ctx := &engine.Context{
+func (h *PGPHandler) export(ctx context.Context, sessionID int, ex exporter) ([]keybase1.KeyInfo, error) {
+	uis := libkb.UIs{
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		LogUI:     h.getLogUI(sessionID),
 		SessionID: sessionID,
 	}
-	if err := engine.RunEngine(ex, ctx); err != nil {
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, ex); err != nil {
 		return nil, err
 	}
 	return ex.Results(), nil
 }
 
-func (h *PGPHandler) PGPExport(_ context.Context, arg keybase1.PGPExportArg) (ret []keybase1.KeyInfo, err error) {
-	return h.export(arg.SessionID, engine.NewPGPKeyExportEngine(arg, h.G()))
+func (h *PGPHandler) PGPExport(ctx context.Context, arg keybase1.PGPExportArg) (ret []keybase1.KeyInfo, err error) {
+	return h.export(ctx, arg.SessionID, engine.NewPGPKeyExportEngine(h.G(), arg))
 }
 
-func (h *PGPHandler) PGPExportByKID(_ context.Context, arg keybase1.PGPExportByKIDArg) (ret []keybase1.KeyInfo, err error) {
-	return h.export(arg.SessionID, engine.NewPGPKeyExportByKIDEngine(arg, h.G()))
+func (h *PGPHandler) PGPExportByKID(ctx context.Context, arg keybase1.PGPExportByKIDArg) (ret []keybase1.KeyInfo, err error) {
+	return h.export(ctx, arg.SessionID, engine.NewPGPKeyExportByKIDEngine(h.G(), arg))
 }
 
-func (h *PGPHandler) PGPExportByFingerprint(_ context.Context, arg keybase1.PGPExportByFingerprintArg) (ret []keybase1.KeyInfo, err error) {
-	return h.export(arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(arg, h.G()))
+func (h *PGPHandler) PGPExportByFingerprint(ctx context.Context, arg keybase1.PGPExportByFingerprintArg) (ret []keybase1.KeyInfo, err error) {
+	return h.export(ctx, arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(h.G(), arg))
 }
 
 func (h *PGPHandler) PGPKeyGen(ctx context.Context, arg keybase1.PGPKeyGenArg) error {

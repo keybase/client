@@ -32,19 +32,20 @@ func NewTrackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *TrackHandler {
 }
 
 // Track creates a TrackEngine and runs it.
-func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) (keybase1.ConfirmResult, error) {
+func (h *TrackHandler) Track(ctx context.Context, arg keybase1.TrackArg) (keybase1.ConfirmResult, error) {
 	earg := engine.TrackEngineArg{
 		UserAssertion:    arg.UserAssertion,
 		Options:          arg.Options,
 		ForceRemoteCheck: arg.ForceRemoteCheck,
 	}
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
-	eng := engine.NewTrackEngine(&earg, h.G())
-	err := engine.RunEngine(eng, &ctx)
+	eng := engine.NewTrackEngine(h.G(), &earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
 	res := eng.ConfirmResult()
 	return res, err
 }

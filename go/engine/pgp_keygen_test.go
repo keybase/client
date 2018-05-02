@@ -44,9 +44,8 @@ func TestPGPKeyGenPush(t *testing.T) {
 			Query:  pgpUI.Generated.Key.Fingerprint,
 		},
 	}
-	xe := NewPGPKeyExportEngine(xarg, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe := NewPGPKeyExportEngine(tc.G, xarg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 	if len(xe.Results()) != 1 {
@@ -89,9 +88,8 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 			Query:  pgpUI.Generated.Key.Fingerprint,
 		},
 	}
-	xe := NewPGPKeyExportEngine(xarg, tc.G)
-	ctx := engineContextFromMetaContext(m)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe := NewPGPKeyExportEngine(tc.G, xarg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 	if len(xe.Results()) != 1 {
