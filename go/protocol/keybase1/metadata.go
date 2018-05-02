@@ -149,13 +149,15 @@ func (o LockContext) DeepCopy() LockContext {
 }
 
 type FindNextMDResponse struct {
-	MerkleNodes [][]byte `codec:"merkleNodes" json:"merkleNodes"`
-	RootSeqno   Seqno    `codec:"rootSeqno" json:"rootSeqno"`
-	RootHash    HashMeta `codec:"rootHash" json:"rootHash"`
+	KbfsRoot    MerkleRoot `codec:"kbfsRoot" json:"kbfsRoot"`
+	MerkleNodes [][]byte   `codec:"merkleNodes" json:"merkleNodes"`
+	RootSeqno   Seqno      `codec:"rootSeqno" json:"rootSeqno"`
+	RootHash    HashMeta   `codec:"rootHash" json:"rootHash"`
 }
 
 func (o FindNextMDResponse) DeepCopy() FindNextMDResponse {
 	return FindNextMDResponse{
+		KbfsRoot: o.KbfsRoot.DeepCopy(),
 		MerkleNodes: (func(x [][]byte) [][]byte {
 			if x == nil {
 				return nil

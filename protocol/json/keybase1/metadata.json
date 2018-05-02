@@ -145,6 +145,10 @@
       "name": "FindNextMDResponse",
       "fields": [
         {
+          "type": "MerkleRoot",
+          "name": "kbfsRoot"
+        },
+        {
           "type": {
             "type": "array",
             "items": "bytes"
