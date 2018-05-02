@@ -162,7 +162,7 @@ func TestTrackProofServiceBlocks(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}
-		runUntrack(tc.G, fu, test.name, sigVersion)
+		runUntrack(tc, fu, test.name, sigVersion)
 	}
 }
 
@@ -503,13 +503,14 @@ func _testTrackProofRooterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 	// revoke the rooter proof
 	Logout(tc)
 	proofUser.LoginOrBust(tc)
-	revEng := NewRevokeSigsEngine([]string{sigID.ToString(true)}, tc.G)
-	ctx := &Context{
+	revEng := NewRevokeSigsEngine(tc.G, []string{sigID.ToString(true)})
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: proofUser.NewSecretUI(),
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	if err := revEng.Run(ctx); err != nil {
+	if err := revEng.Run(m); err != nil {
 		t.Fatal(err)
 	}
 	Logout(tc)

@@ -27,7 +27,7 @@ func createUserWhoTracks(tc libkb.TestContext, trackedUsers []string, sigVersion
 
 func untrackUserList(tc libkb.TestContext, fu *FakeUser, trackedUsers []string, sigVersion libkb.SigVersion) {
 	for _, trackedUser := range trackedUsers {
-		if err := runUntrack(tc.G, fu, trackedUser, sigVersion); err != nil {
+		if err := runUntrack(tc, fu, trackedUser, sigVersion); err != nil {
 			tc.T.Fatal("Error while untracking", trackedUser, err)
 		}
 	}

@@ -90,24 +90,26 @@ func (h *LoginHandler) PaperKeySubmit(ctx context.Context, arg keybase1.PaperKey
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
-	ctx := &engine.Context{
+func (h *LoginHandler) Unlock(ctx context.Context, sessionID int) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: sessionID,
 	}
 	eng := engine.NewUnlock(h.G())
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
-func (h *LoginHandler) UnlockWithPassphrase(_ context.Context, arg keybase1.UnlockWithPassphraseArg) error {
-	ctx := &engine.Context{
+func (h *LoginHandler) UnlockWithPassphrase(ctx context.Context, arg keybase1.UnlockWithPassphraseArg) error {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewUnlockWithPassphrase(h.G(), arg.Passphrase)
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {

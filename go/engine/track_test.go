@@ -393,7 +393,7 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 		trackFail(dev2, fui2, (i == 0))
 	}
 
-	runUntrack(dev1.G, user, trackee, sigVersion)
+	runUntrack(dev1, user, trackee, sigVersion)
 }
 
 func TestTrackNoKeys(t *testing.T) {

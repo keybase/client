@@ -250,8 +250,8 @@ func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
 
 func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
 	eng := engine.NewProfileEdit(h.G(), arg)
-	ctx := &engine.Context{NetContext: nctx}
-	return engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(nctx, h.G())
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (string, error) {

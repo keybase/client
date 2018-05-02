@@ -70,7 +70,7 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, g)
+	eng := NewProve(g, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
@@ -98,13 +98,13 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: secretUI,
 		ProveUI:  proveUI,
 	}
-
-	err := RunEngine(eng, &ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	return proveUI, eng.sigID, err
 }
 
@@ -118,7 +118,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigV
 		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, g)
+	eng := NewProve(g, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		apiArg := libkb.APIArg{
@@ -142,13 +142,13 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigV
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
-
-	err := RunEngine(eng, &ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	return proveUI, err
 }
 
@@ -174,7 +174,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, g)
+	eng := NewProve(g, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
@@ -203,12 +203,12 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
-
-	err := RunEngine(eng, &ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	return proveUI, eng.sigID, err
 }
