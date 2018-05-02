@@ -2351,7 +2351,7 @@ export type FileType =
   | 1 // DIRECTORY_1
   | 2 // FILE_2
 
-export type FindNextMDResponse = $ReadOnly<{merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
+export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
 

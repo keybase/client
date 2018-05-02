@@ -386,7 +386,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		for _, conv := range incr.Convs {
 			// Any conversation with a delete in it needs to be checked for expunge
 			if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
-				s.G().ConvSource.ExpungeFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
+				s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
 			}
 			// Queue background conversation loads
 			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},

@@ -285,21 +285,9 @@ func BenchmarkStorageSimpleBlockEngine(b *testing.B) {
 	doSimpleBench(b, storage, uid)
 }
 
-func BenchmarkStorageSimpleMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.Context()))
-	doSimpleBench(b, storage, uid)
-}
-
 func BenchmarkStorageCommonBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
 	storage.setEngine(newBlockEngine(tc.Context()))
-	doCommonBench(b, storage, uid)
-}
-
-func BenchmarkStorageCommonMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.Context()))
 	doCommonBench(b, storage, uid)
 }
 
@@ -309,22 +297,10 @@ func BenchmarkStorageRandomBlockEngine(b *testing.B) {
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
-func BenchmarkStorageRandomMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.Context()))
-	doRandomBench(b, storage, uid, 127, 1)
-}
-
 func BenchmarkStorageRandomLongBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
 	storage.setEngine(newBlockEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 127, 1)
-}
-
-func BenchmarkStorageRandomLongMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
-	storage.setEngine(newMsgEngine(tc.Context()))
-	doRandomBench(b, storage, uid, 1757, 50)
 }
 
 func TestStorageBasic(t *testing.T) {
@@ -859,6 +835,25 @@ func TestStorageFetchMessages(t *testing.T) {
 		}
 	}
 	require.Equal(t, 1, nils, "wrong number of nils")
+}
+
+func TestStorageClearMessages(t *testing.T) {
+	_, storage, uid := setupStorageTest(t, "clearMessages")
+
+	msgs := makeMsgRange(20)
+	conv := makeConversation(20)
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
+
+	ctx := context.TODO()
+	tv, err := storage.Fetch(ctx, conv, uid, nil, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 20, len(tv.Messages))
+	require.NoError(t, storage.ClearBefore(ctx, conv.GetConvID(), uid, 10))
+	tv, err = storage.Fetch(ctx, conv, uid, NewInsatiableResultCollector(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 11, len(tv.Messages))
+	require.Equal(t, chat1.MessageID(20), tv.Messages[0].GetMessageID())
+	require.Equal(t, chat1.MessageID(10), tv.Messages[len(tv.Messages)-1].GetMessageID())
 }
 
 func TestStorageServerVersion(t *testing.T) {
