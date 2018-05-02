@@ -166,8 +166,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID,
-		false /* all */, false /* countMembers */, arg.IncludeImplicitTeams)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, false /* countMembers */, arg.IncludeImplicitTeams)
 	if err != nil {
 		return nil, err
 	}
@@ -285,8 +284,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "", /*uid*/
-		true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams)
+	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams)
 	if err != nil {
 		return nil, err
 	}
@@ -694,8 +692,7 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 }
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
-	serverList, err := getTeamsListFromServer(ctx, g, "",
-		false /* all */, false /* countMembers */, false /* includeImplicitTeams */)
+	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false /* all */, false /* countMembers */, false /* includeImplicitTeams */)
 	if err != nil {
 		return res, err
 	}
