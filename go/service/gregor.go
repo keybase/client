@@ -127,13 +127,12 @@ func (h *gregorFirehoseHandler) PushOutOfBandMessages(v []gregor1.OutOfBandMessa
 
 	// Filter OOBMs down to wanted systems if we have a filter installed
 	v = h.filterOOBMs(v)
+	h.G().Log.Debug("gregorFirehoseHandler#PushOutOfBandMessages: %d message(s) (%d before filter)", len(v), nOrig)
 
 	if len(v) == 0 {
-		if nOrig > 0 {
-			h.G().Log.Debug("gregorFirehoseHandler#PushOutOfBandMessages: all messages filtered out")
-		}
 		return
 	}
+
 	err := h.cli.PushOutOfBandMessages(context.Background(), v)
 	if err != nil {
 		h.G().Log.Error(fmt.Sprintf("Error in firehose push out-of-band messages: %s", err))
