@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Avatar, Box2, FloatingMenu, Icon, Text} from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
-import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
+import {formatTimeForPopup, formatTimeForRevoked} from '../../../../../util/timestamp'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -26,6 +26,17 @@ type Props = {
 
 type State = {
   secondsLeft: number,
+}
+
+function secondsToDHMS(seconds: number): string {
+  let mins = Math.floor(seconds / 60)
+  let hours = Math.floor(mins / 60)
+  let days = Math.floor(hours / 24)
+  let secs = seconds % 60
+  hours = hours % 24
+  mins = mins % 60
+
+  return `${days}d ${hours}h ${mins}m ${secs}s`
 }
 
 class ExplodingPopupHeader extends React.Component<Props, State> {

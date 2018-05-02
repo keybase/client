@@ -86,14 +86,3 @@ export function daysToLabel(days: number): string {
   }
   return label
 }
-
-export function secondsToDHMS(seconds: number): string {
-  let mins = Math.floor(seconds / 60)
-  let hours = Math.floor(mins / 60)
-  let days = Math.floor(hours / 24)
-  let secs = seconds % 60
-  hours = hours % 24
-  mins = mins % 60
-
-  return `${days}d ${hours}h ${mins}m ${secs}s`
-}
