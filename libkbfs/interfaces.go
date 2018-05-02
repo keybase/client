@@ -667,7 +667,11 @@ type KBPKI interface {
 	gitMetadataPutter
 
 	// HasVerifyingKey returns nil if the given user has the given
-	// VerifyingKey, and an error otherwise.
+	// VerifyingKey, and an error otherwise.  If the revoked key was
+	// valid according to the untrusted server timestamps, a special
+	// error type `RevokedDeviceVerificationError` is returned, which
+	// includes information the caller can use to verify the key using
+	// the merkle tree.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey kbfscrypto.VerifyingKey,
 		atServerTime time.Time) error

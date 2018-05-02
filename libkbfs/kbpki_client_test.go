@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -116,7 +117,7 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 	// Something verified before the key was revoked
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
 		revokedKey, revokeTime.Add(-10*time.Second))
-	if err != nil {
+	if _, ok := errors.Cause(err).(RevokedDeviceVerificationError); !ok {
 		t.Error(err)
 	}
 

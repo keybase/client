@@ -53,14 +53,36 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
+func (md *MDOpsStandard) verifyKey(
+	ctx context.Context, rmds *RootMetadataSigned,
+	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (err error) {
+	err = md.config.KBPKI().HasVerifyingKey(ctx, uid, verifyingKey,
+		rmds.untrustedServerTimestamp)
+	var info revokedKeyInfo
+	switch e := errors.Cause(err).(type) {
+	case nil:
+		return nil
+	case RevokedDeviceVerificationError:
+		info = e.info
+		// Fall through to check via the merkle tree.
+	default:
+		return err
+	}
+
+	md.log.CDebugf(ctx, "Revision %d for %s was signed by a device that was "+
+		"revoked at time=%d,root=%d; checking via Merkle",
+		rmds.MD.RevisionNumber(), rmds.MD.TlfID(), info.Time,
+		info.MerkleRoot.Seqno)
+	return nil
+}
+
 func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	rmds *RootMetadataSigned, handle *TlfHandle,
 	getRangeLock *sync.Mutex) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
-		err := md.config.KBPKI().HasVerifyingKey(ctx,
-			rmds.MD.LastModifyingWriter(),
-			rmds.GetWriterMetadataSigInfo().VerifyingKey,
-			rmds.untrustedServerTimestamp)
+		err := md.verifyKey(
+			ctx, rmds, rmds.MD.LastModifyingWriter(),
+			rmds.GetWriterMetadataSigInfo().VerifyingKey)
 		if err != nil {
 			return md.convertVerifyingKeyError(ctx, rmds, handle, err)
 		}
@@ -179,7 +201,7 @@ func (e everyoneOnEveryTeamChecker) IsTeamReader(
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
-	// First, verify validity and signatures. Until KBFS-2229 is
+	// First, verify validity and signatures. Until KBFS-2904 is
 	// complete, KBFS doesn't check for team membership on MDs that
 	// have been fetched from the server, because if the writer has
 	// been removed from the team since the MD was written, we have no
@@ -188,7 +210,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// secret key as a way to prove that only an authorized team
 	// member wrote the update, along with trusting that the server
 	// would have rejected an update from a former team member that is
-	// still using an old key.  TODO(KBFS-2229): remove this.
+	// still using an old key.  TODO(KBFS-2904): remove this.
 	err := rmds.IsValidAndSigned(
 		ctx, md.config.Codec(),
 		everyoneOnEveryTeamChecker{}, extra)
@@ -204,9 +226,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return ImmutableRootMetadata{}, err
 	}
 
-	err = md.config.KBPKI().HasVerifyingKey(
-		ctx, rmds.MD.GetLastModifyingUser(), rmds.SigInfo.VerifyingKey,
-		rmds.untrustedServerTimestamp)
+	err = md.verifyKey(
+		ctx, rmds, rmds.MD.GetLastModifyingUser(), rmds.SigInfo.VerifyingKey)
 	if err != nil {
 		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
 	}

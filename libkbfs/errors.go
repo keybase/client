@@ -1159,3 +1159,17 @@ func (e DiskBlockCacheError) ToStatus() (s keybase1.Status) {
 func (e DiskBlockCacheError) Error() string {
 	return "DiskBlockCacheError{" + e.Msg + "}"
 }
+
+// RevokedDeviceVerificationError indicates that the user is trying to
+// verify a key that has been revoked.  It includes useful information
+// about the revocation, so the code receiving the error can check if
+// the device was valid at the time of the data being checked.
+type RevokedDeviceVerificationError struct {
+	info revokedKeyInfo
+}
+
+// Error implements the Error interface for RevokedDeviceVerificationError.
+func (e RevokedDeviceVerificationError) Error() string {
+	return fmt.Sprintf("Device was revoked at time %d, root seqno %d",
+		e.info.Time, e.info.MerkleRoot.Seqno)
+}
