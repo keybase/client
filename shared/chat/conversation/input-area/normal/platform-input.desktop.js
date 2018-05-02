@@ -78,7 +78,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
       return
     }
 
+    // TODO: Also call onCancelQuoting on mobile.
     this.props.onCancelQuoting()
+
     const text = this._input ? this._input.getValue() : ''
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       this.props.onEditLastMessage()

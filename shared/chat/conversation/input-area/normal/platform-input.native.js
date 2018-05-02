@@ -82,6 +82,8 @@ class PlatformInput extends Component<PlatformInputProps> {
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
+            // TODO: Call onCancelQuoting on text change or selection
+            // change to match desktop.
             onChangeText={this.props.onChangeText}
             ref={this.props.inputSetRef}
             onSelectionChange={this.props.onSelectionChange}
