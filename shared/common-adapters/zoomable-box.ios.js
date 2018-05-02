@@ -5,7 +5,9 @@ import type {Props} from './zoomable-box'
 
 export const ZoomableBox = (props: Props) => (
   <ScrollView
-    {...props}
+    children={props.children}
+    contentContainerStyle={props.contentContainerStyle}
+    style={props.style}
     minimumZoomScale={1}
     maximumZoomScale={props.maxZoom || 3}
     scrollsToTop={false}

@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 
-export type TimerProps = {
+export type TimerProps = {|
   setTimeout: (func: () => void, timing: number) => TimeoutID,
   clearTimeout: (id: TimeoutID) => void,
   setInterval: (func: () => void, timing: number) => IntervalID,
   clearInterval: (id: IntervalID) => void,
-}
+|}
 
 function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
