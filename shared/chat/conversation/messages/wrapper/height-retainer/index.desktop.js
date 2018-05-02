@@ -1,11 +1,14 @@
 // @flow
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import {resolveRootAsURL} from '../../../../../desktop/resolve-root'
+import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Box} from '../../../../../common-adapters'
 import {collapseStyles} from '../../../../../styles'
 import type {Props} from '.'
 
-const explodedIllustration = '../../../../../images/icons/icon-illustration-message-exploded-663-x-38.png'
+const explodedIllustration = resolveRootAsURL('../images/icons/icon-shh-24.png')
+const explodedIllustrationUrl = urlsToImgSet({'24': explodedIllustration}, 24)
 
 type State = {
   height: ?number,
@@ -33,7 +36,7 @@ class HeightRetainer extends React.Component<Props, State> {
           !!this.state.height &&
             this.props.retainHeight && {
               height: this.state.height,
-              backgroundImage: explodedIllustration,
+              backgroundImage: explodedIllustrationUrl,
               backgroundRepeat: 'repeat',
             },
         ])}
