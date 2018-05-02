@@ -52,6 +52,12 @@ protocol metadata {
     boolean releaseAfterSuccess;
   }
 
+  record FindNextMDResponse {
+     array<bytes> merkleNodes;
+     Seqno rootSeqno;
+     HashMeta rootHash;
+  }
+
   ChallengeInfo getChallenge();
   int authenticate(string signature);
   void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags, union{null, LockContext} lockContext, MDPriority priority);
@@ -80,7 +86,9 @@ protocol metadata {
   MerkleRoot getMerkleRootLatest(MerkleTreeID treeID);
   MerkleRoot getMerkleRootSince(MerkleTreeID treeID, Time when);
   bytes getMerkleNode(string hash);
+  FindNextMDResponse findNextMD(Seqno seqno, string folderID);
 
   // For testing.
   void setImplicitTeamModeForTest(string implicitTeamMode);
+  void forceMerkleBuildForTest();
 }

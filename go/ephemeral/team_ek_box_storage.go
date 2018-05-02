@@ -360,7 +360,7 @@ func (s *MemoryStorage) GetMap(teamID keybase1.TeamID) (teamEKBoxes TeamEKBoxMap
 	}
 	teamEKBoxes, ok := untyped.(TeamEKBoxMap)
 	if !ok {
-		s.G().Log.Warning("Team MemoryStorage got bad type from lru: %T", untyped)
+		s.G().Log.CDebugf(context.TODO(), "Team MemoryStorage got bad type from lru: %T", untyped)
 		return teamEKBoxes, found
 	}
 	return teamEKBoxes, found

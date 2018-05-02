@@ -10,7 +10,7 @@ import (
 )
 
 func TestKeygenIfNeeded(t *testing.T) {
-	tc := ephemeralKeyTestSetup(t)
+	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	ekLib := NewEKLib(tc.G)
@@ -84,7 +84,7 @@ func TestKeygenIfNeeded(t *testing.T) {
 }
 
 func TestNewTeamEKNeeded(t *testing.T) {
-	tc := ephemeralKeyTestSetup(t)
+	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	teamID := createTeam(tc)
@@ -182,7 +182,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 }
 
 func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
-	tc := ephemeralKeyTestSetup(t)
+	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	seed, err := newDeviceEphemeralSeed()

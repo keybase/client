@@ -662,8 +662,8 @@ func (p Pagination) Eq(other Pagination) bool {
 }
 
 func (p Pagination) String() string {
-	return fmt.Sprintf("[Num: %d n: %s p: %s]", p.Num, hex.EncodeToString(p.Next),
-		hex.EncodeToString(p.Previous))
+	return fmt.Sprintf("[Num: %d n: %s p: %s last: %v]", p.Num, hex.EncodeToString(p.Next),
+		hex.EncodeToString(p.Previous), p.Last)
 }
 
 func (c ConversationLocal) GetMtime() gregor1.Time {
