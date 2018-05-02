@@ -18,6 +18,7 @@ export type Props = {
   textEntered: Function,
   onChangeText: Function,
   onBack: Function,
+  onKeyDown: Function,
   enterText: string,
   enterCodeErrorText: string,
 }
