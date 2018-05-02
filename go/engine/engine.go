@@ -19,7 +19,6 @@ type Engine2 interface {
 	Run(libkb.MetaContext) error
 	Prereqs() Prereqs
 	libkb.UIConsumer
-	G() *libkb.GlobalContext
 }
 
 type UIDelegateWanter interface {

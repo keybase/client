@@ -20,6 +20,27 @@ There's a ton of changes we'd have to make in the code to achieve these goals, a
 we'd like to proceed in small piecemeal steps so that we can shake out any bugs
 as we go.
 
+# New Rules on Passing Contexts
+
+After this migration is done, we'll have the following rules on passing contexts through
+Go code
+
+1. You can pass a `libkb.MetaContext` only as a first argument; if you do, you can
+pass no other contexts.
+1. You can pass a `context.Context` only as a first argument, and optionally a `libkb.GlobalContext`
+as a second argument, but no other contexts.
+1. You can pass a `libkb.GlobalContext` as a first argument, but if so, no other contexts.
+1. You can never pass `libkb.GlobalContext` as a third or higher argument.
+1. If a particular method is on a `libkb.Contextified` receiver (has a
+`libkb.GlobalContext` dependency-injected), and has a `libkb.GlobalContext` or
+`libkb.MetaContext` passed in, then use the `libkb.GlobalContext` from the
+argument, as we intend to sunset `libkb.GlobalContext`-dependency injection.
+1. In chat, you can pass a `globals.Context` as a first argument, or as a second argument
+behind a `context.Context`, but never as a third argument or higher.
+
+We're not going to get there overnight, but all code should obey these rules going forward,
+and if possibly, you should refactor code to be aligned with these rules.
+
 # History
 
 We have a long and sordid history here, and it might be worth explaining a little bit
@@ -73,14 +94,14 @@ Status: **ongoing**
 - Start with `LoginState`-related functions and propagate outwards. Cover `ActiveDevice`,
 `PerUserKey`, and bubble up into `engine/` too, but only as necessary.
 
-### Step 2b: Replace LoginContext with a wrapper MetaContext (Part 2)
+### Step 2b: Move `engine.Context` into `libkb.MetaContext`
+
+- And then change all `engine/` code to take only the `libkb.MetaContext`
+
+### Step 2c: Replace LoginContext with a wrapper MetaContext (Part 2)
 
 - Continue with `stellar/` and `ephemeral/` to replace those functions that take
 both `context.Context` and `*GlobalContext` to take only `libkb.MetaContext`.
-
-### Step 2c: Move `engine.Context` into `libkb.MetaContext`
-
-- And then change all `engine/` code to take only the `libkb.MetaContext`
 
 ## Step 3: Retire LoginState
 

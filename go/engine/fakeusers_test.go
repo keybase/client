@@ -57,7 +57,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 			return err
 		}
 
-		return s.fakeLKS()
+		return s.fakeLKS(m)
 	}
 	if err := m.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPOnly"); err != nil {
 		tc.T.Fatal(err)
@@ -117,7 +117,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 			return err
 		}
 
-		if err := s.fakeLKS(); err != nil {
+		if err := s.fakeLKS(m); err != nil {
 			return err
 		}
 
@@ -160,7 +160,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 		fu.User = s.GetMe()
 
 		// fake the lks:
-		if err := s.fakeLKS(); err != nil {
+		if err := s.fakeLKS(m); err != nil {
 			return err
 		}
 
@@ -212,7 +212,7 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 		fu.User = s.GetMe()
 
 		// fake the lks:
-		if err := s.fakeLKS(); err != nil {
+		if err := s.fakeLKS(m); err != nil {
 			return err
 		}
 
@@ -326,7 +326,7 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
-func (s *SignupEngine) fakeLKS() error {
-	s.lks = libkb.NewLKSec(s.ppStream, s.uid, s.G())
+func (s *SignupEngine) fakeLKS(m libkb.MetaContext) error {
+	s.lks = libkb.NewLKSec(s.ppStream, s.uid, m.G())
 	return s.lks.GenerateServerHalf()
 }
