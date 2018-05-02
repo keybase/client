@@ -647,12 +647,12 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 // ClearBefore clears all messages up to (but not including) the upto messageID
 func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	upto chat1.MessageID) (err Error) {
-	defer s.Trace(ctx, func() error { return err }, "ClearBelow")()
+	defer s.Trace(ctx, func() error { return err }, "ClearBefore")()
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
-	s.Debug(ctx, "ClearBelow: convID: %s uid: %s msgID: %d", convID, uid, upto)
+	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
 
 	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
