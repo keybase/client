@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, ClickableBox, Divider, Icon, Text} from '../../common-adapters'
-import {globalMargins, platformStyles} from '../../styles'
+import {globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
   availableToSend: string, // non-empty only if native currency
@@ -26,9 +26,9 @@ export const Asset = (props: Props) => {
   return (
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.toggleExpanded}>
-        <Box2 direction="horizontal" fullWidth={true} style={headerContainerStyle}>
-          <Box2 direction="horizontal" gap="tiny" style={labelContainerStyle}>
-            <Icon type={caretType} style={caretStyle} />
+        <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+          <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
+            <Icon type={caretType} style={styles.caret} />
             <Box2 direction="vertical">
               <Text type="BodySemibold" lineClamp={1}>
                 {props.name}
@@ -38,7 +38,7 @@ export const Asset = (props: Props) => {
               </Text>
             </Box2>
           </Box2>
-          <Box2 direction="vertical" style={balanceContainerStyle} fullHeight={true}>
+          <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
             <Text type="BodySemibold" lineClamp={1} style={{color: '#814cf4', fontWeight: '800'}}>
               {props.balance} {props.code}
             </Text>
@@ -49,16 +49,7 @@ export const Asset = (props: Props) => {
         </Box2>
       </ClickableBox>
       {props.expanded && (
-        <Box2
-          direction="horizontal"
-          fullWidth={true}
-          style={{
-            justifyContent: 'flex-end',
-            paddingBottom: globalMargins.tiny,
-            paddingLeft: globalMargins.medium,
-            paddingRight: globalMargins.small,
-          }}
-        >
+        <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
           {!!props.reserves.length && (
             <BalanceSummary
               availableToSend={props.availableToSend}
@@ -74,26 +65,6 @@ export const Asset = (props: Props) => {
   )
 }
 
-const headerContainerStyle = {
-  height: 48,
-  padding: globalMargins.tiny,
-  paddingRight: globalMargins.small,
-}
-
-const labelContainerStyle = {
-  flex: 1,
-}
-
-const caretStyle = platformStyles({
-  isElectron: {lineHeight: '2'},
-  isMobile: {marginTop: 6},
-})
-
-const balanceContainerStyle = {
-  alignItems: 'flex-end',
-  justifyContent: 'flex-start',
-}
-
 type BalanceSummaryProps = {
   availableToSend: string,
   equivAvailableToSend: string,
@@ -102,19 +73,19 @@ type BalanceSummaryProps = {
 }
 
 const BalanceSummary = (props: BalanceSummaryProps) => (
-  <Box2 direction="vertical" fullWidth={true} style={balanceSummaryContainerStyle}>
+  <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
     <Divider style={{marginBottom: globalMargins.tiny}} />
     <Box2 direction="horizontal" fullWidth={true}>
-      <Text type="BodySemibold" style={leftColTextStyle}>
+      <Text type="BodySemibold" style={styles.leftColText}>
         Total
       </Text>
-      <Text type="Body" selectable={true} style={markerBalanceTextStyle}>
+      <Text type="Body" selectable={true} style={styles.markerBalanceText}>
         {props.total}
       </Text>
     </Box2>
     {props.reserves.map(reserve => (
       <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-        <Text type="Body" lineClamp={1} style={leftColTextStyle}>
+        <Text type="Body" lineClamp={1} style={styles.leftColText}>
           Reserve ({reserve.description})
         </Text>
         <Text type="Body" lineClamp={1} selectable={true}>
@@ -124,10 +95,10 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
     ))}
     <Divider style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}} />
     <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
-      <Text type="BodySemibold" style={leftColTextStyle}>
+      <Text type="BodySemibold" style={styles.leftColText}>
         Available to send
       </Text>
-      <Box2 direction="vertical" style={balanceContainerStyle}>
+      <Box2 direction="vertical" style={styles.balanceContainer}>
         <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
           {props.availableToSend}
         </Text>
@@ -137,26 +108,12 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
   </Box2>
 )
 
-const balanceSummaryContainerStyle = {
-  flexBasis: 355,
-  flexShrink: 1,
-}
-
-const leftColTextStyle = {
-  flex: 1,
-}
-
-// TEMP until new text type
-const markerBalanceTextStyle = {
-  fontWeight: '800',
-}
-
 type IssuerAddressProps = {
   issuerAddress: string,
 }
 
 const IssuerAddress = (props: IssuerAddressProps) => (
-  <Box2 direction="vertical" fullWidth={true} style={balanceSummaryContainerStyle}>
+  <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
     <Text type="Body">Issuer:</Text>
     <Text type="Body" selectable={true}>
       {/* TODO (DA) make the full address copyable */}
@@ -166,5 +123,41 @@ const IssuerAddress = (props: IssuerAddressProps) => (
     </Text>
   </Box2>
 )
+
+const styles = styleSheetCreate({
+  headerContainer: {
+    height: 48,
+    padding: globalMargins.tiny,
+    paddingRight: globalMargins.small,
+  },
+  labelContainer: {
+    flex: 1,
+  },
+  caret: platformStyles({
+    isElectron: {lineHeight: '2'},
+    isMobile: {marginTop: 6},
+  }),
+  balanceContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+  },
+  expandedRowContainer: {
+    justifyContent: 'flex-end',
+    paddingBottom: globalMargins.tiny,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.small,
+  },
+  balanceSummaryContainer: {
+    flexBasis: 355,
+    flexShrink: 1,
+  },
+  leftColText: {
+    flex: 1,
+  },
+  // TEMP until new text type
+  markerBalanceText: {
+    fontWeight: '800',
+  },
+})
 
 export default Asset
