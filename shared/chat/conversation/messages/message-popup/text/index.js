@@ -55,7 +55,6 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onEdit
       ? [
           {
-            disabled: !props.onEdit,
             onClick: props.onEdit,
             title: 'Edit',
           },
