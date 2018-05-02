@@ -10,8 +10,19 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 
 import type {PlatformInputProps} from './types'
 
-class PlatformInput extends Component<PlatformInputProps> {
+type State = {
+  hasText: boolean,
+}
+
+class PlatformInput extends Component<PlatformInputProps, State> {
   _input: ?Input
+
+  constructor(props: PlatformInputProps) {
+    super(props)
+    this.state = {
+      hasText: false,
+    }
+  }
 
   _inputSetRef = (ref: ?Input) => {
     this._input = ref
@@ -34,6 +45,11 @@ class PlatformInput extends Component<PlatformInputProps> {
 
   _getText = () => {
     return this._input ? this._input.getValue() : ''
+  }
+
+  _onChangeText = (text: string) => {
+    this.setState({hasText: !!text})
+    this.props.onChangeText(text)
   }
 
   _onSubmit = () => {
@@ -99,7 +115,7 @@ class PlatformInput extends Component<PlatformInputProps> {
             onFocus={this.props.onFocus}
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
-            onChangeText={this.props.onChangeText}
+            onChangeText={this._onChangeText}
             ref={this._inputSetRef}
             small={true}
             style={styles.input}
@@ -109,7 +125,7 @@ class PlatformInput extends Component<PlatformInputProps> {
 
           {this.props.typing.size > 0 && <Typing />}
           <Action
-            hasText={!!this._getText()}
+            hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             pendingWaiting={this.props.pendingWaiting}
