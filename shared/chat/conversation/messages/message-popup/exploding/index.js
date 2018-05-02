@@ -136,9 +136,7 @@ const ExplodingPopupMenu = (props: Props) => {
 
   const header = {
     title: 'header',
-    view: (
-      <ExplodingPopupHeader {...props} />
-    ),
+    view: <ExplodingPopupHeader {...props} />,
   }
   return (
     <FloatingMenu
