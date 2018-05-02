@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, ClickableBox, Divider, Icon, Text} from '../../common-adapters'
-import {globalMargins} from '../../styles'
+import {globalMargins, platformStyles} from '../../styles'
 
 export type Props = {
   availableToSend: string, // non-empty only if native currency
@@ -18,14 +18,17 @@ export type Props = {
   toggleExpanded: () => void,
 }
 
+// TODO (DA) swap out these text styles and hard coded colors for when they're added
+// to globalColors and text types
+
 export const Asset = (props: Props) => {
-  const caratType = props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
+  const caretType = props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
   return (
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.toggleExpanded}>
         <Box2 direction="horizontal" fullWidth={true} style={headerContainerStyle}>
           <Box2 direction="horizontal" gap="tiny" style={labelContainerStyle}>
-            <Icon type={caratType} style={{lineHeight: 2}} />
+            <Icon type={caretType} style={caretStyle} />
             <Box2 direction="vertical">
               <Text type="BodySemibold" lineClamp={1}>
                 {props.name}
@@ -52,6 +55,7 @@ export const Asset = (props: Props) => {
           style={{
             justifyContent: 'flex-end',
             paddingBottom: globalMargins.tiny,
+            paddingLeft: globalMargins.medium,
             paddingRight: globalMargins.small,
           }}
         >
@@ -79,6 +83,11 @@ const headerContainerStyle = {
 const labelContainerStyle = {
   flex: 1,
 }
+
+const caretStyle = platformStyles({
+  isElectron: {lineHeight: '2'},
+  isMobile: {marginTop: 6},
+})
 
 const balanceContainerStyle = {
   alignItems: 'flex-end',
@@ -130,6 +139,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
 
 const balanceSummaryContainerStyle = {
   flexBasis: 355,
+  flexShrink: 1,
 }
 
 const leftColTextStyle = {

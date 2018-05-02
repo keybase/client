@@ -22,7 +22,7 @@ const native = {
   name: 'Lumens',
   reserves: [
     Constants.makeReserve({amount: '1', description: 'account'}),
-    Constants.makeReserve({amount: '0.5', description: 'KEYZ/Unknown trust line'}),
+    Constants.makeReserve({amount: '0.5', description: 'KEYZ/keybase.io trust line'}),
   ],
 }
 
