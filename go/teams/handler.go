@@ -29,19 +29,6 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 	}
 
 	if len(msg.ResetUsersUntrusted) > 0 && team.IsOpen() {
-		for _, uv := range msg.ResetUsersUntrusted {
-			// We don't use UIDMapper in sweepOpenTeamResetMembers, but
-			// since server just told us that these users have reset, we
-			// might as well use that knowledge to refresh cache.
-
-			// Use ClearUIDAtEldestSeqno instead of InformOfEldestSeqno
-			// because usually uv.UserEldestSeqno (the "new EldestSeqno")
-			// will be 0, because user has just reset and hasn't
-			// reprovisioned yet
-
-			g.UIDMapper.ClearUIDAtEldestSeqno(ctx, g, uv.Uid, uv.MemberEldestSeqno)
-		}
-
 		if needRP, err := sweepOpenTeamResetMembers(ctx, g, team, msg.ResetUsersUntrusted); err == nil {
 			// If sweepOpenTeamResetMembers does not do anything to
 			// the team, do not load team again later.
