@@ -188,13 +188,11 @@ func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 // SetStreamGeneration sets the passphrase generation on the cached stream
 // if it exists, and otherwise will wind up warning of a problem.
 func (a *Account) SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool) {
-	ps := a.PassphraseStreamRef()
-	if ps == nil {
-		if !nilPPStreamOK {
-			a.G().Log.Warning("Passphrase stream was nil; unexpected")
-		}
-	} else {
+	found := a.PassphraseStreamCache().MutatePassphraseStream(func(ps *PassphraseStream) {
 		ps.SetGeneration(gen)
+	})
+	if !found && !nilPPStreamOK {
+		a.G().Log.Warning("Passphrase stream was nil; unexpected")
 	}
 }
 
@@ -235,12 +233,6 @@ func (a *Account) PassphraseStreamCache() *PassphraseStreamCache {
 // or nil if none is there.
 func (a *Account) PassphraseStream() *PassphraseStream {
 	return a.PassphraseStreamCache().PassphraseStream()
-}
-
-// PassphraseStreamRef returns a reference to the actual passphrase stream, or
-// nil if none is there.
-func (a *Account) PassphraseStreamRef() *PassphraseStream {
-	return a.PassphraseStreamCache().PassphraseStreamRef()
 }
 
 func (a *Account) ClearStreamCache() {
