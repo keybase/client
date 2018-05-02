@@ -225,7 +225,8 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	watchdogLogPath, err := install.WatchdogLogPath(filepath.Join(logDir, "watchdog*.log"))
 	if err != nil {
 		c.G().Log.Errorf("Error (WatchdogLogPath): %s", err)
-	}	
+	}
+
 	traceDir := logDir
 	if status != nil {
 		return libkb.Logs{
