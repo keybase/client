@@ -13,8 +13,6 @@ import (
 )
 
 type SignupEngine struct {
-	libkb.Contextified
-
 	pwsalt         []byte
 	ppStream       *libkb.PassphraseStream
 	tsec           libkb.Triplesec
@@ -45,8 +43,7 @@ type SignupEngineRunArg struct {
 
 func NewSignupEngine(g *libkb.GlobalContext, arg *SignupEngineRunArg) *SignupEngine {
 	return &SignupEngine{
-		arg:          arg,
-		Contextified: libkb.NewContextified(g),
+		arg: arg,
 	}
 }
 
@@ -208,7 +205,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 
 func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) error {
 	m.CDebugf("SignupEngine#registerDevice")
-	s.lks = libkb.NewLKSec(s.ppStream, s.uid, s.G())
+	s.lks = libkb.NewLKSec(s.ppStream, s.uid, m.G())
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,
@@ -256,7 +253,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 		}
 	}
 
-	m.CDebugf("registered new device: %s", s.G().Env.GetDeviceID())
+	m.CDebugf("registered new device: %s", m.G().Env.GetDeviceID())
 	m.CDebugf("eldest kid: %s", s.me.GetEldestKID())
 
 	return nil
@@ -311,12 +308,11 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 
 	// genPGPBatch should never be run in production, but if there's
 	// a bug or a mistunderstanding in the future, generate a good key.
-	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
+	if m.G().Env.GetRunMode() != libkb.DevelRunMode {
 		gen.PrimaryBits = 4096
 		gen.SubkeyBits = 4096
 	}
-
-	gen.AddDefaultUID(s.G())
+	gen.AddDefaultUID(m.G())
 
 	tsec := m.LoginContext().PassphraseStreamCache().Triplesec()
 	sgen := m.LoginContext().GetStreamGeneration()
