@@ -37,8 +37,9 @@ type DelegateUiCtlInterface interface {
 	RegisterRekeyUI(context.Context) error
 	RegisterHomeUI(context.Context) error
 	RegisterGregorFirehose(context.Context) error
-	// * receive OOBMs for the given gregor systems. Like the firehose
-	// * handler, but less pressure. Just the systems you want.
+	// registerGregorFirehoseFilter allows a client to register for a filtered
+	// firehose, limited to only the OOBMs of the systems provided.
+	// Like the firehose handler, but less pressure.
 	RegisterGregorFirehoseFiltered(context.Context, []string) error
 }
 
@@ -166,8 +167,9 @@ func (c DelegateUiCtlClient) RegisterGregorFirehose(ctx context.Context) (err er
 	return
 }
 
-// * receive OOBMs for the given gregor systems. Like the firehose
-// * handler, but less pressure. Just the systems you want.
+// registerGregorFirehoseFilter allows a client to register for a filtered
+// firehose, limited to only the OOBMs of the systems provided.
+// Like the firehose handler, but less pressure.
 func (c DelegateUiCtlClient) RegisterGregorFirehoseFiltered(ctx context.Context, systems []string) (err error) {
 	__arg := RegisterGregorFirehoseFilteredArg{Systems: systems}
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerGregorFirehoseFiltered", []interface{}{__arg}, nil)

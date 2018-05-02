@@ -12,8 +12,9 @@ protocol delegateUiCtl {
   void registerGregorFirehose();
 
   /**
-   * receive OOBMs for the given gregor systems. Like the firehose
-   * handler, but less pressure. Just the systems you want.
+   registerGregorFirehoseFilter allows a client to register for a filtered
+   firehose, limited to only the OOBMs of the systems provided.
+   Like the firehose handler, but less pressure.
    */
   @lint("ignore")
   void registerGregorFirehoseFiltered(array<string> systems);
