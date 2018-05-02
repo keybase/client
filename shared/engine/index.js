@@ -115,12 +115,7 @@ class Engine {
 
   _setupClient() {
     this._rpcClient = createClient(
-      payload => {
-        // Defer a frame so we don't pay a lot for decoding then immediately do a bunch of actions
-        setImmediate(() => {
-          this._rpcIncoming(payload)
-        })
-      },
+      payload => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
