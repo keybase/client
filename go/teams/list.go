@@ -21,7 +21,7 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool, countMembers bool) ([]keybase1.MemberInfo, error) {
+func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool, countMembers bool, includeImplicitTeams bool) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -35,6 +35,9 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 	}
 	if countMembers {
 		a.Args["count_members"] = libkb.B{Val: true}
+	}
+	if includeImplicitTeams {
+		a.Args["include_implicit_teams"] = libkb.B{Val: true}
 	}
 	a.NetContext = ctx
 	a.SessionType = libkb.APISessionTypeREQUIRED
@@ -163,7 +166,8 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, false /* countMembers */)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID,
+		false /* all */, false /* countMembers */, arg.IncludeImplicitTeams)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +285,8 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */)
+	teams, err := getTeamsListFromServer(ctx, g, "", /*uid*/
+		true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +694,8 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 }
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
-	serverList, err := getTeamsListFromServer(ctx, g, "", false /* all */, false /* countMembers */)
+	serverList, err := getTeamsListFromServer(ctx, g, "",
+		false /* all */, false /* countMembers */, false /* includeImplicitTeams */)
 	if err != nil {
 		return res, err
 	}
