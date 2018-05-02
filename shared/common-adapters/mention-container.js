@@ -1,7 +1,7 @@
 // @flow
 import * as Selectors from '../constants/selectors'
 import Mention, {type OwnProps} from './mention'
-import {connect, type TypedState, type Dispatch} from '../util/container'
+import {connect, compose, setDisplayName, type TypedState, type Dispatch} from '../util/container'
 import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
@@ -36,4 +36,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {username}: OwnProps) => ({
       },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Mention)
+export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Mention'))(Mention)

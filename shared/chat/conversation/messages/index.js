@@ -13,6 +13,7 @@ import TextMessage from './text/container'
 import Attachment from './attachment/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
+import Placeholder from './placeholder/container'
 import Wrapper from './wrapper/container'
 import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
@@ -46,6 +47,8 @@ class MessageFactory extends React.PureComponent<Props> {
             previous={this.props.previous}
           />
         )
+      case 'placeholder':
+        return <Placeholder message={this.props.message} />
       case 'systemInviteAccepted':
         return <SystemInviteAccepted message={this.props.message} />
       case 'systemSimpleToComplex':
