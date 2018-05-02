@@ -1217,7 +1217,7 @@ func InstallLogPath() (string, error) {
 }
 
 // WatchdogLogPath doesn't exist on darwin as an independent log file (see desktop app log)
-func WatchdogLogPath() (string, error) {
+func WatchdogLogPath(string) (string, error) {
 	return "", nil
 }
 
