@@ -837,6 +837,25 @@ func TestStorageFetchMessages(t *testing.T) {
 	require.Equal(t, 1, nils, "wrong number of nils")
 }
 
+func TestStorageClearMessages(t *testing.T) {
+	_, storage, uid := setupStorageTest(t, "clearMessages")
+
+	msgs := makeMsgRange(20)
+	conv := makeConversation(20)
+	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
+
+	ctx := context.TODO()
+	tv, err := storage.Fetch(ctx, conv, uid, nil, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 20, len(tv.Messages))
+	require.NoError(t, storage.ClearBelow(ctx, conv.GetConvID(), uid, 10))
+	tv, err = storage.Fetch(ctx, conv, uid, NewInsatiableResultCollector(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 11, len(tv.Messages))
+	require.Equal(t, chat1.MessageID(20), tv.Messages[0].GetMessageID())
+	require.Equal(t, chat1.MessageID(10), tv.Messages[len(tv.Messages)-1].GetMessageID())
+}
+
 func TestStorageServerVersion(t *testing.T) {
 	tc, storage, uid := setupStorageTest(t, "serverVersion")
 
