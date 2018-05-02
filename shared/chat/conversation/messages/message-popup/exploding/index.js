@@ -52,9 +52,11 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
 
   tick() {
     const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-    this.setState({
-      secondsLeft: this.props.explodesAt - now,
-    })
+    let secondsLeft = this.props.explodesAt - now
+    if (secondsLeft < 0) {
+      secondsLeft = 0
+    }
+    this.setState({secondsLeft})
   }
 
   render() {
