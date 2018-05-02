@@ -3,6 +3,7 @@ import * as React from 'react'
 import PlatformInput from './platform-input'
 import {type MentionInputProps} from './types'
 import {Input} from '../../../../common-adapters'
+import {isMobile} from '../../../../constants/platform'
 
 type MentionState = {
   pickSelectedCounter: number,
@@ -226,11 +227,13 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   _onSubmit = (text: string) => {
-    // TODO: Is this desktop only?
-    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
+    // On desktop, this is triggered on Enter, so if a mention popup
+    // is open we actually just want to pick whatever's selected.
+    if ((!isMobile && this.state.mentionPopupOpen) || this.state.channelMentionPopupOpen) {
       this._triggerPickSelectedCounter()
       return
     }
+
     this.props.onSubmit(text)
   }
 
