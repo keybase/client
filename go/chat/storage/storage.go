@@ -47,6 +47,8 @@ type storageEngine interface {
 		msgs []chat1.MessageUnboxed) Error
 	ReadMessages(ctx context.Context, res ResultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
+	ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgIDs []chat1.MessageID) Error
 }
 
 func New(g *globals.Context) *Storage {
@@ -640,6 +642,32 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	return &expunge, nil
+}
+
+// ClearBefore clears all messages up to (but not including) the upto messageID
+func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	upto chat1.MessageID) (err Error) {
+	defer s.Trace(ctx, func() error { return err }, "ClearBefore")()
+	// All public functions get locks to make access to the database single threaded.
+	// They should never be called from private functions.
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	s.Debug(ctx, "ClearBefore: convID: %s uid: %s msgID: %d", convID, uid, upto)
+
+	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	if ierr != nil {
+		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+	}
+	ctx, err = s.engine.Init(ctx, key, convID, uid)
+	if err != nil {
+		return err
+	}
+
+	var msgIDs []chat1.MessageID
+	for m := upto - 1; m > 0; m-- {
+		msgIDs = append(msgIDs, m)
+	}
+	return s.engine.ClearMessages(ctx, convID, uid, msgIDs)
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,

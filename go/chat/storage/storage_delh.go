@@ -24,7 +24,7 @@ type delhTrackerEntry struct {
 	MinDeletableMessage chat1.MessageID `codec:"em"`
 }
 
-const delhTrackerDiskVersion = 1
+const delhTrackerDiskVersion = 2
 
 func newDelhTracker(g *globals.Context) *delhTracker {
 	return &delhTracker{
