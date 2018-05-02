@@ -442,6 +442,7 @@ export const constantsStatusCode = {
   sckeysyncedpgpnotfound: 929,
   sckeynomatchinggpg: 930,
   sckeyrevoked: 931,
+  scsigwrongkey: 1008,
   scsigoldseqno: 1010,
   scbadtracksession: 1301,
   scdevicebadname: 1404,
@@ -540,6 +541,11 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scephemeralkeybadgeneration: 2900,
+  scephemeralkeyunexpectedbox: 2901,
+  scephemeralkeymissingbox: 2902,
+  scephemeralkeywrongnumberofkeys: 2903,
+  scephemeralkeymismatchedkey: 2904,
   scstellarerror: 3100,
   scstellarbadinput: 3101,
   scstellarwrongrevision: 3102,
@@ -3540,6 +3546,7 @@ export type StatusCode =
   | 929 // SCKeySyncedPGPNotFound_929
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
+  | 1008 // SCSigWrongKey_1008
   | 1010 // SCSigOldSeqno_1010
   | 1301 // SCBadTrackSession_1301
   | 1404 // SCDeviceBadName_1404
@@ -3638,6 +3645,11 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 2900 // SCEphemeralKeyBadGeneration_2900
+  | 2901 // SCEphemeralKeyUnexpectedBox_2901
+  | 2902 // SCEphemeralKeyMissingBox_2902
+  | 2903 // SCEphemeralKeyWrongNumberOfKeys_2903
+  | 2904 // SCEphemeralKeyMismatchedKey_2904
   | 3100 // SCStellarError_3100
   | 3101 // SCStellarBadInput_3101
   | 3102 // SCStellarWrongRevision_3102

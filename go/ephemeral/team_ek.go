@@ -365,21 +365,23 @@ func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, team
 	statementMap = make(map[keybase1.UID]*keybase1.UserEkStatement)
 	for uid, sig := range parsedResponse.Sigs {
 		// Verify the server only returns actual members of our team.
-		uv, err := team.UserVersionByUID(ctx, uid)
+		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx, g, uid))
 		if err != nil {
 			return nil, err
 		}
+		uv := upak.Current.ToUserVersion()
 		isMember := team.IsMember(ctx, uv)
 		if !isMember {
 			return nil, fmt.Errorf("Server lied about team membership! %v is not a member of team %v", uv, teamID)
 		}
-		memberStatement, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, sig)
+		memberStatement, _, wrongKID, err := verifySigWithLatestPUK(ctx, g, uid, sig)
 		// Check the wrongKID condition before checking the error, since an error
 		// is still returned in this case. TODO: Turn this warning into an error
 		// after EK support is sufficiently widespread.
 		if wrongKID {
 			g.Log.CDebugf(ctx, "Member %v revoked a device without generating new ephemeral keys. They might be running an old version?", uid)
-			return nil, nil
+			// Don't box for this member since they have no valid userEK
+			continue
 		}
 		if err != nil {
 			return nil, err

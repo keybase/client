@@ -11,9 +11,12 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/remote"
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/xdr"
+
+	"github.com/stretchr/testify/require"
 )
 
 type txlogger struct {
@@ -227,6 +230,25 @@ func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
 	r.accounts[a.accountID] = a
 
 	return a.accountID
+}
+
+func (r *RemoteMock) ImportAccountsForUser(t *testing.T, g *libkb.GlobalContext) {
+	dump, _, err := remote.Fetch(context.Background(), g)
+	require.NoError(t, err)
+	for _, account := range dump.Accounts {
+		if _, found := r.accounts[account.AccountID]; found {
+			continue
+		}
+		a := &FakeAccount{
+			accountID: stellar1.AccountID(account.AccountID),
+			secretKey: stellar1.SecretKey(account.Signers[0]),
+			balance: stellar1.Balance{
+				Asset:  stellar1.Asset{Type: "native"},
+				Amount: "0",
+			},
+		}
+		r.accounts[a.accountID] = a
+	}
 }
 
 func (r *RemoteMock) SecretKey(t *testing.T, accountID stellar1.AccountID) stellar1.SecretKey {

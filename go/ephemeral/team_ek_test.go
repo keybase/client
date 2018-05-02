@@ -25,7 +25,7 @@ func createTeam(tc libkb.TestContext) keybase1.TeamID {
 }
 
 func TestNewTeamEK(t *testing.T) {
-	tc := ephemeralKeyTestSetup(t)
+	tc, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(context.Background(), libkb.EphemeralKeyMerkleFreshness)
