@@ -227,11 +227,17 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   _onSubmit = (text: string) => {
-    // On desktop, this is triggered on Enter, so if a mention popup
-    // is open we actually just want to pick whatever's selected.
-    if ((!isMobile && this.state.mentionPopupOpen) || this.state.channelMentionPopupOpen) {
-      this._triggerPickSelectedCounter()
-      return
+    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
+      if (isMobile) {
+        this._setMentionPopupOpen(false)
+        this._setChannelMentionPopupOpen(false)
+      } else {
+        // On desktop, this is triggered on Enter, so if a mention
+        // popup is open we actually just want to pick whatever's
+        // selected.
+        this._triggerPickSelectedCounter()
+        return
+      }
     }
 
     this.props.onSubmit(text)
