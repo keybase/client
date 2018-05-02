@@ -9,16 +9,17 @@ import HiddenString from '../../../../util/hidden-string'
 
 const textMessage = makeMessageText({
   author: 'cjb',
+  deviceName: 'myDevice',
   deviceRevokedAt: null,
   text: new HiddenString('blah'),
   timestamp: 1525190235719,
-})
+}).toJS()
 
 const attachmentMessage = makeMessageAttachment({
   author: 'cjb',
   deviceName: 'myDevice',
   timestamp: 1525190235719,
-})
+}).toJS()
 
 const defaultProps = {
   attachTo: null,
@@ -66,8 +67,10 @@ const load = () => {
       <ExplodingPopupMenu
         {...defaultProps}
         {...textMessage}
+        explodesAt={1525350235}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
+        position={'top left'}
       />
     ))
 }
