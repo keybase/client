@@ -6,5 +6,4 @@ export type TextViewProps = {
   onInvalidToken: () => void,
 }
 
-// Had to use "any" here to make flow work. Weird!
-declare export default React.ComponentType<any>
+declare export default React.ComponentType<TextViewProps>

@@ -1,13 +1,5 @@
 // @flow
-import {
-  branch,
-  compose,
-  connect,
-  mapProps,
-  renderComponent,
-  type Dispatch,
-  type TypedState,
-} from '../../util/container'
+import {connect, type Dispatch, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -37,9 +29,16 @@ const mergeProps = ({_serverInfo}, {onInvalidToken}, {path}) => ({
 
 const httpConnect = connect(mapStateToProps, mapDispatchToProps, mergeProps)
 
-export default compose(
-  mapProps(({path, fileViewType}: Props) => ({path, ft: fileViewType || Constants.viewTypeFromPath(path)})),
-  branch(({ft}) => ft === 'default', renderComponent(DefaultView)),
-  branch(({ft}) => ft === 'text', renderComponent(httpConnect(TextView))),
-  branch(({ft}) => ft === 'image', renderComponent(httpConnect(ImageView)))
-)(() => <Text type="BodyError">This shouldn't happen</Text>)
+export default ({path, fileViewType}: Props) => {
+  const ft = fileViewType || Constants.viewTypeFromPath(path)
+  switch (ft) {
+    case 'default':
+      return <DefaultView path={path} />
+    case 'text':
+      return React.createElement(httpConnect(TextView), {path})
+    case 'image':
+      return React.createElement(httpConnect(ImageView), {path})
+    default:
+      return <Text type="BodyError">This shouldn't happen</Text>
+  }
+}
