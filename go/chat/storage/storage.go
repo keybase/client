@@ -47,6 +47,8 @@ type storageEngine interface {
 		msgs []chat1.MessageUnboxed) Error
 	ReadMessages(ctx context.Context, res ResultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
+	ClearMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgIDs []chat1.MessageID) Error
 }
 
 func New(g *globals.Context) *Storage {
