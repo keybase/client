@@ -106,7 +106,7 @@ class RetentionPicker extends React.Component<Props, State> {
     }
     const items = policies.map(policy => {
       if (policy.type === 'retain') {
-        return {title: 'Keep forever', onClick: () => this._onSelect(policy)}
+        return {title: 'Never auto-delete', onClick: () => this._onSelect(policy)}
       } else if (policy.type === 'inherit') {
         if (this.props.teamPolicy) {
           return {title: policyToInheritLabel(this.props.teamPolicy), onClick: () => this._onSelect(policy)}
@@ -281,7 +281,7 @@ const saveStateStyle = platformStyles({
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
   switch (p.type) {
     case 'retain':
-      return 'Keep forever'
+      return 'Never auto-delete'
     case 'expire':
       return daysToLabel(p.days)
     case 'inherit':
