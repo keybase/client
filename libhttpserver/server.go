@@ -69,12 +69,12 @@ func (s *Server) handleBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-type endOfLifeTrackingFS struct {
+type obsoleteTrackingFS struct {
 	fs *libfs.FS
 	ch <-chan struct{}
 }
 
-func (e endOfLifeTrackingFS) isEndOfLife() bool {
+func (e obsoleteTrackingFS) isObsolete() bool {
 	select {
 	case <-e.ch:
 		return true
@@ -98,8 +98,8 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	toStrip = path.Join(fields[0], fields[1])
 
 	if fsCached, ok := s.fs.Get(toStrip); ok {
-		if fsCachedTyped, ok := fsCached.(endOfLifeTrackingFS); ok {
-			if !fsCachedTyped.isEndOfLife() {
+		if fsCachedTyped, ok := fsCached.(obsoleteTrackingFS); ok {
+			if !fsCachedTyped.isObsolete() {
 				return toStrip, fsCachedTyped.fs.ToHTTPFileSystem(ctx), nil
 			}
 		}
@@ -117,12 +117,12 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 		return "", nil, err
 	}
 
-	fsLifeCh, err := tlfFS.SubscribeToEndOfLife()
+	fsLifeCh, err := tlfFS.SubscribeToObsolete()
 	if err != nil {
 		return "", nil, err
 	}
 
-	s.fs.Add(toStrip, endOfLifeTrackingFS{fs: tlfFS, ch: fsLifeCh})
+	s.fs.Add(toStrip, obsoleteTrackingFS{fs: tlfFS, ch: fsLifeCh})
 
 	return toStrip, tlfFS.ToHTTPFileSystem(ctx), nil
 }

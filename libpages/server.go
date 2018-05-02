@@ -113,7 +113,7 @@ func (s *Server) getSite(ctx context.Context, root Root) (st *site, err error) {
 	siteCached, ok := s.siteCache.Get(root)
 	if ok {
 		if st, ok := siteCached.(*site); ok {
-			if !st.fs.IsEndOfLife() {
+			if !st.fs.IsObsolete() {
 				return st, nil
 			}
 			s.config.Logger.Info("fs end of life",
