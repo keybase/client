@@ -14,7 +14,7 @@ type State = {
   height: ?number,
 }
 class HeightRetainer extends React.Component<Props, State> {
-  state = {height: null}
+  state = {height: 17}
   componentDidUpdate() {
     if (this.props.retainHeight) {
       return

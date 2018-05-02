@@ -10,7 +10,7 @@ type State = {
   height: ?number,
 }
 class HeightRetainer extends React.Component<Props, State> {
-  state = {height: null}
+  state = {height: 20}
 
   _onLayout = evt => {
     if (evt.nativeEvent && evt.nativeEvent.layout.height !== this.state.height) {
