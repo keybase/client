@@ -7,9 +7,8 @@ import Text, {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
-import HOCTimers, {type TimerProps} from './hoc-timers'
 
-import type {KeyboardType, Props as _Props, Selection, TextInfo} from './input'
+import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
@@ -19,13 +18,23 @@ type State = {
   value?: string,
 }
 
-type Props = _Props & TimerProps
-
 class Input extends Component<Props, State> {
   state: State
   _input: NativeTextInput | null
   _lastNativeText: ?string
   _lastNativeSelection: ?{start: number, end: number}
+
+  // TODO: Remove once we can use HOCTimers.
+  _timeoutIds: Array<TimeoutID>
+
+  // We define _setTimeout instead of using HOCTimers since we'd need
+  // to use React.forwardRef with HOCTimers, and it doesn't seem to
+  // work with React Native yet.
+  _setTimeout = (f, n) => {
+    const id = setTimeout(f, n)
+    this._timeoutIds.push(id)
+    return id
+  }
 
   constructor(props: Props) {
     super(props)
@@ -38,6 +47,14 @@ class Input extends Component<Props, State> {
     if (!props.uncontrolled) {
       this.state.value = text
     }
+
+    // TODO: Remove once we can use HOCTimers.
+    this._timeoutIds = []
+  }
+
+  // TODO: Remove once we can use HOCTimers.
+  componentWillUnmount = () => {
+    this._timeoutIds.forEach(clearTimeout)
   }
 
   _setInputRef = (ref: NativeTextInput | null) => {
@@ -134,7 +151,7 @@ class Input extends Component<Props, State> {
     // Setting both the text and the selection at the same time
     // doesn't seem to work, but setting a short timeout to set the
     // selection does.
-    this.props.setTimeout(() => {
+    this._setTimeout(() => {
       // It's possible that, by the time this runs, the selection is
       // out of bounds with respect to the current text value. So fix
       // it up if necessary.
@@ -376,4 +393,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default HOCTimers(Input)
+export default Input
