@@ -31,14 +31,9 @@ type State = {
 
 const ExplodingPopupHeader = HOCTimers(
   class _ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
-    timer: ?IntervalID
+    timer: ?IntervalID = null
     state = {
       secondsLeft: 0,
-    }
-
-    constructor() {
-      super()
-      this.timer = null
     }
 
     componentWillMount() {
