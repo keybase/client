@@ -60,9 +60,8 @@ func TestPGPExportOptions(t *testing.T) {
 		{false, kid.String()[0:5], true, 0, 0, 0},
 	}
 
-	ctx := engineContextFromMetaContext(m)
 	for i, test := range table {
-		ec, err := pgpExport(ctx, tc.G, test.secret, test.query, test.exact)
+		ec, err := pgpExport(m, test.secret, test.query, test.exact)
 		if err != nil {
 			t.Errorf("test %d error: %s", i, err)
 		}
@@ -93,7 +92,7 @@ type exportCounts struct {
 	kid         int
 }
 
-func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, exact bool) (exportCounts, error) {
+func pgpExport(m libkb.MetaContext, secret bool, query string, exact bool) (exportCounts, error) {
 	opts := keybase1.PGPQuery{
 		Secret:     secret,
 		Query:      query,
@@ -105,8 +104,9 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	arg := keybase1.PGPExportArg{
 		Options: opts,
 	}
-	xe := NewPGPKeyExportEngine(arg, g)
-	if err := RunEngine(xe, ctx); err != nil {
+	g := m.G()
+	xe := NewPGPKeyExportEngine(g, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		return xcount, err
 	}
 
@@ -115,8 +115,8 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	farg := keybase1.PGPExportByFingerprintArg{
 		Options: opts,
 	}
-	xf := NewPGPKeyExportByFingerprintEngine(farg, g)
-	if err := RunEngine(xf, ctx); err != nil {
+	xf := NewPGPKeyExportByFingerprintEngine(g, farg)
+	if err := RunEngine2(m, xf); err != nil {
 		return xcount, err
 	}
 
@@ -125,8 +125,8 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	karg := keybase1.PGPExportByKIDArg{
 		Options: opts,
 	}
-	xk := NewPGPKeyExportByKIDEngine(karg, g)
-	if err := RunEngine(xk, ctx); err != nil {
+	xk := NewPGPKeyExportByKIDEngine(g, karg)
+	if err := RunEngine2(m, xk); err != nil {
 		return xcount, err
 	}
 
@@ -182,9 +182,8 @@ func TestPGPExportEncryption(t *testing.T) {
 		Options:   opts,
 		Encrypted: true,
 	}
-	ctx := engineContextFromMetaContext(m)
-	xe := NewPGPKeyExportEngine(arg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe := NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 
@@ -222,8 +221,8 @@ func TestPGPExportEncryption(t *testing.T) {
 		Options:   opts,
 		Encrypted: false,
 	}
-	xe = NewPGPKeyExportEngine(arg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe = NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 

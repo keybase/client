@@ -23,14 +23,14 @@ func runTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 		Options:          options,
 		ForceRemoteCheck: forceRemoteCheck,
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   secretUI,
 	}
-
-	eng := NewTrackEngine(arg, tc.G)
-	err = RunEngine(eng, ctx)
+	eng := NewTrackEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	them = eng.User()
 	return
 }
@@ -223,14 +223,14 @@ func TestTrackRetrack(t *testing.T) {
 		UserAssertion: "t_alice",
 		Options:       keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv},
 	}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 		SecretUI:   secretUI,
 	}
-
-	eng := NewTrackEngine(arg, tc.G)
-	err = RunEngine(eng, ctx)
+	eng := NewTrackEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,8 +245,8 @@ func TestTrackRetrack(t *testing.T) {
 		t.Errorf("seqno after track: %d, expected > %d", seqnoAfter, seqnoBefore)
 	}
 
-	eng = NewTrackEngine(arg, tc.G)
-	err = RunEngine(eng, ctx)
+	eng = NewTrackEngine(tc.G, arg)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}

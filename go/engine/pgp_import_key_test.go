@@ -50,9 +50,8 @@ func TestPGPImportAndExport(t *testing.T) {
 		},
 	}
 
-	ctx := engineContextFromMetaContext(m)
-	xe := NewPGPKeyExportEngine(arg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe := NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 
@@ -67,8 +66,8 @@ func TestPGPImportAndExport(t *testing.T) {
 		},
 	}
 
-	xe = NewPGPKeyExportEngine(arg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe = NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 	if len(xe.Results()) != 0 {
@@ -80,8 +79,8 @@ func TestPGPImportAndExport(t *testing.T) {
 			Secret: false,
 		},
 	}
-	xe = NewPGPKeyExportEngine(arg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe = NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 	if len(xe.Results()) != 2 {

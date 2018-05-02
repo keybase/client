@@ -305,14 +305,15 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
 			SigVersion:    sigVersion,
 		}
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:      tcY.G.UI.GetLogUI(),
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   &libkb.TestSecretUI{},
 		}
 
-		teng := NewTrackEngine(arg, tcY.G)
-		if err := RunEngine(teng, ctx); err != nil {
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		teng := NewTrackEngine(tcY.G, arg)
+		if err := RunEngine2(m, teng); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1009,14 +1010,15 @@ func TestProvisionPaperOnly(t *testing.T) {
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
 			SigVersion:    sigVersion,
 		}
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:      tc2.G.UI.GetLogUI(),
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   &libkb.TestSecretUI{},
 		}
 
-		teng := NewTrackEngine(targ, tc2.G)
-		if err := RunEngine(teng, ctx); err != nil {
+		teng := NewTrackEngine(tc2.G, targ)
+		m := NewMetaContextForTest(tc2).WithUIs(uis)
+		if err := RunEngine2(m, teng); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -2104,14 +2106,15 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
 		SigVersion:    sigVersion,
 	}
-	ctx := &Context{
+	uis = libkb.UIs{
 		LogUI:      tcY.G.UI.GetLogUI(),
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   &libkb.TestSecretUI{},
 	}
 
-	teng := NewTrackEngine(arg, tcY.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackEngine(tcY.G, arg)
+	m := NewMetaContextForTest(tcY).WithUIs(uis)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -2480,14 +2483,15 @@ func TestResetAccountKexProvision(t *testing.T) {
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
 		SigVersion:    sigVersion,
 	}
-	ctx := &Context{
+	uis = libkb.UIs{
 		LogUI:      tcY.G.UI.GetLogUI(),
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   &libkb.TestSecretUI{},
 	}
 
-	teng := NewTrackEngine(arg, tcY.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackEngine(tcY.G, arg)
+	m := NewMetaContextForTest(tcY).WithUIs(uis)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -2673,14 +2677,15 @@ func TestResetAccountLikeNistur(t *testing.T) {
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
 		SigVersion:    sigVersion,
 	}
-	ctx := &Context{
+	uis = libkb.UIs{
 		LogUI:      tcY.G.UI.GetLogUI(),
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   &libkb.TestSecretUI{},
 	}
 
-	teng := NewTrackEngine(arg, tcY.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackEngine(tcY.G, arg)
+	m = NewMetaContextForTest(tcY).WithUIs(uis)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -2879,14 +2884,15 @@ func TestProvisionWithBadConfig(t *testing.T) {
 		Options:       keybase1.TrackOptions{BypassConfirm: true},
 		SigVersion:    sigVersion,
 	}
-	ctx := &Context{
+	uis = libkb.UIs{
 		LogUI:      tcY.G.UI.GetLogUI(),
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   &libkb.TestSecretUI{},
 	}
 
-	teng := NewTrackEngine(arg, tcY.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	teng := NewTrackEngine(tcY.G, arg)
+	m := NewMetaContextForTest(tcY).WithUIs(uis)
+	if err := RunEngine2(m, teng); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -3152,14 +3158,15 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
 			SigVersion:    sigVersion,
 		}
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:      tcY.G.UI.GetLogUI(),
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   &libkb.TestSecretUI{},
 		}
 
-		teng := NewTrackEngine(arg, tcY.G)
-		if err := RunEngine(teng, ctx); err != nil {
+		teng := NewTrackEngine(tcY.G, arg)
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		if err := RunEngine2(m, teng); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -3292,14 +3299,14 @@ func TestProvisionAndRevoke(t *testing.T) {
 			Options:       keybase1.TrackOptions{BypassConfirm: true},
 			SigVersion:    sigVersion,
 		}
-		ctx := &Context{
+		uis := libkb.UIs{
 			LogUI:      tcY.G.UI.GetLogUI(),
 			IdentifyUI: &FakeIdentifyUI{},
 			SecretUI:   &libkb.TestSecretUI{},
 		}
-
-		teng := NewTrackEngine(arg, tcY.G)
-		if err := RunEngine(teng, ctx); err != nil {
+		teng := NewTrackEngine(tcY.G, arg)
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		if err := RunEngine2(m, teng); err != nil {
 			t.Fatal(err)
 		}
 	}
