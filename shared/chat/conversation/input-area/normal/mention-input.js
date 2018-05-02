@@ -88,8 +88,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   _onChangeText = (nextText: string) => {
     this.props.onChangeText(nextText)
     const selection = this._inputRef ? this._inputRef.selection() : {start: 0, end: 0}
-    const {start: selectionStart} = selection
-    const word = this._getWordAtCursor(nextText, selectionStart)
+    const word = this._getWordAtCursor(nextText, selection.start)
     const isPopupOpen = this.state.mentionPopupOpen || this.state.channelMentionPopupOpen
     if (!isPopupOpen && selection.start === selection.end) {
       if (word[0] === '@') {
@@ -125,15 +124,15 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     }
   }
 
+  _getText = () => {
+    return this._inputRef ? this._inputRef.getValue() : ''
+  }
+
   // Start mobile only.
 
   onBlur = () => {
     this.state.channelMentionPopupOpen && this._setChannelMentionPopupOpen(false)
     this.state.mentionPopupOpen && this._setMentionPopupOpen(false)
-  }
-
-  _getText = () => {
-    return this._inputRef ? this._inputRef.getValue() : ''
   }
 
   onFocus = () => {
@@ -155,6 +154,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       return
     }
 
+    // TODO: needed?
+
     // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notUser) {
@@ -169,6 +170,8 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     if (isMobile) {
       return
     }
+
+    // TODO: needed?
 
     // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
@@ -228,7 +231,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
   }
 
   _triggerSubmit = () => {
-    const text = this._inputRef ? this._inputRef.getValue() : ''
+    const text = this._getText()
     if (text) {
       this._onSubmit(text)
     }
