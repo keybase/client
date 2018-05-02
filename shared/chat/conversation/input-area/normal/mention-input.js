@@ -157,7 +157,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notUser) {
-      this._onSubmit()
+      this._triggerSubmit()
     }
   }
 
@@ -172,7 +172,7 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notChannel) {
-      this._onSubmit()
+      this._triggerSubmit()
     }
   }
 
@@ -226,24 +226,23 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     }
   }
 
-  onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
-    e.preventDefault()
-
-    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
-      this._triggerPickSelectedCounter()
-      return
-    }
-    this._onSubmit()
-  }
-
-  _onSubmit = () => {
+  _triggerSubmit = () => {
     const text = this._inputRef ? this._inputRef.getValue() : ''
     if (text) {
-      this.props.onSubmit(text)
+      this._onSubmit(text)
     }
   }
 
   // End desktop only.
+
+  _onSubmit = (text: string) => {
+    // TODO: Is this desktop only?
+    if (this.state.mentionPopupOpen || this.state.channelMentionPopupOpen) {
+      this._triggerPickSelectedCounter()
+      return
+    }
+    this.props.onSubmit(text)
+  }
 
   render = () => (
     <PlatformInput
@@ -253,13 +252,13 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
       insertMention={this.insertMention}
       insertChannelMention={this.insertChannelMention}
       onChangeText={this._onChangeText}
+      onSubmit={this._onSubmit}
       setMentionPopupOpen={this._setMentionPopupOpen}
       setChannelMentionPopupOpen={this._setChannelMentionPopupOpen}
       // Desktop only.
       switchMention={this.switchMention}
       switchChannelMention={this.switchChannelMention}
       onKeyDown={this._onKeyDown}
-      onEnterKeyDown={this.onEnterKeyDown}
       // Mobile only.
       insertMentionMarker={this.insertMentionMarker}
       onBlur={this.onBlur}

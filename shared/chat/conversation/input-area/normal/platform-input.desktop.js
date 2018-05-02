@@ -62,6 +62,10 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     if (this._fileInput) this._fileInput.value = value
   }
 
+  _getText = () => {
+    return this._input ? this._input.getValue() : ''
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.pendingWaiting) {
       return
@@ -70,13 +74,21 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     // TODO: Also call onCancelQuoting on mobile.
     this.props.onCancelQuoting()
 
-    const text = this._input ? this._input.getValue() : ''
+    const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       this.props.onEditLastMessage()
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
     }
     this.props.onKeyDown && this.props.onKeyDown(e)
+  }
+
+  _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    e.preventDefault()
+    const text = this._getText()
+    if (text) {
+      this.props.onSubmit(text)
+    }
   }
 
   componentDidMount() {
@@ -251,7 +263,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               rowsMin={1}
               rowsMax={5}
               onKeyDown={this._onKeyDown}
-              onEnterKeyDown={this.props.onEnterKeyDown}
+              onEnterKeyDown={this._onEnterKeyDown}
             />
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />

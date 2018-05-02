@@ -47,7 +47,6 @@ type MentionProps = {
 
   // on desktop:
   onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
-  onEnterKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   switchMention?: (u: string) => void,
   switchChannelMention?: (c: string) => void,
   upArrowCounter?: number,
