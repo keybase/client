@@ -1518,6 +1518,17 @@ type MDServer interface {
 	// reconnects. If MD server is connected at the time this is called, it's
 	// essentially a no-op.
 	FastForwardBackoff()
+
+	// FindNextMD finds the serialized (and possibly encrypted) root
+	// metadata object from the leaf node of the second KBFS merkle
+	// tree to be produced after a given Keybase global merkle tree
+	// sequence number `rootSeqno` (and all merkle nodes between it
+	// and the root, and the root itself).  It also returns the global
+	// merkle tree sequence number and hash of the root that first
+	// included the returned metadata object.
+	FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
+		nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
+		nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error)
 }
 
 type mdServerLocal interface {

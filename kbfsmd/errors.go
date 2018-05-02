@@ -193,3 +193,15 @@ type InvalidIDError struct {
 func (e InvalidIDError) Error() string {
 	return fmt.Sprintf("Invalid metadata ID %q", e.id)
 }
+
+// NewMerkleVersionError indicates that the merkle tree on the server
+// is using a new metadata version that our client doesn't understand.
+type NewMerkleVersionError struct {
+	Version int
+}
+
+// Error implements the error interface for NewMerkleVersionError.
+func (e NewMerkleVersionError) Error() string {
+	return fmt.Sprintf(
+		"The merkle tree is of a version (%d) that we can't read", e.Version)
+}

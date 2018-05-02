@@ -154,6 +154,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case kbfsmd.NewMetadataVersionError:
 		code = keybase1.FSErrorType_OLD_VERSION
 		err = OutdatedVersionError{}
+	case kbfsmd.NewMerkleVersionError:
+		code = keybase1.FSErrorType_OLD_VERSION
+		err = OutdatedVersionError{}
 	case NewDataVersionError:
 		code = keybase1.FSErrorType_OLD_VERSION
 		err = OutdatedVersionError{}

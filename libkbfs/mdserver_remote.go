@@ -1234,6 +1234,52 @@ func (md *MDServerRemote) FastForwardBackoff() {
 	md.conn.FastForwardInitialBackoffTimer()
 }
 
+// FindNextMD implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) FindNextMD(
+	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
+	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
+	nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error) {
+	ctx = rpc.WithFireNow(ctx)
+	md.log.LazyTrace(ctx, "KeyServer: FindNextMD %s %d", tlfID, rootSeqno)
+	md.log.CDebugf(ctx, "KeyServer: FindNextMD %s %d", tlfID, rootSeqno)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "KeyServer: FindNextMD %s %d done (err=%v)",
+			tlfID, rootSeqno, err)
+		md.deferLog.CDebugf(ctx, "KeyServer: FindNextMD %s %d done (err=%v)",
+			tlfID, rootSeqno, err)
+	}()
+
+	arg := keybase1.FindNextMDArg{
+		FolderID: tlfID.String(),
+		Seqno:    rootSeqno,
+	}
+
+	response, err := md.getClient().FindNextMD(ctx, arg)
+	if err != nil {
+		return nil, nil, 0, keybase1.HashMeta{}, err
+	}
+
+	if len(response.MerkleNodes) == 0 {
+		md.log.CDebugf(ctx, "No merkle data found for %s, seqno=%d",
+			tlfID, rootSeqno)
+		return nil, nil, 0, keybase1.HashMeta{}, nil
+	}
+
+	if response.KbfsRoot.Version != 1 {
+		return nil, nil, 0, keybase1.HashMeta{},
+			kbfsmd.NewMerkleVersionError{response.KbfsRoot.Version}
+	}
+
+	var kbfsRoot kbfsmd.MerkleRoot
+	err = md.config.Codec().Decode(response.KbfsRoot.Root, &kbfsRoot)
+	if err != nil {
+		return nil, nil, 0, keybase1.HashMeta{}, err
+	}
+
+	return &kbfsRoot, response.MerkleNodes, response.RootSeqno,
+		response.RootHash, nil
+}
+
 func (md *MDServerRemote) resetRekeyTimer() {
 	md.rekeyTimer.Reset(nextRekeyTime())
 }

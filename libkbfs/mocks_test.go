@@ -4644,6 +4644,22 @@ func (mr *MockMDServerMockRecorder) FastForwardBackoff() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FastForwardBackoff", reflect.TypeOf((*MockMDServer)(nil).FastForwardBackoff))
 }
 
+// FindNextMD mocks base method
+func (m *MockMDServer) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, keybase1.HashMeta, error) {
+	ret := m.ctrl.Call(m, "FindNextMD", ctx, tlfID, rootSeqno)
+	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
+	ret1, _ := ret[1].([][]byte)
+	ret2, _ := ret[2].(keybase1.Seqno)
+	ret3, _ := ret[3].(keybase1.HashMeta)
+	ret4, _ := ret[4].(error)
+	return ret0, ret1, ret2, ret3, ret4
+}
+
+// FindNextMD indicates an expected call of FindNextMD
+func (mr *MockMDServerMockRecorder) FindNextMD(ctx, tlfID, rootSeqno interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindNextMD", reflect.TypeOf((*MockMDServer)(nil).FindNextMD), ctx, tlfID, rootSeqno)
+}
+
 // MockmdServerLocal is a mock of mdServerLocal interface
 type MockmdServerLocal struct {
 	ctrl     *gomock.Controller
@@ -4928,6 +4944,22 @@ func (m *MockmdServerLocal) FastForwardBackoff() {
 // FastForwardBackoff indicates an expected call of FastForwardBackoff
 func (mr *MockmdServerLocalMockRecorder) FastForwardBackoff() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FastForwardBackoff", reflect.TypeOf((*MockmdServerLocal)(nil).FastForwardBackoff))
+}
+
+// FindNextMD mocks base method
+func (m *MockmdServerLocal) FindNextMD(ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (*kbfsmd.MerkleRoot, [][]byte, keybase1.Seqno, keybase1.HashMeta, error) {
+	ret := m.ctrl.Call(m, "FindNextMD", ctx, tlfID, rootSeqno)
+	ret0, _ := ret[0].(*kbfsmd.MerkleRoot)
+	ret1, _ := ret[1].([][]byte)
+	ret2, _ := ret[2].(keybase1.Seqno)
+	ret3, _ := ret[3].(keybase1.HashMeta)
+	ret4, _ := ret[4].(error)
+	return ret0, ret1, ret2, ret3, ret4
+}
+
+// FindNextMD indicates an expected call of FindNextMD
+func (mr *MockmdServerLocalMockRecorder) FindNextMD(ctx, tlfID, rootSeqno interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindNextMD", reflect.TypeOf((*MockmdServerLocal)(nil).FindNextMD), ctx, tlfID, rootSeqno)
 }
 
 // addNewAssertionForTest mocks base method
