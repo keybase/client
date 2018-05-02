@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, ClickableBox, Icon, Text, Avatar, FloatingMenu} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalColors, isMobile} from '../../styles'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 
 type Props = {
@@ -31,23 +31,12 @@ class Wallet extends React.PureComponent<Props> {
     return (
       <ClickableBox onClick={props.onSelect} style={{backgroundColor: color}}>
         <Box2 style={{height: rowHeight, backgroundColor: color}} direction="horizontal" fullWidth={true}>
-          <Box2 direction="horizontal">
-            <Icon
-              type={'iconfont-hand-wave'}
-              color={globalColors.darkBlue}
-              fontSize={28}
-              style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}}
-            />
+          <Box2 direction="horizontal" gap="small">
+            <Icon type={'iconfont-hand-wave'} color={globalColors.darkBlue} fontSize={28} />
           </Box2>
           <Box2 direction="vertical">
-            <Box2 direction="horizontal" fullWidth={true}>
-              {this.props.keybaseUser && (
-                <Avatar
-                  size={16}
-                  username={this.props.keybaseUser}
-                  style={{marginRight: globalMargins.xtiny}}
-                />
-              )}
+            <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+              {this.props.keybaseUser && <Avatar size={16} username={this.props.keybaseUser} />}
               <Text type="BodySmall" style={titleStyle}>
                 {props.name}
               </Text>
@@ -87,17 +76,9 @@ class _AddWallet extends React.PureComponent<AddProps & FloatingMenuParentProps>
         style={{backgroundColor: globalColors.white}}
         ref={this.props.setAttachmentRef}
       >
-        <Box2 style={{height: rowHeight}} direction="horizontal" fullWidth={true}>
-          <Box2 direction="vertical">
-            <Icon
-              type="iconfont-new"
-              color={globalColors.blue}
-              style={{marginLeft: globalMargins.small, marginRight: globalMargins.xtiny}}
-            />
-          </Box2>
-          <Box2 direction="vertical">
-            <Text type="BodyBigLink">Add a wallet</Text>
-          </Box2>
+        <Box2 style={{height: rowHeight}} direction="horizontal" fullWidth={true} gap="xsmall">
+          <Icon type="iconfont-new" color={globalColors.blue} />
+          <Text type="BodyBigLink">Add a wallet</Text>
         </Box2>
         <FloatingMenu
           attachTo={this.props.attachmentRef}
