@@ -45,7 +45,7 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
-
+	s.Debug(ctx, "postProcessThread: thread messages starting out: %d", len(thread.Messages))
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
@@ -71,12 +71,15 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 			return err
 		}
 	}
+	s.Debug(ctx, "postProcessThread: thread messages after supersedes: %d", len(thread.Messages))
 
 	// Run type filter if it exists
 	thread.Messages = utils.FilterByType(thread.Messages, q, true)
+	s.Debug(ctx, "postProcessThread: thread messages after type filter: %d", len(thread.Messages))
 	// If we have exploded any messages while fetching them from cache, remove
 	// them now.
 	thread.Messages = utils.FilterExploded(thread.Messages)
+	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
