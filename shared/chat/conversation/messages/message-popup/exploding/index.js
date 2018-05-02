@@ -28,8 +28,9 @@ type State = {
   secondsLeft: number,
 }
 
-class ExplodingPopupHeader extends React.Component<Props> {
-  state: State = {
+class ExplodingPopupHeader extends React.Component<Props, State> {
+  timer: ?IntervalID
+  state = {
     secondsLeft: 0,
   }
 
@@ -39,17 +40,20 @@ class ExplodingPopupHeader extends React.Component<Props> {
   }
 
   componentWillMount() {
-    this.timer = setInterval(() => this.tick(), 1000)
+    if (!__STORYBOOK__) {
+      this.timer = setInterval(() => this.tick(), 1000)
+    }
     this.tick()
   }
 
   componentWillUnmount() {
-    clearInterval(this.timer)
+    this.timer && clearInterval(this.timer)
   }
 
   tick() {
+    const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
     this.setState({
-      secondsLeft: this.props.explodesAt - Math.floor(Date.now() / 1000),
+      secondsLeft: this.props.explodesAt - now,
     })
   }
 
@@ -133,15 +137,7 @@ const ExplodingPopupMenu = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <ExplodingPopupHeader
-        author={props.author}
-        deviceName={props.deviceName}
-        deviceRevokedAt={props.deviceRevokedAt}
-        deviceType={props.deviceType}
-        explodesAt={props.explodesAt}
-        timestamp={props.timestamp}
-        yourMessage={props.yourMessage}
-      />
+      <ExplodingPopupHeader {...props} />
     ),
   }
   return (
@@ -173,8 +169,8 @@ const stylePopup = platformStyles({
 })
 
 const styleAvatar = {
-  marginLeft: globalMargins.tiny,
-  marginRight: globalMargins.xtiny,
+  marginLeft: globalMargins.xtiny,
+  marginRight: 1,
 }
 
 const styleRevokedAt = {

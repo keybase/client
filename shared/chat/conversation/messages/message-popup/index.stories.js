@@ -62,10 +62,22 @@ const load = () => {
         position={'top left'}
       />
     ))
-    .add('Exploding', () => (
+    .add('Exploding later', () => (
       <ExplodingPopupMenu
         {...defaultProps}
         {...textMessage}
+        attachTo={null}
+        explodesAt={2000009000}
+        onEdit={action('onEdit')}
+        onExplodeNow={action('onExplodeNow')}
+        position={'top left'}
+      />
+    ))
+    .add('Exploding soon', () => (
+      <ExplodingPopupMenu
+        {...defaultProps}
+        {...textMessage}
+        attachTo={null}
         explodesAt={2000000000}
         onEdit={action('onEdit')}
         onExplodeNow={action('onExplodeNow')}
