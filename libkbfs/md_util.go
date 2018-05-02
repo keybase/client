@@ -210,15 +210,9 @@ func MakeCopyWithDecryptedPrivateData(
 		irmdToDecrypt.putToServer), nil
 }
 
-// getMergedMDUpdates returns a slice of all the merged MDs for a TLF,
-// starting from the given startRev.  The returned MDs are the same
-// instances that are stored in the MD cache, so they should be
-// modified with care.
-//
-// TODO: Accept a parameter to express that we want copies of the MDs
-// instead of the cached versions.
-func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
-	startRev kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
+func getMergedMDUpdatesWithEnd(ctx context.Context, config Config, id tlf.ID,
+	startRev kbfsmd.Revision, endRev kbfsmd.Revision,
+	lockBeforeGet *keybase1.LockID) (
 	mergedRmds []ImmutableRootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
@@ -229,10 +223,27 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	start := startRev
 	for {
 		end := start + maxMDsAtATime - 1 // range is inclusive
-		rmds, err := getMDRange(ctx, config, id, kbfsmd.NullBranchID, start, end,
-			kbfsmd.Merged, lockBeforeGet)
+		if endRev != kbfsmd.RevisionUninitialized && end > endRev {
+			end = endRev
+		}
+		if end < start {
+			break
+		}
+		rmds, err := getMDRange(ctx, config, id, kbfsmd.NullBranchID,
+			start, end, kbfsmd.Merged, lockBeforeGet)
 		if err != nil {
 			return nil, err
+		}
+
+		if len(mergedRmds) > 0 && len(rmds) > 0 {
+			// Make sure the first new one is a valid successor of the
+			// last one.
+			lastRmd := mergedRmds[len(mergedRmds)-1]
+			err = lastRmd.CheckValidSuccessor(
+				lastRmd.mdID, rmds[0].ReadOnlyRootMetadata)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		mergedRmds = append(mergedRmds, rmds...)
@@ -284,6 +295,20 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	return mergedRmds, nil
 }
 
+// getMergedMDUpdates returns a slice of all the merged MDs for a TLF,
+// starting from the given startRev.  The returned MDs are the same
+// instances that are stored in the MD cache, so they should be
+// modified with care.
+//
+// TODO: Accept a parameter to express that we want copies of the MDs
+// instead of the cached versions.
+func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
+	startRev kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
+	mergedRmds []ImmutableRootMetadata, err error) {
+	return getMergedMDUpdatesWithEnd(
+		ctx, config, id, startRev, kbfsmd.RevisionUninitialized, lockBeforeGet)
+}
+
 // getUnmergedMDUpdates returns a slice of the unmerged MDs for a TLF
 // and unmerged branch, between the merge point for that branch and
 // startRev (inclusive).  The returned MDs are the same instances that
@@ -323,6 +348,17 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 			kbfsmd.Unmerged, nil)
 		if err != nil {
 			return kbfsmd.RevisionUninitialized, nil, err
+		}
+
+		if len(unmergedRmds) > 0 && len(rmds) > 0 {
+			// Make sure the first old one is a valid successor of the
+			// last new one.
+			lastRmd := rmds[len(rmds)-1]
+			err = lastRmd.CheckValidSuccessor(
+				lastRmd.mdID, unmergedRmds[0].ReadOnlyRootMetadata)
+			if err != nil {
+				return kbfsmd.RevisionUninitialized, nil, err
+			}
 		}
 
 		numNew := len(rmds)

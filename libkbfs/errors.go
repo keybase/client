@@ -1173,3 +1173,20 @@ func (e RevokedDeviceVerificationError) Error() string {
 	return fmt.Sprintf("Device was revoked at time %d, root seqno %d",
 		e.info.Time, e.info.MerkleRoot.Seqno)
 }
+
+// MDWrittenAfterRevokeError indicates that we failed to verify an MD
+// revision because it was written after the last valid revision that
+// the corresponding device could have written.
+type MDWrittenAfterRevokeError struct {
+	tlfID        tlf.ID
+	revBad       kbfsmd.Revision
+	revLimit     kbfsmd.Revision
+	verifyingKey kbfscrypto.VerifyingKey
+}
+
+// Error implements the Error interface for MDWrittenAfterRevokeError.
+func (e MDWrittenAfterRevokeError) Error() string {
+	return fmt.Sprintf("Faled to verify revision %d of folder %s by key %s; "+
+		"last valid revision would have been %d",
+		e.revBad, e.tlfID, e.verifyingKey, e.revLimit)
+}

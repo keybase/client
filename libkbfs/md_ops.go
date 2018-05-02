@@ -53,36 +53,270 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
+type ctxMDOpsSkipKeyVerificationType int
+
+// This context key indicates that we should skip verification of
+// revoked keys, to avoid recursion issues.  Any resulting MD
+// that skips verification shouldn't be trusted or cached.
+const ctxMDOpsSkipKeyVerification ctxMDOpsSkipKeyVerificationType = 1
+
+func (md *MDOpsStandard) decryptMerkleLeaf(
+	ctx context.Context, rmd ReadOnlyRootMetadata,
+	kbfsRoot *kbfsmd.MerkleRoot, leafBytes []byte) (
+	leaf *kbfsmd.MerkleLeaf, err error) {
+	var eLeaf kbfsmd.EncryptedMerkleLeaf
+	err = md.config.Codec().Decode(leafBytes, &eLeaf)
+	if err != nil {
+		return nil, err
+	}
+
+	// The private key we need to decrypt the leaf does not live in
+	// key bundles; it lives only in the MDs that were part of a
+	// specific keygen.  But we don't yet know what the keygen was, or
+	// what MDs were part of it, except that they have to have a
+	// larger revision number than the given `rmd`.  So all we can do
+	// is iterate up from `rmd`, looking for a key that will unlock
+	// the leaf.
+	//
+	// Luckily, in the common case we'll be trying to verify the head
+	// of the folder, so we should be able to use
+	// rmd.data.TLFPrivateKey.
+
+	// Fetch the latest MD so we have all possible TLF crypt keys
+	// available to this device.
+	head, err := md.getForTLF(
+		ctx, rmd.TlfID(), rmd.BID(), rmd.MergedStatus(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var uid keybase1.UID
+	if rmd.TlfID().Type() != tlf.Public {
+		session, err := md.config.KBPKI().GetCurrentSession(ctx)
+		if err != nil {
+			return nil, err
+		}
+		uid = session.UID
+	}
+
+	currRmd := rmd
+	//var fetched []*RootMetadataSigned
+	for {
+		// If currRmd isn't readable, keep fetching MDs until it can
+		// be read.  Then try currRmd.data.TLFPrivateKey to decrypt
+		// the leaf.  If it doesn't work, fetch MDs until we find the
+		// next keygen, and continue the loop.
+
+		privKey := currRmd.data.TLFPrivateKey
+		if !currRmd.IsReadable() {
+			pmd, err := decryptMDPrivateData(
+				ctx, md.config.Codec(), md.config.Crypto(),
+				md.config.BlockCache(), md.config.BlockOps(),
+				md.config.KeyManager(), md.config.Mode(), uid,
+				currRmd.GetSerializedPrivateMetadata(), currRmd,
+				head.ReadOnlyRootMetadata, md.log)
+			if err != nil {
+				return nil, err
+			}
+			privKey = pmd.TLFPrivateKey
+		}
+		currKeyGen := currRmd.LatestKeyGeneration()
+		if privKey == (kbfscrypto.TLFPrivateKey{}) {
+			return nil, errors.Errorf(
+				"Can't get TLF private key for key generation %d", currKeyGen)
+		}
+
+		mLeaf, err := eLeaf.Decrypt(
+			md.config.Codec(), privKey, kbfsRoot.Nonce, *kbfsRoot.EPubKey)
+		switch errors.Cause(err).(type) {
+		case nil:
+			return &mLeaf, nil
+		case libkb.DecryptionError:
+			// Fall-through to try another key generation.
+		default:
+			return nil, err
+		}
+
+		md.log.CDebugf(ctx, "Key generation %d didn't work; searching for "+
+			"the next one", currKeyGen)
+
+	fetchLoop:
+		for {
+			start := currRmd.Revision() + 1
+			end := start + maxMDsAtATime - 1 // range is inclusive
+			nextRMDs, err := getMergedMDUpdatesWithEnd(
+				ctx, md.config, currRmd.TlfID(), start, end, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, nextRmd := range nextRMDs {
+				if nextRmd.LatestKeyGeneration() > currKeyGen {
+					md.log.CDebugf(ctx, "Revision %d has key gen %d",
+						nextRmd.Revision(), nextRmd.LatestKeyGeneration())
+					currRmd = nextRmd.ReadOnlyRootMetadata
+					break fetchLoop
+				}
+			}
+
+			if len(nextRMDs) < maxMDsAtATime {
+				md.log.CDebugf(ctx,
+					"We tried all revisions and couldn't find a working keygen")
+				return nil, errors.Errorf("Can't decrypt merkle leaf")
+			}
+		}
+	}
+}
+
+func (md *MDOpsStandard) makeMerkleLeaf(
+	ctx context.Context, rmd ReadOnlyRootMetadata,
+	kbfsRoot *kbfsmd.MerkleRoot, leafBytes []byte) (
+	leaf *kbfsmd.MerkleLeaf, err error) {
+	if rmd.TlfID().Type() != tlf.Public {
+		return md.decryptMerkleLeaf(ctx, rmd, kbfsRoot, leafBytes)
+	}
+
+	var mLeaf kbfsmd.MerkleLeaf
+	err = md.config.Codec().Decode(leafBytes, &mLeaf)
+	if err != nil {
+		return nil, err
+	}
+	return &mLeaf, nil
+}
+
 func (md *MDOpsStandard) verifyKey(
 	ctx context.Context, rmds *RootMetadataSigned,
-	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (err error) {
+	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
+	irmd ImmutableRootMetadata) (cacheable bool, err error) {
 	err = md.config.KBPKI().HasVerifyingKey(ctx, uid, verifyingKey,
 		rmds.untrustedServerTimestamp)
 	var info revokedKeyInfo
 	switch e := errors.Cause(err).(type) {
 	case nil:
-		return nil
+		return true, nil
 	case RevokedDeviceVerificationError:
+		if ctx.Value(ctxMDOpsSkipKeyVerification) != nil {
+			md.log.CDebugf(ctx,
+				"Skipping revoked key verification due to recursion")
+			return false, nil
+		}
 		info = e.info
 		// Fall through to check via the merkle tree.
 	default:
-		return err
+		return false, err
 	}
 
 	md.log.CDebugf(ctx, "Revision %d for %s was signed by a device that was "+
 		"revoked at time=%d,root=%d; checking via Merkle",
-		rmds.MD.RevisionNumber(), rmds.MD.TlfID(), info.Time,
-		info.MerkleRoot.Seqno)
-	return nil
+		irmd.Revision(), irmd.TlfID(), info.Time, info.MerkleRoot.Seqno)
+	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
+
+	kbfsRoot, merkleNodes, rootSeqno, _, err :=
+		md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(),
+			info.MerkleRoot.Seqno)
+	if err != nil {
+		return false, err
+	}
+	if len(merkleNodes) == 0 {
+		// This can happen legitimately if we are still inside the
+		// error window and no new merkle trees have been made yet, or
+		// the server could be lying to us.
+		md.log.CDebugf(ctx, "The server claims there haven't been any "+
+			"KBFS merkle trees published since the revocation")
+		// Verify the chain up to the current head.  By using `ctx`,
+		// we'll avoid infinite loops in the writer-key-checking code
+		// by skipping revoked key verification.  This is ok, because
+		// we only care about the hash chain for the purposes of
+		// verifying `irmd`.
+		chain, err := getMergedMDUpdates(
+			ctx, md.config, irmd.TlfID(), irmd.Revision()+1, nil)
+		if err != nil {
+			return false, err
+		}
+		if len(chain) > 0 {
+			err = irmd.CheckValidSuccessor(
+				irmd.mdID, chain[0].ReadOnlyRootMetadata)
+			if err != nil {
+				return false, err
+			}
+		}
+
+		// TODO: check the most recent global merkle root and KBFS
+		// merkle root ctimes and make sure they fall within the
+		// expected error window with respect to the revocation.  Also
+		// eventually check the blockchain-published merkles to make
+		// sure the server isn't lying (though that will have a much
+		// larger error window).
+		return true, nil
+	}
+
+	md.log.CDebugf(ctx,
+		"Next KBFS merkle root is %d, included in global merkle root seqno=%d",
+		kbfsRoot.SeqNo, rootSeqno)
+
+	// Decode (and possibly decrypt) the leaf node, so we can see what
+	// the given MD revision number was for the MD that followed the
+	// revoke.
+	leaf, err := md.makeMerkleLeaf(
+		ctx, irmd.ReadOnlyRootMetadata, kbfsRoot,
+		merkleNodes[len(merkleNodes)-1])
+	if err != nil {
+		return false, err
+	}
+
+	// If the given revision comes after the merkle leaf revision,
+	// then don't verify it.
+	if irmd.Revision() > leaf.Revision {
+		return false, MDWrittenAfterRevokeError{
+			irmd.TlfID(), irmd.Revision(), leaf.Revision, verifyingKey}
+	} else if irmd.Revision() == leaf.Revision {
+		return true, nil
+	}
+
+	// Otherwise it's valid, as long as there's a valid chain of MD
+	// revisions between the two, and the global root info checks out
+	// as well.  By using `ctx`, we'll avoid infinite loops in the
+	// writer-key-checking code by skipping revoked key verification.
+	// This is ok, because we only care about the hash chain for the
+	// purposes of verifying `irmd`.
+	chain, err := getMergedMDUpdatesWithEnd(
+		ctx, md.config, irmd.TlfID(), irmd.Revision()+1, leaf.Revision, nil)
+	if err != nil {
+		return false, err
+	}
+	if len(chain) == 0 {
+		return false, errors.Errorf("Unexpectedly found no revisions "+
+			"after %d, even though the merkle tree includes revision %d",
+			irmd.Revision(), leaf.Revision)
+	}
+
+	err = irmd.CheckValidSuccessor(irmd.mdID, chain[0].ReadOnlyRootMetadata)
+	if err != nil {
+		return false, err
+	}
+
+	// TODO: check with the service to verify the global root info, to
+	// make sure it fits into our view of the global merkle tree and
+	// that it indeed points to the leaf we're using via `kbfsRoot`
+	// and all the `merkleNodes`.
+
+	return true, nil
 }
 
 func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
-	rmds *RootMetadataSigned, handle *TlfHandle,
+	rmds *RootMetadataSigned, irmd ImmutableRootMetadata, handle *TlfHandle,
 	getRangeLock *sync.Mutex) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
-		err := md.verifyKey(
+		// Skip verifying the writer key if it's the same as the
+		// overall signer's key (which must be verified elsewhere).
+		if rmds.GetWriterMetadataSigInfo().VerifyingKey ==
+			rmds.SigInfo.VerifyingKey {
+			return nil
+		}
+
+		_, err := md.verifyKey(
 			ctx, rmds, rmds.MD.LastModifyingWriter(),
-			rmds.GetWriterMetadataSigInfo().VerifyingKey)
+			rmds.GetWriterMetadataSigInfo().VerifyingKey, irmd)
 		if err != nil {
 			return md.convertVerifyingKeyError(ctx, rmds, handle, err)
 		}
@@ -221,17 +455,6 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 	}
 
-	// Then, verify the verifying keys.
-	if err := md.verifyWriterKey(ctx, rmds, handle, getRangeLock); err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	err = md.verifyKey(
-		ctx, rmds, rmds.MD.GetLastModifyingUser(), rmds.SigInfo.VerifyingKey)
-	if err != nil {
-		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
-	}
-
 	// Get the UID unless this is a public tlf - then proceed with empty uid.
 	var uid keybase1.UID
 	if handle.Type() != tlf.Public {
@@ -273,12 +496,33 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	}
 
 	key := rmds.GetWriterMetadataSigInfo().VerifyingKey
-	*rmds = RootMetadataSigned{}
 	irmd := MakeImmutableRootMetadata(rmd, key, mdID, localTimestamp, true)
 
-	err = md.config.MDCache().Put(irmd)
-	if err != nil {
+	// Then, verify the verifying keys.  We do this after decrypting
+	// the MD and making the ImmutableRootMetadata, since we way need
+	// access to the private metadata when checking the merkle roots,
+	// and we also need access to the `mdID`.
+	if err := md.verifyWriterKey(
+		ctx, rmds, irmd, handle, getRangeLock); err != nil {
 		return ImmutableRootMetadata{}, err
+	}
+
+	cacheable, err := md.verifyKey(
+		ctx, rmds, rmds.MD.GetLastModifyingUser(), rmds.SigInfo.VerifyingKey,
+		irmd)
+	if err != nil {
+		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(
+			ctx, rmds, handle, err)
+	}
+
+	// Make sure the caller doesn't use rmds anymore.
+	*rmds = RootMetadataSigned{}
+
+	if cacheable {
+		err = md.config.MDCache().Put(irmd)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 	return irmd, nil
 }
@@ -573,14 +817,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 	var prevIRMD ImmutableRootMetadata
 	for _, irmd := range irmds {
 		if prevIRMD != (ImmutableRootMetadata{}) {
-			// Ideally, we'd call
-			// ReadOnlyRootMetadata.CheckValidSuccessor()
-			// instead. However, we only convert r.MD to
-			// an ImmutableRootMetadata in
-			// processMetadataWithID below, and we want to
-			// do this check before then.
-			err = prevIRMD.bareMd.CheckValidSuccessor(
-				prevIRMD.mdID, irmd.bareMd)
+			err = prevIRMD.CheckValidSuccessor(
+				prevIRMD.mdID, irmd.ReadOnlyRootMetadata)
 			if err != nil {
 				return nil, MDMismatchError{
 					prevIRMD.Revision(),

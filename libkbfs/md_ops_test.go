@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"sync"
@@ -88,10 +89,10 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func addFakeRMDData(t *testing.T,
-	codec kbfscodec.Codec, rmd *RootMetadata, h *TlfHandle) {
+func addPrivateDataToRMD(t *testing.T,
+	codec kbfscodec.Codec, rmd *RootMetadata, h *TlfHandle,
+	pmd PrivateMetadata) {
 	rmd.SetRevision(kbfsmd.Revision(1))
-	pmd := PrivateMetadata{}
 	// TODO: Will have to change this for private folders if we
 	// un-mock out those tests.
 	buf, err := codec.Encode(pmd)
@@ -102,6 +103,11 @@ func addFakeRMDData(t *testing.T,
 	if h.Type() == tlf.Private {
 		rmd.fakeInitialRekey()
 	}
+}
+
+func addFakeRMDData(t *testing.T,
+	codec kbfscodec.Codec, rmd *RootMetadata, h *TlfHandle) {
+	addPrivateDataToRMD(t, codec, rmd, h, PrivateMetadata{})
 }
 
 func newRMDS(t *testing.T, config Config, h *TlfHandle) (
@@ -160,12 +166,6 @@ func (m kmdMatcher) String() string {
 func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
 		kmdMatcher{kmd}).Return(kbfscrypto.TLFCryptKey{}, nil)
-}
-
-func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, kmd KeyMetadata) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(
-		kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
@@ -603,6 +603,10 @@ type keyBundleMDServer struct {
 	nextHead     *RootMetadataSigned
 	nextGetRange []*RootMetadataSigned
 
+	nextMerkleRoot      *kbfsmd.MerkleRoot
+	nextMerkleNodes     [][]byte
+	nextMerkleRootSeqno keybase1.Seqno
+
 	lock sync.RWMutex
 	wkbs map[kbfsmd.TLFWriterKeyBundleID]kbfsmd.TLFWriterKeyBundleV3
 	rkbs map[kbfsmd.TLFReaderKeyBundleID]kbfsmd.TLFReaderKeyBundleV3
@@ -662,6 +666,21 @@ func (mds *keyBundleMDServer) GetKeyBundles(ctx context.Context, tlfID tlf.ID,
 	wkb := mds.wkbs[wkbID]
 	rkb := mds.rkbs[rkbID]
 	return &wkb, &rkb, nil
+}
+
+func (mds *keyBundleMDServer) FindNextMD(
+	ctx context.Context, tlfID tlf.ID, rootSeqno keybase1.Seqno) (
+	nextKbfsRoot *kbfsmd.MerkleRoot, nextMerkleNodes [][]byte,
+	nextRootSeqno keybase1.Seqno, nextRootHash keybase1.HashMeta, err error) {
+	nextKbfsRoot = mds.nextMerkleRoot
+	nextMerkleNodes = mds.nextMerkleNodes
+	nextRootSeqno = mds.nextMerkleRootSeqno
+
+	mds.nextMerkleRoot = nil
+	mds.nextMerkleNodes = nil
+	mds.nextMerkleRootSeqno = 0
+	return nextKbfsRoot, nextMerkleNodes, nextRootSeqno,
+		keybase1.HashMeta{}, nil
 }
 
 func testMDOpsGetRangeSuccessHelper(
@@ -957,6 +976,244 @@ func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 }
 
+func makeRealInitialRMDForTesting(
+	t *testing.T, ctx context.Context, config Config, h *TlfHandle,
+	id tlf.ID) (*RootMetadata, *RootMetadataSigned) {
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, rekeyDone)
+	_, _, _, err = ResetRootBlock(ctx, config, rmd)
+	require.NoError(t, err)
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	err = encryptMDPrivateData(
+		ctx, config.Codec(), config.Crypto(),
+		config.Crypto(), config.KeyManager(), session.UID, rmd)
+	require.NoError(t, err)
+	err = rmd.bareMd.SignWriterMetadataInternally(
+		ctx, config.Codec(), config.Crypto())
+	require.NoError(t, err)
+	now := config.Clock().Now()
+	rmds, err := SignBareRootMetadata(
+		ctx, config.Codec(), config.Crypto(), config.Crypto(), rmd.bareMd, now)
+	require.NoError(t, err)
+	return rmd, rmds
+}
+
+func makeSuccessorRMDForTesting(
+	t *testing.T, ctx context.Context, config Config, currRMD *RootMetadata,
+	deviceToRevoke int) (
+	*RootMetadata, *RootMetadataSigned) {
+	mdID, err := kbfsmd.MakeID(config.Codec(), currRMD.bareMd)
+	require.NoError(t, err)
+
+	rmd, err := currRMD.MakeSuccessor(
+		ctx, config.MetadataVersion(), config.Codec(), config.KeyManager(),
+		config.KBPKI(), config.KBPKI(), mdID, true)
+	require.NoError(t, err)
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	if deviceToRevoke > 0 {
+		RevokeDeviceForLocalUserOrBust(t, config, session.UID, deviceToRevoke)
+		rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+		require.NoError(t, err)
+		require.True(t, rekeyDone)
+	}
+	_, _, _, err = ResetRootBlock(ctx, config, rmd)
+	require.NoError(t, err)
+	err = encryptMDPrivateData(
+		ctx, config.Codec(), config.Crypto(),
+		config.Crypto(), config.KeyManager(), session.UID, rmd)
+	require.NoError(t, err)
+
+	err = rmd.bareMd.SignWriterMetadataInternally(
+		ctx, config.Codec(), config.Crypto())
+	require.NoError(t, err)
+	now := config.Clock().Now()
+	rmds, err := SignBareRootMetadata(
+		ctx, config.Codec(), config.Crypto(), config.Crypto(),
+		rmd.bareMd, now)
+	require.NoError(t, err)
+	return rmd, rmds
+}
+
+func makeEncryptedMerkleLeafForTesting(
+	t *testing.T, config Config, rmd *RootMetadata) (
+	root *kbfsmd.MerkleRoot, mLeaf kbfsmd.MerkleLeaf, leafBytes []byte) {
+	ePubKey, ePrivKey, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
+	require.NoError(t, err)
+	var nonce [24]byte
+	_, err = rand.Read(nonce[:])
+	require.NoError(t, err)
+	root = &kbfsmd.MerkleRoot{
+		EPubKey: &ePubKey,
+		Nonce:   &nonce,
+	}
+
+	now := config.Clock().Now()
+	mLeaf = kbfsmd.MerkleLeaf{
+		Revision:  1,
+		Timestamp: now.Unix(),
+	}
+	pubKey, err := rmd.bareMd.GetCurrentTLFPublicKey(rmd.extra)
+	require.NoError(t, err)
+	eLeaf, err := mLeaf.Encrypt(config.Codec(), pubKey, &nonce, ePrivKey)
+	require.NoError(t, err)
+	leafBytes, err = config.Codec().Encode(eLeaf)
+	require.NoError(t, err)
+	return root, mLeaf, leafBytes
+}
+
+func testMDOpsDecryptMerkleLeaf(t *testing.T, ver kbfsmd.MetadataVer) {
+	var u1 libkb.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	config.SetMetadataVersion(ver)
+
+	mdServer := makeKeyBundleMDServer(config.MDServer())
+	config.SetMDServer(mdServer)
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	var extraDevice int
+	for i := 0; i < 4; i++ {
+		extraDevice = AddDeviceForLocalUserOrBust(t, config, session.UID)
+	}
+
+	t.Log("Making an initial RMD")
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "u1", tlf.Private, id)
+	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config, h, id)
+
+	t.Log("Making an encrypted Merkle leaf")
+	root, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(t, config, rmd)
+
+	mdServer.nextHead = rmds
+	mdServer.processRMDSes(rmds, rmd.extra)
+
+	t.Log("Try to decrypt with the right key")
+	mdOps := config.MDOps().(*MDOpsStandard)
+	mLeaf2, err := mdOps.decryptMerkleLeaf(ctx, rmd.ReadOnly(), root, leafBytes)
+	require.NoError(t, err)
+	require.Equal(t, mLeaf.Revision, mLeaf2.Revision)
+	require.Equal(t, mLeaf.Timestamp, mLeaf2.Timestamp)
+
+	// `rmds` gets destroyed by `MDOpsStandard.GetForTLF()`, so we
+	// need to make another one.
+	now := config.Clock().Now()
+	rmds, err = SignBareRootMetadata(
+		ctx, config.Codec(), config.Crypto(), config.Crypto(), rmd.bareMd, now)
+	require.NoError(t, err)
+	mdServer.nextHead = rmds
+
+	t.Log("Try to decrypt with the wrong key; should fail")
+	_, privKeyWrong, _, err := config.Crypto().MakeRandomTLFKeys()
+	require.NoError(t, err)
+	privKey := rmd.data.TLFPrivateKey
+	rmd.data.TLFPrivateKey = privKeyWrong
+	mLeaf2, err = mdOps.decryptMerkleLeaf(ctx, rmd.ReadOnly(), root, leafBytes)
+	require.Error(t, err)
+
+	t.Log("Make some successors, every once in a while bumping the keygen")
+	rmd.data.TLFPrivateKey = privKey
+	allRMDs := []*RootMetadata{rmd}
+	allRMDSs := []*RootMetadataSigned{rmds}
+	for i := 2; i < 20; i++ {
+		deviceToRevoke := -1
+		if i%5 == 0 {
+			deviceToRevoke = extraDevice
+			extraDevice--
+		}
+
+		rmd, rmds = makeSuccessorRMDForTesting(
+			t, ctx, config, rmd, deviceToRevoke)
+		allRMDs = append(allRMDs, rmd)
+		allRMDSs = append(allRMDSs, rmds)
+
+		if i%5 == 0 {
+			mdServer.processRMDSes(rmds, rmd.extra)
+		}
+	}
+
+	t.Log("Decrypt a leaf that's encrypted with the next keygen")
+	leafRMD := allRMDs[6]
+	root, mLeaf, leafBytes = makeEncryptedMerkleLeafForTesting(
+		t, config, leafRMD)
+	rmds, err = SignBareRootMetadata(
+		ctx, config.Codec(), config.Crypto(), config.Crypto(),
+		rmd.bareMd, now)
+	require.NoError(t, err)
+	mdServer.nextHead = rmds
+	mdServer.nextGetRange = allRMDSs[1:10]
+	mLeaf2, err = mdOps.decryptMerkleLeaf(
+		ctx, allRMDs[0].ReadOnly(), root, leafBytes)
+	require.NoError(t, err)
+	require.Equal(t, mLeaf.Revision, mLeaf2.Revision)
+	require.Equal(t, mLeaf.Timestamp, mLeaf2.Timestamp)
+}
+
+func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
+	var u1 libkb.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	config.SetMetadataVersion(ver)
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	config2 := ConfigAsUser(config, u1)
+	defer config2.Shutdown(ctx)
+	AddDeviceForLocalUserOrBust(t, config, session.UID)
+	extraDevice := AddDeviceForLocalUserOrBust(t, config2, session.UID)
+	SwitchDeviceForLocalUserOrBust(t, config2, extraDevice)
+
+	mdServer := makeKeyBundleMDServer(config.MDServer())
+	config.SetMDServer(mdServer)
+	config2.SetMDServer(mdServer)
+
+	t.Log("Initial MD written by the device we will revoke")
+	id := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(t, config, "u1", tlf.Private, id)
+	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config2, h, id)
+	mdServer.processRMDSes(rmds, rmd.extra)
+
+	t.Log("A few writes by a device that won't be revoked")
+	allRMDs := []*RootMetadata{rmd}
+	allRMDSs := []*RootMetadataSigned{rmds}
+	for i := 2; i < 5; i++ {
+		rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config, rmd, -1)
+		allRMDs = append(allRMDs, rmd)
+		allRMDSs = append(allRMDSs, rmds)
+	}
+
+	t.Log("A write after the revoke happens")
+	rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config, rmd, extraDevice)
+	allRMDs = append(allRMDs, rmd)
+	allRMDSs = append(allRMDSs, rmds)
+	mdServer.processRMDSes(rmds, rmd.extra)
+	mdServer.nextHead = rmds
+	mdServer.nextGetRange = allRMDSs[1 : len(allRMDSs)-1]
+
+	t.Log("Make a merkle leaf using the new generation")
+	root, _, leafBytes := makeEncryptedMerkleLeafForTesting(t, config, rmd)
+	mdServer.nextMerkleRoot = root
+	mdServer.nextMerkleNodes = [][]byte{leafBytes}
+	mdServer.nextMerkleRootSeqno = 100
+
+	irmd := MakeImmutableRootMetadata(
+		allRMDs[0], allRMDSs[0].SigInfo.VerifyingKey, allRMDs[1].PrevRoot(),
+		time.Now(), false)
+
+	mdOps := config.MDOps().(*MDOpsStandard)
+	cacheable, err := mdOps.verifyKey(
+		ctx, allRMDSs[0], allRMDSs[0].MD.GetLastModifyingUser(),
+		allRMDSs[0].SigInfo.VerifyingKey, irmd)
+	require.NoError(t, err)
+	require.True(t, cacheable)
+}
+
 func TestMDOps(t *testing.T) {
 	tests := []func(*testing.T, kbfsmd.MetadataVer){
 		testMDOpsGetIDForHandlePublicSuccess,
@@ -980,6 +1237,8 @@ func TestMDOps(t *testing.T) {
 		testMDOpsPutFailEncode,
 		testMDOpsGetRangeFailFinal,
 		testMDOpsGetFinalSuccess,
+		testMDOpsDecryptMerkleLeaf,
+		testMDOpsVerifyRevokedDeviceWrite,
 	}
 	runTestsOverMetadataVers(t, "testMDOps", tests)
 }
