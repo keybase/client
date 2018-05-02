@@ -222,6 +222,12 @@ class Input extends Component<Props, State> {
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
     this._lastNativeSelection = {start, end}
+    // Bit of a hack here: Unlike the desktop case, where the text and
+    // selection are updated simultaneously, on mobile the text gets
+    // updated first, so handlers that rely on an updated selection
+    // will get strange results. So trigger a text change notification
+    // when the selection changes.
+    this._onChangeTextDone()
   }
 
   render = () => {
