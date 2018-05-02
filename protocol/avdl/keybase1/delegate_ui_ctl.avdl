@@ -7,6 +7,14 @@ protocol delegateUiCtl {
   void registerSecretUI();
   void registerUpdateUI();
   void registerRekeyUI();
-  void registerGregorFirehose();
   void registerHomeUI();
+
+  void registerGregorFirehose();
+
+  /**
+   * receive OOBMs for the given gregor systems. Like the firehose
+   * handler, but less pressure. Just the systems you want.
+   */
+  @lint("ignore")
+  void registerGregorFirehoseFiltered(array<string> systems);
 }

@@ -24,13 +24,27 @@
       "request": [],
       "response": null
     },
+    "registerHomeUI": {
+      "request": [],
+      "response": null
+    },
     "registerGregorFirehose": {
       "request": [],
       "response": null
     },
-    "registerHomeUI": {
-      "request": [],
-      "response": null
+    "registerGregorFirehoseFiltered": {
+      "request": [
+        {
+          "name": "systems",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null,
+      "doc": "* receive OOBMs for the given gregor systems. Like the firehose\n   * handler, but less pressure. Just the systems you want.",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"
