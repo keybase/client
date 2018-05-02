@@ -336,4 +336,4 @@ export type FavoriteFolder = {
   },
 }
 
-export type FileViewType = 'text' | 'image' | 'default'
+export type FileViewType = 'text' | 'image' | 'video' | 'default'
