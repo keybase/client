@@ -42,13 +42,12 @@ func TestBootstrap(t *testing.T) {
 	tc.G.ConnectivityMonitor = OfflineConnectivityMonitor{}
 
 	eng := NewLoginOffline(tc.G)
-	ctx := &Context{NetContext: context.Background()}
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
 	beng := NewBootstrap(tc.G)
-	m := NewMetaContextForTest(tc)
 	if err := RunEngine2(m, beng); err != nil {
 		t.Fatal(err)
 	}
