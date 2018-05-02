@@ -32,7 +32,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       ? 'Downloading'
       : message.transferState === 'uploading'
         ? 'Encrypting'
-        : message.transferState === 'remoteUploading' ? 'sender uploading...' : ''
+        : message.transferState === 'remoteUploading' ? 'waiting...' : ''
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
