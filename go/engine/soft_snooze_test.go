@@ -101,7 +101,7 @@ func TestSoftSnooze(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc.G, fu, username, sigVersion)
+	defer runUntrack(tc, fu, username, sigVersion)
 
 	// Now make her Rooter proof flakey / fail with a 429
 	flakeyAPI.flakeOut = true

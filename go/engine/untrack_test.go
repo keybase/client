@@ -10,17 +10,18 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) error {
+func runUntrack(tc libkb.TestContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) error {
 	arg := UntrackEngineArg{
 		Username:   libkb.NewNormalizedUsername(username),
 		SigVersion: sigVersion,
 	}
-	ctx := Context{
-		LogUI:    g.UI.GetLogUI(),
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewUntrackEngine(&arg, g)
-	return RunEngine(eng, &ctx)
+	eng := NewUntrackEngine(tc.G, &arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	return RunEngine2(m, eng)
 }
 
 func assertUntracked(tc libkb.TestContext, username string) {
@@ -51,7 +52,7 @@ func assertUntracked(tc libkb.TestContext, username string) {
 }
 
 func untrackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
-	err := runUntrack(tc.G, fu, "t_alice", sigVersion)
+	err := runUntrack(tc, fu, "t_alice", sigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -59,7 +60,7 @@ func untrackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersio
 }
 
 func untrackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
-	err := runUntrack(tc.G, fu, "t_bob", sigVersion)
+	err := runUntrack(tc, fu, "t_bob", sigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -95,14 +96,14 @@ func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 	assertUntracked(tc, "t_alice")
 
 	// Assert that we gracefully handle cases where there is nothing to untrack.
-	err := runUntrack(tc.G, fu, "t_alice", sigVersion)
+	err := runUntrack(tc, fu, "t_alice", sigVersion)
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
 		t.Fatalf("expected an UntrackError; got %s", err)
 	}
 
-	err = runUntrack(tc.G, fu, "t_bob", sigVersion)
+	err = runUntrack(tc, fu, "t_bob", sigVersion)
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {

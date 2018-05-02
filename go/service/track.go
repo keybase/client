@@ -80,16 +80,17 @@ func (h *TrackHandler) DismissWithToken(ctx context.Context, arg keybase1.Dismis
 }
 
 // Untrack creates an UntrackEngine and runs it.
-func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error {
+func (h *TrackHandler) Untrack(ctx context.Context, arg keybase1.UntrackArg) error {
 	earg := engine.UntrackEngineArg{
 		Username: libkb.NewNormalizedUsername(arg.Username),
 	}
-	ctx := engine.Context{
+	uis := libkb.UIs{
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewUntrackEngine(&earg, h.G())
-	return engine.RunEngine(eng, &ctx)
+	eng := engine.NewUntrackEngine(h.G(), &earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
 }
 
 func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {

@@ -31,14 +31,14 @@ func TestBackgroundIdentifier(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer runUntrack(tc.G, fu, "t_tracy", sigVersion)
+	defer runUntrack(tc, fu, "t_tracy", sigVersion)
 
 	_, bob, err := runTrack(tc, fu, "t_bob", sigVersion)
 	t.Logf("bob is %s", bob.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer runUntrack(tc.G, fu, "t_bob", sigVersion)
+	defer runUntrack(tc, fu, "t_bob", sigVersion)
 
 	endCh := make(chan struct{})
 	snoopCh := make(chan IdentifyJob, 100)

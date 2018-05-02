@@ -30,7 +30,7 @@ type SigsListArgs struct {
 }
 
 // NewSigsList creates a SigsList engine.
-func NewSigsList(args SigsListArgs, g *libkb.GlobalContext) *SigsList {
+func NewSigsList(g *libkb.GlobalContext, args SigsListArgs) *SigsList {
 	return &SigsList{
 		SigsListArgs: args,
 		Contextified: libkb.NewContextified(g),
@@ -58,8 +58,8 @@ func (e *SigsList) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *SigsList) Run(ctx *Context) error {
-	arg := libkb.NewLoadUserArg(e.G())
+func (e *SigsList) Run(m libkb.MetaContext) error {
+	arg := libkb.NewLoadUserArgWithMetaContext(m)
 	if len(e.Username) > 0 {
 		arg = arg.WithName(e.Username)
 	} else {
