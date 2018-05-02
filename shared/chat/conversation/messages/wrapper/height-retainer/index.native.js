@@ -1,8 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../../../../common-adapters'
+import {Box, NativeImage} from '../../../../../common-adapters/index.native'
 import {collapseStyles} from '../../../../../styles'
 import type {Props} from '.'
+
+const explodedUllustrationURL = require('../../../../../images/icons/icon-shh-24.png')
 
 type State = {
   height: ?number,
@@ -25,6 +27,13 @@ class HeightRetainer extends React.Component<Props, State> {
           !!this.state.height && this.props.retainHeight && {height: this.state.height},
         ])}
       >
+        {this.props.retainHeight && (
+          <NativeImage
+            source={explodedUllustrationURL}
+            style={{width: '100%', height: '100%'}}
+            resizeMode="repeat"
+          />
+        )}
         {!this.props.retainHeight && this.props.children}
       </Box>
     )
