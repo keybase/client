@@ -29,97 +29,95 @@ type State = {
   secondsLeft: number,
 }
 
-const ExplodingPopupHeader = HOCTimers(
-  class _ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
-    timer: ?IntervalID = null
-    state = {
-      secondsLeft: 0,
-    }
-
-    componentWillMount() {
-      if (!__STORYBOOK__) {
-        this.timer = this.props.setInterval(() => this.tick(), 1000)
-      }
-      this.tick()
-    }
-
-    componentWillUnmount() {
-      this.timer && this.props.clearInterval(this.timer)
-    }
-
-    tick() {
-      const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
-      let secondsLeft = this.props.explodesAt - now
-      if (secondsLeft < 0) {
-        secondsLeft = 0
-      }
-      this.setState({secondsLeft})
-    }
-
-    render() {
-      const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
-      const whoRevoked = yourMessage ? 'You' : author
-      return (
-        <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
-          <Icon
-            style={{marginBottom: globalMargins.tiny}}
-            type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
-          />
-          <Box2 direction="horizontal">
-            <Text type="BodySmall" style={{color: globalColors.black}}>
-              EXPLODING MESSAGE
-            </Text>
-          </Box2>
-          <Box2 direction="horizontal">
-            <Text type="BodySmall" style={{color: globalColors.black_40}}>
-              by
-            </Text>
-            <Avatar style={styleAvatar} username={author} size={12} />
-            <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
-              {author}
-            </Text>
-          </Box2>
-          <Box2 direction="horizontal">
-            <Text type="BodySmall" style={{color: globalColors.black_40}}>
-              using device&nbsp;{deviceName}
-            </Text>
-          </Box2>
-          <Box2 direction="horizontal">
-            <Text type="BodySmall" style={{color: globalColors.black_40}}>
-              {formatTimeForPopup(timestamp)}
-            </Text>
-          </Box2>
-          {deviceRevokedAt && (
-            <PopupHeaderText
-              color={globalColors.white}
-              backgroundColor={globalColors.blue}
-              style={styleRevokedAt}
-            >
-              {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-            </PopupHeaderText>
-          )}
-          <Box2
-            direction="vertical"
-            gap="xsmall"
-            fullWidth={true}
-            gapEnd={true}
-            gapStart={true}
-            style={{
-              backgroundColor: this.state.secondsLeft < oneHourInSecs ? globalColors.red : globalColors.black,
-              marginTop: globalMargins.tiny,
-            }}
-          >
-            <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
-              {secondsToDHMS(this.state.secondsLeft)}
-            </Text>
-          </Box2>
-        </Box2>
-      )
-    }
+class ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
+  timer: ?IntervalID = null
+  state = {
+    secondsLeft: 0,
   }
-)
 
-const ExplodingPopupMenu = (props: Props) => {
+  componentWillMount() {
+    if (!__STORYBOOK__) {
+      this.timer = this.props.setInterval(() => this.tick(), 1000)
+    }
+    this.tick()
+  }
+
+  componentWillUnmount() {
+    this.timer && this.props.clearInterval(this.timer)
+  }
+
+  tick() {
+    const now = __STORYBOOK__ ? 1999999999 : Math.floor(Date.now() / 1000)
+    let secondsLeft = this.props.explodesAt - now
+    if (secondsLeft < 0) {
+      secondsLeft = 0
+    }
+    this.setState({secondsLeft})
+  }
+
+  render() {
+    const {author, deviceName, deviceRevokedAt, timestamp, yourMessage} = this.props
+    const whoRevoked = yourMessage ? 'You' : author
+    return (
+      <Box2 direction="vertical" fullWidth={true} style={{alignItems: 'center'}}>
+        <Icon
+          style={{marginBottom: globalMargins.tiny}}
+          type={isMobile ? 'icon-fancy-bomb-129-96' : 'icon-fancy-bomb-86-64'}
+        />
+        <Box2 direction="horizontal">
+          <Text type="BodySmall" style={{color: globalColors.black}}>
+            EXPLODING MESSAGE
+          </Text>
+        </Box2>
+        <Box2 direction="horizontal">
+          <Text type="BodySmall" style={{color: globalColors.black_40}}>
+            by
+          </Text>
+          <Avatar style={styleAvatar} username={author} size={12} />
+          <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
+            {author}
+          </Text>
+        </Box2>
+        <Box2 direction="horizontal">
+          <Text type="BodySmall" style={{color: globalColors.black_40}}>
+            using device&nbsp;{deviceName}
+          </Text>
+        </Box2>
+        <Box2 direction="horizontal">
+          <Text type="BodySmall" style={{color: globalColors.black_40}}>
+            {formatTimeForPopup(timestamp)}
+          </Text>
+        </Box2>
+        {deviceRevokedAt && (
+          <PopupHeaderText
+            color={globalColors.white}
+            backgroundColor={globalColors.blue}
+            style={styleRevokedAt}
+          >
+            {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+          </PopupHeaderText>
+        )}
+        <Box2
+          direction="vertical"
+          gap="xsmall"
+          fullWidth={true}
+          gapEnd={true}
+          gapStart={true}
+          style={{
+            backgroundColor: this.state.secondsLeft < oneHourInSecs ? globalColors.red : globalColors.black,
+            marginTop: globalMargins.tiny,
+          }}
+        >
+          <Text style={{color: globalColors.white, textAlign: 'center'}} type="BodySemibold">
+            {secondsToDHMS(this.state.secondsLeft)}
+          </Text>
+        </Box2>
+      </Box2>
+    )
+  }
+}
+
+const ExplodingPopupMenu = (props: Props & HOCTimers) => {
   const items = [
     {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
     ...(props.yourMessage
@@ -180,4 +178,4 @@ const styleRevokedAt = {
   width: '100%',
 }
 
-export default ExplodingPopupMenu
+export default HOCTimers(ExplodingPopupMenu)
