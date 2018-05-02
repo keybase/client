@@ -45,11 +45,12 @@ class Input extends React.Component<InputProps> {
   }
 
   _setText = (text: string, skipUnsentSaving?: boolean) => {
-    this._input &&
+    if (this._input) {
       this._input.transformText(() => ({
         text,
         selection: {start: text.length, end: text.length},
       }))
+    }
 
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
