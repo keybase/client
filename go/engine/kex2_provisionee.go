@@ -106,9 +106,6 @@ func (e *Kex2Provisionee) Run(m libkb.MetaContext) error {
 		return errors.New("provisionee device requires ID to be set")
 	}
 
-	// the MetaContext m is needed in some of the kex2 functions:
-	e.mctx = m
-
 	if m.LoginContext() == nil {
 		return errors.New("Kex2Provisionee needs LoginContext set in engine.Context")
 	}
@@ -117,14 +114,17 @@ func (e *Kex2Provisionee) Run(m libkb.MetaContext) error {
 		panic("empty secret")
 	}
 
-	var nctx context.Context
-	nctx, e.kex2Cancel = context.WithCancel(m.Ctx())
+	m, e.kex2Cancel = m.WithContextCancel()
 	defer e.kex2Cancel()
 
+	// The MetaContext m is needed in some of the kex2 functions. Make sure to do that
+	// after we've added a cancelation above.
+	e.mctx = m
+
 	karg := kex2.KexBaseArg{
-		Ctx:           nctx,
-		LogCtx:        newKex2LogContext(e.G()),
-		Mr:            libkb.NewKexRouter(e.G()),
+		Ctx:           m.Ctx(),
+		LogCtx:        newKex2LogContext(m.G()),
+		Mr:            libkb.NewKexRouter(m.G()),
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
 		SecretChannel: e.secretCh,
