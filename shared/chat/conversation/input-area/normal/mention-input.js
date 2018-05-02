@@ -4,8 +4,6 @@ import PlatformInput from './platform-input'
 import {type MentionInputProps} from './types'
 import {Input} from '../../../../common-adapters'
 
-import {isMobile} from '../../../../constants/platform'
-
 type MentionState = {
   pickSelectedCounter: number,
   mentionFilter: string,
@@ -150,16 +148,10 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._replaceWordAtCursor(`@${u} `)
     this._setMentionPopupOpen(false)
 
-    if (isMobile) {
-      return
-    }
-
-    // TODO: needed?
-
     // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notUser) {
-      this._triggerSubmit()
+      this._forceSubmit()
     }
   }
 
@@ -167,16 +159,10 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     this._replaceWordAtCursor(`#${c} `)
     this._setChannelMentionPopupOpen(false)
 
-    if (isMobile) {
-      return
-    }
-
-    // TODO: needed?
-
     // This happens if you type #notachannel<enter>. We've essentially 'picked' nothing and really want to submit
     // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
     if (options && options.notChannel) {
-      this._triggerSubmit()
+      this._forceSubmit()
     }
   }
 
@@ -230,14 +216,14 @@ class MentionInput extends React.Component<MentionInputProps, MentionState> {
     }
   }
 
-  _triggerSubmit = () => {
+  // End desktop only.
+
+  _forceSubmit = () => {
     const text = this._getText()
     if (text) {
-      this._onSubmit(text)
+      this.props.onSubmit(text)
     }
   }
-
-  // End desktop only.
 
   _onSubmit = (text: string) => {
     // TODO: Is this desktop only?
