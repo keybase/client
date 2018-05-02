@@ -5,12 +5,48 @@ package libkb
 
 import (
 	"fmt"
+	"sync"
 )
 
 type PassphraseStreamCache struct {
-	tsec             Triplesec
+	tsec             *LockedTriplesec
 	passphraseStream *PassphraseStream
 }
+
+type LockedTriplesec struct {
+	sync.Mutex
+	t Triplesec
+}
+
+func (t *LockedTriplesec) DeriveKey(l int) ([]byte, []byte, error) {
+	t.Lock()
+	defer t.Unlock()
+	return t.t.DeriveKey(l)
+}
+
+func (t *LockedTriplesec) Decrypt(b []byte) ([]byte, error) {
+	t.Lock()
+	defer t.Unlock()
+	return t.t.Decrypt(b)
+}
+
+func (t *LockedTriplesec) Encrypt(b []byte) ([]byte, error) {
+	t.Lock()
+	defer t.Unlock()
+	return t.t.Encrypt(b)
+}
+
+func (t *LockedTriplesec) Scrub() {
+	t.Lock()
+	defer t.Unlock()
+	t.t.Scrub()
+}
+
+func NewLockedTriplesec(t Triplesec) *LockedTriplesec {
+	return &LockedTriplesec{t: t}
+}
+
+var _ Triplesec = (*LockedTriplesec)(nil)
 
 type PassphraseStreamCacheReader interface {
 	Triplesec() Triplesec
@@ -20,7 +56,7 @@ type PassphraseStreamCacheReader interface {
 
 func NewPassphraseStreamCache(tsec Triplesec, ps *PassphraseStream) *PassphraseStreamCache {
 	return &PassphraseStreamCache{
-		tsec:             tsec,
+		tsec:             NewLockedTriplesec(tsec),
 		passphraseStream: ps,
 	}
 }
