@@ -42,7 +42,7 @@ func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name stri
 	if bundle == nil {
 		return fmt.Errorf("nil bundle")
 	}
-	secretKey, accountID, err := libkb.ParseStellarSecretKey(string(secretKey))
+	secretKey, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
 	if err != nil {
 		return err
 	}

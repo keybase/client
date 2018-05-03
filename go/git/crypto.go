@@ -1,7 +1,6 @@
 package git
 
 import (
-	"crypto/rand"
 	"fmt"
 
 	"golang.org/x/crypto/nacl/secretbox"
@@ -56,14 +55,13 @@ func (c *Crypto) Box(ctx context.Context, plaintext []byte, teamSpec keybase1.Te
 		}
 	}
 
-	var nonce keybase1.BoxNonce
-	if _, err := rand.Read(nonce[:]); err != nil {
+	nonce, err := libkb.RandomNaclDHNonce()
+	if err != nil {
 		return nil, err
 	}
 
 	var encKey [libkb.NaclSecretBoxKeySize]byte = key.Key
-	var naclNonce [libkb.NaclDHNonceSize]byte = nonce
-	sealed := secretbox.Seal(nil, plaintext, &naclNonce, &encKey)
+	sealed := secretbox.Seal(nil, plaintext, &nonce, &encKey)
 
 	return &keybase1.EncryptedGitMetadata{
 		V:   libkb.CurrentGitMetadataEncryptionVersion,

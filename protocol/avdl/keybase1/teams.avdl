@@ -19,7 +19,8 @@ protocol teams {
     CHAT_2,
     SALTPACK_3,
     GIT_METADATA_4,
-    SEITAN_INVITE_TOKEN_5
+    SEITAN_INVITE_TOKEN_5,
+    STELLAR_RELAY_6
   }
 
   // PerTeamKeyGeneration describes the generation of the secret.
