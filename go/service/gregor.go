@@ -66,17 +66,32 @@ func (h *IdentifyUIHandler) toggleAlwaysAlive(alive bool) {
 	h.alwaysAlive = alive
 }
 
-type gregorFirehoseHandler struct {
-	libkb.Contextified
-	connID libkb.ConnectionID
-	cli    keybase1.GregorUIClient
+type oobmSystemSubscriptions map[string]bool
+
+func newOOBMSystemSubscriptions(oobmSystems []string) oobmSystemSubscriptions {
+	if oobmSystems == nil {
+		return nil
+	}
+	ret := make(oobmSystemSubscriptions)
+	for _, system := range oobmSystems {
+		ret[system] = true
+	}
+	return ret
 }
 
-func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID, xp rpc.Transporter) *gregorFirehoseHandler {
+type gregorFirehoseHandler struct {
+	libkb.Contextified
+	connID     libkb.ConnectionID
+	cli        keybase1.GregorUIClient
+	oobmFilter oobmSystemSubscriptions
+}
+
+func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID, xp rpc.Transporter, oobmSystems []string) *gregorFirehoseHandler {
 	return &gregorFirehoseHandler{
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
 		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)},
+		oobmFilter:   newOOBMSystemSubscriptions(oobmSystems),
 	}
 }
 
@@ -91,8 +106,34 @@ func (h *gregorFirehoseHandler) PushState(s gregor1.State, r keybase1.PushReason
 	}
 }
 
-func (h *gregorFirehoseHandler) PushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
-	err := h.cli.PushOutOfBandMessages(context.Background(), m)
+func (h *gregorFirehoseHandler) filterOOBMs(v []gregor1.OutOfBandMessage) []gregor1.OutOfBandMessage {
+	// Filter OOBMs down to wanted systems if we have a filter installed
+	if h.oobmFilter == nil {
+		return v
+	}
+
+	var tmp []gregor1.OutOfBandMessage
+	for _, m := range v {
+		if h.oobmFilter[m.System().String()] {
+			tmp = append(tmp, m)
+		}
+	}
+	return tmp
+}
+
+func (h *gregorFirehoseHandler) PushOutOfBandMessages(v []gregor1.OutOfBandMessage) {
+
+	nOrig := len(v)
+
+	// Filter OOBMs down to wanted systems if we have a filter installed
+	v = h.filterOOBMs(v)
+	h.G().Log.Debug("gregorFirehoseHandler#PushOutOfBandMessages: %d message(s) (%d before filter)", len(v), nOrig)
+
+	if len(v) == 0 {
+		return
+	}
+
+	err := h.cli.PushOutOfBandMessages(context.Background(), v)
 	if err != nil {
 		h.G().Log.Error(fmt.Sprintf("Error in firehose push out-of-band messages: %s", err))
 	}

@@ -10,6 +10,7 @@ type Props = {
   title: string,
   progress: number,
   progressLabel: string,
+  hasProgress: boolean,
 }
 
 class FileAttachment extends React.PureComponent<Props> {
@@ -32,7 +33,7 @@ class FileAttachment extends React.PureComponent<Props> {
               <Text type="BodySmall" style={progressLabelStyle}>
                 {this.props.progressLabel}
               </Text>
-              <ProgressBar ratio={this.props.progress} />
+              {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
             </Box>
           )}
           {this.props.onShowInFinder && (

@@ -4,7 +4,7 @@ import {Box, Icon, Text} from '../../../../common-adapters'
 import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
-import type {MessageText, MessageAttachment} from '../../../../constants/types/chat2'
+import type {DeviceType} from '../../../../constants/types/devices'
 import type {IconType} from '../../../../common-adapters/icon'
 
 const iconNameForDeviceType = isMobile
@@ -26,13 +26,17 @@ const iconNameForDeviceType = isMobile
     }
 
 const MessagePopupHeader = (props: {
-  message: MessageText | MessageAttachment,
+  author: string,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
   isLast?: boolean,
+  timestamp: number,
   yourMessage: boolean,
 }) => {
-  const {message, isLast, yourMessage} = props
-  const iconName = iconNameForDeviceType(message.deviceType, !!message.deviceRevokedAt)
-  const whoRevoked = yourMessage ? 'You' : message.author
+  const {author, deviceName, deviceRevokedAt, deviceType, isLast, timestamp, yourMessage} = props
+  const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt)
+  const whoRevoked = yourMessage ? 'You' : author
   return (
     <Box
       style={{
@@ -49,16 +53,10 @@ const MessagePopupHeader = (props: {
         }}
       />
       <Box style={globalStyles.flexBoxRow}>
-        <Text
-          type="BodySmall"
-          style={{color: message.deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
-        >
+        <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
           ENCRYPTED
         </Text>
-        <Text
-          type="BodySmall"
-          style={{color: message.deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
-        >
+        <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
           &nbsp;& SIGNED
         </Text>
       </Box>
@@ -67,13 +65,13 @@ const MessagePopupHeader = (props: {
           by
         </Text>
         <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
-          &nbsp;{message.deviceName}
+          &nbsp;{deviceName}
         </Text>
       </Box>
       <Text type="BodySmall" style={{color: globalColors.black_40}}>
-        {formatTimeForPopup(message.timestamp)}
+        {formatTimeForPopup(timestamp)}
       </Text>
-      {message.deviceRevokedAt && (
+      {deviceRevokedAt && (
         <PopupHeaderText
           color={globalColors.white}
           backgroundColor={globalColors.blue}
@@ -85,7 +83,7 @@ const MessagePopupHeader = (props: {
             width: '100%',
           }}
         >
-          {whoRevoked} revoked this device on {formatTimeForRevoked(message.deviceRevokedAt)}.
+          {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
         </PopupHeaderText>
       )}
     </Box>

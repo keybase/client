@@ -82,6 +82,7 @@ export {
   isSpecialMention,
   makeMessageAttachment,
   makeMessageDeleted,
+  makeMessageText,
   makePendingAttachmentMessage,
   makePendingTextMessage,
   messageExplodeDescriptions,

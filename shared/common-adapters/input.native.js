@@ -8,34 +8,61 @@ import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
 
-import type {KeyboardType, Props} from './input'
+import type {KeyboardType, Props, Selection, TextInfo} from './input'
+import {checkTextInfo} from './input.shared'
 
 type State = {
   focused: boolean,
   height: ?number,
-  value: string,
-  selections: {selectionStart: number, selectionEnd: number},
+  // Only changed for controlled components.
+  value?: string,
 }
 
 class Input extends Component<Props, State> {
   state: State
   _input: NativeTextInput | null
+  _lastNativeText: ?string
+  _lastNativeSelection: ?{start: number, end: number}
+
+  // TODO: Remove once we can use HOCTimers.
+  _timeoutIds: Array<TimeoutID>
+
+  // We define _setTimeout instead of using HOCTimers since we'd need
+  // to use React.forwardRef with HOCTimers, and it doesn't seem to
+  // work with React Native yet.
+  _setTimeout = (f, n) => {
+    const id = setTimeout(f, n)
+    this._timeoutIds.push(id)
+    return id
+  }
 
   constructor(props: Props) {
     super(props)
 
-    this.state = {
+    const text = props.value || ''
+    this.state = ({
       focused: false,
       height: null,
-      value: props.value || '',
-      selections: {selectionStart: 0, selectionEnd: 0},
+    }: State)
+    if (!props.uncontrolled) {
+      this.state.value = text
     }
+
+    // TODO: Remove once we can use HOCTimers.
+    this._timeoutIds = []
+  }
+
+  // TODO: Remove once we can use HOCTimers.
+  componentWillUnmount = () => {
+    this._timeoutIds.forEach(clearTimeout)
+  }
+
+  _setInputRef = (ref: NativeTextInput | null) => {
+    this._input = ref
   }
 
   // Does nothing on mobile
   select = () => {}
-  // Does nothing on mobile
-  moveCursorToEnd = () => {}
 
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
@@ -43,8 +70,8 @@ class Input extends Component<Props, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.hasOwnProperty('value')) {
+  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
+    if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
       return {value: nextProps.value || ''}
     }
     return null
@@ -74,34 +101,68 @@ class Input extends Component<Props, State> {
     }
   }
 
-  getValue(): string {
-    return this.state.value || ''
+  getValue = (): string => {
+    if (this.props.uncontrolled) {
+      return this._lastNativeText || ''
+    } else {
+      return this.state.value || ''
+    }
+  }
+
+  selection = (): Selection => {
+    return this._lastNativeSelection || {start: 0, end: 0}
+  }
+
+  _onChangeTextDone = () => {
+    const value = this.getValue()
+    this.props.onChangeText && this.props.onChangeText(value)
   }
 
   _onChangeText = (text: string) => {
-    this.setState({value: text}, () => this.props.onChangeText && this.props.onChangeText(text))
+    this._lastNativeText = text
+    if (this.props.uncontrolled) {
+      this._onChangeTextDone()
+    } else {
+      this.setState({value: text}, this._onChangeTextDone)
+    }
   }
 
-  focus() {
+  focus = () => {
     this._input && this._input.focus()
   }
 
-  blur() {
+  blur = () => {
     this._input && this._input.blur()
   }
 
-  replaceText = (
-    text: string,
-    startIdx: number,
-    endIdx: number,
-    newSelectionStart: number,
-    newSelectionEnd: number
-  ) => {
-    const v = this.getValue()
-    const nextText = v.slice(0, startIdx) + text + v.slice(endIdx)
-    this._onChangeText(nextText)
-    // TODO: Set selection to newSelectionStart/newSelectionEnd once
-    // we're able to.
+  transformText = (fn: TextInfo => TextInfo) => {
+    if (!this.props.uncontrolled) {
+      throw new Error('transformText can only be called on uncontrolled components')
+    }
+
+    const textInfo: TextInfo = {
+      text: this.getValue(),
+      selection: this.selection(),
+    }
+    const newTextInfo = fn(textInfo)
+    checkTextInfo(newTextInfo)
+    this.setNativeProps({text: newTextInfo.text})
+    this._lastNativeText = newTextInfo.text
+    // Setting both the text and the selection at the same time
+    // doesn't seem to work, but setting a short timeout to set the
+    // selection does.
+    this._setTimeout(() => {
+      // It's possible that, by the time this runs, the selection is
+      // out of bounds with respect to the current text value. So fix
+      // it up if necessary.
+      const text = this.getValue()
+      let {start, end} = newTextInfo.selection
+      end = Math.max(0, Math.min(end, text.length))
+      start = Math.max(0, Math.min(start, end))
+      const selection = {start, end}
+      this.setNativeProps({selection})
+      this._lastNativeSelection = selection
+    }, 0)
   }
 
   _onFocus = () => {
@@ -114,13 +175,13 @@ class Input extends Component<Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  _lineHeight() {
+  _lineHeight = () => {
     if (this.props.small) {
       return 20
     } else return 28
   }
 
-  _underlineColor() {
+  _underlineColor = () => {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -132,12 +193,12 @@ class Input extends Component<Props, State> {
     return this.state.focused ? globalColors.blue : globalColors.black_10_on_white
   }
 
-  _rowsToHeight(rows) {
+  _rowsToHeight = rows => {
     const border = this.props.hideUnderline ? 0 : 1
     return rows * this._lineHeight() + border
   }
 
-  _containerStyle(underlineColor) {
+  _containerStyle = underlineColor => {
     return this.props.small
       ? {
           ...globalStyles.flexBoxRow,
@@ -155,29 +216,21 @@ class Input extends Component<Props, State> {
   }
 
   _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
-    let {start, end} = event.nativeEvent.selection
+    let {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
-    const selectionStart = Math.min(start, end)
-    const selectionEnd = Math.max(start, end)
-    const selection = {
-      selectionStart,
-      selectionEnd,
-    }
-    this.setState(
-      {
-        selections: selection,
-      },
-      () => this.props.onSelectionChange && this.props.onSelectionChange(selection)
-    )
+    const start = Math.min(_start, _end)
+    const end = Math.max(_start, _end)
+    this._lastNativeSelection = {start, end}
+    // Bit of a hack here: Unlike the desktop case, where the text and
+    // selection are updated simultaneously, on mobile the text gets
+    // updated first, so handlers that rely on an updated selection
+    // will get strange results. So trigger a text change notification
+    // when the selection changes.
+    this._onChangeTextDone()
   }
 
-  // WARNING may not be up to date in time sensitive situations
-  selections() {
-    return this.state.selections
-  }
-
-  render() {
+  render = () => {
     const underlineColor = this._underlineColor()
     const lineHeight = this._lineHeight()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
@@ -241,7 +294,7 @@ class Input extends Component<Props, State> {
     // We want to be able to set the selection property,
     // too. Unfortunately, that triggers an Android crash:
     // https://github.com/facebook/react-native/issues/18316 .
-    const commonProps = {
+    const commonProps: {value?: string} = {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
       editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
@@ -254,18 +307,15 @@ class Input extends Component<Props, State> {
       onSubmitEditing: this.props.onEnterKeyDown,
       onEndEditing: this.props.onEndEditing,
       placeholder: this.props.hintText,
-      ref: (r: NativeTextInput | null) => {
-        this._input = r
-      },
+      ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
-      value,
       secureTextEntry: this.props.type === 'password',
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
-    if (this.props.uncontrolled) {
-      delete commonProps['value']
+    if (!this.props.uncontrolled) {
+      commonProps.value = value
     }
 
     const singlelineProps = {
