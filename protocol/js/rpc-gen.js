@@ -630,6 +630,10 @@ export const debuggingIncrementRpcChannelMap = (configKeys: Array<string>, reque
 
 export const debuggingIncrementRpcPromise = (request: DebuggingIncrementRpcParam): Promise<DebuggingIncrementResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.increment', request, (error: RPCError, result: DebuggingIncrementResult) => (error ? reject(error) : resolve(result))))
 
+export const debuggingScriptRpcChannelMap = (configKeys: Array<string>, request: DebuggingScriptRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.script', request)
+
+export const debuggingScriptRpcPromise = (request: DebuggingScriptRpcParam): Promise<DebuggingScriptResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.script', request, (error: RPCError, result: DebuggingScriptResult) => (error ? reject(error) : resolve(result))))
+
 export const debuggingSecondStepRpcChannelMap = (configKeys: Array<string>, request: DebuggingSecondStepRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.debugging.secondStep', request)
 
 export const debuggingSecondStepRpcPromise = (request: DebuggingSecondStepRpcParam): Promise<DebuggingSecondStepResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.debugging.secondStep', request, (error: RPCError, result: DebuggingSecondStepResult) => (error ? reject(error) : resolve(result))))
@@ -2207,6 +2211,8 @@ export type DbValue = Bytes
 export type DebuggingFirstStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DebuggingIncrementRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
+export type DebuggingScriptRpcParam = $ReadOnly<{script: String, args?: ?Array<String>, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
 export type DebuggingSecondStepRpcParam = $ReadOnly<{val: Int, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
@@ -4162,6 +4168,7 @@ type CryptocurrencyRegisterAddressResult = RegisterAddressRes
 type CtlDbGetResult = ?DbValue
 type DebuggingFirstStepResult = FirstStepResult
 type DebuggingIncrementResult = Int
+type DebuggingScriptResult = String
 type DebuggingSecondStepResult = Int
 type DeviceCheckDeviceNameFormatResult = Boolean
 type DeviceDeviceHistoryListResult = ?Array<DeviceDetail>
