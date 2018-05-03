@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/fs'
 import {globalColors, globalMargins} from '../../styles'
 import WebView from '../../common-adapters/web-view.native'
 import {type TextViewProps} from './text-view'
@@ -31,7 +32,7 @@ window.postMessage({title: document.title})
 `
 
 const getOnMessage = onInvalidToken => e =>
-  e.nativeEvent.data.title === 'KBFS HTTP Token Invalid' && onInvalidToken()
+  e.nativeEvent.data.title === Constants.invalidTokenTitle && onInvalidToken()
 
 const TextView = ({url, onInvalidToken}: TextViewProps) => (
   <WebView source={{uri: url}} injectedJavaScript={webviewJS} onMessage={getOnMessage(onInvalidToken)} />

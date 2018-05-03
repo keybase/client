@@ -8,6 +8,7 @@ import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
 import VideoView from './video-view'
+import PdfView from './pdf-view'
 import {Text} from '../../common-adapters'
 
 type Props = {
@@ -41,6 +42,8 @@ export default ({path, fileViewType}: Props) => {
       return React.createElement(httpConnect(ImageView), {path})
     case 'video':
       return React.createElement(httpConnect(VideoView), {path})
+    case 'pdf':
+      return React.createElement(httpConnect(PdfView), {path})
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
