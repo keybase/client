@@ -91,6 +91,12 @@ func (fis fileInfoSys) LastWriter() (keybase1.User, error) {
 		return keybase1.User{}, err
 	}
 	lastWriterName := md.LastWriterUnverified
+	if lastWriterName == "" {
+		// This can happen in old, buggy team folders where the writer
+		// isn't properly set.  See KBFS-2939.
+		return keybase1.User{}, nil
+	}
+
 	_, id, err := fis.fi.fs.config.KBPKI().Resolve(
 		fis.fi.fs.ctx, lastWriterName.String())
 	if err != nil {

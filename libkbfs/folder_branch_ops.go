@@ -2090,10 +2090,15 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	if id.IsNil() {
 		id = de.Creator
 	}
-	res.LastWriterUnverified, err =
-		fbo.config.KBPKI().GetNormalizedUsername(ctx, id)
-	if err != nil {
-		return res, err
+	// Only set the last resolved writer if it's really a user ID.
+	// This works around an old teams bug where the TeamWriter isn't
+	// set.  See KBFS-2939.
+	if id.IsUser() {
+		res.LastWriterUnverified, err =
+			fbo.config.KBPKI().GetNormalizedUsername(ctx, id)
+		if err != nil {
+			return res, err
+		}
 	}
 	prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(),
 		res.BlockInfo.BlockPointer)
