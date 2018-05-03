@@ -16,6 +16,7 @@ const makeMessageMinimum = {
   conversationIDKey: Types.stringToConversationIDKey(''),
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
+  source: 'none',
   timestamp: 0,
 }
 
@@ -35,7 +36,7 @@ const makeMessageExplodable = {
 }
 
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
-  ...makeMessageCommon,
+  ...makeMessageMinimum,
   type: 'placeholder',
 })
 
@@ -282,13 +283,15 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
 const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
-  m: RPCChatTypes.UIMessageValid
+  m: RPCChatTypes.UIMessageValid,
+  source: MessageTypes.Source
 ) => {
   const minimum = {
     author: m.senderUsername,
     conversationIDKey,
     id: Types.numberToMessageID(m.messageID),
     ordinal: Types.numberToOrdinal(m.messageID),
+    source,
     timestamp: m.ctime,
   }
   const common = {
@@ -444,7 +447,8 @@ const outboxUIMessagetoMessage = (
   uiMessage: RPCChatTypes.UIMessage,
   o: RPCChatTypes.UIMessageOutbox,
   you: string,
-  yourDevice: string
+  yourDevice: string,
+  source: MessageTypes.Source
 ) => {
   const errorReason =
     o.state && o.state.state === RPCChatTypes.localOutboxStateType.error && o.state.error
@@ -459,6 +463,7 @@ const outboxUIMessagetoMessage = (
     errorReason,
     ordinal: Types.numberToOrdinal(o.ordinal),
     outboxID: Types.stringToOutboxID(o.outboxID),
+    source,
     submitState: 'pending',
     text: new HiddenString(o.body),
     timestamp: o.ctime,
@@ -468,31 +473,36 @@ const outboxUIMessagetoMessage = (
 const placeholderUIMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
-  p: RPCChatTypes.MessageUnboxedPlaceholder
+  p: RPCChatTypes.MessageUnboxedPlaceholder,
+  source: MessageTypes.Source
 ) => {
   return !p.hidden
     ? makeMessagePlaceholder({
         conversationIDKey,
         id: Types.numberToMessageID(p.messageID),
         ordinal: Types.numberToOrdinal(p.messageID),
+        source,
       })
     : makeMessageDeleted({
         conversationIDKey,
         id: Types.numberToMessageID(p.messageID),
         ordinal: Types.numberToOrdinal(p.messageID),
+        source,
       })
 }
 
 const errorUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
-  o: RPCChatTypes.MessageUnboxedError
+  o: RPCChatTypes.MessageUnboxedError,
+  source: MessageTypes.Source
 ) => {
   return makeMessageText({
     conversationIDKey,
     errorReason: o.errMsg,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
+    source,
     timestamp: o.ctime,
   })
 }
@@ -501,27 +511,35 @@ export const uiMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
   you: string,
-  yourDevice: string
+  yourDevice: string,
+  source: MessageTypes.Source
 ): ?Types.Message => {
   switch (uiMessage.state) {
     case RPCChatTypes.chatUiMessageUnboxedState.valid:
       if (uiMessage.valid) {
-        return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid)
+        return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid, source)
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.error:
       if (uiMessage.error) {
-        return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error)
+        return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error, source)
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
-        return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
+        return outboxUIMessagetoMessage(
+          conversationIDKey,
+          uiMessage,
+          uiMessage.outbox,
+          you,
+          yourDevice,
+          source
+        )
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
       if (uiMessage.placeholder) {
-        return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder)
+        return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder, source)
       }
       return null
     default:
