@@ -9,14 +9,15 @@ type Props = {
 }
 
 const baseWidth = isMobile ? 100 : 150
+const mult = isMobile ? 5 : 10
 
 class Placeholder extends React.PureComponent<Props> {
   render() {
     const o = Types.ordinalToNumber(this.props.ordinal)
     const code = o * 16807
-    const width = baseWidth + (code % 20) * 20 // pseudo randomize the length
+    const width = baseWidth + (code % 20) * mult // pseudo randomize the length
     return (
-      <Box2 direction="horizontal" gap="tiny">
+      <Box2 direction="horizontal" gap="tiny" style={styles.container}>
         <ProgressIndicator type="Small" style={styles.spinner} />
         <Box2 direction="horizontal" style={collapseStyles([styles.greyBar, {width}])} />
       </Box2>
@@ -26,7 +27,9 @@ class Placeholder extends React.PureComponent<Props> {
 
 const styles = styleSheetCreate({
   container: {
-    height: 17, // to match a line of text
+    alignItems: 'center',
+    height: isMobile ? 22 : 17, // to match a line of text
+    width: '100%',
   },
   greyBar: {
     backgroundColor: globalColors.lightGrey,
