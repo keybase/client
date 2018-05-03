@@ -34,7 +34,7 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 }
 
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
-	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
+	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithLoginContext(ctx, e.G(), nil); err != nil {
 		return err
 	} else if !loggedIn {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
@@ -66,7 +66,7 @@ func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	}
 	oneshot, err := g.IsOneshot(ctx)
 	if err != nil {
-		e.G().Log.CWarningf(ctx, "EKLib#ShouldRun failed: %s", err)
+		e.G().Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
 		return false
 	}
 	return !oneshot
@@ -187,13 +187,11 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 
 	// Let's see what the latest server statement is.
 	myUID := e.G().Env.GetUID()
-	statements, err := fetchUserEKStatements(ctx, e.G(), []keybase1.UID{myUID})
+	statement, _, wrongKID, err := fetchUserEKStatement(ctx, e.G(), myUID)
 	if err != nil {
 		return false, err
 	}
-	statement, ok := statements[myUID]
-	// No statement, so we need a userEK
-	if !ok || statement == nil {
+	if statement == nil || wrongKID {
 		return true, nil
 	}
 	// Can we access this generation? If not, let's regenerate.
@@ -287,7 +285,39 @@ func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+	// There are plenty of race conditions where the PTK or teamEK or
+	// membership list can change out from under us while we're in the middle
+	// of posting a new key, causing the post to fail. Detect these conditions
+	// and retry.
 	defer e.G().CTrace(ctx, "GetOrCreateLatestTeamEK", func() error { return err })()
+	tries := 0
+	maxTries := 3
+	knownRaceConditions := []keybase1.StatusCode{
+		keybase1.StatusCode_SCSigWrongKey,
+		keybase1.StatusCode_SCSigOldSeqno,
+		keybase1.StatusCode_SCEphemeralKeyBadGeneration,
+		keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
+		keybase1.StatusCode_SCEphemeralKeyMissingBox,
+		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
+	}
+	for {
+		tries++
+		teamEK, err = e.getOrCreateLatestTeamEKInner(ctx, teamID)
+		retryableError := false
+		for _, code := range knownRaceConditions {
+			if libkb.IsAppStatusCode(err, code) {
+				e.G().Log.CDebugf(ctx, "GetOrCreateLatestTeamEK found a retryable error on try %d: %s", tries, err)
+				retryableError = true
+			}
+		}
+		if err == nil || !retryableError || tries >= maxTries {
+			return teamEK, err
+		}
+	}
+}
+
+func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
+	defer e.G().CTrace(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
 
 	e.Lock()
 	defer e.Unlock()
@@ -478,7 +508,11 @@ func (e *EKLib) OnLogin() error {
 	if !e.ShouldRun(context.Background()) {
 		return nil
 	}
-	return e.KeygenIfNeeded(context.Background())
+	err := e.KeygenIfNeeded(context.Background())
+	if err != nil {
+		e.G().Log.CDebugf(context.Background(), "OnLogin error: %v", err)
+	}
+	return nil
 }
 
 func (e *EKLib) OnLogout() error {

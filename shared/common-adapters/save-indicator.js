@@ -98,8 +98,10 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
       return 'steady'
 
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(saveState: empty)
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(saveState);
+      */
       throw new Error(`Unexpected state ${saveState}`)
   }
 }
@@ -181,7 +183,7 @@ class SaveIndicator extends React.Component<Props, State> {
       case 'justSaved':
         return (
           <React.Fragment>
-            <Icon type="iconfont-check" style={{color: globalColors.green}} />
+            <Icon type="iconfont-check" color={globalColors.green} />
             <Text type="BodySmall" style={{color: globalColors.green2}}>
               &nbsp; Saved
             </Text>
@@ -189,8 +191,10 @@ class SaveIndicator extends React.Component<Props, State> {
         )
 
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(saveState: empty)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(saveState);
+      */
         throw new Error(`Unexpected state ${saveState}`)
     }
   }

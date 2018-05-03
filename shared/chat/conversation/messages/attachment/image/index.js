@@ -9,13 +9,14 @@ type Props = {
   arrowColor: string,
   height: number,
   onClick: () => void,
-  onShowMenu: () => void,
   onShowInFinder: null | (() => void),
   path: string,
   title: string,
+  toggleShowingMenu: () => void,
   width: number,
   progress: number,
   progressLabel: string,
+  hasProgress: boolean,
 }
 
 type State = {
@@ -30,7 +31,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       <ClickableBox
         style={imageContainerStyle}
         onClick={this.props.onClick}
-        onLongPress={this.props.onShowMenu}
+        onLongPress={this.props.toggleShowingMenu}
       >
         <Text type="BodySemibold" style={titleStyle}>
           {this.props.title}
@@ -56,7 +57,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
           )}
           {!!this.props.arrowColor && (
             <Box style={downloadedIconWrapperStyle}>
-              <Icon type="iconfont-download" style={{color: this.props.arrowColor, maxHeight: 14}} />
+              <Icon type="iconfont-download" style={{maxHeight: 14}} color={this.props.arrowColor} />
             </Box>
           )}
         </Box>
@@ -65,7 +66,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             <Text type={'BodySmall'} style={progressLabelStyle}>
               {this.props.progressLabel}
             </Text>
-            <ProgressBar ratio={this.props.progress} />
+            {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
           </Box>
         )}
         {this.props.onShowInFinder && (

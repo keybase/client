@@ -47,10 +47,10 @@ export const TeamMemberRow = (props: Props) => {
         // $FlowIssue "some string with unknown value"
         type={'iconfont-crown-' + props.roleType}
         style={{
-          color: roleIconColorMap[props.roleType],
-          fontSize: isMobile ? 16 : 12,
           marginRight: globalMargins.xtiny,
         }}
+        color={roleIconColorMap[props.roleType]}
+        fontSize={isMobile ? 16 : 12}
       />
     )
   }
@@ -151,10 +151,10 @@ export const TeamMemberRow = (props: Props) => {
           <Icon
             onClick={props.onChat}
             style={{
-              fontSize: isMobile ? 20 : 16,
               marginLeft: globalMargins.small,
               marginRight: globalMargins.tiny,
             }}
+            fontSize={isMobile ? 20 : 16}
             type="iconfont-chat"
           />
         </Box>

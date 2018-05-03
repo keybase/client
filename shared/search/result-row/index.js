@@ -58,9 +58,9 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
           username={rightUsername}
           icon={rightIcon}
           avatarSize={isMobile ? 16 : 12}
+          fontSize={isMobile ? 16 : 12}
           style={{
             ...globalStyles.flexBoxColumn,
-            fontSize: isMobile ? 16 : 12,
             height: isMobile ? 16 : 12,
             marginRight: globalMargins.xtiny,
             marginTop: isMobile ? 1 : 3,
@@ -108,10 +108,10 @@ const RightEdge = ({showCheckmark}) => {
     <Icon
       type="iconfont-check"
       style={{
-        color: globalColors.blue,
         marginLeft: globalMargins.small,
         marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
       }}
+      color={globalColors.blue}
     />
   ) : null
 }

@@ -155,7 +155,7 @@ class Inbox extends PureComponent<Props, State> {
           <div style={_scrollableStyle} onScroll={this._onScroll}>
             <ReactList
               ref={this._setRef}
-              useTranslate3d={true}
+              useTranslate3d={false}
               itemRenderer={this._itemRenderer}
               length={this.props.rows.length}
               type="variable"

@@ -59,8 +59,10 @@ class Team extends React.Component<Props> {
       case 'settings':
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
-        // eslint-disable-next-line no-unused-expressions
-        ;(row.type: empty)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
         throw new Error(`Impossible case encountered in team page list: ${row.type}`)
       }
     }

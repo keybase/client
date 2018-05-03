@@ -42,12 +42,16 @@ const retentionPickerPropSelector = props => ({
   onSelect: action('onSelectRetentionPolicy'),
 })
 
-const provider = PropProviders.compose(PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'), {
-  InfoPanel: (props: InfoPanelProps) => props,
-  OnlyValidConversations: () => onlyValidConversationsProps,
-  LifecycleNotifications: () => notificationProps,
-  RetentionPicker: retentionPickerPropSelector,
-})
+const provider = PropProviders.compose(
+  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  PropProviders.TeamDropdownMenu(),
+  {
+    InfoPanel: (props: InfoPanelProps) => props,
+    OnlyValidConversations: () => onlyValidConversationsProps,
+    LifecycleNotifications: () => notificationProps,
+    RetentionPicker: retentionPickerPropSelector,
+  }
+)
 
 const commonProps = {
   selectedConversationIDKey: Types.stringToConversationIDKey(''),
@@ -85,7 +89,6 @@ const conversationProps = {
 
   onAddPeople: unexpected('onAddPeople'),
   onViewTeam: unexpected('onViewTeam'),
-  onClickGear: unexpected('onClickGear'),
 
   onLeaveConversation: unexpected('onLeaveConversation'),
   onJoinChannel: unexpected('onJoinChannel'),
@@ -104,7 +107,6 @@ const teamCommonProps = {
 
   onAddPeople: action('onAddPeople'),
   onViewTeam: action('onViewTeam'),
-  onClickGear: action('onClickGear'),
 }
 
 const smallTeamProps = {

@@ -1,5 +1,4 @@
 // @flow
-import AddPeopleHow from '../teams/team/header/add-people-how/container'
 import AttachmentGetTitles from './conversation/attachment-get-titles/container'
 import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
@@ -9,18 +8,14 @@ import EditChannel from './manage-channels/edit-channel-container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import Inbox from './inbox/container'
 import InfoPanel from './conversation/info-panel/container'
-import InfoPanelMenu from './conversation/info-panel/menu/container'
 import ManageChannels from './manage-channels/container'
-import MessagePopup from './conversation/messages/message-popup'
 import NewTeamDialogFromChat from './new-team-dialog-container'
 import ReallyLeaveTeam from '../teams/really-leave-team/container-chat'
-import RelativePopupHoc from '../common-adapters/relative-popup-hoc'
 import InboxAndConversation from './inbox-and-conversation'
 import {MaybePopupHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
-import RetentionDropdown from '../teams/team/settings-tab/retention/dropdown'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 
 const editChannel = {
@@ -29,18 +24,19 @@ const editChannel = {
   children: {},
 }
 
+const createChannel = {
+  component: CreateChannel,
+  tags: makeLeafTags({hideStatusBar: true}),
+  children: {},
+}
+
 const manageChannels = {
   component: ManageChannels,
   tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
   children: {
     editChannel,
+    createChannel,
   },
-}
-
-const retentionDropdown = {
-  component: isMobile ? RetentionDropdown : RelativePopupHoc(RetentionDropdown),
-  children: {},
-  tags: makeLeafTags({layerOnTop: true}),
 }
 
 const retentionWarning = {
@@ -50,24 +46,14 @@ const retentionWarning = {
 }
 
 const infoPanelChildren = {
-  addPeopleHow: {
-    children: {},
-    component: isMobile ? AddPeopleHow : RelativePopupHoc(AddPeopleHow),
-    tags: makeLeafTags({layerOnTop: true}),
-  },
+  createChannel,
   editChannel,
-  infoPanelMenu: {
-    children: {},
-    component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
-    tags: makeLeafTags({layerOnTop: true}),
-  },
   manageChannels,
   reallyLeaveTeam: {
     children: {},
     component: ReallyLeaveTeam,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
-  retentionDropdown,
   retentionWarning,
   showBlockConversationDialog: {
     component: BlockConversationWarning,
@@ -87,13 +73,7 @@ const conversationRoute = makeRouteDefNode({
     attachmentFullscreen: {
       component: AttachmentFullscreen,
       tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
-      children: {
-        messageAction: {
-          component: RelativePopupHoc(MessagePopup),
-          children: {},
-          tags: makeLeafTags({layerOnTop: true}),
-        },
-      },
+      children: {},
     },
     attachmentGetTitles: {
       component: AttachmentGetTitles,
@@ -111,17 +91,7 @@ const conversationRoute = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: false}),
       children: {},
     },
-    messageAction: {
-      component: RelativePopupHoc(MessagePopup),
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-    createChannel: {
-      component: CreateChannel,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-
+    createChannel,
     enterPaperkey: {
       component: EnterPaperkey,
     },
@@ -147,11 +117,6 @@ const createChannelRoute = makeRouteDefNode({
   tags: makeLeafTags({hideStatusBar: true}),
   children: {},
 })
-const infoPanelMenuRoute = makeRouteDefNode({
-  children: {},
-  component: isMobile ? InfoPanelMenu : RelativePopupHoc(InfoPanelMenu),
-  tags: makeLeafTags({layerOnTop: true}),
-})
 
 const routeTree = isMobile
   ? makeRouteDefNode({
@@ -161,8 +126,6 @@ const routeTree = isMobile
           return manageChannelsRoute
         } else if (key === 'createChannel') {
           return createChannelRoute
-        } else if (key === 'infoPanelMenu') {
-          return infoPanelMenuRoute
         }
 
         return conversationRoute

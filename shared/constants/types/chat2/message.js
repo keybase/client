@@ -34,8 +34,30 @@ export type MentionsAt = I.Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
+export type MessageExplodeText =
+  | 'Never'
+  | '3 minutes'
+  | '1 hour'
+  | '3 hours'
+  | '12 hours'
+  | '24 hours'
+  | '3 days'
+  | '7 days'
+export type MessageExplodeDescription = {text: MessageExplodeText, seconds: number}
+
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
+
+export type _MessagePlaceholder = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  timestamp: number,
+  type: 'placeholder',
+}
+
+export type MessagePlaceholder = I.RecordOf<_MessagePlaceholder>
 
 // We keep deleted messages around so the bookkeeping is simpler
 export type _MessageDeleted = {
@@ -92,7 +114,7 @@ export type _MessageAttachment = {
   fileName: string,
   fileSize: number,
   hasBeenEdited: boolean,
-  id: MessageID,
+  id: MessageID, // that of first attachment message, not second attachment-uploaded message
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,
@@ -101,7 +123,7 @@ export type _MessageAttachment = {
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
-  transferState: 'uploading' | 'downloading' | null, // only for file
+  transferState: 'uploading' | 'downloading' | 'remoteUploading' | null, // only for file
   previewTransferState: 'downloading' | null, // only for preview
   type: 'attachment',
 }
@@ -233,3 +255,4 @@ export type Message =
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageText
+  | MessagePlaceholder

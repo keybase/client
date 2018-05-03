@@ -57,6 +57,7 @@ const NameWithIconVertical = (props: Props) => {
               height: adapterProps.iconSize,
               width: adapterProps.iconSize,
             }}
+            fontSize={adapterProps.iconSize}
           />
         )}
       <Box
@@ -105,7 +106,8 @@ const NameWithIconHorizontal = (props: Props) => {
           style={{marginRight: 16}}
         />
       )}
-      {!isAvatar && !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} />}
+      {!isAvatar &&
+        !!props.icon && <Icon type={props.icon} style={styles.hIconStyle} fontSize={isMobile ? 48 : 32} />}
       <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])}>
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
@@ -163,7 +165,6 @@ const styles = styleSheetCreate({
     alignItems: 'center',
   },
   hIconStyle: {
-    fontSize: isMobile ? 48 : 32,
     height: isMobile ? 48 : 32,
     marginRight: 16,
     width: isMobile ? 48 : 32,

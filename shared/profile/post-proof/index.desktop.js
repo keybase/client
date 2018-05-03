@@ -3,8 +3,8 @@ import * as shared from './shared'
 import * as React from 'react'
 import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../../common-adapters'
 import LinkWithIcon from '../link-with-icon'
-import {copyToClipboard} from '../../util/clipboard'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
+import {copyToClipboard} from 'electron'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import type {Props} from '.'
 
 const PostProof = (props: Props) => {
@@ -40,7 +40,12 @@ const PostProof = (props: Props) => {
         proofText && copyToClipboard(proofText)
       }}
     >
-      <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />
+      <Icon
+        style={styleClose}
+        type="iconfont-close"
+        color={globalColors.black_10}
+        onClick={() => onCancel()}
+      />
       {!!errorMessage && (
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
@@ -121,13 +126,14 @@ const styleContainer = {
   ...desktopStyles.scrollable,
 }
 
-const styleClose = {
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  ...desktopStyles.clickable,
-  color: globalColors.black_10,
-}
+const styleClose = collapseStyles([
+  {
+    position: 'absolute',
+    top: globalMargins.small,
+    right: globalMargins.small,
+  },
+  desktopStyles.clickable,
+])
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,

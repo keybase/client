@@ -15,7 +15,6 @@ type Props = {
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
-  onClickGear: (SyntheticEvent<Element>) => void,
   onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: Array<string>,
@@ -67,7 +66,6 @@ class SmallTeam extends React.PureComponent<Props> {
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               showGear={!!props.teamname && !isMobile}
-              onClickGear={props.onClickGear}
               subColor={props.subColor}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}

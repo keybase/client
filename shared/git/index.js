@@ -2,8 +2,17 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import Row from './row/container'
-import {Box, Text, Icon, ClickableBox, ProgressIndicator, ScrollView, HeaderHoc} from '../common-adapters'
-import {OLDPopupMenu} from '../common-adapters/popup-menu'
+import {
+  Box,
+  Text,
+  Icon,
+  ClickableBox,
+  ProgressIndicator,
+  ScrollView,
+  HeaderHoc,
+  FloatingMenu,
+} from '../common-adapters'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {branch} from 'recompose'
 
@@ -18,21 +27,7 @@ type Props = {
   teams: Array<string>,
 }
 
-type State = {
-  showingMenu: boolean,
-}
-
-class Git extends React.Component<Props, State> {
-  state = {
-    showingMenu: false,
-  }
-
-  _toggleMenu = () => {
-    this.setState(prevState => ({
-      showingMenu: !prevState.showingMenu,
-    }))
-  }
-
+class _Git extends React.Component<Props & FloatingMenuParentProps, {}> {
   _menuItems = [
     {
       onClick: () => this.props.onNewPersonalRepo(),
@@ -56,10 +51,16 @@ class Git extends React.Component<Props, State> {
   render() {
     return (
       <Box style={_gitStyle}>
-        <ClickableBox style={_headerStyle} onClick={this._toggleMenu}>
+        <ClickableBox
+          ref={this.props.setAttachmentRef}
+          style={_headerStyle}
+          onClick={this.props.toggleShowingMenu}
+        >
           <Icon
             type="iconfont-new"
-            style={{color: globalColors.blue, marginRight: globalMargins.tiny, fontSize: isMobile ? 20 : 16}}
+            style={{marginRight: globalMargins.tiny}}
+            color={globalColors.blue}
+            fontSize={isMobile ? 20 : 16}
           />
           <Text type="BodyBigLink">New encrypted git repository...</Text>
         </ClickableBox>
@@ -83,13 +84,19 @@ class Git extends React.Component<Props, State> {
           </Box>
           {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
         </ScrollView>
-        {this.state.showingMenu && (
-          <OLDPopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />
-        )}
+        <FloatingMenu
+          attachTo={this.props.attachmentRef}
+          closeOnSelect={true}
+          items={this._menuItems}
+          onHidden={this.props.toggleShowingMenu}
+          visible={this.props.showingMenu}
+          position="bottom center"
+        />
       </Box>
     )
   }
 }
+const Git = FloatingMenuParentHOC(_Git)
 
 const _sectionHeaderStyle = {
   ...globalStyles.flexBoxRow,
@@ -99,14 +106,6 @@ const _sectionHeaderStyle = {
   marginTop: globalMargins.small,
   width: '100%',
 }
-
-const _popupStyle = isMobile
-  ? {}
-  : {
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      marginTop: 40,
-    }
 
 const _headerStyle = {
   ...globalStyles.flexBoxCenter,

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
+import {type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import {
   globalStyles,
   globalMargins,
@@ -11,6 +12,7 @@ import {
 } from '../../../../styles'
 import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
+import MessagePopup from '../message-popup'
 
 import type {Props} from '.'
 
@@ -44,9 +46,9 @@ const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   )
 }
 
-const MenuButton = ({onClick}) => (
-  <Box className="menu-button">
-    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} />
+const MenuButton = ({onClick, setRef}) => (
+  <Box ref={setRef} className="menu-button">
+    <Icon type="iconfont-ellipsis" style={styles.ellipsis} onClick={onClick} fontSize={16} />
   </Box>
 )
 
@@ -86,14 +88,14 @@ const Failure = ({failureDescription, onEdit, onRetry, onCancel}) => {
   )
 }
 
-class MessageWrapper extends React.PureComponent<Props> {
+class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps> {
   render() {
     const props = this.props
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
         {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-        <Box style={collapseStyles([styles.flexOneRow, props.isSelected && styles.selected])}>
+        <Box style={collapseStyles([styles.flexOneRow, props.showingMenu && styles.selected])}>
           <Box style={props.includeHeader ? styles.rightSideWithHeader : styles.rightSideNoHeader}>
             <Box style={globalStyles.flexBoxColumn}>
               <UserAvatar
@@ -124,11 +126,31 @@ class MessageWrapper extends React.PureComponent<Props> {
               )}
               <Box style={styles.textContainer} className="message">
                 <Box style={styles.flexOneColumn}>
-                  <props.innerClass message={props.message} isEditing={props.isEditing} />
+                  <props.innerClass
+                    message={props.message}
+                    isEditing={props.isEditing}
+                    toggleShowingMenu={props.toggleShowingMenu}
+                  />
                   {props.isEdited && <EditedMark />}
                 </Box>
-                {!isMobile && <MenuButton onClick={props.onShowMenu} />}
-                {props.isRevoked && <Icon type="iconfont-exclamation" style={styles.exclamation} />}
+                {!isMobile && (
+                  <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+                )}
+                <MessagePopup
+                  attachTo={props.attachmentRef}
+                  message={props.message}
+                  onHidden={props.toggleShowingMenu}
+                  position="bottom left"
+                  visible={props.showingMenu}
+                />
+                {props.isRevoked && (
+                  <Icon
+                    type="iconfont-exclamation"
+                    style={styles.exclamation}
+                    color={globalColors.blue}
+                    fontSize={11}
+                  />
+                )}
               </Box>
               {!!props.failureDescription && (
                 <Failure
@@ -149,10 +171,8 @@ class MessageWrapper extends React.PureComponent<Props> {
 const styles = styleSheetCreate({
   container: {...globalStyles.flexBoxColumn},
   edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
-  ellipsis: {fontSize: 16, marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
+  ellipsis: {marginLeft: globalMargins.tiny, marginRight: globalMargins.xtiny},
   exclamation: {
-    color: globalColors.blue,
-    fontSize: 11,
     paddingBottom: globalMargins.xtiny,
     paddingTop: globalMargins.xtiny,
   },

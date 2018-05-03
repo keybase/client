@@ -33,7 +33,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
         )
 
   return {
-    _mimeType: Constants.mimeTypeFromPathItem(pathItem),
+    _fileName: pathItem.name,
     path,
     pathItem,
     isShare,
@@ -69,8 +69,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
               },
             ])
           ),
-        shareNative: (path: Types.Path, mimeType: string) => {
-          dispatch(FSGen.createDownload({intent: 'share', mimeType, path}))
+        shareNative: (path: Types.Path) => {
+          dispatch(FSGen.createDownload({intent: 'share', path}))
           dispatch(
             navigateAppend([
               {
@@ -123,12 +123,12 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
   return menuItems
 }
 
-const getShareMenuItems = ({path, _mimeType}, {shareNative}) =>
+const getShareMenuItems = ({path}, {shareNative}) =>
   isMobile
     ? [
         {
           title: 'Send to other app',
-          onClick: () => shareNative(path, _mimeType),
+          onClick: () => shareNative(path),
         },
       ]
     : []

@@ -382,6 +382,7 @@ protocol local {
 
   record MessageUnboxedPlaceholder {
     MessageID messageID;
+    boolean hidden;
   }
 
   // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.

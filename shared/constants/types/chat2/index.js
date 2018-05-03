@@ -60,6 +60,8 @@ export type {
   MentionsChannelName,
   Message,
   MessageAttachment,
+  MessageExplodeDescription,
+  MessageExplodeText,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

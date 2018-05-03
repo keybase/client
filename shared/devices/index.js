@@ -2,7 +2,10 @@
 import * as Types from '../constants/types/devices'
 import React, {PureComponent} from 'react'
 import {Box2, Box, Text, List, Icon, ClickableBox, ProgressIndicator, HeaderHoc} from '../common-adapters'
-import {OLDPopupMenu} from '../common-adapters/popup-menu'
+import FloatingMenu, {
+  FloatingMenuParentHOC,
+  type FloatingMenuParentProps,
+} from '../common-adapters/floating-menu'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../styles'
 import {branch} from 'recompose'
@@ -14,20 +17,17 @@ export type Props = {
   menuItems: Array<MenuItem | 'Divider' | null>,
   onToggleShowRevoked: () => void,
   revokedDeviceIDs: Array<Types.DeviceID>,
-  showMenu: () => void,
-  hideMenu: () => void,
-  showingMenu: boolean,
   showingRevoked: boolean,
   waiting: boolean,
 }
 
-const DeviceHeader = ({onAddNew, waiting}) => (
+const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
   <ClickableBox onClick={onAddNew}>
-    <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
+    <Box ref={setAttachmentRef} style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
       {waiting && (
         <ProgressIndicator style={{position: 'absolute', width: 20, top: isMobile ? 22 : 14, left: 12}} />
       )}
-      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Icon type="iconfont-new" color={globalColors.blue} />
       <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>
         Add new...
       </Text>
@@ -44,7 +44,9 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         </Text>
         <Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          style={{color: globalColors.black_60, fontSize: 10, padding: 5}}
+          style={{padding: 5}}
+          color={globalColors.black_60}
+          fontSize={10}
         />
       </Box>
     </ClickableBox>
@@ -80,7 +82,7 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
   </ClickableBox>
 ))
 
-class Devices extends PureComponent<Props> {
+class _Devices extends PureComponent<Props & FloatingMenuParentProps> {
   _renderRow = (index, item) =>
     item.type === 'revokedHeader' ? (
       <RevokedHeader
@@ -103,15 +105,24 @@ class Devices extends PureComponent<Props> {
 
     return (
       <Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        <DeviceHeader onAddNew={this.props.showMenu} waiting={this.props.waiting} />
+        <DeviceHeader
+          setAttachmentRef={this.props.setAttachmentRef}
+          onAddNew={this.props.toggleShowingMenu}
+          waiting={this.props.waiting}
+        />
         <List items={items} renderItem={this._renderRow} />
-        {this.props.showingMenu && (
-          <OLDPopupMenu style={stylesPopup} items={this.props.menuItems} onHidden={this.props.hideMenu} />
-        )}
+        <FloatingMenu
+          attachTo={this.props.attachmentRef}
+          visible={this.props.showingMenu}
+          onHidden={this.props.toggleShowingMenu}
+          items={this.props.menuItems}
+          position="bottom center"
+        />
       </Box2>
     )
   }
 }
+const Devices = FloatingMenuParentHOC(_Devices)
 
 const stylesCommonCore = {
   alignItems: 'center',
@@ -142,18 +153,6 @@ const stylesRevokedDescription = {
   paddingLeft: 32,
   paddingRight: 32,
 }
-
-const stylesPopup = isMobile
-  ? {}
-  : {
-      alignItems: 'center',
-      left: 0,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      marginTop: 50,
-      right: 0,
-      top: globalMargins.large,
-    }
 
 const textStyle = isRevoked =>
   isRevoked

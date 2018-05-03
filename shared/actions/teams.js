@@ -1,7 +1,8 @@
 // @flow
 import logger from '../logger'
-import {map, last} from 'lodash-es'
+import {map, last, upperFirst} from 'lodash-es'
 import * as I from 'immutable'
+import * as SearchGen from './search-gen'
 import * as GregorGen from './gregor-gen'
 import * as TeamsGen from './teams-gen'
 import * as Types from '../constants/types/teams'
@@ -87,19 +88,45 @@ const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
 }
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
-  const {role, teamname, sendChatNotification} = action.payload
+  const {destSubPath, role, rootPath, sendChatNotification, sourceSubPath, teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   const state: TypedState = yield Saga.select()
   const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'})
+  const collectedErrors = []
   for (const id of ids) {
-    yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
-      name: teamname,
-      email: '',
-      username: id,
-      role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-      sendChatNotification,
-    })
+    try {
+      yield Saga.call(RPCTypes.teamsTeamAddMemberRpcPromise, {
+        name: teamname,
+        email: '',
+        username: id,
+        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+        sendChatNotification,
+      })
+    } catch (error) {
+      if (error.desc === 'You cannot invite an owner to a team.') {
+        // This error comes through as error code scgeneric, so if we want
+        // to rewrite it we have to match on the string itself.
+        const [username, service] = id.split('@')
+        collectedErrors.push(
+          `${upperFirst(
+            service
+          )} user @${username} doesn't have a Keybase account yet, so you can't add them as an owner; you can add them as reader or writer.`
+        )
+      } else {
+        collectedErrors.push(`Error adding ${id}: ${error.desc}`)
+      }
+    }
   }
+  if (collectedErrors.length === 0) {
+    // Success, dismiss the create team dialog.
+    yield Saga.put(
+      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+    )
+  } else {
+    yield Saga.put(TeamsGen.createSetTeamInviteError({error: collectedErrors.join('\n')}))
+  }
+  yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+  yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
   yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
 }
 

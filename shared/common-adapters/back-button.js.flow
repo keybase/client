@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
+import {type Color} from '../styles'
 
 export type Props = {
   badgeNumber?: number,
   onClick: () => void,
   onPress?: void,
-  iconStyle?: Object,
+  iconColor?: Color,
   textStyle?: Object,
   style?: ?Object,
   title?: ?string,

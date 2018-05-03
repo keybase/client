@@ -45,7 +45,7 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
-
+	s.Debug(ctx, "postProcessThread: thread messages starting out: %d", len(thread.Messages))
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
 	//       rather than only checking the messages we just fetched against
@@ -71,12 +71,15 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 			return err
 		}
 	}
+	s.Debug(ctx, "postProcessThread: thread messages after supersedes: %d", len(thread.Messages))
 
 	// Run type filter if it exists
 	thread.Messages = utils.FilterByType(thread.Messages, q, true)
+	s.Debug(ctx, "postProcessThread: thread messages after type filter: %d", len(thread.Messages))
 	// If we have exploded any messages while fetching them from cache, remove
 	// them now.
 	thread.Messages = utils.FilterExploded(thread.Messages)
+	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
@@ -204,7 +207,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
@@ -249,7 +252,7 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
-func (s *RemoteConversationSource) ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+func (s *RemoteConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID) {
 }
 
@@ -773,7 +776,7 @@ func newPullLocalResultCollector(num int) *pullLocalResultCollector {
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return tv, err
@@ -810,8 +813,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	if pagination != nil {
 		num = pagination.Num
 	}
-	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, newPullLocalResultCollector(num),
-		query, pagination)
+	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(num))
+	tv, err = s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, rc, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
@@ -1010,28 +1013,26 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	return nil
 }
 
-func (s *HybridConversationSource) ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, deleteID chat1.MessageID) {
-	defer s.Trace(ctx, func() error { return nil }, "ExpungeFromDelete")()
+	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()
 
 	// Check to see if we have the message stored
 	stored, err := s.storage.FetchMessages(ctx, convID, uid, []chat1.MessageID{deleteID})
 	if err == nil && stored[0] != nil {
 		// Any error is grounds to load this guy into the conv loader aggressively
-		s.Debug(ctx, "ExpungeFromDelete: delete message stored, doing nothing")
+		s.Debug(ctx, "ClearFromDelete: delete message stored, doing nothing")
 		return
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.Debug(ctx, "ExpungeFromDelete: delete not found, expunging")
+	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
 	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-			expunge := chat1.Expunge{
-				Upto: tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID()),
-			}
-			if err := s.Expunge(ctx, convID, uid, expunge); err != nil {
-				s.Debug(ctx, "ExpungeFromDelete: failed to expunge messages: %s", err)
+			bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
+			if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
+				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
 			}
 		}))
 }

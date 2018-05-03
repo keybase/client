@@ -36,8 +36,8 @@ function UserActions({
               type="iconfont-chat"
               style={{
                 marginRight: 8,
-                color: globalColors.white,
               }}
+              color={globalColors.white}
             />
           </Button>
         </ButtonBar>
@@ -59,8 +59,8 @@ function UserActions({
             type="iconfont-chat"
             style={{
               marginRight: 8,
-              color: globalColors.white,
             }}
+            color={globalColors.white}
           />
         </Button>
       </ButtonBar>

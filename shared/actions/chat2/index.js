@@ -63,7 +63,7 @@ const inboxRefresh = (
           ['inboxSyncedClear', 'leftAConversation'].includes(action.payload.reason)
         const clearExistingMessages =
           action.type === Chat2Gen.inboxRefresh && action.payload.reason === 'inboxSyncedClear'
-        yield Saga.put(Chat2Gen.createMetasReceived({metas, clearExistingMessages, clearExistingMetas}))
+        yield Saga.put(Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, metas}))
         return EngineRpc.rpcResult()
       },
     },
@@ -108,6 +108,8 @@ const queueMetaToRequest = (action: Chat2Gen.MetaNeedsUpdatingPayload, state: Ty
   if (old !== metaQueue) {
     // only unboxMore if something changed
     return Saga.put(Chat2Gen.createMetaHandleQueue())
+  } else {
+    logger.info('skipping meta queue run, queue unchanged')
   }
 }
 
@@ -149,8 +151,10 @@ const rpcMetaRequestConversationIDKeys = (
       keys = [action.payload.conversationIDKey].filter(Boolean)
       break
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // errors if we don't handle any new actions
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action);
+      */
       throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
@@ -221,7 +225,7 @@ const unboxRows = (
         ...inboxQuery,
         convIDs: conversationIDKeys.map(Types.keyToConversationID),
       },
-      skipUnverified: false,
+      skipUnverified: true,
     },
     false,
     loading => Chat2Gen.createSetLoading({key: `unboxing:${conversationIDKeys[0]}`, loading})
@@ -442,7 +446,10 @@ const onChatThreadStale = updates => {
   if (conversationIDKeys.length > 0) {
     return [
       Chat2Gen.createMarkConversationsStale({conversationIDKeys}),
-      Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'onChatThreadStale'}),
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys,
+        force: true,
+      }),
     ]
   }
 }
@@ -471,6 +478,7 @@ const setupChatHandlers = () => {
     'chat.1.NotifyChat.NewChatActivity',
     (payload: {activity: RPCChatTypes.ChatActivity}, ignore1, ignore2, getState) => {
       const activity: RPCChatTypes.ChatActivity = payload.activity
+      logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
           return activity.incomingMessage ? onIncomingMessage(activity.incomingMessage, getState()) : null
@@ -1010,9 +1018,7 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
 // First we make the conversation, then on success we dispatch the piggybacking action
 const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPayload, state: TypedState) => {
   const tlfName = action.payload.users.join(',')
-  const membersType = flags.impTeamChatEnabled
-    ? RPCChatTypes.commonConversationMembersType.impteamnative
-    : RPCChatTypes.commonConversationMembersType.kbfs
+  const membersType = RPCChatTypes.commonConversationMembersType.impteamnative
 
   return Saga.sequentially([
     // Disable sending more into a pending conversation

@@ -10,6 +10,7 @@ import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
 import * as mime from 'react-native-mime-types'
+import {lookupPatchedExt} from '../fs/utils/ext-list'
 
 export const defaultPath = '/keybase'
 
@@ -101,6 +102,11 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   syncing: false,
 })
 
+export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Record({
+  address: '',
+  token: '',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -108,6 +114,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
+  localHTTPServerInfo: makeLocalHTTPServer(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -439,4 +446,20 @@ export const folderToFavoriteItems = (
   )
 }
 
-export const mimeTypeFromPathItem = (p: Types.PathItem): string => mime.lookup(p.name) || ''
+export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
+
+export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
+  const name = Types.getPathName(p)
+  const fromPatched = lookupPatchedExt(name)
+  if (fromPatched) {
+    return fromPatched
+  }
+  const mimeType = mime.lookup(name) || ''
+  if (mimeType.startsWith('text/')) {
+    return 'text'
+  }
+  if (mimeType.startsWith('image/')) {
+    return 'image'
+  }
+  return 'default'
+}

@@ -2,6 +2,7 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import {isMobile} from '../../constants/platform'
 import {navigateAppend} from '../../actions/route-tree'
 import {Row} from './row'
 import * as DispatchMappers from '../utils/dispatch-mappers'
@@ -18,12 +19,14 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
+const isBare = (path: Types.Path) => isMobile && ['image'].includes(Constants.viewTypeFromPath(path))
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onOpen: (type: Types.PathType, path: Types.Path) => {
     if (type === 'folder') {
       dispatch(navigateAppend([{props: {path}, selected: 'folder'}]))
     } else {
-      dispatch(navigateAppend([{props: {path}, selected: 'preview'}]))
+      dispatch(navigateAppend([{props: {path}, selected: isBare(path) ? 'barePreview' : 'preview'}]))
     }
   },
   _openInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),

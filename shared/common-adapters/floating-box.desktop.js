@@ -5,7 +5,7 @@ import {Box} from './box'
 import {ModalPositionRelative} from './relative-popup-hoc.desktop'
 import type {Props} from './floating-box'
 
-const StyleOnlyBox = (props: any) => <Box style={props.style} />
+const StyleOnlyBox = (props: any) => <Box style={props.style} children={props.children} />
 const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)
 
 type State = {

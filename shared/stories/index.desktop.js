@@ -15,6 +15,7 @@ const load = () => {
   addDecorator(story => (
     <ScrollView key="scrollview" style={{flex: 1}} contentContainerStyle={{height: '100%'}}>
       {story()}
+      <div id="modal-root" />
     </ScrollView>
   ))
 

@@ -84,7 +84,7 @@ const ManageChannels = (props: Props) => (
     <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       {props.canCreateChannels && (
         <Box style={_createStyle}>
-          <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
+          <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} color={globalColors.blue} />
           <Text type="BodyBigLink" onClick={props.onCreate}>
             New chat channel
           </Text>
@@ -175,7 +175,6 @@ const _createStyle = {
 }
 
 const _createIcon = {
-  color: globalColors.blue,
   marginRight: globalMargins.xtiny,
 }
 

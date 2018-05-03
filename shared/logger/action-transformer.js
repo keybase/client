@@ -89,6 +89,10 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
     payload: {context: a.context},
     type: a.type,
   }),
+  [Chat2Gen.messagesWereDeleted]: a => ({
+    payload: {conversationIDKey: a.payload.conversationIDKey},
+    type: a.type,
+  }),
 }
 
 const transformActionForLog: ActionTransformer<*, *> = (action, state) =>

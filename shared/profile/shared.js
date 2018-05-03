@@ -9,15 +9,12 @@ import type {Proof} from '../constants/types/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Folder} from '../constants/types/folders'
 
-export function folderIconProps(folder: Folder, style: ?Object = {}) {
-  const type = folder.isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
+export function folderIconType(folder: Folder) {
+  return folder.isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
+}
 
-  const color = folder.isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
-
-  return {
-    type,
-    style: {...style, color},
-  }
+export function folderIconColor(folder: Folder) {
+  return folder.isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
 }
 
 export function missingProofs(

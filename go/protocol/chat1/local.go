@@ -2275,11 +2275,13 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 
 type MessageUnboxedPlaceholder struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
+	Hidden    bool      `codec:"hidden" json:"hidden"`
 }
 
 func (o MessageUnboxedPlaceholder) DeepCopy() MessageUnboxedPlaceholder {
 	return MessageUnboxedPlaceholder{
 		MessageID: o.MessageID.DeepCopy(),
+		Hidden:    o.Hidden,
 	}
 }
 

@@ -171,6 +171,8 @@ func (s *Server) SetDisplayCurrency(ctx context.Context, arg stellar1.SetDisplay
 
 type exchangeRateMap map[string]stellar1.OutsideExchangeRate
 
+const defaultOutsideCurrency = "USD"
+
 // getLocalCurrencyAndExchangeRate gets display currency setting
 // for accountID and fetches exchange rate is set.
 //
@@ -181,7 +183,9 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 		return err
 	}
 	if displayCurrency == "" {
-		return nil
+		displayCurrency = defaultOutsideCurrency
+		g.Log.CDebugf(ctx, "Setting default display currency %s for account %s",
+			displayCurrency, account.AccountID)
 	}
 	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
@@ -219,7 +223,7 @@ func (s *Server) WalletGetLocalAccounts(ctx context.Context) (ret []stellar1.Loc
 			Name:      account.Name,
 		}
 
-		balances, err := remote.Balances(ctx, s.G(), accID)
+		balances, err := s.remoter.Balances(ctx, accID)
 		if err != nil {
 			accountError = err
 			s.G().Log.Warning("Could not load balance for %q", accID)

@@ -2,13 +2,19 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {connect, type TypedState} from '../../util/container'
-import {navigateTo, navigateUp} from '../../actions/route-tree'
-import PopupMenu, {ModalLessPopupMenu, type MenuItem} from '../../common-adapters/popup-menu'
-import {globalMargins, isMobile} from '../../styles'
+import {navigateTo} from '../../actions/route-tree'
+import {type MenuItem} from '../../common-adapters/popup-menu'
+import {FloatingMenu} from '../../common-adapters'
 import {teamsTab} from '../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
+type OwnProps = {
+  attachTo: ?React.Component<*, *>,
+  onHidden: () => void,
+  teamname: string,
+  visible: boolean,
+}
+
+const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
@@ -19,26 +25,22 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  return {
-    onCreateSubteam: () =>
-      dispatch(
-        navigateTo(
-          [{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}],
-          [teamsTab, 'team']
-        )
-      ),
-    onHidden: () => dispatch(navigateUp()),
-    onLeaveTeam: () =>
-      dispatch(navigateTo([{props: {teamname}, selected: 'reallyLeaveTeam'}], [teamsTab, 'team'])),
-    onManageChat: () =>
-      dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [teamsTab, 'team'])),
-  }
-}
+const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+  onCreateSubteam: () =>
+    dispatch(
+      navigateTo(
+        [{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}],
+        [teamsTab, 'team']
+      )
+    ),
+  onLeaveTeam: () =>
+    dispatch(navigateTo([{props: {teamname}, selected: 'reallyLeaveTeam'}], [teamsTab, 'team'])),
+  onManageChat: () =>
+    dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [teamsTab, 'team'])),
+})
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const items = []
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const items: Array<MenuItem | 'Divider' | null> = []
   if (stateProps.canManageChat) {
     items.push({
       onClick: dispatchProps.onManageChat,
@@ -53,31 +55,25 @@ const mergeProps = (stateProps, dispatchProps) => {
     items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
   }
   return {
+    attachTo: ownProps.attachTo,
     items,
-    onHidden: dispatchProps.onHidden,
+    onHidden: ownProps.onHidden,
+    visible: ownProps.visible,
   }
 }
 
-const TeamMenu = ({items, onHidden}: {items: MenuItem[], onHidden: () => void}) => {
-  if (items.length === 0) {
+type Props = {
+  attachTo: ?React.Component<*, *>,
+  items: Array<MenuItem | 'Divider' | null>,
+  onHidden: () => void,
+  visible: boolean,
+}
+const TeamMenu = ({attachTo, items, onHidden, visible}: Props) => {
+  if (visible && items.length === 0) {
     onHidden()
     return null
   }
-  return isMobile ? (
-    <PopupMenu
-      onHidden={onHidden}
-      style={isMobile ? {overflow: 'visible'} : {position: 'absolute', right: globalMargins.tiny, top: 36}}
-      // $FlowIssue items is compatible
-      items={items}
-    />
-  ) : (
-    <ModalLessPopupMenu
-      onHidden={() => {}}
-      style={{overflow: 'visible'}}
-      // $FlowIssue items is compatible
-      items={items}
-    />
-  )
+  return <FloatingMenu attachTo={attachTo} items={items} onHidden={onHidden} visible={visible} />
 }
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMenu)

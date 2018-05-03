@@ -1,19 +1,10 @@
 // @flow
-
 export type FeatureFlags = {|
   admin: boolean,
-  deleteChatHistory: boolean,
   fsEnabled: boolean,
-  impTeamChatEnabled: boolean,
   plansEnabled: boolean,
+  walletsEnabled: boolean,
 |}
 
-const ff: FeatureFlags = {
-  admin: false,
-  deleteChatHistory: false,
-  fsEnabled: false,
-  impTeamChatEnabled: false,
-  plansEnabled: false,
-}
-
+declare var ff: FeatureFlags
 export default ff

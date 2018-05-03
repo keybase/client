@@ -1,5 +1,5 @@
 // @flow
-type Color = null | string
+export type Color = null | string
 type Dimension = string | number
 
 export type _StylesCrossPlatform = {|
@@ -95,6 +95,11 @@ export type StylesCrossPlatform =
   | null
   | _StylesCrossPlatform
   | $ReadOnlyArray<_StylesCrossPlatform | null | false | void>
+
+export type StylesCrossPlatformWithSomeDisallowed<D> =
+  | null
+  | (_StylesCrossPlatform & D)
+  | $ReadOnlyArray<(_StylesCrossPlatform & D) | null | false | void>
 
 export type _StylesDesktop = {|
   alignContent?: string,

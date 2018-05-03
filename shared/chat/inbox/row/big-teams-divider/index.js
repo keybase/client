@@ -49,7 +49,7 @@ const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
       <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
       <Box style={_iconStyle}>
-        <Icon type="iconfont-arrow-up" inheritColor={true} style={{fontSize: isMobile ? 20 : 16}} />
+        <Icon type="iconfont-arrow-up" inheritColor={true} fontSize={isMobile ? 20 : 16} />
       </Box>
     </DividerBox>
   </ClickableBox>

@@ -34,7 +34,9 @@ const UnmutedNotificationPrefs = (props: Props) => (
     <Box style={isMobile ? styleHeaderMobile : styleHeader}>
       <Text type="BodySmallSemibold">Desktop notifications</Text>
       <Icon
-        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+        style={{paddingLeft: globalMargins.xtiny}}
+        fontSize={isMobile ? 20 : 16}
+        color={globalColors.black_20}
         type="iconfont-notifications-desktop"
       />
     </Box>
@@ -67,8 +69,10 @@ const UnmutedNotificationPrefs = (props: Props) => (
     <Box style={styleHeader}>
       <Text type="BodySmallSemibold">Mobile notifications</Text>
       <Icon
-        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+        style={{paddingLeft: globalMargins.xtiny}}
+        fontSize={isMobile ? 20 : 16}
         type="iconfont-notifications-mobile"
+        color={globalColors.black_20}
       />
     </Box>
 
@@ -118,10 +122,10 @@ export const Notifications = (props: Props) => (
       <Icon
         type="iconfont-shh"
         style={{
-          color: globalColors.black_20,
           marginLeft: globalMargins.xtiny,
-          ...(isMobile ? {fontSize: 24} : {}),
         }}
+        fontSize={isMobile ? 24 : undefined}
+        color={globalColors.black_20}
       />
     </Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}

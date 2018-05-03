@@ -23,15 +23,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
   },
-  _onShowMenu: (targetRect: ?ClientRect, message: Types.Message) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {message, position: 'bottom left', targetRect},
-          selected: 'messageAction',
-        },
-      ])
-    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -42,7 +33,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
-      : message.transferState === 'uploading' ? 'Encrypting' : null
+      : message.transferState === 'uploading'
+        ? 'Encrypting'
+        : message.transferState === 'remoteUploading' ? 'waiting...' : null
+  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
     height: message.previewHeight,
@@ -56,12 +50,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
             dispatchProps._onShowInFinder(message)
           }
         : null,
-    onShowMenu: () => dispatchProps._onShowMenu(null, message),
     path: message.previewURL,
     progress: message.transferProgress,
     progressLabel,
     title: message.title || message.fileName,
+    toggleShowingMenu: ownProps.toggleShowingMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
+    hasProgress,
   }
 }
 

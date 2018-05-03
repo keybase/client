@@ -105,8 +105,8 @@ export default class ActionRender extends PureComponent<Props> {
             type="iconfont-chat"
             style={{
               marginRight: 8,
-              color: globalColors.white,
             }}
+            color={globalColors.white}
           />
         </Button>
       </div>

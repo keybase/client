@@ -20,26 +20,29 @@ const (
 
 type RevokeEngine struct {
 	libkb.Contextified
-	deviceID  keybase1.DeviceID
-	kid       keybase1.KID
-	mode      RevokeMode
-	forceSelf bool
-	forceLast bool
+	deviceID             keybase1.DeviceID
+	kid                  keybase1.KID
+	mode                 RevokeMode
+	forceSelf            bool
+	forceLast            bool
+	skipUserEKForTesting bool // Set for testing
 }
 
 type RevokeDeviceEngineArgs struct {
-	ID        keybase1.DeviceID
-	ForceSelf bool
-	ForceLast bool
+	ID                   keybase1.DeviceID
+	ForceSelf            bool
+	ForceLast            bool
+	SkipUserEKForTesting bool
 }
 
 func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) *RevokeEngine {
 	return &RevokeEngine{
-		deviceID:     args.ID,
-		mode:         RevokeDevice,
-		forceSelf:    args.ForceSelf,
-		forceLast:    args.ForceLast,
-		Contextified: libkb.NewContextified(g),
+		deviceID:             args.ID,
+		mode:                 RevokeDevice,
+		forceSelf:            args.ForceSelf,
+		forceLast:            args.ForceLast,
+		skipUserEKForTesting: args.SkipUserEKForTesting,
+		Contextified:         libkb.NewContextified(g),
 	}
 }
 
@@ -257,10 +260,10 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		libkb.AddPerUserKeyServerArg(payload, newPukGeneration, pukBoxes, pukPrev)
 	}
 
-	ekLib := e.G().GetEKLib()
 	var myUserEKBox *keybase1.UserEkBoxed
 	var newUserEKMetadata *keybase1.UserEkMetadata
-	if addingNewPUK && ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
+	ekLib := e.G().GetEKLib()
+	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
 		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(ctx.NetContext, *merkleRoot, *newPukSeed)
 		if err != nil {
 			return err
