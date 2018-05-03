@@ -11,7 +11,6 @@ type MetaContext struct {
 	ctx          context.Context
 	g            *GlobalContext
 	loginContext LoginContext
-	activeDevice *ActiveDevice
 	uis          UIs
 }
 
@@ -21,11 +20,6 @@ func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
 
 func (m MetaContext) WithLoginContext(l LoginContext) MetaContext {
 	m.loginContext = l
-	return m
-}
-
-func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
-	m.activeDevice = a
 	return m
 }
 
@@ -71,9 +65,6 @@ func (m MetaContext) CInfof(f string, args ...interface{}) {
 }
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
-	if m.activeDevice != nil {
-		return m.activeDevice
-	}
 	return m.G().ActiveDevice
 }
 
@@ -173,6 +164,25 @@ func (m MetaContext) SecretKeyPromptArg(ska SecretKeyArg, reason string) SecretK
 	}
 }
 
+func (m MetaContext) WithNewProvisionalLoginContext() MetaContext {
+	return m.WithLoginContext(newProvisionalLoginContext(m))
+}
+
+func (m MetaContext) CommitProvisionalLogin() MetaContext {
+	lctx := m.loginContext
+	// For now, simply propagate the PassphraseStreamCache and Session
+	// back into login state. Eventually we're going to move it
+	// into G or ActiveDevice.
+	m.loginContext = nil
+	if lctx != nil {
+		m.G().LoginState().Account(func(a *Account) {
+			a.streamCache = lctx.PassphraseStreamCache()
+			a.localSession = lctx.LocalSession()
+		}, "CommitProvisionalLogin")
+	}
+	return m
+}
+
 type UIs struct {
 	GPGUI       GPGUI
 	LogUI       LogUI
@@ -231,4 +241,78 @@ func (m MetaContextified) M() MetaContext {
 
 func NewMetaContextified(m MetaContext) MetaContextified {
 	return MetaContextified{m: m}
+}
+
+func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	// Note that `true` here means that an existing user config entry will
+	// be overwritten.
+	err := cw.SetUserConfig(NewUserConfig(u, n, salt, d), true /* overwrite */)
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}
+
+func (m MetaContext) SwitchUser(n NormalizedUsername) error {
+	g := m.G()
+	if n.IsNil() {
+		return nil
+	}
+	if err := n.CheckValid(); err != nil {
+		return err
+	}
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	err := cw.SwitchUser(n)
+	if _, ok := err.(UserNotFoundError); ok {
+		m.CDebugf("| No user %s found; clearing out config", n)
+		err = nil
+	}
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}
+
+func (m MetaContext) SetDeviceIDWithinRegistration(d keybase1.DeviceID) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	err := cw.SetDeviceID(d)
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}
+
+func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	if !g.Env.GetUID().Equal(uid) {
+		return NewUIDMismatchError("UID switched out from underneath provisioning process")
+	}
+	err := g.ActiveDevice.Set(m, uid, deviceID, sigKey, encKey, deviceName)
+	if err != nil {
+		return err
+	}
+	return nil
 }
