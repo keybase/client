@@ -15,8 +15,7 @@ import {Box} from '../../../common-adapters'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  // ? because this isn't a route on desktop, and headerHoc is mobile only
-  navigateUp?: typeof Route.navigateUp,
+  onBack: () => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -48,8 +47,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
-  _onBack: () => dispatch(navigateUp && navigateUp()),
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, onBack}) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),

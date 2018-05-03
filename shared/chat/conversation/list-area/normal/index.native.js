@@ -10,13 +10,7 @@ import type {Props} from '.'
 class ConversationList extends React.PureComponent<Props> {
   _renderItem = ({index, item}) => {
     if (item === 'specialTop') {
-      return (
-        <SpecialTopMessage
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
-          conversationIDKey={this.props.conversationIDKey}
-          measure={null}
-        />
-      )
+      return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
     } else if (item === 'specialBottom') {
       return <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
     } else {

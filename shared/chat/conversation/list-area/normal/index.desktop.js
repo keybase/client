@@ -122,13 +122,7 @@ class Thread extends React.Component<Props, State> {
               <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
             )
           } else if (index === 0) {
-            content = (
-              <SpecialTopMessage
-                onToggleInfoPanel={this.props.onToggleInfoPanel}
-                conversationIDKey={this.props.conversationIDKey}
-                measure={measure}
-              />
-            )
+            content = <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
           } else {
             const ordinalIndex = index - 1
             const ordinal = this.props.messageOrdinals.get(ordinalIndex)
