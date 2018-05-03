@@ -89,7 +89,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		f := func(lctx libkb.LoginContext) error {
 
 			uis := libkb.UIs{
-				ProvisionUI:  &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
+				ProvisionUI: &kbtest.TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
 			}
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {

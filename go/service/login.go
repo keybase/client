@@ -147,9 +147,9 @@ func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.
 
 func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) error {
 	uis := libkb.UIs{
-		LogUI:      h.getLogUI(sessionID),
-		SecretUI:   h.getSecretUI(sessionID, h.G()),
-		SessionID:  sessionID,
+		LogUI:     h.getLogUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID, h.G()),
+		SessionID: sessionID,
 	}
 	eng := engine.NewLoginWithPaperKey(h.G())
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
