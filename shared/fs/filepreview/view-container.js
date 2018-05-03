@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = ({_serverInfo}, {onInvalidToken}, {path}) => ({
-  url: Constants.generateURL(path, _serverInfo.address, _serverInfo.token),
+  url: Constants.generateFileURL(path, _serverInfo.address, _serverInfo.token),
   onInvalidToken,
 })
 
