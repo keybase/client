@@ -72,3 +72,8 @@ func isUnicodeMark(b []byte) bool {
 func ChangeMountIcon(oldMount string, newMount string) error {
 	return nil
 }
+
+// CheckInstance is a non-op on non-Windows
+func CheckInstance(name string) bool {
+	return true
+}
