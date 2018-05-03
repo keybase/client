@@ -461,6 +461,9 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   if (mimeType.startsWith('image/')) {
     return 'image'
   }
+  if (mimeType.startsWith('video/')) {
+    return 'video'
+  }
   return 'default'
 }
 
