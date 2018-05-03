@@ -328,12 +328,13 @@ const validUIMessagetoMessage = (
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
-        if (attachment && !attachment.uploaded) {
+        if (!attachment.uploaded) {
           transferState = 'remoteUploading'
         }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        transferState = null
       }
       const {filename, title, size} = attachment.object
       let previewHeight = 0
@@ -619,7 +620,11 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       if (old.previewURL && !m.previewURL) {
         ret.set('previewURL', old.previewURL)
       }
-      ret.set('transferState', old.transferState)
+      if (old.transferState === 'remoteUploading') {
+        ret.set('transferState', null)
+      } else {
+        ret.set('transferState', old.transferState)
+      }
       ret.set('transferProgress', old.transferProgress)
     })
   }
