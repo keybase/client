@@ -126,7 +126,6 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           onClick={this.props.onClick}
           username={this.props.source.username}
           loadingColor={globalColors.blue3_40}
-          backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
         />
         {badgeNumber > 0 && (
           <Box style={{width: 0, display: 'flex'}}>

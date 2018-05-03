@@ -5,7 +5,7 @@ import type {StylesCrossPlatform} from '../styles'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 
-export type Props = {
+export type Props = {|
   borderColor?: string,
   children?: any,
   following?: ?boolean,
@@ -21,7 +21,7 @@ export type Props = {
   style?: StylesCrossPlatform,
   username?: ?string,
   teamname?: ?string,
-}
+|}
 
 export const mockOwnToViewProps = (props: Props) => {}
 

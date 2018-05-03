@@ -48,18 +48,18 @@ export type FloatingMenuParentProps = {
   toggleShowingMenu: () => void,
 }
 
-type State = {
+type State = {|
   attachmentRef: ?React.Component<*, *>,
   showingMenu: boolean,
-}
+|}
 
-type Callbacks = {
+type Callbacks = {|
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
   // WARNING: Only use setAttachmentRef on class components. Otherwise the ref will be
   // optimized out in production code!
   setAttachmentRef: ?(?React.Component<*, *>) => void,
-}
+|}
 
 export const FloatingMenuParentHOC = <T: FloatingMenuParentProps>(
   ComposedComponent: React.ComponentType<T>

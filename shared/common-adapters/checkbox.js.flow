@@ -4,7 +4,7 @@ import React, {Component, type Node} from 'react'
 import type {TextType} from './text'
 import type {StylesCrossPlatform} from '../styles'
 
-export type Props = {
+export type Props = {|
   key?: string,
   label?: string,
   labelComponent?: Node,
@@ -12,6 +12,6 @@ export type Props = {
   checked: boolean,
   style?: StylesCrossPlatform,
   disabled?: boolean,
-}
+|}
 
 declare export default class Checkbox extends Component<Props> {}

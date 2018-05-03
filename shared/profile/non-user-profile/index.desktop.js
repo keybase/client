@@ -21,7 +21,7 @@ const NonUserRender = (props: Props) => (
     <Box style={globalStyles.flexBoxRow}>
       <Box style={styleLeftColumn}>
         <Box style={styleBioBlurb}>
-          <Avatar url={props.avatar} size={AVATAR_SIZE} />
+          <Avatar size={AVATAR_SIZE} />
           <Box style={styleUsernameRow}>
             <Icon type={platformToLogo24(props.serviceName)} />
             <Text type="HeaderBig" selectable={true} style={styleUsername}>

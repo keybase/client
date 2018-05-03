@@ -22,14 +22,14 @@ export type ParticipantUnlock = {
   devices: string,
 }
 
-export type FavoriteMetadata = {
+export type FavoriteMetadata = {|
   folderType: RPCTypes.FolderType,
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
   waitingForParticipantUnlock?: Array<ParticipantUnlock>,
   youCanUnlock?: Array<Device>,
-}
+|}
 
 export type _FavoriteItem = {
   badgeCount: number,

@@ -5,7 +5,7 @@ import {type MentionInputProps} from './types'
 import {Input} from '../../../../common-adapters'
 import {isMobile} from '../../../../constants/platform'
 
-type MentionState = {
+type MentionState = {|
   pickSelectedCounter: number,
   mentionFilter: string,
   channelMentionFilter: string,
@@ -15,7 +15,7 @@ type MentionState = {
   // Desktop only.
   upArrowCounter: number,
   downArrowCounter: number,
-}
+|}
 
 class MentionInput extends React.Component<MentionInputProps, MentionState> {
   state: MentionState = {

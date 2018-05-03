@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Box from './box'
-import HOCTimers, {type TimerProps} from './hoc-timers'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
@@ -38,7 +38,7 @@ type _Props = {
   debugLog?: string => void,
 }
 
-type Props = _Props & TimerProps
+type Props = PropsWithTimer<_Props>
 
 type State = {
   // Mirrors Props.saving.
