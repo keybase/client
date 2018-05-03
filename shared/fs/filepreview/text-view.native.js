@@ -27,8 +27,14 @@ body{
   line-height: 1.6;
 }
 \`
+window.postMessage({title: document.title})
 `
 
-const TextView = ({url}: TextViewProps) => <WebView source={{uri: url}} injectedJavaScript={webviewJS} />
+const getOnMessage = onInvalidToken => e =>
+  e.nativeEvent.data.title === 'KBFS HTTP Token Invalid' && onInvalidToken()
+
+const TextView = ({url, onInvalidToken}: TextViewProps) => (
+  <WebView source={{uri: url}} injectedJavaScript={webviewJS} onMessage={getOnMessage(onInvalidToken)} />
+)
 
 export default TextView
