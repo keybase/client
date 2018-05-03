@@ -263,7 +263,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	var myUserEKBox *keybase1.UserEkBoxed
 	var newUserEKMetadata *keybase1.UserEkMetadata
 	ekLib := e.G().GetEKLib()
-	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil && ekLib.ShouldRun(ctx.NetContext) {
+	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil && ekLib.ShouldRun(m.Ctx()) {
 		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m.Ctx(), *merkleRoot, *newPukSeed)
 		if err != nil {
 			return err

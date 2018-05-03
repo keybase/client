@@ -38,7 +38,7 @@ func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
 }
 
 func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
-	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithLoginContext(ctx, e.G(), nil); err != nil {
+	if loggedIn, err := e.G().LoginState().LoggedInLoad(); err != nil {
 		return err
 	} else if !loggedIn {
 		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")

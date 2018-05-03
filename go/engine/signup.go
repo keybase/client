@@ -308,7 +308,7 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 
 	// genPGPBatch should never be run in production, but if there's
 	// a bug or a mistunderstanding in the future, generate a good key.
-	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
+	if m.G().Env.GetRunMode() != libkb.DevelRunMode {
 		gen.PrimaryBits = 4096
 		gen.SubkeyBits = 4096
 	}
