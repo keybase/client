@@ -30,31 +30,31 @@ const createChannel = {
   children: {},
 }
 
-const manageChannels = {
-  component: ManageChannels,
-  tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-  children: {
-    editChannel,
-    createChannel,
-  },
-}
-
-const retentionWarning = {
-  component: RetentionWarning,
-  children: {},
-  tags: makeLeafTags({layerOnTop: !isMobile}),
-}
-
-const infoPanelChildren = {
+// These are routes that can be children of the inbox,
+// conversation, or the info panel. If you're adding a
+// component that will be routeable from the inbox or info
+// panel, add it here
+const chatChildren = {
   createChannel,
   editChannel,
-  manageChannels,
+  manageChannels: {
+    component: ManageChannels,
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    children: {
+      createChannel,
+      editChannel,
+    },
+  },
   reallyLeaveTeam: {
     children: {},
     component: ReallyLeaveTeam,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
-  retentionWarning,
+  retentionWarning: {
+    component: RetentionWarning,
+    children: {},
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
   showBlockConversationDialog: {
     component: BlockConversationWarning,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
@@ -67,6 +67,14 @@ const infoPanelChildren = {
   },
 }
 
+const chatChildRoutes = {}
+Object.keys(chatChildren).forEach(key => {
+  chatChildRoutes[key] = makeRouteDefNode(chatChildren[key])
+})
+
+// Routes accessible from an action coming from within the
+// actual conversation view (info panel and routes coming
+// from message menu or special messages)
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
@@ -82,53 +90,27 @@ const conversationRoute = makeRouteDefNode({
     },
     infoPanel: {
       component: InfoPanel,
-      children: infoPanelChildren,
+      children: chatChildren,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    // We should consolidate these as only info panel children once it's changed to a route on desktop
-    ...infoPanelChildren,
     deleteHistoryWarning: {
       component: DeleteHistoryWarning,
       tags: makeLeafTags({layerOnTop: false}),
       children: {},
     },
-    createChannel,
     enterPaperkey: {
       component: EnterPaperkey,
     },
   },
 })
 
-// [mobile] we assume children of the inbox are conversations. manageChannels and createChannel are
-// the only screens you can get to without going through a conversation, so we substitute them in
-// manually and route to a conversation otherwise
-const manageChannelsRoute = makeRouteDefNode({
-  component: ManageChannels,
-  children: {
-    editChannel: {
-      component: EditChannel,
-      tags: makeLeafTags({hideStatusBar: true, layerOnTop: false}),
-      children: {},
-    },
-  },
-  tags: makeLeafTags({hideStatusBar: true}),
-})
-const createChannelRoute = makeRouteDefNode({
-  component: CreateChannel,
-  tags: makeLeafTags({hideStatusBar: true}),
-  children: {},
-})
-
 const routeTree = isMobile
   ? makeRouteDefNode({
       component: Inbox,
       children: key => {
-        if (key === 'manageChannels') {
-          return manageChannelsRoute
-        } else if (key === 'createChannel') {
-          return createChannelRoute
+        if (key !== 'conversation') {
+          return chatChildRoutes[key]
         }
-
         return conversationRoute
       },
       tags: makeLeafTags({persistChildren: true}),

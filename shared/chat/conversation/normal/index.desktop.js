@@ -39,21 +39,6 @@ const Offline = () => (
   </Box>
 )
 
-// const InfoPaneWrapper = ({onToggle, conversationIDKey}) => (
-//   <div
-//     style={{
-//       ...globalStyles.flexBoxColumn,
-//       bottom: 0,
-//       position: 'absolute',
-//       right: 0,
-//       top: 35,
-//       width: 320,
-//     }}
-//   >
-//     <InfoPanel onToggleInfoPanel={onToggle} conversationIDKey={conversationIDKey} />
-//   </div>
-// )
-
 class Conversation extends React.PureComponent<Props, State> {
   _mounted = false
   state = {
