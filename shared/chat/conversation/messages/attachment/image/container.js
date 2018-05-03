@@ -7,6 +7,11 @@ import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
 
+type OwnProps = {
+  message: Types.MessageAttachment,
+  toggleShowingMenu: () => void,
+}
+
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -25,7 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
   const arrowColor = message.downloadPath
     ? globalColors.green
@@ -41,7 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClick: () => dispatchProps._onClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
-        ? e => {
+        ? (e: SyntheticEvent<*>) => {
             e.preventDefault()
             e.stopPropagation()
             dispatchProps._onShowInFinder(message)

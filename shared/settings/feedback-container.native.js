@@ -2,7 +2,7 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import React, {Component} from 'react'
-import {HeaderHoc} from '../common-adapters'
+import {HeaderHoc, HOCTimers, type PropsWithTimer} from '../common-adapters'
 import Feedback from './feedback.native'
 import logSend from '../native/log-send'
 import {compose, connect, type TypedState} from '../util/container'
@@ -15,7 +15,6 @@ import {
   logFileName,
   pprofDir,
 } from '../constants/platform'
-import HOCTimers, {type TimerProps} from '../common-adapters/hoc-timers'
 import {writeLogLinesToFile} from '../util/forward-logs'
 
 type State = {
@@ -26,21 +25,20 @@ type State = {
   sendError: ?Error,
 }
 
-type Props = {|
-  ...TimerProps,
+type Props = PropsWithTimer<{
   status: Object,
   chat: Object,
-|}
+}>
 
 class FeedbackContainer extends Component<Props, State> {
   mounted = false
 
   state = {
-    sentFeedback: false,
     feedback: null,
-    sending: false,
-    sendLogs: true,
     sendError: null,
+    sendLogs: true,
+    sending: false,
+    sentFeedback: false,
   }
 
   _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
@@ -173,4 +171,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   title: 'Feedback',
 })
 
-export default compose(HOCTimers, connect(mapStateToProps, mapDispatchToProps), HeaderHoc)(FeedbackContainer)
+export default compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc, HOCTimers)(FeedbackContainer)

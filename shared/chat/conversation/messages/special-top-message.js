@@ -16,7 +16,6 @@ type Props = {
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
   onToggleInfoPanel: () => void,
   showTeamOffer: boolean,
-  // $FlowIssue "null or undefined is incompatible with null or undefined"
   measure: ?() => void,
 }
 
