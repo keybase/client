@@ -15,10 +15,10 @@ class _CodePage extends Component<Props, {enterText: string}> {
     enterText: '',
   }
 
-  onKeyDown(e, enterText) {
+  onKeyDown(e) {
     if (e.key === 'Enter') {
       e.preventDefault()
-      this.props.textEntered(enterText)
+      this.props.textEntered(this.state.enterText)
     }
   }
 
@@ -27,7 +27,7 @@ class _CodePage extends Component<Props, {enterText: string}> {
       <CodePage
         enterText={this.state.enterText}
         onChangeText={enterText => this.setState({enterText})}
-        onKeyDown={e => this.onKeyDown(e, this.state.enterText)}
+        onKeyDown={e => this.onKeyDown(e)}
         onBack={this.props.onBack}
         mode={this.props.mode}
         textCode={this.props.textCode}

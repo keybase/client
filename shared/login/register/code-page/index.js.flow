@@ -18,7 +18,7 @@ export type Props = {
   textEntered: Function,
   onChangeText: Function,
   onBack: Function,
-  onKeyDown: Function,
+  onKeyDown: (e: SyntheticKeyboardEvent<*>) => void,
   enterText: string,
   enterCodeErrorText: string,
 }
