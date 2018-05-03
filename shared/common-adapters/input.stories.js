@@ -1,24 +1,83 @@
 // @flow
 import * as React from 'react'
+import Button from './button'
 import Input, {type Props} from './input'
 import Box from './box'
 import {action, storiesOf} from '../stories/storybook'
 import {globalStyles} from '../styles'
 
+const onKeyDown = action('onKeyDown')
+const onKeyUp = action('onKeyUp')
+const onEnterKeyDown = action('onEnterKeyDown')
+
 const commonProps: Props = {
   onBlur: action('onBlur'),
   onChangeText: action('onChangeText'),
   onClick: action('onClick'),
-  onEnterKeyDown: action('onEnterKeyDown'),
+  onEnterKeyDown: e => onEnterKeyDown(e.key),
   onFocus: action('onFocus'),
-  onKeyDown: action('onKeyDown'),
-  onKeyUp: action('onKeyUp'),
-  onSelectionChange: action('onSelectionChange'),
+  onKeyDown: e => onKeyDown(e.key),
+  onKeyUp: e => onKeyUp(e.key),
+}
+
+type TestInputProps = {
+  multiline: boolean,
+}
+
+class TestInput extends React.Component<TestInputProps> {
+  _input: ?Input
+
+  _setInput = (ref: ?Input) => {
+    this._input = ref
+  }
+
+  _replaceText = (textToInsert: string) => {
+    if (this._input) {
+      this._input.transformText(({text, selection}) => {
+        const newText = text.slice(0, selection.start) + textToInsert + text.slice(selection.end)
+        const pos = selection.start + textToInsert.length
+        return {
+          text: newText,
+          selection: {
+            start: pos,
+            end: pos,
+          },
+        }
+      })
+    }
+  }
+
+  _replaceFoo = e => {
+    this._replaceText('foo')
+    onEnterKeyDown(e)
+  }
+
+  render = () => {
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          width: 420,
+        }}
+      >
+        <Input
+          {...commonProps}
+          multiline={this.props.multiline}
+          onEnterKeyDown={this._replaceFoo}
+          uncontrolled={true}
+          ref={this._setInput}
+        />
+        <Button type="Primary" label="Insert &quot;foo&quot; (enter)" onClick={this._replaceFoo} />
+      </Box>
+    )
+  }
 }
 
 const load = () => {
   storiesOf('Common/Input', module)
-    .add('Empty', () => <Input {...commonProps} />)
+    .add('Empty (uncontrolled)', () => <TestInput multiline={false} />)
+    .add('Empty (multiline) (uncontrolled)', () => <TestInput multiline={true} />)
     .add('Filled', () => <Input {...commonProps} value="Hello, World!" />)
     .add('Filled Centered', () => (
       <Box
