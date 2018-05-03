@@ -13,6 +13,7 @@ type GenericPayload struct {
 	Action       string         `codec:"Action" json:"Action"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
+	TopicType    TopicType      `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -21,6 +22,7 @@ func (o GenericPayload) DeepCopy() GenericPayload {
 		Action:    o.Action,
 		InboxVers: o.InboxVers.DeepCopy(),
 		ConvID:    o.ConvID.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -35,6 +37,7 @@ type NewConversationPayload struct {
 	Action       string         `codec:"Action" json:"Action"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	TopicType    TopicType      `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -43,6 +46,7 @@ func (o NewConversationPayload) DeepCopy() NewConversationPayload {
 		Action:    o.Action,
 		ConvID:    o.ConvID.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -58,6 +62,7 @@ type NewMessagePayload struct {
 	ConvID       ConversationID   `codec:"convID" json:"convID"`
 	Message      MessageBoxed     `codec:"message" json:"message"`
 	InboxVers    InboxVers        `codec:"inboxVers" json:"inboxVers"`
+	TopicType    TopicType        `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 	MaxMsgs      []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
 }
@@ -68,6 +73,7 @@ func (o NewMessagePayload) DeepCopy() NewMessagePayload {
 		ConvID:    o.ConvID.DeepCopy(),
 		Message:   o.Message.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -94,6 +100,7 @@ type ReadMessagePayload struct {
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	MsgID        MessageID      `codec:"msgID" json:"msgID"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	TopicType    TopicType      `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -103,6 +110,7 @@ func (o ReadMessagePayload) DeepCopy() ReadMessagePayload {
 		ConvID:    o.ConvID.DeepCopy(),
 		MsgID:     o.MsgID.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -118,6 +126,7 @@ type SetStatusPayload struct {
 	ConvID       ConversationID     `codec:"convID" json:"convID"`
 	Status       ConversationStatus `codec:"status" json:"status"`
 	InboxVers    InboxVers          `codec:"inboxVers" json:"inboxVers"`
+	TopicType    TopicType          `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate      `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -127,6 +136,7 @@ func (o SetStatusPayload) DeepCopy() SetStatusPayload {
 		ConvID:    o.ConvID.DeepCopy(),
 		Status:    o.Status.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -142,6 +152,7 @@ type TeamTypePayload struct {
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	TeamType     TeamType       `codec:"teamType" json:"teamType"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	TopicType    TopicType      `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -151,6 +162,7 @@ func (o TeamTypePayload) DeepCopy() TeamTypePayload {
 		ConvID:    o.ConvID.DeepCopy(),
 		TeamType:  o.TeamType.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -166,6 +178,7 @@ type SetAppNotificationSettingsPayload struct {
 	ConvID       ConversationID               `codec:"convID" json:"convID"`
 	InboxVers    InboxVers                    `codec:"inboxVers" json:"inboxVers"`
 	Settings     ConversationNotificationInfo `codec:"settings" json:"settings"`
+	TopicType    TopicType                    `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate                `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -175,6 +188,7 @@ func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettings
 		ConvID:    o.ConvID.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
 		Settings:  o.Settings.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -191,6 +205,7 @@ type ExpungePayload struct {
 	InboxVers    InboxVers        `codec:"inboxVers" json:"inboxVers"`
 	Expunge      Expunge          `codec:"expunge" json:"expunge"`
 	MaxMsgs      []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
+	TopicType    TopicType        `codec:"topicType" json:"topicType"`
 	UnreadUpdate *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
@@ -211,6 +226,7 @@ func (o ExpungePayload) DeepCopy() ExpungePayload {
 			}
 			return ret
 		})(o.MaxMsgs),
+		TopicType: o.TopicType.DeepCopy(),
 		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
 			if x == nil {
 				return nil
@@ -310,6 +326,7 @@ type UpdateConversationMembership struct {
 	Previewed     []ConversationID     `codec:"previewed" json:"previewed"`
 	UnreadUpdate  *UnreadUpdate        `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 	UnreadUpdates []UnreadUpdate       `codec:"unreadUpdates" json:"unreadUpdates"`
+	TopicType     TopicType            `codec:"topicType" json:"topicType"`
 }
 
 func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
@@ -377,16 +394,19 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 			}
 			return ret
 		})(o.UnreadUpdates),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
 type TeamChannelUpdate struct {
-	TeamID TLFID `codec:"teamID" json:"teamID"`
+	TeamID    TLFID     `codec:"teamID" json:"teamID"`
+	TopicType TopicType `codec:"topicType" json:"topicType"`
 }
 
 func (o TeamChannelUpdate) DeepCopy() TeamChannelUpdate {
 	return TeamChannelUpdate{
-		TeamID: o.TeamID.DeepCopy(),
+		TeamID:    o.TeamID.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
@@ -394,6 +414,7 @@ type SetConvRetentionUpdate struct {
 	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
 	ConvID    ConversationID  `codec:"convID" json:"convID"`
 	Policy    RetentionPolicy `codec:"policy" json:"policy"`
+	TopicType TopicType       `codec:"topicType" json:"topicType"`
 }
 
 func (o SetConvRetentionUpdate) DeepCopy() SetConvRetentionUpdate {
@@ -401,6 +422,7 @@ func (o SetConvRetentionUpdate) DeepCopy() SetConvRetentionUpdate {
 		InboxVers: o.InboxVers.DeepCopy(),
 		ConvID:    o.ConvID.DeepCopy(),
 		Policy:    o.Policy.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
@@ -408,6 +430,7 @@ type SetTeamRetentionUpdate struct {
 	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
 	TeamID    keybase1.TeamID `codec:"teamID" json:"teamID"`
 	Policy    RetentionPolicy `codec:"policy" json:"policy"`
+	TopicType TopicType       `codec:"topicType" json:"topicType"`
 }
 
 func (o SetTeamRetentionUpdate) DeepCopy() SetTeamRetentionUpdate {
@@ -415,18 +438,21 @@ func (o SetTeamRetentionUpdate) DeepCopy() SetTeamRetentionUpdate {
 		InboxVers: o.InboxVers.DeepCopy(),
 		TeamID:    o.TeamID.DeepCopy(),
 		Policy:    o.Policy.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
 type KBFSImpteamUpgradeUpdate struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	TopicType TopicType      `codec:"topicType" json:"topicType"`
 }
 
 func (o KBFSImpteamUpgradeUpdate) DeepCopy() KBFSImpteamUpgradeUpdate {
 	return KBFSImpteamUpgradeUpdate{
 		ConvID:    o.ConvID.DeepCopy(),
 		InboxVers: o.InboxVers.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 	}
 }
 
