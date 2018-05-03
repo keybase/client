@@ -20,11 +20,11 @@ func dontOverride(ext string, mimeType string) (newExt string, newMimeType strin
 // list. Note that the Overrider can override what's in the additional too.
 //
 // Overrider is different from additional in the way that, additional provides
-// exact ext-mimeType paris, while overrider allows the user of this function
-// to examine ext-mimeTypes flexibly. For example, this allow overrider to
-// replace mimeTypes without an exausted list of all extensions that resolve to
-// it. So why is additional useful? Go's mime package loads mime types from a
-// few filesystem locations such as /etc/apache2/mime.types . This happens
+// exact ext-mimeType pairs, while overrider allows the user of this function
+// to examine ext-mimeTypes flexibly. For example, this allows overrider to
+// replace mimeTypes without an exaustive list of all extensions that resolve
+// to it. So why is additional useful? Go's mime package loads mime types from
+// a few filesystem locations such as /etc/apache2/mime.types. This happens
 // inside the mime package and is beyond our control. So having additional here
 // allows user to guard against unwanted mime types that may exist in one of
 // mime type files.

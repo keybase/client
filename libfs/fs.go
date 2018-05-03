@@ -856,7 +856,7 @@ func (o folderHandleChangeObserver) TlfHandleChange(
 }
 
 // SubscribeToObsolete returns a channel that will be closed when this *FS
-// reaches end-of-life, meaning if user of this object caches it for long term
+// reaches obsolescence, meaning if user of this object caches it for long term
 // use, it should invalide this entry and create a new one using NewFS.
 func (fs *FS) SubscribeToObsolete() (<-chan struct{}, error) {
 	c := make(chan struct{})
