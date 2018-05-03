@@ -43,4 +43,6 @@ requestbundles ()
 sleep 5 && requestbundles & 
 backgroundpid=$!
 trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
-./node_modules/react-native/scripts/packager.sh --resetCache
+while true; do
+  ./node_modules/react-native/scripts/packager.sh --resetCache
+done
