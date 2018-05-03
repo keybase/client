@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -80,8 +81,9 @@ type RelayPaymentOutput struct {
 	// Account ID of the shared account.
 	RelayAccountID stellar1.AccountID
 	// Encrypted box containing the secret key to the account.
-	Encrypted stellar1.EncryptedRelaySecret
-	FundTx    stellarnet.SignResult
+	Encrypted    stellar1.EncryptedRelaySecret
+	EncryptedB64 string
+	FundTx       stellarnet.SignResult
 }
 
 // createRelayTransfer generates a stellar account, encrypts its key, and signs a transaction funding it.
@@ -113,9 +115,14 @@ func CreateRelayTransfer(in RelayPaymentInput) (res RelayPaymentOutput, err erro
 		Sk:        stellar1.SecretKey(relayKp.Seed()),
 		Note:      in.Note,
 	}, in.EncryptFor)
+	pack, err := libkb.MsgpackEncode(enc)
+	if err != nil {
+		return res, err
+	}
 	return RelayPaymentOutput{
 		RelayAccountID: stellar1.AccountID(relayKp.Address()),
 		Encrypted:      enc,
+		EncryptedB64:   base64.StdEncoding.EncodeToString(pack),
 		FundTx:         sig,
 	}, nil
 }

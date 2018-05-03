@@ -92,20 +92,33 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PaymentStrategy",
+      "symbols": [
+        "NONE_0",
+        "DIRECT_1",
+        "RELAY_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RelayDirection",
+      "symbols": [
+        "CLAIM_0",
+        "YANK_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "PaymentResult",
       "fields": [
-        {
-          "type": "TransactionID",
-          "name": "stellarID"
-        },
         {
           "type": "KeybaseTransactionID",
           "name": "keybaseID"
         },
         {
-          "type": "int",
-          "name": "Ledger"
+          "type": "TransactionID",
+          "name": "stellarID"
         }
       ]
     },

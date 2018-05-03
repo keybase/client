@@ -475,7 +475,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		fu, err := kbtest.CreateAndSignupFakeUser("wall", tc.G)
 		require.NoError(t, err)
-		srv, rm := newTestServer(tc.G)
+		srv, rm := newTestServer(t, tc.G)
 		tcs = append(tcs, &TestContext{
 			TestContext: tc,
 			Fu:          fu,
@@ -516,7 +516,7 @@ func (t *testUISource) SecretUI(g *libkb.GlobalContext, sessionID int) libkb.Sec
 	return t.secret
 }
 
-func newTestServer(g *libkb.GlobalContext) (*Server, *RemoteMock) {
-	m := NewRemoteMock(g)
+func newTestServer(t testing.TB, g *libkb.GlobalContext) (*Server, *RemoteMock) {
+	m := NewRemoteMock(t, g)
 	return New(g, &testUISource{nullSecretUI{}}, m), m
 }

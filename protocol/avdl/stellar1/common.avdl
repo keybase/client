@@ -29,10 +29,22 @@ protocol common {
     ERROR_PERMANENT_4
   }
 
+  enum PaymentStrategy {
+    NONE_0,
+    DIRECT_1,
+    RELAY_2
+  }
+
+  enum RelayDirection {
+    CLAIM_0,
+    YANK_1
+  }
+
   record PaymentResult {
-    TransactionID stellarID;
     KeybaseTransactionID keybaseID;
-    int Ledger;
+    // Direct: tx ID of the payment tx
+    // Relay : tx ID of the funding payment tx
+    TransactionID stellarID;
   }
 
   // A note encrypted for one or two keybase users.
