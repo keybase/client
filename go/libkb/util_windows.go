@@ -43,9 +43,11 @@ var (
 var (
 	modShell32               = windows.NewLazySystemDLL("Shell32.dll")
 	modOle32                 = windows.NewLazySystemDLL("Ole32.dll")
+	kernel32                 = syscall.NewLazySystemDLL("kernel32.dll")
 	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
 	procCoTaskMemFree        = modOle32.NewProc("CoTaskMemFree")
 	shChangeNotifyProc       = modShell32.NewProc("SHChangeNotify")
+	procCreateMutex          = kernel32.NewProc("CreateMutexW")
 )
 
 // LookPath searches for an executable binary named file
@@ -362,4 +364,18 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	err = k2.SetStringValue("", "Keybase")
 	notifyShell(newMount)
 	return err
+}
+
+func CheckInstance(name string) bool {
+	ret, _, err := procCreateMutex.Call(
+		0,
+		0,
+		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(name))),
+	)
+	switch int(err.(syscall.Errno)) {
+	case 0:
+		return true
+	default:
+		return false
+	}
 }
