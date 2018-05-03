@@ -37,7 +37,8 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, true /* countMembers */)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID,
+		false /* all */, true /* countMembers */, arg.IncludeImplicitTeams)
 	if err != nil {
 		return nil, err
 	}
