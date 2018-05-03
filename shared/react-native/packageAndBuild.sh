@@ -10,7 +10,7 @@ arg1=${1:-}
 arg2=${2:-}
 checkArg () 
 {
-  if [ -x ${var+x} ]; then
+  if [ -x ${1+x} ]; then
     return
   fi
   case $1 in 
