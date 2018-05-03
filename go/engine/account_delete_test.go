@@ -118,11 +118,12 @@ func TestAccountDeleteAfterRestart(t *testing.T) {
 	fu := SignupFakeUserStoreSecret(tc, "acct")
 
 	simulateServiceRestart(t, tc, fu)
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: &libkb.TestSecretUI{Passphrase: fu.Passphrase},
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 	eng := NewAccountDelete(tc.G)
-	err := RunEngine(eng, ctx)
+	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
 	_, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
