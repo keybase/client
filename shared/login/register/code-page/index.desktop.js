@@ -93,6 +93,7 @@ const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
 const CodePageEnterText = ({
   enterCodeErrorText,
   onBack,
+  onKeyDown,
   otherDeviceRole,
   enterText,
   onChangeText,
@@ -112,6 +113,7 @@ const CodePageEnterText = ({
       multiline={true}
       value={enterText}
       onChangeText={onChangeText}
+      onKeyDown={onKeyDown}
     />
     <Button
       type="Primary"

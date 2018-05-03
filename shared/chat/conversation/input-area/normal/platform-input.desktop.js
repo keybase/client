@@ -44,17 +44,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this._input && this._input.focus()
   }
 
-  _inputSelections = () => {
-    const selections = this._input ? this._input.selections() : null
-    if (selections) {
-      return selections
-    }
-    return {
-      selectionStart: 0,
-      selectionEnd: 0,
-    }
-  }
-
   _emojiPickerToggle = () => {
     this.setState(({emojiPickerOpen}) => ({emojiPickerOpen: !emojiPickerOpen}))
   }
@@ -73,6 +62,10 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     if (this._fileInput) this._fileInput.value = value
   }
 
+  _getText = () => {
+    return this._input ? this._input.getValue() : ''
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.pendingWaiting) {
       return
@@ -81,7 +74,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     // TODO: Also call onCancelQuoting on mobile.
     this.props.onCancelQuoting()
 
-    const text = this._input ? this._input.getValue() : ''
+    const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       this.props.onEditLastMessage()
     } else if (e.key === 'Escape' && this.props.isEditing) {
@@ -90,15 +83,23 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     this.props.onKeyDown && this.props.onKeyDown(e)
   }
 
-  componentDidMount() {
+  _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    e.preventDefault()
+    const text = this._getText()
+    if (text) {
+      this.props.onSubmit(text)
+    }
+  }
+
+  componentDidMount = () => {
     this._registerBodyEvents(true)
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     this._registerBodyEvents(false)
   }
 
-  _registerBodyEvents(add: boolean) {
+  _registerBodyEvents = (add: boolean) => {
     const body = document.body
     if (!body) {
       return
@@ -133,15 +134,21 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
-  _insertEmoji(emojiColons: string) {
-    const {selectionStart, selectionEnd} = this._inputSelections()
-    const nextText = [
-      this.props.text.substring(0, selectionStart),
-      emojiColons,
-      this.props.text.substring(selectionEnd),
-    ].join('')
-    this.props.setText(nextText)
-    this._inputFocus()
+  _insertEmoji = (emojiColons: string) => {
+    if (this._input) {
+      this._input.transformText(({text, selection}) => {
+        const newText = text.slice(0, selection.start) + emojiColons + text.slice(selection.end)
+        const pos = selection.start + emojiColons.length
+        return {
+          text: newText,
+          selection: {
+            start: pos,
+            end: pos,
+          },
+        }
+      })
+      this._inputFocus()
+    }
   }
 
   _pickerOnClick = emoji => {
@@ -182,7 +189,7 @@ class PlatformInput extends Component<PlatformInputProps, State> {
     }
   }
 
-  render() {
+  render = () => {
     let hintText = 'Write a message'
     if (this.props.isEditing) {
       hintText = 'Edit your message'
@@ -250,14 +257,13 @@ class PlatformInput extends Component<PlatformInputProps, State> {
               ref={this._inputSetRef}
               hintText={hintText}
               hideUnderline={true}
-              onChangeText={this.props.setText}
-              value={this.props.text}
+              onChangeText={this.props.onChangeText}
+              uncontrolled={true}
               multiline={true}
               rowsMin={1}
               rowsMax={5}
               onKeyDown={this._onKeyDown}
-              onKeyUp={this.props.onKeyUp}
-              onEnterKeyDown={this.props.onEnterKeyDown}
+              onEnterKeyDown={this._onEnterKeyDown}
             />
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />

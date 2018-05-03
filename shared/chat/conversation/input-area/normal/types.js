@@ -36,8 +36,7 @@ type InputProps = CommonProps & {
 
 type MentionInputProps = CommonProps & {
   inputSetRef: (r: ?TextInput) => void,
-  setText: (text: string) => void,
-  text: string,
+  onChangeText: (newText: string) => void,
 }
 
 type MentionProps = {
@@ -46,15 +45,11 @@ type MentionProps = {
 
   // on desktop:
   onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
-  onKeyUp?: (e: SyntheticKeyboardEvent<*>) => void,
-  onEnterKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
   switchMention?: (u: string) => void,
   switchChannelMention?: (c: string) => void,
   upArrowCounter?: number,
   downArrowCounter?: number,
   // on mobile:
-  onChangeText?: (newText: string) => void,
-  onSelectionChange?: ({selectionStart: number, selectionEnd: number}) => void,
   onBlur?: () => void,
   onFocus?: () => void,
   insertMentionMarker?: () => void,

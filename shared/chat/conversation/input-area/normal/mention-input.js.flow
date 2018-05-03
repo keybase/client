@@ -1,5 +1,0 @@
-// @flow
-import {Component} from 'react'
-import {type MentionInputProps} from './types'
-
-export default class MentionInput extends Component<MentionInputProps> {}
