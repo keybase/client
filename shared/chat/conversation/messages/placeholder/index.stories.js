@@ -6,7 +6,6 @@ import Placeholder from '.'
 
 const load = () => {
   storiesOf('Chat/Conversation/Rows', module).add('Placeholder', () => (
-    // $FlowIssue needs update to 0.71
     <React.Fragment>
       <Placeholder ordinal={Types.numberToOrdinal(1)} />
       <Placeholder ordinal={Types.numberToOrdinal(2)} />
