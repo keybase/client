@@ -11,7 +11,6 @@ type MetaContext struct {
 	ctx          context.Context
 	g            *GlobalContext
 	loginContext LoginContext
-	activeDevice *ActiveDevice
 	uis          UIs
 }
 
@@ -21,11 +20,6 @@ func NewMetaContext(ctx context.Context, g *GlobalContext) MetaContext {
 
 func (m MetaContext) WithLoginContext(l LoginContext) MetaContext {
 	m.loginContext = l
-	return m
-}
-
-func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
-	m.activeDevice = a
 	return m
 }
 
@@ -71,9 +65,6 @@ func (m MetaContext) CInfof(f string, args ...interface{}) {
 }
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
-	if m.activeDevice != nil {
-		return m.activeDevice
-	}
 	return m.G().ActiveDevice
 }
 
@@ -171,6 +162,25 @@ func (m MetaContext) SecretKeyPromptArg(ska SecretKeyArg, reason string) SecretK
 		Ska:      ska,
 		Reason:   reason,
 	}
+}
+
+func (m MetaContext) WithNewProvisionalLoginContext() MetaContext {
+	return m.WithLoginContext(newProvisionalLoginContext(m))
+}
+
+func (m MetaContext) CommitProvisionalLogin() MetaContext {
+	lctx := m.loginContext
+	// For now, simply propagate the PassphraseStreamCache and Session
+	// back into login state. Eventually we're going to move it
+	// into G or ActiveDevice.
+	m.loginContext = nil
+	if lctx != nil {
+		m.G().LoginState().Account(func(a *Account) {
+			a.streamCache = lctx.PassphraseStreamCache()
+			a.localSession = lctx.LocalSession()
+		}, "CommitProvisionalLogin")
+	}
+	return m
 }
 
 type UIs struct {

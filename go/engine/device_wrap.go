@@ -62,7 +62,7 @@ func (e *DeviceWrap) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *DeviceWrap) Run(m libkb.MetaContext) error {
+func (e *DeviceWrap) Run(m libkb.MetaContext) (err error) {
 	regArgs := &DeviceRegisterArgs{
 		Me:   e.args.Me,
 		Name: e.args.DeviceName,
@@ -85,7 +85,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		PerUserKeyring: e.args.PerUserKeyring,
 	}
 	kgEng := NewDeviceKeygen(m.G(), kgArgs)
-	if err := RunEngine2(m, kgEng); err != nil {
+	if err = RunEngine2(m, kgEng); err != nil {
 		return err
 	}
 
@@ -93,7 +93,7 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,
 	}
-	if err := kgEng.Push(m, pargs); err != nil {
+	if err = kgEng.Push(m, pargs); err != nil {
 		return err
 	}
 
@@ -101,20 +101,18 @@ func (e *DeviceWrap) Run(m libkb.MetaContext) error {
 	e.encryptionKey = kgEng.EncryptionKey()
 	// TODO get the per-user-key and save it if it was generated
 
-	if lctx := m.LoginContext(); lctx != nil {
+	err = m.ActiveDevice().Set(m, e.args.Me.GetUID(), deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName)
+	if err != nil {
+		return err
+	}
 
-		// Set the device id so that SetCachedSecretKey picks it up.
-		// Signup does this too, but by then it's too late.
-		if err := lctx.LocalSession().SetDeviceProvisioned(deviceID); err != nil {
-			// Not fatal. Because, um, it was working ok before.
-			m.CWarningf("error saving session file: %s", err)
-		}
+	// Sync down secrets for future offline login attempts to work.
+	// This will largely just download what we just uploaded, but it's
+	// easy to do this way.
+	w := m.ActiveDevice().SyncSecrets(m)
 
-		device := kgEng.device()
-
-		// cache the secret keys
-		lctx.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceSigningKeyType}, e.signingKey, device)
-		lctx.SetCachedSecretKey(libkb.SecretKeyArg{Me: e.args.Me, KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey, device)
+	if w != nil {
+		m.CWarningf("Error sync secrets: %s", w.Error())
 	}
 
 	return nil

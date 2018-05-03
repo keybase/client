@@ -98,7 +98,7 @@ func (a *Account) LoggedIn() bool {
 
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
-	return a.LocalSession().loadAndCheck()
+	return a.LoggedIn(), nil
 }
 
 // LoggedInProvisioned will check if the user is logged in and provisioned on this
@@ -448,7 +448,7 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *D
 	}
 
 	uid := a.G().Env.GetUID()
-	deviceID := a.deviceIDFromDevice(device)
+	deviceID := a.deviceIDFromDevice(uid, device)
 	if deviceID.IsNil() {
 		a.G().Log.Debug("SetCachedSecretKey with nil deviceID (%+v)", ska)
 	}
@@ -477,11 +477,11 @@ func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *D
 	}
 }
 
-func (a *Account) deviceIDFromDevice(device *Device) keybase1.DeviceID {
+func (a *Account) deviceIDFromDevice(uid keybase1.UID, device *Device) keybase1.DeviceID {
 	if device != nil {
 		return device.ID
 	}
-	return a.localSession.GetDeviceID()
+	return a.G().Env.GetDeviceIDForUID(uid)
 }
 
 func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) string {
