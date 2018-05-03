@@ -16,6 +16,7 @@ const props = {
   myDeviceRole: 'codePageDeviceRoleNewPhone',
   onBack: action('onBack'),
   onChangeText: action('onChangeText'),
+  onKeyDown: action('onKeyDown'),
   qrCode: qrGenerate('derive jump shop federal'),
   qrCodeScanned: false,
   qrScanned: action('qrScanned'),
