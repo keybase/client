@@ -194,8 +194,8 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 		if err == nil {
 			//And we add its content to the "final" variable
 			_, err = logFile.Write(logContent)
-		} 
-		if err != nil  {
+		}
+		if err != nil {
 			fmt.Fprintf(logFile, "error: %s\n", err.Error())
 		}
 	}

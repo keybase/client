@@ -221,7 +221,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	if err != nil {
 		c.G().Log.Errorf("Error (InstallLogPath): %s", err)
 	}
-	
+
 	watchdogLogPath, err := install.WatchdogLogPath(filepath.Join(logDir, "watchdog*.log"))
 	if err != nil {
 		c.G().Log.Errorf("Error (WatchdogLogPath): %s", err)
@@ -230,28 +230,28 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	traceDir := logDir
 	if status != nil {
 		return libkb.Logs{
-			Desktop: status.Desktop.Log,
-			Kbfs:    status.KBFS.Log,
-			Service: status.Service.Log,
-			Updater: status.Updater.Log,
-			Start:   status.Start.Log,
-			System:  install.SystemLogPath(),
-			Git:     status.Git.Log,
-			Install: installLogPath,
-			Trace:   traceDir,
+			Desktop:  status.Desktop.Log,
+			Kbfs:     status.KBFS.Log,
+			Service:  status.Service.Log,
+			Updater:  status.Updater.Log,
+			Start:    status.Start.Log,
+			System:   install.SystemLogPath(),
+			Git:      status.Git.Log,
+			Install:  installLogPath,
+			Trace:    traceDir,
 			Watchdog: watchdogLogPath,
 		}
 	}
 
 	return libkb.Logs{
-		Desktop: filepath.Join(logDir, libkb.DesktopLogFileName),
-		Kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
-		Service: filepath.Join(logDir, libkb.ServiceLogFileName),
-		Updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
-		Start:   filepath.Join(logDir, libkb.StartLogFileName),
-		Git:     filepath.Join(logDir, libkb.GitLogFileName),
-		Install: installLogPath,
-		Trace:   traceDir,
+		Desktop:  filepath.Join(logDir, libkb.DesktopLogFileName),
+		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
+		Service:  filepath.Join(logDir, libkb.ServiceLogFileName),
+		Updater:  filepath.Join(logDir, libkb.UpdaterLogFileName),
+		Start:    filepath.Join(logDir, libkb.StartLogFileName),
+		Git:      filepath.Join(logDir, libkb.GitLogFileName),
+		Install:  installLogPath,
+		Trace:    traceDir,
 		Watchdog: watchdogLogPath,
 	}
 }

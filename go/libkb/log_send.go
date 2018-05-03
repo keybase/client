@@ -25,15 +25,15 @@ import (
 
 // Logs is the struct to specify the path of log files
 type Logs struct {
-	Desktop string
-	Kbfs    string
-	Service string
-	Updater string
-	Start   string
-	Install string
-	System  string
-	Git     string
-	Trace   string
+	Desktop  string
+	Kbfs     string
+	Service  string
+	Updater  string
+	Start    string
+	Install  string
+	System   string
+	Git      string
+	Trace    string
 	Watchdog string
 }
 
