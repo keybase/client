@@ -40,11 +40,9 @@ const Header = (props: Props) => (
       />
       <Button type="Secondary" onClick={props.onReceive} label="Receive" />
       <DropdownButton
-        type="Secondary"
-        label="..."
         onDeposit={props.onDeposit}
-        onShowSecretKey={props.onShowSecretKey}
         onSettings={props.onSettings}
+        onShowSecretKey={props.onShowSecretKey}
       />
     </Box2>
   </Box2>
