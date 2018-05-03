@@ -1,4 +1,4 @@
-// Copyright 2016 Keybase Inc. All rights reserved.
+// Copyright 2016-2018 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -34,8 +34,6 @@ struct kbfsLibdokanCtx {
   DOKAN_OPTIONS dokan_options;
 };
 
-DWORD kbfsLibdokanLoadLibrary(LPCWSTR location);
-
 struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 fsslot);
 error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx);
 error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx);
@@ -63,6 +61,10 @@ enum {
   kbfsLibDokan_VERSION_ERROR = DOKAN_VERSION_ERROR,
   kbfsLibDokan_DLL_LOAD_ERROR = -99,
 };
+
+extern void *kbfsLibdokanPtr_RemoveMountPoint;
+extern void *kbfsLibdokanPtr_OpenRequestorToken;
+extern void *kbfsLibdokanPtr_Main;
 
 #endif /* windows check */
 
