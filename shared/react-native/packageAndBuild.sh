@@ -5,30 +5,42 @@ set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir/..
-arg=${1:-}
-case $arg in 
-  "ios"|"android"|"both"|"")
-    ;;
-  *)
-    echo "Invalid build type. Valid types are 'ios', 'android', or 'both'." >&2
-    exit 1;;
-esac
+
+arg1=${1:-}
+arg2=${2:-}
+checkArg () 
+{
+  if [ -x ${var+x} ]; then
+    return
+  fi
+  case $1 in 
+    "ios"|"android"|"")
+      ;;
+    *)
+      echo "Invalid build type '$1'. Valid types are 'ios' and 'android'." >&2
+      exit 1;;
+  esac
+}
+checkArg $arg1
+checkArg $arg2
 
 requestbundles ()
 {
-  if [ "$arg" == "" ]; then
+  if [ "$arg1" == "" ]; then
     return
   fi
   printf "\nRequesting bundles...\n"
-  case $arg in 
-    "ios"|"both")
+  case "ios" in 
+    $arg1|$arg2)
       curl -s -o /dev/null localhost:8081/index.ios.bundle 2>&1;;
   esac
-  case $arg in
-    "android"|"both")
-      curl -s -o /dev/null localhost:8081/index.android.bundle 2>&1
+  case "android" in
+    $arg1|$arg2)
+      curl -s -o /dev/null localhost:8081/index.android.bundle 2>&1;;
   esac
 }
 
-sleep 5 && requestbundles &
+sleep 5 && requestbundles & 
+backgroundpid=$!
+trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
 ./node_modules/react-native/scripts/packager.sh --resetCache
