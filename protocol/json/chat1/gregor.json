@@ -31,10 +31,6 @@
           "name": "convID"
         },
         {
-          "type": "TopicType",
-          "name": "topicType"
-        },
-        {
           "type": [
             null,
             "UnreadUpdate"
@@ -59,10 +55,6 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         },
         {
           "type": [
@@ -93,10 +85,6 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         },
         {
           "type": [
@@ -136,10 +124,6 @@
           "name": "inboxVers"
         },
         {
-          "type": "TopicType",
-          "name": "topicType"
-        },
-        {
           "type": [
             null,
             "UnreadUpdate"
@@ -168,10 +152,6 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         },
         {
           "type": [
@@ -204,10 +184,6 @@
           "name": "inboxVers"
         },
         {
-          "type": "TopicType",
-          "name": "topicType"
-        },
-        {
           "type": [
             null,
             "UnreadUpdate"
@@ -236,10 +212,6 @@
         {
           "type": "ConversationNotificationInfo",
           "name": "settings"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         },
         {
           "type": [
@@ -277,10 +249,6 @@
             "items": "MessageSummary"
           },
           "name": "maxMsgs"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         },
         {
           "type": [
@@ -429,10 +397,6 @@
             "items": "UnreadUpdate"
           },
           "name": "unreadUpdates"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         }
       ]
     },
@@ -443,10 +407,6 @@
         {
           "type": "TLFID",
           "name": "teamID"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         }
       ]
     },
@@ -465,10 +425,6 @@
         {
           "type": "RetentionPolicy",
           "name": "policy"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         }
       ]
     },
@@ -487,10 +443,6 @@
         {
           "type": "RetentionPolicy",
           "name": "policy"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         }
       ]
     },
@@ -505,10 +457,6 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
-        },
-        {
-          "type": "TopicType",
-          "name": "topicType"
         }
       ]
     }
