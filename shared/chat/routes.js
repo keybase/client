@@ -83,6 +83,7 @@ const conversationRoute = makeRouteDefNode({
     infoPanel: {
       component: InfoPanel,
       children: infoPanelChildren,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     // We should consolidate these as only info panel children once it's changed to a route on desktop
     ...infoPanelChildren,

@@ -6,7 +6,6 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
-import InfoPanel from '../info-panel/container'
 import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
@@ -15,7 +14,6 @@ import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import type {Props} from '.'
 
 type State = {
-  infoPanelOpen: boolean,
   showDropOverlay: boolean,
   conversationIDKey: ?Types.ConversationIDKey,
 }
@@ -41,20 +39,20 @@ const Offline = () => (
   </Box>
 )
 
-const InfoPaneWrapper = ({onToggle, conversationIDKey}) => (
-  <div
-    style={{
-      ...globalStyles.flexBoxColumn,
-      bottom: 0,
-      position: 'absolute',
-      right: 0,
-      top: 35,
-      width: 320,
-    }}
-  >
-    <InfoPanel onToggleInfoPanel={onToggle} conversationIDKey={conversationIDKey} />
-  </div>
-)
+// const InfoPaneWrapper = ({onToggle, conversationIDKey}) => (
+//   <div
+//     style={{
+//       ...globalStyles.flexBoxColumn,
+//       bottom: 0,
+//       position: 'absolute',
+//       right: 0,
+//       top: 35,
+//       width: 320,
+//     }}
+//   >
+//     <InfoPanel onToggleInfoPanel={onToggle} conversationIDKey={conversationIDKey} />
+//   </div>
+// )
 
 class Conversation extends React.PureComponent<Props, State> {
   _mounted = false
@@ -137,10 +135,6 @@ class Conversation extends React.PureComponent<Props, State> {
     })
   }
 
-  _onToggleInfoPanel = () => {
-    this.setState(prevState => ({infoPanelOpen: !prevState.infoPanelOpen}))
-  }
-
   render() {
     return (
       <Box
@@ -151,15 +145,15 @@ class Conversation extends React.PureComponent<Props, State> {
       >
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
-          onToggleInfoPanel={this._onToggleInfoPanel}
-          infoPanelOpen={this.state.infoPanelOpen}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
+          infoPanelOpen={this.props.infoPanelOpen}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
           listScrollDownCounter={this.props.listScrollDownCounter}
           // TODO DESKTOP-6256 get rid of this
-          onToggleInfoPanel={this._onToggleInfoPanel}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
@@ -169,12 +163,6 @@ class Conversation extends React.PureComponent<Props, State> {
           onScrollDown={this.props.onScrollDown}
           conversationIDKey={this.props.conversationIDKey}
         />
-        {this.state.infoPanelOpen && (
-          <InfoPaneWrapper
-            onToggle={this._onToggleInfoPanel}
-            conversationIDKey={this.props.conversationIDKey}
-          />
-        )}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
       </Box>
     )
