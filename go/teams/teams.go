@@ -1623,14 +1623,7 @@ func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post f
 }
 
 func isSigOldSeqnoError(err error) bool {
-	switch err := err.(type) {
-	case libkb.AppStatusError:
-		switch keybase1.StatusCode(err.Code) {
-		case keybase1.StatusCode_SCSigOldSeqno:
-			return true
-		}
-	}
-	return false
+	return libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCSigOldSeqno)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {

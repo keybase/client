@@ -710,11 +710,14 @@ function* _logout() {
   }
 }
 
+const clearError = () => Saga.put(LoginGen.createLoginError({error: ''}))
+
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(LoginGen.startLogin, _startLogin)
   yield Saga.safeTakeEveryPure(LoginGen.setCameraBrokenMode, _cameraBrokenMode)
   yield Saga.safeTakeEveryPure([LoginGen.setCodePageMode, LoginGen.setTextCode], _generateQRCode)
   yield Saga.safeTakeEveryPure(LoginGen.relogin, _relogin)
+  yield Saga.safeTakeLatest([LoginGen.startLogin, LoginGen.relogin], clearError)
   yield Saga.safeTakeEveryPure(LoginGen.openAccountResetPage, _openAccountResetPageSaga)
   yield Saga.safeTakeLatest(LoginGen.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeEveryPure(LoginGen.logoutDone, _logoutDone)

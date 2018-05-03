@@ -83,7 +83,9 @@ function checkReachabilityOnConnect() {
 }
 
 function registerGregorListeners() {
-  RPCTypes.delegateUiCtlRegisterGregorFirehoseRpcPromise()
+  // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
+  // If ever you want to get OOBMs for a different system, then you need to enter it here.
+  RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
     .then(response => {
       logger.info('Registered gregor listener')
     })

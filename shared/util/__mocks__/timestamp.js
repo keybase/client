@@ -21,3 +21,7 @@ export function formatTimeForRevoked(time: number): string {
 export function daysToLabel(days: number): string {
   return '[mocked]'
 }
+
+export function secondsToDHMS(seconds: number): string {
+  return '[mocked]'
+}

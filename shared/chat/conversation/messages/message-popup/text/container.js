@@ -84,7 +84,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const yourMessage = message.author === stateProps._you
   return {
     attachTo: ownProps.attachTo,
-    message,
+    author: message.author,
+    deviceName: message.deviceName,
+    deviceRevokedAt: message.deviceRevokedAt,
+    deviceType: message.deviceType,
     onCopy: () => dispatchProps._onCopy(message),
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
@@ -97,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onViewProfile: message.author ? () => dispatchProps._onViewProfile(message.author) : null,
     position: ownProps.position,
     showDivider: !message.deviceRevokedAt,
+    timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,
   }

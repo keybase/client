@@ -58,7 +58,8 @@ func newGregorTestConnection(g *globals.Context, uid gregor1.UID, sessionToken s
 	}
 }
 
-func (g *gregorTestConnection) Connect(ctx context.Context) error {
+func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
+	defer g.Trace(ctx, func() error { return err }, "Connect")()
 	uri, err := rpc.ParseFMPURI(g.G().Env.GetGregorURI())
 	if err != nil {
 		return err
@@ -533,14 +534,18 @@ func mustJoinConversationByID(t *testing.T, ctc *chatTestContext, asUser *kbtest
 // Consumes expunge notifications from `listener` and returns the latest one.
 // `upto` is optional (0 means any)
 func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, listener *serverChatListener, convID chat1.ConversationID, uptoWant chat1.MessageID) chat1.ExpungeInfo {
-	t.Logf("sweepPollForDeletion(convID: %v)", convID)
+	t.Logf("sweepPollForDeletion(convID: %v, uptoWant: %v", convID, uptoWant)
 	tc := ctc.as(t, asUser)
 	maxTime := 5 * time.Second
 	afterCh := time.After(maxTime)
 	var foundTaskCount int
 	var upto chat1.MessageID
 	for i := 0; ; i++ {
-		res, err := tc.ri.RetentionSweepConv(tc.startCtx, convID)
+		ctx := Context(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
+		trace, _ := CtxTrace(ctx)
+		t.Logf("+ RetentionSweepConv(%v) (uptoWant %v) [chat-trace=%v]", convID.String(), uptoWant, trace)
+		res, err := tc.ri.RetentionSweepConv(ctx, convID)
+		t.Logf("- RetentionSweepConv res: %+v", res)
 		require.NoError(t, err)
 		if res.FoundTask {
 			foundTaskCount++
@@ -552,7 +557,7 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 			if upto >= uptoWant {
 				return expungeInfo
 			}
-			t.Logf("sweepPollForDeletion ignoring expungeInfo: %v", expungeInfo.Expunge)
+			t.Logf("sweepPollForDeletion ignoring expungeInfo: %+v (uptoWant:%v)", expungeInfo.Expunge, uptoWant)
 		}
 		time.Sleep(10 * time.Millisecond)
 		select {
@@ -2375,14 +2380,28 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb, nil, nil)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctx := ctc.as(t, users[0]).startCtx
+		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		editMsgID1 := editMsg(ctx, conv, msgID1)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
 		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		editMsgID2 := editMsg(ctx, conv, msgID2)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
+		consumeNewMsg(t, listener, chat1.MessageType_EDIT)
 		msgID3 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
 		msgRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
 			ConversationID: conv.Id,
 			MessageIDs:     []chat1.MessageID{msgID3},

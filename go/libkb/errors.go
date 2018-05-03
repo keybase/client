@@ -464,6 +464,14 @@ func (a AppStatusError) Error() string {
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
 }
 
+func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		return err.Code == int(code)
+	}
+	return false
+}
+
 //=============================================================================
 
 type GpgError struct {

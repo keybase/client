@@ -304,11 +304,20 @@ func (s *SignupEngine) addGPG(lctx libkb.LoginContext, ctx *Context, allowMulti 
 }
 
 func (s *SignupEngine) genPGPBatch(ctx *Context) error {
+
 	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#genPGPBatch")
 	gen := libkb.PGPGenArg{
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 	}
+
+	// genPGPBatch should never be run in production, but if there's
+	// a bug or a mistunderstanding in the future, generate a good key.
+	if s.G().Env.GetRunMode() != libkb.DevelRunMode {
+		gen.PrimaryBits = 4096
+		gen.SubkeyBits = 4096
+	}
+
 	gen.AddDefaultUID(s.G())
 
 	tsec := ctx.LoginContext.PassphraseStreamCache().Triplesec()
