@@ -39,7 +39,10 @@ class _BigTeamHeader extends React.PureComponent<Props> {
         <ClickableBox
           onClick={props.toggleShowingMenu}
           ref={props.setAttachmentRef}
-          style={collapseStyles([globalStyles.flexBoxRow, {position: 'relative'}])}
+          style={collapseStyles([
+            globalStyles.flexBoxRow,
+            {position: 'relative', right: globalMargins.xtiny},
+          ])}
         >
           <Icon className="icon" type="iconfont-gear" fontSize={iconFontSize} color={globalColors.black_20} />
           <Box

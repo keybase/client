@@ -29,6 +29,11 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+const makeMessageExplodable = {
+  exploded: false,
+  explodedBy: '',
+}
+
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
   ...makeMessageCommon,
   type: 'placeholder',
@@ -41,6 +46,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -51,6 +57,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   attachmentType: 'file',
   downloadPath: null,
   fileName: '',
@@ -321,12 +328,13 @@ const validUIMessagetoMessage = (
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
-        if (attachment && !attachment.uploaded) {
+        if (!attachment.uploaded) {
           transferState = 'remoteUploading'
         }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        transferState = null
       }
       const {filename, title, size} = attachment.object
       let previewHeight = 0
@@ -612,7 +620,11 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
       if (old.previewURL && !m.previewURL) {
         ret.set('previewURL', old.previewURL)
       }
-      ret.set('transferState', old.transferState)
+      if (old.transferState === 'remoteUploading') {
+        ret.set('transferState', null)
+      } else {
+        ret.set('transferState', old.transferState)
+      }
       ret.set('transferProgress', old.transferProgress)
     })
   }

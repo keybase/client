@@ -35,7 +35,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _showInFileUI: DispatchMappers.mapDispatchToShowInFileUI(dispatch),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
   const {_download, _openFinderPopup, _save, _share, _showInFileUI, _openAsText} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)

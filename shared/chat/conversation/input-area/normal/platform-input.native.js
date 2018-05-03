@@ -10,7 +10,25 @@ import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-conta
 
 import type {PlatformInputProps} from './types'
 
-class PlatformInput extends Component<PlatformInputProps> {
+type State = {
+  hasText: boolean,
+}
+
+class PlatformInput extends Component<PlatformInputProps, State> {
+  _input: ?Input
+
+  constructor(props: PlatformInputProps) {
+    super(props)
+    this.state = {
+      hasText: false,
+    }
+  }
+
+  _inputSetRef = (ref: ?Input) => {
+    this._input = ref
+    this.props.inputSetRef(ref)
+  }
+
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -25,11 +43,23 @@ class PlatformInput extends Component<PlatformInputProps> {
     })
   }
 
-  _onSubmit = () => {
-    this.props.onSubmit(this.props.text)
+  _getText = () => {
+    return this._input ? this._input.getValue() : ''
   }
 
-  render() {
+  _onChangeText = (text: string) => {
+    this.setState({hasText: !!text})
+    this.props.onChangeText(text)
+  }
+
+  _onSubmit = () => {
+    const text = this._getText()
+    if (text) {
+      this.props.onSubmit(text)
+    }
+  }
+
+  render = () => {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     let hintText = 'Write a message'
@@ -85,18 +115,17 @@ class PlatformInput extends Component<PlatformInputProps> {
             onFocus={this.props.onFocus}
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
-            onChangeText={this.props.onChangeText}
-            ref={this.props.inputSetRef}
-            onSelectionChange={this.props.onSelectionChange}
+            onChangeText={this._onChangeText}
+            ref={this._inputSetRef}
             small={true}
             style={styles.input}
-            value={this.props.text}
+            uncontrolled={true}
             {...multilineOpts}
           />
 
           {this.props.typing.size > 0 && <Typing />}
           <Action
-            text={this.props.text}
+            hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             pendingWaiting={this.props.pendingWaiting}
@@ -131,8 +160,8 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
-  text ? (
+const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
+  hasText ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}

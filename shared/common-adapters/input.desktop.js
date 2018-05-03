@@ -4,11 +4,13 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
-import type {Props} from './input'
+import type {Props, Selection, TextInfo} from './input'
+import {checkTextInfo} from './input.shared'
 
 type State = {
-  value: string,
   focused: boolean,
+  // Only used for controlled components.
+  value?: string,
 }
 
 class Input extends React.PureComponent<Props, State> {
@@ -19,54 +21,69 @@ class Input extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
 
-    this.state = {
+    const text = props.value || ''
+    this.state = ({
       focused: false,
-      value: props.value || '',
+    }: State)
+    if (!props.uncontrolled) {
+      this.state.value = text
     }
   }
 
-  componentDidMount() {
+  _setInputRef = (ref: HTMLTextAreaElement | HTMLInputElement | null) => {
+    this._input = ref
+  }
+
+  componentDidMount = () => {
     this._autoResize()
   }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
-    if (nextProps.hasOwnProperty('value')) {
+  static getDerivedStateFromProps = (nextProps: Props, prevState: State) => {
+    if (!nextProps.uncontrolled && nextProps.hasOwnProperty('value')) {
       return {value: nextProps.value || ''}
     }
     return null
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate = (prevProps: Props, prevState: State) => {
     if (this.state.value !== prevState.value) {
       this._autoResize()
     }
   }
 
   getValue = (): string => {
-    return this.state.value || ''
+    if (this.props.uncontrolled) {
+      return this._input ? this._input.value : ''
+    } else {
+      return this.state.value || ''
+    }
   }
 
-  setValue = (value: string) => {
-    this.setState({value: value || ''})
-  }
-
-  clearValue = () => {
-    this._onChange({target: {value: ''}})
-  }
-
-  selections = () => {
+  selection = (): Selection => {
     const n = this._input
-    if (n) {
-      const {selectionStart, selectionEnd} = n
-      return {selectionStart, selectionEnd}
+    if (!n) {
+      return {start: 0, end: 0}
+    }
+    const {selectionStart, selectionEnd} = n
+    return {start: selectionStart, end: selectionEnd}
+  }
+
+  _onChangeTextDone = () => {
+    const value = this.getValue()
+    this.props.onChangeText && this.props.onChangeText(value)
+  }
+
+  _onChangeText = (text: string) => {
+    this._autoResize()
+    if (this.props.uncontrolled) {
+      this._onChangeTextDone()
+    } else {
+      this.setState({value: text}, this._onChangeTextDone)
     }
   }
 
   _onChange = (event: {target: {value: ?string}}) => {
-    this.setState({value: event.target.value || ''})
-    this._autoResize()
-
-    this.props.onChangeText && this.props.onChangeText(event.target.value || '')
+    this._onChangeText(event.target.value || '')
   }
 
   _smartAutoresize = {
@@ -84,6 +101,8 @@ class Input extends React.PureComponent<Props, State> {
       return
     }
 
+    const value = this.getValue()
+
     // Try and not style/render thrash. We bookkeep the length of the string that was used to go up a line and if we shorten our length
     // we'll remeasure. It's very expensive to just remeasure as the user is typing. it causes a lot of actual layout thrashing
     if (this.props.smartAutoresize) {
@@ -96,14 +115,11 @@ class Input extends React.PureComponent<Props, State> {
 
       // See if we've gone up in size, if so keep track of the input at that point
       if (n.scrollHeight > rect.height) {
-        this._smartAutoresize.pivotLength = this.state.value.length
+        this._smartAutoresize.pivotLength = value.length
         n.style.height = `${n.scrollHeight}px`
       } else {
         // see if we went back down in height
-        if (
-          this._smartAutoresize.pivotLength !== -1 &&
-          this.state.value.length <= this._smartAutoresize.pivotLength
-        ) {
+        if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
           this._smartAutoresize.pivotLength = -1
           n.style.height = '1px'
           n.style.height = `${n.scrollHeight}px`
@@ -130,32 +146,32 @@ class Input extends React.PureComponent<Props, State> {
     n && n.blur()
   }
 
-  moveCursorToEnd = () => {
+  _transformText = (fn: TextInfo => TextInfo) => {
     const n = this._input
-    if (n && this.props.value) {
-      n.selectionStart = n.selectionEnd = this.props.value.length
+    if (n) {
+      const textInfo: TextInfo = {
+        text: n.value,
+        selection: {
+          start: n.selectionStart,
+          end: n.selectionEnd,
+        },
+      }
+      const newTextInfo = fn(textInfo)
+      checkTextInfo(newTextInfo)
+      n.value = newTextInfo.text
+      n.selectionStart = newTextInfo.selection.start
+      n.selectionEnd = newTextInfo.selection.end
+
+      this._autoResize()
     }
   }
 
-  replaceText = (
-    text: string,
-    startIdx: number,
-    endIdx: number,
-    newSelectionStart: number,
-    newSelectionEnd: number
-  ) => {
-    const n = this._input
-    if (n) {
-      const v = n.value
-      const nextValue = v.slice(0, startIdx) + text + v.slice(endIdx)
-      n.value = nextValue
-      this.setState({value: nextValue})
-      this._autoResize()
-
-      this.props.onChangeText && this.props.onChangeText(nextValue || '')
-      n.selectionStart = newSelectionStart
-      n.selectionEnd = newSelectionEnd
+  transformText = (fn: TextInfo => TextInfo) => {
+    if (!this.props.uncontrolled) {
+      throw new Error('transformText can only be called on uncontrolled components')
     }
+
+    this._transformText(fn)
   }
 
   _onCompositionStart = () => {
@@ -170,11 +186,21 @@ class Input extends React.PureComponent<Props, State> {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e, this._isComposingIME)
     }
-
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       if (e.altKey || e.ctrlKey) {
-        // inject newline
-        this.setValue(this.getValue() + '\n')
+        // If multiline, inject a newline.
+        if (this.props.multiline) {
+          this._transformText(({text, selection}) => {
+            const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
+            const pos = selection.start + 1
+            const newSelection = {start: pos, end: pos}
+            return {
+              text: newText,
+              selection: newSelection,
+            }
+          })
+          this._onChangeText(this.getValue())
+        }
       } else {
         this.props.onEnterKeyDown(e)
       }
@@ -237,7 +263,7 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  render() {
+  render = () => {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
@@ -284,13 +310,15 @@ class Input extends React.PureComponent<Props, State> {
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
     }
 
+    const value = this.getValue()
+
     const floatingHintText =
-      !!this.state.value.length &&
+      !!value.length &&
       (this.props.hasOwnProperty('floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    const commonProps = {
+    const commonProps: {value?: string} = {
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
@@ -303,11 +331,12 @@ class Input extends React.PureComponent<Props, State> {
       onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,
       readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? 'readonly' : undefined,
-      ref: r => {
-        this._input = r
-      },
-      value: this.state.value,
+      ref: this._setInputRef,
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
+    }
+
+    if (!this.props.uncontrolled) {
+      commonProps.value = value
     }
 
     const singlelineProps = {

@@ -1,10 +1,17 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box2, FloatingMenu, Icon, Text} from '../../../../../common-adapters/'
+import {
+  Avatar,
+  Box2,
+  FloatingMenu,
+  Icon,
+  Text,
+  HOCTimers,
+  type PropsWithTimer,
+} from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, secondsToDHMS} from '../../../../../util/timestamp'
 import {PopupHeaderText} from '../../../../../common-adapters/popup-menu'
-import HOCTimers, {type TimerProps} from '../../../../../common-adapters/hoc-timers'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -29,7 +36,7 @@ type State = {
   secondsLeft: number,
 }
 
-class ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
+class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
   timer: ?IntervalID = null
   state = {
     secondsLeft: 0,
@@ -117,7 +124,7 @@ class ExplodingPopupHeader extends React.Component<Props & TimerProps, State> {
   }
 }
 
-const ExplodingPopupMenu = (props: Props & TimerProps) => {
+const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
   const items = [
     ...(props.onEdit
       ? [

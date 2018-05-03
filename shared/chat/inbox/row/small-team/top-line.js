@@ -4,7 +4,7 @@ import shallowEqual from 'shallowequal'
 import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
 import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
-import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 
 type Props = {
   hasUnread: boolean,
@@ -106,6 +106,7 @@ class _SimpleTopLine extends React.Component<Props> {
             color={this.props.subColor}
             fontSize={14}
             hoverColor={this.props.iconHoverColor}
+            style={{position: 'relative', right: globalMargins.xtiny}}
           />
         )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}

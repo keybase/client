@@ -7,22 +7,11 @@ import {type InputProps} from './types'
 import {throttle} from 'lodash-es'
 import {formatTextForQuoting} from '../../../../util/chat'
 
-type State = {
-  text: string,
-}
-
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 1000)
 
-class Input extends React.Component<InputProps, State> {
+class Input extends React.Component<InputProps> {
   _input: ?TextInput
-
-  constructor(props: InputProps) {
-    super(props)
-    this.state = {
-      text: props.getUnsentText(),
-    }
-  }
 
   _inputSetRef = (input: ?TextInput) => {
     this._input = input
@@ -33,7 +22,12 @@ class Input extends React.Component<InputProps, State> {
   }
 
   _inputMoveToEnd = () => {
-    this._input && this._input.moveCursorToEnd()
+    if (this._input) {
+      this._input.transformText(({text, selection}) => ({
+        text,
+        selection: {start: text.length, end: text.length},
+      }))
+    }
   }
 
   _onCancelQuoting = () => {
@@ -45,13 +39,28 @@ class Input extends React.Component<InputProps, State> {
     this._setText('')
   }
 
+  _onChangeText = (text: string) => {
+    this.props.setUnsentText(text)
+    throttled(this.props.sendTyping, !!text)
+  }
+
   _setText = (text: string, skipUnsentSaving?: boolean) => {
-    this.setState({text})
+    if (this._input) {
+      this._input.transformText(() => ({
+        text,
+        selection: {start: text.length, end: text.length},
+      }))
+    }
+
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-
     throttled(this.props.sendTyping, !!text)
+  }
+
+  componentDidMount = () => {
+    const text = this.props.getUnsentText()
+    this._setText(text, true)
   }
 
   componentWillReceiveProps = (nextProps: InputProps) => {
@@ -95,8 +104,7 @@ class Input extends React.Component<InputProps, State> {
         onCancelQuoting={this._onCancelQuoting}
         onSubmit={this._onSubmit}
         inputSetRef={this._inputSetRef}
-        setText={this._setText}
-        text={this.state.text}
+        onChangeText={this._onChangeText}
       />
     )
   }

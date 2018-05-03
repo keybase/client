@@ -9,7 +9,7 @@ import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
 // initial settings (except retention policy)
-type Props = {
+type Props = {|
   isBigTeam: boolean,
   ignoreAccessRequests: boolean,
   publicityAnyMember: boolean,
@@ -25,9 +25,9 @@ type Props = {
   teamname: Types.Teamname,
   yourOperations: Types.TeamOperations,
   waitingForSavePublicity: boolean,
-}
+|}
 
-type NewSettings = {
+type NewSettings = {|
   newIgnoreAccessRequests: boolean,
   newPublicityAnyMember: boolean,
   newPublicityMember: boolean,
@@ -35,20 +35,22 @@ type NewSettings = {
   newOpenTeam: boolean,
   newOpenTeamRole: Types.TeamRoleType,
   newRetentionPolicy: Types.RetentionPolicy,
-}
+|}
 
 // new settings
-type State = NewSettings & {
+type State = {|
+  ...NewSettings,
   publicitySettingsChanged: boolean,
   retentionPolicyChanged: boolean,
   retentionPolicyDecreased: boolean,
-}
+|}
 
-type SettingProps = Props &
-  State & {
-    setBoolSettings: (key: $Keys<State>) => (newSetting: boolean) => void,
-    onSetOpenTeamRole?: () => void,
-  }
+type SettingProps = {|
+  ...Props,
+  ...State,
+  setBoolSettings: (key: *) => (newSetting: boolean) => void,
+  onSetOpenTeamRole?: () => void,
+|}
 
 const SetMemberShowcase = (props: SettingProps) => (
   <Box
@@ -214,7 +216,7 @@ export class Settings extends React.Component<Props, State> {
     })
   }
 
-  setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
+  setBoolSettings = (key: *) => (newSetting: boolean) => {
     this.setState({[key]: newSetting})
   }
 

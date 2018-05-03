@@ -8,7 +8,8 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 import type {Props, MenuItem, HeaderTextProps} from './popup-menu'
 
 // Menu Item
-type MenuItemProps = MenuItem & {
+type MenuItemProps = {
+  ...MenuItem,
   isHeader?: boolean,
   index: number,
   numItems: number,
@@ -85,12 +86,17 @@ const styleRowText = ({
 // Popup Menu
 class PopupMenu extends Component<Props> {
   render() {
-    // $ForceType
-    const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter(mi => mi !== 'Divider')
-    const menuItemsWithHeader: Array<MenuItem> = [].concat(menuItemsNoDividers)
-    if (this.props.header) {
-      menuItemsWithHeader.unshift({...this.props.header, isHeader: true})
-    }
+    const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
+      if (mi && mi !== 'Divider') {
+        arr.push(mi)
+      }
+      return arr
+    }, [])
+    const menuItemsWithHeader = [
+      ...(this.props.header ? [{...this.props.header, isHeader: true}] : []),
+      ...menuItemsNoDividers,
+    ]
+
     return (
       <TouchableWithoutFeedback style={styleOverlayContainer} onPress={this.props.onHidden}>
         <Box style={styleOverlay}>
