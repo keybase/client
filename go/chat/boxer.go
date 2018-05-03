@@ -281,11 +281,12 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	// If the message is exploding, load the ephemeral key.
 	var ephemeralSeed *keybase1.TeamEk
 	if boxed.IsExploding() {
-		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
+		ek, ekErr := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
 			boxed.EphemeralMetadata().Generation)
-		if err != nil {
-			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+		if ekErr != nil {
+			b.Debug(ctx, "failed to get a key for exploding message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
+			return b.makeErrorMessage(boxed, NewPermanentUnboxingError(ekErr)), nil
 		}
 		ephemeralSeed = &ek
 	}
