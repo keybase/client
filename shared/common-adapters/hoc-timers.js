@@ -1,53 +1,58 @@
 // @flow
 import * as React from 'react'
 
-export type TimerProps = {|
-  setTimeout: (func: () => void, timing: number) => TimeoutID,
+// Needs the | void stuff to help flow: https://flow.org/en/docs/react/hoc/#toc-injecting-props-with-a-higher-order-component
+type TimerProps = {|
+  setTimeout: ((func: () => void, timing: number) => TimeoutID) | void,
+  clearTimeout: ((id: TimeoutID) => void) | void,
+  setInterval: ((func: () => void, timing: number) => IntervalID) | void,
+  clearInterval: ((id: IntervalID) => void) | void,
+|}
+
+// Use this to mix your props with timer props like type Props = PropsWithTimer<{foo: number}>
+export type PropsWithTimer<P> = {|
+  ...$Exact<P>,
+  clearInterval: (id: IntervalID) => void,
   clearTimeout: (id: TimeoutID) => void,
   setInterval: (func: () => void, timing: number) => IntervalID,
-  clearInterval: (id: IntervalID) => void,
+  setTimeout: (func: () => void, timing: number) => TimeoutID,
 |}
 
 function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
-const HOCTimers = <T: TimerProps>(
-  ComposedComponent: React.ComponentType<T>
-): React.ComponentType<$Diff<T, TimerProps>> => {
-  class TimersComponent extends React.Component<$Diff<T, TimerProps>> {
-    static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
-    _timeoutIds: Array<TimeoutID>
-    _intervalIds: Array<IntervalID>
-    _timerFuncs: TimerProps
+function HOCTimers<Props: {}>(
+  WrappedComponent: React.ComponentType<Props>
+): React.ComponentType<$Diff<Props, TimerProps>> {
+  class TimersComponent extends React.Component<$Diff<Props, TimerProps>> {
+    static displayName = `HOCTimers(${getDisplayName(WrappedComponent)})`
+    _timeoutIds: Array<TimeoutID> = []
+    _intervalIds: Array<IntervalID> = []
 
-    constructor(props: $Diff<T, TimerProps>) {
-      super(props)
-      this._timeoutIds = []
-      this._intervalIds = []
-      this._timerFuncs = {
-        setTimeout: (f, n) => {
-          const id = setTimeout(f, n)
-          this._timeoutIds.push(id)
-          return id
-        },
-        clearTimeout: id => {
-          if ((id || id === 0) && this._timeoutIds.includes(id)) {
-            this._timeoutIds.splice(this._timeoutIds.indexOf(id), 1)
-            clearTimeout(id)
-          }
-        },
-        setInterval: (f, n) => {
-          const id = setInterval(f, n)
-          this._intervalIds.push(id)
-          return id
-        },
-        clearInterval: id => {
-          if ((id || id === 0) && this._intervalIds.includes(id)) {
-            this._intervalIds.splice(this._intervalIds.indexOf(id), 1)
-            clearInterval(id)
-          }
-        },
+    setTimeout = (f, n) => {
+      const id = setTimeout(f, n)
+      this._timeoutIds.push(id)
+      return id
+    }
+
+    clearTimeout = id => {
+      if ((id || id === 0) && this._timeoutIds.includes(id)) {
+        this._timeoutIds.splice(this._timeoutIds.indexOf(id), 1)
+        clearTimeout(id)
+      }
+    }
+
+    setInterval = (f, n) => {
+      const id = setInterval(f, n)
+      this._intervalIds.push(id)
+      return id
+    }
+
+    clearInterval = id => {
+      if ((id || id === 0) && this._intervalIds.includes(id)) {
+        this._intervalIds.splice(this._intervalIds.indexOf(id), 1)
+        clearInterval(id)
       }
     }
 
@@ -57,7 +62,15 @@ const HOCTimers = <T: TimerProps>(
     }
 
     render() {
-      return <ComposedComponent {...this.props} {...this._timerFuncs} />
+      return (
+        <WrappedComponent
+          {...this.props}
+          setTimeout={this.setTimeout}
+          setInterval={this.setInterval}
+          clearInterval={this.clearInterval}
+          clearTimeout={this.clearTimeout}
+        />
+      )
     }
   }
 

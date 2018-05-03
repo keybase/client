@@ -8,8 +8,9 @@ import {
   NativeScrollView,
   List,
   NativeTouchableWithoutFeedback,
+  HOCTimers,
+  type PropsWithTimer,
 } from '../../common-adapters/index.native'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
@@ -23,7 +24,7 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & TimerProps
+type Props = PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
