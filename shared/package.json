@@ -34,6 +34,7 @@
     "start-cold": "yarn run _helper start-cold",
     "start-hot": "yarn run _helper start-hot",
     "start-prod": "yarn run _helper start-prod",
+    "rn-prebuild": "./react-native/packageAndBuild.sh",
     "rn-start": "./node_modules/react-native/scripts/packager.sh --resetCache",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
