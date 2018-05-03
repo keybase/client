@@ -65,7 +65,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	flags := append(getConversationResolverFlags(),
 		mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
 	)
-	if g.Env.GetRunMode() == libkb.DevelRunMode {
+	if g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.GetFeatureFlags().Admin() {
 		flags = append(flags, cli.DurationFlag{
 			Name: "exploding-lifetime",
 			Usage: `Make this message an exploding message and set the
