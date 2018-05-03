@@ -657,8 +657,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
-	convID chat1.ConversationID, conv *chat1.ConversationLocal,
-	activity *chat1.ChatActivity) error {
+	convID chat1.ConversationID, conv *chat1.ConversationLocal, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err
