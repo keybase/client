@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState, {teamname}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
-  onChat: () => dispatch(Chat2Gen.createStartConversation({teamname})),
+  onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname})),
   onOpenFolder: () => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
 })
 

@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
-  onChat: () => dispatch(Chat2Gen.createStartConversation({teamname})),
+  onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname})),
   onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
 })
 

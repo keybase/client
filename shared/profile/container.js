@@ -69,7 +69,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onChat: username => dispatch(Chat2Gen.createStartConversation({participants: [username]})),
+  onChat: username => dispatch(Chat2Gen.createPreviewConversation({participants: [username]})),
   onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
   onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
   onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),

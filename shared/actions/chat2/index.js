@@ -27,7 +27,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {showMainWindow, saveAttachmentDialog, downloadAndShowShareActionSheet} from '../platform-specific'
 import {tmpDir, downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import flags from '../../util/feature-flags'
 
 const inboxQuery = {
   computeActiveList: true,
@@ -957,7 +956,7 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
       })
     ),
     Saga.put(
-      Chat2Gen.createStartConversation({
+      Chat2Gen.createPreviewConversation({
         participants: [message.author],
       })
     ),
@@ -1244,15 +1243,15 @@ const messageSend = (action: Chat2Gen.MessageSendPayload, state: TypedState) => 
   ])
 }
 
-const startConversationAfterFindExisting = (
-  _fromStartConversation,
-  action: Chat2Gen.StartConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
+const previewConversationAfterFindExisting = (
+  _fromPreviewConversation,
+  action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
 ) => {
-  if (!_fromStartConversation) {
+  if (!_fromPreviewConversation) {
     return
   }
-  const results: RPCChatTypes.FindConversationsLocalRes = _fromStartConversation[1]
-  const users: Array<string> = _fromStartConversation[2]
+  const results: RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
+  const users: Array<string> = _fromPreviewConversation[2]
 
   let existingConversationIDKey
 
@@ -1262,7 +1261,7 @@ const startConversationAfterFindExisting = (
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
   }
 
-  const fromAReset = action.type === Chat2Gen.startConversation && action.payload.fromAReset
+  const fromAReset = action.type === Chat2Gen.previewConversation && action.payload.fromAReset
 
   return Saga.sequentially([
     // it's a fixed set of users so it's not a search (aka you can't add people to it)
@@ -1284,13 +1283,13 @@ const startConversationAfterFindExisting = (
 }
 
 // Start a conversation, or select an existing one
-const startConversationFindExisting = (
-  action: Chat2Gen.StartConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
+const previewConversationFindExisting = (
+  action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload,
   state: TypedState
 ) => {
   let participants
   let teamname
-  if (action.type === Chat2Gen.startConversation) {
+  if (action.type === Chat2Gen.previewConversation) {
     participants = action.payload.participants
     teamname = action.payload.teamname
   } else if (action.type === Chat2Gen.setPendingConversationUsers) {
@@ -1695,7 +1694,7 @@ const resetChatWithoutThem = (action: Chat2Gen.ResetChatWithoutThemPayload, stat
   // remove all bad people
   const goodParticipants = meta.participants.subtract(meta.resetParticipants)
   return Saga.put(
-    Chat2Gen.createStartConversation({
+    Chat2Gen.createPreviewConversation({
       participants: goodParticipants.toArray(),
     })
   )
@@ -2010,9 +2009,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.selectConversation, loadCanUserPerform)
 
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.startConversation, Chat2Gen.setPendingConversationUsers],
-    startConversationFindExisting,
-    startConversationAfterFindExisting
+    [Chat2Gen.previewConversation, Chat2Gen.setPendingConversationUsers],
+    previewConversationFindExisting,
+    previewConversationAfterFindExisting
   )
   yield Saga.safeTakeEveryPure(Chat2Gen.openFolder, openFolder)
 

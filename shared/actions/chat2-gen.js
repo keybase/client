@@ -24,6 +24,7 @@ export const cancelPendingConversation = 'chat2:cancelPendingConversation'
 export const clearLoading = 'chat2:clearLoading'
 export const clearOrdinals = 'chat2:clearOrdinals'
 export const clearPendingConversation = 'chat2:clearPendingConversation'
+export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -59,6 +60,7 @@ export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
+export const previewConversation = 'chat2:previewConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const retryPendingConversation = 'chat2:retryPendingConversation'
@@ -75,13 +77,16 @@ export const setPendingMessageSubmitState = 'chat2:setPendingMessageSubmitState'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
 export const setupChatHandlers = 'chat2:setupChatHandlers'
-export const startConversation = 'chat2:startConversation'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateTypers = 'chat2:updateTypers'
 
 // Action Creators
+/**
+ * Actually start a conversation
+ */
+export const createCreateConversation = (payload: $ReadOnly<{|participants: Array<string>|}>) => ({error: false, payload, type: createConversation})
 /**
  * Cancels the pending conversation, clears out all pending data from the store, and navigates to the inbox
  */
@@ -352,6 +357,13 @@ export const createNotificationSettingsUpdated = (
   |}>
 ) => ({error: false, payload, type: notificationSettingsUpdated})
 export const createOpenFolder = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: openFolder})
+export const createPreviewConversation = (
+  payload: $ReadOnly<{|
+    participants?: Array<string>,
+    teamname?: string,
+    fromAReset?: boolean,
+  |}>
+) => ({error: false, payload, type: previewConversation})
 export const createResetChatWithoutThem = (payload: $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>) => ({error: false, payload, type: resetChatWithoutThem})
 export const createResetLetThemIn = (
   payload: $ReadOnly<{|
@@ -398,13 +410,6 @@ export const createSetPendingConversationUsers = (
 ) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: $ReadOnly<{|pendingMode: Types.PendingMode|}>) => ({error: false, payload, type: setPendingMode})
 export const createSetupChatHandlers = () => ({error: false, payload: undefined, type: setupChatHandlers})
-export const createStartConversation = (
-  payload: $ReadOnly<{|
-    participants?: Array<string>,
-    teamname?: string,
-    fromAReset?: boolean,
-  |}>
-) => ({error: false, payload, type: startConversation})
 export const createUpdateNotificationSettings = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
@@ -428,6 +433,7 @@ export type CancelPendingConversationPayload = More.ReturnType<typeof createCanc
 export type ClearLoadingPayload = More.ReturnType<typeof createClearLoading>
 export type ClearOrdinalsPayload = More.ReturnType<typeof createClearOrdinals>
 export type ClearPendingConversationPayload = More.ReturnType<typeof createClearPendingConversation>
+export type CreateConversationPayload = More.ReturnType<typeof createCreateConversation>
 export type DesktopNotificationPayload = More.ReturnType<typeof createDesktopNotification>
 export type InboxRefreshPayload = More.ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = More.ReturnType<typeof createJoinConversation>
@@ -463,6 +469,7 @@ export type NavigateToInboxPayload = More.ReturnType<typeof createNavigateToInbo
 export type NavigateToThreadPayload = More.ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = More.ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenFolderPayload = More.ReturnType<typeof createOpenFolder>
+export type PreviewConversationPayload = More.ReturnType<typeof createPreviewConversation>
 export type ResetChatWithoutThemPayload = More.ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = More.ReturnType<typeof createResetLetThemIn>
 export type RetryPendingConversationPayload = More.ReturnType<typeof createRetryPendingConversation>
@@ -479,7 +486,6 @@ export type SetPendingMessageSubmitStatePayload = More.ReturnType<typeof createS
 export type SetPendingModePayload = More.ReturnType<typeof createSetPendingMode>
 export type SetPendingStatusPayload = More.ReturnType<typeof createSetPendingStatus>
 export type SetupChatHandlersPayload = More.ReturnType<typeof createSetupChatHandlers>
-export type StartConversationPayload = More.ReturnType<typeof createStartConversation>
 export type UpdateConvRetentionPolicyPayload = More.ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateNotificationSettingsPayload = More.ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateTeamRetentionPolicyPayload = More.ReturnType<typeof createUpdateTeamRetentionPolicy>
@@ -500,6 +506,7 @@ export type Actions =
   | More.ReturnType<typeof createClearLoading>
   | More.ReturnType<typeof createClearOrdinals>
   | More.ReturnType<typeof createClearPendingConversation>
+  | More.ReturnType<typeof createCreateConversation>
   | More.ReturnType<typeof createDesktopNotification>
   | More.ReturnType<typeof createInboxRefresh>
   | More.ReturnType<typeof createJoinConversation>
@@ -535,6 +542,7 @@ export type Actions =
   | More.ReturnType<typeof createNavigateToThread>
   | More.ReturnType<typeof createNotificationSettingsUpdated>
   | More.ReturnType<typeof createOpenFolder>
+  | More.ReturnType<typeof createPreviewConversation>
   | More.ReturnType<typeof createResetChatWithoutThem>
   | More.ReturnType<typeof createResetLetThemIn>
   | More.ReturnType<typeof createRetryPendingConversation>
@@ -551,7 +559,6 @@ export type Actions =
   | More.ReturnType<typeof createSetPendingMode>
   | More.ReturnType<typeof createSetPendingStatus>
   | More.ReturnType<typeof createSetupChatHandlers>
-  | More.ReturnType<typeof createStartConversation>
   | More.ReturnType<typeof createUpdateConvRetentionPolicy>
   | More.ReturnType<typeof createUpdateNotificationSettings>
   | More.ReturnType<typeof createUpdateTeamRetentionPolicy>

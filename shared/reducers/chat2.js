@@ -706,7 +706,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.sendTyping:
     case Chat2Gen.setConvRetentionPolicy:
     case Chat2Gen.setupChatHandlers:
-    case Chat2Gen.startConversation:
     case Chat2Gen.navigateToInbox:
     case Chat2Gen.navigateToThread:
     case Chat2Gen.messageAttachmentNativeShare:
@@ -716,6 +715,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.cancelPendingConversation:
     case Chat2Gen.retryPendingConversation:
     case Chat2Gen.clearPendingConversation:
+    case Chat2Gen.previewConversation:
+    case Chat2Gen.createConversation:
       return state
     default:
       /*::

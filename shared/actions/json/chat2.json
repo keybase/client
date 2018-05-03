@@ -44,10 +44,14 @@
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
-    "startConversation": {
+    "previewConversation": {
       "participants?": "Array<string>",
       "teamname?": "string",
       "fromAReset?": "boolean"
+    },
+    "createConversation": {
+      "_description": "Actually start a conversation",
+      "participants": "Array<string>",
     },
     // Update our badges in the nav
     "badgesUpdated": {

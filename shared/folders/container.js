@@ -31,9 +31,9 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   onChat: tlf => {
     const {participants, teamname} = tlfToParticipantsOrTeamname(tlf)
     if (participants) {
-      dispatch(Chat2Gen.createStartConversation({participants}))
+      dispatch(Chat2Gen.createPreviewConversation({participants}))
     } else if (teamname) {
-      dispatch(Chat2Gen.createStartConversation({teamname}))
+      dispatch(Chat2Gen.createPreviewConversation({teamname}))
     }
   },
   onClick: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
