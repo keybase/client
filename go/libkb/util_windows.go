@@ -43,7 +43,7 @@ var (
 var (
 	modShell32               = windows.NewLazySystemDLL("Shell32.dll")
 	modOle32                 = windows.NewLazySystemDLL("Ole32.dll")
-	kernel32                 = syscall.NewLazySystemDLL("kernel32.dll")
+	kernel32                 = windows.NewLazySystemDLL("kernel32.dll")
 	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
 	procCoTaskMemFree        = modOle32.NewProc("CoTaskMemFree")
 	shChangeNotifyProc       = modShell32.NewProc("SHChangeNotify")
@@ -367,7 +367,7 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 }
 
 func CheckInstance(name string) bool {
-	ret, _, err := procCreateMutex.Call(
+	_, _, err := procCreateMutex.Call(
 		0,
 		0,
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(name))),
