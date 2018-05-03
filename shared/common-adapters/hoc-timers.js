@@ -1,28 +1,24 @@
 // @flow
 import * as React from 'react'
 
-// Needs the | void stuff to help flow: https://flow.org/en/docs/react/hoc/#toc-injecting-props-with-a-higher-order-component
-type TimerProps = {|
-  setTimeout: ((func: () => void, timing: number) => TimeoutID) | void,
-  clearTimeout: ((id: TimeoutID) => void) | void,
-  setInterval: ((func: () => void, timing: number) => IntervalID) | void,
-  clearInterval: ((id: IntervalID) => void) | void,
-|}
+type TimerProps = {
+  setTimeout: (func: () => void, timing: number) => TimeoutID,
+  clearTimeout: (id: TimeoutID) => void,
+  setInterval: (func: () => void, timing: number) => IntervalID,
+  clearInterval: (id: IntervalID) => void,
+}
 
 // Use this to mix your props with timer props like type Props = PropsWithTimer<{foo: number}>
 export type PropsWithTimer<P> = {|
   ...$Exact<P>,
-  clearInterval: (id: IntervalID) => void,
-  clearTimeout: (id: TimeoutID) => void,
-  setInterval: (func: () => void, timing: number) => IntervalID,
-  setTimeout: (func: () => void, timing: number) => TimeoutID,
+  ...$Exact<TimerProps>,
 |}
 
 function getDisplayName(WrappedComponent): string {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
-function HOCTimers<Props: {}>(
+function HOCTimers<Props: TimerProps>(
   WrappedComponent: React.ComponentType<Props>
 ): React.ComponentType<$Diff<Props, TimerProps>> {
   class TimersComponent extends React.Component<$Diff<Props, TimerProps>> {
