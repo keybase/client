@@ -77,6 +77,8 @@ func applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamK
 		derivationString = libkb.TeamGitMetadataDerivationString
 	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
 		derivationString = libkb.TeamSeitanTokenDerivationString
+	case keybase1.TeamApplication_STELLAR_RELAY:
+		derivationString = libkb.TeamStellarRelayDerivationString
 	default:
 		return keybase1.TeamApplicationKey{}, fmt.Errorf("unrecognized application id: %v", mask.Application)
 	}
