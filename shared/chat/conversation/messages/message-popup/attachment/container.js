@@ -78,7 +78,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const yourMessage = message.author === stateProps._you
   return {
     attachTo: ownProps.attachTo,
-    message,
+    author: message.author,
+    deviceName: message.deviceName,
+    deviceRevokedAt: message.deviceRevokedAt,
+    deviceType: message.deviceType,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)
@@ -90,6 +93,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     position: ownProps.position,
+    timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,
   }
