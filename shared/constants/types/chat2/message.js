@@ -45,16 +45,22 @@ export type MessageExplodeText =
   | '7 days'
 export type MessageExplodeDescription = {text: MessageExplodeText, seconds: number}
 
+export type Source = 'cache' | 'full'
+
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
-
-export type _MessagePlaceholder = {
-  author: string,
-  conversationIDKey: Common.ConversationIDKey,
+type _MessageCommon = {
   id: MessageID,
   ordinal: Ordinal,
+  source: Source,
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
   timestamp: number,
+}
+
+export type _MessagePlaceholder = {
   type: 'placeholder',
+  ..._MessageCommon,
 }
 
 export type MessagePlaceholder = I.RecordOf<_MessagePlaceholder>
@@ -71,6 +77,7 @@ export type _MessageDeleted = {
   id: MessageID,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
+  source: Source,
   timestamp: number,
   type: 'deleted',
 }
@@ -93,6 +100,7 @@ export type _MessageText = {
   mentionsChannelName: MentionsChannelName,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
+  source: Source,
   text: HiddenString,
   timestamp: number,
   type: 'text',
@@ -123,6 +131,7 @@ export type _MessageAttachment = {
   outboxID: ?OutboxID,
   previewHeight: number,
   previewWidth: number,
+  source: Source,
   submitState: null | 'deleting' | 'pending' | 'failed',
   timestamp: number,
   title: string,
@@ -147,6 +156,7 @@ export type _MessageSystemInviteAccepted = {
   invitee: string,
   inviter: string,
   ordinal: Ordinal,
+  source: Source,
   team: string,
   timestamp: number,
   type: 'systemInviteAccepted',
@@ -158,6 +168,7 @@ export type _MessageSystemSimpleToComplex = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  source: Source,
   timestamp: number,
   team: string,
   type: 'systemSimpleToComplex',
@@ -173,6 +184,7 @@ export type _MessageSystemGitPush = {
   refs: Array<RPCTypes.GitRefMetadata>,
   repo: string,
   repoID: string,
+  source: Source,
   team: string,
   timestamp: number,
   type: 'systemGitPush',
@@ -187,6 +199,7 @@ export type _MessageSystemAddedToTeam = {
   id: MessageID,
   isAdmin: boolean,
   ordinal: Ordinal,
+  source: Source,
   team: string,
   timestamp: number,
   type: 'systemAddedToTeam',
@@ -199,6 +212,7 @@ export type _MessageSystemJoined = {
   id: MessageID,
   ordinal: Ordinal,
   timestamp: number,
+  source: Source,
   type: 'systemJoined',
 }
 export type MessageSystemJoined = I.RecordOf<_MessageSystemJoined>
@@ -209,6 +223,7 @@ export type _MessageSystemLeft = {
   id: MessageID,
   ordinal: Ordinal,
   timestamp: number,
+  source: Source,
   type: 'systemLeft',
 }
 export type MessageSystemLeft = I.RecordOf<_MessageSystemLeft>
@@ -218,6 +233,7 @@ export type _MessageSystemText = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  source: Source,
   timestamp: number,
   text: HiddenString,
   type: 'systemText',
@@ -229,6 +245,7 @@ export type _MessageSetDescription = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  source: Source,
   timestamp: number,
   newDescription: HiddenString,
   type: 'setDescription',
@@ -240,6 +257,7 @@ export type _MessageSetChannelname = {
   conversationIDKey: Common.ConversationIDKey,
   id: MessageID,
   ordinal: Ordinal,
+  source: Source,
   timestamp: number,
   newChannelname: string,
   type: 'setChannelname',
