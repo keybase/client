@@ -8,9 +8,27 @@ import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 
-import type {Props} from '.'
+import type {PlatformInputProps} from './types'
 
-class ConversationInput extends Component<Props> {
+type State = {
+  hasText: boolean,
+}
+
+class PlatformInput extends Component<PlatformInputProps, State> {
+  _input: ?Input
+
+  constructor(props: PlatformInputProps) {
+    super(props)
+    this.state = {
+      hasText: false,
+    }
+  }
+
+  _inputSetRef = (ref: ?Input) => {
+    this._input = ref
+    this.props.inputSetRef(ref)
+  }
+
   _openFilePicker = () => {
     showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -25,11 +43,23 @@ class ConversationInput extends Component<Props> {
     })
   }
 
-  _onSubmit = () => {
-    this.props.onSubmit(this.props.text)
+  _getText = () => {
+    return this._input ? this._input.getValue() : ''
   }
 
-  render() {
+  _onChangeText = (text: string) => {
+    this.setState({hasText: !!text})
+    this.props.onChangeText(text)
+  }
+
+  _onSubmit = () => {
+    const text = this._getText()
+    if (text) {
+      this.props.onSubmit(text)
+    }
+  }
+
+  render = () => {
     const multilineOpts = {rowsMax: 3, rowsMin: 1}
 
     let hintText = 'Write a message'
@@ -65,6 +95,7 @@ class ConversationInput extends Component<Props> {
         )}
         <Box style={styles.container}>
           {this.props.isEditing && (
+            // TODO: Make this box take up the full height.
             <Box style={styles.editingTabStyle}>
               <Text type="BodySmall">Editing:</Text>
               <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
@@ -80,19 +111,21 @@ class ConversationInput extends Component<Props> {
             hideUnderline={true}
             hintText={hintText}
             multiline={true}
+            onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
-            onChangeText={this.props.onChangeText}
-            ref={this.props.inputSetRef}
-            onSelectionChange={this.props.onSelectionChange}
+            // TODO: Call onCancelQuoting on text change or selection
+            // change to match desktop.
+            onChangeText={this._onChangeText}
+            ref={this._inputSetRef}
             small={true}
             style={styles.input}
-            value={this.props.text}
+            uncontrolled={true}
             {...multilineOpts}
           />
 
           {this.props.typing.size > 0 && <Typing />}
           <Action
-            text={this.props.text}
+            hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             pendingWaiting={this.props.pendingWaiting}
@@ -127,8 +160,8 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({text, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
-  text ? (
+const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
+  hasText ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
@@ -235,4 +268,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default ConversationInput
+export default PlatformInput
