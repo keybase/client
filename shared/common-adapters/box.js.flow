@@ -4,7 +4,7 @@ import {type StylesCrossPlatform, globalMargins} from '../styles'
 export type Props = any
 
 export type Box2Props = {
-  children: React.Node,
+  children?: React.Node,
   direction: 'horizontal' | 'vertical',
   fullHeight?: boolean,
   fullWidth?: boolean,

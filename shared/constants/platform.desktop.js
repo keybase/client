@@ -17,7 +17,7 @@ const isWindows = process.platform === 'win32'
 const isLinux = process.platform === 'linux'
 const mobileOsVersion = 'Not implemented on desktop'
 
-const fileUIName = isDarwin ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
+const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
 const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 

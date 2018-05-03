@@ -33,7 +33,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
-      : message.transferState === 'uploading' ? 'Encrypting' : null
+      : message.transferState === 'uploading'
+        ? 'Encrypting'
+        : message.transferState === 'remoteUploading' ? 'sender uploading' : null
+  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
     height: message.previewHeight,
@@ -53,6 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     title: message.title || message.fileName,
     toggleShowingMenu: ownProps.toggleShowingMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
+    hasProgress,
   }
 }
 

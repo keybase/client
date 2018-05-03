@@ -48,6 +48,17 @@ export type MessageExplodeDescription = {text: MessageExplodeText, seconds: numb
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
 
+export type _MessagePlaceholder = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  ordinal: Ordinal,
+  timestamp: number,
+  type: 'placeholder',
+}
+
+export type MessagePlaceholder = I.RecordOf<_MessagePlaceholder>
+
 // We keep deleted messages around so the bookkeeping is simpler
 export type _MessageDeleted = {
   author: string,
@@ -116,7 +127,7 @@ export type _MessageAttachment = {
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
-  transferState: 'uploading' | 'downloading' | null, // only for file
+  transferState: 'uploading' | 'downloading' | 'remoteUploading' | null, // only for file
   previewTransferState: 'downloading' | null, // only for preview
   type: 'attachment',
 }
@@ -248,3 +259,4 @@ export type Message =
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageText
+  | MessagePlaceholder

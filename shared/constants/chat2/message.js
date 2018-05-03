@@ -34,6 +34,11 @@ const makeMessageExplodable = {
   explodedBy: '',
 }
 
+export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
+  ...makeMessageCommon,
+  type: 'placeholder',
+})
+
 export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
   ...makeMessageCommon,
   type: 'deleted',
@@ -54,14 +59,14 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
-  fileURL: '',
-  previewURL: '',
-  fileType: '',
   downloadPath: null,
   fileName: '',
   fileSize: 0,
+  fileType: '',
+  fileURL: '',
   previewHeight: 0,
   previewTransferState: null,
+  previewURL: '',
   previewWidth: 0,
   submitState: null,
   title: '',
@@ -316,12 +321,16 @@ const validUIMessagetoMessage = (
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
+      let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
         attachment = m.messageBody.attachment || {}
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        if (attachment && !attachment.uploaded) {
+          transferState = 'remoteUploading'
+        }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
@@ -367,6 +376,7 @@ const validUIMessagetoMessage = (
         previewHeight,
         previewWidth,
         title,
+        transferState,
         previewURL,
         fileURL,
         fileType,
@@ -460,9 +470,8 @@ const placeholderUIMessageToMessage = (
   p: RPCChatTypes.MessageUnboxedPlaceholder
 ) => {
   return !p.hidden
-    ? makeMessageText({
+    ? makeMessagePlaceholder({
         conversationIDKey,
-        errorReason: 'waiting for message from server...',
         id: Types.numberToMessageID(p.messageID),
         ordinal: Types.numberToOrdinal(p.messageID),
       })
@@ -498,22 +507,22 @@ export const uiMessageToMessage = (
       if (uiMessage.valid) {
         return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.error:
       if (uiMessage.error) {
         return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
         return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
       if (uiMessage.placeholder) {
         return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder)
       }
-      break
+      return null
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
