@@ -30,7 +30,6 @@ const load = () => {
   storiesOf('Chat/Conversation/Rows', module)
     .addDecorator(provider)
     .add('Text', () => (
-      // $FlowIssue needs update to 0.71
       <React.Fragment>
         <Wrapped {...props} />
         <Wrapped {...props} text="world" />

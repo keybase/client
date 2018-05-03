@@ -8,11 +8,12 @@ import {
   Text,
   NativeScrollView,
   NativeDimensions,
+  HOCTimers,
+  type PropsWithTimer,
 } from '../../common-adapters/index.native'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 
 const Scroller = (props: any) => (
   <NativeScrollView style={{height: '100%', width: '100%', paddingTop: 20}}>
@@ -20,49 +21,48 @@ const Scroller = (props: any) => (
   </NativeScrollView>
 )
 
-const Splash = HOCTimers(
-  class _Splash extends Component<Props & TimerProps, {showFeedback: boolean}> {
-    timeoutId: TimeoutID
-    state = {
-      showFeedback: false,
-    }
-
-    componentDidMount() {
-      this.props.clearTimeout(this.timeoutId)
-      this.timeoutId = this.props.setTimeout(() => {
-        this.setState({
-          showFeedback: true,
-        })
-      }, 4000)
-    }
-
-    render() {
-      return (
-        <Scroller>
-          <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
-            <Icon type="icon-keybase-logo-80" />
-            <Text style={stylesHeader} type="HeaderBig">
-              Keybase
-            </Text>
-            {this.state.showFeedback && (
-              <Box style={globalStyles.flexBoxColumn}>
-                <Text style={{marginTop: globalMargins.large}} type="BodySmall">
-                  Keybase not starting up?
-                </Text>
-                <Button
-                  label="Let us know"
-                  onClick={this.props.onFeedback}
-                  style={{marginTop: globalMargins.small}}
-                  type="Primary"
-                />
-              </Box>
-            )}
-          </Box>
-        </Scroller>
-      )
-    }
+class _Splash extends Component<PropsWithTimer<Props>, {showFeedback: boolean}> {
+  timeoutId: TimeoutID
+  state = {
+    showFeedback: false,
   }
-)
+
+  componentDidMount() {
+    this.props.clearTimeout(this.timeoutId)
+    this.timeoutId = this.props.setTimeout(() => {
+      this.setState({
+        showFeedback: true,
+      })
+    }, 4000)
+  }
+
+  render() {
+    return (
+      <Scroller>
+        <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
+          <Icon type="icon-keybase-logo-80" />
+          <Text style={stylesHeader} type="HeaderBig">
+            Keybase
+          </Text>
+          {this.state.showFeedback && (
+            <Box style={globalStyles.flexBoxColumn}>
+              <Text style={{marginTop: globalMargins.large}} type="BodySmall">
+                Keybase not starting up?
+              </Text>
+              <Button
+                label="Let us know"
+                onClick={this.props.onFeedback}
+                style={{marginTop: globalMargins.small}}
+                type="Primary"
+              />
+            </Box>
+          )}
+        </Box>
+      </Scroller>
+    )
+  }
+}
+const Splash = HOCTimers(_Splash)
 
 const Failure = (props: Props) => (
   <Scroller>

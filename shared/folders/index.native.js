@@ -123,6 +123,7 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
+// $FlowIssue
 export default compose(defaultProps({title: 'FOLDERS', headerStyle: {borderBottomWidth: 0}}), HeaderHoc)(
   FoldersRender
 )

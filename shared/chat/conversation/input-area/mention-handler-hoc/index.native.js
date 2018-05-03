@@ -4,14 +4,14 @@ import {type Props} from '../normal'
 import {type PropsFromContainer} from '.'
 import {Input} from '../../../../common-adapters'
 
-type MentionHocState = {
+type MentionHocState = {|
   pickSelectedCounter: number,
   mentionFilter: string,
   channelMentionFilter: string,
   mentionPopupOpen: boolean,
   channelMentionPopupOpen: boolean,
   _selection: {selectionStart: number, selectionEnd: number},
-}
+|}
 
 const mentionHoc = (InputComponent: React.ComponentType<Props>) => {
   class MentionHoc extends React.Component<PropsFromContainer, MentionHocState> {

@@ -4,15 +4,15 @@ import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
-export type Props = {
+export type Props = {|
   isPublic: boolean,
   onAdded: (path: string) => void,
   username: ?string,
-}
-type State = {
+|}
+type State = {|
   showingInput: boolean,
   text: string,
-}
+|}
 
 const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
   <Box
