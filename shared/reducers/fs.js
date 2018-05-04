@@ -118,14 +118,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.favoriteIgnore:
-      // TODO: set some pending state
-      return state
+      return state.mergeIn(['pathItems', Types.pathToString(action.payload.path), 'tlfMeta'], {
+        isIgnored: true,
+      })
     case FsGen.favoriteIgnoreError:
-      // TODO: unset that pending state
-      return state
-    case FsGen.favoriteIgnored:
-      // TODO: unset that pending state and set ignored state
-      return state
+      return state.mergeIn(['pathItems', Types.pathToString(action.payload.path), 'tlfMeta'], {
+        isIgnored: false,
+      })
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
@@ -136,6 +135,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
+    case FsGen.favoriteIgnored:
       return state
     default:
       /*::

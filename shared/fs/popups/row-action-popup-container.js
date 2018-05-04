@@ -46,6 +46,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onHidden: () => dispatch(navigateUp()),
+  _ignoreFolder: (path: Types.Path) => {
+    dispatch(FSGen.createFavoriteIgnore({path}))
+    !isMobile && dispatch(navigateUp())
+  },
 
   ...(isMobile
     ? {
@@ -95,7 +99,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const getRootMenuItems = (stateProps, dispatchProps) => {
   const {path, pathItem, fileUIEnabled} = stateProps
-  const {showInFileUI, saveImage, share, download} = dispatchProps
+  const {showInFileUI, saveImage, share, download, _ignoreFolder} = dispatchProps
+  const visibility = Types.getPathVisibility(path)
   let menuItems = []
   !isMobile &&
     fileUIEnabled &&
@@ -119,6 +124,14 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
     menuItems.push({
       title: 'Download a copy',
       onClick: () => download(path),
+    })
+  !!pathItem.tlfMeta &&
+    ['public', 'private'].includes(visibility) &&
+    menuItems.push({
+      title: 'Ignore this folder',
+      onClick: () => _ignoreFolder(path),
+      subTitle: 'The folder will no longer appear in your folders list.',
+      danger: true,
     })
   return menuItems
 }

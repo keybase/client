@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/fs'
+import * as RPCTypes from './types/rpc-gen'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'

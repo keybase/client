@@ -285,8 +285,12 @@ function refreshLocalHTTPServerInfoResult({address, token}: RPCTypes.SimpleFSGet
 function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
   const folder = Constants.folderRPCFromPath(action.payload.path)
   if (!folder) {
-    const create = FsGen.createFavoriteIgnoredError
-    yield Saga.put(create({errorText: 'No folder specified'}))
+    yield Saga.put(
+      FsGen.createFavoriteIgnoreError({
+        path: action.payload.path,
+        errorText: 'No folder specified',
+      })
+    )
   } else {
     try {
       yield Saga.call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
