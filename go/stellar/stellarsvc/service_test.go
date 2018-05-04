@@ -440,11 +440,14 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	res, err := tcs[0].Srv.GetAvailableCurrencies(context.Background())
+	stellar.ServiceInit(tcs[0].G)
+	_, err := remote.RefreshServerConfig(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	require.Equal(t, res["USD"], "US Dollar")
-	require.Equal(t, res["EUR"], "Euro")
+	conf, err := tcs[0].G.GetStellar().GetServerDefinitions()
+	require.NoError(t, err)
+	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
+	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
 }
 
 type TestContext struct {

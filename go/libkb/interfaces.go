@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	clockwork "github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -620,6 +621,9 @@ type Stellar interface {
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	OnLogout()
+
+	SetServerDefinitions(context.Context, stellar1.StellarServerDefinitions) error
+	GetServerDefinitions() (stellar1.StellarServerDefinitions, error)
 }
 
 type DeviceEKStorage interface {

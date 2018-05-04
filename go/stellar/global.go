@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/stellar1"
 )
 
 func ServiceInit(g *libkb.GlobalContext) {
@@ -12,6 +13,8 @@ func ServiceInit(g *libkb.GlobalContext) {
 
 type Stellar struct {
 	libkb.Contextified
+
+	cachedServerConf stellar1.StellarServerDefinitions
 }
 
 var _ libkb.Stellar = (*Stellar)(nil)
@@ -35,3 +38,12 @@ func (s *Stellar) Upkeep(ctx context.Context) error {
 }
 
 func (s *Stellar) OnLogout() {}
+
+func (s *Stellar) SetServerDefinitions(ctx context.Context, def stellar1.StellarServerDefinitions) error {
+	s.cachedServerConf = def
+	return nil
+}
+
+func (s *Stellar) GetServerDefinitions() (stellar1.StellarServerDefinitions, error) {
+	return s.cachedServerConf, nil
+}
