@@ -71,8 +71,10 @@ const FilesLoadingHoc = compose(
       this.props.loadFolderList(this.props.path)
       this.props.loadFavorites()
     },
-    componentDidUpdate() {
-      this.props.loadFolderList(this.props.path)
+    componentDidUpdate(prevProps) {
+      // This gets called on route changes too, e.g. when user clicks the
+      // action menu. So only load folder list when path changes.
+      this.props.path !== prevProps.path && this.props.loadFolderList(this.props.path)
     },
   }),
   setDisplayName('FilesLoadingHoc')
