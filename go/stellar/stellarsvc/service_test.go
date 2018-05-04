@@ -427,7 +427,7 @@ func TestRelayTransferInnards(t *testing.T) {
 	t.Logf("decrypt")
 	appKey, err = stellar.RelayTransferKeyForDecryption(context.Background(), tcs[0].G, teamID, appKey.KeyGeneration)
 	require.NoError(t, err)
-	relaySecrets, err := stellar.DecryptRelaySecret(out.Encrypted, appKey)
+	relaySecrets, err := stellar.DecryptRelaySecretB64(out.EncryptedB64, appKey)
 	require.NoError(t, err)
 	_, accountID, _, err := libkb.ParseStellarSecretKey(relaySecrets.Sk.SecureNoLogString())
 	require.NoError(t, err)

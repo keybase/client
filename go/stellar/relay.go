@@ -148,7 +148,21 @@ func encryptRelaySecret(relay stellar1.RelayContents, encryptFor keybase1.TeamAp
 }
 
 // TODO CORE-7718 make this private
-func DecryptRelaySecret(box stellar1.EncryptedRelaySecret, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
+// `box` should be a stellar1.EncryptedRelaySecret
+func DecryptRelaySecretB64(boxB64 string, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
+	pack, err := base64.StdEncoding.DecodeString(boxB64)
+	if err != nil {
+		return res, err
+	}
+	var box stellar1.EncryptedRelaySecret
+	err = libkb.MsgpackDecode(&box, pack)
+	if err != nil {
+		return res, err
+	}
+	return decryptRelaySecret(box, key)
+}
+
+func decryptRelaySecret(box stellar1.EncryptedRelaySecret, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
 	if box.V != 1 {
 		return res, fmt.Errorf("unsupported relay secret box version: %v", box.V)
 	}
