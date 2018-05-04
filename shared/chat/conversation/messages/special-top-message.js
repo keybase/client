@@ -15,9 +15,8 @@ type Props = {
   hasOlderResetConversation: boolean,
   showRetentionNotice: boolean,
   loadMoreType: 'moreToLoad' | 'noMoreToLoad',
-  onToggleInfoPanel: () => void,
   showTeamOffer: boolean,
-  measure: () => void,
+  measure: ?() => void,
 }
 
 class TopMessage extends React.PureComponent<Props> {
@@ -32,11 +31,7 @@ class TopMessage extends React.PureComponent<Props> {
       <Box>
         {this.props.loadMoreType === 'noMoreToLoad' &&
           this.props.showRetentionNotice && (
-            <RetentionNotice
-              onToggleInfoPanel={this.props.onToggleInfoPanel}
-              conversationIDKey={this.props.conversationIDKey}
-              measure={this.props.measure}
-            />
+            <RetentionNotice conversationIDKey={this.props.conversationIDKey} measure={this.props.measure} />
           )}
         <Box style={spacerStyle} />
         {this.props.hasOlderResetConversation && (
@@ -80,8 +75,6 @@ const moreStyle = {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  // TODO DESKTOP-6256 get rid of this
-  onToggleInfoPanel: () => void,
   measure: ?() => void,
 }
 
@@ -97,7 +90,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     conversationIDKey: ownProps.conversationIDKey,
     hasOlderResetConversation,
-    onToggleInfoPanel: ownProps.onToggleInfoPanel,
     showRetentionNotice,
     loadMoreType,
     showTeamOffer,

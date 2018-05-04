@@ -13,6 +13,7 @@ import {
 import Timestamp from './timestamp'
 import SendIndicator from './chat-send'
 import MessagePopup from '../message-popup'
+import HeightRetainer from './height-retainer'
 
 import type {Props} from '.'
 
@@ -125,14 +126,14 @@ class MessageWrapper extends React.PureComponent<Props & FloatingMenuParentProps
                 />
               )}
               <Box style={styles.textContainer} className="message">
-                <Box style={styles.flexOneColumn}>
+                <HeightRetainer style={styles.flexOneColumn} retainHeight={props.message.exploded}>
                   <props.innerClass
                     message={props.message}
                     isEditing={props.isEditing}
                     toggleShowingMenu={props.toggleShowingMenu}
                   />
                   {props.isEdited && <EditedMark />}
-                </Box>
+                </HeightRetainer>
                 {!isMobile && (
                   <MenuButton setRef={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
                 )}

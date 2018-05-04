@@ -72,13 +72,13 @@ type AddPeopleRow = {
   teamname: string,
 }
 
-type ParticipantRow = {
+type ParticipantRow = {|
   type: 'participant',
   key: string,
   username: string,
   fullname: string,
   onShowProfile: string => void,
-}
+|}
 
 type DividerRow = {
   type: 'divider',

@@ -29,7 +29,6 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onReloadProfile: () => dispatch(ProfileGen.createBackToProfile()),
 })
 

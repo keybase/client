@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import logger from '../../logger'
-import {Box, Text, Icon} from '../../common-adapters'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
+import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
@@ -16,7 +15,7 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & TimerProps
+type Props = PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State

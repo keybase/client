@@ -4,17 +4,7 @@ import SelectOtherDevice from '.'
 import {action, storiesOf} from '../../../stories/storybook'
 
 const mockDevices = [['iphone', 'mobile'], ['Home Computer', 'desktop'], ['Android Nexus 5x', 'mobile']].map(
-  ([name, type], i) => ({
-    created: 0,
-    currentDevice: false,
-    deviceID: i.toString(),
-    lastUsed: 1,
-    name,
-    provisionedAt: 0,
-    provisioner: null,
-    revokedAt: null,
-    type,
-  })
+  ([name, type], i) => ({deviceID: i.toString(), name, type})
 )
 
 const props = {
@@ -24,8 +14,6 @@ const props = {
   onReset: action('onReset'),
   onSelect: action('onSelect'),
   onWont: action('onWont'),
-  setShowResetLink: action('setShowResetLink'),
-  showResetLink: false,
 }
 
 const load = () => {

@@ -15,8 +15,6 @@ import {
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   onFocusInput: () => void,
-  // TODO DESKTOP-6256 get rid of this
-  onToggleInfoPanel: () => void,
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {

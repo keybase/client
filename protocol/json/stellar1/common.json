@@ -157,16 +157,52 @@
       "name": "NoteContents",
       "fields": [
         {
-          "type": "int",
-          "name": "version"
-        },
-        {
           "type": "string",
           "name": "note"
         },
         {
           "type": "TransactionID",
           "name": "stellarID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedRelaySecret",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RelayContents",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "SecretKey",
+          "name": "sk"
+        },
+        {
+          "type": "string",
+          "name": "note"
         }
       ]
     },

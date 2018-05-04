@@ -6,10 +6,10 @@ import {makeRetentionNotice} from '../../../../util/teams'
 import {getCanPerform, hasCanPerform} from '../../../../constants/teams'
 import {createGetTeamOperations} from '../../../../actions/teams-gen'
 import RetentionNotice from '.'
+import {navigateAppend} from '../../../../actions/route-tree'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey,
-  onToggleInfoPanel: () => void,
   measure: ?() => void,
 }
 
@@ -37,8 +37,10 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   _loadPermissions: (teamname: string) => dispatch(createGetTeamOperations({teamname})),
-  // TODO DESKTOP-6256 have this do a navigateAppend
-  onChange: ownProps.onToggleInfoPanel,
+  onChange: () =>
+    dispatch(
+      navigateAppend([{selected: 'infoPanel', props: {conversationIDKey: ownProps.conversationIDKey}}])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

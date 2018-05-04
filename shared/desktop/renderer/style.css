@@ -104,6 +104,12 @@ table {
 
 @font-face {
     font-family: 'OpenSans';
+    font-weight: 800;
+    src: url('../../fonts/OpenSans-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'OpenSans';
     font-weight: 700;
     src: url('../../fonts/OpenSans_bold.ttf') format('truetype');
 }

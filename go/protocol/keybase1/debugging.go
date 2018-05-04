@@ -33,10 +33,16 @@ type IncrementArg struct {
 	Val       int `codec:"val" json:"val"`
 }
 
+type ScriptArg struct {
+	Script string   `codec:"script" json:"script"`
+	Args   []string `codec:"args" json:"args"`
+}
+
 type DebuggingInterface interface {
 	FirstStep(context.Context, FirstStepArg) (FirstStepResult, error)
 	SecondStep(context.Context, SecondStepArg) (int, error)
 	Increment(context.Context, IncrementArg) (int, error)
+	Script(context.Context, ScriptArg) (string, error)
 }
 
 func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
@@ -91,6 +97,22 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"script": {
+				MakeArg: func() interface{} {
+					ret := make([]ScriptArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ScriptArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ScriptArg)(nil), args)
+						return
+					}
+					ret, err = i.Script(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -111,5 +133,10 @@ func (c DebuggingClient) SecondStep(ctx context.Context, __arg SecondStepArg) (r
 
 func (c DebuggingClient) Increment(ctx context.Context, __arg IncrementArg) (res int, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.debugging.increment", []interface{}{__arg}, &res)
+	return
+}
+
+func (c DebuggingClient) Script(ctx context.Context, __arg ScriptArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.debugging.script", []interface{}{__arg}, &res)
 	return
 }

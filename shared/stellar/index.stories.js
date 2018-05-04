@@ -2,10 +2,12 @@
 import React from 'react'
 import {Text} from '../common-adapters'
 import {storiesOf} from '../stories/storybook'
+import assetStories from '../wallets/asset/index.stories'
 import walletList from './walletList/index.stories'
 import wallet from './wallet/index.stories'
 
 const load = () => {
+  assetStories()
   // these should actually be implemented in their own files Aka walletlist/index. Stories. Js
   walletList()
   wallet()

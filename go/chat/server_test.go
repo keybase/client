@@ -4307,6 +4307,7 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 				if prevMessageID == nullMessageID {
 					require.Nil(t, searchHit.PrevMessage)
 				} else {
+					require.NotNil(t, searchHit.PrevMessage)
 					require.True(t, searchHit.PrevMessage.IsValid())
 					require.EqualValues(t, searchHit.PrevMessage.Valid().MessageID, prevMessageID)
 				}

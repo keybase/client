@@ -21,7 +21,12 @@ const font = {
   fontBold: {
     ...fontCommon,
     fontFamily: 'OpenSans',
-    fontWeight: '700',
+    fontWeight: 700,
+  },
+  fontExtrabold: {
+    ...fontCommon,
+    fontFamily: 'OpenSans',
+    fontWeight: 800,
   },
   fontRegular: {
     ...fontCommon,

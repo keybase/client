@@ -30,6 +30,11 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+const makeMessageExplodable = {
+  exploded: false,
+  explodedBy: '',
+}
+
 export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
   ...makeMessageCommon,
   type: 'placeholder',
@@ -42,6 +47,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -52,6 +58,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   attachmentType: 'file',
   downloadPath: null,
   fileName: '',

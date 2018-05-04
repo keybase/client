@@ -156,7 +156,7 @@ function PendingEmailContent({
 }) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-      <Avatar url={null} size={32} />
+      <Avatar size={32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text type="BodySemibold" onClick={() => onSelectPendingInvite(invite)}>
           {invite.email}

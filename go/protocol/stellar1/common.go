@@ -168,16 +168,49 @@ func (o NoteRecipient) DeepCopy() NoteRecipient {
 }
 
 type NoteContents struct {
-	Version   int           `codec:"version" json:"version"`
 	Note      string        `codec:"note" json:"note"`
 	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
 }
 
 func (o NoteContents) DeepCopy() NoteContents {
 	return NoteContents{
-		Version:   o.Version,
 		Note:      o.Note,
 		StellarID: o.StellarID.DeepCopy(),
+	}
+}
+
+type EncryptedRelaySecret struct {
+	V   int                           `codec:"v" json:"v"`
+	E   []byte                        `codec:"e" json:"e"`
+	N   keybase1.BoxNonce             `codec:"n" json:"n"`
+	Gen keybase1.PerTeamKeyGeneration `codec:"gen" json:"gen"`
+}
+
+func (o EncryptedRelaySecret) DeepCopy() EncryptedRelaySecret {
+	return EncryptedRelaySecret{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N:   o.N.DeepCopy(),
+		Gen: o.Gen.DeepCopy(),
+	}
+}
+
+type RelayContents struct {
+	StellarID TransactionID `codec:"stellarID" json:"stellarID"`
+	Sk        SecretKey     `codec:"sk" json:"sk"`
+	Note      string        `codec:"note" json:"note"`
+}
+
+func (o RelayContents) DeepCopy() RelayContents {
+	return RelayContents{
+		StellarID: o.StellarID.DeepCopy(),
+		Sk:        o.Sk.DeepCopy(),
+		Note:      o.Note,
 	}
 }
 
