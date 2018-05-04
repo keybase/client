@@ -53,6 +53,10 @@ const load = () => {
         <Button {...commonProps} type="Danger" label="Danger" disabled={true} />
       </Pair>
       <Pair>
+        <Button {...commonProps} type="Wallet" label="Wallet" />
+        <Button {...commonProps} type="Wallet" label="Wallet" disabled={true} />
+      </Pair>
+      <Pair>
         <Button {...commonProps} type="PrimaryGreen" label="Primary Green" />
         <Button {...commonProps} type="PrimaryGreen" label="Primary Green" disabled={true} />
       </Pair>

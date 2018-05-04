@@ -78,7 +78,7 @@ class _SendButton extends React.PureComponent<SendProps & FloatingMenuParentProp
         ref={this.props.setAttachmentRef}
       >
         <Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Button onClick={null} type="Primary" label="Send" />
+          <Button onClick={null} type="Wallet" label="Send" />
         </Box2>
         <FloatingMenu
           attachTo={this.props.attachmentRef}
