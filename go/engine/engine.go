@@ -39,6 +39,20 @@ func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
 	return false
 }
 
+// isLoggedInWithUIDAndError conveys if the user is in a logged-in state or not.
+// If this function returns `true`, it's because the user is logged in,
+// is on a provisioned device, and has an unlocked device key, If this
+// function returns `false`, it's because either no one has ever logged onto
+// this device, or someone has, and then clicked `logout`. If the return
+// value is `false`, and `err` is `nil`, then the service is in one of
+// those expected "logged out" states.  If the return value is `false`
+// and `err` is non-`nil`, then something went wrong, and the app is in some
+// sort of unexpected state. If `ret` is `true`, then `uid` will convey
+// which user is logged in.
+//
+// Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
+// flow and therefore will try its best to unlocked locked keys if it can
+// without user interaction.
 func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID, err error) {
 	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
 	return ret, uid, err

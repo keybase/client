@@ -7,26 +7,21 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// IsLoggedInWithError conveys if the user is in a logged-in state or not.
-// If this function returns `true`, it's because the user is logged in,
-// is on a provisioned device, and has an unlocked device key, If this
-// function returns `false`, it's because either no one has ever logged onto
-// this device, or someone has, and then clicked `logout`. If the return
-// value is `false`, and `err` is `nil`, then the service is in one of
-// those expected "logged out" states.  If the return value is `false`
-// and `err` is non-`nil`, then something went wrong, and the app is in some
-// sort of unexpected state. If `ret` is `true`, then `uid` will convey
-// which user is logged in.
-//
-// Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
-// flow and therefore will try its best to unlocked locked keys if it can
-// without user interaction.
-
 type keypair struct {
-	encKey libkb.GenericKey
-	sigKey libkb.GenericKey
+	encKey     libkb.GenericKey
+	sigKey     libkb.GenericKey
+	deviceID   keybase1.DeviceID
+	deviceName string
+}
+
+func (k *keypair) toActiveDevice(m libkb.MetaContext, u keybase1.UID) *libkb.ActiveDevice {
+	if k == nil {
+		return nil
+	}
+	return libkb.NewProvisionalActiveDevice(m, u, k.deviceID, k.sigKey, k.encKey, k.deviceName)
 }
 
 // findDeviceKeys looks for device keys and unlocks them.
@@ -118,11 +113,11 @@ func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*keypair,
 
 	sigKey := bkeng.SigKey()
 	encKey := bkeng.EncKey()
+	var device *libkb.Device
 
 	m.CDebugf("generated paper key signing kid: %s", sigKey.GetKID())
 	m.CDebugf("generated paper key encryption kid: %s", encKey.GetKID())
 
-	var match bool
 	ckf := me.GetComputedKeyFamily()
 	for _, bdev := range bdevs {
 		sk, err := ckf.GetSibkeyForDevice(bdev.ID)
@@ -140,19 +135,23 @@ func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*keypair,
 
 		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
 			m.CDebugf("paper key device %s matches generated paper key", bdev.ID)
-			match = true
+			device = bdev
 			break
 		}
 
 		m.CDebugf("paper key device %s does not match generated paper key", bdev.ID)
 	}
 
-	if !match {
+	if device == nil {
 		m.CDebugf("no matching paper keys found")
 		return nil, libkb.PassphraseError{Msg: "no matching paper backup keys found"}
 	}
 
-	return &keypair{sigKey: sigKey, encKey: encKey}, nil
+	var deviceName string
+	if device.Description != nil {
+		deviceName = *device.Description
+	}
+	return &keypair{sigKey: sigKey, encKey: encKey, deviceID: device.ID, deviceName: deviceName}, nil
 }
 
 // fetchLKS gets the encrypted LKS client half from the server.
@@ -165,6 +164,7 @@ func fetchLKS(m libkb.MetaContext, encKey libkb.GenericKey) (libkb.PassphraseGen
 		Args: libkb.HTTPArgs{
 			"kid": encKey.GetKID(),
 		},
+		MetaContext: m,
 	}
 	if lctx := m.LoginContext(); lctx != nil {
 		arg.SessionR = lctx.LocalSession()
