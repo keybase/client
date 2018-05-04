@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
+func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (string, err error) {
 	defer t.G().CTraceTimed(ctx, "Script", func() error { return err })()
 	return "", fmt.Errorf("debugging script not supported in production builds")
 }
