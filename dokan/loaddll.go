@@ -39,14 +39,14 @@ func (ep *errorPrinter) Printf(s string, os ...interface{}) {
 // loadLibrary calls win32 LoadLibrary and logs the result.
 func loadLibrary(epc *errorPrinter, path string) (windows.Handle, error) {
 	hdl, err := windows.LoadLibrary(path)
-	epc.Printf("LoadLibrary(%q) -> %v,%v", path, hdl, err)
+	epc.Printf("LoadLibrary(%q) -> %v,%v\n", path, hdl, err)
 	return hdl, err
 }
 
 // doLoadDLL tries to load the dokan DLL from various locations.
 func doLoadDLL(epc *errorPrinter, path string) (windows.Handle, error) {
 	var guessPath bool
-	epc.Printf("loadDokanDLL %q", path)
+	epc.Printf("loadDokanDLL %q\n", path)
 	if path == "" {
 		path = shortPath
 		guessPath = true
@@ -56,7 +56,7 @@ func doLoadDLL(epc *errorPrinter, path string) (windows.Handle, error) {
 	const loadLibrarySearchSystem32 = 0x800
 	const flags = loadLibrarySearchSystem32
 	hdl, err := windows.LoadLibraryEx(path, 0, flags)
-	epc.Printf("loadDokanDLL LoadLibraryEx(%q,0,%x) -> %v,%v", path, flags, hdl, err)
+	epc.Printf("loadDokanDLL LoadLibraryEx(%q,0,%x) -> %v,%v\n", path, flags, hdl, err)
 	if err == nil || !guessPath {
 		return hdl, err
 	}
@@ -79,7 +79,7 @@ func doLoadDLL(epc *errorPrinter, path string) (windows.Handle, error) {
 		return hdl, nil
 	}
 	err = fmt.Errorf("loadDokanDLL: cannot load Dokan DLL: %v", err)
-	epc.Printf("ERROR: %v", err)
+	epc.Printf("ERROR: %v\n", err)
 	return 0, err
 }
 
@@ -105,18 +105,18 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 
 func debugFileInfo(epc *errorPrinter, path string) {
 	f, err := os.Open(path)
-	epc.Printf("debugFileInfo: open(%q) -> %v, %v", path, f, err)
+	epc.Printf("debugFileInfo: open(%q) -> %v, %v\n", path, f, err)
 	if err != nil {
 		return
 	}
 	defer f.Close()
 	h := sha256.New()
 	n, err := io.Copy(h, f)
-	epc.Printf("debugFileInfo: read bytes -> %v, %v", n, err)
+	epc.Printf("debugFileInfo: read bytes -> %v, %v\n", n, err)
 	if err != nil {
 		return
 	}
-	epc.Printf("debugFileInfo: sha256 %X", h.Sum(nil))
+	epc.Printf("debugFileInfo: sha256 %X\n", h.Sum(nil))
 }
 
 func logDokanDLLInfo(epc *errorPrinter) {
@@ -124,7 +124,6 @@ func logDokanDLLInfo(epc *errorPrinter) {
 	if d, err := os.Getwd(); err == nil {
 		cwd = d + `\`
 	}
-	epc.Printf(`logDokanDLLInfo`)
 	for _, d := range []string{syswow64, system32, cwd} {
 		debugFileInfo(epc, d+shortPath)
 	}
