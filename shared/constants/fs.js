@@ -492,3 +492,8 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
     created: false,
   }
 }
+
+export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, username?: string): boolean =>
+  !!pathItem.tlfMeta &&
+  ['public', 'private'].includes(Types.getPathVisibility(path)) &&
+  Types.getPathName(path) !== username

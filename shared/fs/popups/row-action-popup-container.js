@@ -5,7 +5,7 @@ import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import Popup from './row-action-popup'
-import {fileUIName, isMobile, isIOS} from '../../constants/platform'
+import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
@@ -109,25 +109,25 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => showInFileUI(path),
     })
   isMobile &&
+    pathItem.type !== 'folder' &&
     Constants.isMedia(pathItem.name) &&
     menuItems.push({
       title: 'Save',
       onClick: () => saveImage(path),
     })
   isMobile &&
+    pathItem.type !== 'folder' &&
     menuItems.push({
       title: 'Share...',
       onClick: () => share(path),
     })
-  // TODO make android download work
-  !isIOS &&
+  const shouldDownload = (isAndroid && pathItem.type !== 'folder') || !isMobile
+  shouldDownload &&
     menuItems.push({
       title: 'Download a copy',
       onClick: () => download(path),
     })
-  !!pathItem.tlfMeta &&
-    ['public', 'private'].includes(visibility) &&
-    Types.getPathName(path) !== _username &&
+  Constants.showIgnoreFolder(path, pathItem, _username) &&
     menuItems.push({
       title: 'Ignore this folder',
       onClick: () => _ignoreFolder(path),
