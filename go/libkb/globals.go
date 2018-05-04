@@ -369,10 +369,10 @@ func (g *GlobalContext) ConfigureLogging() error {
 		if filePrefix != "" {
 			filePrefix = filePrefix + strings.Replace(time.Now().Format(time.RFC3339Nano), ":", "-", -1)
 			logFile = filePrefix + ".log"
-		} else {
-			logFile = g.Env.GetDefaultLogFile()
 		}
-		g.Log.Configure(style, debug, logFile)
+	}
+	if logFile == "" {
+		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
 	} else {
 		g.Log.Configure(style, debug, logFile)
 		g.Log.RotateLogFile()
