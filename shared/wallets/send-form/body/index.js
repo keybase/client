@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Divider, Box2} from '../../../common-adapters'
-import AssetInput from '../asset-input'
+import AssetInput from '../asset-input/container'
 import Banner from '../banner/container'
 import Footer from '../footer/container'
 import Memo from '../memo/container'
