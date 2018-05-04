@@ -471,3 +471,23 @@ export const generateFileURL = (path: Types.Path, address: string, token: string
   const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
   return `http://${address}/files${stripKeybase}?token=${token}`
 }
+
+export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
+  const pathElems = Types.getPathElements(path)
+  if (pathElems.length === 0) return null
+
+  const visibility = Types.getVisibilityFromElems(pathElems)
+  if (visibility === null) return null
+  const isPrivate = visibility === 'private' || visibility === 'team'
+
+  const name = Types.getPathNameFromElems(pathElems)
+  if (name === '') return null
+
+  return {
+    folderType: Types.getRPCFolderTypeFromVisibility(visibility),
+    name,
+    private: isPrivate,
+    notificationsOn: false,
+    created: false,
+  }
+}

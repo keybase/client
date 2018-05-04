@@ -117,6 +117,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['flags'], {kbfsInstalling: true})
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
+    case FsGen.favoriteIgnore:
+      // TODO: set some pending state
+      return state
+    case FsGen.favoriteIgnoreError:
+      // TODO: unset that pending state
+      return state
+    case FsGen.favoriteIgnored:
+      // TODO: unset that pending state and set ignored state
+      return state
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:

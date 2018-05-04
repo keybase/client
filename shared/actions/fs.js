@@ -282,6 +282,27 @@ function refreshLocalHTTPServerInfoResult({address, token}: RPCTypes.SimpleFSGet
   return Saga.put(FsGen.createLocalHTTPServerInfo({address, token}))
 }
 
+function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
+  const folder = Constants.folderRPCFromPath(action.payload.path)
+  if (!folder) {
+    const create = FsGen.createFavoriteIgnoredError
+    yield Saga.put(create({errorText: 'No folder specified'}))
+  } else {
+    try {
+      yield Saga.call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
+        folder,
+      })
+      yield Saga.put(
+        FsGen.createFavoriteIgnored({
+          path: action.payload.path,
+        })
+      )
+    } catch (error) {
+      logger.warn('Err in favorite.favoriteAddOrIgnore', error)
+    }
+  }
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -296,6 +317,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {
