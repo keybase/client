@@ -66,7 +66,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	r := &AttachmentHTTPSrv{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16000, 18000)),
+		httpSrv:      libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(32768, 63000)),
 		endpoint:     "at",
 		ri:           ri,
 		urlMap:       l,
