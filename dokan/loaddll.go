@@ -63,6 +63,7 @@ func doLoadDLL(epc *errorPrinter, path string) (windows.Handle, error) {
 	// User probably has not installed KB2533623 which is a security update
 	// from 2011. Without this Windows security update loading libraries
 	// is unsafe on Windows.
+	// Continue to try to load the DLL regardless.
 
 	if runtime.GOARCH == `386` {
 		hdl, err = loadLibrary(epc, syswow64+shortPath)
