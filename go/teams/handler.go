@@ -155,7 +155,7 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 			// Make it possible for user to come back in once they reprovision.
 			Permanent: false,
 			// Coming from CLKR, we want to ensure team key is rotated.
-			DontRotateKey: false,
+			SkipKeyRotation: false,
 		}
 		if err := team.ChangeMembershipWithOptions(ctx, changeReq, opts); err != nil {
 			return err

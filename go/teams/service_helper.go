@@ -520,8 +520,8 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 
 		opts := ChangeMembershipOptions{
-			Permanent:     t.IsOpen(), // Ban for open teams only.
-			DontRotateKey: t.CanSkipKeyRotation(),
+			Permanent:       t.IsOpen(), // Ban for open teams only.
+			SkipKeyRotation: t.CanSkipKeyRotation(),
 		}
 		return t.ChangeMembershipWithOptions(ctx, req, opts)
 	})

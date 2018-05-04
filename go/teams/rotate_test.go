@@ -545,7 +545,7 @@ func TestRemoveWithoutRotation(t *testing.T) {
 	}
 
 	opts := ChangeMembershipOptions{
-		DontRotateKey: true,
+		SkipKeyRotation: true,
 	}
 	err = team.ChangeMembershipWithOptions(context.Background(), req, opts)
 	require.NoError(t, err)
