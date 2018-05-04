@@ -49,6 +49,11 @@ const _blueLink = {
 
 const metaData: {[key: TextType]: MetaType} = {
   // Header
+  HeaderBigExtraBold: {
+    fontSize: 24,
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    styleOverride: globalStyles.fontExtraBold,
+  },
   HeaderBig: {
     fontSize: 24,
     colorForBackgroundMode: _blackNormalWhiteTerminal,

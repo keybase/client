@@ -52,6 +52,11 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     styleOverride: globalStyles.fontBold,
   },
+  HeaderBigExtraBold: {
+    fontSize: 27,
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    styleOverride: globalStyles.fontExtraBold,
+  },
   Header: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 19,

@@ -56,6 +56,7 @@ const Container = ({backgroundColor, children}) => (
 
 const groups = [
   [{label: 'Header big Header big', type: 'HeaderBig'}],
+  [{label: 'Header big extrabold Header big extrabold', type: 'HeaderBigExtraBold'}],
   [
     {label: 'Header Header', type: 'Header'},
     {action: true, label: 'Header link Header link', normalOnly: true, type: 'HeaderLink'},

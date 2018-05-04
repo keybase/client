@@ -34,6 +34,7 @@ type TextType =
   | 'BodySuccess'
   | 'Header'
   | 'HeaderBig'
+  | 'HeaderBigExtraBold'
   | 'HeaderLink'
   | 'Terminal'
   | 'TerminalComment'
