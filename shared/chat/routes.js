@@ -18,90 +18,73 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 
-const editChannel = {
-  component: MaybePopupHoc(isMobile)(EditChannel),
-  tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-  children: {},
-}
-
-const createChannel = {
-  component: CreateChannel,
-  tags: makeLeafTags({hideStatusBar: true}),
-  children: {},
-}
-
-// These are routes that can be children of the inbox,
-// conversation, or the info panel. If you're adding a
-// component that will be routeable from the inbox or info
-// panel, add it here
 const chatChildren = {
-  createChannel,
-  editChannel,
+  createChannel: {
+    component: CreateChannel,
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
+  editChannel: {
+    component: MaybePopupHoc(isMobile)(EditChannel),
+    tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
   manageChannels: {
     component: ManageChannels,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-    children: {
-      createChannel,
-      editChannel,
-    },
+    children: key => makeRouteDefNode(chatChildren[key]),
   },
   reallyLeaveTeam: {
-    children: {},
+    children: key => makeRouteDefNode(chatChildren[key]),
     component: ReallyLeaveTeam,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   retentionWarning: {
     component: RetentionWarning,
-    children: {},
+    children: key => makeRouteDefNode(chatChildren[key]),
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   showBlockConversationDialog: {
     component: BlockConversationWarning,
     tags: makeLeafTags({hideStatusBar: isMobile, layerOnTop: !isMobile}),
-    children: {},
+    children: key => makeRouteDefNode(chatChildren[key]),
   },
   showNewTeamDialog: {
     component: NewTeamDialogFromChat,
     tags: makeLeafTags({layerOnTop: !isMobile}),
-    children: {},
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
+  attachmentFullscreen: {
+    component: AttachmentFullscreen,
+    tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
+  attachmentGetTitles: {
+    component: AttachmentGetTitles,
+    tags: makeLeafTags({layerOnTop: true}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
+  infoPanel: {
+    component: InfoPanel,
+    children: key => makeRouteDefNode(chatChildren[key]),
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  deleteHistoryWarning: {
+    component: DeleteHistoryWarning,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+    children: key => makeRouteDefNode(chatChildren[key]),
+  },
+  enterPaperkey: {
+    component: EnterPaperkey,
   },
 }
-
-const chatChildRoutes = {}
-Object.keys(chatChildren).forEach(key => {
-  chatChildRoutes[key] = makeRouteDefNode(chatChildren[key])
-})
 
 // Routes accessible from an action coming from within the
 // actual conversation view (info panel and routes coming
 // from message menu or special messages)
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
-  children: {
-    attachmentFullscreen: {
-      component: AttachmentFullscreen,
-      tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
-      children: {},
-    },
-    attachmentGetTitles: {
-      component: AttachmentGetTitles,
-      tags: makeLeafTags({layerOnTop: true}),
-      children: {},
-    },
-    infoPanel: {
-      component: InfoPanel,
-      children: chatChildren,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    deleteHistoryWarning: {
-      component: DeleteHistoryWarning,
-      tags: makeLeafTags({layerOnTop: false}),
-      children: {},
-    },
-    enterPaperkey: {
-      component: EnterPaperkey,
-    },
-  },
+  children: chatChildren,
 })
 
 const routeTree = isMobile
@@ -109,7 +92,7 @@ const routeTree = isMobile
       component: Inbox,
       children: key => {
         if (key !== 'conversation') {
-          return chatChildRoutes[key]
+          return makeRouteDefNode(chatChildren[key])
         }
         return conversationRoute
       },
