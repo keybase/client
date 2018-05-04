@@ -98,7 +98,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const getRootMenuItems = (stateProps, dispatchProps) => {
-  const {path, pathItem, fileUIEnabled} = stateProps
+  const {path, pathItem, fileUIEnabled, _username} = stateProps
   const {showInFileUI, saveImage, share, download, _ignoreFolder} = dispatchProps
   const visibility = Types.getPathVisibility(path)
   let menuItems = []
@@ -127,6 +127,7 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
     })
   !!pathItem.tlfMeta &&
     ['public', 'private'].includes(visibility) &&
+    Types.getPathName(path) !== _username &&
     menuItems.push({
       title: 'Ignore this folder',
       onClick: () => _ignoreFolder(path),
