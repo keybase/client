@@ -118,16 +118,10 @@ func (a *ActiveDevice) Clear(acct *Account) error {
 	return a.clear(acct)
 }
 
-// clear acquires the write lock and resets all the fields to zero values.
-// The acct parameter is not used for anything except to help ensure
-// that this is called from inside a LogingState account request.
+// Clear acquires the write lock and resets all the fields to zero values.
 func (a *ActiveDevice) clear(acct *Account) error {
 	a.Lock()
 	defer a.Unlock()
-
-	if acct == nil {
-		return errors.New("ActiveDevice.clear must be called from inside a LoginState account request")
-	}
 
 	a.uid = ""
 	a.deviceID = ""

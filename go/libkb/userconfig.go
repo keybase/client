@@ -42,6 +42,14 @@ func NormalizedUsernamesToStrings(names []NormalizedUsername) []string {
 	return y
 }
 
+func (n NormalizedUsername) CheckValid() error {
+	s := n.String()
+	if !CheckUsername.F(s) {
+		return NewBadUsernameError(s)
+	}
+	return nil
+}
+
 //==================================================================
 
 type UserConfig struct {

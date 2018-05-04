@@ -101,23 +101,9 @@ func (p *ProvisionalLoginContext) SaveState(sessionID, csrf string, username Nor
 	if wasSaved := !p.uid.IsNil(); wasSaved {
 		return errors.New("can't reuse a ProvisionalLoginContext!")
 	}
-
-	if err := p.saveUserConfig(username, uid, deviceID); err != nil {
-		return err
-	}
 	p.uid = uid
 	p.username = username
 	return p.localSession.SetLoggedIn(sessionID, csrf, username, uid, deviceID)
-}
-
-func (p *ProvisionalLoginContext) saveUserConfig(username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error {
-	cw := p.M().G().Env.GetConfigWriter()
-	if cw == nil {
-		return NoConfigWriterError{}
-	}
-	// Note that `true` here means that an existing user config entry will
-	// be overwritten.
-	return cw.SetUserConfig(NewUserConfig(uid, username, p.salt, deviceID), true /* overwrite */)
 }
 
 func (p *ProvisionalLoginContext) Keyring() (ret *SKBKeyringFile, err error) {

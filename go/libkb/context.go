@@ -242,3 +242,47 @@ func (m MetaContextified) M() MetaContext {
 func NewMetaContextified(m MetaContext) MetaContextified {
 	return MetaContextified{m: m}
 }
+
+func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	// Note that `true` here means that an existing user config entry will
+	// be overwritten.
+	err := cw.SetUserConfig(NewUserConfig(u, n, salt, d), true /* overwrite */)
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}
+
+func (m MetaContext) SwitchUser(n NormalizedUsername) error {
+	g := m.G()
+	if n.IsNil() {
+		return nil
+	}
+	if err := n.CheckValid(); err != nil {
+		return err
+	}
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	err := cw.SwitchUser(n)
+	if _, ok := err.(UserNotFoundError); ok {
+		m.CDebugf("| No user %s found; clearing out config", n)
+		err = nil
+	}
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}

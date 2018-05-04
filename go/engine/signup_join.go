@@ -141,7 +141,12 @@ func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, salt []byte) error {
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
-	return lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID)
+	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID); err != nil {
+		return err
+	}
+	// Switching to a new user is an operation on the GlobalContext, and will atomically
+	// update the config file and alter the current ActiveDevice. So farm out to over there.
+	return m.SwitchUserNewConfig(s.uid, s.username, salt, nilDeviceID)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(ctx context.Context, arg libkb.InviteRequestArg) error {
