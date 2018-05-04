@@ -35,6 +35,6 @@ func (n *nullStellar) SetServerDefinitions(ctx context.Context, def stellar1.Ste
 	return fmt.Errorf("null stellar impl")
 }
 
-func (n *nullStellar) GetServerDefinitions() (ret stellar1.StellarServerDefinitions, err error) {
+func (n *nullStellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
 	return ret, fmt.Errorf("null stellar impl")
 }

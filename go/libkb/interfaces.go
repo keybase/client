@@ -623,7 +623,7 @@ type Stellar interface {
 	OnLogout()
 
 	SetServerDefinitions(context.Context, stellar1.StellarServerDefinitions) error
-	GetServerDefinitions() (stellar1.StellarServerDefinitions, error)
+	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 }
 
 type DeviceEKStorage interface {

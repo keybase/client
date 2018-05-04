@@ -259,8 +259,38 @@ func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.Outsid
 	return remote.ExchangeRate(ctx, s.G(), string(currency))
 }
 
-func (s *Server) GetAvailableCurrencies(ctx context.Context) (res map[stellar1.OutsideCurrencyCode]string, err error) {
+func (s *Server) GetAvailableCurrencies(ctx context.Context) (ret map[stellar1.OutsideCurrencyCode]stellar1.OutsideCurrencyDefinition, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetAvailableCurrencies", func() error { return err })()
-	return remote.GetSupportedCurrencies(ctx, s.G())
+
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return ret, err
+	}
+
+	return conf.Currencies, nil
+}
+
+func (s *Server) FormatCurrencyString(ctx context.Context, arg stellar1.FormatCurrencyStringArg) (res string, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "FormatCurrencyString", func() error { return err })()
+
+	res = arg.Money
+	conf, err := s.G().GetStellar().GetServerDefinitions(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	currency, ok := conf.Currencies[arg.Code]
+	if !ok {
+		return res, fmt.Errorf("Could not find currency %q", arg.Code)
+	}
+
+	if currency.Symbol.Postfix {
+		res = fmt.Sprintf("%s %s", arg.Money, currency.Symbol.Symbol)
+	} else {
+		res = fmt.Sprintf("%s%s", currency.Symbol.Symbol, arg.Money)
+	}
+
+	return res, nil
 }

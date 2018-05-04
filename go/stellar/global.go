@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar/remote"
 )
 
 func ServiceInit(g *libkb.GlobalContext) {
@@ -44,6 +45,12 @@ func (s *Stellar) SetServerDefinitions(ctx context.Context, def stellar1.Stellar
 	return nil
 }
 
-func (s *Stellar) GetServerDefinitions() (stellar1.StellarServerDefinitions, error) {
+func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
+	if s.cachedServerConf.Revision == 0 {
+		if _, err = remote.RefreshServerConfig(ctx, s.G()); err != nil {
+			return ret, err
+		}
+	}
+
 	return s.cachedServerConf, nil
 }

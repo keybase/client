@@ -244,9 +244,22 @@
       "request": [],
       "response": {
         "type": "map",
-        "values": "string",
+        "values": "OutsideCurrencyDefinition",
         "keys": "OutsideCurrencyCode"
       }
+    },
+    "formatCurrencyString": {
+      "request": [
+        {
+          "name": "money",
+          "type": "string"
+        },
+        {
+          "name": "code",
+          "type": "OutsideCurrencyCode"
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "stellar.1"
