@@ -13,7 +13,7 @@ import signup from '../login/signup/index.stories'
 import styles from '../styles/index.stories'
 import teams from '../teams/index.stories'
 import unlockFolders from '../unlock-folders/index.stories'
-import stellar from '../stellar/index.stories'
+import wallets from '../wallets/index.stories'
 
 const stories = {
   chat,
@@ -30,7 +30,7 @@ const stories = {
   styles,
   teams,
   unlockFolders,
-  stellar,
+  wallets,
 }
 
 export default stories

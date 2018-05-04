@@ -15,11 +15,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
     _lastOwner,
     name,
+    title: 'Confirmation',
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onClose: () => dispatch(navigateUp()),
+  onBack: () => dispatch(navigateUp()),
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
     dispatch(navigateTo([teamsTab]))

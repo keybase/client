@@ -21,12 +21,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     _canLeaveTeam,
     _loaded: hasCanPerform(state, name),
     name,
+    title: 'Confirmation',
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   _loadOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  onClose: () => dispatch(navigateUp()),
+  onBack: () => dispatch(navigateUp()),
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
     dispatch(navigateUp())

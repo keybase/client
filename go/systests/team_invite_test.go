@@ -561,17 +561,20 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
+	userParams := standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	}
+
 	var own *userPlusDevice
 	if waitForRekeyd {
 		own = tt.addUser("own")
 	} else {
-		own = makeUserStandalone(t, "own", standaloneUserArgs{
-			disableGregor:            true,
-			suppressTeamChatAnnounce: true,
-		})
+		own = makeUserStandalone(t, "own", userParams)
 		tt.users = append(tt.users, own)
 	}
-	roo := tt.addUser("roo")
+	roo := makeUserStandalone(t, "roo", userParams)
+	tt.users = append(tt.users, roo)
 	tt.logUserNames()
 
 	teamID, teamName := own.createTeam2()
