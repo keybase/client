@@ -11,6 +11,7 @@ type MetaContext struct {
 	ctx          context.Context
 	g            *GlobalContext
 	loginContext LoginContext
+	activeDevice *ActiveDevice
 	uis          UIs
 }
 
@@ -65,6 +66,9 @@ func (m MetaContext) CInfof(f string, args ...interface{}) {
 }
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
+	if m.activeDevice != nil {
+		return m.activeDevice
+	}
 	return m.G().ActiveDevice
 }
 
@@ -153,6 +157,11 @@ func (m MetaContext) UIs() UIs {
 
 func (m MetaContext) WithUIs(u UIs) MetaContext {
 	m.uis = u
+	return m
+}
+
+func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
+	m.activeDevice = a
 	return m
 }
 

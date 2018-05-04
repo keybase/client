@@ -20,6 +20,18 @@ type ActiveDevice struct {
 	sync.RWMutex
 }
 
+func NewProvisionalActiveDevice(m MetaContext, u keybase1.UID, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
+	return &ActiveDevice{
+		uid:           u,
+		deviceID:      d,
+		deviceName:    deviceName,
+		signingKey:    sigKey,
+		encryptionKey: encKey,
+		nistFactory:   NewNISTFactory(m.G(), u, d, sigKey),
+		secretSyncer:  NewSecretSyncer(m.G()),
+	}
+}
+
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
