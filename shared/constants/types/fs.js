@@ -168,6 +168,7 @@ export const getPathNameFromElems = (elems: Array<string>): string => {
   if (elems.length === 0) return ''
   return elems.pop()
 }
+export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
 export const getPathParent = (p: Path): Path =>
   !p
     ? ''
