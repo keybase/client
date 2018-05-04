@@ -1,5 +1,5 @@
 // @flow
-import {connect, type Dispatch, type TypedState} from '../../util/container'
+import {connect, pure, type Dispatch, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -31,7 +31,7 @@ const mergeProps = ({_serverInfo}, {onInvalidToken}, {path}) => ({
 
 const httpConnect = connect(mapStateToProps, mapDispatchToProps, mergeProps)
 
-export default ({path, fileViewType}: Props) => {
+export default pure(({path, fileViewType}: Props) => {
   const ft = fileViewType || Constants.viewTypeFromPath(path)
   switch (ft) {
     case 'default':
@@ -47,4 +47,4 @@ export default ({path, fileViewType}: Props) => {
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
-}
+})
