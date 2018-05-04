@@ -15,7 +15,14 @@ export type Props = {
   label: ?string,
   style?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
-  type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'PrimaryGreen' | 'PrimaryGreenActive',
+  type:
+    | 'Primary'
+    | 'PrimaryPrivate'
+    | 'Secondary'
+    | 'Danger'
+    | 'Wallet'
+    | 'PrimaryGreen'
+    | 'PrimaryGreenActive',
   disabled?: ?boolean,
   waiting?: ?boolean,
   small?: boolean,
@@ -48,6 +55,7 @@ class Button extends React.Component<Props> {
       PrimaryPrivate,
       Secondary,
       SecondaryOnTerminal,
+      Wallet,
     }[this.props.type + backgroundModeName]
 
     let labelStyle = {
@@ -59,6 +67,7 @@ class Button extends React.Component<Props> {
       PrimaryPrivateLabel,
       SecondaryLabel,
       SecondaryLabelOnTerminal,
+      WalletLabel,
     }[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
@@ -171,6 +180,8 @@ const Secondary = {...common, backgroundColor: globalColors.lightGrey2}
 const SecondaryOnTerminal = {...Secondary, backgroundColor: globalColors.blue_30}
 const SecondaryLabel = {...commonLabel, color: globalColors.black_75}
 const SecondaryLabelOnTerminal = {...SecondaryLabel, color: globalColors.white}
+const Wallet = {...common, backgroundColor: globalColors.purple2}
+const WalletLabel = commonLabel
 const Danger = {...common, backgroundColor: globalColors.red}
 const DangerLabel = commonLabel
 const Custom = {}
