@@ -286,3 +286,33 @@ func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 	g.ActiveDevice.Clear(nil)
 	return nil
 }
+
+func (m MetaContext) SetDeviceIDWithinRegistration(d keybase1.DeviceID) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	err := cw.SetDeviceID(d)
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}
+
+func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	if !g.Env.GetUID().Equal(uid) {
+		return NewUIDMismatchError("UID switched out from underneath provisioning process")
+	}
+	err := g.ActiveDevice.Set(m, uid, deviceID, sigKey, encKey, deviceName)
+	if err != nil {
+		return err
+	}
+	return nil
+}

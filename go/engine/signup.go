@@ -231,34 +231,49 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	}
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
-
-	did := m.G().Env.GetDeviceID()
+	did := eng.DeviceID()
 
 	if err := m.LoginContext().LocalSession().SetDeviceProvisioned(did); err != nil {
 		// this isn't a fatal error, session will stay in memory...
 		m.CWarningf("error saving session file: %s", err)
 	}
 
-	// Create the secret store as late as possible here, as the username may
-	// change during the signup process.
-	if s.arg.StoreSecret {
-		secretStore := libkb.NewSecretStore(m.G(), s.me.GetNormalizedName())
-		if secretStore != nil {
-			secret, err := s.lks.GetSecret(m)
-			if err != nil {
-				return err
-			}
-			// Ignore any errors storing the secret.
-			storeSecretErr := secretStore.StoreSecret(secret)
-			if storeSecretErr != nil {
-				m.CWarningf("StoreSecret error: %s", storeSecretErr)
-			}
-		}
+	if err := s.storeSecret(m); err != nil {
+		return err
 	}
 
 	m.CDebugf("registered new device: %s", m.G().Env.GetDeviceID())
 	m.CDebugf("eldest kid: %s", s.me.GetEldestKID())
 
+	return nil
+}
+
+func (s *SignupEngine) storeSecret(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SignupEngine#storeSecret", func() error { return err })()
+
+	// Create the secret store as late as possible here, as the username may
+	// change during the signup process.
+	if !s.arg.StoreSecret {
+		m.CDebugf("not storing secret; disabled")
+		return nil
+	}
+
+	secretStore := libkb.NewSecretStore(m.G(), s.me.GetNormalizedName())
+	if secretStore == nil {
+		m.CDebugf("not storing secret; no secret store available")
+		return nil
+	}
+
+	secret, err := s.lks.GetSecret(m)
+	if err != nil {
+		return err
+	}
+
+	// Ignore any errors storing the secret.
+	w := secretStore.StoreSecret(secret)
+	if w != nil {
+		m.CWarningf("StoreSecret error: %s", w)
+	}
 	return nil
 }
 
