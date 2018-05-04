@@ -189,15 +189,18 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 		fmt.Fprintf(logFile, "   --- %s ---\n", path)
 
 		// append the files
-		logContent, err := ioutil.ReadFile(path)
-
-		if err == nil {
-			//And we add its content to the "final" variable
-			_, err = logFile.Write(logContent)
-		}
-		if err != nil {
-			fmt.Fprintf(logFile, "error: %s\n", err.Error())
-		}
+		func() {
+			fd, err := os.Open(path)
+			defer fd.Close()
+			if err != nil {
+				fmt.Fprintf(logFile, "open error: %s\n", err.Error())
+				return
+			}
+			_, err = io.Copy(logFile, fd)
+			if err != nil {
+				fmt.Fprintf(logFile, "copy error: %s\n", err.Error())
+			}
+		}()
 	}
 
 	return logName, err
