@@ -49,20 +49,25 @@ const _blueLink = {
 
 const metaData: {[key: TextType]: MetaType} = {
   // Header
-  HeaderBigExtraBold: {
-    fontSize: 24,
-    colorForBackgroundMode: _blackNormalWhiteTerminal,
-    styleOverride: globalStyles.fontExtraBold,
-  },
   HeaderBig: {
     fontSize: 24,
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     styleOverride: globalStyles.fontBold,
   },
+  HeaderBigExtrabold: {
+    fontSize: 24,
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    styleOverride: globalStyles.fontExtrabold,
+  },
   Header: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 16,
     styleOverride: globalStyles.fontSemibold,
+  },
+  HeaderExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: globalStyles.fontExtrabold,
   },
   HeaderLink: {
     colorForBackgroundMode: _blueLink,
@@ -87,6 +92,11 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 13,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodyExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 13,
+    styleOverride: globalStyles.fontExtrabold,
   },
   BodySemibold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
@@ -143,6 +153,14 @@ const metaData: {[key: TextType]: MetaType} = {
     },
     fontSize: 11,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallExtrabold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white_40,
+    },
+    fontSize: 11,
+    styleOverride: globalStyles.fontExtrabold,
   },
   BodySmallItalic: {
     colorForBackgroundMode: {
@@ -203,6 +221,12 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 11,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallSecondaryLinkExtrabold: {
+    colorForBackgroundMode: {Normal: globalColors.black_60},
+    fontSize: 11,
+    isLink: true,
+    styleOverride: globalStyles.fontExtrabold,
   },
   BodySmallError: {
     colorForBackgroundMode: {Normal: globalColors.red},

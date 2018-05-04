@@ -52,15 +52,20 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     styleOverride: globalStyles.fontBold,
   },
-  HeaderBigExtraBold: {
+  HeaderBigExtrabold: {
     fontSize: 27,
     colorForBackgroundMode: _blackNormalWhiteTerminal,
-    styleOverride: globalStyles.fontExtraBold,
+    styleOverride: globalStyles.fontExtrabold,
   },
   Header: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 19,
     styleOverride: globalStyles.fontSemibold,
+  },
+  HeaderExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 19,
+    styleOverride: globalStyles.fontExtrabold,
   },
   HeaderLink: {
     colorForBackgroundMode: _blueLink,
@@ -85,6 +90,11 @@ const metaData: {[key: TextType]: MetaType} = {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 15,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodyExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 15,
+    styleOverride: globalStyles.fontExtrabold,
   },
   BodySemibold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
@@ -141,6 +151,14 @@ const metaData: {[key: TextType]: MetaType} = {
     },
     fontSize: 13,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallExtrabold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white_40,
+    },
+    fontSize: 13,
+    styleOverride: globalStyles.fontExtrabold,
   },
   BodySmallItalic: {
     colorForBackgroundMode: {
@@ -201,6 +219,12 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallSecondaryLinkExtrabold: {
+    colorForBackgroundMode: {Normal: globalColors.black_60},
+    fontSize: 13,
+    isLink: true,
+    styleOverride: globalStyles.fontExtrabold,
   },
   BodySmallError: {
     colorForBackgroundMode: {Normal: globalColors.red},

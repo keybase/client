@@ -23,7 +23,7 @@ const font = {
     fontFamily: 'OpenSans',
     fontWeight: 700,
   },
-  fontExtraBold: {
+  fontExtrabold: {
     ...fontCommon,
     fontFamily: 'OpenSans',
     fontWeight: 800,
