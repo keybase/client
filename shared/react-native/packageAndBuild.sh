@@ -4,12 +4,13 @@
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir/..
+cd $dir/.. # we're in /shared/
 
 arg1=${1:-}
 arg2=${2:-}
 checkArg () 
 {
+  # check if arg is bound
   if [ -x ${1+x} ]; then
     return
   fi
@@ -40,6 +41,7 @@ requestbundles ()
   esac
 }
 
+# start in background so we get the bundler dashboard
 sleep 5 && requestbundles & 
 backgroundpid=$!
 trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
