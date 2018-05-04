@@ -41,11 +41,6 @@ const mapStateToProps = (state: TypedState): * => {
   let conversationIDKey = Constants.getSelectedConversation(state)
   let _meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
 
-  if (conversationIDKey === Constants.pendingConversationIDKey && _meta.conversationIDKey) {
-    // Special case we stash the 'preview' of the chat if it exists in here
-    conversationIDKey = _meta.conversationIDKey
-    _meta = Constants.getMeta(state, conversationIDKey)
-  }
   return {
     _meta,
     conversationIDKey,

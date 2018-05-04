@@ -1261,13 +1261,7 @@ const previewConversationAfterFindExisting = (
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
   }
 
-  const fromAReset = action.type === Chat2Gen.previewConversation && action.payload.fromAReset
-
   return Saga.sequentially([
-    // it's a fixed set of users so it's not a search (aka you can't add people to it)
-    Saga.put(
-      Chat2Gen.createSetPendingMode({pendingMode: fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers'})
-    ),
     ...(existingConversationIDKey
       ? [
           Saga.put(
@@ -1323,6 +1317,16 @@ const previewConversationFindExisting = (
     throw new Error('Start conversation called w/ no participants or teamname')
   }
 
+  let updatePendingMode
+  if (action.type === Chat2Gen.previewConversation) {
+    // it's a fixed set of users so it's not a search (aka you can't add people to it)
+    updatePendingMode = Saga.put(
+      Chat2Gen.createSetPendingMode({
+        pendingMode: action.payload.fromAReset ? 'startingFromAReset' : 'fixedSetOfUsers',
+      })
+    )
+  }
+
   const clearPendingUsers = Saga.put(
     Chat2Gen.createSetPendingConversationExistingConversationIDKey({
       conversationIDKey: Constants.noConversationIDKey,
@@ -1340,7 +1344,7 @@ const previewConversationFindExisting = (
   })
 
   const passUsersDown = Saga.identity(users)
-  return Saga.sequentially([clearPendingUsers, makeCall, passUsersDown])
+  return Saga.sequentially([clearPendingUsers, makeCall, passUsersDown, updatePendingMode])
 }
 
 const bootstrapSuccess = () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))

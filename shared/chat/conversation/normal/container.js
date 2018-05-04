@@ -9,7 +9,7 @@ import {compose, connect, withStateHandlers, type TypedState} from '../../../uti
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const showLoader = !!state.chat2.loadingMap.get(`loadingThread:${conversationIDKey}`)
   const meta = Constants.getMeta(state, conversationIDKey)
-  return {conversationIDKey, showLoader, threadLoadedOffline: meta.offline}
+  return {conversationIDKey: conversationIDKey, showLoader, threadLoadedOffline: meta.offline}
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
