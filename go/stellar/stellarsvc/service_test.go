@@ -444,7 +444,7 @@ func TestGetAvailableCurrencies(t *testing.T) {
 	_, err := remote.RefreshServerConfig(context.Background(), tcs[0].G)
 	require.NoError(t, err)
 
-	conf, err := tcs[0].G.GetStellar().GetServerDefinitions()
+	conf, err := tcs[0].G.GetStellar().GetServerDefinitions(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, conf.Currencies["USD"].Name, "US Dollar")
 	require.Equal(t, conf.Currencies["EUR"].Name, "Euro")
