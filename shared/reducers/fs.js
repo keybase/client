@@ -135,7 +135,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setupFSHandlers:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
-    case FsGen.favoriteIgnored:
       return state
     default:
       /*::

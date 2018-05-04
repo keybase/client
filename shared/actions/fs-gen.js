@@ -16,7 +16,6 @@ export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
 export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
-export const favoriteIgnored = 'fs:favoriteIgnored'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
 export const filePreviewLoad = 'fs:filePreviewLoad'
@@ -72,7 +71,6 @@ export const createFavoriteIgnoreError = (
     errorText: string,
   |}>
 ) => ({error: false, payload, type: favoriteIgnoreError})
-export const createFavoriteIgnored = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: favoriteIgnored})
 export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>) => ({error: false, payload, type: favoritesLoaded})
 export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
@@ -145,7 +143,6 @@ export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
 export type FavoriteIgnoreErrorPayload = More.ReturnType<typeof createFavoriteIgnoreError>
 export type FavoriteIgnorePayload = More.ReturnType<typeof createFavoriteIgnore>
-export type FavoriteIgnoredPayload = More.ReturnType<typeof createFavoriteIgnored>
 export type FavoritesLoadPayload = More.ReturnType<typeof createFavoritesLoad>
 export type FavoritesLoadedPayload = More.ReturnType<typeof createFavoritesLoaded>
 export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
@@ -179,7 +176,6 @@ export type Actions =
   | More.ReturnType<typeof createDownloadStarted>
   | More.ReturnType<typeof createFavoriteIgnore>
   | More.ReturnType<typeof createFavoriteIgnoreError>
-  | More.ReturnType<typeof createFavoriteIgnored>
   | More.ReturnType<typeof createFavoritesLoad>
   | More.ReturnType<typeof createFavoritesLoaded>
   | More.ReturnType<typeof createFilePreviewLoad>

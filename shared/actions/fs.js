@@ -296,11 +296,6 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
       yield Saga.call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
         folder,
       })
-      yield Saga.put(
-        FsGen.createFavoriteIgnored({
-          path: action.payload.path,
-        })
-      )
     } catch (error) {
       logger.warn('Err in favorite.favoriteAddOrIgnore', error)
     }

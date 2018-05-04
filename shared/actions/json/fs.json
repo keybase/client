@@ -92,9 +92,6 @@
       "path": "Types.Path",
       "errorText": "string"
     },
-    "favoriteIgnored": {
-      "path": "Types.Path"
-    },
 
     "setupFSHandlers": {}
   }
