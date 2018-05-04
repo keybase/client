@@ -18,6 +18,7 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 
+// Arbitrarily stackable routes from the chat tab
 const chatChildren = {
   createChannel: {
     component: CreateChannel,
@@ -71,7 +72,7 @@ const chatChildren = {
   },
   deleteHistoryWarning: {
     component: DeleteHistoryWarning,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
+    tags: makeLeafTags({layerOnTop: false}),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   enterPaperkey: {
@@ -79,9 +80,6 @@ const chatChildren = {
   },
 }
 
-// Routes accessible from an action coming from within the
-// actual conversation view (info panel and routes coming
-// from message menu or special messages)
 const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: chatChildren,

@@ -8,18 +8,20 @@ import {
   Icon,
   MaybePopup,
   ProgressIndicator,
+  HeaderHoc,
   Text,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 export type Props = {
-  onClose: () => void,
+  onBack: () => void,
   onLeave: () => void,
   name: string,
+  title: string,
 }
 
-const Spinner = (props: Props) => (
-  <MaybePopup onClose={props.onClose}>
+const _Spinner = (props: Props) => (
+  <MaybePopup onClose={props.onBack}>
     <Box
       style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.xlarge}}
     >
@@ -27,9 +29,10 @@ const Spinner = (props: Props) => (
     </Box>
   </MaybePopup>
 )
+const Spinner = isMobile ? HeaderHoc(_Spinner) : _Spinner
 
-const ReallyLeaveTeam = (props: Props) => (
-  <MaybePopup onClose={props.onClose}>
+const _ReallyLeaveTeam = (props: Props) => (
+  <MaybePopup onClose={props.onBack}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
       <Avatar teamname={props.name} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
@@ -41,12 +44,13 @@ const ReallyLeaveTeam = (props: Props) => (
         unless an admin invites you.
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
-        <Button type="Secondary" onClick={props.onClose} label="Cancel" />
+        <Button type="Secondary" onClick={props.onBack} label="Cancel" />
         <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} fullWidth={true} />
       </ButtonBar>
     </Box>
   </MaybePopup>
 )
+const ReallyLeaveTeam = isMobile ? HeaderHoc(_ReallyLeaveTeam) : _ReallyLeaveTeam
 
 export default ReallyLeaveTeam
 export {Spinner}

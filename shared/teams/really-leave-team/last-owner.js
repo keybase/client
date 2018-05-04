@@ -1,17 +1,18 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Button, MaybePopup, ButtonBar} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
+import {Avatar, Box, Text, Icon, Button, HeaderHoc, MaybePopup, ButtonBar} from '../../common-adapters'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
-  onClose: () => void,
+  onBack: () => void,
   onLeave: () => void,
   name: string,
+  title: string,
 }
 
-const ReallyLeaveTeam = (props: Props) => (
+const _ReallyLeaveTeam = (props: Props) => (
   <MaybePopup
-    onClose={props.onClose}
+    onClose={props.onBack}
     styleContainer={{height: 'auto'}}
     styleCover={{justifyContent: 'center', alignItems: 'center'}}
   >
@@ -32,7 +33,7 @@ const ReallyLeaveTeam = (props: Props) => (
         style={{
           margin: globalMargins.medium,
           marginBottom: globalMargins.small,
-          width: 380,
+          maxWidth: 380,
           textAlign: 'center',
         }}
       >
@@ -51,10 +52,11 @@ const ReallyLeaveTeam = (props: Props) => (
         You'll have to add another user as an owner before you can leave {props.name}.
       </Text>
       <ButtonBar>
-        <Button type="Primary" onClick={props.onClose} label="Got it" />
+        <Button type="Primary" onClick={props.onBack} label="Got it" />
       </ButtonBar>
     </Box>
   </MaybePopup>
 )
+const ReallyLeaveTeam = isMobile ? HeaderHoc(_ReallyLeaveTeam) : _ReallyLeaveTeam
 
 export default ReallyLeaveTeam
