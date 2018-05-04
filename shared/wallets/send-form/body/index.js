@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Divider, Box2} from '../../../common-adapters'
+import {Box2, Divider, ProgressIndicator} from '../../../common-adapters'
+import {globalStyles, styleSheetCreate} from '../../../styles'
 import AssetInput from '../asset-input/container'
 import Banner from '../banner/container'
 import Footer from '../footer/container'
@@ -14,7 +15,11 @@ type Props = {
   onClick: Function,
 }
 
-const Spinner = () => <Box2 direction="vertical">Spinner</Box2>
+const Spinner = () => (
+  <Box2 direction="vertical" style={styles.spinnerContainer}>
+    <ProgressIndicator type="Large" />
+  </Box2>
+)
 
 const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
   <Box2 direction="vertical">
@@ -31,5 +36,9 @@ const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
     <Footer onClick={onClick} />
   </Box2>
 )
+
+const styles = styleSheetCreate({
+  spinnerContainer: {...globalStyles.fillAbsolute},
+})
 
 export default Body
