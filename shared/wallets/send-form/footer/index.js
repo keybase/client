@@ -4,14 +4,13 @@ import {Box2, Button} from '../../../common-adapters'
 import Available from '../available'
 
 type Props = {
-  skeleton: null,
   onClick: Function,
 }
 
-const Footer = ({skeleton, onClick}: Props) => (
+const Footer = ({onClick}: Props) => (
   <Box2 direction="vertical">
     <Button type="Primary" label="Send" onClick={onClick} />
-    <Available skeleton={skeleton} />
+    <Available />
   </Box2>
 )
 

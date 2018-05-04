@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Divider, Box2, Text} from '../../../common-adapters'
-import {styleSheetCreate} from '../../../styles'
+import {Divider, Box2} from '../../../common-adapters'
 import AssetInput from '../asset-input'
 import Banner from '../banner'
 import Memo from '../memo'
@@ -9,30 +8,20 @@ import Note from '../note'
 import Participants from '../participants'
 
 type Props = {
-  skeleton: null,
   bannerInfo: ?string,
 }
 
-const Body = ({skeleton, bannerInfo}: Props) => (
+const Body = ({bannerInfo}: Props) => (
   <Box2 direction="vertical">
     (bannerInfo ?
-    <Banner skeleton={skeleton} />
+    <Banner />
     : null)
-    <Participants skeleton={skeleton} />
+    <Participants />
     <Divider />
-    <AssetInput skeleton={skeleton} />
-    <Memo skeleton={skeleton} />
-    <Note skeleton={skeleton} />
-    <Text type="Body" style={styles.text}>
-      Body {skeleton}
-    </Text>
+    <AssetInput />
+    <Memo />
+    <Note />
   </Box2>
 )
-
-const styles = styleSheetCreate({
-  text: {
-    textAlign: 'center',
-  },
-})
 
 export default Body

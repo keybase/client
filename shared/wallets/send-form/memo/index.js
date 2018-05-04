@@ -3,14 +3,12 @@ import * as React from 'react'
 import {Box2, Text} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
-type Props = {
-  skeleton: null,
-}
+type Props = {}
 
-const Memo = ({skeleton}: Props) => (
+const Memo = (props: Props) => (
   <Box2 direction="vertical">
     <Text type="Body" style={styles.text}>
-      Memo {skeleton}
+      Memo
     </Text>
   </Box2>
 )
