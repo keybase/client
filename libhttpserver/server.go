@@ -183,8 +183,8 @@ var additionalMimeTypes = map[string]string{
 	".pub":   "text/plain",
 }
 
-const portStart = 7000
-const portEnd = 8000
+const portStart = 16723
+const portEnd = 18000
 const requestPathRoot = "/files/"
 
 // New creates and starts a new server.
