@@ -282,12 +282,12 @@ func SubmitPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.Pa
 func SubmitRelayPayment(ctx context.Context, g *libkb.GlobalContext, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
 	if true {
 		// TODO CORE-7718 re-enable this outgoing RPC
-		return stellar1.PaymentResult{}, fmt.Errorf("relay payments not implemented in this version")
+		return stellar1.PaymentResult{}, fmt.Errorf("relay payments not implemented in this version (you may need to update keybase)")
 	}
 	payload := make(libkb.JSONPayload)
 	payload["payment"] = post
 	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/submitpayment",
+		Endpoint:    "stellar/submitrelaypayment",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		NetContext:  ctx,

@@ -81,7 +81,6 @@ type RelayPaymentOutput struct {
 	// Account ID of the shared account.
 	RelayAccountID stellar1.AccountID
 	// Encrypted box containing the secret key to the account.
-	Encrypted    stellar1.EncryptedRelaySecret
 	EncryptedB64 string
 	FundTx       stellarnet.SignResult
 }
@@ -121,7 +120,6 @@ func CreateRelayTransfer(in RelayPaymentInput) (res RelayPaymentOutput, err erro
 	}
 	return RelayPaymentOutput{
 		RelayAccountID: stellar1.AccountID(relayKp.Address()),
-		Encrypted:      enc,
 		EncryptedB64:   base64.StdEncoding.EncodeToString(pack),
 		FundTx:         sig,
 	}, nil

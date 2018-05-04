@@ -281,9 +281,8 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		return stellar1.PaymentResult{}, err
 	}
 
-	_, deviceID, _, _, _ := g.ActiveDevice.AllFields()
 	post := stellar1.PaymentDirectPost{
-		FromDeviceID: deviceID,
+		FromDeviceID: g.ActiveDevice.DeviceID(),
 	}
 	if recipient.User != nil {
 		tmp := recipient.User.ToUserVersion()
@@ -357,9 +356,8 @@ func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remot
 	if err != nil {
 		return res, err
 	}
-	_, deviceID, _, _, _ := g.ActiveDevice.AllFields()
 	post := stellar1.PaymentRelayPost{
-		FromDeviceID:      deviceID,
+		FromDeviceID:      g.ActiveDevice.DeviceID(),
 		ToAssertion:       string(recipient.Input),
 		RelayAccount:      relay.RelayAccountID,
 		TeamID:            teamID,
