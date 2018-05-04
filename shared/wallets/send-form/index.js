@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2} from '../../common-adapters'
+import {Box2, Text} from '../../common-adapters'
+import {styleSheetCreate} from '../../styles'
 import Body from './body/container'
 import Header from './header/container'
 
@@ -14,7 +15,21 @@ const SendForm = ({bannerInfo, isProcessing, onClick}: Props) => (
   <Box2 direction="vertical">
     <Header />
     <Body bannerInfo={bannerInfo} isProcessing={isProcessing} onClick={onClick} />
+    <Text type="BodySmallSemibold" style={styles.text}>
+      Powered by{' '}
+      <Text type="BodySmallSemiboldInlineLink" isLink={true} onClickURL="https://stellar.org">
+        stellar
+      </Text>
+    </Text>
   </Box2>
 )
+
+const styles = styleSheetCreate({
+  text: {
+    position: 'relative',
+    textAlign: 'center',
+    top: 20,
+  },
+})
 
 export default SendForm
