@@ -27,10 +27,10 @@ const stories = {
   search,
   settings,
   signup,
+  stellar,
   styles,
   teams,
   unlockFolders,
-  stellar,
 }
 
 export default stories
