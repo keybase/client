@@ -15,8 +15,6 @@ import {
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   onFocusInput: () => void,
-  // TODO DESKTOP-6256 get rid of this
-  onToggleInfoPanel: () => void,
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
@@ -39,7 +37,6 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
   editingOrdinal: stateProps.editingOrdinal,
-  onToggleInfoPanel: ownProps.onToggleInfoPanel,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
