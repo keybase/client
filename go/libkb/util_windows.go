@@ -366,16 +366,21 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	return err
 }
 
+// CheckInstance returns true if no other instance is found
+// see https://stackoverflow.com/questions/23162986/restricting-to-single-instance-of-executable-with-golang
 func CheckInstance(name string) bool {
-	_, _, err := procCreateMutex.Call(
-		0,
-		0,
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(name))),
-	)
-	switch int(err.(syscall.Errno)) {
-	case 0:
-		return true
-	default:
-		return false
+	namep, err := syscall.UTF16PtrFromString(name)
+	if err != nil {
+		return true // should never happen
 	}
+	_, _, err = procCreateMutex.Call(
+		0,
+		0,
+		namep,
+	)
+
+	if int(err.(syscall.Errno)) == 0 {
+		return true
+	}
+	return false
 }
