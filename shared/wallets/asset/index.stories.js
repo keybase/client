@@ -69,7 +69,7 @@ const expandedHOC = withStateHandlers(
 const AssetWithExpanded = expandedHOC(Asset)
 
 const load = () => {
-  storiesOf('Stellar/Assets', module)
+  storiesOf('Wallets/Assets', module)
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Native currency', () => <Asset {...common} {...native} />)
     .add('Non-native currency', () => <Asset {...common} {...keyz} />)
