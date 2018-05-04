@@ -11,7 +11,7 @@ import Rekey from './rekey/container'
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
-  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
+  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey' | 'startConversation',
 }
 
 class Conversation extends React.PureComponent<SwitchProps> {

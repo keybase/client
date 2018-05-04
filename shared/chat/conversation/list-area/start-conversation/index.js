@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text, Button} from '../../../common-adapters'
-import {globalStyles, globalColors, styleSheetCreate} from '../../../styles'
+import {Box2, Text, Button} from '../../../../common-adapters'
+import {globalStyles, styleSheetCreate} from '../../../../styles'
 
 type Props = {
   participants: string,
@@ -10,8 +10,11 @@ type Props = {
 
 const StartConversation = (props: Props) => (
   <Box2 direction="vertical" style={styles.container} gap="small" gapStart={true} gapEnd={true}>
-    <Text type="Body">
-      You don't have a conversation with {props.participants} yet. Start an end-to-end encrypted chat?
+    <Text type="Body" style={styles.header}>
+      You don't have a conversation with {props.participants} yet.
+    </Text>
+    <Text type="Body" style={styles.header}>
+      Start an end-to-end encrypted chat?
     </Text>
     <Box2 direction="vertical" style={styles.spacer} />
     <Text type="BodySmall">
@@ -32,6 +35,9 @@ const styles = styleSheetCreate({
     alignItems: 'center',
     height: '100%',
     width: '100%',
+  },
+  header: {
+    textAlign: 'center',
   },
   spacer: {
     flex: 1,

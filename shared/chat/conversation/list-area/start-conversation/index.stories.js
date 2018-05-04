@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {storiesOf, action} from '../../../stories/storybook'
+import {storiesOf, action} from '../../../../stories/storybook'
 import StartConversation from '.'
 
 const load = () => {

@@ -1,8 +1,8 @@
 // @flow
-import * as Constants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import StartConversation from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),

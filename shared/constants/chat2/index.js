@@ -5,7 +5,11 @@ import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
 import {isMobile} from '../platform'
-import {pendingConversationIDKey, noConversationIDKey} from '../types/chat2/common'
+import {
+  pendingConversationIDKey,
+  noConversationIDKey,
+  pendingWaitingConversationIDKey,
+} from '../types/chat2/common'
 import {makeConversationMeta} from './meta'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -103,4 +107,4 @@ export {
   upgradeMessage,
 } from './message'
 
-export {pendingConversationIDKey, noConversationIDKey}
+export {pendingConversationIDKey, noConversationIDKey, pendingWaitingConversationIDKey}

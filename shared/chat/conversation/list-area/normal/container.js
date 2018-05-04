@@ -20,16 +20,8 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
-  let conversationIDKeyShowing = conversationIDKey
-  let meta = Constants.getMeta(state, conversationIDKey)
-  // We show a preview if its found
-  if (conversationIDKey === Constants.pendingConversationIDKey && meta.conversationIDKey) {
-    // We stash the resolved preview here
-    conversationIDKeyShowing = meta.conversationIDKey
-    meta = Constants.getMeta(state, conversationIDKeyShowing)
-  }
   return {
-    conversationIDKey: conversationIDKeyShowing,
+    conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     messageOrdinals: Constants.getMessageOrdinals(state, conversationIDKey),
   }
