@@ -124,7 +124,7 @@
   </Fragment>
   <Fragment>
     <ComponentGroup Id="StartupShortcuts" Directory="StartupFolder">
-      <Component Id="AppShortCutStartUpComponent" Guid="{2EE65854-7CA1-4010-B62B-780F1C39ED0A}">
+      <Component Id="AppShortCutStartUpComponent" Guid="{648c099c-748c-4e54-986a-ebd48e5cc0cb}">
         <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
                   Description="Start Keybase at boot"
                   Target="[INSTALLFOLDER]keybaserq.exe"
