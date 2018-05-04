@@ -100,7 +100,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const getRootMenuItems = (stateProps, dispatchProps) => {
   const {path, pathItem, fileUIEnabled, _username} = stateProps
   const {showInFileUI, saveImage, share, download, _ignoreFolder} = dispatchProps
-  const visibility = Types.getPathVisibility(path)
   let menuItems = []
   !isMobile &&
     fileUIEnabled &&
