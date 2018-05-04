@@ -2,10 +2,10 @@
 import * as React from 'react'
 import {Divider, Box2} from '../../../common-adapters'
 import AssetInput from '../asset-input'
-import Banner from '../banner'
-import Memo from '../memo'
-import Note from '../note'
-import Participants from '../participants'
+import Banner from '../banner/container'
+import Memo from '../memo/container'
+import Note from '../note/container'
+import Participants from '../participants/container'
 
 type Props = {
   bannerInfo: ?string,

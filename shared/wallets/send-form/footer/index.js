@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button} from '../../../common-adapters'
-import Available from '../available'
+import Available from '../available/container'
 
 type Props = {
   onClick: Function,
