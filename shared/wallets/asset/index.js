@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, ClickableBox, Divider, Icon, Text} from '../../common-adapters'
-import {globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 
 export type Props = {
   availableToSend: string, // non-empty only if native currency
@@ -17,9 +17,6 @@ export type Props = {
   reserves: Types.Reserve[], // non-empty only if native currency
   toggleExpanded: () => void,
 }
-
-// TODO (DA) swap out these text styles and hard coded colors for when they're added
-// to globalColors and text types
 
 export const Asset = (props: Props) => {
   const caretType = props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
@@ -39,7 +36,7 @@ export const Asset = (props: Props) => {
             </Box2>
           </Box2>
           <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-            <Text type="BodySemibold" lineClamp={1} style={{color: '#814cf4', fontWeight: '800'}}>
+            <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
               {props.balance} {props.code}
             </Text>
             <Text type="BodySmall" lineClamp={1}>
@@ -79,7 +76,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
       <Text type="BodySemibold" style={styles.leftColText}>
         Total
       </Text>
-      <Text type="Body" selectable={true} style={styles.markerBalanceText}>
+      <Text type="BodyExtrabold" selectable={true}>
         {props.total}
       </Text>
     </Box2>
@@ -125,6 +122,24 @@ const IssuerAddress = (props: IssuerAddressProps) => (
 )
 
 const styles = styleSheetCreate({
+  balanceContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+  },
+  balanceSummaryContainer: {
+    flexBasis: 355,
+    flexShrink: 1,
+  },
+  caret: platformStyles({
+    isElectron: {lineHeight: '2'},
+    isMobile: {marginTop: 6},
+  }),
+  expandedRowContainer: {
+    justifyContent: 'flex-end',
+    paddingBottom: globalMargins.tiny,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.small,
+  },
   headerContainer: {
     height: 48,
     padding: globalMargins.tiny,
@@ -133,30 +148,8 @@ const styles = styleSheetCreate({
   labelContainer: {
     flex: 1,
   },
-  caret: platformStyles({
-    isElectron: {lineHeight: '2'},
-    isMobile: {marginTop: 6},
-  }),
-  balanceContainer: {
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
-  },
-  expandedRowContainer: {
-    justifyContent: 'flex-end',
-    paddingBottom: globalMargins.tiny,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.small,
-  },
-  balanceSummaryContainer: {
-    flexBasis: 355,
-    flexShrink: 1,
-  },
   leftColText: {
     flex: 1,
-  },
-  // TEMP until new text type
-  markerBalanceText: {
-    fontWeight: '800',
   },
 })
 
