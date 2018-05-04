@@ -631,7 +631,7 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 	if tx.DontRotateKey != nil {
 		dontRotate = *tx.DontRotateKey
 	} else {
-		dontRotate = team.CanSkipKeyRotation(team.G().Clock().Now())
+		dontRotate = team.CanSkipKeyRotation()
 	}
 	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, dontRotate)
 	if err != nil {

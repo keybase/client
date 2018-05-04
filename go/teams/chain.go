@@ -718,7 +718,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 
 	// completely ignore these fields
-	_ = payload.Ctime
 	_ = payload.ExpireIn
 	_ = payload.SeqType
 
@@ -1297,6 +1296,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				UserLog:         make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:      make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:     perTeamKeys,
+				PerTeamKeyCTime: keybase1.UnixTime(payload.Ctime),
 				LinkIDs:         make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks:    make(map[keybase1.Seqno]bool),
 				ActiveInvites:   make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
