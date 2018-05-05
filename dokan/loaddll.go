@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
-	"strings"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -51,7 +51,7 @@ func doLoadDLL(epc *errorPrinter, path string) (windows.Handle, error) {
 		path = shortPath
 		guessPath = true
 	} else {
-		path = strings.Replace(path, `/`, `\`, -1)
+		path = filepath.FromSlash(path)
 	}
 	const loadLibrarySearchSystem32 = 0x800
 	const flags = loadLibrarySearchSystem32
