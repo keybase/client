@@ -376,7 +376,7 @@ func CheckInstance(name string) bool {
 	_, _, err = procCreateMutex.Call(
 		0,
 		0,
-		namep,
+		uintptr(unsafe.Pointer(namep)),
 	)
 
 	if int(err.(syscall.Errno)) == 0 {
