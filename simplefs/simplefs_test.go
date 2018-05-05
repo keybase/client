@@ -122,7 +122,7 @@ func checkPendingOp(ctx context.Context,
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(libkb.NewGlobalContext(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	pathRoot := keybase1.NewPathWithKbfs(`/`)
@@ -259,7 +259,7 @@ func TestList(t *testing.T) {
 
 func TestCopyToLocal(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(libkb.NewGlobalContext(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + file(s) we will clean up later
@@ -301,7 +301,7 @@ func TestCopyToLocal(t *testing.T) {
 
 func TestCopyRecursive(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(libkb.NewGlobalContext(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp local dest directory + files we will clean up later
@@ -372,7 +372,7 @@ func TestCopyRecursive(t *testing.T) {
 
 func TestCopyToRemote(t *testing.T) {
 	ctx := context.Background()
-	sfs := newSimpleFS(libkb.NewGlobalContext(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), libkbfs.MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + file(s) we will clean up later
@@ -538,7 +538,7 @@ func TestCopyProgress(t *testing.T) {
 	clock.Set(start)
 	config.SetClock(clock)
 
-	sfs := newSimpleFS(libkb.NewGlobalContext(), config)
+	sfs := newSimpleFS(libkb.NewGlobalContext().Init(), config)
 	defer closeSimpleFS(ctx, t, sfs)
 
 	waitCh := make(chan struct{})

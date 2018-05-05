@@ -57,7 +57,7 @@ func TestServerDefault(t *testing.T) {
 	kbfsConfig, shutdown := makeTestKBFSConfig(t)
 	defer shutdown()
 
-	s, err := New(libkb.NewGlobalContext(), kbfsConfig)
+	s, err := New(libkb.NewGlobalContext().Init(), kbfsConfig)
 	require.NoError(t, err)
 
 	addr, err := s.Address()

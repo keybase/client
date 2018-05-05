@@ -33,6 +33,7 @@ type Server struct {
 	server *libkb.HTTPSrv
 	logger logger.Logger
 	g      *libkb.GlobalContext
+	cancel func()
 
 	tokens *lru.Cache
 	fs     *lru.Cache
@@ -200,15 +201,19 @@ func (s *Server) startServer() (err error) {
 	return nil
 }
 
-func (s *Server) monitorAppState() {
+func (s *Server) monitorAppState(ctx context.Context) {
 	state := keybase1.AppState_FOREGROUND
 	for {
-		state = <-s.g.AppState.NextUpdate(&state)
-		switch state {
-		case keybase1.AppState_FOREGROUND:
-			s.startServer()
-		case keybase1.AppState_BACKGROUND:
-			s.server.Stop()
+		select {
+		case <-ctx.Done():
+			return
+		case state = <-s.g.AppState.NextUpdate(&state):
+			switch state {
+			case keybase1.AppState_FOREGROUND:
+				s.startServer()
+			case keybase1.AppState_BACKGROUND:
+				s.server.Stop()
+			}
 		}
 	}
 }
@@ -227,7 +232,9 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	if err = s.startServer(); err != nil {
 		return nil, err
 	}
-	go s.monitorAppState()
+	ctx, cancel := context.WithCancel(context.Background())
+	go s.monitorAppState(ctx)
+	s.cancel = cancel
 	libmime.Patch(additionalMimeTypes, overrideMimeType)
 	return s, nil
 }
@@ -240,4 +247,5 @@ func (s *Server) Address() (string, error) {
 // Shutdown shuts down the server.
 func (s *Server) Shutdown() {
 	s.server.Stop()
+	s.cancel()
 }
