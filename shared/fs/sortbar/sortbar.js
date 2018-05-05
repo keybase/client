@@ -16,7 +16,7 @@ const stylesSortSetting = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  minHeight: isMobile ? 24 : 24,
+  minHeight: isMobile ? 32 : 24,
 }
 
 const stylesIcon = {
