@@ -32,6 +32,7 @@ type Server struct {
 	config libkbfs.Config
 	server *libkb.HTTPSrv
 	logger logger.Logger
+	g      *libkb.GlobalContext
 
 	tokens *lru.Cache
 	fs     *lru.Cache
@@ -187,10 +188,35 @@ const portStart = 16723
 const portEnd = 18000
 const requestPathRoot = "/files/"
 
+func (s *Server) startServer() (err error) {
+	s.server = libkb.NewHTTPSrv(
+		s.g, libkb.NewPortRangeListenerSource(portStart, portEnd))
+	// Have to start this first to populate the ServeMux object.
+	if err = s.server.Start(); err != nil {
+		return err
+	}
+	s.server.Handle(requestPathRoot,
+		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
+	return nil
+}
+
+func (s *Server) monitorAppState() {
+	state := keybase1.AppState_FOREGROUND
+	for {
+		state = <-s.g.AppState.NextUpdate(&state)
+		switch state {
+		case keybase1.AppState_FOREGROUND:
+			s.startServer()
+		case keybase1.AppState_BACKGROUND:
+			s.server.Stop()
+		}
+	}
+}
+
 // New creates and starts a new server.
 func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	s *Server, err error) {
-	s = &Server{}
+	s = &Server{g: g, config: config}
 	s.logger = config.MakeLogger("HTTP")
 	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
 		return nil, err
@@ -198,15 +224,10 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	if s.fs, err = lru.New(fsCacheSize); err != nil {
 		return nil, err
 	}
-	s.config = config
-	s.server = libkb.NewHTTPSrv(
-		g, libkb.NewPortRangeListenerSource(portStart, portEnd))
-	// Have to start this first to populate the ServeMux object.
-	if err = s.server.Start(); err != nil {
+	if err = s.startServer(); err != nil {
 		return nil, err
 	}
-	s.server.Handle(requestPathRoot,
-		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
+	go s.monitorAppState()
 	libmime.Patch(additionalMimeTypes, overrideMimeType)
 	return s, nil
 }
