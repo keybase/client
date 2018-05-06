@@ -282,12 +282,42 @@ func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 
 // SwitchUser switches the globally active configured user to the given username. In the same atomic
 // critical section, it clears out the global ActiveDevice.
+func (m MetaContext) SwitchUserNukeConfig(n NormalizedUsername) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	cr := g.Env.GetConfig()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	if cr == nil {
+		return NoConfigFileError{}
+	}
+	uid := cr.GetUIDForUsername(n)
+	err := cw.NukeUser(n)
+	if err != nil {
+		return err
+	}
+	if g.ActiveDevice.UID().Equal(uid) {
+		g.ActiveDevice.Clear(nil)
+	}
+	return nil
+}
+
 func (m MetaContext) SwitchUser(n NormalizedUsername) error {
+	return m.SwitchUserToActiveDevice(n, nil)
+}
+
+func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDevice) (err error) {
+
+	defer m.CTrace(fmt.Sprintf("MetaContext#SwitchUserToActiveDevice(%s,ActiveDevice:%v)", n.String(), (ad != nil)), func() error { return err })()
+
 	g := m.G()
 	if n.IsNil() {
 		return nil
 	}
-	if err := n.CheckValid(); err != nil {
+	if err = n.CheckValid(); err != nil {
 		return err
 	}
 	g.switchUserMu.Lock()
@@ -296,7 +326,7 @@ func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	err := cw.SwitchUser(n)
+	err = cw.SwitchUser(n)
 	if _, ok := err.(UserNotFoundError); ok {
 		m.CDebugf("| No user %s found; clearing out config", n)
 		err = nil
@@ -304,7 +334,12 @@ func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 	if err != nil {
 		return err
 	}
-	g.ActiveDevice.Clear(nil)
+	err = g.ActiveDevice.SetOrClear(m, ad)
+	if err != nil {
+		return err
+	}
+	m.CommitProvisionalLogin()
+
 	return nil
 }
 
