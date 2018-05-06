@@ -169,7 +169,7 @@ const BOOL isDebug = NO;
 -(void) application:(UIApplication *)application performFetchWithCompletionHandler:
 (void (^)(UIBackgroundFetchResult))completionHandler {
   NSLog(@"Background fetch started...");
-  dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
     KeybaseBackgroundSync();
     completionHandler(UIBackgroundFetchResultNewData);
     NSLog(@"Background fetch completed...");
