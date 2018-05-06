@@ -98,6 +98,23 @@ func pplPromptLoop(m MetaContext, usernameOrEmail string, maxAttempts int, ls *L
 	return err
 }
 
+type loginReply struct {
+	Status    AppStatus    `json:"status"`
+	Session   string       `json:"session"`
+	CsrfToken string       `json:"csrf_token"`
+	UID       keybase1.UID `json:"uid"`
+	Me        struct {
+		Basics struct {
+			Username             string               `json:"username"`
+			PassphraseGeneration PassphraseGeneration `json:"passphrase_generation"`
+		} `json:"basics"`
+	} `json:"me"`
+}
+
+func (l *loginReply) GetAppStatus() *AppStatus {
+	return &l.Status
+}
+
 func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
 
 	arg := APIArg{
@@ -110,41 +127,25 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		AppStatusCodes: []int{SCOk, SCBadLoginPassword, SCBadLoginUserNotFound},
 	}
 	lp.PopulateArgs(&arg.Args)
-	res, err := m.G().API.Post(arg)
+	var res loginReply
+	err := m.G().API.PostDecode(arg, &res)
 	if err != nil {
 		return nil, err
 	}
-	if res.AppStatus.Code == SCBadLoginPassword {
+	if res.Status.Code == SCBadLoginPassword {
 		err = PassphraseError{"server rejected login attempt"}
 		return nil, err
 	}
-	if res.AppStatus.Code == SCBadLoginUserNotFound {
+	if res.Status.Code == SCBadLoginUserNotFound {
 		return nil, NotFoundError{}
 	}
-
-	b := res.Body
-	sessionID, err := b.AtKey("session").GetString()
-	if err != nil {
-		return nil, err
-	}
-	csrfToken, err := b.AtKey("csrf_token").GetString()
-	if err != nil {
-		return nil, err
-	}
-	uid, err := GetUID(b.AtKey("uid"))
-	if err != nil {
-		return nil, err
-	}
-	uname, err := b.AtKey("me").AtKey("basics").AtKey("username").GetString()
-	if err != nil {
-		return nil, err
-	}
-	ppGen, err := b.AtPath("me.basics.passphrase_generation").GetInt()
-	if err != nil {
-		return nil, err
-	}
-
-	return &loginAPIResult{sessionID, csrfToken, uid, uname, PassphraseGeneration(ppGen)}, nil
+	return &loginAPIResult{
+		sessionID: res.Session,
+		csrfToken: res.CsrfToken,
+		uid:       res.UID,
+		username:  res.Me.Basics.Username,
+		ppGen:     res.Me.Basics.PassphraseGeneration,
+	}, nil
 }
 
 func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
