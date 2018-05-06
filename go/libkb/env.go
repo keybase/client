@@ -62,6 +62,7 @@ func (n NullConfiguration) GetDeviceID() keybase1.DeviceID                      
 func (n NullConfiguration) GetDeviceIDForUsername(un NormalizedUsername) keybase1.DeviceID { return "" }
 func (n NullConfiguration) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID             { return "" }
 func (n NullConfiguration) GetProxyCACerts() ([]string, error)                             { return nil, nil }
+func (n NullConfiguration) GetUsernameForUID(u keybase1.UID) NormalizedUsername            { return NormalizedUsername("") }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                                      { return false, false }
 func (n NullConfiguration) GetRunMode() (RunMode, error)                                   { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                                    { return false, false }
@@ -1114,6 +1115,10 @@ func (e *Env) GetDeviceIDForUsername(u NormalizedUsername) keybase1.DeviceID {
 
 func (e *Env) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
 	return e.GetConfig().GetDeviceIDForUID(u)
+}
+
+func (e *Env) GetUsernameForUID(u keybase1.UID) NormalizedUsername {
+	return e.GetConfig().GetUsernameForUID(u)
 }
 
 func (e *Env) GetInstallID() (ret InstallID) {

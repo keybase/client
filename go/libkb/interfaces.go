@@ -157,6 +157,7 @@ type ConfigReader interface {
 	GetDeviceID() keybase1.DeviceID
 	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
 	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID
+	GetUsernameForUID(u keybase1.UID) NormalizedUsername
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID

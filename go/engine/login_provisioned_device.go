@@ -63,28 +63,14 @@ func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	return nil
 }
 
-func (e *LoginProvisionedDevice) run(m libkb.MetaContext) error {
+func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	// already logged in?
-	in, err := m.G().LoginState().LoggedInProvisioned(m.Ctx())
-	if err == nil && in {
-		if len(e.username) == 0 || m.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
-			// already logged in, make sure to unlock device keys
-			var partialCopy *libkb.User
-			err = m.G().GetFullSelfer().WithSelf(m.Ctx(), func(user *libkb.User) error {
+	defer m.CTrace("LoginProvisionedDevice#run", func() error { return err })()
 
-				// We don't want to hold onto the full cached user during
-				// the whole `unlockDeviceKey` run below, which touches
-				// a lot of (potentially reentrant) code. A partial copy
-				// will suffice. We won't need the non-copied fields
-				// (like the sigchain and ID table).
-				partialCopy = user.PartialCopy()
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-			return e.unlockDeviceKeys(m, partialCopy)
-		}
+	in, uid := isLoggedIn(m)
+	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(uid).Eq(libkb.NewNormalizedUsername(e.username))) {
+		m.CDebugf("user %s already logged in; short-circuting", uid)
+		return nil
 	}
 
 	var config *libkb.UserConfig

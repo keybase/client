@@ -231,6 +231,18 @@ func (f JSONConfigFile) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
 	return ret.GetDeviceID()
 }
 
+func (f JSONConfigFile) GetUsernameForUID(u keybase1.UID) NormalizedUsername {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	ret, err := f.GetUserConfigForUID(u)
+	var empty NormalizedUsername
+	if err != nil || ret == nil {
+		return empty
+	}
+	return ret.GetUsername()
+}
+
+
 func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
