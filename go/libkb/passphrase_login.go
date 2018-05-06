@@ -1,6 +1,8 @@
 package libkb
 
-import ()
+import (
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+)
 
 func pplPromptCheckPreconditions(m MetaContext, usernameOrEmail string) (err error) {
 
@@ -43,23 +45,40 @@ func pplGetLoginSession(m MetaContext, usernameOrEmail string) (*LoginSession, e
 
 func pplPromptOnce(m MetaContext, usernameOrEmail string, ls *LoginSession, retryMsg string) (err error) {
 	defer m.CTrace("pplPromptOnce", func() error { return err })()
-	res, err := GetKeybasePassphrase(m, m.UIs().SecretUI, usernameOrEmail, retryMsg)
+	ppres, err := GetKeybasePassphrase(m, m.UIs().SecretUI, usernameOrEmail, retryMsg)
 	if err != nil {
 		return err
 	}
-	salt := ls.salt
-	_, pps, err := StretchPassphrase(m.G(), res.Passphrase, ls.salt)
+	tsec, pps, err := StretchPassphrase(m.G(), ppres.Passphrase, ls.salt)
 	if err != nil {
 		return err
 	}
-	lp, err := ComputeLoginPackage(m, usernameOrEmail)
+	loginSessionBytes, err := ls.Session()
 	if err != nil {
 		return err
 	}
-	_, err = computeLoginPackageFromEmailOrUsername(usernameOrEmail, pps, ls)
+	pdpka, err := computeLoginPackageFromEmailOrUsername(usernameOrEmail, pps, loginSessionBytes)
 	if err != nil {
 		return err
 	}
+	res, err := pplPost(m, usernameOrEmail, pdpka)
+	if err != nil {
+		return err
+	}
+
+	var nilDeviceID keybase1.DeviceID
+	err = m.LoginContext().SaveState(
+		res.sessionID,
+		res.csrfToken,
+		NewNormalizedUsername(res.username),
+		res.uid,
+		nilDeviceID,
+	)
+	if err != nil {
+		return err
+	}
+	pps.SetGeneration(res.ppGen)
+	m.LoginContext().CreateStreamCache(tsec, pps)
 
 	return nil
 }
@@ -77,6 +96,55 @@ func pplPromptLoop(m MetaContext, usernameOrEmail string, maxAttempts int, ls *L
 		retryMsg = err.Error()
 	}
 	return err
+}
+
+func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
+
+	arg := APIArg{
+		Endpoint:    "login",
+		SessionType: APISessionTypeNONE,
+		Args: HTTPArgs{
+			"email_or_username": S{eOu},
+		},
+		NetContext:     m.Ctx(),
+		AppStatusCodes: []int{SCOk, SCBadLoginPassword, SCBadLoginUserNotFound},
+	}
+	lp.PopulateArgs(&arg.Args)
+	res, err := m.G().API.Post(arg)
+	if err != nil {
+		return nil, err
+	}
+	if res.AppStatus.Code == SCBadLoginPassword {
+		err = PassphraseError{"server rejected login attempt"}
+		return nil, err
+	}
+	if res.AppStatus.Code == SCBadLoginUserNotFound {
+		return nil, NotFoundError{}
+	}
+
+	b := res.Body
+	sessionID, err := b.AtKey("session").GetString()
+	if err != nil {
+		return nil, err
+	}
+	csrfToken, err := b.AtKey("csrf_token").GetString()
+	if err != nil {
+		return nil, err
+	}
+	uid, err := GetUID(b.AtKey("uid"))
+	if err != nil {
+		return nil, err
+	}
+	uname, err := b.AtKey("me").AtKey("basics").AtKey("username").GetString()
+	if err != nil {
+		return nil, err
+	}
+	ppGen, err := b.AtPath("me.basics.passphrase_generation").GetInt()
+	if err != nil {
+		return nil, err
+	}
+
+	return &loginAPIResult{sessionID, csrfToken, uid, uname, PassphraseGeneration(ppGen)}, nil
 }
 
 func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts int) (err error) {
