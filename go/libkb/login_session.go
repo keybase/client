@@ -29,7 +29,7 @@ type LoginSession struct {
 	Contextified
 }
 
-func NewLoginSession(emailOrUsername string, g *GlobalContext) *LoginSession {
+func NewLoginSession(g *GlobalContext, emailOrUsername string) *LoginSession {
 	return &LoginSession{
 		sessionFor:   emailOrUsername,
 		Contextified: NewContextified(g),
@@ -37,8 +37,8 @@ func NewLoginSession(emailOrUsername string, g *GlobalContext) *LoginSession {
 }
 
 // Upon signup, a login session is created with a generated salt.
-func NewLoginSessionWithSalt(emailOrUsername string, salt []byte, g *GlobalContext) *LoginSession {
-	ls := NewLoginSession(emailOrUsername, g)
+func NewLoginSessionWithSalt(g *GlobalContext, emailOrUsername string, salt []byte) *LoginSession {
+	ls := NewLoginSession(g, emailOrUsername)
 	ls.salt = salt
 	// XXX are these right?  is this just so the salt can be retrieved?
 	ls.loaded = true
@@ -146,7 +146,7 @@ func (s *LoginSession) Dump() {
 	fmt.Printf("\n")
 }
 
-func (s *LoginSession) Load() error {
+func (s *LoginSession) Load(m MetaContext) error {
 	if s == nil {
 		return fmt.Errorf("LoginSession is nil")
 	}
@@ -154,13 +154,14 @@ func (s *LoginSession) Load() error {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}
 
-	res, err := s.G().API.Get(APIArg{
+	res, err := m.G().API.Get(APIArg{
 		Endpoint:    "getsalt",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{Val: s.sessionFor},
 			"pdpka_login":       B{Val: true},
 		},
+		MetaContext: m,
 	})
 	if err != nil {
 		return err

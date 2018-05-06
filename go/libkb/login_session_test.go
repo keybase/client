@@ -87,8 +87,8 @@ func TestLoginSessionTimeout(t *testing.T) {
 	tc.G.SetClock(c)
 	defer tc.Cleanup()
 
-	sesh := NewLoginSession("logintest", tc.G)
-	err := sesh.Load()
+	sesh := NewLoginSession(tc.G, "logintest")
+	err := sesh.Load(NewMetaContextForTest(tc))
 	if err != nil {
 		t.Fatal(err)
 	}
