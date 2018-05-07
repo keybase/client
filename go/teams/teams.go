@@ -45,8 +45,8 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 }
 
 func (t *Team) CanSkipKeyRotation() bool {
-	// Only applies for >=50 member teams.
-	const MinTeamSize = 50
+	// Only applies for >=200 member teams.
+	const MinTeamSize = 200
 	// Aim for one rotation every 24h.
 	const KeyRotateInterval = time.Duration(24) * time.Hour
 
