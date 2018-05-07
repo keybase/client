@@ -1697,6 +1697,30 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 	return creation.Ibm_.StateUpdate_.Md_.MsgID_, err
 }
 
+func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	var err error
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.UpdateItem(%s,%s)", msgID.String(), cat),
+		func() error { return err },
+	)()
+
+	msg, err := g.templateMessage()
+	if err != nil {
+		return nil, err
+	}
+	msg.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category(cat),
+		Body_:     gregor1.Body(body),
+		Dtime_:    dtime,
+	}
+	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		MsgIDs_: []gregor1.MsgID{msgID},
+	}
+
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	err = incomingClient.ConsumeMessage(ctx, *msg)
+	return msg.Ibm_.StateUpdate_.Md_.MsgID_, err
+}
+
 func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error {
 	var err error
 	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
@@ -1774,6 +1798,10 @@ func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err
 
 func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (gregor1.MsgID, error) {
 	return g.gh.InjectItem(ctx, arg.Cat, []byte(arg.Body), arg.Dtime)
+}
+
+func (g *gregorRPCHandler) UpdateItem(ctx context.Context, arg keybase1.UpdateItemArg) (gregor1.MsgID, error) {
+	return g.gh.UpdateItem(ctx, arg.MsgID, arg.Cat, []byte(arg.Body), arg.Dtime)
 }
 
 func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
