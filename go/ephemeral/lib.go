@@ -199,7 +199,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	ek, err := s.Get(ctx, statement.CurrentUserEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case *EKUnboxErr:
+		case *EKUnboxErr, *EKMissingBoxErr:
 			e.G().Log.Debug(err.Error())
 			return true, nil
 		default:
@@ -238,7 +238,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	ek, err := s.Get(ctx, teamID, statement.CurrentTeamEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case *EKUnboxErr:
+		case *EKUnboxErr, *EKMissingBoxErr:
 			e.G().Log.Debug(err.Error())
 			return true, nil
 		default:
