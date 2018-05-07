@@ -50,6 +50,30 @@ const direntToMetadata = (d: RPCTypes.Dirent) => ({
   size: d.size,
 })
 
+const makeEntry = (d: RPCTypes.Dirent) => {
+  switch (d.direntType) {
+    case RPCTypes.simpleFSDirentType.dir:
+      return Constants.makeFolder(direntToMetadata(d))
+    case RPCTypes.simpleFSDirentType.sym:
+      return Constants.makeSymlink({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+        // TODO: plumb link target
+      })
+    case RPCTypes.simpleFSDirentType.file:
+    case RPCTypes.simpleFSDirentType.exec:
+      return Constants.makeFile({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+      })
+    default:
+      return Constants.makeUnknownPathItem({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+      })
+  }
+}
+
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
 
@@ -60,17 +84,7 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     },
   })
 
-  const meta =
-    dirent.direntType === RPCTypes.simpleFSDirentType.sym
-      ? Constants.makeSymlink({
-          ...direntToMetadata(dirent),
-          progress: 'loaded',
-          // TODO: plumb link target
-        })
-      : Constants.makeFile({
-          ...direntToMetadata(dirent),
-          progress: 'loaded',
-        })
+  const meta = makeEntry(dirent)
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
 
@@ -92,21 +106,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
   const entries = result.entries || []
 
-  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
-    Types.pathConcat(rootPath, d.name),
-    d.direntType === RPCTypes.simpleFSDirentType.dir
-      ? Constants.makeFolder(direntToMetadata(d))
-      : d.direntType === RPCTypes.simpleFSDirentType.sym
-        ? Constants.makeSymlink({
-            ...direntToMetadata(d),
-            progress: 'loaded',
-            // TODO: plumb link target
-          })
-        : Constants.makeFile({
-            ...direntToMetadata(d),
-            progress: 'loaded',
-          }),
-  ]
+  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [Types.pathConcat(rootPath, d.name), makeEntry(d)]
 
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
