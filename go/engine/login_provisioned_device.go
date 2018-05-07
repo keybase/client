@@ -63,19 +63,12 @@ func (e *LoginProvisionedDevice) Run(m libkb.MetaContext) error {
 	return nil
 }
 
-func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
-	// already logged in?
-	defer m.CTrace("LoginProvisionedDevice#run", func() error { return err })()
-
-	in, uid := isLoggedIn(m)
-	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(uid).Eq(libkb.NewNormalizedUsername(e.username))) {
-		m.CDebugf("user %s already logged in; short-circuting", uid)
-		return nil
-	}
+func (e *LoginProvisionedDevice) loadMe(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginProvisionedDevice#loadMe", func() error { return err })()
 
 	var config *libkb.UserConfig
-	loadUserArg := libkb.NewLoadUserArg(m.G()).WithPublicKeyOptional().WithForceReload()
-	var nu libkb.NormalizedUsername
+	var nu NormalizedUsername
+	loadUserArg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithForcePoll()
 	if len(e.username) == 0 {
 		m.CDebugf("| using current username")
 		config, err = m.G().Env.GetConfig().GetUserConfig()
@@ -101,27 +94,56 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	}
 
 	// Make sure the device ID is still valid.
-	me, err := libkb.LoadUser(loadUserArg)
+	me, _, err := m.G().GetUPAKLoader().LoadV2(loadUserArg)
 	if err != nil {
 		m.CDebugf("error loading user profile: %#v", err)
 		return err
 	}
-	if !me.HasDeviceInCurrentInstall(deviceID) {
-		m.CDebugf("current device is not valid")
+	nu = libkb.NewNormalizedUsername(me.Current.Username)
+	device, err := me.Current.FindSigningDeviceKey(deviceID)
+	if err != nil {
+		return err
+	}
 
+	nukeDevice := false
+	if device == nil {
+		m.CDebugf("Current device %s not found", deviceID)
+		nukeDevice = true
+	} else if device.Base.Revocation != nil {
+		m.CDebugf("Current device %s has been revoked", deviceID)
+		nukeDevice = true
+	}
+
+	if nukeDevice {
 		// If our config file is showing that we have a bogus
 		// deviceID (maybe from our account before an account reset),
 		// then we'll delete it from the config file here, so later parts
 		// of provisioning aren't confused by this device ID.
-		err := m.G().Env.GetConfigWriter().NukeUser(nu)
-		if err != nil {
-			m.CWarningf("Error clearing user config: %s", err)
+		tmp := m.SwitchUserNukeConfig(nu)
+		if tmp != nil {
+			m.CWarningf("Error clearing user config: %s", tmp)
 		}
 		return errNoDevice
 	}
 
-	// set e.username so that LoginUI never needs to ask for it
-	e.username = me.GetName()
+	e.username = nu
+	return nil
+}
+
+func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("LoginProvisionedDevice#run", func() error { return err })()
+
+	// already logged in?
+	in, uid := isLoggedIn(m)
+	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(uid).Eq(libkb.NewNormalizedUsername(e.username))) {
+		m.CDebugf("user %s already logged in; short-circuting", uid)
+		return nil
+	}
+
+	err = e.loadMe(m)
+	if err != nil {
+		return nil
+	}
 
 	// at this point, there is a user config either for the current user or for e.username
 	// and it has a device id, so this should be a provisioned device.  Thus, they should

@@ -270,6 +270,25 @@ func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	return nil
 }
 
+func (m MetaContext) SwitchUserNukeConfig(u keybase1.UID, n NormalizedUsername) error {
+	g := m.G()
+	g.switchUserMu.Lock()
+	defer g.switchUserMu.Unlock()
+	cw := g.Env.GetConfigWriter()
+	if cw == nil {
+		return NoConfigWriterError{}
+	}
+	// Note that `true` here means that an existing user config entry will
+	// be overwritten.
+	err := cw.NukeUser(n)
+	if err != nil {
+		return err
+	}
+	g.ActiveDevice.Clear(nil)
+	return nil
+}
+
+
 func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 	g := m.G()
 	if n.IsNil() {
