@@ -33,6 +33,12 @@ import type {Mode} from '../../../constants/types/login'
 import type {Props} from '.'
 
 class CodePage extends Component<Props> {
+  _desktopInstructionText() {
+    return this.props.myDeviceRole === codePageDeviceRoleExistingPhone
+      ? 'Sign into your account in the Keybase app on your computer.'
+      : 'In the Keybase app on your computer, go to Devices > Add a new device.'
+  }
+
   componentDidMount() {
     this.props.resetQRCodeScanned()
   }
@@ -159,8 +165,9 @@ class CodePage extends Component<Props> {
           <Text type="Header" style={{marginBottom: 10}}>
             Scan QR code
           </Text>
-          <Text type="Body">In the Keybase app on your computer,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body" style={{textAlign: 'center'}}>
+            {this._desktopInstructionText()}
+          </Text>
         </Box>
         {this.renderScanCode()}
         {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
@@ -244,8 +251,9 @@ class CodePage extends Component<Props> {
           <Text type="Header" style={{marginBottom: 10}}>
             Type in text code
           </Text>
-          <Text type="Body">In the Keybase app on your computer,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body" style={{textAlign: 'center'}}>
+            {this._desktopInstructionText()}
+          </Text>
         </Box>
         {this.renderEnterText()}
         {this.renderSwitchButton(codePageModeScanCode, 'icon-phone-qr-code-32', 'Scan QR code instead')}
