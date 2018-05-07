@@ -74,7 +74,7 @@ class Contents extends React.Component<Props> {
               </Text>
             )}
           </Box>
-          {errorText && (
+          {!!errorText && (
             <Box
               style={{
                 ...styleContainer,
