@@ -33,6 +33,12 @@ import type {Mode} from '../../../constants/types/login'
 import type {Props} from '.'
 
 class CodePage extends Component<Props> {
+  _desktopInstructionText() {
+    return this.props.myDeviceRole === codePageDeviceRoleExistingPhone
+      ? 'Sign into your account in the Keybase app on your computer.'
+      : 'In the Keybase app on your computer, go to Devices > Add a new device.'
+  }
+
   componentDidMount() {
     this.props.resetQRCodeScanned()
   }
@@ -160,7 +166,7 @@ class CodePage extends Component<Props> {
             Scan QR code
           </Text>
           <Text type="Body" style={{textAlign: 'center'}}>
-            Sign into your account in the Keybase app on your computer.
+            {this._desktopInstructionText()}
           </Text>
         </Box>
         {this.renderScanCode()}
@@ -246,7 +252,7 @@ class CodePage extends Component<Props> {
             Type in text code
           </Text>
           <Text type="Body" style={{textAlign: 'center'}}>
-            Sign into your account in the Keybase app on your computer.
+            {this._desktopInstructionText()}
           </Text>
         </Box>
         {this.renderEnterText()}
