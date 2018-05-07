@@ -113,7 +113,7 @@ func (s *UserEKBoxStorage) fetchAndPut(ctx context.Context, generation keybase1.
 	}
 
 	if result.Result == nil {
-		return userEK, fmt.Errorf("server didn't return a box for userEK generation %d", generation)
+		return userEK, newEKMissingBoxErr(UserEKStr, generation)
 	}
 
 	// Before we store anything, let's verify that the server returned
