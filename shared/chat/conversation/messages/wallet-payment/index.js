@@ -11,14 +11,14 @@ export type Props = {
   balanceChangeColor: string,
   icon: IconType,
   memo: string,
-  onSend?: string,
+  onSend?: () => void,
   pending: boolean,
   sendButtonLabel?: string,
 }
 
 export default (props: Props) => {
   return (
-    <Box2 direction="vertical" gap="xtiny" gapEnd={true} fullWidth={true} style={{alignItems: 'flex-start'}}>
+    <Box2 direction="vertical" gap="xtiny" gapEnd={true} fullWidth={true}>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
         <Box2 direction="horizontal" gap="xtiny" style={collapseStyles([styles.headingContainer, {flex: 1}])}>
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
@@ -30,17 +30,27 @@ export default (props: Props) => {
             {props.pending ? '...' : '.'}
           </Text>
         </Box2>
-        <Box2 direction="horizontal">
-          <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
-            {props.balanceChange}
-          </Text>
-        </Box2>
+        {!!props.balanceChange && (
+          <Box2 direction="horizontal">
+            <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
+              {props.balanceChange}
+            </Text>
+          </Box2>
+        )}
       </Box2>
       <Box2 direction="horizontal" gap="small" fullWidth={true}>
         <Divider vertical={true} style={styles.quoteMarker} />
         <Markdown allowFontScaling={true}>{props.memo}</Markdown>
       </Box2>
-      <Button type="Wallet" label="sendButtonLabel" onClick={props.onSend} />
+      {!!props.sendButtonLabel &&
+        !!props.onSend && (
+          <Button
+            type="Wallet"
+            label={props.sendButtonLabel}
+            onClick={props.onSend}
+            style={{alignSelf: 'flex-start'}}
+          />
+        )}
     </Box2>
   )
 }
