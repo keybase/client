@@ -7,6 +7,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -174,65 +175,41 @@ func (e *Login) perUserKeyUpgradeSoft(m libkb.MetaContext) error {
 }
 
 func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
-	loggedInOK, err := e.checkLoggedIn(m)
-	if err != nil {
-		return loggedInOK, err
-	}
-	if !loggedInOK {
-		return loggedInOK, nil
-	}
+	m.CDebugf("checkLoggedInAndNotRevoked()")
 
-	m.CDebugf("user is logged in, checking if on a revoked device")
-	validDevice := false
-	err = m.G().GetFullSelfer().WithSelfForcePoll(m.Ctx(), func(me *libkb.User) error {
-		validDevice = me.HasCurrentDeviceInCurrentInstall()
-		return nil
-	})
-	if err != nil {
-		return false, err
-	}
-	if validDevice {
-		m.CDebugf("user is logged in on a valid device")
+	username := libkb.NewNormalizedUsername(e.usernameOrEmail)
+
+	// CheckForUsername() gets a consistent picture of the current active device,
+	// and sees if it matches the given username, and isn't revoked. If all goes
+	// well, we return `true,nil`. It could be we're already logged in but for
+	// someone else, in which case we return true and an error.
+	err := m.ActiveDevice().CheckForUsername(m, username)
+
+	switch err.(type) {
+	case nil:
 		return true, nil
-	}
-
-	m.CDebugf("user is logged in on a revoked device, logging out then proceeding to login")
-	if err := m.G().Logout(); err != nil {
-		m.CDebugf("logout error: %s", err)
-		return false, err
-	}
-
-	return false, nil
-}
-
-func (e *Login) checkLoggedIn(m libkb.MetaContext) (bool, error) {
-	m.CDebugf("checkLoggedIn()")
-	if !m.ActiveDevice().Valid() {
+	case libkb.NoActiveDeviceError:
 		return false, nil
-	}
-
-	if len(e.usernameOrEmail) == 0 {
-		m.CDebugf("Login: already logged in, no username or email provided, so returning without error")
-		return true, nil
-	}
-	if libkb.CheckEmail.F(e.usernameOrEmail) {
-		m.CDebugf("Login: already logged in, but %q email address provided.  Can't determine if that is current user without further work, so just returning LoggedInError")
+	case libkb.UserNotFoundError:
+		m.CDebugf("Login: %s", err.Error())
+		return false, err
+	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
+		m.CDebugf("Login on revoked or reset device: %s", err.Error())
+		if err = m.G().Logout(); err != nil {
+			m.CDebugf("logout error: %s", err)
+		}
+		return false, err
+	case libkb.BadUsernameError:
+		if libkb.CheckEmail.F(e.usernameOrEmail) {
+			m.CDebugf("Login: already logged in, but %q email address provided. Can't determine if that is current user without further work, so just returning LoggedInError", e.usernameOrEmail)
+		} else {
+			m.CDebugf("User already logged in as different user (%s)", err.Error())
+		}
 		return true, libkb.LoggedInError{}
+	default:
+		m.CDebugf("Login: unexpected error: %s", err.Error())
+		return false, fmt.Errorf("unexpected error in Login: %s", err.Error())
 	}
-	m.CDebugf("checkLoggedIn() looking up username for %s", m.ActiveDevice().UID())
-	username, err := m.G().GetUPAKLoader().LookupUsername(m.Ctx(), m.ActiveDevice().UID())
-	if err != nil {
-		m.CDebugf("checkLoggedIn() LookupUsername error: %s", err)
-		return true, err
-	}
-	if username.Eq(libkb.NewNormalizedUsername(e.usernameOrEmail)) {
-		m.CDebugf("Login: already logged in as %q, returning without error", e.usernameOrEmail)
-		return true, nil
-	}
-
-	m.CDebugf("Login: logged in already as %q (%q requested), returning LoggedInError", username, e.usernameOrEmail)
-	return true, libkb.LoggedInError{}
-
 }
 
 func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, error) {

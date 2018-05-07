@@ -28,6 +28,7 @@ type UPAKLoader interface {
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
 	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
+	CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername) error
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -671,6 +672,41 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 		err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
 	}
 	return NormalizedUsername(""), "", "", err
+}
+
+func (u *CachedUPAKLoader) CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername) (err error) {
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithForcePoll(true).WithPublicKeyOptional()
+	foundUser := false
+	foundDevice := false
+	isRevoked := false
+	var foundUsername NormalizedUsername
+	u.loadWithInfo(arg, nil, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+		if upak == nil {
+			return nil
+		}
+		foundUser = true
+		foundUsername = NewNormalizedUsername(upak.Current.Username)
+		if pk := upak.FindDevice(did); pk != nil {
+			foundDevice = true
+			if pk.Base.Revocation != nil {
+				isRevoked = true
+			}
+		}
+		return nil
+	}, false)
+	if !foundUser {
+		return UserNotFoundError{UID: uid}
+	}
+	if !foundDevice {
+		return DeviceNotFoundError{Where: "UPAKLoader", ID: did, Loaded: false}
+	}
+	if isRevoked {
+		return NewKeyRevokedError(did.String())
+	}
+	if !n.IsNil() && !foundUsername.Eq(n) {
+		return NewBadUsernameError(fmt.Sprintf("expected %q not %q", foundUsername.String(), n.String()))
+	}
+	return nil
 }
 
 func (u *CachedUPAKLoader) loadUserWithKIDAndInfo(ctx context.Context, uid keybase1.UID, kid keybase1.KID, info *CachedUserLoadInfo) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
