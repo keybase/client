@@ -45,6 +45,17 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   type: 'file',
 })
 
+export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
+  badgeCount: 0,
+  name: 'unknown',
+  lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
+  size: 0,
+  progress: 'pending',
+  type: 'symlink',
+  linkTarget: '',
+})
+
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
   badgeCount: 0,
   name: 'unknown',
