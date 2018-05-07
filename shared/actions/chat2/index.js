@@ -1455,6 +1455,9 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
   const {conversationIDKey, forShare, ordinal} = action.payload
   if (forShare) {
+    // We are sharing an attachment on mobile,
+    // the reducer handles setting the appropriate
+    // flags in this case
     return
   }
   const state: TypedState = yield Saga.select()
