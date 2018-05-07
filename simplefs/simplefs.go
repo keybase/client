@@ -274,6 +274,7 @@ func setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		}
 		de.LastWriterUnverified = lastWriter
 	}
+	de.Name = fi.Name()
 	return nil
 }
 
@@ -463,7 +464,6 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					if err != nil {
 						return err
 					}
-					d.Name = fi.Name()
 					res = append(res, d)
 				}
 				k.updateReadProgress(arg.OpID, 0, int64(len(fis)))
@@ -510,7 +510,6 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 				if err != nil {
 					return err
 				}
-				d.Name = fi.Name()
 				des = append(des, d)
 				// Leave paths empty so we can skip the loop below.
 			} else {
@@ -539,7 +538,6 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 					if err != nil {
 						return err
 					}
-					de.Name = fi.Name()
 					des = append(des, de)
 					if fi.IsDir() {
 						paths = append(paths, stdpath.Join(path, fi.Name()))
@@ -1144,20 +1142,8 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 		})
 }
 
-func wrapStat(fi os.FileInfo, err error) (keybase1.Dirent, error) {
-	if err != nil {
-		return keybase1.Dirent{}, err
-	}
-	var de keybase1.Dirent
-	if err = setStat(&de, fi); err != nil {
-		return keybase1.Dirent{}, err
-	}
-	de.Name = fi.Name()
-	return de, err
-}
-
 // SimpleFSStat - Get info about file
-func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (_ keybase1.Dirent, err error) {
+func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (de keybase1.Dirent, err error) {
 	ctx, err = k.startSyncOp(ctx, "Stat", path)
 	if err != nil {
 		return keybase1.Dirent{}, err
@@ -1174,7 +1160,8 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (_ keyb
 		return keybase1.Dirent{}, err
 	}
 
-	return wrapStat(fi, err)
+	err = setStat(&de, fi)
+	return de, err
 }
 
 // SimpleFSMakeOpid - Convenience helper for generating new random value
