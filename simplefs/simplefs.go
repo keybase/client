@@ -1149,7 +1149,10 @@ func wrapStat(fi os.FileInfo, err error) (keybase1.Dirent, error) {
 		return keybase1.Dirent{}, err
 	}
 	var de keybase1.Dirent
-	err = setStat(&de, fi)
+	if err = setStat(&de, fi); err != nil {
+		return keybase1.Dirent{}, err
+	}
+	de.Name = fi.Name()
 	return de, err
 }
 
