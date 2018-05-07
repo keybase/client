@@ -962,16 +962,13 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 	}
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
-		var valid chat1.MessageUnboxedValid
+		valid := rawMsg.Valid()
 		if !rawMsg.IsValidFull() {
 			showErr := true
-			if rawMsg.IsValid() {
-				valid = rawMsg.Valid()
-				// If we have an expired ephemeral message, don't show an error
-				// message.
-				if valid.IsExploding() && valid.IsEphemeralExpired(time.Now()) {
-					showErr = false
-				}
+			// If we have an expired ephemeral message, don't show an error
+			// message.
+			if valid.IsExploding() && valid.IsEphemeralExpired(time.Now()) {
+				showErr = false
 			}
 			if showErr {
 				return miscErr(fmt.Errorf("unexpected deleted %v message",
@@ -979,7 +976,6 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			}
 		}
 		var strOutboxID *string
-		valid = rawMsg.Valid()
 		if valid.ClientHeader.OutboxID != nil {
 			so := valid.ClientHeader.OutboxID.String()
 			strOutboxID = &so
