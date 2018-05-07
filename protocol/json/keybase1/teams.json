@@ -706,6 +706,10 @@
           "name": "perTeamKeys"
         },
         {
+          "type": "UnixTime",
+          "name": "perTeamKeyCTime"
+        },
+        {
           "type": {
             "type": "map",
             "values": "LinkID",
