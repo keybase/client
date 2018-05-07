@@ -74,10 +74,10 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
   [Chat2Gen.metaUpdatePagination]: fullOutput,
   [Chat2Gen.setConversationOffline]: fullOutput,
   [ConfigGen.globalError]: a => {
-    let err
+    let err = {}
     const ge = a.payload.globalError
     if (ge) {
-      err = `Global Error: ${ge.message} ${ge.stack || ''}`
+      err = {err: `Global Error: ${ge.message} ${ge.stack || ''}`}
     }
 
     return {
