@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, Divider, Icon, Markdown, Text} from '../../../../common-adapters'
 import type {IconType} from '../../../../common-adapters/icon.constants'
-import {collapseStyles, globalColors, styleSheetCreate} from '../../../../styles'
+import {globalColors, styleSheetCreate} from '../../../../styles'
 
 export type Props = {
   action: string,
@@ -18,9 +18,9 @@ export type Props = {
 
 export default (props: Props) => {
   return (
-    <Box2 direction="vertical" gap="xtiny" gapEnd={true} fullWidth={true}>
+    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
-        <Box2 direction="horizontal" gap="xtiny" style={collapseStyles([styles.headingContainer, {flex: 1}])}>
+        <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
             {props.action}{' '}
@@ -58,6 +58,7 @@ export default (props: Props) => {
 const styles = styleSheetCreate({
   headingContainer: {
     alignItems: 'center',
+    flex: 1,
   },
   purple: {color: globalColors.purple2},
   quoteMarker: {maxWidth: 3, minWidth: 3},
