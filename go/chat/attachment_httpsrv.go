@@ -395,16 +395,16 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 		return nil
 	}
 
+	// Delete the assets locally
+	for _, asset := range assets {
+		c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+	}
+
 	// get s3 params from server
 	s3params, err := ri().GetS3Params(ctx, convID)
 	if err != nil {
 		c.Debug(ctx, "error getting s3params: %s", err)
 		return err
-	}
-
-	// Delete the assets locally
-	for _, asset := range assets {
-		c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 	}
 
 	// Try to delete the assets remotely
