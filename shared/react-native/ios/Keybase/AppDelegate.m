@@ -71,7 +71,7 @@ const BOOL isDebug = NO;
 #endif
 
   BOOL securityAccessGroupOverride = isSimulator;
-  BOOL skipLogFile = false;
+  BOOL skipLogFile = true;
 
   NSString * home = NSHomeDirectory();
 
@@ -198,18 +198,31 @@ const BOOL isDebug = NO;
 }
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
-
-  // Mark a background task so we don't get insta killed by the OS
-  if (!self.backgroundTask || self.backgroundTask == UIBackgroundTaskInvalid) {
-    self.backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-      [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
-      self.backgroundTask = UIBackgroundTaskInvalid;
-    }];
-  }
-
-  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
-  completionHandler(UIBackgroundFetchResultNewData);
-  }
+  NSLog(@"Remote notification handle started...");
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+    int membersType = [[notification objectForKey:@"t"] intValue];
+    int messageID = [[notification objectForKey:@"d"] intValue];
+    int badgeCount = [[notification objectForKey:@"b"] intValue];
+    int unixTime = [[notification objectForKey:@"x"] intValue];
+    NSString* pushID = [[notification objectForKey:@"p"] objectAtIndex:0];
+    NSString* body = [notification objectForKey:@"m"];
+    
+    NSError *err = nil;
+    NSString* pushMessage = KeybaseHandleBackgroundNotification(notification[@"c"], membersType, messageID,
+                                        pushID, badgeCount, unixTime, body, &err);
+    if (err == nil) {
+      UILocalNotification* localNotification = [[UILocalNotification alloc] init];
+      localNotification.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+      localNotification.alertBody = pushMessage;
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [application scheduleLocalNotification:localNotification];
+      });
+    }
+    completionHandler(UIBackgroundFetchResultNewData);
+    NSLog(@"Background fetch completed...");
+  });
+}
+  
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {

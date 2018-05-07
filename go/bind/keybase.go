@@ -312,6 +312,14 @@ func BackgroundSync() {
 	<-doneCh
 }
 
+func HandleBackgroundNotification(strConvID string, intMembersType int, intMessageID int,
+	strPushID string, badgeCount int, unixTime int, body string) (res string, err error) {
+	defer kbCtx.Trace(fmt.Sprintf("HandleBackgroundNotification(%s,%d,%d,%s,%d,%d)",
+		strConvID, intMembersType, intMessageID, strPushID, badgeCount, unixTime),
+		func() error { return err })()
+	return "HI MIKE", nil
+}
+
 // AppWillExit is called reliably on iOS when the app is about to terminate
 // not as reliably on android
 func AppWillExit() {
