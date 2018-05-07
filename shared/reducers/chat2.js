@@ -462,14 +462,17 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
               } else if (message.type === 'placeholder') {
                 // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
                 // and ignore the placeholder in that instance
+                logger.info(`Got placeholder message with id: ${message.id}`)
                 const existingOrdinal = messageIDToOrdinal(
-                  messageMap,
+                  state.messageMap,
                   pendingOutboxToOrdinal,
                   conversationIDKey,
                   message.id
                 )
                 if (!existingOrdinal) {
                   arr.push(message.ordinal)
+                } else {
+                  logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
                 }
               } else {
                 arr.push(message.ordinal)

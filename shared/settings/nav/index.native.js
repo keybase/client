@@ -37,11 +37,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
     <NativeScrollView style={{width: '100%', height: '100%'}}>
       <Box style={styleNavBox}>
         <SettingsItem
-          text="Folders"
-          badgeNumber={badgeNumbers[TabConstants.folderTab]}
-          onClick={() => onTabChange(Constants.foldersTab)}
-        />
-        <SettingsItem
           text="Files"
           badgeNumber={badgeNumbers[TabConstants.fsTab]}
           onClick={() => onTabChange(Constants.fsTab)}

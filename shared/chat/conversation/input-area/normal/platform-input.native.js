@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text} from '../../../../common-adapters'
+import {Box, Box2, Icon, Input, Text} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, styleSheetCreate} from '../../../../styles'
 import {isIOS} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -168,28 +168,21 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
       </Text>
     </Box>
   ) : (
-    <Box style={styles.actionButtonContainer}>
+    <Box2 direction="horizontal" gap="tiny" gapEnd={true}>
       <Icon
         onClick={pendingWaiting ? undefined : insertMentionMarker}
         type="iconfont-mention"
-        style={styles.mentionMarkerStyle}
-        iconStyle={styles.actionButtonIcon}
+        style={styles.actionButton}
+        fontSize={21}
       />
       <Icon
         onClick={pendingWaiting ? undefined : openFilePicker}
         type="iconfont-camera"
         style={styles.actionButton}
-        iconStyle={styles.actionButtonIcon}
+        fontSize={21}
       />
-    </Box>
+    </Box2>
   )
-
-const actionButton = {
-  alignSelf: isIOS ? 'flex-end' : 'center',
-  paddingBottom: 2,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: 2,
-}
 
 const styles = styleSheetCreate({
   accessory: {
@@ -203,11 +196,9 @@ const styles = styleSheetCreate({
     position: 'relative',
     width: '100%',
   },
-  actionButton,
-  actionButtonContainer: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingRight: globalMargins.tiny,
+  actionButton: {
+    alignSelf: isIOS ? 'flex-end' : 'center',
+    paddingBottom: 2,
   },
   actionText: {
     ...globalStyles.flexBoxColumn,
@@ -253,7 +244,6 @@ const styles = styleSheetCreate({
     height: 160,
     width: '100%',
   },
-  mentionMarkerStyle: {...actionButton, paddingRight: 0},
   typing: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',

@@ -5,6 +5,7 @@ import SortBar from './sortbar'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   path: Types.Path,
@@ -30,12 +31,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       navigateAppend([
         {
           props: {
-            sortSettingToAction: (sortSetting: Types.SortSetting) => (evt?: SyntheticEvent<>) => {
+            sortSettingToAction: (sortSetting: Types.SortSetting) => () => {
               dispatch(FsGen.createSortSetting({path, sortSetting: Constants.makeSortSetting(sortSetting)}))
-              if (evt) {
-                dispatch(navigateUp())
-                evt.stopPropagation()
-              }
+              !isMobile && dispatch(navigateUp())
             },
             onHidden: () => dispatch(navigateUp()),
           },
