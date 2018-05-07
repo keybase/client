@@ -241,12 +241,12 @@ func (md *MDOpsStandard) verifyKey(
 			}
 		}
 
-		// TODO: check the most recent global merkle root and KBFS
-		// merkle root ctimes and make sure they fall within the
-		// expected error window with respect to the revocation.  Also
-		// eventually check the blockchain-published merkles to make
-		// sure the server isn't lying (though that will have a much
-		// larger error window).
+		// TODO(KBFS-2956): check the most recent global merkle root
+		// and KBFS merkle root ctimes and make sure they fall within
+		// the expected error window with respect to the revocation.
+		// Also eventually check the blockchain-published merkles to
+		// make sure the server isn't lying (though that will have a
+		// much larger error window).
 		return true, nil
 	}
 
@@ -295,10 +295,10 @@ func (md *MDOpsStandard) verifyKey(
 		return false, err
 	}
 
-	// TODO: check with the service to verify the global root info, to
-	// make sure it fits into our view of the global merkle tree and
-	// that it indeed points to the leaf we're using via `kbfsRoot`
-	// and all the `merkleNodes`.
+	// TODO(KBFS-2954): check with the service to verify the global
+	// root info, to make sure it fits into our view of the global
+	// merkle tree and that it indeed points to the leaf we're using
+	// via `kbfsRoot` and all the `merkleNodes`.
 
 	return true, nil
 }
@@ -435,7 +435,7 @@ func (e everyoneOnEveryTeamChecker) IsTeamReader(
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, extra kbfsmd.ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
-	// First, verify validity and signatures. Until KBFS-2904 is
+	// First, verify validity and signatures. Until KBFS-2955 is
 	// complete, KBFS doesn't check for team membership on MDs that
 	// have been fetched from the server, because if the writer has
 	// been removed from the team since the MD was written, we have no
@@ -444,7 +444,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// secret key as a way to prove that only an authorized team
 	// member wrote the update, along with trusting that the server
 	// would have rejected an update from a former team member that is
-	// still using an old key.  TODO(KBFS-2904): remove this.
+	// still using an old key.  TODO(KBFS-2955): remove this.
 	err := rmds.IsValidAndSigned(
 		ctx, md.config.Codec(),
 		everyoneOnEveryTeamChecker{}, extra)
