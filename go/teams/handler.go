@@ -150,7 +150,14 @@ func sweepOpenTeamResetMembers(ctx context.Context, g *libkb.GlobalContext,
 
 		g.Log.CDebugf(ctx, "Posting ChangeMembership with %d removals (CLKR list was %d)",
 			len(changeReq.None), len(resetUsersUntrusted))
-		if err := team.ChangeMembershipPermanent(ctx, changeReq, false /* permanent */); err != nil {
+
+		opts := ChangeMembershipOptions{
+			// Make it possible for user to come back in once they reprovision.
+			Permanent: false,
+			// Coming from CLKR, we want to ensure team key is rotated.
+			SkipKeyRotation: false,
+		}
+		if err := team.ChangeMembershipWithOptions(ctx, changeReq, opts); err != nil {
 			return err
 		}
 

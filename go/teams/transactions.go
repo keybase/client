@@ -18,6 +18,9 @@ type AddMemberTx struct {
 	payloads []interface{} // *SCTeamInvites or *keybase1.TeamChangeReq
 
 	completedInvites map[keybase1.TeamInviteID]bool
+
+	// Do not rotate team key, even on member removals.
+	SkipKeyRotation *bool
 }
 
 func CreateAddMemberTx(t *Team) *AddMemberTx {
@@ -624,7 +627,13 @@ func (tx *AddMemberTx) Post(ctx context.Context) (err error) {
 		}()
 	}
 
-	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet)
+	var skipKeyRotation bool
+	if tx.SkipKeyRotation != nil {
+		skipKeyRotation = *tx.SkipKeyRotation
+	} else {
+		skipKeyRotation = team.CanSkipKeyRotation()
+	}
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(ctx, memSet, skipKeyRotation)
 	if err != nil {
 		return err
 	}

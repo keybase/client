@@ -130,6 +130,7 @@ func TestTeamReset(t *testing.T) {
 	// Note that ann (the admin) has a UIDMapper that should get pubsub updates
 	// since she is an admin for the team in question. cam won't get those
 	// pubsub updates
+	ann.setUIDMapperNoCachingMode(true)
 	bob.setUIDMapperNoCachingMode(true)
 	cam.setUIDMapperNoCachingMode(true)
 

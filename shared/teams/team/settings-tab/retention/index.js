@@ -294,7 +294,7 @@ const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
 }
 const policyToInheritLabel = (p: RetentionPolicy) => {
   const label = policyToLabel(p)
-  return `Use team default (${label})`
+  return `Team default (${label})`
 }
 // Use only for comparing policy durations
 const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): number => {

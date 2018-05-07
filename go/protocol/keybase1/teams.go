@@ -817,6 +817,7 @@ type TeamSigChainState struct {
 	UserLog          map[UserVersion][]UserLogPoint                    `codec:"userLog" json:"userLog"`
 	SubteamLog       map[TeamID][]SubteamLogPoint                      `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys      map[PerTeamKeyGeneration]PerTeamKey               `codec:"perTeamKeys" json:"perTeamKeys"`
+	PerTeamKeyCTime  UnixTime                                          `codec:"perTeamKeyCTime" json:"perTeamKeyCTime"`
 	LinkIDs          map[Seqno]LinkID                                  `codec:"linkIDs" json:"linkIDs"`
 	StubbedLinks     map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites    map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
@@ -911,6 +912,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.PerTeamKeys),
+		PerTeamKeyCTime: o.PerTeamKeyCTime.DeepCopy(),
 		LinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
 			if x == nil {
 				return nil

@@ -33,13 +33,13 @@ class Conversation extends React.PureComponent<Props> {
       <Box style={containerStyle}>
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
-          onToggleInfoPanel={this.props.onOpenInfoPanelMobile}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           infoPanelOpen={false}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
-          onToggleInfoPanel={this.props.onOpenInfoPanelMobile}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}

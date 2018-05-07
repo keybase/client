@@ -61,6 +61,8 @@ func TestTeamList(t *testing.T) {
 
 	teamCli := ann.getTeamsClient()
 
+	ann.setUIDMapperNoCachingMode(true)
+
 	rootername := randomUser("arbitrary").username
 	_, err := teamCli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
 		Name:     team.name,

@@ -10,7 +10,6 @@ import Push from '../app/push/push.native'
 import DevicesRoute from '../devices/routes'
 import WalletsRoute from '../wallets/routes'
 import GitRoute from '../git/routes'
-import FoldersRoute from '../folders/routes'
 import FilesRoute from '../fs/routes'
 import WebLinks from './web-links'
 import Passphrase from './passphrase/container'
@@ -51,7 +50,6 @@ const routeTree = makeRouteDefNode({
         },
       },
     },
-    [Constants.foldersTab]: FoldersRoute,
     [Constants.fsTab]: FilesRoute,
     [Constants.devicesTab]: DevicesRoute,
     [Constants.walletsTab]: WalletsRoute,

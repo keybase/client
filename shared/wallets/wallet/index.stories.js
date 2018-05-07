@@ -2,7 +2,7 @@
 import React from 'react'
 import {Box2} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
-import Header from '../../wallets/wallet/header'
+import Header from './header'
 
 const defaultWalletMock = {
   isDefaultWallet: true,
@@ -26,7 +26,7 @@ const commonActions = {
 }
 
 const load = () => {
-  storiesOf('Stellar/Wallet', module)
+  storiesOf('Wallets/Wallet', module)
     .add('Default wallet', () => (
       <Box2 direction="horizontal" style={styleWidth}>
         <Header {...commonActions} {...defaultWalletMock} />
