@@ -1453,7 +1453,10 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
 
 // Download an attachment to your device
 function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
-  const {conversationIDKey, ordinal} = action.payload
+  const {conversationIDKey, forShare, ordinal} = action.payload
+  if (forShare) {
+    return
+  }
   const state: TypedState = yield Saga.select()
   let message = Constants.getMessageMap(state, conversationIDKey).get(ordinal)
 
