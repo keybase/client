@@ -465,6 +465,9 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   if (mimeType.startsWith('video/')) {
     return 'video'
   }
+  if (mimeType === 'application/pdf') {
+    return 'pdf'
+  }
   return 'default'
 }
 
@@ -472,6 +475,8 @@ export const generateFileURL = (path: Types.Path, address: string, token: string
   const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
   return `http://${address}/files${stripKeybase}?token=${token}`
 }
+
+export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
 export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   const pathElems = Types.getPathElements(path)
