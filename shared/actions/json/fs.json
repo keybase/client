@@ -85,6 +85,13 @@
       "address": "string",
       "token": "string"
     },
+    "favoriteIgnore": {
+      "path": "Types.Path"
+    },
+    "favoriteIgnoreError": {
+      "path": "Types.Path",
+      "errorText": "string"
+    },
 
     "setupFSHandlers": {}
   }

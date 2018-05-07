@@ -117,6 +117,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.mergeIn(['flags'], {kbfsInstalling: true})
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
+    case FsGen.favoriteIgnore:
+      return state.mergeIn(['pathItems', Types.pathToString(action.payload.path), 'tlfMeta'], {
+        isIgnored: true,
+      })
+    case FsGen.favoriteIgnoreError:
+      return state.mergeIn(['pathItems', Types.pathToString(action.payload.path), 'tlfMeta'], {
+        isIgnored: false,
+      })
     case FsGen.cancelTransfer:
     case FsGen.download:
     case FsGen.openInFileUI:
