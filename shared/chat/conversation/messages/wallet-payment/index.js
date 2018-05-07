@@ -1,31 +1,46 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, Markdown, Text} from '../../../../common-adapters'
+import {Box2, Button, Divider, Icon, Markdown, Text} from '../../../../common-adapters'
+import type {IconType} from '../../../../common-adapters/icon.constants'
 import {collapseStyles, globalColors, styleSheetCreate} from '../../../../styles'
 
-export type Props = {}
+export type Props = {
+  action: string,
+  amount: string,
+  balanceChange: string,
+  balanceChangeColor: string,
+  icon: IconType,
+  memo: string,
+  onSend?: string,
+  pending: boolean,
+  sendButtonLabel?: string,
+}
 
 export default (props: Props) => {
   return (
-    <Box2 direction="vertical" gap="xtiny" gapEnd={true}>
+    <Box2 direction="vertical" gap="xtiny" gapEnd={true} fullWidth={true} style={{alignItems: 'flex-start'}}>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
         <Box2 direction="horizontal" gap="xtiny" style={collapseStyles([styles.headingContainer, {flex: 1}])}>
-          <Icon type="iconfont-time" color={globalColors.purple2} fontSize={12} />
+          <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
-            sent Lumens worth{' '}
+            {props.action}{' '}
             <Text type="BodySmallExtrabold" style={styles.purple}>
-              $35
+              {props.amount}
             </Text>
-            .
+            {props.pending ? '...' : '.'}
           </Text>
         </Box2>
         <Box2 direction="horizontal">
-          <Text type="BodyExtrabold" style={{color: globalColors.red}}>
-            -90.5700999 XLM
+          <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
+            {props.balanceChange}
           </Text>
         </Box2>
       </Box2>
-      <Markdown allowFontScaling={true}>:beer:</Markdown>
+      <Box2 direction="horizontal" gap="small" fullWidth={true}>
+        <Divider vertical={true} style={styles.quoteMarker} />
+        <Markdown allowFontScaling={true}>{props.memo}</Markdown>
+      </Box2>
+      <Button type="Wallet" label="sendButtonLabel" onClick={props.onSend} />
     </Box2>
   )
 }
@@ -35,4 +50,5 @@ const styles = styleSheetCreate({
     alignItems: 'center',
   },
   purple: {color: globalColors.purple2},
+  quoteMarker: {maxWidth: 3, minWidth: 3},
 })
