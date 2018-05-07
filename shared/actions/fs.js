@@ -43,6 +43,13 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+const direntToMetadata = (d: RPCTypes.Dirent) => ({
+  name: d.name,
+  lastModifiedTimestamp: d.time,
+  lastWriter: d.lastWriterUnverified,
+  size: d.size,
+})
+
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
 
@@ -53,13 +60,17 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     },
   })
 
-  const meta = Constants.makeFile({
-    name: Types.getPathName(rootPath),
-    lastModifiedTimestamp: dirent.time,
-    size: dirent.size,
-    progress: 'loaded',
-    lastWriter: dirent.lastWriterUnverified,
-  })
+  const meta =
+    dirent.direntType === RPCTypes.simpleFSDirentType.sym
+      ? Constants.makeSymlink({
+          ...direntToMetadata(dirent),
+          progress: 'loaded',
+          // TODO: plumb link target
+        })
+      : Constants.makeFile({
+          ...direntToMetadata(dirent),
+          progress: 'loaded',
+        })
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
 
@@ -81,18 +92,20 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
   const entries = result.entries || []
 
-  const direntToMetadata = (d: RPCTypes.Dirent) => ({
-    name: d.name,
-    lastModifiedTimestamp: d.time,
-    lastWriter: d.lastWriterUnverified,
-    size: d.size,
-  })
-
   const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
     Types.pathConcat(rootPath, d.name),
     d.direntType === RPCTypes.simpleFSDirentType.dir
       ? Constants.makeFolder(direntToMetadata(d))
-      : Constants.makeFile(direntToMetadata(d)),
+      : d.direntType === RPCTypes.simpleFSDirentType.sym
+        ? Constants.makeSymlink({
+            ...direntToMetadata(d),
+            progress: 'loaded',
+            // TODO: plumb link target
+          })
+        : Constants.makeFile({
+            ...direntToMetadata(d),
+            progress: 'loaded',
+          }),
   ]
 
   // Get metadata fields of the directory that we just loaded from state to

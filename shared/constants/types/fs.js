@@ -59,7 +59,7 @@ export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
 export type _SymlinkPathItem = {
   type: 'symlink',
-  linkTarget: Path,
+  linkTarget: string,
 } & PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
