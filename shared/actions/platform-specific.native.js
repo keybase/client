@@ -91,6 +91,36 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return CameraRoll.saveToCameraRoll(goodPath)
 }
 
+function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
+  const logPrefix = '[saveAttachmentToCameraRoll] '
+  if (isIOS) {
+    logger.info(logPrefix + 'Saving to camera roll')
+    return CameraRoll.saveToCameraRoll(fileURL)
+  }
+  return (
+    RNFetchBlob.config({
+      appendExt: mime.extension(mimeType),
+      fileCache: true,
+    })
+      .fetch('GET', fileURL)
+      // get just the path
+      .then(res => {
+        logger.info(logPrefix + 'Fetching success, getting local file path')
+        res.path()
+      })
+      // hold on to the path to delete later and save to camera roll
+      .then(path => {
+        logger.info(logPrefix + 'Got local file path, attempting to save')
+        return [Promise.resolve(path), CameraRoll.saveToCameraRoll(`file://${path}`)]
+      })
+      // delete temp file
+      .then(([res, newUR]) => {
+        logger.info(logPrefix + 'Success, deleting tmp file')
+        return RNFetchBlob.fs.unlink(res)
+      })
+  )
+}
+
 // Downloads a file, shows the shareactionsheet, and deletes the file afterwards
 function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
   const extension = mime.extension(mimeType)
@@ -247,6 +277,7 @@ export {
   showMainWindow,
   configurePush,
   saveAttachmentDialog,
+  saveAttachmentToCameraRoll,
   setShownPushPrompt,
   getShownPushPrompt,
   showShareActionSheet,
