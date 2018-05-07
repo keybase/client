@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
 import {storiesOf} from '../../../../stories/storybook'
-import {Text} from '../../../../common-adapters'
+import {Box} from '../../../../common-adapters'
+import Payment from '.'
 
 const load = () => {
-  storiesOf('Chat/Conversation/Wallet payments', module).add('Receiving', () => (
-    <Text type="BodyExtrabold">ayo wsup wsup</Text>
-  ))
+  storiesOf('Chat/Conversation/Wallet payments', module)
+    .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
+    .add('Receiving', () => <Payment />)
 }
 
 export default load
