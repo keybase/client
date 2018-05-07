@@ -1821,6 +1821,7 @@ type serverChatListener struct {
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	teamType                chan chat1.TeamTypeInfo
 	expunge                 chan chat1.ExpungeInfo
+	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -1862,6 +1863,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.teamType <- activity.Teamtype()
 	case chat1.ChatActivityType_EXPUNGE:
 		n.expunge <- activity.Expunge()
+	case chat1.ChatActivityType_EPHEMERAL_PURGE:
+		n.ephemeralPurge <- activity.EphemeralPurge()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -1898,6 +1901,7 @@ func newServerChatListener() *serverChatListener {
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
 		expunge:                 make(chan chat1.ExpungeInfo, buf),
+		ephemeralPurge:          make(chan chat1.EphemeralPurgeNotifInfo, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
 		inboxStale:       make(chan struct{}, buf),
@@ -2875,6 +2879,16 @@ func consumeExpunge(t *testing.T, listener *serverChatListener) chat1.ExpungeInf
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get expunge notification")
 		return chat1.ExpungeInfo{}
+	}
+}
+
+func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.EphemeralPurgeNotifInfo {
+	select {
+	case x := <-listener.ephemeralPurge:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get ephemeralPurge notification")
+		return chat1.EphemeralPurgeNotifInfo{}
 	}
 }
 

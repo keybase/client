@@ -379,6 +379,14 @@ func TestBackgroundPurge(t *testing.T) {
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 
+	assertEphemeralPurgeNotifInfo := func(convID chat1.ConversationID, msgIDs []chat1.MessageID) {
+		info := listener.consumeEphemeralPurge(t)
+		require.Equal(t, info, chat1.EphemeralPurgeNotifInfo{
+			ConvID: convID,
+			MsgIDs: msgIDs,
+		})
+	}
+
 	// Load our conv with the initial tlf msg
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
 		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
@@ -422,6 +430,7 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgUnboxed2.Valid().Etime(),
 		IsActive:        true,
 	})
+	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed1.GetMessageID()})
 
 	t.Logf("assert listener 3")
 	assertListener(res.ConvID)
@@ -430,4 +439,5 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   0,
 		IsActive:        false,
 	})
+	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed2.GetMessageID()})
 }
