@@ -5,20 +5,21 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // LoginProvisionedDevice is an engine that tries to login using the
 // current device, if there is an existing provisioned device.
 type LoginProvisionedDevice struct {
 	libkb.Contextified
-	username        string
+	username        libkb.NormalizedUsername
 	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
 func NewLoginProvisionedDevice(g *libkb.GlobalContext, username string) *LoginProvisionedDevice {
 	return &LoginProvisionedDevice{
-		username:     username,
+		username:     libkb.NewNormalizedUsername(username),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -67,17 +68,17 @@ func (e *LoginProvisionedDevice) loadMe(m libkb.MetaContext) (err error) {
 	defer m.CTrace("LoginProvisionedDevice#loadMe", func() error { return err })()
 
 	var config *libkb.UserConfig
-	var nu NormalizedUsername
-	loadUserArg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithForcePoll()
+	var nu libkb.NormalizedUsername
+	loadUserArg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithForcePoll(true)
 	if len(e.username) == 0 {
 		m.CDebugf("| using current username")
 		config, err = m.G().Env.GetConfig().GetUserConfig()
 		loadUserArg = loadUserArg.WithSelf(true)
 	} else {
 		m.CDebugf("| using new username %s", e.username)
-		nu = libkb.NewNormalizedUsername(e.username)
+		nu = e.username
 		config, err = m.G().Env.GetConfig().GetUserConfigForUsername(nu)
-		loadUserArg = loadUserArg.WithName(e.username)
+		loadUserArg = loadUserArg.WithName(e.username.String())
 	}
 	if err != nil {
 		m.CDebugf("error getting user config: %s (%T)", err, err)
@@ -94,16 +95,18 @@ func (e *LoginProvisionedDevice) loadMe(m libkb.MetaContext) (err error) {
 	}
 
 	// Make sure the device ID is still valid.
-	me, _, err := m.G().GetUPAKLoader().LoadV2(loadUserArg)
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(loadUserArg)
 	if err != nil {
 		m.CDebugf("error loading user profile: %#v", err)
 		return err
 	}
-	nu = libkb.NewNormalizedUsername(me.Current.Username)
-	device, err := me.Current.FindSigningDeviceKey(deviceID)
-	if err != nil {
-		return err
+	if upak.Current.Status == keybase1.StatusCode_SCDeleted {
+		m.CDebugf("User %s was deleted", upak.Current.Uid)
+		return libkb.UserDeletedError{}
 	}
+
+	nu = libkb.NewNormalizedUsername(upak.Current.Username)
+	device := upak.Current.FindSigningDeviceKey(deviceID)
 
 	nukeDevice := false
 	if device == nil {
@@ -135,7 +138,7 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 
 	// already logged in?
 	in, uid := isLoggedIn(m)
-	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(uid).Eq(libkb.NewNormalizedUsername(e.username))) {
+	if in && (len(e.username) == 0 || m.G().Env.GetUsernameForUID(uid).Eq(e.username)) {
 		m.CDebugf("user %s already logged in; short-circuting", uid)
 		return nil
 	}
@@ -158,18 +161,18 @@ func (e *LoginProvisionedDevice) run(m libkb.MetaContext) (err error) {
 	}
 
 	if e.SecretStoreOnly {
-		if err := m.G().LoginState().LoginWithStoredSecret(m, e.username, afterLogin); err != nil {
+		if err := m.G().LoginState().LoginWithStoredSecret(m, e.username.String(), afterLogin); err != nil {
 			return err
 		}
 
 	} else {
-		if err := m.G().LoginState().LoginWithPrompt(m, e.username, m.UIs().LoginUI, m.UIs().SecretUI, afterLogin); err != nil {
+		if err := m.G().LoginState().LoginWithPrompt(m, e.username.String(), m.UIs().LoginUI, m.UIs().SecretUI, afterLogin); err != nil {
 			return err
 		}
 	}
 
 	// login was successful, unlock the device keys
-	err = e.unlockDeviceKeys(m, me)
+	// err = e.unlockDeviceKeys(m, me)
 	if err != nil {
 		return err
 	}

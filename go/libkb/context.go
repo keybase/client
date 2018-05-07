@@ -270,7 +270,7 @@ func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	return nil
 }
 
-func (m MetaContext) SwitchUserNukeConfig(u keybase1.UID, n NormalizedUsername) error {
+func (m MetaContext) SwitchUserNukeConfig(n NormalizedUsername) error {
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
