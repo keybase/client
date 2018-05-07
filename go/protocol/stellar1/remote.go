@@ -9,61 +9,61 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Members struct {
-	FromStellar  AccountID            `codec:"fromStellar" json:"fromStellar"`
-	From         keybase1.UserVersion `codec:"from" json:"from"`
-	FromDeviceID keybase1.DeviceID    `codec:"fromDeviceID" json:"fromDeviceID"`
-	ToStellar    AccountID            `codec:"toStellar" json:"toStellar"`
-	To           keybase1.UserVersion `codec:"to" json:"to"`
+type PaymentDirectPost struct {
+	FromDeviceID      keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To                *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	DisplayAmount     string                `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency   string                `codec:"displayCurrency" json:"displayCurrency"`
+	NoteB64           string                `codec:"noteB64" json:"noteB64"`
+	SignedTransaction string                `codec:"signedTransaction" json:"signedTransaction"`
 }
 
-func (o Members) DeepCopy() Members {
-	return Members{
-		FromStellar:  o.FromStellar.DeepCopy(),
-		From:         o.From.DeepCopy(),
+func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
+	return PaymentDirectPost{
 		FromDeviceID: o.FromDeviceID.DeepCopy(),
-		ToStellar:    o.ToStellar.DeepCopy(),
-		To:           o.To.DeepCopy(),
+		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.To),
+		DisplayAmount:     o.DisplayAmount,
+		DisplayCurrency:   o.DisplayCurrency,
+		NoteB64:           o.NoteB64,
+		SignedTransaction: o.SignedTransaction,
 	}
 }
 
-type Operation struct {
-	ID              string `codec:"ID" json:"ID"`
-	OpType          string `codec:"opType" json:"opType"`
-	CreatedAt       int    `codec:"createdAt" json:"createdAt"`
-	TransactionHash string `codec:"TransactionHash" json:"TransactionHash"`
-	Asset           Asset  `codec:"asset" json:"asset"`
-	Amount          string `codec:"amount" json:"amount"`
+type PaymentRelayPost struct {
+	FromDeviceID      keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To                *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	ToAssertion       string                `codec:"toAssertion" json:"toAssertion"`
+	RelayAccount      AccountID             `codec:"relayAccount" json:"relayAccount"`
+	TeamID            keybase1.TeamID       `codec:"teamID" json:"teamID"`
+	DisplayAmount     string                `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency   string                `codec:"displayCurrency" json:"displayCurrency"`
+	BoxB64            string                `codec:"boxB64" json:"boxB64"`
+	SignedTransaction string                `codec:"signedTransaction" json:"signedTransaction"`
 }
 
-func (o Operation) DeepCopy() Operation {
-	return Operation{
-		ID:              o.ID,
-		OpType:          o.OpType,
-		CreatedAt:       o.CreatedAt,
-		TransactionHash: o.TransactionHash,
-		Asset:           o.Asset.DeepCopy(),
-		Amount:          o.Amount,
-	}
-}
-
-type PaymentPost struct {
-	StellarAccountSeqno uint64  `codec:"stellarAccountSeqno" json:"stellarAccountSeqno"`
-	Members             Members `codec:"members" json:"members"`
-	DisplayAmount       string  `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency     string  `codec:"displayCurrency" json:"displayCurrency"`
-	NoteB64             string  `codec:"noteB64" json:"noteB64"`
-	SignedTransaction   string  `codec:"signedTransaction" json:"signedTransaction"`
-}
-
-func (o PaymentPost) DeepCopy() PaymentPost {
-	return PaymentPost{
-		StellarAccountSeqno: o.StellarAccountSeqno,
-		Members:             o.Members.DeepCopy(),
-		DisplayAmount:       o.DisplayAmount,
-		DisplayCurrency:     o.DisplayCurrency,
-		NoteB64:             o.NoteB64,
-		SignedTransaction:   o.SignedTransaction,
+func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
+	return PaymentRelayPost{
+		FromDeviceID: o.FromDeviceID.DeepCopy(),
+		To: (func(x *keybase1.UserVersion) *keybase1.UserVersion {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.To),
+		ToAssertion:       o.ToAssertion,
+		RelayAccount:      o.RelayAccount.DeepCopy(),
+		TeamID:            o.TeamID.DeepCopy(),
+		DisplayAmount:     o.DisplayAmount,
+		DisplayCurrency:   o.DisplayCurrency,
+		BoxB64:            o.BoxB64,
+		SignedTransaction: o.SignedTransaction,
 	}
 }
 
@@ -184,7 +184,12 @@ type AccountSeqnoArg struct {
 
 type SubmitPaymentArg struct {
 	Caller  keybase1.UserVersion `codec:"caller" json:"caller"`
-	Payment PaymentPost          `codec:"payment" json:"payment"`
+	Payment PaymentDirectPost    `codec:"payment" json:"payment"`
+}
+
+type SubmitRelayPaymentArg struct {
+	Caller  keybase1.UserVersion `codec:"caller" json:"caller"`
+	Payment PaymentRelayPost     `codec:"payment" json:"payment"`
 }
 
 type IsMasterKeyActiveArg struct {
@@ -201,6 +206,7 @@ type RemoteInterface interface {
 	PaymentDetail(context.Context, PaymentDetailArg) (PaymentSummary, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
+	SubmitRelayPayment(context.Context, SubmitRelayPaymentArg) (PaymentResult, error)
 	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
 	Ping(context.Context) (string, error)
 }
@@ -289,6 +295,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"submitRelayPayment": {
+				MakeArg: func() interface{} {
+					ret := make([]SubmitRelayPaymentArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SubmitRelayPaymentArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SubmitRelayPaymentArg)(nil), args)
+						return
+					}
+					ret, err = i.SubmitRelayPayment(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"isMasterKeyActive": {
 				MakeArg: func() interface{} {
 					ret := make([]IsMasterKeyActiveArg, 1)
@@ -346,6 +368,11 @@ func (c RemoteClient) AccountSeqno(ctx context.Context, __arg AccountSeqnoArg) (
 
 func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SubmitRelayPayment(ctx context.Context, __arg SubmitRelayPaymentArg) (res PaymentResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayPayment", []interface{}{__arg}, &res)
 	return
 }
 

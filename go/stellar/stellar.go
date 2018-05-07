@@ -250,32 +250,6 @@ func LookupRecipient(ctx context.Context, g *libkb.GlobalContext, to RecipientIn
 	return res, err
 }
 
-func makePostFromCurrentUser(ctx context.Context, g *libkb.GlobalContext, acctID stellarnet.AddressStr, recipient Recipient) (stellar1.PaymentPost, error) {
-	meUpk, err := loadMeUpk(ctx, g)
-	if err != nil {
-		return stellar1.PaymentPost{}, err
-	}
-	uid, deviceID, _, _, _ := g.ActiveDevice.AllFields()
-	if !meUpk.Uid.Equal(uid) {
-		return stellar1.PaymentPost{}, fmt.Errorf("mismatched local UIDs")
-	}
-	post := stellar1.PaymentPost{
-		Members: stellar1.Members{
-			FromStellar:  stellar1.AccountID(acctID.String()),
-			From:         meUpk.ToUserVersion(),
-			FromDeviceID: deviceID,
-		},
-	}
-	if recipient.AccountID == nil {
-		return stellar1.PaymentPost{}, fmt.Errorf("no stellar account for recipient")
-	}
-	post.Members.ToStellar = stellar1.AccountID(recipient.AccountID.String())
-	if recipient.User != nil {
-		post.Members.To = recipient.User.ToUserVersion()
-	}
-	return post, nil
-}
-
 // SendPayment sends XLM
 // `note` is optional. An empty string will not attach a note.
 // Recipient:
@@ -288,10 +262,6 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	defer g.CTraceTimed(ctx, "Stellar.SendPayment", func() error { return err })()
 	// look up sender wallet
 	primary, err := LookupSenderPrimary(ctx, g)
-	if err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-	primaryAccountID, err := stellarnet.NewAddressStr(primary.AccountID.String())
 	if err != nil {
 		return stellar1.PaymentResult{}, err
 	}
@@ -311,9 +281,12 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		return stellar1.PaymentResult{}, err
 	}
 
-	post, err := makePostFromCurrentUser(ctx, g, primaryAccountID, recipient)
-	if err != nil {
-		return stellar1.PaymentResult{}, err
+	post := stellar1.PaymentDirectPost{
+		FromDeviceID: g.ActiveDevice.DeviceID(),
+	}
+	if recipient.User != nil {
+		tmp := recipient.User.ToUserVersion()
+		post.To = &tmp
 	}
 
 	sp := NewSeqnoProvider(ctx, remoter)
@@ -332,7 +305,6 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		if err != nil {
 			return stellar1.PaymentResult{}, err
 		}
-		post.StellarAccountSeqno = sig.Seqno
 		post.SignedTransaction = sig.Signed
 		txID = sig.TxHash
 	} else {
@@ -341,7 +313,6 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 		if err != nil {
 			return stellar1.PaymentResult{}, err
 		}
-		post.StellarAccountSeqno = sig.Seqno
 		post.SignedTransaction = sig.Signed
 		txID = sig.TxHash
 	}
@@ -363,9 +334,7 @@ func SendPayment(ctx context.Context, g *libkb.GlobalContext, remoter remote.Rem
 	}
 
 	// submit the transaction
-	payload := make(libkb.JSONPayload)
-	payload["payment"] = post
-	return remoter.SubmitTransaction(ctx, payload)
+	return remoter.SubmitPayment(ctx, post)
 }
 
 // sendRelayPayment sends XLM through a relay account.
@@ -377,7 +346,7 @@ func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remot
 	if err != nil {
 		return res, err
 	}
-	_, err = CreateRelayTransfer(RelayPaymentInput{
+	relay, err := CreateRelayTransfer(RelayPaymentInput{
 		From:          from,
 		AmountXLM:     amount,
 		Note:          note,
@@ -387,9 +356,19 @@ func sendRelayPayment(ctx context.Context, g *libkb.GlobalContext, remoter remot
 	if err != nil {
 		return res, err
 	}
-	// TODO CORE-7718 the rest of relay transfers implementation
-	_ = teamID
-	return res, fmt.Errorf("keybase user %s does not have a wallet", recipient.User.GetNormalizedName().String())
+	post := stellar1.PaymentRelayPost{
+		FromDeviceID:      g.ActiveDevice.DeviceID(),
+		ToAssertion:       string(recipient.Input),
+		RelayAccount:      relay.RelayAccountID,
+		TeamID:            teamID,
+		BoxB64:            relay.EncryptedB64,
+		SignedTransaction: relay.FundTx.Signed,
+	}
+	if recipient.User != nil {
+		tmp := recipient.User.ToUserVersion()
+		post.To = &tmp
+	}
+	return remoter.SubmitRelayPayment(ctx, post)
 }
 
 func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stellar1.AccountID) (funded bool, err error) {
