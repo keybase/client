@@ -164,6 +164,11 @@ export const pathToString = (p: Path): string => (!p ? '' : p)
 // export const stringToLocalPath = (s: string): LocalPath => s
 // export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
+export const getPathNameFromElems = (elems: Array<string>): string => {
+  if (elems.length === 0) return ''
+  return elems.pop()
+}
+export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
 export const getPathParent = (p: Path): Path =>
   !p
     ? ''
@@ -185,6 +190,10 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       // be an empty string, so asserting empty will always fail.
       return null
   }
+}
+export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
+  if (v === null) return RPCTypes.favoriteFolderType.unknown
+  return RPCTypes.favoriteFolderType[v]
 }
 export const getPathVisibility = (p: Path): Visibility => {
   const elems = getPathElements(p)
@@ -336,4 +345,4 @@ export type FavoriteFolder = {
   },
 }
 
-export type FileViewType = 'text' | 'image' | 'video' | 'default'
+export type FileViewType = 'text' | 'image' | 'video' | 'pdf' | 'default'

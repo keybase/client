@@ -5,7 +5,7 @@ import * as FSGen from '../../actions/fs-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import Popup from './row-action-popup'
-import {fileUIName, isMobile, isIOS} from '../../constants/platform'
+import {fileUIName, isMobile, isIOS, isAndroid} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const path = routeProps.get('path')
@@ -46,6 +46,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onHidden: () => dispatch(navigateUp()),
+  _ignoreFolder: (path: Types.Path) => {
+    dispatch(FSGen.createFavoriteIgnore({path}))
+    !isMobile && dispatch(navigateUp())
+  },
 
   ...(isMobile
     ? {
@@ -94,8 +98,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const getRootMenuItems = (stateProps, dispatchProps) => {
-  const {path, pathItem, fileUIEnabled} = stateProps
-  const {showInFileUI, saveImage, share, download} = dispatchProps
+  const {path, pathItem, fileUIEnabled, _username} = stateProps
+  const {showInFileUI, saveImage, share, download, _ignoreFolder} = dispatchProps
   let menuItems = []
   !isMobile &&
     fileUIEnabled &&
@@ -104,21 +108,30 @@ const getRootMenuItems = (stateProps, dispatchProps) => {
       onClick: () => showInFileUI(path),
     })
   isMobile &&
+    pathItem.type !== 'folder' &&
     Constants.isMedia(pathItem.name) &&
     menuItems.push({
       title: 'Save',
       onClick: () => saveImage(path),
     })
   isMobile &&
+    pathItem.type !== 'folder' &&
     menuItems.push({
       title: 'Share...',
       onClick: () => share(path),
     })
-  // TODO make android download work
-  !isIOS &&
+  const shouldDownload = (isAndroid && pathItem.type !== 'folder') || !isMobile
+  shouldDownload &&
     menuItems.push({
       title: 'Download a copy',
       onClick: () => download(path),
+    })
+  Constants.showIgnoreFolder(path, pathItem, _username) &&
+    menuItems.push({
+      title: 'Ignore this folder',
+      onClick: () => _ignoreFolder(path),
+      subTitle: 'The folder will no longer appear in your folders list.',
+      danger: true,
     })
   return menuItems
 }
