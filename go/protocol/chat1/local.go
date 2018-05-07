@@ -2256,11 +2256,14 @@ func (e MessageUnboxedErrorType) String() string {
 }
 
 type MessageUnboxedError struct {
-	ErrType     MessageUnboxedErrorType `codec:"errType" json:"errType"`
-	ErrMsg      string                  `codec:"errMsg" json:"errMsg"`
-	MessageID   MessageID               `codec:"messageID" json:"messageID"`
-	MessageType MessageType             `codec:"messageType" json:"messageType"`
-	Ctime       gregor1.Time            `codec:"ctime" json:"ctime"`
+	ErrType           MessageUnboxedErrorType `codec:"errType" json:"errType"`
+	ErrMsg            string                  `codec:"errMsg" json:"errMsg"`
+	MessageID         MessageID               `codec:"messageID" json:"messageID"`
+	MessageType       MessageType             `codec:"messageType" json:"messageType"`
+	Ctime             gregor1.Time            `codec:"ctime" json:"ctime"`
+	Rtime             gregor1.Time            `codec:"rtime" json:"rtime"`
+	Now               gregor1.Time            `codec:"now" json:"now"`
+	EphemeralMetadata *MsgEphemeralMetadata   `codec:"em,omitempty" json:"em,omitempty"`
 }
 
 func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
@@ -2270,6 +2273,15 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 		MessageID:   o.MessageID.DeepCopy(),
 		MessageType: o.MessageType.DeepCopy(),
 		Ctime:       o.Ctime.DeepCopy(),
+		Rtime:       o.Rtime.DeepCopy(),
+		Now:         o.Now.DeepCopy(),
+		EphemeralMetadata: (func(x *MsgEphemeralMetadata) *MsgEphemeralMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.EphemeralMetadata),
 	}
 }
 

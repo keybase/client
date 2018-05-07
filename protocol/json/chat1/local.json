@@ -1136,6 +1136,23 @@
         {
           "type": "gregor1.Time",
           "name": "ctime"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "rtime"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "now"
+        },
+        {
+          "type": [
+            null,
+            "MsgEphemeralMetadata"
+          ],
+          "name": "ephemeralMetadata",
+          "mpackkey": "em",
+          "jsonkey": "em"
         }
       ]
     },

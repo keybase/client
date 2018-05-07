@@ -407,6 +407,14 @@
           "name": "ctime"
         },
         {
+          "type": "gregor1.Time",
+          "name": "now"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "rtime"
+        },
+        {
           "type": [
             null,
             "string"

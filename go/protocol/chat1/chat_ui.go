@@ -391,6 +391,8 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
+	Now                   gregor1.Time           `codec:"now" json:"now"`
+	Rtime                 gregor1.Time           `codec:"rtime" json:"rtime"`
 	OutboxID              *string                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	MessageBody           MessageBody            `codec:"messageBody" json:"messageBody"`
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
@@ -409,6 +411,8 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 	return UIMessageValid{
 		MessageID: o.MessageID.DeepCopy(),
 		Ctime:     o.Ctime.DeepCopy(),
+		Now:       o.Now.DeepCopy(),
+		Rtime:     o.Rtime.DeepCopy(),
 		OutboxID: (func(x *string) *string {
 			if x == nil {
 				return nil

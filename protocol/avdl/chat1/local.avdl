@@ -378,6 +378,10 @@ protocol local {
     MessageID messageID;
     MessageType messageType;
     gregor1.Time ctime;
+    gregor1.Time rtime;
+    gregor1.Time now;
+    @mpackkey("em") @jsonkey("em")
+    union { null, MsgEphemeralMetadata } ephemeralMetadata;
   }
 
   record MessageUnboxedPlaceholder {

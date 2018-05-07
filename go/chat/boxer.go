@@ -88,11 +88,14 @@ func (b *Boxer) log() logger.Logger {
 
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
-		ErrType:     err.ExportType(),
-		ErrMsg:      err.Error(),
-		MessageID:   msg.GetMessageID(),
-		MessageType: msg.GetMessageType(),
-		Ctime:       msg.ServerHeader.Ctime,
+		ErrType:           err.ExportType(),
+		ErrMsg:            err.Error(),
+		MessageID:         msg.GetMessageID(),
+		MessageType:       msg.GetMessageType(),
+		Ctime:             msg.ServerHeader.Ctime,
+		Now:               msg.ServerHeader.Now,
+		Rtime:             gregor1.ToTime(b.clock.Now()),
+		EphemeralMetadata: msg.ClientHeader.EphemeralMetadata,
 	})
 }
 
@@ -285,8 +288,8 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
 			boxed.EphemeralMetadata().Generation)
 		if ekErr != nil {
-			b.Debug(ctx, "failed to get a key for exploding message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
-			return b.makeErrorMessage(boxed, NewPermanentUnboxingError(ekErr)), nil
+			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
+			return b.makeErrorMessage(boxed, NewPermanentUnboxingError(fmt.Errorf("Unable to decrypt exploding message. Missing keys."))), nil
 		}
 		ephemeralSeed = &ek
 	}
@@ -1381,7 +1384,7 @@ func (b *Boxer) boxV2orV3(messagePlaintext chat1.MessagePlaintext, baseEncryptio
 		OutboxInfo:        messagePlaintext.ClientHeader.OutboxInfo,
 		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
-		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata, // TODO only for v3
+		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

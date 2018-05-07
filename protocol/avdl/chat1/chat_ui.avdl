@@ -104,6 +104,8 @@ protocol chatUi {
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
+    gregor1.Time now;
+    gregor1.Time rtime;
     union { null, string } outboxID;
     MessageBody messageBody;
     string senderUsername;

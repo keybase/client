@@ -1065,7 +1065,7 @@ export type MessageType =
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
-export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time}>
+export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, rtime: Gregor1.Time, now: Gregor1.Time, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type MessageUnboxedErrorType =
   | 0 // MISC_0
@@ -1360,7 +1360,7 @@ export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, now: Gregor1.Time, rtime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 
