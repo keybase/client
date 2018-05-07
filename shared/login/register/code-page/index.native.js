@@ -159,8 +159,9 @@ class CodePage extends Component<Props> {
           <Text type="Header" style={{marginBottom: 10}}>
             Scan QR code
           </Text>
-          <Text type="Body">In the Keybase app on your computer,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body" style={{textAlign: 'center'}}>
+            Sign into your account in the Keybase app on your computer.
+          </Text>
         </Box>
         {this.renderScanCode()}
         {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
@@ -244,8 +245,9 @@ class CodePage extends Component<Props> {
           <Text type="Header" style={{marginBottom: 10}}>
             Type in text code
           </Text>
-          <Text type="Body">In the Keybase app on your computer,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body" style={{textAlign: 'center'}}>
+            Sign into your account in the Keybase app on your computer.
+          </Text>
         </Box>
         {this.renderEnterText()}
         {this.renderSwitchButton(codePageModeScanCode, 'icon-phone-qr-code-32', 'Scan QR code instead')}
