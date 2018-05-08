@@ -26,6 +26,10 @@ import (
 type chatListener struct {
 	sync.Mutex
 	libkb.NoopNotifyListener
+
+	// ChatActivity channels
+	ephemeralPurge chan chat1.EphemeralPurgeNotifInfo
+
 	obids          []chat1.OutboxID
 	incoming       chan int
 	failing        chan []chat1.OutboxRecord
@@ -70,23 +74,27 @@ func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 		panic("timeout on typing update")
 	}
 }
+
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
 	if err == nil {
-		if typ == chat1.ChatActivityType_INCOMING_MESSAGE && activity.IncomingMessage().Message.IsValid() {
-			strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
-			if strOutboxID != nil {
-				outboxID, _ := hex.DecodeString(*strOutboxID)
-				n.obids = append(n.obids, chat1.OutboxID(outboxID))
-				select {
-				case n.incoming <- len(n.obids):
-				case <-time.After(5 * time.Second):
-					panic("timeout on the incoming channel")
+		switch typ {
+		case chat1.ChatActivityType_INCOMING_MESSAGE:
+			if activity.IncomingMessage().Message.IsValid() {
+				strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
+				if strOutboxID != nil {
+					outboxID, _ := hex.DecodeString(*strOutboxID)
+					n.obids = append(n.obids, chat1.OutboxID(outboxID))
+					select {
+					case n.incoming <- len(n.obids):
+					case <-time.After(5 * time.Second):
+						panic("timeout on the incoming channel")
+					}
 				}
 			}
-		} else if typ == chat1.ChatActivityType_FAILED_MESSAGE {
+		case chat1.ChatActivityType_FAILED_MESSAGE:
 			var rmsg []chat1.OutboxRecord
 			for _, obr := range activity.FailedMessage().OutboxRecords {
 				rmsg = append(rmsg, obr)
@@ -96,7 +104,19 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 			case <-time.After(5 * time.Second):
 				panic("timeout on the failing channel")
 			}
+		case chat1.ChatActivityType_EPHEMERAL_PURGE:
+			n.ephemeralPurge <- activity.EphemeralPurge()
 		}
+	}
+}
+
+func (n *chatListener) consumeEphemeralPurge(t *testing.T) chat1.EphemeralPurgeNotifInfo {
+	select {
+	case x := <-n.ephemeralPurge:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get ephemeralPurge notification")
+		return chat1.EphemeralPurgeNotifInfo{}
 	}
 }
 
@@ -174,6 +194,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
+		ephemeralPurge: make(chan chat1.EphemeralPurgeNotifInfo, 10),
 	}
 	chatStorage := storage.New(g)
 	chatStorage.SetClock(world.Fc)

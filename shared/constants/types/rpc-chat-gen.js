@@ -396,6 +396,7 @@ export const notifyChatChatActivityType = {
   setAppNotificationSettings: 7,
   teamtype: 8,
   expunge: 9,
+  ephemeralPurge: 10,
 }
 
 export const notifyChatStaleUpdateType = {
@@ -613,7 +614,7 @@ export type ChannelMention =
 
 export type ChannelNameMention = $ReadOnly<{convID: ConversationID, topicName: String}>
 
-export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo}
+export type ChatActivity = {activityType: 1, incomingMessage: ?IncomingMessage} | {activityType: 2, readMessage: ?ReadMessageInfo} | {activityType: 3, newConversation: ?NewConversationInfo} | {activityType: 4, setStatus: ?SetStatusInfo} | {activityType: 5, failedMessage: ?FailedMessageInfo} | {activityType: 6, membersUpdate: ?MembersUpdateInfo} | {activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo} | {activityType: 8, teamtype: ?TeamTypeInfo} | {activityType: 9, expunge: ?ExpungeInfo} | {activityType: 10, ephemeralPurge: ?EphemeralPurgeNotifInfo}
 
 export type ChatActivityType =
   | 0 // RESERVED_0
@@ -626,6 +627,7 @@ export type ChatActivityType =
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
   | 9 // EXPUNGE_9
+  | 10 // EPHEMERAL_PURGE_10
 
 export type ChatSearchHit = $ReadOnly<{prevMessage?: ?UIMessage, hitMessage?: ?UIMessage, nextMessage?: ?UIMessage, matches?: ?Array<String>}>
 
@@ -754,6 +756,8 @@ export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits
 export type EncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 
 export type EphemeralPurgeInfo = $ReadOnly<{isActive: Boolean, nextPurgeTime: Gregor1.Time, minUnexplodedID: MessageID}>
+
+export type EphemeralPurgeNotifInfo = $ReadOnly<{convID: ConversationID, msgs?: ?Array<UIMessage>}>
 
 export type Expunge = $ReadOnly<{upto: MessageID, basis: MessageID}>
 
