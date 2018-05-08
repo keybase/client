@@ -13,7 +13,7 @@ const load = () => {
         receiver="paul"
         sourceValue="$12.50"
         targetValue="-53.1688643 XLM"
-        note="Stellar deal!! You guys rock. This is to show a very long private note."
+        note="Short note."
         timestamp={new Date()}
       />
     ))
