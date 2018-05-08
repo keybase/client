@@ -84,6 +84,9 @@ const styles = styleSheetCreate({
   },
   detailContainer: {},
   note: platformStyles({
+    common: {
+      marginTop: globalMargins.xtiny,
+    },
     isElectron: {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 8},
     isMobile: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
   }),

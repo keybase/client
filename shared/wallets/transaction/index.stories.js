@@ -17,6 +17,16 @@ const load = () => {
         note="Short note."
       />
     ))
+    .add('Keybase User to Default wallet', () => (
+      <Transaction
+        timestamp={new Date()}
+        yourRole="receiver"
+        counterparty="paul"
+        amountUser="$100"
+        amountXLM="42.535091 XLM"
+        note="Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah."
+      />
+    ))
     .add('Default wallet to Stellar Public Key', () => <Text type="BodyBig">TBD</Text>)
     .add('Anonymous wallet to Keybase User', () => <Text type="BodyBig">TBD</Text>)
     .add('Anonymous wallet to Stellar public key', () => <Text type="BodyBig">TBD</Text>)
