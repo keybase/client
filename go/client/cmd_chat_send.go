@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -65,12 +66,13 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	flags := append(getConversationResolverFlags(),
 		mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
 	)
-	if g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.GetFeatureFlags().Admin() {
+	ekLib := ephemeral.NewEKLib(g)
+	if ekLib.ShouldRun(context.TODO()) {
 		flags = append(flags, cli.DurationFlag{
 			Name: "exploding-lifetime",
-			Usage: `Make this message an exploding message and set the
-				lifetime for the given duration.  The maximum lifetime is 168h
-				(one week) and the minimum lifetime is 5s.`,
+			Usage: fmt.Sprintf(`Make this message an exploding message and set the
+				lifetime for the given duration.  The maximum lifetime is %v
+				(one week) and the minimum lifetime is %v.`, maxEphemeralLifetime, minEphemeralLifetime),
 		})
 	}
 	return cli.Command{
