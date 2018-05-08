@@ -1,6 +1,7 @@
 // @flow
 import {Component} from 'react'
 import {type StylesCrossPlatform} from '../styles'
+import {type TextType} from './text'
 
 export type KeyboardType =
   | 'default'
@@ -87,3 +88,13 @@ declare export default class Input extends Component<Props> {
   // components. The transformation may be done asynchronously.
   transformText: (fn: (TextInfo) => TextInfo) => void;
 }
+
+export type Input2Props = {
+  // appears to the right of the input in the same container
+  decoration?: React.Node, 
+  placeholder?: string,
+  style?: StylesCrossPlatform, 
+  textType?: TextType
+}
+
+declare export class Input2 extends Component<Input2Props> {}

@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {action, createPropProvider, storiesOf} from '../../stories/storybook'
+import assetInput from './asset-input/index.stories'
 import SendForm from '.'
 
 // TODO some of the state of these child components
@@ -20,6 +21,8 @@ const provider = createPropProvider({
 })
 
 const load = () => {
+  assetInput()
+
   storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
     .add('Send', () => <SendForm onClick={action('onClick')} />)

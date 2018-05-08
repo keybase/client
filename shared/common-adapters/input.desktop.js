@@ -1,10 +1,17 @@
 // @flow
 import * as React from 'react'
-import Box from './box'
+import Box, {Box2} from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+} from '../styles'
 
-import type {Props, Selection, TextInfo} from './input'
+import type {Props, Input2Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
 type State = {
@@ -411,3 +418,46 @@ const _floatingStyle = platformStyles({
 })
 
 export default Input
+
+class Input2 extends React.Component<Input2Props> {
+  render() {
+    const {textType = 'Body'} = this.props
+    const style = getTextStyle(textType)
+    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }`
+    return (
+      <Box2 direction="vertical">
+        <Box2 direction="horizontal" style={inputStyles.container}>
+          <style>{inputRealCSS}</style>
+          <Box2 direction="horizontal" fullHeight={true} style={{alignItems: 'flex-start', flexBasis: 0}}>
+            <input
+              style={collapseStyles([
+                style,
+                inputStyles.nochrome,
+                this.props.style,
+                this.props.decoration && {flexBasis: 0, height: style.height},
+              ])}
+              placeholder={this.props.placeholder}
+            />
+          </Box2>
+          {this.props.decoration || null}
+        </Box2>
+      </Box2>
+    )
+  }
+}
+
+const inputStyles = styleSheetCreate({
+  container: {
+    borderColor: globalColors.black_10,
+    borderRadius: 4,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: globalMargins.tiny,
+  },
+  nochrome: {borderWidth: 0, lineHeight: 'unset', outline: 'none'},
+  input: {
+    maxWidth: 460,
+  },
+})
+
+export {Input2}
