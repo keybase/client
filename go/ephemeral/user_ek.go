@@ -162,6 +162,10 @@ func publishNewUserEK(ctx context.Context, g *libkb.GlobalContext, merkleRoot li
 	return newMetadata, err
 }
 
+func ForcePublishNewUserEKForTesting(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot) (metadata keybase1.UserEkMetadata, err error) {
+	return publishNewUserEK(ctx, g, merkleRoot)
+}
+
 func boxUserEKForDevices(ctx context.Context, g *libkb.GlobalContext, merkleRoot libkb.MerkleRoot, seed UserEKSeed, userMetadata keybase1.UserEkMetadata) (boxes []keybase1.UserEkBoxMetadata, myUserEKBoxed *keybase1.UserEkBoxed, err error) {
 	defer g.CTrace(ctx, "boxUserEKForDevices", func() error { return err })()
 
