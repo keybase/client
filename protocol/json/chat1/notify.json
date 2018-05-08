@@ -211,9 +211,9 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageID"
+            "items": "UIMessage"
           },
-          "name": "msgIDs"
+          "name": "msgs"
         }
       ]
     },

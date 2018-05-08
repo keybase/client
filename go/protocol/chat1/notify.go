@@ -233,23 +233,23 @@ func (o ExpungeInfo) DeepCopy() ExpungeInfo {
 
 type EphemeralPurgeNotifInfo struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
-	MsgIDs []MessageID    `codec:"msgIDs" json:"msgIDs"`
+	Msgs   []UIMessage    `codec:"msgs" json:"msgs"`
 }
 
 func (o EphemeralPurgeNotifInfo) DeepCopy() EphemeralPurgeNotifInfo {
 	return EphemeralPurgeNotifInfo{
 		ConvID: o.ConvID.DeepCopy(),
-		MsgIDs: (func(x []MessageID) []MessageID {
+		Msgs: (func(x []UIMessage) []UIMessage {
 			if x == nil {
 				return nil
 			}
-			var ret []MessageID
+			var ret []UIMessage
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.MsgIDs),
+		})(o.Msgs),
 	}
 }
 

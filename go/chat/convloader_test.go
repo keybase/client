@@ -381,10 +381,16 @@ func TestBackgroundPurge(t *testing.T) {
 
 	assertEphemeralPurgeNotifInfo := func(convID chat1.ConversationID, msgIDs []chat1.MessageID) {
 		info := listener.consumeEphemeralPurge(t)
-		require.Equal(t, info, chat1.EphemeralPurgeNotifInfo{
-			ConvID: convID,
-			MsgIDs: msgIDs,
-		})
+		require.Equal(t, info.ConvID, convID)
+		if msgIDs == nil {
+			require.Nil(t, info.Msgs)
+		} else {
+			purgedIDs := []chat1.MessageID{}
+			for _, purgedMsg := range info.Msgs {
+				purgedIDs = append(purgedIDs, purgedMsg.GetMessageID())
+			}
+			require.Equal(t, msgIDs, purgedIDs)
+		}
 	}
 
 	// Load our conv with the initial tlf msg
