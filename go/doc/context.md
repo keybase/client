@@ -39,7 +39,7 @@ argument, as we intend to sunset `libkb.GlobalContext`-dependency injection.
 behind a `context.Context`, but never as a third argument or higher.
 
 We're not going to get there overnight, but all code should obey these rules going forward,
-and if possibly, you should refactor code to be aligned with these rules.
+and if possible, you should refactor code to be aligned with these rules.
 
 # History
 
@@ -72,8 +72,6 @@ model, where those locks are only held briefly, never during a network request (
 
 ## Step 1: Use NIST Tokens for Session Establishment
 
-Status: **completed**
-
 It used to be the case we needed the exclusive lock over Account/LoginContext
 to make an API call, since it needed the user's session cookie (and CSRF
 token), and it was stored there. This setup made it very easy for API calls to
@@ -85,23 +83,30 @@ dependent on Account/LoginContext, and instead depend on `ActiveDevice`, with
 the exception of provisioning and signup (i.e., before proper device keys are
 established).
 
-## Step 2: Propagate MetaContext from libkb outward
+Status: **completed**
 
-Status: **ongoing**
+## Step 2: Propagate MetaContext from libkb outward
 
 ### Step 2a: Replace LoginContext with a wrapper MetaContext (Part 1)
 
+
 - Start with `LoginState`-related functions and propagate outwards. Cover `ActiveDevice`,
 `PerUserKey`, and bubble up into `engine/` too, but only as necessary.
+
+Status: **completed**
 
 ### Step 2b: Move `engine.Context` into `libkb.MetaContext`
 
 - And then change all `engine/` code to take only the `libkb.MetaContext`
 
+Status: **completed**
+
 ### Step 2c: Replace LoginContext with a wrapper MetaContext (Part 2)
 
 - Continue with `stellar/` and `ephemeral/` to replace those functions that take
 both `context.Context` and `*GlobalContext` to take only `libkb.MetaContext`.
+
+Status: **In Progress**
 
 ## Step 3: Retire LoginState
 
@@ -112,13 +117,16 @@ duplicated to handle these two cases, since the access pattern is different.
 One strategy here might be to move to a `LoginContext`-like object that can be safely
 copied, so it's no longer necessary to operate on it from outside of a closure.
 
-### Step 3a: Move LoginSession into ActiveDevice
+We don't need to do this all at once, so we proceed engine-by-engine:
 
-### Step 3b: Move PassphraseStream into ActiveDevice
-
-### Step 3c: Kill LoginContext
-
-### Step 3d: Kill LoginState
+1. `engine.Signup` [#11663](https://github.com/keybase/client/pull/11664)
+1. `engine.LoginWithPaperKey` [#11676](https://github.com/keybase/client/pull/11676)
+1. `engine.LoginProvisionedDevice` [#11693](https://github.com/keybase/client/pull/11693)
+1. `engine.Login` [#11721](https://github.com/keybase/client/pull/11721) (and others)
+1. `engine.LoginLoad` --- todo
+1. `engine.LoginProvision` --- todo
+1. `engine.LoginOffline` --- todo
+1. `engine.LoginOneshot` --- todo
 
 
 
