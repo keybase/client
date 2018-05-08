@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box2, Text} from '../../common-adapters'
-import {globalMargins, styleSheetCreate} from '../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 // TODO: Format relative dates.
 import {formatTimeForPopup} from '../../util/timestamp'
 
@@ -48,7 +48,9 @@ export const Transaction = (props: Props) => (
       <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.rightDownContainer}>
         <Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.detailContainer}>
           <Detail yourRole={props.yourRole} counterparty={props.counterparty} amountUser={props.amountUser} />
-          <Text type="Body">{props.note}</Text>
+          <Text style={styles.note} type="Body">
+            {props.note}
+          </Text>
         </Box2>
         <Text type="BodySmall" lineClamp={1}>
           {props.amountXLM}
@@ -60,14 +62,16 @@ export const Transaction = (props: Props) => (
 
 const styles = styleSheetCreate({
   container: {
-    border: 'solid 1px black',
-    minHeight: 80,
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
   detailContainer: {
     border: 'solid 1px black',
   },
+  note: platformStyles({
+    isElectron: {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 8},
+    isMobile: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
+  }),
   rightContainer: {
     border: 'solid 1px black',
     marginLeft: globalMargins.tiny,
