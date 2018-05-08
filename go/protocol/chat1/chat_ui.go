@@ -391,8 +391,6 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
-	Now                   gregor1.Time           `codec:"now" json:"now"`
-	Rtime                 gregor1.Time           `codec:"rtime" json:"rtime"`
 	OutboxID              *string                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	MessageBody           MessageBody            `codec:"messageBody" json:"messageBody"`
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
@@ -404,15 +402,15 @@ type UIMessageValid struct {
 	AtMentions            []string               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention         `codec:"channelMention" json:"channelMention"`
 	ChannelNameMentions   []UIChannelNameMention `codec:"channelNameMentions" json:"channelNameMentions"`
-	EphemeralMetadata     *MsgEphemeralMetadata  `codec:"ephemeralMetadata,omitempty" json:"ephemeralMetadata,omitempty"`
+	IsEphemeral           bool                   `codec:"ie" json:"ie"`
+	IsEphemeralExpired    bool                   `codec:"iex" json:"iex"`
+	Etime                 gregor1.Time           `codec:"e" json:"e"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
 	return UIMessageValid{
 		MessageID: o.MessageID.DeepCopy(),
 		Ctime:     o.Ctime.DeepCopy(),
-		Now:       o.Now.DeepCopy(),
-		Rtime:     o.Rtime.DeepCopy(),
 		OutboxID: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -462,13 +460,9 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.ChannelNameMentions),
-		EphemeralMetadata: (func(x *MsgEphemeralMetadata) *MsgEphemeralMetadata {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.EphemeralMetadata),
+		IsEphemeral:        o.IsEphemeral,
+		IsEphemeralExpired: o.IsEphemeralExpired,
+		Etime:              o.Etime.DeepCopy(),
 	}
 }
 

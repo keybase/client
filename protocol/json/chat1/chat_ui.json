@@ -407,14 +407,6 @@
           "name": "ctime"
         },
         {
-          "type": "gregor1.Time",
-          "name": "now"
-        },
-        {
-          "type": "gregor1.Time",
-          "name": "rtime"
-        },
-        {
           "type": [
             null,
             "string"
@@ -474,11 +466,22 @@
           "name": "channelNameMentions"
         },
         {
-          "type": [
-            null,
-            "MsgEphemeralMetadata"
-          ],
-          "name": "ephemeralMetadata"
+          "type": "boolean",
+          "name": "isEphemeral",
+          "mpackkey": "ie",
+          "jsonkey": "ie"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralExpired",
+          "mpackkey": "iex",
+          "jsonkey": "iex"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "etime",
+          "mpackkey": "e",
+          "jsonkey": "e"
         }
       ]
     },

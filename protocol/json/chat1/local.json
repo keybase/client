@@ -1110,7 +1110,8 @@
         "MISC_0",
         "BADVERSION_CRITICAL_1",
         "BADVERSION_2",
-        "IDENTIFY_3"
+        "IDENTIFY_3",
+        "EPHEMERAL_4"
       ]
     },
     {
@@ -1138,21 +1139,22 @@
           "name": "ctime"
         },
         {
-          "type": "gregor1.Time",
-          "name": "rtime"
+          "type": "boolean",
+          "name": "isEphemeral",
+          "mpackkey": "ie",
+          "jsonkey": "ie"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralExpired",
+          "mpackkey": "iex",
+          "jsonkey": "iex"
         },
         {
           "type": "gregor1.Time",
-          "name": "now"
-        },
-        {
-          "type": [
-            null,
-            "MsgEphemeralMetadata"
-          ],
-          "name": "ephemeralMetadata",
-          "mpackkey": "em",
-          "jsonkey": "em"
+          "name": "etime",
+          "mpackkey": "e",
+          "jsonkey": "e"
         }
       ]
     },

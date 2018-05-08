@@ -1925,6 +1925,19 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
+			assertEphemeral := func(ephemeralLifetime *gregor1.DurationSec, unboxed chat1.UIMessage) {
+				valid := unboxed.Valid()
+				require.False(t, valid.IsEphemeralExpired)
+				if ephemeralLifetime == nil {
+					require.False(t, valid.IsEphemeral)
+					require.EqualValues(t, valid.Etime, 0)
+				} else {
+					require.True(t, valid.IsEphemeral)
+					lifetime := time.Second * time.Duration(*ephemeralLifetime)
+					require.True(t, time.Now().Add(lifetime).Sub(valid.Etime.Time()) <= lifetime)
+				}
+			}
+
 			var err error
 			var created chat1.ConversationInfoLocal
 			switch mt {
@@ -1988,6 +2001,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			}
 			res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 			require.NoError(t, err)
+
 			select {
 			case info := <-listener.newMessage:
 				unboxed = info.Message
@@ -1996,13 +2010,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
-				if ephemeralLifetime == nil {
-					require.False(t, unboxed.Valid().IsExploding())
-				} else {
-					require.True(t, unboxed.Valid().IsExploding())
-					metadata := unboxed.Valid().EphemeralMetadata
-					require.Equal(t, metadata.Lifetime, *ephemeralLifetime)
-				}
+				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -2027,13 +2035,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 				require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
-				if ephemeralLifetime == nil {
-					require.False(t, unboxed.Valid().IsExploding())
-				} else {
-					require.True(t, unboxed.Valid().IsExploding())
-					metadata := unboxed.Valid().EphemeralMetadata
-					require.Equal(t, metadata.Lifetime, *ephemeralLifetime)
-				}
+				assertEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}

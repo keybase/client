@@ -474,7 +474,7 @@ func FilterExploded(msgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			mvalid := msg.Valid()
-			if mvalid.IsExploding() && mvalid.HideExplosion(now) {
+			if mvalid.IsEphemeral() && mvalid.HideExplosion(now) {
 				continue
 			}
 		}
@@ -967,7 +967,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			showErr := true
 			// If we have an expired ephemeral message, don't show an error
 			// message.
-			if valid.IsExploding() && valid.IsEphemeralExpired(time.Now()) {
+			if valid.IsEphemeral() && valid.IsEphemeralExpired(time.Now()) {
 				showErr = false
 			}
 			if showErr {
@@ -983,8 +983,6 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
 			Ctime:                 valid.ServerHeader.Ctime,
-			Now:                   valid.ServerHeader.Now,
-			Rtime:                 valid.ClientHeader.Rtime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
 			SenderUsername:        valid.SenderUsername,
@@ -996,7 +994,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			ChannelMention:        valid.ChannelMention,
 			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
-			EphemeralMetadata:     valid.EphemeralMetadata(),
+			IsEphemeral:           valid.IsEphemeral(),
+			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
+			Etime:                 valid.Etime(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
