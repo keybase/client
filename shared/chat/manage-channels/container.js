@@ -99,6 +99,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
         Chat2Gen.createSelectConversation({conversationIDKey, reason: selected ? 'manageView' : 'preview'})
       )
       dispatch(navigateUp())
+      dispatch(Chat2Gen.createNavigateToThread())
     },
   }
 }

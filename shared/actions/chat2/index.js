@@ -1259,7 +1259,8 @@ const previewConversationAfterFindExisting = (
   _fromPreviewConversation,
   action: Chat2Gen.PreviewConversationPayload | Chat2Gen.SetPendingConversationUsersPayload
 ) => {
-  if (!_fromPreviewConversation) {
+  // TODO make a sequentially that uses an object map and not all this array nonsense
+  if (!_fromPreviewConversation || _fromPreviewConversation.length !== 4) {
     return
   }
   const results: RPCChatTypes.FindConversationsLocalRes = _fromPreviewConversation[1]
@@ -1271,20 +1272,14 @@ const previewConversationAfterFindExisting = (
     // Even if we find an existing conversation lets put it into the pending state so its on top always, makes the UX simpler and better to see it selected
     // and allows quoting privately to work nicely
     existingConversationIDKey = Types.conversationIDToKey(results.conversations[0].info.id)
-  } else {
-    existingConversationIDKey = Constants.noConversationIDKey
   }
 
   return Saga.sequentially([
-    ...(existingConversationIDKey
-      ? [
-          Saga.put(
-            Chat2Gen.createSetPendingConversationExistingConversationIDKey({
-              conversationIDKey: existingConversationIDKey,
-            })
-          ),
-        ]
-      : []),
+    Saga.put(
+      Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+        conversationIDKey: existingConversationIDKey || Constants.noConversationIDKey,
+      })
+    ),
     Saga.put(Chat2Gen.createSetPendingConversationUsers({fromSearch: false, users})),
     Saga.put(Chat2Gen.createNavigateToThread()),
   ])
@@ -1306,7 +1301,11 @@ const previewConversationFindExisting = (
     }
     participants = action.payload.users
     if (!participants.length) {
-      return
+      return Saga.put(
+        Chat2Gen.createSetPendingConversationExistingConversationIDKey({
+          conversationIDKey: Constants.noConversationIDKey,
+        })
+      )
     }
   }
   const you = state.config.username || ''

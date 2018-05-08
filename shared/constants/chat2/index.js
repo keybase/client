@@ -20,18 +20,11 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
-    [
-      pendingConversationIDKey,
-      makeConversationMeta({
-        conversationIDKey: pendingConversationIDKey,
-      }),
-    ],
+    [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
-  pendingConversationUsers: I.Set(),
   pendingMode: 'none',
   pendingOutboxToOrdinal: I.Map(),
-  pendingSelected: false,
-  pendingStatus: 'none',
+  pendingStatus: 'none', // TODO remove
   quotingMap: I.Map(),
   selectedConversation: noConversationIDKey,
   typingMap: I.Map(),
