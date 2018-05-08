@@ -14,29 +14,43 @@ export type Props = {
 
 export const Transaction = (props: Props) => {
   return (
-    <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-      <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-        <Box2 direction="vertical">
-          <Text type="BodySemibold" lineClamp={1}>
-            {props.sender} sent Lumens worth {props.sourceValue} to {props.receiver}
-          </Text>
+    <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      Avatar
+      <Box2 direction="vertical" style={styles.rightContainer}>
+        <Text type="Body">{props.timestamp.toString()}</Text>
+        <Box2 direction="horizontal" fullWidth={true} style={styles.rightDownContainer}>
+          <Box2 direction="vertical" style={styles.detailContainer}>
+            <Text type="BodySemibold" lineClamp={1}>
+              {props.sender} sent Lumens worth {props.sourceValue} to {props.receiver}
+            </Text>
+            <Text type="Body">{props.note}</Text>
+          </Box2>
         </Box2>
+        <Text type="BodySmall" lineClamp={1}>
+          {props.targetValue}
+        </Text>
       </Box2>
-      <Text type="BodySmall" lineClamp={1}>
-        {props.targetValue}
-      </Text>
     </Box2>
   )
 }
 
 const styles = styleSheetCreate({
-  headerContainer: {
-    height: 48,
+  container: {
+    height: 64,
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
-  labelContainer: {
-    flex: 1,
+  detailContainer: {
+    padding: globalMargins.tiny,
+    paddingRight: globalMargins.small,
+  },
+  rightContainer: {
+    padding: globalMargins.tiny,
+    paddingRight: globalMargins.small,
+  },
+  rightDownContainer: {
+    padding: globalMargins.tiny,
+    paddingRight: globalMargins.small,
   },
 })
 
