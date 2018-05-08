@@ -224,7 +224,7 @@ const BOOL isDebug = NO;
       });
     }
     completionHandler(UIBackgroundFetchResultNewData);
-    NSLog(@"Background fetch completed...");
+    NSLog(@"Remote notification handle finished...");
   });
 }
   
