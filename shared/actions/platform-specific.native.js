@@ -111,12 +111,12 @@ function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<
       // hold on to the path to delete later and save to camera roll
       .then(path => {
         logger.info(logPrefix + 'Got local file path, attempting to save')
-        return [Promise.resolve(path), CameraRoll.saveToCameraRoll(`file://${path}`)]
+        return Promise.all([Promise.resolve(path), CameraRoll.saveToCameraRoll(`file://${path}`)])
       })
       // delete temp file
-      .then(([res, newURI]) => {
+      .then(results => {
         logger.info(logPrefix + 'Success, deleting tmp file')
-        return RNFetchBlob.fs.unlink(res)
+        return RNFetchBlob.fs.unlink(results[0])
       })
   )
 }
