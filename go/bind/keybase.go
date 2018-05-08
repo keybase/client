@@ -336,7 +336,7 @@ func HandleBackgroundNotification(strConvID string, intMembersType int, intMessa
 	if !kbCtx.ActiveDevice.HaveKeys() {
 		return libkb.LoginRequiredError{}
 	}
-	age := time.Now().Sub(time.Unix(int64(unixTime), 0))
+	age := time.Since(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
