@@ -14,12 +14,11 @@ import (
 )
 
 type SignupJoinEngine struct {
-	uid            keybase1.UID
-	session        string
-	csrf           string
-	lastPassphrase string
-	username       libkb.NormalizedUsername
-	ppGen          libkb.PassphraseGeneration
+	uid      keybase1.UID
+	session  string
+	csrf     string
+	username libkb.NormalizedUsername
+	ppGen    libkb.PassphraseGeneration
 	libkb.Contextified
 }
 
