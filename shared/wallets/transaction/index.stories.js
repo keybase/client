@@ -10,10 +10,10 @@ const load = () => {
     .add('Default wallet to Keybase User', () => (
       <Transaction
         sender="me"
-        receiver="chris"
-        sourceValue="100 HUGZ"
-        targetValue="50 Lumens"
-        note="some note"
+        receiver="paul"
+        sourceValue="$12.50"
+        targetValue="-53.1688643 XLM"
+        note="Stellar deal!! You guys rock. This is to show a very long private note."
         timestamp={new Date()}
       />
     ))
