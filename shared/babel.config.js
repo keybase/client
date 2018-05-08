@@ -1,6 +1,7 @@
 // @flow
 module.exports = function(api) {
   api.cache(true)
+  // in case we need env this is how you get it
   // const env = api.env()
   var config = {
     plugins: [
