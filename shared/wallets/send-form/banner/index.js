@@ -1,17 +1,21 @@
 // @flow
 import * as React from 'react'
 import {Box2, Text} from '../../../common-adapters'
-import {backgroundModeToColor, globalMargins, styleSheetCreate} from '../../../styles'
-
-const backgroundMode = 'Announcements'
+import type {Background} from '../../../common-adapters/text'
+import {backgroundModeToColor, collapseStyles, globalMargins, styleSheetCreate} from '../../../styles'
 
 type Props = {
+  background: Background,
   text: string,
 }
 
 const Banner = (props: Props) => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Text type="BodySemibold" style={styles.text} backgroundMode={backgroundMode}>
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
+  >
+    <Text type="BodySemibold" style={styles.text} backgroundMode={props.background}>
       {props.text}
     </Text>
   </Box2>
@@ -19,7 +23,6 @@ const Banner = (props: Props) => (
 
 const styles = styleSheetCreate({
   container: {
-    backgroundColor: backgroundModeToColor[backgroundMode],
     padding: globalMargins.small,
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,

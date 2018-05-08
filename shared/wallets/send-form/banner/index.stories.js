@@ -5,9 +5,16 @@ import {Box} from '../../../common-adapters/box'
 import Banner from '.'
 
 const examples = [
-  'Because it’s russel’s first transaction, you must send at least 2 XLM.',
-  'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
-].map(text => ({text}))
+  {
+    text: 'Because it’s russel’s first transaction, you must send at least 2 XLM.',
+    background: 'Announcements',
+  },
+  {
+    text: 'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
+    background: 'Announcements',
+  },
+  {text: 'Connection error. You are offline.', background: 'HighRisk'},
+]
 
 const load = () => {
   const story = storiesOf('Wallets/SendForm/Banner', module).addDecorator(story => (
