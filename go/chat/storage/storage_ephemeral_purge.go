@@ -92,6 +92,10 @@ func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationI
 	switch err.(type) {
 	case nil:
 		// ok
+		if len(rc.Result()) == 0 {
+			err := s.ephemeralTracker.inactivatePurgeInfo(ctx, convID, uid)
+			return nil, err
+		}
 	case MissError:
 		s.Debug(ctx, "record-only ephemeralTracker: no local messages")
 		// We don't have these messages in cache, so don't retry this
