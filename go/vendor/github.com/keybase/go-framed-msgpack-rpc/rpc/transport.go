@@ -44,7 +44,7 @@ type Transporter interface {
 }
 
 type connDecoder struct {
-	decoder
+	*codec.Decoder
 	net.Conn
 	Reader *bufio.Reader
 }
@@ -54,9 +54,9 @@ func newConnDecoder(c net.Conn) *connDecoder {
 	mh := &codec.MsgpackHandle{WriteExt: true}
 
 	return &connDecoder{
+		Decoder: codec.NewDecoder(br, mh),
 		Conn:    c,
 		Reader:  br,
-		decoder: codec.NewDecoder(br, mh),
 	}
 }
 
