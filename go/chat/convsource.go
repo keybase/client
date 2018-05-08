@@ -51,6 +51,7 @@ func (s *baseConversationSource) Sign(payload []byte) ([]byte, error) {
 	return s.ri().S3Sign(context.Background(), arg)
 }
 
+// DeleteAssets implements github.com/keybase/go/chat/storage/storage.AssetDeleter interface.
 func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, assets []chat1.Asset) {
 	defer s.Trace(ctx, func() error { return nil }, "DeleteAssets", assets)()
@@ -816,7 +817,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			superXform := newBasicSupersedesTransform(s.G())
 			superXform.SetMessagesFunc(func(ctx context.Context, conv types.UnboxConversationInfo,
 				uid gregor1.UID, msgIDs []chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
-				msgs, err := storage.New(s.G()).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
+				msgs, err := storage.New(s.G(), s).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
 				if err != nil {
 					return nil, err
 				}

@@ -186,6 +186,9 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 		}
 	}
 
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+
 	s.Debug(ctx, "purging %v ephemeral messages", len(exploded))
 	if err = s.engine.WriteMessages(ctx, convID, uid, exploded); err != nil {
 		s.Debug(ctx, "write messages failed: %v", err)

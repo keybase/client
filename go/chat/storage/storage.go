@@ -37,6 +37,7 @@ type Storage struct {
 	breakTracker     *breakTracker
 	delhTracker      *delhTracker
 	ephemeralTracker *ephemeralTracker
+	assetDeleter     AssetDeleter
 	clock            clockwork.Clock
 }
 
@@ -51,7 +52,11 @@ type storageEngine interface {
 		msgIDs []chat1.MessageID) Error
 }
 
-func New(g *globals.Context) *Storage {
+type AssetDeleter interface {
+	DeleteAssets(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, assets []chat1.Asset)
+}
+
+func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 	return &Storage{
 		Contextified:     globals.NewContextified(g),
 		engine:           newBlockEngine(g),
@@ -59,6 +64,7 @@ func New(g *globals.Context) *Storage {
 		breakTracker:     newBreakTracker(g),
 		delhTracker:      newDelhTracker(g),
 		ephemeralTracker: newEphemeralTracker(g),
+		assetDeleter:     assetDeleter,
 		clock:            clockwork.NewRealClock(),
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
@@ -70,6 +76,10 @@ func (s *Storage) setEngine(engine storageEngine) {
 
 func (s *Storage) SetClock(clock clockwork.Clock) {
 	s.clock = clock
+}
+
+func (s *Storage) SetAssetDeleter(assetDeleter AssetDeleter) {
+	s.assetDeleter = assetDeleter
 }
 
 func makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
@@ -447,10 +457,8 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		}
 	}
 
-	// conv source will queue asset deletions in the background
-	if convSource := s.G().ConvSource; convSource != nil {
-		convSource.DeleteAssets(ctx, uid, convID, allAssets)
-	}
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 
 	return nil
 }
@@ -637,10 +645,9 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 		allAssets = append(allAssets, assets...)
 		writeback = append(writeback, msgPurged)
 	}
-	// conv source will queue asset deletions in the background
-	if convSource := s.G().ConvSource; convSource != nil {
-		convSource.DeleteAssets(ctx, uid, convID, allAssets)
-	}
+
+	// queue asset deletions in the background
+	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 
 	de("deleting %v messages", len(writeback))
 	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {

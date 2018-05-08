@@ -397,6 +397,7 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 
 	// Delete the assets locally
 	for _, asset := range assets {
+		os.Remove(asset.Path)
 		c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 	}
 

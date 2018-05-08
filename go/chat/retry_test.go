@@ -34,7 +34,7 @@ func TestFetchRetry(t *testing.T) {
 	u2 := world.GetUsers()[2]
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
-	store := storage.New(globals.NewContext(tc.G, tc.ChatG))
+	store := storage.New(globals.NewContext(tc.G, tc.ChatG), tc.ChatG.ConvSource)
 
 	var convIDs []chat1.ConversationID
 	var convs []chat1.Conversation
