@@ -248,6 +248,7 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	require.NoError(t, err)
 	t.Logf("impteam created for %q (id: %s)", displayName, iteam)
 
+	ann.kickTeamRekeyd()
 	bob.reset()
 	if getPUKAfter {
 		// Bob resets and gets a PUK afterwards
@@ -261,6 +262,10 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	require.NoError(t, err)
 	require.Equal(t, iteam, iteam2)
 
+	if startPUK {
+		// Wait for rotation after bob resets.
+		ann.waitForRotateByID(iteam2, keybase1.Seqno(2))
+	}
 	ann.reAddUserAfterReset(iteam, bob)
 
 	if !getPUKAfter {
@@ -278,8 +283,10 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 		require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
 
 		// bob upgrades PUK
+		bob.kickTeamRekeyd()
 		bob.perUserKeyUpgrade()
 
+		// Wait for SBS
 		expectedSeqno := keybase1.Seqno(3)
 		if startPUK {
 			expectedSeqno = keybase1.Seqno(4) // rotateKey link if crypto user resets.
