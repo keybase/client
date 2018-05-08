@@ -42,7 +42,6 @@ function UserActions({
             />
           </Button>
           <Button label="..." type="Secondary" onClick={onAddToTeam} style={{marginRight: 0}} />
-
         </ButtonBar>
       )
     } else {

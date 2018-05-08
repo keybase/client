@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {branch, compose, connect, lifecycle, type TypedState} from '../../util/container'
+import {branch, compose, connect, lifecycle, withStateHandlers, type TypedState} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -27,21 +27,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
-  onOpenRolePicker: (
-    role: string,
-    sendNotification: boolean,
-    allowOwner: boolean,
-    onComplete: (string, boolean) => void
-  ) => {
+  onOpenRolePicker: (role: string, onComplete: (string, boolean) => void) => {
     dispatch(
       navigateAppend([
         {
           props: {
-            allowOwner,
+            allowOwner: true,
             onComplete,
             selectedRole: role,
-            sendNotificationChecked: sendNotification,
-            showNotificationCheckbox: true,
+            sendNotificationChecked: true,
+            showNotificationCheckbox: false,
           },
           selected: 'controlledRolePicker',
         },
@@ -67,6 +62,15 @@ const mergeProps = (stateProps, dispatchProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  compose(
+    withStateHandlers(
+      {role: 'writer', sendNotification: true},
+      {
+        setSendNotification: () => sendNotification => ({sendNotification}),
+        onRoleChange: () => role => ({role}),
+      }
+    ),
+  ),
   lifecycle({
     componentDidMount() {
       this.props.loadTeams()
