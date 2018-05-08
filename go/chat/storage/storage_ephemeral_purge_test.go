@@ -220,6 +220,6 @@ func TestStorageEphemeralPurge(t *testing.T) {
 		})
 	require.NoError(t, err)
 	require.Nil(t, newPurgeInfo)
-	require.EqualValues(t, []chat1.UIMessage(nil), purgedMsgs)
+	require.EqualValues(t, []chat1.MessageUnboxed(nil), purgedMsgs)
 	verifyTrackerState(expectedPurgeInfo)
 }
