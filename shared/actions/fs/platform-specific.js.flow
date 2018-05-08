@@ -1,8 +1,8 @@
 // @flow
-import * as FsGen from './fs-gen'
-import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import type {TypedState} from '../constants/reducer'
+import * as FsGen from '../fs-gen'
+import * as Saga from '../../util/saga'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import type {TypedState} from '../../constants/reducer'
 
 declare export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState): void
 declare export function fuseStatusResultSaga(): void

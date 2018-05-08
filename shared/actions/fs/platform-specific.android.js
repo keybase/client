@@ -1,10 +1,10 @@
 // @flow
-import * as FsGen from './fs-gen'
-import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import type {TypedState} from '../constants/reducer'
+import * as FsGen from '../fs-gen'
+import * as Saga from '../../util/saga'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import type {TypedState} from '../../constants/reducer'
 import RNFetchBlob from 'react-native-fetch-blob'
-import {copy, unlink} from '../util/file'
+import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
 
 export function openInFileUISaga(payload: FsGen.OpenInFileUIPayload, state: TypedState) {}

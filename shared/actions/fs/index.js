@@ -1,13 +1,13 @@
 // @flow
-import logger from '../logger'
-import * as Constants from '../constants/fs'
-import * as FsGen from './fs-gen'
+import logger from '../../logger'
+import * as Constants from '../../constants/fs'
+import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Saga from '../util/saga'
-import engine from '../engine'
-import * as NotificationsGen from './notifications-gen'
-import * as Types from '../constants/types/fs'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Saga from '../../util/saga'
+import engine from '../../engine'
+import * as NotificationsGen from '../notifications-gen'
+import * as Types from '../../constants/types/fs'
 import {
   openInFileUISaga,
   fuseStatusSaga,
@@ -21,10 +21,10 @@ import {
   uninstallKBFS,
   uninstallKBFSSuccess,
   copyToDownloadDir,
-} from './fs-platform-specific'
-import {isMobile, isWindows} from '../constants/platform'
-import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
-import {type TypedState} from '../util/container'
+} from './platform-specific'
+import {isMobile, isWindows} from '../../constants/platform'
+import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {type TypedState} from '../../util/container'
 
 function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
