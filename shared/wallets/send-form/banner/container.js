@@ -1,6 +1,6 @@
 // @flow
 import Banner from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
 
@@ -8,4 +8,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps) => ({})
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Banner)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Banner'))(
+  Banner
+)
