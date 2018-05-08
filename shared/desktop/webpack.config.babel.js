@@ -25,10 +25,7 @@ const config = (_, {mode}) => {
     const babelRule = {
       loader: 'babel-loader',
       options: {
-        // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
-        babelrc: false,
         cacheDirectory: true,
-        extends: path.join(__dirname, '..', '.babelrc'),
         plugins: [...(isHot ? ['react-hot-loader/babel'] : [])],
         presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '1.8.4'}}]],
       },
