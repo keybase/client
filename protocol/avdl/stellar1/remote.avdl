@@ -4,35 +4,25 @@ protocol remote {
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
-  record Members {
-    AccountID fromStellar;
-    keybase1.UserVersion from;
+  record PaymentDirectPost {
     keybase1.DeviceID fromDeviceID;
-    AccountID toStellar;
-    keybase1.UserVersion to;
-  }
-
-  record Operation {
-    string ID;
-    string opType;
-    int createdAt;
-    string TransactionHash;
-
-    Asset asset;
-    string amount;
-  }
-
-  record PaymentPost {
-    uint64 stellarAccountSeqno;
-
-    Members members;
-
+    union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
     string displayAmount;
     string displayCurrency;
-
     string noteB64; // b64-encoded EncryptedNote or empty string.
-
     string signedTransaction;
+  }
+
+  record PaymentRelayPost {
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to; // Nil for SBS
+    string toAssertion; // Ex: 'mlsteele' or 'maxtaco@reddit'
+    AccountID relayAccount; // Address where the funds will be held
+    keybase1.TeamID teamID; // Impteam ID
+    string displayAmount;
+    string displayCurrency;
+    string boxB64; // b64-encoded EncryptedRelaySecret
+    string signedTransaction; // Funding tx
   }
 
   record PaymentSummary {
@@ -77,7 +67,9 @@ protocol remote {
   // js can't handle uint64, so returning a string
   string accountSeqno(keybase1.UserVersion caller, AccountID accountID);
 
-  PaymentResult submitPayment(keybase1.UserVersion caller, PaymentPost payment);
+  PaymentResult submitPayment(keybase1.UserVersion caller, PaymentDirectPost payment);
+
+  PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);

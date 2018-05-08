@@ -112,17 +112,70 @@ func (e TransactionStatus) String() string {
 	return ""
 }
 
+type PaymentStrategy int
+
+const (
+	PaymentStrategy_NONE   PaymentStrategy = 0
+	PaymentStrategy_DIRECT PaymentStrategy = 1
+	PaymentStrategy_RELAY  PaymentStrategy = 2
+)
+
+func (o PaymentStrategy) DeepCopy() PaymentStrategy { return o }
+
+var PaymentStrategyMap = map[string]PaymentStrategy{
+	"NONE":   0,
+	"DIRECT": 1,
+	"RELAY":  2,
+}
+
+var PaymentStrategyRevMap = map[PaymentStrategy]string{
+	0: "NONE",
+	1: "DIRECT",
+	2: "RELAY",
+}
+
+func (e PaymentStrategy) String() string {
+	if v, ok := PaymentStrategyRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type RelayDirection int
+
+const (
+	RelayDirection_CLAIM RelayDirection = 0
+	RelayDirection_YANK  RelayDirection = 1
+)
+
+func (o RelayDirection) DeepCopy() RelayDirection { return o }
+
+var RelayDirectionMap = map[string]RelayDirection{
+	"CLAIM": 0,
+	"YANK":  1,
+}
+
+var RelayDirectionRevMap = map[RelayDirection]string{
+	0: "CLAIM",
+	1: "YANK",
+}
+
+func (e RelayDirection) String() string {
+	if v, ok := RelayDirectionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PaymentResult struct {
-	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
 	KeybaseID KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
-	Ledger    int                  `codec:"Ledger" json:"Ledger"`
+	StellarID TransactionID        `codec:"stellarID" json:"stellarID"`
 }
 
 func (o PaymentResult) DeepCopy() PaymentResult {
 	return PaymentResult{
-		StellarID: o.StellarID.DeepCopy(),
 		KeybaseID: o.KeybaseID.DeepCopy(),
-		Ledger:    o.Ledger,
+		StellarID: o.StellarID.DeepCopy(),
 	}
 }
 

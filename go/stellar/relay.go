@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -80,8 +81,8 @@ type RelayPaymentOutput struct {
 	// Account ID of the shared account.
 	RelayAccountID stellar1.AccountID
 	// Encrypted box containing the secret key to the account.
-	Encrypted stellar1.EncryptedRelaySecret
-	FundTx    stellarnet.SignResult
+	EncryptedB64 string
+	FundTx       stellarnet.SignResult
 }
 
 // createRelayTransfer generates a stellar account, encrypts its key, and signs a transaction funding it.
@@ -113,9 +114,13 @@ func CreateRelayTransfer(in RelayPaymentInput) (res RelayPaymentOutput, err erro
 		Sk:        stellar1.SecretKey(relayKp.Seed()),
 		Note:      in.Note,
 	}, in.EncryptFor)
+	pack, err := libkb.MsgpackEncode(enc)
+	if err != nil {
+		return res, err
+	}
 	return RelayPaymentOutput{
 		RelayAccountID: stellar1.AccountID(relayKp.Address()),
-		Encrypted:      enc,
+		EncryptedB64:   base64.StdEncoding.EncodeToString(pack),
 		FundTx:         sig,
 	}, nil
 }
@@ -143,7 +148,21 @@ func encryptRelaySecret(relay stellar1.RelayContents, encryptFor keybase1.TeamAp
 }
 
 // TODO CORE-7718 make this private
-func DecryptRelaySecret(box stellar1.EncryptedRelaySecret, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
+// `box` should be a stellar1.EncryptedRelaySecret
+func DecryptRelaySecretB64(boxB64 string, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
+	pack, err := base64.StdEncoding.DecodeString(boxB64)
+	if err != nil {
+		return res, err
+	}
+	var box stellar1.EncryptedRelaySecret
+	err = libkb.MsgpackDecode(&box, pack)
+	if err != nil {
+		return res, err
+	}
+	return decryptRelaySecret(box, key)
+}
+
+func decryptRelaySecret(box stellar1.EncryptedRelaySecret, key keybase1.TeamApplicationKey) (res stellar1.RelayContents, err error) {
 	if box.V != 1 {
 		return res, fmt.Errorf("unsupported relay secret box version: %v", box.V)
 	}

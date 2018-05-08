@@ -41,6 +41,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
   tlfMeta: stateProps.pathItem.tlfMeta,
   lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
   lastWriter: stateProps.pathItem.lastWriter.username,
+  shouldShowMenu:
+    !isMobile ||
+    stateProps.pathItem.type !== 'folder' ||
+    Constants.showIgnoreFolder(stateProps.path, stateProps.pathItem, stateProps._username),
   onOpen: () => dispatchProps._onOpen(stateProps.pathItem.type, stateProps.path),
   openInFileUI: stateProps.kbfsEnabled
     ? () => dispatchProps._openInFileUI(stateProps.path)

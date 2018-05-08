@@ -1,14 +1,13 @@
-Design:
-  Some new colors and icons
-People:
-  A new landing page for the app! See important activity regarding your account and the network. Helpful prompts to improve your account security and health.
-Teams:
-  Subteams tab: An easier way to understand and make sub teams
-  More team management options
-  Ability to ignore join requests
 Chat:
-  Git notifications in chat. Keep the team up to date whenever anyone is pushing to your repos
-  Mention chat channels using '#'
-  See previews of images before attaching
-  Handle teams with large numbers of members better
-  Updated emojis
+    • Re-ordered message menu options
+    • New message actions: Quote and Reply privately
+    • Better loading of previously loaded threads
+    • Better scrollback of threads
+    • Improved typing performance
+KBFS:
+    • File browsing in app (beta)
+People:
+    • Better navigation badging behavior
+Teams:
+    • Better errors while adding people to teams / entering team names
+    • Reduce number of team refreshes

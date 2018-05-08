@@ -43,6 +43,37 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+const direntToMetadata = (d: RPCTypes.Dirent) => ({
+  name: d.name,
+  lastModifiedTimestamp: d.time,
+  lastWriter: d.lastWriterUnverified,
+  size: d.size,
+})
+
+const makeEntry = (d: RPCTypes.Dirent) => {
+  switch (d.direntType) {
+    case RPCTypes.simpleFSDirentType.dir:
+      return Constants.makeFolder(direntToMetadata(d))
+    case RPCTypes.simpleFSDirentType.sym:
+      return Constants.makeSymlink({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+        // TODO: plumb link target
+      })
+    case RPCTypes.simpleFSDirentType.file:
+    case RPCTypes.simpleFSDirentType.exec:
+      return Constants.makeFile({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+      })
+    default:
+      return Constants.makeUnknownPathItem({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+      })
+  }
+}
+
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
 
@@ -53,13 +84,7 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     },
   })
 
-  const meta = Constants.makeFile({
-    name: Types.getPathName(rootPath),
-    lastModifiedTimestamp: dirent.time,
-    size: dirent.size,
-    progress: 'loaded',
-    lastWriter: dirent.lastWriterUnverified,
-  })
+  const meta = makeEntry(dirent)
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
 
@@ -81,19 +106,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
   const entries = result.entries || []
 
-  const direntToMetadata = (d: RPCTypes.Dirent) => ({
-    name: d.name,
-    lastModifiedTimestamp: d.time,
-    lastWriter: d.lastWriterUnverified,
-    size: d.size,
-  })
-
-  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
-    Types.pathConcat(rootPath, d.name),
-    d.direntType === RPCTypes.simpleFSDirentType.dir
-      ? Constants.makeFolder(direntToMetadata(d))
-      : Constants.makeFile(direntToMetadata(d)),
-  ]
+  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [Types.pathConcat(rootPath, d.name), makeEntry(d)]
 
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
@@ -282,6 +295,26 @@ function refreshLocalHTTPServerInfoResult({address, token}: RPCTypes.SimpleFSGet
   return Saga.put(FsGen.createLocalHTTPServerInfo({address, token}))
 }
 
+function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
+  const folder = Constants.folderRPCFromPath(action.payload.path)
+  if (!folder) {
+    yield Saga.put(
+      FsGen.createFavoriteIgnoreError({
+        path: action.payload.path,
+        errorText: 'No folder specified',
+      })
+    )
+  } else {
+    try {
+      yield Saga.call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
+        folder,
+      })
+    } catch (error) {
+      logger.warn('Err in favorite.favoriteAddOrIgnore', error)
+    }
+  }
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -296,6 +329,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {

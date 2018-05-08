@@ -1,5 +1,5 @@
 // @flow
-import {connect, type Dispatch, type TypedState} from '../../util/container'
+import {connect, pure, type Dispatch, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -8,6 +8,7 @@ import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
 import VideoView from './video-view'
+import PdfView from './pdf-view'
 import {Text} from '../../common-adapters'
 
 type Props = {
@@ -30,7 +31,7 @@ const mergeProps = ({_serverInfo}, {onInvalidToken}, {path}) => ({
 
 const httpConnect = connect(mapStateToProps, mapDispatchToProps, mergeProps)
 
-export default ({path, fileViewType}: Props) => {
+export default pure(({path, fileViewType}: Props) => {
   const ft = fileViewType || Constants.viewTypeFromPath(path)
   switch (ft) {
     case 'default':
@@ -41,7 +42,9 @@ export default ({path, fileViewType}: Props) => {
       return React.createElement(httpConnect(ImageView), {path})
     case 'video':
       return React.createElement(httpConnect(VideoView), {path})
+    case 'pdf':
+      return React.createElement(httpConnect(PdfView), {path})
     default:
       return <Text type="BodyError">This shouldn't happen</Text>
   }
-}
+})

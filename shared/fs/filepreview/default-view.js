@@ -12,7 +12,7 @@ import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 type DefaultViewProps = {
   fileUIEnabled: boolean,
   itemStyles: Types.ItemStyles,
-  pathItem: Types.PathItemMetadata,
+  pathItem: Types.PathItem,
 
   onDownload: () => void,
   onSave: () => void,
@@ -34,6 +34,11 @@ const DefaultView = (props: DefaultViewProps) => (
         lastWriter={props.pathItem.lastWriter.username}
         startWithLastModified={true}
       />
+    )}
+    {props.pathItem.type === 'symlink' && (
+      <Text type="BodySmall" style={stylesSymlink}>
+        {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
+      </Text>
     )}
     {isMobile && (
       <Text type="BodySmall" style={stylesNoOpenMobile}>
@@ -77,15 +82,20 @@ const DefaultView = (props: DefaultViewProps) => (
         onClick={props.onDownload}
       />
     )}
-    {props.pathItem.name.indexOf('.') === -1 && (
-      <Button
-        key="open-text"
-        type="Secondary"
-        label="Open as text"
-        style={{marginTop: globalMargins.small}}
-        onClick={props.onOpenAsText}
-      />
-    )}
+    {// We only show this button for files with no extensions, because our
+    // mime type list cannot be exaustive. For example it'd be weird to show
+    // an Illustrator file as plain text.
+    props.pathItem.name.indexOf('.') === -1 &&
+      // We don't want show this button for symlinks.
+      props.pathItem.type === 'file' && (
+        <Button
+          key="open-text"
+          type="Secondary"
+          label="Open as text"
+          style={{marginTop: globalMargins.small}}
+          onClick={props.onOpenAsText}
+        />
+      )}
   </Box>
 )
 
@@ -113,6 +123,10 @@ const stylesFilename = memoize(color => ({
   marginBottom: globalMargins.tiny,
   color: color,
 }))
+
+const stylesSymlink = {
+  marginTop: globalMargins.medium,
+}
 
 const stylesNoOpenMobile = {
   marginTop: globalMargins.medium,

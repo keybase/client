@@ -25,7 +25,7 @@ type noteBuildSecret struct {
 // If `other` is nil the key is derived from the latest PUK seed.
 // If `other` is non-nil the key is derived from the nacl shared key of both users' latest PUK encryption keys.
 func noteSymmetricKey(ctx context.Context, g *libkb.GlobalContext, other *keybase1.UserVersion) (res noteBuildSecret, err error) {
-	me, err := loadMeUpk(ctx, g)
+	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -38,7 +38,7 @@ func noteSymmetricKey(ctx context.Context, g *libkb.GlobalContext, other *keybas
 		return res, err
 	}
 	var recipient *stellar1.NoteRecipient
-	if other != nil && !other.Eq(me.ToUserVersion()) {
+	if other != nil && !other.Eq(meUV) {
 		u2, err := loadUvUpk(ctx, g, *other)
 		if err != nil {
 			return res, fmt.Errorf("error loading recipient: %v", err)
@@ -60,7 +60,7 @@ func noteSymmetricKey(ctx context.Context, g *libkb.GlobalContext, other *keybas
 	return noteBuildSecret{
 		symmetricKey: symmetricKey,
 		sender: stellar1.NoteRecipient{
-			User:   me.ToUserVersion(),
+			User:   meUV,
 			PukGen: puk1Gen,
 		},
 		recipient: recipient,
@@ -68,17 +68,17 @@ func noteSymmetricKey(ctx context.Context, g *libkb.GlobalContext, other *keybas
 }
 
 func noteSymmetricKeyForDecryption(ctx context.Context, g *libkb.GlobalContext, encNote stellar1.EncryptedNote) (res libkb.NaclSecretBoxKey, err error) {
-	me, err := loadMeUpk(ctx, g)
+	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
 		return res, err
 	}
 	var mePukGen keybase1.PerUserKeyGeneration
 	var them *stellar1.NoteRecipient
-	if encNote.Sender.User.Eq(me.ToUserVersion()) {
+	if encNote.Sender.User.Eq(meUV) {
 		mePukGen = encNote.Sender.PukGen
 		them = encNote.Recipient
 	}
-	if encNote.Recipient != nil && encNote.Recipient.User.Eq(me.ToUserVersion()) {
+	if encNote.Recipient != nil && encNote.Recipient.User.Eq(meUV) {
 		mePukGen = encNote.Recipient.PukGen
 		them = &encNote.Sender
 	}

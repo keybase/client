@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
 import type {IconType} from '../common-adapters/icon'
-import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
+import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
 import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {remote} from 'electron'
@@ -150,7 +150,7 @@ class MenubarRender extends Component<Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<Tab> = [folderTab, peopleTab, chatTab, devicesTab]
+    const badgeTypes: Array<Tab> = [fsTab, peopleTab, chatTab, devicesTab]
 
     return (
       <Box style={styles.container}>
@@ -255,7 +255,7 @@ const BadgeIcon = ({
   const iconMap: {[key: Tab]: IconType} = {
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
-    [folderTab]: 'iconfont-nav-folders',
+    [fsTab]: 'iconfont-nav-files',
     [peopleTab]: 'iconfont-nav-people',
   }
   const iconType: ?IconType = iconMap[tab]

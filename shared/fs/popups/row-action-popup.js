@@ -20,6 +20,8 @@ type Props = {
   menuItems: Array<{
     title: string,
     onClick: () => void,
+    subTitle?: string,
+    danger?: boolean,
   }>,
   onHidden: () => void,
 }
@@ -50,9 +52,11 @@ const Popup = (props: Props) => {
       </Box>
     ),
   }
-  const items = props.menuItems.map(({onClick, title}) => ({
+  const items = props.menuItems.map(({onClick, title, subTitle, danger}) => ({
     onClick,
     title,
+    subTitle,
+    danger,
   }))
   return (
     <ModalLessPopupMenu header={header} items={items} style={stylesContainer} onHidden={props.onHidden} />

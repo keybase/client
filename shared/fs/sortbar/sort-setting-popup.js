@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/fs'
 import {type RouteProps} from '../../route-tree/render-route'
 import {ModalLessPopupMenu} from '../../common-adapters/popup-menu'
 import {Icon, Box, Text} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
 
 type SortBarPopupMenuProps = RouteProps<
   {
@@ -28,15 +28,16 @@ const stylesSortSetting = {
   minHeight: 24,
 }
 
-const stylesPopup = !isMobile
-  ? {
-      position: 'absolute',
-      left: 88,
-      top: 80,
-    }
-  : {
-      width: '100%',
-    }
+const stylesPopup = platformStyles({
+  isMobile: {
+    width: '100%',
+  },
+  isElectron: {
+    position: 'absolute',
+    left: 88,
+    top: 80,
+  },
+})
 
 const styleIcon = {
   marginRight: globalMargins.tiny,
@@ -57,24 +58,29 @@ const SortBarPopupMenu = ({routeProps}: SortBarPopupMenuProps) => {
       view: (
         <Box style={stylesSortSetting}>
           <Box style={iconBoxStyle}>
-            <Icon type={sortSettingIconType} style={styleIcon} color={globalColors.black_75} fontSize={13} />
+            <Icon
+              type={sortSettingIconType}
+              style={styleIcon}
+              color={isMobile ? globalColors.blue : globalColors.black_75}
+              fontSize={isMobile ? 17 : 13}
+            />
           </Box>
-          <Text type="Body">{sortSettingText}</Text>
+          <Text type={isMobile ? 'BodyBig' : 'Body'} style={stylesText}>
+            {sortSettingText}
+          </Text>
         </Box>
       ),
     }
   })
   return (
-    <ModalLessPopupMenu
-      header={{
-        title: '',
-        view: undefined,
-      }}
-      items={popupItems}
-      style={stylesPopup}
-      onHidden={onHidden}
-    />
+    <ModalLessPopupMenu header={{title: ''}} items={popupItems} style={stylesPopup} onHidden={onHidden} />
   )
 }
+
+const stylesText = platformStyles({
+  isMobile: {
+    color: globalColors.blue,
+  },
+})
 
 export default SortBarPopupMenu

@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/fs'
+import * as RPCTypes from './types/rpc-gen'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
@@ -42,6 +43,17 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   size: 0,
   progress: 'pending',
   type: 'file',
+})
+
+export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
+  badgeCount: 0,
+  name: 'unknown',
+  lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
+  size: 0,
+  progress: 'pending',
+  type: 'symlink',
+  linkTarget: '',
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
@@ -464,6 +476,9 @@ export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
   if (mimeType.startsWith('video/')) {
     return 'video'
   }
+  if (mimeType === 'application/pdf') {
+    return 'pdf'
+  }
   return 'default'
 }
 
@@ -471,3 +486,30 @@ export const generateFileURL = (path: Types.Path, address: string, token: string
   const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
   return `http://${address}/files${stripKeybase}?token=${token}`
 }
+
+export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
+
+export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
+  const pathElems = Types.getPathElements(path)
+  if (pathElems.length === 0) return null
+
+  const visibility = Types.getVisibilityFromElems(pathElems)
+  if (visibility === null) return null
+  const isPrivate = visibility === 'private' || visibility === 'team'
+
+  const name = Types.getPathNameFromElems(pathElems)
+  if (name === '') return null
+
+  return {
+    folderType: Types.getRPCFolderTypeFromVisibility(visibility),
+    name,
+    private: isPrivate,
+    notificationsOn: false,
+    created: false,
+  }
+}
+
+export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, username?: string): boolean =>
+  !!pathItem.tlfMeta &&
+  ['public', 'private'].includes(Types.getPathVisibility(path)) &&
+  Types.getPathName(path) !== username

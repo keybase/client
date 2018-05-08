@@ -106,33 +106,36 @@ func (a *FakeAccount) AdjustBalance(amt int64) error {
 type RemoteMock struct {
 	sync.Mutex
 	libkb.Contextified
+	t        testing.TB
 	seqno    uint64
 	accounts map[stellar1.AccountID]*FakeAccount
 }
 
-func NewRemoteMock(g *libkb.GlobalContext) *RemoteMock {
+func NewRemoteMock(t testing.TB, g *libkb.GlobalContext) *RemoteMock {
 	return &RemoteMock{
 		Contextified: libkb.NewContextified(g),
+		t:            t,
 		seqno:        uint64(time.Now().UnixNano()),
 		accounts:     make(map[stellar1.AccountID]*FakeAccount),
 	}
 }
 
 func (r *RemoteMock) addTransaction(summary stellar1.PaymentSummary) {
+	defer r.G().CTraceTimed(context.Background(), "RemoteMock.addTransaction", func() error { return nil })()
 	txLog.Add(summary)
 }
 
-func (r *RemoteMock) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
+func (r *RemoteMock) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (res uint64, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.AccountSeqno", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
-
-	n := r.seqno
+	res = r.seqno
 	r.seqno++
-
-	return n, nil
+	return res, nil
 }
 
-func (r *RemoteMock) Balances(ctx context.Context, accountID stellar1.AccountID) ([]stellar1.Balance, error) {
+func (r *RemoteMock) Balances(ctx context.Context, accountID stellar1.AccountID) (res []stellar1.Balance, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.Balances", func() error { return err })()
 	a, ok := r.accounts[accountID]
 	if !ok {
 		return nil, libkb.NotFoundError{}
@@ -140,73 +143,72 @@ func (r *RemoteMock) Balances(ctx context.Context, accountID stellar1.AccountID)
 	return []stellar1.Balance{a.balance}, nil
 }
 
-func (r *RemoteMock) SubmitTransaction(ctx context.Context, payload libkb.JSONPayload) (stellar1.PaymentResult, error) {
-	payment, ok := payload["payment"]
-	if !ok {
-		return stellar1.PaymentResult{}, errors.New("missing 'payment' in payload")
-	}
-	post, ok := payment.(stellar1.PaymentPost)
-	if !ok {
-		return stellar1.PaymentResult{}, fmt.Errorf("invalid payment type: %T", post)
-	}
-
-	tx, amount, asset, err := txDetails(post.SignedTransaction)
+func (r *RemoteMock) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (res stellar1.PaymentResult, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.SubmitPayment", func() error { return err })()
+	txd, err := txDetails(post.SignedTransaction)
 	if err != nil {
 		return stellar1.PaymentResult{}, err
 	}
 
-	a, ok := r.accounts[stellar1.AccountID(tx.SourceAccount.Address())]
+	a, ok := r.accounts[txd.from]
 	if !ok {
-		return stellar1.PaymentResult{}, libkb.NotFoundError{Msg: "source account not found"}
+		return stellar1.PaymentResult{}, libkb.NotFoundError{Msg: fmt.Sprintf("source account not found: '%v'", txd.from)}
 	}
 
-	if asset.Type != "native" {
+	if !txd.asset.IsNativeXLM() {
 		return stellar1.PaymentResult{}, errors.New("can only handle native")
 	}
 
-	a.SubtractBalance(amount)
-	a.AdjustBalance(-(int64(tx.Fee)))
+	a.SubtractBalance(txd.amount)
+	a.AdjustBalance(-(int64(txd.tx.Fee)))
 
-	destination, err := txOpDestination(tx)
-	if err != nil {
-		return stellar1.PaymentResult{}, err
-	}
-	b, ok := r.accounts[destination]
+	b, ok := r.accounts[txd.to]
 	if ok {
 		// we know about destination as well
-		b.AddBalance(amount)
+		b.AddBalance(txd.amount)
 	}
 
 	result := stellar1.PaymentResult{
 		StellarID: "",
 		KeybaseID: "",
-		Ledger:    1000,
 	}
 
+	from, err := r.G().GetMeUV(ctx)
+	if err != nil {
+		return stellar1.PaymentResult{}, fmt.Errorf("could not get self UV: %v", err)
+	}
 	summary := stellar1.PaymentSummary{
 		Keybase: &stellar1.PaymentSummaryKeybase{
 			Status:          stellar1.TransactionStatus_SUCCESS,
-			From:            post.Members.From,
-			FromDeviceID:    post.Members.FromDeviceID,
-			To:              &post.Members.To,
+			From:            from,
+			FromDeviceID:    post.FromDeviceID,
+			To:              post.To,
 			DisplayAmount:   &post.DisplayAmount,
 			DisplayCurrency: &post.DisplayCurrency,
 		},
-		From:   stellar1.AccountID(tx.SourceAccount.Address()),
-		To:     destination,
-		Amount: amount,
-		Asset:  asset,
+		From:   txd.from,
+		To:     txd.to,
+		Amount: txd.amount,
+		Asset:  txd.asset,
 	}
 	r.addTransaction(summary)
 
 	return result, nil
 }
 
+func (r *RemoteMock) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (res stellar1.PaymentResult, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.SubmitRelayPayment", func() error { return err })()
+	require.FailNow(r.t, "RemoteMock.SubmitRelayPayment not implemented")
+	return res, fmt.Errorf("RemoteMock.SubmitRelayPayment not implemented")
+}
+
 func (r *RemoteMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.RecentPayments", func() error { return err })()
 	return txLog.Filter(accountID, limit), nil
 }
 
 func (r *RemoteMock) PaymentDetail(ctx context.Context, txID string) (res stellar1.PaymentSummary, err error) {
+	defer r.G().CTraceTimed(ctx, "RemoteMock.PaymentDetail", func() error { return err })()
 	p := txLog.Find(txID)
 	if p == nil {
 		return res, fmt.Errorf("RemoteMock: tx not found: '%v'", txID)
@@ -215,6 +217,7 @@ func (r *RemoteMock) PaymentDetail(ctx context.Context, txID string) (res stella
 }
 
 func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
+	defer r.G().CTraceTimed(context.Background(), "RemoteMock.AddAccount", func() error { return nil })()
 	full, err := keypair.Random()
 	if err != nil {
 		t.Fatal(err)
@@ -233,6 +236,7 @@ func (r *RemoteMock) AddAccount(t *testing.T) stellar1.AccountID {
 }
 
 func (r *RemoteMock) ImportAccountsForUser(t *testing.T, g *libkb.GlobalContext) {
+	defer r.G().CTraceTimed(context.Background(), "RemoteMock.ImportAccountsForUser", func() error { return nil })()
 	dump, _, err := remote.Fetch(context.Background(), g)
 	require.NoError(t, err)
 	for _, account := range dump.Accounts {
@@ -252,6 +256,7 @@ func (r *RemoteMock) ImportAccountsForUser(t *testing.T, g *libkb.GlobalContext)
 }
 
 func (r *RemoteMock) SecretKey(t *testing.T, accountID stellar1.AccountID) stellar1.SecretKey {
+	defer r.G().CTraceTimed(context.Background(), "RemoteMock.SecretKey", func() error { return nil })()
 	a, ok := r.accounts[accountID]
 	if !ok {
 		t.Fatalf("SecretKey: account id %s not in remote mock", accountID)
@@ -259,38 +264,42 @@ func (r *RemoteMock) SecretKey(t *testing.T, accountID stellar1.AccountID) stell
 	return a.secretKey
 }
 
-func txDetails(txEnvelopeB64 string) (txInner xdr.Transaction, amt string, asset stellar1.Asset, err error) {
+type txDetailsT struct {
+	tx     xdr.Transaction
+	from   stellar1.AccountID
+	to     stellar1.AccountID
+	amount string
+	asset  stellar1.Asset
+}
+
+func txDetails(txEnvelopeB64 string) (res txDetailsT, err error) {
 	var tx xdr.TransactionEnvelope
 	err = xdr.SafeUnmarshalBase64(txEnvelopeB64, &tx)
 	if err != nil {
-		return txInner, amt, asset, fmt.Errorf("decoding tx: %v", err)
+		return res, fmt.Errorf("decoding tx: %v", err)
 	}
+	res.tx = tx.Tx
+	res.from = stellar1.AccountID(tx.Tx.SourceAccount.Address())
 	if len(tx.Tx.Operations) != 1 {
-		return txInner, amt, asset, fmt.Errorf("unexpected number of operations in tx %v != 1", len(tx.Tx.Operations))
+		return res, fmt.Errorf("unexpected number of operations in tx %v != 1", len(tx.Tx.Operations))
+	}
+	if tx.Tx.Operations[0].SourceAccount != nil {
+		// operation overrides tx source field
+		res.from = stellar1.AccountID(tx.Tx.Operations[0].SourceAccount.Address())
 	}
 	op := tx.Tx.Operations[0].Body
 	if op, ok := op.GetPaymentOp(); ok {
-		amt, asset, err = balanceXdrToProto(op.Amount, op.Asset)
-		return tx.Tx, amt, asset, err
+		res.amount, res.asset, err = balanceXdrToProto(op.Amount, op.Asset)
+		res.to = stellar1.AccountID(op.Destination.Address())
+		return res, err
 	}
 	if op, ok := op.GetCreateAccountOp(); ok {
-		amt = amount.String(op.StartingBalance)
-		asset = stellar1.AssetNative()
-		return tx.Tx, amt, asset, nil
+		res.amount = amount.String(op.StartingBalance)
+		res.asset = stellar1.AssetNative()
+		res.to = stellar1.AccountID(op.Destination.Address())
+		return res, nil
 	}
-	return txInner, amt, asset, fmt.Errorf("unexpected op type: %v", op.Type)
-}
-
-func txOpDestination(tx xdr.Transaction) (stellar1.AccountID, error) {
-	op := tx.Operations[0].Body
-	if op, ok := op.GetPaymentOp(); ok {
-		return stellar1.AccountID(op.Destination.Address()), nil
-	}
-	if op, ok := op.GetCreateAccountOp(); ok {
-		return stellar1.AccountID(op.Destination.Address()), nil
-	}
-
-	return "", errors.New("invalid op")
+	return res, fmt.Errorf("unexpected op type: %v", op.Type)
 }
 
 // TODO: copied from stellard/server.go, extract to common package

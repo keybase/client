@@ -25,8 +25,12 @@ func (r *RemoteNet) Balances(ctx context.Context, accountID stellar1.AccountID) 
 	return Balances(ctx, r.G(), accountID)
 }
 
-func (r *RemoteNet) SubmitTransaction(ctx context.Context, payload libkb.JSONPayload) (stellar1.PaymentResult, error) {
-	return SubmitTransaction(ctx, r.G(), payload)
+func (r *RemoteNet) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
+	return SubmitPayment(ctx, r.G(), post)
+}
+
+func (r *RemoteNet) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
+	return SubmitRelayPayment(ctx, r.G(), post)
 }
 
 func (r *RemoteNet) RecentPayments(ctx context.Context, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
