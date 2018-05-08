@@ -23,11 +23,8 @@ const Spinner = () => (
 
 const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
   <Box2 direction="vertical">
-    (isProcessing ?
-    <Spinner />
-    : null) (bannerInfo ?
-    <Banner />
-    : null)
+    {isProcessing && <Spinner />}
+    {bannerInfo && <Banner />}
     <Participants />
     <Divider />
     <AssetInput />
