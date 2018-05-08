@@ -14,6 +14,7 @@ import {
   Linking,
   NativeModules,
   NativeEventEmitter,
+  PermissionsAndroid,
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
@@ -97,6 +98,17 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
     logger.info(logPrefix + 'Saving to camera roll')
     await CameraRoll.saveToCameraRoll(fileURL)
     return
+  }
+  const permissionStatus = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    {
+      title: 'Keybase Storage Permission',
+      message: 'Keybase needs access to your storage so we can download an attachment.',
+    }
+  )
+  if (permissionStatus !== 'granted') {
+    logger.error(logPrefix + 'Unable to acquire storage permissions')
+    throw new Error('Unable to acquire storage permissions')
   }
   const download = await RNFetchBlob.config({
     appendExt: mime.extension(mimeType),
