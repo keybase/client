@@ -237,22 +237,23 @@ func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.
 	return messages, nil
 }
 
-func (h *Helper) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs []string) {
+func (h *Helper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
+	defer h.Trace(ctx, func() error { return nil }, "AckMobileNotificationSuccess")()
 	// Get session token
 	nist, _, err := h.G().ActiveDevice.NISTAndUID(ctx)
 	if nist == nil {
-		h.Debug(ctx, "sendRemoteNotificationSuccessful: got a nil NIST, is the user logged out?")
+		h.Debug(ctx, "AckMobileNotificationSuccess: got a nil NIST, is the user logged out?")
 		return
 	}
 	if err != nil {
-		h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to get logged in session: %s", err.Error())
+		h.Debug(ctx, "AckMobileNotificationSuccess: failed to get logged in session: %s", err.Error())
 		return
 	}
 
 	// Make an ad hoc connection to gregor
 	uri, err := rpc.ParseFMPURI(h.G().Env.GetGregorURI())
 	if err != nil {
-		h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to parse chat server UR: %s", err.Error())
+		h.Debug(ctx, "AckMobileNotificationSuccess: failed to parse chat server UR: %s", err.Error())
 		return
 	}
 
@@ -260,7 +261,7 @@ func (h *Helper) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 	if uri.UseTLS() {
 		rawCA := h.G().Env.GetBundledCA(uri.Host)
 		if len(rawCA) == 0 {
-			h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to parse CAs: %s", err.Error())
+			h.Debug(ctx, "AckMobileNotificationSuccess: failed to parse CAs: %s", err.Error())
 			return
 		}
 		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
@@ -282,7 +283,7 @@ func (h *Helper) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 			AuthToken:        gregor1.SessionToken(nist.Token().String()),
 			CompanionPushIDs: pushIDs,
 		}); err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: failed to invoke remote notification success: %",
+		h.Debug(ctx, "AckMobileNotificationSuccess: failed to invoke remote notification success: %",
 			err.Error())
 	}
 }
@@ -310,14 +311,7 @@ func (h *Helper) formatPushText(ctx context.Context, uid gregor1.UID, convID cha
 
 func (h *Helper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (res string, err error) {
-	defer func() {
-		if err == nil {
-			// If we have succeeded, let us let the server know that it can abort the push notification
-			// associated with this silent one
-			h.sendRemoteNotificationSuccessful(ctx, pushIDs)
-		}
-	}()
-
+	defer h.Trace(ctx, func() error { return err }, "UnboxMobilePushNotification")()
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {

@@ -14,6 +14,7 @@
 #import "LogSend.h"
 #import "RCTLinkingManager.h"
 #import <keybase/keybase.h>
+#import "Pusher.h"
 
 // Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
 // You'll also have to edit the React.xcodeproj. Instructions here:
@@ -93,7 +94,7 @@ const BOOL isDebug = NO;
   [self createBackgroundReadableDirectory:chatLevelDBPath];
   [self createBackgroundReadableDirectory:levelDBPath];
   [self createBackgroundReadableDirectory:logPath];
-
+  
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
@@ -200,37 +201,22 @@ const BOOL isDebug = NO;
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSLog(@"Remote notification handle started...");
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-    NSString* convID = notification[@"c"];
-    int membersType = [notification[@"t"] intValue];
-    int messageID = [notification[@"d"] intValue];
-    int badgeCount = [notification[@"b"] intValue];
-    int unixTime = [notification[@"x"] intValue];
-    NSString* pushID = [notification[@"p"] objectAtIndex:0];
-    NSString* body = notification[@"m"];
     NSString* type = notification[@"type"];
-    
-    typedef void (^CaseBlock)();
-    NSDictionary* handlers =
-      @{
-        @"chat.newmessageSilent_2": ^{
-          NSError *err = nil;
-          NSString* pushMessage = KeybaseHandleBackgroundNotification(convID, membersType, messageID,
-                                                                      pushID, badgeCount, unixTime, body, &err);
-          if (err == nil) {
-            UILocalNotification* localNotification = [[UILocalNotification alloc] init];
-            localNotification.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-            localNotification.alertBody = pushMessage;
-            localNotification.applicationIconBadgeNumber = badgeCount;
-            localNotification.soundName = @"keybasemessage.wav";
-            NSDictionary *userInfo = @{ @"convID" : convID, @"type" : @"chat.newmessage"};
-            localNotification.userInfo = userInfo;
-            dispatch_async(dispatch_get_main_queue(), ^{
-              [application scheduleLocalNotification:localNotification];
-            });
-          }
-        }
-        };
-    ((CaseBlock)handlers[type])();
+    if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
+      NSString* convID = notification[@"c"];
+      int membersType = [notification[@"t"] intValue];
+      int messageID = [notification[@"d"] intValue];
+      int badgeCount = [notification[@"b"] intValue];
+      int unixTime = [notification[@"x"] intValue];
+      NSString* pushID = [notification[@"p"] objectAtIndex:0];
+      NSString* body = notification[@"m"];
+      PushNotifier* pusher = [[PushNotifier alloc] init];
+      NSError* err = nil;
+      KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, pusher, &err);
+      if (err == nil) {
+        NSLog(@"Failed to handle in engine: %@", err);
+      }
+    }
     completionHandler(UIBackgroundFetchResultNewData);
     NSLog(@"Remote notification handle finished...");
   });

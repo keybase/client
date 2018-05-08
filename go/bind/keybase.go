@@ -46,6 +46,10 @@ var startOnce sync.Once
 var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
 
+type PushNotifier interface {
+	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+}
+
 type ExternalDNSNSFetcher interface {
 	GetServers() []byte
 }
@@ -321,7 +325,7 @@ func BackgroundSync() {
 }
 
 func HandleBackgroundNotification(strConvID string, intMembersType int, intMessageID int,
-	pushID string, badgeCount int, unixTime int, body string) (res string, err error) {
+	pushID string, badgeCount int, unixTime int, body string, pusher PushNotifier) (err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
@@ -330,24 +334,35 @@ func HandleBackgroundNotification(strConvID string, intMembersType int, intMessa
 		func() error { return err })()
 	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
 	if !kbCtx.ActiveDevice.HaveKeys() {
-		return "", libkb.LoginRequiredError{}
+		return libkb.LoginRequiredError{}
 	}
 	age := time.Now().Sub(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
-		return "", errors.New("stale notification")
+		return errors.New("stale notification")
 	}
 
 	bConvID, err := hex.DecodeString(strConvID)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID,
 			err)
-		return res, err
+		return err
 	}
 	convID := chat1.ConversationID(bConvID)
 	membersType := chat1.ConversationMembersType(intMembersType)
-	return kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, []string{pushID},
+	msg, err := kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, []string{pushID},
 		body)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: failed to unbox: %s", err)
+		return err
+	}
+
+	// Send up the local notification with out message
+	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
+	pusher.LocalNotification(id, msg, badgeCount, "keybasemessage.wav", strConvID, "chat.newmessage")
+	// Hit the remote server to let it know we succeeded in showing something useful
+	kbCtx.ChatHelper.AckMobileNotificationSuccess(ctx, []string{pushID})
+	return nil
 }
 
 // AppWillExit is called reliably on iOS when the app is about to terminate

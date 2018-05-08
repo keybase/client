@@ -2494,8 +2494,12 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 	convID := chat1.ConversationID(bConvID)
-	return h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.PushIDs,
-		arg.Payload)
+	if res, err = h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.PushIDs,
+		arg.Payload); err != nil {
+		return res, err
+	}
+	h.G().ChatHelper.AckMobileNotificationSuccess(ctx, arg.PushIDs)
+	return res, nil
 }
 
 func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,

@@ -773,4 +773,5 @@ type ChatHelper interface {
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, membersType chat1.ConversationMembersType, pushIDs []string, payload string) (string, error)
+	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
