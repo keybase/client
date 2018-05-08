@@ -117,6 +117,19 @@ func MakeCanonicalNameForTeam(resolvedWriters []libkb.NormalizedUsername,
 // PreferredName is a preferred TLF name.
 type PreferredName string
 
+func putUserFirst(uname string, users []string) []string {
+	for i, w := range users {
+		if w == uname {
+			if i != 0 {
+				copy(users[1:i+1], users[0:i])
+				users[0] = w
+				return users
+			}
+		}
+	}
+	return users
+}
+
 // CanonicalToPreferredName returns the preferred TLF name, given a
 // canonical name and a username. The username may be empty, and
 // results in the canonical name being being returned unmodified.
@@ -134,21 +147,14 @@ func CanonicalToPreferredName(username libkb.NormalizedUsername,
 		return "", fmt.Errorf("TLF name %q with no writers", tlfname)
 	}
 	uname := username.String()
-	for i, w := range ws {
-		if w == uname {
-			if i != 0 {
-				copy(ws[1:i+1], ws[0:i])
-				ws[0] = w
-				tlfname = strings.Join(ws, ",")
-				if len(rs) > 0 {
-					tlfname += ReaderSep + strings.Join(rs, ",")
-				}
-				if len(ext) > 0 {
-					tlfname += HandleExtensionSep + ext
-				}
-			}
-			break
-		}
+	ws = putUserFirst(uname, ws)
+	rs = putUserFirst(uname, rs)
+	tlfname = strings.Join(ws, ",")
+	if len(rs) > 0 {
+		tlfname += ReaderSep + strings.Join(rs, ",")
+	}
+	if len(ext) > 0 {
+		tlfname += HandleExtensionSep + ext
 	}
 	return PreferredName(tlfname), nil
 }
