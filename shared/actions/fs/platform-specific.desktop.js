@@ -15,6 +15,8 @@ import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
 
+import {copyToDownloadDir} from './platform-specific'
+
 type pathType = 'file' | 'directory'
 
 // pathToURL takes path and converts to (file://) url.
@@ -105,7 +107,7 @@ function _open(openPath: string): Promise<*> {
   })
 }
 
-export function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
+function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
   const openPath = path || Config.defaultKBFSPath
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
@@ -133,21 +135,21 @@ function waitForMount(attempt: number): Promise<*> {
   })
 }
 
-export const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
-export const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
+const installKBFS = () => Saga.call(RPCTypes.installInstallKBFSRpcPromise)
+const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
   Saga.sequentially([
     Saga.call(waitForMount, 0),
     Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
   ])
 
-export function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
+function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
     return Saga.call(installKBFS)
   }
 }
 
-export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
+function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
   const prevStatus = state.favorite.fuseStatus
 
@@ -164,7 +166,7 @@ export function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
 }
 
-export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
+function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults =
     result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
@@ -182,7 +184,7 @@ export function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
 }
 
-export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
+function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPayload) {
   const dialog = Electron.dialog || Electron.remote.dialog
   dialog.showMessageBox(
     {
@@ -195,18 +197,18 @@ export function uninstallKBFSConfirmSaga(action: FsGen.UninstallKBFSConfirmPaylo
   )
 }
 
-export function uninstallKBFS() {
+function uninstallKBFS() {
   return Saga.call(RPCTypes.installUninstallKBFSRpcPromise)
 }
 
-export function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
+function uninstallKBFSSuccess(result: RPCTypes.UninstallResult) {
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
   const app = Electron.remote.app
   app.relaunch()
   app.exit(0)
 }
 
-export function openSecurityPreferences() {
+function openSecurityPreferences() {
   return Saga.call(
     () =>
       new Promise((resolve, reject) => {
@@ -258,10 +260,23 @@ function installCachedDokan(): Promise<*> {
   })
 }
 
-export function installDokanSaga() {
+function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-export function copyToDownloadDir(path: string): Promise<*> {
-  return new Promise((resolve, reject) => resolve())
+function* subSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
+  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
+  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
+  if (isWindows) {
+    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+  } else {
+    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+  }
+  yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 }
+
+export {copyToDownloadDir, subSaga}

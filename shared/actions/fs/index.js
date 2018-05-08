@@ -8,21 +8,8 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
-import {
-  openInFileUISaga,
-  fuseStatusSaga,
-  fuseStatusResultSaga,
-  installKBFS,
-  installKBFSSuccess,
-  installFuseSaga,
-  installDokanSaga,
-  openSecurityPreferences,
-  uninstallKBFSConfirmSaga,
-  uninstallKBFS,
-  uninstallKBFSSuccess,
-  copyToDownloadDir,
-} from './platform-specific'
-import {isMobile, isWindows} from '../../constants/platform'
+import {subSaga, copyToDownloadDir} from './platform-specific'
+import {isMobile} from '../../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {type TypedState} from '../../util/container'
 
@@ -326,26 +313,15 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
   yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
-  yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
-  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
-  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
-  if (isWindows) {
-    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-  } else {
-    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
-  }
-  yield Saga.safeTakeEveryPure(FsGen.installKBFS, installKBFS, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirmSaga)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFS, uninstallKBFS, uninstallKBFSSuccess)
 
   if (!isMobile) {
-    yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
-
     // TODO: enable these when we need it on mobile.
     yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
     yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
   }
+
+  yield Saga.fork(subSaga)
 }
 
 export default fsSaga
