@@ -5,7 +5,7 @@ import {storiesOf} from '../../stories/storybook'
 import Transaction from '.'
 
 const load = () => {
-  storiesOf('Wallets/Assets', module)
+  storiesOf('Wallets/Transaction', module)
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Default wallet to Keybase User', () => (
       <Transaction
@@ -13,7 +13,7 @@ const load = () => {
         yourRole="sender"
         counterparty="paul"
         amountUser="$12.50"
-        amountXLM="-53.1688643 XLM"
+        amountXLM="53.1688643 XLM"
         note="Short note."
       />
     ))

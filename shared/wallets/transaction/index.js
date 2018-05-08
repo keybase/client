@@ -5,8 +5,10 @@ import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../
 // TODO: Format relative dates.
 import {formatTimeForPopup} from '../../util/timestamp'
 
+type Role = 'sender' | 'receiver'
+
 type DetailProps = {|
-  yourRole: 'sender' | 'receiver',
+  yourRole: Role,
   counterparty: string,
   amountUser: string,
 |}
@@ -33,6 +35,23 @@ const Detail = (props: DetailProps) => {
   )
 }
 
+type AmountXLMProps = {|
+  yourRole: Role,
+  amountXLM: string,
+|}
+
+const AmountXLM = (props: AmountXLMProps) => {
+  const color = props.yourRole === 'sender' ? globalColors.red : globalColors.green
+  const amount = `${props.yourRole === 'sender' ? '-' : '+'} ${props.amountXLM}`
+    // Replace spaces with non-breaking spaces.
+    .replace(/ /g, '\u00a0')
+  return (
+    <Text style={{color}} type="BodyExtrabold">
+      {amount}
+    </Text>
+  )
+}
+
 export type Props = {|
   ...$Exact<DetailProps>,
   timestamp: Date,
@@ -52,9 +71,7 @@ export const Transaction = (props: Props) => (
             {props.note}
           </Text>
         </Box2>
-        <Text type="BodySmall" lineClamp={1}>
-          {props.amountXLM}
-        </Text>
+        <AmountXLM yourRole={props.yourRole} amountXLM={props.amountXLM} />
       </Box2>
     </Box2>
   </Box2>
