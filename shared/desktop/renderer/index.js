@@ -155,7 +155,7 @@ function render(store, MainComponent) {
   }
   ReactDOM.render(
     <Root store={store}>
-      <div style={{display: 'flex', flex: 1}}>
+      <div style={{display: 'flex', flex: 1, '-webkit-app-region': 'drag'}}>
         <RemoteProxies />
         <FontLoader />
         <MainComponent />

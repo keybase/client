@@ -78,7 +78,7 @@ const stylesTabBar = {
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',
   paddingBottom: globalMargins.tiny,
-  paddingTop: globalMargins.small,
+  paddingTop: 36,
   width: 80,
 }
 

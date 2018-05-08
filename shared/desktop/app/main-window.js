@@ -23,6 +23,7 @@ export default function() {
       minHeight: windowStyle.minHeight,
       minWidth: windowStyle.minWidth,
       show: false,
+      titleBarStyle: 'hiddenInset',
       width: appState.state.width,
       x: appState.state.x,
       y: appState.state.y,
