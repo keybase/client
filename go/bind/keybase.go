@@ -332,6 +332,12 @@ func HandleBackgroundNotification(strConvID string, intMembersType int, intMessa
 	if !kbCtx.ActiveDevice.HaveKeys() {
 		return "", libkb.LoginRequiredError{}
 	}
+	age := time.Now().Sub(time.Unix(int64(unixTime), 0))
+	if age >= 15*time.Second {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
+		return "", errors.New("stale notification")
+	}
+
 	bConvID, err := hex.DecodeString(strConvID)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID,
