@@ -292,6 +292,26 @@ func SetAppStateBackgroundActive() {
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 }
 
+func BackgroundSync() {
+	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
+	nextState := keybase1.AppState_BACKGROUNDACTIVE
+	kbCtx.AppState.Update(nextState)
+	doneCh := make(chan struct{})
+	go func() {
+		defer func() { close(doneCh) }()
+		select {
+		case state := <-kbCtx.AppState.NextUpdate(&nextState):
+			// if literally anything happens, let's get out of here
+			kbCtx.Log.Debug("BackgroundSync: bailing out early, appstate change: %v", state)
+			return
+		case <-time.After(10 * time.Second):
+			kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
+			return
+		}
+	}()
+	<-doneCh
+}
+
 // AppWillExit is called reliably on iOS when the app is about to terminate
 // not as reliably on android
 func AppWillExit() {
