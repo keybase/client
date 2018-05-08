@@ -357,7 +357,7 @@ func HandleBackgroundNotification(strConvID string, intMembersType int, intMessa
 		return err
 	}
 
-	// Send up the local notification with out message
+	// Send up the local notification with our message
 	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
 	pusher.LocalNotification(id, msg, badgeCount, "keybasemessage.wav", strConvID, "chat.newmessage")
 	// Hit the remote server to let it know we succeeded in showing something useful
