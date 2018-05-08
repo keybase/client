@@ -93,10 +93,9 @@ func (c *Context) WithTimeout(timeout time.Duration) (*Context, context.CancelFu
 
 func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
 	return libkb.SecretKeyPromptArg{
-		LoginContext: c.LoginContext,
-		SecretUI:     c.SecretUI,
-		Ska:          ska,
-		Reason:       reason,
+		SecretUI: c.SecretUI,
+		Ska:      ska,
+		Reason:   reason,
 	}
 }
 
@@ -104,4 +103,8 @@ func (c *Context) CloneGlobalContextWithLogTags(g *libkb.GlobalContext, k string
 	netCtx := libkb.WithLogTag(c.GetNetContext(), k)
 	c.NetContext = netCtx
 	return g.CloneWithNetContextAndNewLogger(netCtx)
+}
+
+func NewMetaContext(e Engine, c *Context) libkb.MetaContext {
+	return libkb.NewMetaContext(c.GetNetContext(), e.G()).WithLoginContext(c.LoginContext)
 }

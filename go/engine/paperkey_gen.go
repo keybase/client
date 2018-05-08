@@ -83,8 +83,9 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
+	m := NewMetaContext(e, ctx).WithLoginContext(e.arg.LoginContext)
 	if !e.arg.SkipPush {
-		err := e.syncPUK(ctx)
+		err := e.syncPUK(m, ctx)
 		if err != nil {
 			return err
 		}
@@ -108,7 +109,7 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 	}
 
 	// push everything to the server
-	if err := e.push(ctx); err != nil {
+	if err := e.push(m, ctx); err != nil {
 		return err
 	}
 
@@ -133,7 +134,7 @@ func (e *PaperKeyGen) getUID() keybase1.UID {
 	return keybase1.UID("")
 }
 
-func (e *PaperKeyGen) syncPUK(ctx *Context) error {
+func (e *PaperKeyGen) syncPUK(m libkb.MetaContext, ctx *Context) error {
 	// Sync the per-user-key keyring before updating other things.
 	pukring, err := e.getPerUserKeyring()
 	if err != nil {
@@ -144,7 +145,7 @@ func (e *PaperKeyGen) syncPUK(ctx *Context) error {
 		tmp := e.arg.Me.ExportToUserPlusAllKeys()
 		upak = &tmp
 	}
-	err = pukring.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, upak)
+	err = pukring.SyncWithExtras(m, upak)
 	if err != nil {
 		return err
 	}
@@ -224,8 +225,8 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore() (libkb.LKSecClientHalf, lib
 	return clientHalf, dev.PPGen, nil
 }
 
-func (e *PaperKeyGen) push(ctx *Context) error {
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push")
+func (e *PaperKeyGen) push(m libkb.MetaContext, ctx *Context) error {
+	m.CDebugf("PaperKeyGen#push")
 	if e.arg.SkipPush {
 		return nil
 	}
@@ -316,17 +317,17 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	pukBoxes, err := e.makePerUserKeyBoxes(ctx)
+	pukBoxes, err := e.makePerUserKeyBoxes(m, ctx)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push running delegators")
+	m.CDebugf("PaperKeyGen#push running delegators")
 	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
 }
 
-func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes")
+func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext, ctx *Context) ([]keybase1.PerUserKeyBox, error) {
+	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes")
 
 	var pukBoxes []keybase1.PerUserKeyBox
 	pukring, err := e.getPerUserKeyring()
@@ -337,7 +338,7 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBo
 		if e.arg.EncryptionKey.IsNil() {
 			return nil, errors.New("missing encryption key for creating paper key")
 		}
-		pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
+		pukBox, err := pukring.PrepareBoxForNewDevice(m,
 			e.encKey,            // receiver key: new paper key enc
 			e.arg.EncryptionKey) // sender key: this device enc
 		if err != nil {
@@ -345,7 +346,7 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBo
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
+	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
 	return pukBoxes, nil
 }
 

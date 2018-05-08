@@ -349,8 +349,8 @@ func (u *User) StoreTopLevel(ctx context.Context) error {
 	return err
 }
 
-func (u *User) SyncedSecretKey(lctx LoginContext) (ret *SKB, err error) {
-	if lctx != nil {
+func (u *User) SyncedSecretKey(m MetaContext) (ret *SKB, err error) {
+	if lctx := m.LoginContext(); lctx != nil {
 		return u.getSyncedSecretKeyLogin(lctx)
 	}
 	return u.GetSyncedSecretKey()
@@ -715,7 +715,7 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 		Me:      u,
 		KeyType: DeviceSigningKeyType,
 	}
-	lockedKey, err := u.G().Keyrings.GetSecretKeyLocked(nil, arg)
+	lockedKey, err := u.G().Keyrings.GetSecretKeyLocked(NewMetaContextTODO(u.G()), arg)
 	if err != nil {
 		return nil, err
 	}

@@ -116,7 +116,8 @@ func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 
 // Run starts the engine.
 func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
-	defer e.G().Trace("SaltpackDecrypt::Run", func() error { return err })()
+	m := NewMetaContext(e, ctx)
+	defer m.CTrace("SaltpackDecrypt::Run", func() error { return err })()
 
 	// We don't load this in the --paperkey case.
 	var me *libkb.User
@@ -125,7 +126,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, _, err := getPaperKey(e.G(), ctx, nil)
+		keypair, _, err := getPaperKey(m, ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -142,8 +143,8 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 			Me:      me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		e.G().Log.Debug("| GetSecretKeyWithPrompt")
-		key, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "decrypting a message/file"))
+		m.CDebugf("| GetSecretKeyWithPrompt")
+		key, err = e.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska, "decrypting a message/file"))
 		if err != nil {
 			return err
 		}

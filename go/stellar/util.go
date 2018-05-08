@@ -33,11 +33,12 @@ func loadOwnLatestPuk(ctx context.Context, g *libkb.GlobalContext) (gen keybase1
 	if err != nil {
 		return 0, seed, err
 	}
-	err = pukring.Sync(ctx)
+	m := libkb.NewMetaContext(ctx, g)
+	err = pukring.Sync(m)
 	if err != nil {
 		return 0, seed, err
 	}
 	gen = pukring.CurrentGeneration()
-	seed, err = pukring.GetSeedByGeneration(ctx, gen)
+	seed, err = pukring.GetSeedByGeneration(m, gen)
 	return gen, seed, err
 }

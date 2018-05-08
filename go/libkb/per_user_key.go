@@ -12,7 +12,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/crypto/nacl/secretbox"
-	context "golang.org/x/net/context"
 )
 
 const PerUserKeySeedSize = 32
@@ -203,7 +202,7 @@ func (s *PerUserKeyring) GetUID() keybase1.UID {
 
 // PrepareBoxForNewDevice encrypts the latest shared key seed for a new device.
 // The returned box should be pushed to the server.
-func (s *PerUserKeyring) PrepareBoxForNewDevice(ctx context.Context, receiverKey NaclDHKeyPair,
+func (s *PerUserKeyring) PrepareBoxForNewDevice(m MetaContext, receiverKey NaclDHKeyPair,
 	senderKey NaclDHKeyPair) (box keybase1.PerUserKeyBox, err error) {
 	s.Lock()
 	defer s.Unlock()
@@ -223,7 +222,7 @@ func (s *PerUserKeyring) PrepareBoxForNewDevice(ctx context.Context, receiverKey
 // Encrypt seed for receiverKeys. Use senderKey to encrypt.
 // Does not use the keyring at all. Attached for organizational purposes.
 // Used when creating a new seed.
-func (s *PerUserKeyring) PrepareBoxesForDevices(ctx context.Context, contents PerUserKeySeed,
+func (s *PerUserKeyring) PrepareBoxesForDevices(m MetaContext, contents PerUserKeySeed,
 	generation keybase1.PerUserKeyGeneration, receiverKeys []NaclDHKeyPair,
 	senderKey GenericKey) (boxes []keybase1.PerUserKeyBox, err error) {
 	// Do not lock self because we do not use self.
@@ -250,7 +249,7 @@ func (s *PerUserKeyring) PrepareBoxesForDevices(ctx context.Context, contents Pe
 // Prepares a prev secretbox containing generation n-1 encrypted for generation n.
 // Asserts that the current generation is n-1.
 // The `generation` parameter is n.
-func (s *PerUserKeyring) PreparePrev(ctx context.Context, newSeed PerUserKeySeed,
+func (s *PerUserKeyring) PreparePrev(m MetaContext, newSeed PerUserKeySeed,
 	newGeneration keybase1.PerUserKeyGeneration) (PerUserKeyPrev, error) {
 	s.Lock()
 	defer s.Unlock()
@@ -278,11 +277,11 @@ func (s *PerUserKeyring) PreparePrev(ctx context.Context, newSeed PerUserKeySeed
 }
 
 // AddKey registers a full key locally.
-func (s *PerUserKeyring) AddKey(ctx context.Context, generation keybase1.PerUserKeyGeneration,
+func (s *PerUserKeyring) AddKey(m MetaContext, generation keybase1.PerUserKeyGeneration,
 	seqno keybase1.Seqno, seed PerUserKeySeed) error {
 	s.Lock()
 	defer s.Unlock()
-	s.G().Log.CDebugf(ctx, "PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
+	m.CDebugf("PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
 
 	if seed.IsBlank() {
 		return errors.New("attempt to add blank per-user-key")
@@ -327,7 +326,7 @@ func (s *PerUserKeyring) currentGenerationLocked() keybase1.PerUserKeyGeneration
 	return keybase1.PerUserKeyGeneration(len(s.generations))
 }
 
-func (s *PerUserKeyring) GetLatestSigningKey(ctx context.Context) (*NaclSigningKeyPair, error) {
+func (s *PerUserKeyring) GetLatestSigningKey(m MetaContext) (*NaclSigningKeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
 	gen := s.currentGenerationLocked()
@@ -341,7 +340,7 @@ func (s *PerUserKeyring) GetLatestSigningKey(ctx context.Context) (*NaclSigningK
 	return key.sigKey, nil
 }
 
-func (s *PerUserKeyring) GetSeedByGeneration(ctx context.Context, gen keybase1.PerUserKeyGeneration) (res PerUserKeySeed, err error) {
+func (s *PerUserKeyring) GetSeedByGeneration(m MetaContext, gen keybase1.PerUserKeyGeneration) (res PerUserKeySeed, err error) {
 	s.Lock()
 	defer s.Unlock()
 	if gen < 1 {
@@ -357,26 +356,26 @@ func (s *PerUserKeyring) GetSeedByGeneration(ctx context.Context, gen keybase1.P
 	return key.seed, nil
 }
 
-func (s *PerUserKeyring) GetSeedByGenerationOrSync(ctx context.Context, gen keybase1.PerUserKeyGeneration) (res PerUserKeySeed, err error) {
-	if seed, err := s.GetSeedByGeneration(ctx, gen); err == nil {
+func (s *PerUserKeyring) GetSeedByGenerationOrSync(m MetaContext, gen keybase1.PerUserKeyGeneration) (res PerUserKeySeed, err error) {
+	if seed, err := s.GetSeedByGeneration(m, gen); err == nil {
 		return seed, nil
 	}
 	// Generation was not available, try to sync.
-	if err := s.Sync(ctx); err != nil {
+	if err := s.Sync(m); err != nil {
 		return res, err
 	}
-	return s.GetSeedByGeneration(ctx, gen)
+	return s.GetSeedByGeneration(m, gen)
 }
 
 // Get the encryption key of a generation.
-func (s *PerUserKeyring) GetEncryptionKeyByGeneration(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
+func (s *PerUserKeyring) GetEncryptionKeyByGeneration(m MetaContext, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
 
-	return s.getEncryptionKeyByGenerationLocked(ctx, gen)
+	return s.getEncryptionKeyByGenerationLocked(m, gen)
 }
 
-func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
+func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(m MetaContext, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	if gen < 1 {
 		return nil, fmt.Errorf("PerUserKeyring#GetEncryptionKey bad generation: %v", gen)
 	}
@@ -388,7 +387,7 @@ func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(ctx context.Context,
 }
 
 // Get the encryption key at the user sigchain seqno.
-func (s *PerUserKeyring) GetEncryptionKeyBySeqno(ctx context.Context, seqno keybase1.Seqno) (*NaclDHKeyPair, error) {
+func (s *PerUserKeyring) GetEncryptionKeyBySeqno(m MetaContext, seqno keybase1.Seqno) (*NaclDHKeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -396,22 +395,22 @@ func (s *PerUserKeyring) GetEncryptionKeyBySeqno(ctx context.Context, seqno keyb
 	if !ok {
 		return nil, fmt.Errorf("no encrypted key for seqno %v", seqno)
 	}
-	return s.getEncryptionKeyByGenerationLocked(ctx, gen)
+	return s.getEncryptionKeyByGenerationLocked(m, gen)
 }
 
-func (s *PerUserKeyring) GetEncryptionKeyBySeqnoOrSync(ctx context.Context, seqno keybase1.Seqno) (*NaclDHKeyPair, error) {
-	if key, err := s.GetEncryptionKeyBySeqno(ctx, seqno); err == nil {
+func (s *PerUserKeyring) GetEncryptionKeyBySeqnoOrSync(m MetaContext, seqno keybase1.Seqno) (*NaclDHKeyPair, error) {
+	if key, err := s.GetEncryptionKeyBySeqno(m, seqno); err == nil {
 		return key, nil
 	}
 	// Key at generation from seqno was not available, try to sync.
-	if err := s.Sync(ctx); err != nil {
+	if err := s.Sync(m); err != nil {
 		return nil, err
 	}
-	return s.GetEncryptionKeyBySeqno(ctx, seqno)
+	return s.GetEncryptionKeyBySeqno(m, seqno)
 }
 
 // GetEncryptionKeyByKID finds an encryption key that matches kid.
-func (s *PerUserKeyring) GetEncryptionKeyByKID(ctx context.Context, kid keybase1.KID) (*NaclDHKeyPair, error) {
+func (s *PerUserKeyring) GetEncryptionKeyByKID(m MetaContext, kid keybase1.KID) (*NaclDHKeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -426,29 +425,29 @@ func (s *PerUserKeyring) GetEncryptionKeyByKID(ctx context.Context, kid keybase1
 // Sync our PerUserKeyring with the server. It will either add all new
 // keys since our last update, or not at all if there was an error.
 // Pass it a standard Go network context.
-func (s *PerUserKeyring) Sync(ctx context.Context) (err error) {
-	return s.syncAsConfiguredDevice(ctx, nil, nil)
+func (s *PerUserKeyring) Sync(m MetaContext) (err error) {
+	return s.syncAsConfiguredDevice(m, nil)
 }
 
-// `lctx` and `upak` are optional
-func (s *PerUserKeyring) SyncWithExtras(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
-	return s.syncAsConfiguredDevice(ctx, lctx, upak)
+// `m.LoginContext` and `upak` are optional
+func (s *PerUserKeyring) SyncWithExtras(m MetaContext, upak *keybase1.UserPlusAllKeys) (err error) {
+	return s.syncAsConfiguredDevice(m, upak)
 }
 
-// `lctx` and `upak` are optional
-func (s *PerUserKeyring) syncAsConfiguredDevice(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (err error) {
-	uid, deviceID, _, _, activeDecryptionKey := s.G().ActiveDevice.AllFields()
+// `m.LoginContext` and `upak` are optional
+func (s *PerUserKeyring) syncAsConfiguredDevice(m MetaContext, upak *keybase1.UserPlusAllKeys) (err error) {
+	uid, deviceID, _, _, activeDecryptionKey := m.ActiveDevice().AllFields()
 	if !s.uid.Equal(uid) {
 		return fmt.Errorf("UID changed on PerUserKeyring")
 	}
 	if deviceID.IsNil() {
 		return fmt.Errorf("missing configured deviceID")
 	}
-	return s.sync(ctx, lctx, upak, deviceID, activeDecryptionKey)
+	return s.sync(m, upak, deviceID, activeDecryptionKey)
 }
 
-// `lctx` and `upak` are optional
-func (s *PerUserKeyring) SyncAsPaperKey(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
+// `m.LoginContext` and `upak` are optional
+func (s *PerUserKeyring) SyncAsPaperKey(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
 	if deviceID.IsNil() {
 		return fmt.Errorf("missing deviceID")
 	}
@@ -456,32 +455,32 @@ func (s *PerUserKeyring) SyncAsPaperKey(ctx context.Context, lctx LoginContext, 
 	if decryptionKey == nil {
 		return fmt.Errorf("missing decryption key")
 	}
-	return s.sync(ctx, lctx, upak, deviceID, decryptionKey)
+	return s.sync(m, upak, deviceID, decryptionKey)
 }
 
-// `lctx` and `upak` are optional
-func (s *PerUserKeyring) sync(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
-	defer s.G().CTrace(ctx, "PerUserKeyring#sync", func() error { return err })()
+// `m.LoginContext` and `upak` are optional
+func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
+	defer m.CTrace("PerUserKeyring#sync", func() error { return err })()
 
-	s.G().Log.CDebugf(ctx, "PerUserKeyring#sync(%v, %v)", lctx != nil, upak != nil)
+	m.CDebugf("PerUserKeyring#sync(%v, %v)", m.LoginContext() != nil, upak != nil)
 
 	s.Lock()
 	defer s.Unlock()
 
-	box, prevs, err := s.fetchBoxesLocked(ctx, lctx, deviceID)
+	box, prevs, err := s.fetchBoxesLocked(m, deviceID)
 	if err != nil {
 		return err
 	}
 
 	if upak == nil {
-		upak, err = s.getUPAK(ctx, lctx, upak)
+		upak, err = s.getUPAK(m, upak)
 		if err != nil {
 			return err
 		}
 	}
 
 	checker := newPerUserKeyChecker(upak)
-	newKeys, err := s.importLocked(ctx, box, prevs, decryptionKey, checker)
+	newKeys, err := s.importLocked(m, box, prevs, decryptionKey, checker)
 	if err != nil {
 		return err
 
@@ -490,12 +489,12 @@ func (s *PerUserKeyring) sync(ctx context.Context, lctx LoginContext, upak *keyb
 	return nil
 }
 
-func (s *PerUserKeyring) getUPAK(ctx context.Context, lctx LoginContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {
+func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {
 	if upak != nil {
 		return upak, nil
 	}
-	upakArg := NewLoadUserByUIDArg(ctx, s.G(), s.uid).WithLoginContext(lctx)
-	upak, _, err := s.G().GetUPAKLoader().Load(upakArg)
+	upakArg := NewLoadUserArgWithMetaContext(m).WithUID(s.uid)
+	upak, _, err := m.G().GetUPAKLoader().Load(upakArg)
 	return upak, err
 }
 
@@ -528,18 +527,18 @@ func (m byGeneration) Len() int           { return len(m) }
 func (m byGeneration) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m byGeneration) Less(i, j int) bool { return m[i].Generation < m[j].Generation }
 
-func (s *PerUserKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContext,
+func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 	deviceID keybase1.DeviceID) (box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp, err error) {
 
-	defer s.G().CTrace(ctx, "PerUserKeyring#fetchBoxesLocked", func() error { return err })()
+	defer m.CTrace("PerUserKeyring#fetchBoxesLocked", func() error { return err })()
 
 	var sessionR SessionReader
-	if lctx != nil {
+	if lctx := m.LoginContext(); lctx != nil {
 		sessionR = lctx.LocalSession()
 	}
 
 	var resp perUserKeySyncResp
-	err = s.G().API.GetDecode(APIArg{
+	err = m.G().API.GetDecode(APIArg{
 		Endpoint: "key/fetch_per_user_key_secrets",
 		Args: HTTPArgs{
 			"generation": I{int(s.currentGenerationLocked())},
@@ -548,12 +547,12 @@ func (s *PerUserKeyring) fetchBoxesLocked(ctx context.Context, lctx LoginContext
 		SessionType: APISessionTypeREQUIRED,
 		SessionR:    sessionR,
 		RetryCount:  5, // It's pretty bad to fail this, so retry.
-		NetContext:  ctx,
+		NetContext:  m.Ctx(),
 	}, &resp)
 	if err != nil {
 		return nil, nil, err
 	}
-	s.G().Log.CDebugf(ctx, "| Got back box:%v and prevs:%d from server", resp.Box != nil, len(resp.Prevs))
+	m.CDebugf("| Got back box:%v and prevs:%d from server", resp.Box != nil, len(resp.Prevs))
 
 	return resp.Box, resp.Prevs, nil
 }
@@ -628,11 +627,11 @@ func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keyba
 	return nil
 }
 
-func (s *PerUserKeyring) importLocked(ctx context.Context,
+func (s *PerUserKeyring) importLocked(m MetaContext,
 	box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp,
 	decryptionKey GenericKey, checker *perUserKeyChecker) (ret perUserKeyMap, err error) {
 
-	defer s.G().CTrace(ctx, "PerUserKeyring#importLocked", func() error { return err })()
+	defer m.CTrace("PerUserKeyring#importLocked", func() error { return err })()
 
 	if box == nil && len(prevs) == 0 {
 		// No new stuff, this keyring is up to date.
@@ -654,7 +653,7 @@ func (s *PerUserKeyring) importLocked(ctx context.Context,
 		debugPrevGenList = append(debugPrevGenList, fmt.Sprintf("%d", prev.Generation))
 	}
 	if len(debugPrevGenList) > 0 {
-		s.G().Log.CDebugf(ctx, "PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
+		m.CDebugf("PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
 	}
 
 	ret = make(perUserKeyMap)

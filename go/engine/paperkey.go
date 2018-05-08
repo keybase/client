@@ -60,6 +60,7 @@ func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKey) Run(ctx *Context) error {
+	m := NewMetaContext(e, ctx)
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "PaperKey")
 	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "PaperKey")
 
@@ -83,7 +84,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 				Index:  i,
 			})
 		if err != nil {
-			e.G().Log.Warning("prompt error: %s", err)
+			m.CWarningf("prompt error: %s", err)
 			return err
 		}
 		if revoke {
@@ -113,7 +114,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska1, "You must sign your new paper key"))
+	signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska1, "You must sign your new paper key"))
 	if err != nil {
 		return err
 	}
@@ -122,7 +123,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	encryptionKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska2, "You must encrypt for your new paper key"))
+	encryptionKeyGeneric, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, ctx.SecretKeyPromptArg(ska2, "You must encrypt for your new paper key"))
 	if err != nil {
 		return err
 	}
@@ -149,7 +150,7 @@ func (e *PaperKey) Run(ctx *Context) error {
 		return err
 	}
 
-	return ctx.LoginUI.DisplayPaperKeyPhrase(context.TODO(), keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
+	return ctx.LoginUI.DisplayPaperKeyPhrase(m.Ctx(), keybase1.DisplayPaperKeyPhraseArg{Phrase: e.passphrase.String()})
 
 }
 

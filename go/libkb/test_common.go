@@ -505,3 +505,7 @@ func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMappe
 func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
 
 }
+
+func NewMetaContextForTest(tc TestContext) MetaContext {
+	return NewMetaContext(context.TODO(), tc.G)
+}

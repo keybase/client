@@ -140,12 +140,13 @@ func getLatestPuk(ctx context.Context, g *libkb.GlobalContext) (pukGen keybase1.
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
-	err = pukring.Sync(ctx)
+	m := libkb.NewMetaContext(ctx, g)
+	err = pukring.Sync(m)
 	if err != nil {
 		return pukGen, pukSeed, err
 	}
 	pukGen = pukring.CurrentGeneration()
-	pukSeed, err = pukring.GetSeedByGeneration(ctx, pukGen)
+	pukSeed, err = pukring.GetSeedByGeneration(m, pukGen)
 	return pukGen, pukSeed, err
 }
 
@@ -181,7 +182,8 @@ func Fetch(ctx context.Context, g *libkb.GlobalContext) (res stellar1.Bundle, pu
 	if err != nil {
 		return res, 0, err
 	}
-	puk, err := pukring.GetSeedByGenerationOrSync(ctx, decodeRes.Enc.Gen)
+	m := libkb.NewMetaContext(ctx, g)
+	puk, err := pukring.GetSeedByGenerationOrSync(m, decodeRes.Enc.Gen)
 	if err != nil {
 		return res, 0, err
 	}

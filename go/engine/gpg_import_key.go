@@ -99,6 +99,7 @@ func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 }
 
 func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
+	mctx := NewMetaContext(e, ctx)
 	gpg := e.G().GetGpgClient()
 
 	me := e.arg.Me
@@ -142,7 +143,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("SelectKey result: %+v", res)
+	mctx.CDebugf("SelectKey result: %+v", res)
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
@@ -184,7 +185,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 
 	tty, err := ctx.GPGUI.GetTTY(ctx.NetContext)
 	if err != nil {
-		e.G().Log.Warning("error getting TTY for GPG: %s", err)
+		mctx.CWarningf("error getting TTY for GPG: %s", err)
 		err = nil
 	}
 
@@ -208,12 +209,12 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 			return PGPImportStubbedError{KeyIDString: selected.GetFingerprint().ToKeyID()}
 		}
 
-		if err := bundle.Unlock(e.G(), "Import of key into Keybase keyring", ctx.SecretUI); err != nil {
+		if err := bundle.Unlock(mctx, "Import of key into Keybase keyring", ctx.SecretUI); err != nil {
 			return err
 		}
 	}
 
-	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
+	mctx.CDebugf("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
 	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Ctx:         e.G(),
@@ -238,7 +239,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	e.G().Log.Info("Key %s imported", selected.GetFingerprint().ToKeyID())
+	mctx.CDebugf("Key %s imported", selected.GetFingerprint().ToKeyID())
 
 	e.last = bundle
 

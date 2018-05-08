@@ -173,7 +173,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce, PublicKey: peersPublicKey},
 		},
 	}
-	res, err := UnboxBytes32Any(context.TODO(), tc.G, f, arg)
+	res, err := UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -368,7 +368,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		},
 		PromptPaper: true,
 	}
-	res, err := UnboxBytes32Any(context.TODO(), tc.G, f, arg)
+	res, err := UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -394,7 +394,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		return secretUI
 	}
 
-	res, err = UnboxBytes32Any(context.TODO(), tc.G, f, arg)
+	res, err = UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}

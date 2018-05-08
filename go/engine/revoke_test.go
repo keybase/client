@@ -200,7 +200,7 @@ func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGe
 	g.ClearPerUserKeyring()
 	pukring, err = g.GetPerUserKeyring()
 	require.NoError(t, err)
-	require.NoError(t, pukring.Sync(context.TODO()))
+	require.NoError(t, pukring.Sync(libkb.NewMetaContextTODO(g)))
 	require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
 }
 

@@ -68,6 +68,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		Name: e.args.DeviceName,
 		Lks:  e.args.Lks,
 	}
+	m := NewMetaContext(e, ctx)
 	regEng := NewDeviceRegister(regArgs, e.G())
 	if err := RunEngine(regEng, ctx); err != nil {
 		return err
@@ -93,7 +94,7 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,
 	}
-	if err := kgEng.Push(ctx, pargs); err != nil {
+	if err := kgEng.Push(m, ctx, pargs); err != nil {
 		return err
 	}
 

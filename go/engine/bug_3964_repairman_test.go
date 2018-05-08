@@ -35,7 +35,9 @@ func (a *auditLog) Debug(format string, args ...interface{}) {
 	*a.lines = append(*a.lines, s)
 }
 func (a *auditLog) CDebugf(ctx context.Context, format string, args ...interface{}) {
-	a.l.CDebugf(ctx, format, args...)
+	s := fmt.Sprintf(format, args...)
+	a.l.CDebugf(ctx, s)
+	*a.lines = append(*a.lines, s)
 }
 func (a *auditLog) Info(format string, args ...interface{}) {
 	a.l.Info(format, args...)
@@ -101,11 +103,13 @@ func (a *auditLog) SetExternalHandler(handler logger.ExternalHandler) {
 func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.DeviceKey, error) {
 	ls1 := dev1.G.LoginState()
 	ls2 := dev2.G.LoginState()
+	m := NewMetaContextForTest(dev2)
 
 	err := ls1.RunSecretSyncer(dev1.G.Env.GetUID())
 	if err != nil {
 		return nil, err
 	}
+
 	var e2 error
 	var ret libkb.DeviceKey
 
@@ -136,7 +140,7 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 	if e2 != nil {
 		return nil, e2
 	}
-	if err = goodLksec.LoadServerHalf(nil); err != nil {
+	if err = goodLksec.LoadServerHalf(m); err != nil {
 		return nil, err
 	}
 
@@ -153,7 +157,7 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 
 	err = ls2.MutateKeyring(func(krf *libkb.SKBKeyringFile) *libkb.SKBKeyringFile {
 		for _, b := range krf.Blocks {
-			raw, _, erroneousMask, err := goodLksec.Decrypt(nil, b.Priv.Data)
+			raw, _, erroneousMask, err := goodLksec.Decrypt(m, b.Priv.Data)
 			if err != nil {
 				e2 = err
 				return nil
@@ -162,7 +166,7 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 				e2 = errors.New("bad erroneousMask")
 				return nil
 			}
-			b.Priv.Data, e2 = badLskec.Encrypt(raw)
+			b.Priv.Data, e2 = badLskec.Encrypt(m, raw)
 			if e2 != nil {
 				return nil
 			}
@@ -292,7 +296,7 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
 	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
-	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(arg)
+	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(NewMetaContextForTest(tctx), arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -303,7 +307,7 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pps, err := tctx.G.LoginState().GetPassphraseStream(ctx.SecretUI)
+	pps, err := tctx.G.LoginState().GetPassphraseStream(NewMetaContextForTest(tctx), ctx.SecretUI)
 	if err != nil {
 		t.Fatal(err)
 	}
