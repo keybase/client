@@ -1,4 +1,5 @@
 // @flow
+// TODO remove
 import * as React from 'react'
 import {Box, Text} from '../../../../common-adapters'
 import {backgroundModeToColor, globalMargins, globalStyles} from '../../../../styles'

@@ -1,4 +1,5 @@
 // @flow
+// TODO remove
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {connect} from '../../../../util/container'
 import PendingInput from '.'

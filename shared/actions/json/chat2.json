@@ -22,7 +22,8 @@
         "reason": [
           "'clearSelected'", // deselect
           "'desktopNotification'", // clicked notification
-          "'existingSearch'", // searching and found one
+          "'searching'", // searching and found one
+          "'sendingToPending'", // select the pending we sent into
           "'findNewestConversation'", // find a new chat to select
           "'inboxBig'", // inbox row
           "'inboxFilterArrow'", // arrow keys in inbox filter

@@ -59,8 +59,8 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
     type = 'search'
   } else {
     if (conversationIDKey === Constants.pendingConversationIDKey) {
-      const meta = Constants.getMeta(state, conversationIDKey)
-      switch (meta.conversationIDKey) {
+      const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
+      switch (resolvedPendingConversationIDKey) {
         case Constants.noConversationIDKey:
           type = 'start'
           break
@@ -69,7 +69,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}): * => {
           break
         default:
           type = 'normal'
-          conversationIDKeyToShow = meta.conversationIDKey
+          conversationIDKeyToShow = resolvedPendingConversationIDKey
           break
       }
     } else {

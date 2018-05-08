@@ -181,13 +181,13 @@ export const updateMetaWithNotificationSettings = (
     .set('notificationsMobile', notificationsMobile)
 }
 
-export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem) => {
+export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: true) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
     return null
   }
-  // Ignore empty
-  if (i.isEmpty) {
+  // Ignore empty unless we explicitly allow it (making new conversations)
+  if (i.isEmpty && !allowEmpty) {
     return null
   }
   // We don't support mixed reader/writers

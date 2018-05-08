@@ -11,7 +11,7 @@ import Rekey from './rekey/container'
 
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
-  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey' | 'startConversation',
+  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
 class Conversation extends React.PureComponent<SwitchProps> {
@@ -39,7 +39,7 @@ class Conversation extends React.PureComponent<SwitchProps> {
 
 const mapStateToProps = (state: TypedState): * => {
   let conversationIDKey = Constants.getSelectedConversation(state)
-  let _meta = Constants.getMeta(state, Constants.pendingConversationIDKey)
+  let _meta = Constants.getMeta(state, conversationIDKey)
 
   return {
     _meta,

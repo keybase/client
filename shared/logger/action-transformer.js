@@ -85,7 +85,6 @@ const actionTransformMap: {[key: string]: ActionTransformer<*, *>} = {
       type: a.type,
     }
   },
-  [Chat2Gen.setPendingSelected]: fullOutput,
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
 

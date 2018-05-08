@@ -10,7 +10,7 @@ import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta} from './meta'
+import {makeConversationMeta, getMeta} from './meta'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   badgeMap: I.Map(),
@@ -38,8 +38,11 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   unreadMap: I.Map(),
 })
 
+// We stash the resolved pending conversation idkey into the meta itself
+export const getResolvedPendingConversationIDKey = (state: TypedState) =>
+  getMeta(state, pendingConversationIDKey).conversationIDKey
 export const isValidConversationIDKey = (id: Types.ConversationIDKey) =>
-  id !== pendingConversationIDKey && id !== noConversationIDKey
+  id !== pendingConversationIDKey && id !== noConversationIDKey && id !== pendingWaitingConversationIDKey
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessageMap = (state: TypedState, id: Types.ConversationIDKey) =>
