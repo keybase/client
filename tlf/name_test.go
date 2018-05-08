@@ -23,6 +23,7 @@ func TestCanonicalToPreferredName(t *testing.T) {
 		{"c", "a,b,c", "c,a,b"},
 		{"b", "a,b,c#d,e", "b,a,c#d,e"},
 		{"d", "a,b,c#d,e", "a,b,c#d,e"},
+		{"e", "a,b,c#d,e", "a,b,c#e,d"},
 	} {
 		r, err := CanonicalToPreferredName(q.As, q.Try)
 		assert.Equal(t, q.Answer, r)
