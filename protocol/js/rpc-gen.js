@@ -794,6 +794,10 @@ export const gregorUIPushReason = {
   newData: 2,
 }
 
+export const gregorUpdateItemRpcChannelMap = (configKeys: Array<string>, request: GregorUpdateItemRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.updateItem', request)
+
+export const gregorUpdateItemRpcPromise = (request: GregorUpdateItemRpcParam): Promise<GregorUpdateItemResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.gregor.updateItem', request, (error: RPCError, result: GregorUpdateItemResult) => (error ? reject(error) : resolve(result))))
+
 export const homeHomeActionTakenRpcChannelMap = (configKeys: Array<string>, request: HomeHomeActionTakenRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.home.homeActionTaken', request)
 
 export const homeHomeActionTakenRpcPromise = (request: HomeHomeActionTakenRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.home.homeActionTaken', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
@@ -2497,6 +2501,8 @@ export type GregorUIPushOutOfBandMessagesRpcParam = $ReadOnly<{oobm?: ?Array<Gre
 
 export type GregorUIPushStateRpcParam = $ReadOnly<{state: Gregor1.State, reason: PushReason, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
 
+export type GregorUpdateItemRpcParam = $ReadOnly<{msgID: Gregor1.MsgID, cat: String, body: String, dtime: Gregor1.TimeOrOffset, incomingCallMap?: IncomingCallMapType, waitingHandler?: WaitingHandlerType}>
+
 export type HasServerKeysRes = $ReadOnly<{hasServerKeys: Boolean}>
 
 export type HashMeta = Bytes
@@ -4188,6 +4194,7 @@ type GpgUiSignResult = String
 type GpgUiWantToAddGPGKeyResult = Boolean
 type GregorGetStateResult = Gregor1.State
 type GregorInjectItemResult = Gregor1.MsgID
+type GregorUpdateItemResult = Gregor1.MsgID
 type HomeHomeGetScreenResult = HomeScreen
 type IdentifyIdentify2Result = Identify2Res
 type IdentifyIdentifyLiteResult = IdentifyLiteRes

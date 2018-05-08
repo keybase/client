@@ -26,11 +26,19 @@ type DismissItemArg struct {
 	Id gregor1.MsgID `codec:"id" json:"id"`
 }
 
+type UpdateItemArg struct {
+	MsgID gregor1.MsgID        `codec:"msgID" json:"msgID"`
+	Cat   string               `codec:"cat" json:"cat"`
+	Body  string               `codec:"body" json:"body"`
+	Dtime gregor1.TimeOrOffset `codec:"dtime" json:"dtime"`
+}
+
 type GregorInterface interface {
 	GetState(context.Context) (gregor1.State, error)
 	InjectItem(context.Context, InjectItemArg) (gregor1.MsgID, error)
 	DismissCategory(context.Context, gregor1.Category) error
 	DismissItem(context.Context, gregor1.MsgID) error
+	UpdateItem(context.Context, UpdateItemArg) (gregor1.MsgID, error)
 }
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
@@ -96,6 +104,22 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"updateItem": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateItemArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateItemArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateItemArg)(nil), args)
+						return
+					}
+					ret, err = i.UpdateItem(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -123,5 +147,10 @@ func (c GregorClient) DismissCategory(ctx context.Context, category gregor1.Cate
 func (c GregorClient) DismissItem(ctx context.Context, id gregor1.MsgID) (err error) {
 	__arg := DismissItemArg{Id: id}
 	err = c.Cli.Call(ctx, "keybase.1.gregor.dismissItem", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GregorClient) UpdateItem(ctx context.Context, __arg UpdateItemArg) (res gregor1.MsgID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gregor.updateItem", []interface{}{__arg}, &res)
 	return
 }
