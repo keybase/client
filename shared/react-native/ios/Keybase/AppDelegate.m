@@ -201,28 +201,36 @@ const BOOL isDebug = NO;
   NSLog(@"Remote notification handle started...");
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
     NSString* convID = notification[@"c"];
-    int membersType = [[notification objectForKey:@"t"] intValue];
-    int messageID = [[notification objectForKey:@"d"] intValue];
-    int badgeCount = [[notification objectForKey:@"b"] intValue];
-    int unixTime = [[notification objectForKey:@"x"] intValue];
-    NSString* pushID = [[notification objectForKey:@"p"] objectAtIndex:0];
-    NSString* body = [notification objectForKey:@"m"];
+    int membersType = [notification[@"t"] intValue];
+    int messageID = [notification[@"d"] intValue];
+    int badgeCount = [notification[@"b"] intValue];
+    int unixTime = [notification[@"x"] intValue];
+    NSString* pushID = [notification[@"p"] objectAtIndex:0];
+    NSString* body = notification[@"m"];
+    NSString* type = notification[@"type"];
     
-    NSError *err = nil;
-    NSString* pushMessage = KeybaseHandleBackgroundNotification(convID, membersType, messageID,
-                                                                pushID, badgeCount, unixTime, body, &err);
-    if (err == nil) {
-      UILocalNotification* localNotification = [[UILocalNotification alloc] init];
-      localNotification.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
-      localNotification.alertBody = pushMessage;
-      localNotification.applicationIconBadgeNumber = badgeCount;
-      localNotification.soundName = @"keybasemessage.wav";
-      NSDictionary *userInfo = @{ @"convID" : convID, @"type" : @"chat.newmessage"};
-      localNotification.userInfo = userInfo;
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [application scheduleLocalNotification:localNotification];
-      });
-    }
+    typedef void (^CaseBlock)();
+    NSDictionary* handlers =
+      @{
+        @"chat.newmessageSilent_2": ^{
+          NSError *err = nil;
+          NSString* pushMessage = KeybaseHandleBackgroundNotification(convID, membersType, messageID,
+                                                                      pushID, badgeCount, unixTime, body, &err);
+          if (err == nil) {
+            UILocalNotification* localNotification = [[UILocalNotification alloc] init];
+            localNotification.fireDate = [NSDate dateWithTimeIntervalSinceNow:0];
+            localNotification.alertBody = pushMessage;
+            localNotification.applicationIconBadgeNumber = badgeCount;
+            localNotification.soundName = @"keybasemessage.wav";
+            NSDictionary *userInfo = @{ @"convID" : convID, @"type" : @"chat.newmessage"};
+            localNotification.userInfo = userInfo;
+            dispatch_async(dispatch_get_main_queue(), ^{
+              [application scheduleLocalNotification:localNotification];
+            });
+          }
+        }
+        };
+    ((CaseBlock)handlers[type])();
     completionHandler(UIBackgroundFetchResultNewData);
     NSLog(@"Remote notification handle finished...");
   });
