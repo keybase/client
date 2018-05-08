@@ -9,12 +9,12 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Default wallet to Keybase User', () => (
       <Transaction
-        sender="me"
-        receiver="paul"
-        sourceValue="$12.50"
-        targetValue="-53.1688643 XLM"
-        note="Short note."
         timestamp={new Date()}
+        yourRole="sender"
+        counterparty="paul"
+        amountUser="$12.50"
+        amountXLM="-53.1688643 XLM"
+        note="Short note."
       />
     ))
     .add('Default wallet to Stellar Public Key', () => <Text type="BodyBig">TBD</Text>)
