@@ -200,4 +200,15 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	t.Logf("another purge with no effect")
 	ephemeralPurgeAndVerify(expectedPurgeInfo)
 	assertState(msgH.GetMessageID())
+
+	// Force a purge with 0 messages, and make sure we process it correctly.
+	newPurgeInfo, err := storage.EphemeralPurge(context.Background(), convID, uid,
+		&chat1.EphemeralPurgeInfo{
+			NextPurgeTime:   0,
+			MinUnexplodedID: msgH.GetMessageID() + 1,
+			IsActive:        false,
+		})
+	require.NoError(t, err)
+	require.Nil(t, newPurgeInfo)
+	verifyTrackerState(expectedPurgeInfo)
 }

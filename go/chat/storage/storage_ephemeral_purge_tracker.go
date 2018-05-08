@@ -118,6 +118,10 @@ func (t *ephemeralTracker) setPurgeInfo(ctx context.Context,
 	t.Lock()
 	defer t.Unlock()
 
+	if purgeInfo == nil {
+		return nil
+	}
+
 	allPurgeInfo, err := t.dbGet(ctx, uid)
 	if err != nil {
 		return err
