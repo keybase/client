@@ -17,10 +17,8 @@
   localNotification.sound = [UNNotificationSound soundNamed:soundName];
   localNotification.badge = [NSNumber numberWithLong:badgeCount];
   localNotification.body = msg;
-  localNotification.userInfo  =@{ @"convID" : convID, @"type" : typ};
-  UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:0 repeats:NO];
-  UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:ident
-                                                                        content:localNotification trigger:trigger];
+  localNotification.userInfo = @{ @"convID" : convID, @"type" : typ};
+  UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:ident content:localNotification trigger:nil];
   UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
   [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
     if (error != nil) {

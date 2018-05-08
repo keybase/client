@@ -202,7 +202,7 @@ const BOOL isDebug = NO;
   NSLog(@"Remote notification handle started...");
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
     NSString* type = notification[@"type"];
-    if ([type isEqualToString:@"chat.newmessageSilent_2"]) {
+    if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
       NSString* convID = notification[@"c"];
       int membersType = [notification[@"t"] intValue];
       int messageID = [notification[@"d"] intValue];
