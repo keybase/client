@@ -29,11 +29,15 @@ export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
+export const onAction = 'fs:onAction'
+export const openFinderPopup = 'fs:openFinderPopup'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
+export const save = 'fs:save'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
+export const share = 'fs:share'
 export const sortSetting = 'fs:sortSetting'
 export const transferProgress = 'fs:transferProgress'
 export const uninstallKBFS = 'fs:uninstallKBFS'
@@ -104,9 +108,18 @@ export const createLocalHTTPServerInfo = (
     token: string,
   |}>
 ) => ({error: false, payload, type: localHTTPServerInfo})
+export const createOnAction = (
+  payload: $ReadOnly<{|
+    path: Types.Path,
+    type: Types.PathType,
+    targetRect: ?ClientRect,
+  |}>
+) => ({error: false, payload, type: onAction})
+export const createOpenFinderPopup = (payload: $ReadOnly<{|targetRect: ?ClientRect|}>) => ({error: false, payload, type: openFinderPopup})
 export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = () => ({error: false, payload: undefined, type: openSecurityPreferences})
 export const createRefreshLocalHTTPServerInfo = () => ({error: false, payload: undefined, type: refreshLocalHTTPServerInfo})
+export const createSave = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: save})
 export const createSetFlags = (
   payload: $ReadOnly<{|
     kbfsOpening?: boolean,
@@ -119,6 +132,7 @@ export const createSetFlags = (
   |}>
 ) => ({error: false, payload, type: setFlags})
 export const createSetupFSHandlers = () => ({error: false, payload: undefined, type: setupFSHandlers})
+export const createShare = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: share})
 export const createSortSetting = (
   payload: $ReadOnly<{|
     path: Types.Path,
@@ -156,11 +170,15 @@ export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
 export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
 export type LocalHTTPServerInfoPayload = More.ReturnType<typeof createLocalHTTPServerInfo>
+export type OnActionPayload = More.ReturnType<typeof createOnAction>
+export type OpenFinderPopupPayload = More.ReturnType<typeof createOpenFinderPopup>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type OpenSecurityPreferencesPayload = More.ReturnType<typeof createOpenSecurityPreferences>
 export type RefreshLocalHTTPServerInfoPayload = More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
+export type SavePayload = More.ReturnType<typeof createSave>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
+export type SharePayload = More.ReturnType<typeof createShare>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
 export type TransferProgressPayload = More.ReturnType<typeof createTransferProgress>
 export type UninstallKBFSConfirmPayload = More.ReturnType<typeof createUninstallKBFSConfirm>
@@ -189,11 +207,15 @@ export type Actions =
   | More.ReturnType<typeof createInstallFuseResult>
   | More.ReturnType<typeof createInstallKBFS>
   | More.ReturnType<typeof createLocalHTTPServerInfo>
+  | More.ReturnType<typeof createOnAction>
+  | More.ReturnType<typeof createOpenFinderPopup>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createOpenSecurityPreferences>
   | More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
+  | More.ReturnType<typeof createSave>
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSetupFSHandlers>
+  | More.ReturnType<typeof createShare>
   | More.ReturnType<typeof createSortSetting>
   | More.ReturnType<typeof createTransferProgress>
   | More.ReturnType<typeof createUninstallKBFS>

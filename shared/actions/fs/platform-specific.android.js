@@ -1,9 +1,10 @@
 // @flow
+import * as Saga from '../../util/saga'
+import * as FsGen from '../fs-gen'
 import RNFetchBlob from 'react-native-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
-
-import {subSaga} from './platform-specific'
+import {share, save} from './common'
 
 function copyToDownloadDir(path: string, mime: string): Promise<*> {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
@@ -33,6 +34,11 @@ function copyToDownloadDir(path: string, mime: string): Promise<*> {
       console.log(err)
       throw err
     })
+}
+
+function* subSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(FsGen.share, share)
+  yield Saga.safeTakeEvery(FsGen.save, save)
 }
 
 export {copyToDownloadDir, subSaga}

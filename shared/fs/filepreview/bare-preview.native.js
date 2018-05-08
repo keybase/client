@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
+import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as DispatchMappers from '../utils/dispatch-mappers'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, ClickableBox, Text, Icon} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
@@ -20,7 +20,8 @@ const mapStateToProps = (state: TypedState, {routeProps}: BarePreviewProps) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onBack: () => dispatch(navigateUp()),
-  _onAction: DispatchMappers.mapDispatchToOnAction(dispatch),
+  _onAction: (path: Types.Path, type: Types.PathType, evt?: SyntheticEvent<>) =>
+    dispatch(FsGen.createOnAction({path, type, targetRect: Constants.syntheticEventToTargetRect(evt)})),
 })
 
 const mergeProps = ({path, _pathItem}, {onBack, _onAction}) => ({

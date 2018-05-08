@@ -12,6 +12,7 @@ import {subSaga, copyToDownloadDir} from './platform-specific'
 import {isMobile} from '../../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {type TypedState} from '../../util/container'
+import {navigateAppend} from '../../actions/route-tree'
 
 function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
@@ -302,6 +303,31 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
   }
 }
 
+function* onAction(action: FsGen.OnActionPayload): Saga.SagaGenerator<any, any> {
+  const {path, type, targetRect} = action.payload
+  console.log(action.payload)
+  // We may not have the folder loaded yet, but will need metadata to know
+  // folder entry types in the popup. So dispatch an action now to load it.
+  type === 'folder' && (yield Saga.put(FsGen.createFolderListLoad({path})))
+  yield Saga.put(
+    navigateAppend([
+      {
+        props: {
+          path,
+          position: 'bottom right',
+          isShare: false,
+          targetRect,
+        },
+        selected: 'pathItemAction',
+      },
+    ])
+  )
+}
+
+function* metaSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery(FsGen.onAction, onAction)
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(
     FsGen.refreshLocalHTTPServerInfo,
@@ -322,6 +348,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield Saga.fork(subSaga)
+
+  // Should come after others.
+  yield Saga.fork(metaSaga)
 }
 
 export default fsSaga

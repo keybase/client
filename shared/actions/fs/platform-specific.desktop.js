@@ -14,6 +14,7 @@ import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
+import {navigateAppend, navigateUp} from '../../actions/route-tree'
 
 import {copyToDownloadDir} from './platform-specific'
 
@@ -264,6 +265,27 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
+function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
+  const {targetRect} = action.payload
+  return Saga.put(
+    navigateAppend([
+      {
+        props: {
+          targetRect,
+          position: 'bottom right',
+          onHidden: () => Saga.put(navigateUp()),
+          onInstall: () => Saga.put(FsGen.createInstallFuse()),
+        },
+        selected: 'finderAction',
+      },
+    ])
+  )
+}
+
+function* metaSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
+}
+
 function* subSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
@@ -277,6 +299,9 @@ function* subSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+
+  // Should come after others.
+  yield Saga.fork(metaSaga)
 }
 
 export {copyToDownloadDir, subSaga}

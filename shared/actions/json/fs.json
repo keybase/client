@@ -93,6 +93,21 @@
       "errorText": "string"
     },
 
-    "setupFSHandlers": {}
+    "setupFSHandlers": {},
+
+    "share": {
+      "path": "Types.Path",
+    },
+    "save": {
+      "path": "Types.Path",
+    },
+    "onAction": {
+      "path": "Types.Path",
+      "type": "Types.PathType",
+      "targetRect": "?ClientRect"
+    },
+    "openFinderPopup": {
+      "targetRect": "?ClientRect"
+    }
   }
 }
