@@ -7,6 +7,15 @@ protocol delegateUiCtl {
   void registerSecretUI();
   void registerUpdateUI();
   void registerRekeyUI();
-  void registerGregorFirehose();
   void registerHomeUI();
+
+  void registerGregorFirehose();
+
+  /**
+   registerGregorFirehoseFilter allows a client to register for a filtered
+   firehose, limited to only the OOBMs of the systems provided.
+   Like the firehose handler, but less pressure.
+   */
+  @lint("ignore")
+  void registerGregorFirehoseFiltered(array<string> systems);
 }

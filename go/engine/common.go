@@ -16,7 +16,7 @@ import (
 // function returns `false`, it's because either no one has ever logged onto
 // this device, or someone has, and then clicked `logout`. If the return
 // value is `false`, and `err` is `nil`, then the service is in one of
-// those expected "logged out" states.  If the the return value is `false`
+// those expected "logged out" states.  If the return value is `false`
 // and `err` is non-`nil`, then something went wrong, and the app is in some
 // sort of unexpected state. If `ret` is `true`, then `uid` will convey
 // which user is logged in.

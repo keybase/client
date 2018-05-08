@@ -369,10 +369,10 @@
 			"revisionTime": "2018-01-18T23:10:18Z"
 		},
 		{
-			"checksumSHA1": "p3CYkR3nsqPZn8xNd0qej/dtxm0=",
+			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "7ef01189f03f3013d486d3d76b61ce2f96a0a665",
-			"revisionTime": "2018-04-03T21:28:03Z"
+			"revision": "260b815592d65ec410ecf2e1d6351d8ef0e2db54",
+			"revisionTime": "2018-04-24T15:46:34Z"
 		},
 		{
 			"checksumSHA1": "iNzXtwV7AOu1hMQXNZGvw3JMrlw=",
@@ -420,10 +420,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "Hue44d2YvZ/5Sd+oyxW93A/hFeQ=",
+			"checksumSHA1": "9bzqMvSXr8Lr+Na6YXvMyN6QqjI=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "f76ab41facf34d915dece0604a7d6c6d4d489424",
-			"revisionTime": "2018-04-19T18:32:21Z"
+			"revision": "da171d2552e171473bca077282694b83051304a9",
+			"revisionTime": "2018-04-25T21:28:23Z"
 		},
 		{
 			"path": "github.com/kr/pty",

@@ -14,7 +14,7 @@ type UserListItem = {
 
 type UserList = Array<UserListItem>
 
-type FileProps = {
+type FileProps = {|
   theme: 'public' | 'private',
   size?: 'Small' | 'Large', // defaults to Large
   name: string,
@@ -25,13 +25,13 @@ type FileProps = {
   modifiedMarker: boolean,
   fileIcon: IconType,
   onClick: () => void,
-}
+|}
 
-export type FileSection = {
+export type FileSection = {|
   name: string,
   modifiedMarker: boolean,
   files: Array<FileProps>,
-}
+|}
 
 export type ParticipantUnlock = {
   name: string,

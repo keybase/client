@@ -14,133 +14,18 @@
   "types": [
     {
       "type": "record",
-      "name": "Members",
+      "name": "PaymentDirectPost",
       "fields": [
-        {
-          "type": "AccountID",
-          "name": "fromStellar"
-        },
-        {
-          "type": "string",
-          "name": "fromKeybase"
-        },
-        {
-          "type": "keybase1.UserVersion",
-          "name": "from"
-        },
         {
           "type": "keybase1.DeviceID",
           "name": "fromDeviceID"
         },
         {
-          "type": "AccountID",
-          "name": "toStellar"
-        },
-        {
-          "type": "string",
-          "name": "toKeybase"
-        },
-        {
-          "type": "keybase1.UserVersion",
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
           "name": "to"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "TransactionSummary",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "stellarID"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "keybaseID"
-        },
-        {
-          "type": "TransactionStatus",
-          "name": "status"
-        },
-        {
-          "type": "string",
-          "name": "errMsg"
-        },
-        {
-          "type": "string",
-          "name": "noteB64"
-        },
-        {
-          "type": "Asset",
-          "name": "asset"
-        },
-        {
-          "type": "string",
-          "name": "amount"
-        },
-        {
-          "type": "string",
-          "name": "displayAmount"
-        },
-        {
-          "type": "string",
-          "name": "displayCurrency"
-        },
-        {
-          "type": "Members",
-          "name": "members"
-        },
-        {
-          "type": "TimeMs",
-          "name": "ctime"
-        },
-        {
-          "type": "TimeMs",
-          "name": "rtime"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Operation",
-      "fields": [
-        {
-          "type": "string",
-          "name": "ID"
-        },
-        {
-          "type": "string",
-          "name": "opType"
-        },
-        {
-          "type": "int",
-          "name": "createdAt"
-        },
-        {
-          "type": "string",
-          "name": "TransactionHash"
-        },
-        {
-          "type": "Asset",
-          "name": "asset"
-        },
-        {
-          "type": "string",
-          "name": "amount"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PaymentPost",
-      "fields": [
-        {
-          "type": "uint64",
-          "name": "stellarAccountSeqno"
-        },
-        {
-          "type": "Members",
-          "name": "members"
         },
         {
           "type": "string",
@@ -153,6 +38,51 @@
         {
           "type": "string",
           "name": "noteB64"
+        },
+        {
+          "type": "string",
+          "name": "signedTransaction"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentRelayPost",
+      "fields": [
+        {
+          "type": "keybase1.DeviceID",
+          "name": "fromDeviceID"
+        },
+        {
+          "type": [
+            null,
+            "keybase1.UserVersion"
+          ],
+          "name": "to"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "AccountID",
+          "name": "relayAccount"
+        },
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "displayAmount"
+        },
+        {
+          "type": "string",
+          "name": "displayCurrency"
+        },
+        {
+          "type": "string",
+          "name": "boxB64"
         },
         {
           "type": "string",
@@ -345,7 +275,20 @@
         },
         {
           "name": "payment",
-          "type": "PaymentPost"
+          "type": "PaymentDirectPost"
+        }
+      ],
+      "response": "PaymentResult"
+    },
+    "submitRelayPayment": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "payment",
+          "type": "PaymentRelayPost"
         }
       ],
       "response": "PaymentResult"
@@ -362,6 +305,10 @@
         }
       ],
       "response": "boolean"
+    },
+    "ping": {
+      "request": [],
+      "response": "string"
     }
   },
   "namespace": "stellar.1"

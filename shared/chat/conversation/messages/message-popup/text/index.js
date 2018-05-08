@@ -1,12 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
 import MessagePopupHeader from '../header'
-import {ModalLessPopupMenu} from '../../../../../common-adapters/popup-menu'
+import {FloatingMenu} from '../../../../../common-adapters/'
 import {isMobile} from '../../../../../util/container'
+import type {DeviceType} from '../../../../../constants/types/devices'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  message: Types.MessageText,
+  attachTo: ?React.Component<*, *>,
+  author: string,
+  deviceName: string,
+  deviceRevokedAt: ?number,
+  deviceType: DeviceType,
   onCopy: () => void,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
@@ -15,8 +20,11 @@ type Props = {
   onQuote: null | (() => void),
   onReplyPrivately: null | (() => void),
   onViewProfile: () => void,
+  position: Position,
   showDivider: boolean,
   style?: Object,
+  timestamp: number,
+  visible: boolean,
   yourMessage: boolean,
 }
 
@@ -43,8 +51,15 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    'Divider',
-    {disabled: !props.onEdit, onClick: props.onEdit, title: 'Edit'},
+    ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
+    ...(props.onEdit
+      ? [
+          {
+            onClick: props.onEdit,
+            title: 'Edit',
+          },
+        ]
+      : []),
     {onClick: props.onCopy, title: 'Copy Text'},
     {onClick: props.onQuote, title: 'Quote'},
     {onClick: props.onReplyPrivately, title: 'Reply Privately'},
@@ -54,16 +69,27 @@ const TextPopupMenu = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <MessagePopupHeader message={props.message} isLast={!items.length} yourMessage={props.yourMessage} />
+      <MessagePopupHeader
+        author={props.author}
+        deviceName={props.deviceName}
+        deviceRevokedAt={props.deviceRevokedAt}
+        deviceType={props.deviceType}
+        isLast={!items.length}
+        timestamp={props.timestamp}
+        yourMessage={props.yourMessage}
+      />
     ),
   }
   return (
-    <ModalLessPopupMenu
-      closeOnClick={true}
+    <FloatingMenu
+      attachTo={props.attachTo}
+      closeOnSelect={true}
       header={header}
       items={items}
       onHidden={props.onHidden}
+      position={props.position}
       style={{...stylePopup, ...props.style}}
+      visible={props.visible}
     />
   )
 }

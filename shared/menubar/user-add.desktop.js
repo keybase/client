@@ -1,18 +1,18 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Input, Icon} from '../common-adapters'
-import {globalColors, globalStyles, desktopStyles} from '../styles'
+import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
-export type Props = {
+export type Props = {|
   isPublic: boolean,
   onAdded: (path: string) => void,
   username: ?string,
-}
-type State = {
+|}
+type State = {|
   showingInput: boolean,
   text: string,
-}
+|}
 
 const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
   <Box
@@ -63,10 +63,10 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
       <Icon
         type={'iconfont-folder-open'}
         onClick={onSubmit}
-        style={{
-          ...desktopStyles.clickable,
-          color: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
-        }}
+        style={platformStyles({
+          isElectron: desktopStyles.clickable,
+        })}
+        color={isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}
       />
     </Box>
   )

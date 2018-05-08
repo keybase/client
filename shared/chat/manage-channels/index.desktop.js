@@ -12,7 +12,7 @@ import {
   Icon,
   ButtonBar,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
+import {globalStyles, globalColors, globalMargins, glamorous, platformStyles} from '../../styles'
 
 import type {Props, RowProps} from '.'
 
@@ -130,7 +130,13 @@ const ManageChannels = (props: Props) => {
         </ScrollView>
         {props.canCreateChannels && (
           <Box style={_createStyle}>
-            <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
+            <Icon
+              style={_createIcon}
+              type="iconfont-new"
+              onClick={props.onCreate}
+              hoverColor={_hoverColor}
+              color={globalColors.blue}
+            />
             <Text type="BodyBigLink" onClick={props.onCreate}>
               New chat channel
             </Text>
@@ -164,12 +170,16 @@ const _boxStyle = {
   flex: 1,
 }
 
-const _createIcon = {
-  color: globalColors.blue,
-  display: 'block',
-  hoverColor: globalColors.blue2,
-  marginRight: globalMargins.xtiny,
-}
+const _createIcon = platformStyles({
+  common: {
+    marginRight: globalMargins.xtiny,
+  },
+  isElectron: {
+    display: 'block',
+  },
+})
+
+const _hoverColor = globalColors.blue2
 
 const _createStyle = {
   ...globalStyles.flexBoxRow,

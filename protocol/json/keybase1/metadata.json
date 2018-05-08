@@ -139,6 +139,31 @@
           "name": "releaseAfterSuccess"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FindNextMDResponse",
+      "fields": [
+        {
+          "type": "MerkleRoot",
+          "name": "kbfsRoot"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "bytes"
+          },
+          "name": "merkleNodes"
+        },
+        {
+          "type": "Seqno",
+          "name": "rootSeqno"
+        },
+        {
+          "type": "HashMeta",
+          "name": "rootHash"
+        }
+      ]
     }
   ],
   "messages": {
@@ -493,6 +518,19 @@
       ],
       "response": "bytes"
     },
+    "findNextMD": {
+      "request": [
+        {
+          "name": "seqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": "FindNextMDResponse"
+    },
     "setImplicitTeamModeForTest": {
       "request": [
         {
@@ -500,6 +538,10 @@
           "type": "string"
         }
       ],
+      "response": null
+    },
+    "forceMerkleBuildForTest": {
+      "request": [],
       "response": null
     }
   },

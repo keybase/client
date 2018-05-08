@@ -8,6 +8,7 @@ import {
   isMobile,
   desktopStyles,
   platformStyles,
+  collapseStyles,
 } from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
 import {subtitle as platformSubtitle} from '../../util/platforms'
@@ -19,7 +20,14 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
 
   return (
     <Box style={styleContainer}>
-      {!isWaiting && <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />}
+      {!isWaiting && (
+        <Icon
+          style={styleClose}
+          type="iconfont-close"
+          onClick={() => onCancel()}
+          color={globalColors.black_10}
+        />
+      )}
       {errorMessage && (
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
@@ -67,13 +75,14 @@ const styleContainer = {
   ...desktopStyles.scrollable,
 }
 
-const styleClose = {
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  ...desktopStyles.clickable,
-  color: globalColors.black_10,
-}
+const styleClose = collapseStyles([
+  {
+    position: 'absolute',
+    top: globalMargins.small,
+    right: globalMargins.small,
+  },
+  desktopStyles.clickable,
+])
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,

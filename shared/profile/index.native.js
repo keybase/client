@@ -1,5 +1,6 @@
 // @flow
-import * as shared from './index.shared'
+import * as shared from './shared'
+import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
@@ -21,6 +22,8 @@ import {
   UserProofs,
 } from '../common-adapters/index.native'
 import UserActions from './user-actions'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
+import ShowcasedTeamInfo from './showcased-team-info/container'
 import {globalStyles, globalColors, globalMargins, statusBarHeight, isIPhoneX} from '../styles'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
@@ -28,7 +31,6 @@ import {usernameText} from '../common-adapters/usernames'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
-import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
 const HEADER_TOP_SPACE = 96
@@ -37,7 +39,7 @@ export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
-  currentFriendshipsTab: FriendshipsTab,
+  currentFriendshipsTab: Types.FriendshipsTab,
   activeMenuProof: ?Proof,
 }
 
@@ -63,29 +65,30 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
   </ClickableBox>
 )
 
-const ShowcasedTeamRow = ({
-  onClickShowcased,
-  team,
-}: {
-  onClickShowcased: (event: ?HTMLElement, team: UserTeamShowcase) => void,
-  team: any,
-}) => (
-  <ClickableBox
-    key={team.fqName}
-    onClick={event => onClickShowcased(null, team)}
-    style={styleShowcasedTeamContainer}
-  >
+const _ShowcasedTeamRow = (
+  props: {
+    team: UserTeamShowcase,
+  } & FloatingMenuParentProps
+) => (
+  <ClickableBox key={props.team.fqName} onClick={props.toggleShowingMenu} style={styleShowcasedTeamContainer}>
+    <ShowcasedTeamInfo
+      attachTo={props.attachmentRef}
+      onHidden={props.toggleShowingMenu}
+      team={props.team}
+      visible={props.showingMenu}
+    />
     <Box style={styleShowcasedTeamAvatar}>
-      <Avatar teamname={team.fqName} size={40} />
+      <Avatar teamname={props.team.fqName} size={40} />
     </Box>
     <Box style={styleShowcasedTeamName}>
       <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
-        {team.fqName}
+        {props.team.fqName}
       </Text>
-      {team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
+      {props.team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
     </Box>
   </ClickableBox>
 )
+const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
 
 class Profile extends Component<Props, State> {
   state = {
@@ -216,7 +219,10 @@ class Profile extends Component<Props, State> {
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine}>
         <Icon
-          {...shared.folderIconProps(folder, styleFolderIcon)}
+          type={shared.folderIconType(folder)}
+          fontSize={16}
+          color={globalColors.black_75}
+          style={styleFolderIcon}
           onClick={() => this.props.onFolderClick(folder)}
         />
         <Text
@@ -294,11 +300,7 @@ class Profile extends Component<Props, State> {
 
           {this.props.userInfo.showcasedTeams.length > 0
             ? this.props.userInfo.showcasedTeams.map(team => (
-                <ShowcasedTeamRow
-                  key={team.fqName}
-                  onClickShowcased={this.props.onClickShowcased}
-                  team={team}
-                />
+                <ShowcasedTeamRow key={team.fqName} team={team} />
               ))
             : showShowcaseTeamsOffer && (
                 <ShowcaseTeamsOffer onClickShowcaseOffer={this.props.onClickShowcaseOffer} />
@@ -368,11 +370,11 @@ class Profile extends Component<Props, State> {
               title={null}
               onClick={this.props.onBack}
               style={styleBack}
-              iconStyle={{color: globalColors.white}}
+              iconColor={globalColors.white}
             />
           )}
           <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Icon style={styleSearch} type="iconfont-search" />
+            <Icon style={styleSearch} type="iconfont-search" color={globalColors.white_75} />
             <Text style={styleSearchText} type="Body">
               Search people
             </Text>
@@ -612,10 +614,7 @@ const styleFolderText = {
 }
 
 const styleFolderIcon = {
-  fontSize: 16,
   marginRight: globalMargins.tiny,
-  textAlign: 'center',
-  color: globalColors.black_75,
 }
 
 const styleMeta = {
@@ -635,7 +634,6 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.white_75,
   padding: globalMargins.xtiny,
 }
 
@@ -644,6 +642,7 @@ const styleSearchText = {
   fontSize: 15,
   position: 'relative',
   top: -1,
+  color: globalColors.white_75,
 }
 
 const styleShowcasedTeamContainer = {

@@ -15,11 +15,19 @@ class _CodePage extends Component<Props, {enterText: string}> {
     enterText: '',
   }
 
+  onKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      this.props.textEntered(this.state.enterText)
+    }
+  }
+
   render() {
     return (
       <CodePage
         enterText={this.state.enterText}
         onChangeText={enterText => this.setState({enterText})}
+        onKeyDown={e => this.onKeyDown(e)}
         onBack={this.props.onBack}
         mode={this.props.mode}
         textCode={this.props.textCode}
@@ -69,7 +77,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(LoginGen.createSetCameraBrokenMode({codePageCameraBrokenMode})),
   setCodePageMode: codePageMode => dispatch(LoginGen.createSetCodePageMode({codePageMode})),
   textEntered: (phrase: string) =>
-    dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase)})),
+    dispatch(LoginGen.createProvisionTextCodeEntered({phrase: new HiddenString(phrase.trim())})),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)

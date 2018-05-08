@@ -5,10 +5,11 @@ import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
 // initial settings (except retention policy)
-type Props = {
+type Props = {|
   isBigTeam: boolean,
   ignoreAccessRequests: boolean,
   publicityAnyMember: boolean,
@@ -24,9 +25,9 @@ type Props = {
   teamname: Types.Teamname,
   yourOperations: Types.TeamOperations,
   waitingForSavePublicity: boolean,
-}
+|}
 
-type NewSettings = {
+type NewSettings = {|
   newIgnoreAccessRequests: boolean,
   newPublicityAnyMember: boolean,
   newPublicityMember: boolean,
@@ -34,20 +35,22 @@ type NewSettings = {
   newOpenTeam: boolean,
   newOpenTeamRole: Types.TeamRoleType,
   newRetentionPolicy: Types.RetentionPolicy,
-}
+|}
 
 // new settings
-type State = NewSettings & {
+type State = {|
+  ...NewSettings,
   publicitySettingsChanged: boolean,
   retentionPolicyChanged: boolean,
   retentionPolicyDecreased: boolean,
-}
+|}
 
-type SettingProps = Props &
-  State & {
-    setBoolSettings: (key: $Keys<State>) => (newSetting: boolean) => void,
-    onSetOpenTeamRole?: () => void,
-  }
+type SettingProps = {|
+  ...Props,
+  ...State,
+  setBoolSettings: (key: *) => (newSetting: boolean) => void,
+  onSetOpenTeamRole?: () => void,
+|}
 
 const SetMemberShowcase = (props: SettingProps) => (
   <Box
@@ -76,7 +79,9 @@ const SetMemberShowcase = (props: SettingProps) => (
       <Text type="BodySmall">
         {props.yourOperations.setMemberShowcase
           ? 'Your profile will mention this team. Team description and number of members will be public.'
-          : "Admins aren't allowing members to publish this team on their profile."}
+          : props.yourOperations.joinTeam
+            ? 'You must join this team to publish it on your profile.'
+            : "Admins aren't allowing members to publish this team on their profile."}
       </Text>
     </Box>
   </Box>
@@ -137,7 +142,7 @@ const OpenTeam = (props: SettingProps) =>
             type={props.newOpenTeam ? 'BodySmallPrimaryLink' : 'BodySmall'}
             onClick={props.newOpenTeam ? props.onSetOpenTeamRole : undefined}
           >
-            {props.newOpenTeamRole}
+            {pluralize(props.newOpenTeamRole)}
           </Text>
           .
         </Text>
@@ -211,7 +216,7 @@ export class Settings extends React.Component<Props, State> {
     })
   }
 
-  setBoolSettings = (key: $Keys<State>) => (newSetting: boolean) => {
+  setBoolSettings = (key: *) => (newSetting: boolean) => {
     this.setState({[key]: newSetting})
   }
 

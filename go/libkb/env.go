@@ -31,6 +31,7 @@ func (n NullConfiguration) GetPvlKitFilename() string                           
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
+func (n NullConfiguration) GetAutoWallet() (bool, bool)                                    { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
@@ -158,6 +159,7 @@ type TestParameters struct {
 	DevelName                string
 	RuntimeDir               string
 	DisableUpgradePerUserKey bool
+	DisableAutoWallet        bool
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -711,6 +713,11 @@ func (e *Env) GetEmail() string {
 // Upgrade sigchains to contain per-user-keys.
 func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
+}
+
+// Automatically create a wallet for the logged-in user.
+func (e *Env) GetAutoWallet() bool {
+	return !e.Test.DisableAutoWallet
 }
 
 // If true, do not logout after user.key_change notification handler
@@ -1366,4 +1373,15 @@ func GetPlatformString() string {
 		return "ios"
 	}
 	return runtime.GOOS
+}
+
+func IsMobilePlatform() bool {
+	s := GetPlatformString()
+	return (s == "ios" || s == "android")
+}
+
+func (e *Env) AllowPTrace() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ALLOW_PTRACE") },
+	)
 }

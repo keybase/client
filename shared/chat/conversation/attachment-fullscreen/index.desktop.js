@@ -1,6 +1,8 @@
 // @flow
 import * as React from 'react'
 import {Box, Icon, Text, PopupDialog, ProgressBar, ProgressIndicator} from '../../../common-adapters'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import MessagePopup from '../messages/message-popup/'
 import {
   collapseStyles,
   globalColors,
@@ -13,7 +15,7 @@ import {
 import type {Props} from '.'
 
 type State = {loaded: boolean}
-class Fullscreen extends React.Component<Props, State> {
+class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, State> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
@@ -25,12 +27,21 @@ class Fullscreen extends React.Component<Props, State> {
               {this.props.title}
             </Text>
             <Icon
+              ref={this.props.setAttachmentRef}
               type="iconfont-ellipsis"
-              style={{color: globalColors.black_40, cursor: 'pointer', marginLeft: globalMargins.tiny}}
-              onClick={event => {
-                const node = event.target instanceof window.HTMLElement ? event.target : null
-                this.props.onShowMenu(node ? node.getBoundingClientRect() : null)
-              }}
+              style={platformStyles({
+                common: {marginLeft: globalMargins.tiny},
+                isElectron: {cursor: 'pointer'},
+              })}
+              color={globalColors.black_40}
+              onClick={this.props.toggleShowingMenu}
+            />
+            <MessagePopup
+              attachTo={this.props.attachmentRef}
+              message={this.props.message}
+              onHidden={this.props.toggleShowingMenu}
+              position="bottom left"
+              visible={this.props.showingMenu}
             />
           </Box>
           {this.props.path && (
@@ -73,6 +84,7 @@ class Fullscreen extends React.Component<Props, State> {
     )
   }
 }
+const Fullscreen = FloatingMenuParentHOC(_Fullscreen)
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_60, cursor: 'pointer'},

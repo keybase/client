@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
-import * as RouteTree from '../../../route-tree'
 import * as Types from '../../../constants/types/chat2'
 import SystemAddedToTeam from './system-added-to-team/container'
 import SystemGitPush from './system-git-push/container'
@@ -14,15 +13,14 @@ import TextMessage from './text/container'
 import Attachment from './attachment/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
+import Placeholder from './placeholder/container'
 import Wrapper from './wrapper/container'
-import {chatTab} from '../../../constants/tabs'
-import {connect, compose, lifecycle, type TypedState, createSelector} from '../../../util/container'
+import {connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
 type Props = {
   message: Types.Message,
   previous: ?Types.Message,
   isEditing: boolean,
-  isSelected: boolean,
 }
 
 class MessageFactory extends React.PureComponent<Props> {
@@ -36,7 +34,6 @@ class MessageFactory extends React.PureComponent<Props> {
           <Wrapper
             innerClass={TextMessage}
             isEditing={this.props.isEditing}
-            isSelected={this.props.isSelected}
             message={this.props.message}
             previous={this.props.previous}
           />
@@ -46,11 +43,12 @@ class MessageFactory extends React.PureComponent<Props> {
           <Wrapper
             innerClass={Attachment}
             isEditing={this.props.isEditing}
-            isSelected={this.props.isSelected}
             message={this.props.message}
             previous={this.props.previous}
           />
         )
+      case 'placeholder':
+        return <Placeholder message={this.props.message} />
       case 'systemInviteAccepted':
         return <SystemInviteAccepted message={this.props.message} />
       case 'systemSimpleToComplex':
@@ -74,8 +72,10 @@ class MessageFactory extends React.PureComponent<Props> {
       case 'deleted':
         return null
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(this.props.message.type: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.message.type);
+      */
         return null
     }
   }
@@ -89,28 +89,14 @@ const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKe
       message &&
       conversationIDKey &&
       Constants.getEditingOrdinal(state, conversationIDKey) === message.ordinal,
-    isSelected: messageActionMessage(state, conversationIDKey) === message,
     message,
     previous: previous ? messageMap.get(previous) : null,
   }
 }
 
-const getRouteState = (state: TypedState) => state.routeTree.routeState
-
-const messageActionMessage = createSelector(
-  [getRouteState, (_, conversationIDKey) => conversationIDKey],
-  (routeState, conversationIDKey) =>
-    RouteTree.getPathProps(routeState, [chatTab, conversationIDKey, 'messageAction']).getIn([
-      2,
-      'props',
-      'message',
-    ])
-)
-
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _measure: ownProps.measure,
   isEditing: stateProps.isEditing,
-  isSelected: stateProps.isSelected,
   message: stateProps.message,
   previous: stateProps.previous,
 })

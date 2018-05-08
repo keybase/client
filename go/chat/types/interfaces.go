@@ -66,7 +66,7 @@ type ConversationSource interface {
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		query *chat1.GetThreadQuery, p *chat1.Pagination) (chat1.ThreadView, error)
+		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
@@ -75,7 +75,7 @@ type ConversationSource interface {
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
-	ExpungeFromDelete(ctx context.Context, uid gregor1.UID,
+	ClearFromDelete(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, deleteID chat1.MessageID)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)

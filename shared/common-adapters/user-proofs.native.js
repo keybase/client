@@ -8,10 +8,8 @@ import ProgressIndicator from './progress-indicator'
 import * as React from 'react'
 import Text from './text'
 import openUrl from '../util/open-url'
-import type {IconType} from './icon.constants'
 import type {Proof} from '../constants/types/tracker'
 import type {Props, MissingProof} from './user-proofs'
-import {defaultColor} from './icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
@@ -23,27 +21,23 @@ function MissingProofRow({missingProof, style}: {missingProof: MissingProof, sty
       <Box style={styleRow}>
         <Box style={iconContainer}>
           <Icon
-            style={{...styleService, color: missingColor}}
+            style={styleService}
+            color={missingColor}
+            fontSize={styleServiceContainer.fontSize}
+            textAlign="center"
             type={shared.iconNameForProof(missingProof)}
             hint={missingProof.type}
           />
         </Box>
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text type="Body" selectable={true} style={{...styleProofName, color: missingColor}}>
+            <Text type="Body" style={{...styleProofName, color: missingColor}}>
               {missingProof.message}
             </Text>
           </Box>
         </Box>
         <Box style={styleStatusIconContainer}>
-          <Icon
-            type={'iconfont-proof-placeholder'}
-            style={{
-              ...styleStatusIcon('iconfont-proof-placeholder'),
-              color: globalColors.black_10,
-              fontSize: 26,
-            }}
-          />
+          <Icon type={'iconfont-proof-placeholder'} color={globalColors.black_10} fontSIze="26" />
         </Box>
       </Box>
     </ClickableBox>
@@ -66,6 +60,9 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
       <Box style={iconContainer}>
         <Icon
           style={styleService}
+          color={styleServiceContainer.color}
+          fontSize={styleServiceContainer.fontSize}
+          textAlign="center"
           type={shared.iconNameForProof(proof)}
           hint={proof.type}
           onClick={() => onClickProfile(proof)}
@@ -100,10 +97,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
             (proof.state === proofChecking ? (
               <ProgressIndicator style={styleSpinner} />
             ) : (
-              <Icon
-                type={proofStatusIconType}
-                style={{fontSize: 26, color: shared.proofColor(proof, true)}}
-              />
+              <Icon type={proofStatusIconType} fontSize={26} color={shared.proofColor(proof, true)} />
             ))}
           {hasMenu && <Icon type="iconfont-caret-down" />}
         </Box>
@@ -121,14 +115,7 @@ function LoadingProofRow({width}: {width: number}): React.Element<any> {
         </Box>
       </Box>
       <Box style={styleStatusIconContainer}>
-        <Icon
-          type={'iconfont-proof-placeholder'}
-          style={{
-            ...styleStatusIcon('iconfont-proof-placeholder'),
-            color: globalColors.lightGrey,
-            fontSize: 26,
-          }}
-        />
+        <Icon type={'iconfont-proof-placeholder'} color={globalColors.lightGrey} fontSize={26} />
       </Box>
     </Box>
   )
@@ -207,11 +194,12 @@ const styleRow = {
   // RN-BUG: set maxWidth once that prop is supported
 }
 const styleService = {
-  color: globalColors.black_75,
-  fontSize: 20,
   marginRight: globalMargins.xtiny,
   marginTop: 2,
-  textAlign: 'center',
+}
+const styleServiceContainer = {
+  color: globalColors.black_75,
+  fontSize: 20,
 }
 const styleStatusIconTouchable = {
   ...globalStyles.flexBoxRow,
@@ -224,10 +212,7 @@ const styleStatusIconContainer = {
   marginLeft: globalMargins.tiny,
   minWidth: 40,
 }
-const styleStatusIcon = (statusIcon: IconType) => ({
-  color: defaultColor(statusIcon),
-  fontSize: 32,
-})
+
 const styleSpinner = {
   height: 32,
   paddingBottom: globalMargins.tiny,

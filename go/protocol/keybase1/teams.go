@@ -52,6 +52,7 @@ const (
 	TeamApplication_SALTPACK            TeamApplication = 3
 	TeamApplication_GIT_METADATA        TeamApplication = 4
 	TeamApplication_SEITAN_INVITE_TOKEN TeamApplication = 5
+	TeamApplication_STELLAR_RELAY       TeamApplication = 6
 )
 
 func (o TeamApplication) DeepCopy() TeamApplication { return o }
@@ -62,6 +63,7 @@ var TeamApplicationMap = map[string]TeamApplication{
 	"SALTPACK":            3,
 	"GIT_METADATA":        4,
 	"SEITAN_INVITE_TOKEN": 5,
+	"STELLAR_RELAY":       6,
 }
 
 var TeamApplicationRevMap = map[TeamApplication]string{
@@ -70,6 +72,7 @@ var TeamApplicationRevMap = map[TeamApplication]string{
 	3: "SALTPACK",
 	4: "GIT_METADATA",
 	5: "SEITAN_INVITE_TOKEN",
+	6: "STELLAR_RELAY",
 }
 
 func (e TeamApplication) String() string {
@@ -814,6 +817,7 @@ type TeamSigChainState struct {
 	UserLog          map[UserVersion][]UserLogPoint                    `codec:"userLog" json:"userLog"`
 	SubteamLog       map[TeamID][]SubteamLogPoint                      `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys      map[PerTeamKeyGeneration]PerTeamKey               `codec:"perTeamKeys" json:"perTeamKeys"`
+	PerTeamKeyCTime  UnixTime                                          `codec:"perTeamKeyCTime" json:"perTeamKeyCTime"`
 	LinkIDs          map[Seqno]LinkID                                  `codec:"linkIDs" json:"linkIDs"`
 	StubbedLinks     map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites    map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
@@ -908,6 +912,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.PerTeamKeys),
+		PerTeamKeyCTime: o.PerTeamKeyCTime.DeepCopy(),
 		LinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
 			if x == nil {
 				return nil

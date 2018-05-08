@@ -222,6 +222,9 @@ func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJo
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 	b.Lock()
 	defer b.Unlock()
+	if !b.started {
+		return false
+	}
 	if b.suspendCount == 0 {
 		b.resumeCh = make(chan struct{})
 		b.suspendCh <- b.resumeCh

@@ -48,7 +48,7 @@ class List extends PureComponent<Props<*>, void> {
           >
             <ReactList
               ref={this._setListRef}
-              useTranslate3d={true}
+              useTranslate3d={false}
               useStaticSize={!!this.props.fixedHeight}
               itemRenderer={this._itemRender}
               itemSizeEstimator={this.props.itemSizeEstimator}

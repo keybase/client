@@ -3,6 +3,7 @@ import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 
+/* eslint-disable sort-keys */
 export const globalMargins = {
   xtiny: 4,
   tiny: 8,
@@ -13,6 +14,7 @@ export const globalMargins = {
   large: 40,
   xlarge: 64,
 }
+/* eslint-enable sort-keys */
 
 export const backgroundModeToColor = {
   Announcements: globalColors.blue,

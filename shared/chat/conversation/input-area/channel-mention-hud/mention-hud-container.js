@@ -1,6 +1,6 @@
 // @flow
 import {MentionHud} from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {compose, connect, type TypedState, setDisplayName} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 
 const mapStateToProps = (state: TypedState, {filter, conversationIDKey}) => {
@@ -26,4 +26,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(MentionHud)
+export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('ChannelMentionHud'))(
+  MentionHud
+)

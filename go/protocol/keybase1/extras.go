@@ -8,6 +8,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -2412,4 +2413,9 @@ func (u AvatarUrl) String() string {
 
 func MakeAvatarURL(u string) AvatarUrl {
 	return AvatarUrl(u)
+}
+
+func (b Bytes32) IsBlank() bool {
+	var blank Bytes32
+	return (subtle.ConstantTimeCompare(b[:], blank[:]) == 1)
 }

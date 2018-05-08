@@ -32,11 +32,11 @@ class FileRender extends Component<Props> {
                 <Icon
                   type="iconfont-thunderbolt"
                   style={{
-                    fontSize: 10,
                     marginRight: 4,
                     alignSelf: 'center',
-                    color: pathStyleThemed[this.props.theme].color,
                   }}
+                  fontSize={10}
+                  color={pathStyleThemed[this.props.theme].color}
                 />
               )}
               <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>

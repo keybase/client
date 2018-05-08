@@ -239,14 +239,14 @@ func isOpNoDestination(inErr error) bool {
 
 // SendXLM sends 'amount' lumens from 'from' account to 'to' account.
 // If the recipient has no account yet, this will create it.
-func (a *Account) SendXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
+func SendXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
 	// this is checked in build.Transaction, but can't hurt to break out early
 	if _, err = samount.Parse(amount); err != nil {
 		return 0, "", err
 	}
 
 	// try payment first
-	ledger, txid, err = a.paymentXLM(from, to, amount)
+	ledger, txid, err = paymentXLM(from, to, amount)
 
 	if err != nil {
 		if err != ErrAccountNotFound {
@@ -255,15 +255,15 @@ func (a *Account) SendXLM(from SeedStr, to AddressStr, amount string) (ledger in
 
 		// if payment failed due to op_no_destination, then
 		// should try createAccount instead
-		return a.createAccountXLM(from, to, amount)
+		return createAccountXLM(from, to, amount)
 	}
 
 	return ledger, txid, nil
 }
 
 // paymentXLM creates a payment transaction from 'from' to 'to' for 'amount' lumens.
-func (a *Account) paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	sig, err := a.PaymentXLMTransaction(from, to, amount, client)
+func paymentXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
+	sig, err := PaymentXLMTransaction(from, to, amount, client)
 	if err != nil {
 		return 0, "", err
 	}
@@ -271,7 +271,7 @@ func (a *Account) paymentXLM(from SeedStr, to AddressStr, amount string) (ledger
 }
 
 // PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
-func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
+func PaymentXLMTransaction(from SeedStr, to AddressStr, amount string,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
@@ -286,12 +286,12 @@ func (a *Account) PaymentXLMTransaction(from SeedStr, to AddressStr, amount stri
 	if err != nil {
 		return res, err
 	}
-	return a.sign(from, tx)
+	return sign(from, tx)
 }
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
-func (a *Account) createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
-	sig, err := a.CreateAccountXLMTransaction(from, to, amount, client)
+func createAccountXLM(from SeedStr, to AddressStr, amount string) (ledger int32, txid string, err error) {
+	sig, err := CreateAccountXLMTransaction(from, to, amount, client)
 	if err != nil {
 		return 0, "", err
 	}
@@ -300,7 +300,7 @@ func (a *Account) createAccountXLM(from SeedStr, to AddressStr, amount string) (
 
 // CreateAccountXLMTransaction creates a signed transaction to fund an new account 'to' from 'from'
 // with a starting balance of 'amount'.
-func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
+func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount string,
 	seqnoProvider build.SequenceProvider) (res SignResult, err error) {
 	tx, err := build.Transaction(
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
@@ -315,7 +315,7 @@ func (a *Account) CreateAccountXLMTransaction(from SeedStr, to AddressStr, amoun
 	if err != nil {
 		return res, err
 	}
-	return a.sign(from, tx)
+	return sign(from, tx)
 }
 
 type SignResult struct {
@@ -325,7 +325,7 @@ type SignResult struct {
 }
 
 // sign signs and base64-encodes a transaction.
-func (a *Account) sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error) {
+func sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error) {
 	txe, err := tx.Sign(from.SecureNoLogString())
 	if err != nil {
 		return res, err

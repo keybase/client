@@ -7,6 +7,9 @@ import {globalColors} from '../../../../../styles'
 import File from '.'
 
 const mapStateToProps = (state: TypedState) => ({})
+type OwnProps = {
+  message: Types.MessageAttachment,
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onDownload: (message: Types.MessageAttachment) => {
@@ -22,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const arrowColor = message.downloadPath
     ? globalColors.green
@@ -30,10 +33,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
-      : message.transferState === 'uploading' ? 'Encrypting' : ''
-
+      : message.transferState === 'uploading'
+        ? 'Encrypting'
+        : message.transferState === 'remoteUploading' ? 'waiting...' : ''
+  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
+    hasProgress,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     progress: message.transferProgress,

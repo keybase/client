@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 import {Avatar, BackButton, Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import {globalStyles, globalColors, globalMargins, collapseStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
 const ShhIcon = () => (
   <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={shhIconStyle} />
+    <Icon type="iconfont-shh" style={shhIconStyle} color={shhIconColor} fontSize={shhIconFontSize} />
   </Box>
 )
 
@@ -16,7 +16,7 @@ const ChannelHeader = (props: Props) => (
     <BackButton
       badgeNumber={props.badgeNumber}
       onClick={props.onBack}
-      iconStyle={{color: globalColors.black_40}}
+      iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
     />
@@ -54,7 +54,8 @@ const ChannelHeader = (props: Props) => (
     </Box>
     <Icon
       type="iconfont-info"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+      style={collapseStyles([styleLeft, {flexShrink: 0, padding: globalMargins.tiny}])}
+      fontSize={21}
       onClick={props.onToggleInfoPanel}
     />
   </Box>
@@ -65,7 +66,7 @@ const UsernameHeader = (props: Props) => (
     <BackButton
       badgeNumber={props.badgeNumber}
       onClick={props.onBack}
-      iconStyle={{color: globalColors.black_40}}
+      iconColor={globalColors.black_40}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
     />
@@ -93,7 +94,8 @@ const UsernameHeader = (props: Props) => (
     {props.canOpenInfoPanel && (
       <Icon
         type="iconfont-info"
-        style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+        style={collapseStyles([styleLeft, {flexShrink: 0, padding: globalMargins.tiny}])}
+        fontSize={21}
         onClick={props.onToggleInfoPanel}
       />
     )}
@@ -120,9 +122,11 @@ const styleLeft = {
 }
 
 const shhIconStyle = {
-  ...styleLeft,
-  color: globalColors.black_20,
-  fontSize: 22,
+  marginLeft: globalMargins.xtiny,
 }
+
+const shhIconColor = globalColors.black_20
+
+const shhIconFontSize = 20
 
 export {ChannelHeader, UsernameHeader}

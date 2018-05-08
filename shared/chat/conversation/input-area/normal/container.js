@@ -1,26 +1,12 @@
 // @flow
-import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
-import {formatTextForQuoting} from '../../../../util/chat'
-import Input from '.'
-import {
-  compose,
-  withHandlers,
-  withStateHandlers,
-  withProps,
-  lifecycle,
-  connect,
-  isMobile,
-  type TypedState,
-  type Dispatch,
-} from '../../../../util/container'
-import {isEqual, throttle} from 'lodash-es'
-import {chatTab} from '../../../../constants/tabs'
-import mentionHoc from '../mention-handler-hoc'
+import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {isEqual} from 'lodash-es'
+import Input, {type Props} from '.'
 
 type OwnProps = {
   focusInputCounter: number,
@@ -28,18 +14,26 @@ type OwnProps = {
 }
 
 // We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
-const unsentText = {}
+const unsentText: {[Types.ConversationIDKey]: string} = {}
+
+const getUnsentText = (conversationIDKey: Types.ConversationIDKey): string => {
+  return unsentText[conversationIDKey] || ''
+}
+
+const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string) => {
+  unsentText[conversationIDKey] = text
+}
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const editingOrdinal = Constants.getEditingOrdinal(state, conversationIDKey)
-  const _editingMessage = editingOrdinal
+  const _editingMessage: ?Types.Message = editingOrdinal
     ? Constants.getMessageMap(state, conversationIDKey).get(editingOrdinal)
     : null
   const quote = Constants.getQuotingOrdinalAndSource(
     state,
     state.chat2.pendingSelected ? Constants.pendingConversationIDKey : conversationIDKey
   )
-  let _quotingMessage = null
+  let _quotingMessage: ?Types.Message = null
   if (quote) {
     const {ordinal, sourceConversationIDKey} = quote
     _quotingMessage = ordinal ? Constants.getMessageMap(state, sourceConversationIDKey).get(ordinal) : null
@@ -63,9 +57,11 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const _you = state.config.username || ''
   const pendingWaiting = state.chat2.pendingSelected && state.chat2.pendingStatus === 'waiting'
 
-  const injectedInputMessage = _editingMessage || _quotingMessage || null
-  const injectedInput =
-    injectedInputMessage && injectedInputMessage.type === 'text' && injectedInputMessage.text.stringValue()
+  const injectedInputMessage: ?Types.Message = _editingMessage || _quotingMessage || null
+  const injectedInput: string =
+    injectedInputMessage && injectedInputMessage.type === 'text'
+      ? injectedInputMessage.text.stringValue()
+      : ''
 
   return {
     _editingMessage,
@@ -112,19 +108,26 @@ const mapDispatchToProps = (dispatch: Dispatch): * => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _onStoreInputText: (conversationIDKey: Types.ConversationIDKey, inputText: string) =>
-    dispatch(
-      RouteTree.setRouteState(I.List([chatTab, conversationIDKey]), {inputText: new HiddenString(inputText)})
-    ),
   _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
     // only valid conversations
     conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  _editingMessage: stateProps._editingMessage,
-  _onSubmit: (text: string) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
+  conversationIDKey: stateProps.conversationIDKey,
+  channelName: stateProps._meta.channelname,
+  isEditing: !!stateProps._editingMessage,
+  focusInputCounter: ownProps.focusInputCounter,
+  clearInboxFilter: dispatchProps.clearInboxFilter,
+  onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+  onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+  onCancelEditing: () => {
+    dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
+    dispatchProps._onCancelEditing(stateProps.conversationIDKey)
+  },
+  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
+  onSubmit: (text: string) => {
     const em = stateProps._editingMessage
     if (em) {
       if (em.type === 'text' && em.text.stringValue() === text) {
@@ -137,102 +140,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     }
     ownProps.onScrollDown()
   },
-  _quotingMessage: stateProps._quotingMessage,
-  channelName: stateProps._meta.channelname,
-  clearInboxFilter: dispatchProps.clearInboxFilter,
-  conversationIDKey: stateProps.conversationIDKey,
-  focusInputCounter: ownProps.focusInputCounter,
-  injectedInput: stateProps.injectedInput,
-  isEditing: !!stateProps._editingMessage,
-  isLoading: false,
-  onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-  onCancelEditing: () => {
-    dispatchProps._onCancelQuoting(stateProps.conversationIDKey)
-    dispatchProps._onCancelEditing(stateProps.conversationIDKey)
-  },
-  onCancelQuoting: () => dispatchProps._onCancelQuoting(stateProps.conversationIDKey),
-  onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   pendingWaiting: stateProps.pendingWaiting,
-  sendTyping: (typing: boolean) => dispatchProps._sendTyping(stateProps.conversationIDKey, typing),
   typing: stateProps.typing,
+
+  _quotingMessage: stateProps._quotingMessage,
+  _editingMessage: stateProps._editingMessage,
+  injectedInput: stateProps.injectedInput,
+
+  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  setUnsentText: (text: string) => setUnsentText(stateProps.conversationIDKey, text),
+  sendTyping: (typing: boolean) => {
+    dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
+  },
 })
 
-// Standalone throttled function to ensure we never accidentally recreate it and break the throttling
-const throttled = throttle((f, param) => f(param), 1000)
-
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withStateHandlers(
-    props => ({text: unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] || ''}),
-    {
-      _setText: () => (text: string) => ({text}),
-    }
-  ),
-  withProps(props => ({
-    setText: (text: string, skipUnsentSaving?: boolean) => {
-      props._setText(text)
-      if (!skipUnsentSaving) {
-        unsentText[Types.conversationIDKeyToString(props.conversationIDKey)] = text
-      }
-
-      throttled(props.sendTyping, !!text)
-    },
-  })),
-  withProps(props => ({
-    onSubmit: (text: string) => {
-      props._onSubmit(text)
-      props.setText('')
-    },
-  })),
-  withHandlers(props => {
-    let input
-    return {
-      _inputSetRef: props => i => (input = i),
-      _onKeyDown: props => (e: SyntheticKeyboardEvent<>) => {
-        props._quotingMessage && props.onCancelQuoting()
-        if (e.key === 'ArrowUp' && !props.text) {
-          props.onEditLastMessage()
-        } else if (e.key === 'Escape') {
-          props.onCancelEditing()
-        }
-      },
-      inputBlur: props => () => input && input.blur(),
-      inputFocus: props => () => input && input.focus(),
-      inputMoveToEnd: props => () => input && input.moveCursorToEnd(),
-      inputGetRef: props => () => input,
-      inputSelections: props => () => (input && input.selections()) || {},
-    }
-  }),
-  lifecycle({
-    componentDidUpdate(prevProps) {
-      if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
-        this.props.inputFocus()
-      }
-    },
-    componentWillReceiveProps(nextProps) {
-      // Fill in the input with an edit, quote, or unsent text
-      if (
-        (nextProps._quotingMessage && nextProps._quotingMessage !== this.props._quotingMessage) ||
-        nextProps._editingMessage !== this.props._editingMessage
-      ) {
-        this.props.setText('') // blow away any unset stuff if we go into an edit/quote, else you edit / cancel / switch tabs and come back and you see the unsent value
-        this.props.setText(
-          nextProps._quotingMessage && !nextProps._editingMessage
-            ? formatTextForQuoting(nextProps.injectedInput)
-            : nextProps.injectedInput,
-          true
-        )
-        !isMobile && this.props.inputMoveToEnd()
-        this.props.inputFocus()
-      } else if (this.props.conversationIDKey !== nextProps.conversationIDKey && !nextProps.injectedInput) {
-        const text = unsentText[Types.conversationIDKeyToString(nextProps.conversationIDKey)] || ''
-        this.props.setText(text, true)
-      }
-
-      if (nextProps.isEditing && !this.props.isEditing) {
-        this.props.inputFocus()
-      }
-    },
-  }),
-  mentionHoc
-)(Input)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Input)

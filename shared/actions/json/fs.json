@@ -27,7 +27,6 @@
     },
     "download": {
       "intent": "Types.TransferIntent",
-      "mimeType?": "string",
       "path": "Types.Path",
       "localPath?": "string"
     },
@@ -81,6 +80,18 @@
     "uninstallKBFS": {},
     "fsActivity": {},
     "openSecurityPreferences": {},
+    "refreshLocalHTTPServerInfo": {},
+    "localHTTPServerInfo": {
+      "address": "string",
+      "token": "string"
+    },
+    "favoriteIgnore": {
+      "path": "Types.Path"
+    },
+    "favoriteIgnoreError": {
+      "path": "Types.Path",
+      "errorText": "string"
+    },
 
     "setupFSHandlers": {}
   }

@@ -90,17 +90,17 @@ func (e *WalletInitBackground) Shutdown() {
 
 func WalletInitBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
 	if g.ConnectivityMonitor.IsConnected(ectx.GetNetContext()) == libkb.ConnectivityMonitorNo {
-		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound giving up offline")
+		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackground giving up offline")
 		return nil
 	}
 
 	if !g.ActiveDevice.Valid() {
-		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound not logged in")
+		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackground not logged in")
 		return nil
 	}
 
-	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "WalletInitBackgroundRound") {
-		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackgroundRound yielding to guard")
+	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "WalletInitBackground") {
+		g.Log.CDebugf(ectx.GetNetContext(), "WalletInitBackground yielding to guard")
 		return nil
 	}
 

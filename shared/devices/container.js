@@ -5,16 +5,7 @@ import * as I from 'immutable'
 import * as LoginGen from '../actions/login-gen'
 import * as Constants from '../constants/devices'
 import * as LoginConstants from '../constants/login'
-import {
-  compose,
-  lifecycle,
-  withStateHandlers,
-  withHandlers,
-  connect,
-  createSelector,
-  type TypedState,
-  type Dispatch,
-} from '../util/container'
+import {compose, lifecycle, connect, createSelector, type TypedState, type Dispatch} from '../util/container'
 
 const getIdToDetail = (state: TypedState) => state.devices.idToDetail
 
@@ -70,7 +61,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   deviceIDs: stateProps.deviceIDs.toArray(),
   menuItems: [
     {onClick: dispatchProps._addNewPhone, title: 'New phone'},
-    {onClick: dispatchProps._addNewComputer, title: 'New computer'},
+    {onClick: dispatchProps._addNewComputer, title: 'New computer', style: {borderTopWidth: 0}}, // get rid of auto-inserted border
     {onClick: dispatchProps._addNewPaperKey, title: 'New paper key'},
   ],
   onBack: dispatchProps.onBack,
@@ -87,10 +78,5 @@ export default compose(
     componentDidMount() {
       this.props._loadDevices()
     },
-  }),
-  withStateHandlers({showingMenu: false}, {_setShowingMenu: () => showingMenu => ({showingMenu})}),
-  withHandlers({
-    hideMenu: props => () => props._setShowingMenu(false),
-    showMenu: props => () => props._setShowingMenu(true),
   })
 )(Devices)

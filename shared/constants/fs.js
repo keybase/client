@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/fs'
+import * as RPCTypes from './types/rpc-gen'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
@@ -10,6 +11,7 @@ import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
 import * as mime from 'react-native-mime-types'
+import {lookupPatchedExt} from '../fs/utils/ext-list'
 
 export const defaultPath = '/keybase'
 
@@ -41,6 +43,17 @@ export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   size: 0,
   progress: 'pending',
   type: 'file',
+})
+
+export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
+  badgeCount: 0,
+  name: 'unknown',
+  lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
+  size: 0,
+  progress: 'pending',
+  type: 'symlink',
+  linkTarget: '',
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
@@ -101,6 +114,11 @@ export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
   syncing: false,
 })
 
+export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Record({
+  address: '',
+  token: '',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -108,6 +126,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   transfers: I.Map(),
+  localHTTPServerInfo: makeLocalHTTPServer(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -439,4 +458,58 @@ export const folderToFavoriteItems = (
   )
 }
 
-export const mimeTypeFromPathItem = (p: Types.PathItem): string => mime.lookup(p.name) || ''
+export const mimeTypeFromPathName = (name: string): string => mime.lookup(name) || ''
+
+export const viewTypeFromPath = (p: Types.Path): Types.FileViewType => {
+  const name = Types.getPathName(p)
+  const fromPatched = lookupPatchedExt(name)
+  if (fromPatched) {
+    return fromPatched
+  }
+  const mimeType = mime.lookup(name) || ''
+  if (mimeType.startsWith('text/')) {
+    return 'text'
+  }
+  if (mimeType.startsWith('image/')) {
+    return 'image'
+  }
+  if (mimeType.startsWith('video/')) {
+    return 'video'
+  }
+  if (mimeType === 'application/pdf') {
+    return 'pdf'
+  }
+  return 'default'
+}
+
+export const generateFileURL = (path: Types.Path, address: string, token: string): string => {
+  const stripKeybase = Types.pathToString(path).slice('/keybase'.length)
+  return `http://${address}/files${stripKeybase}?token=${token}`
+}
+
+export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
+
+export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
+  const pathElems = Types.getPathElements(path)
+  if (pathElems.length === 0) return null
+
+  const visibility = Types.getVisibilityFromElems(pathElems)
+  if (visibility === null) return null
+  const isPrivate = visibility === 'private' || visibility === 'team'
+
+  const name = Types.getPathNameFromElems(pathElems)
+  if (name === '') return null
+
+  return {
+    folderType: Types.getRPCFolderTypeFromVisibility(visibility),
+    name,
+    private: isPrivate,
+    notificationsOn: false,
+    created: false,
+  }
+}
+
+export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, username?: string): boolean =>
+  !!pathItem.tlfMeta &&
+  ['public', 'private'].includes(Types.getPathVisibility(path)) &&
+  Types.getPathName(path) !== username

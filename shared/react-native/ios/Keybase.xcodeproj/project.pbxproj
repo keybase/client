@@ -8,12 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		272DA236209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
+		272DA237209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
+		B62BF7E179804DC1BF27B544 /* libRCTWKWebView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B77D36F6B3B04107BB7524A1 /* libRCTWKWebView.a */; };
 		C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */ = {isa = PBXBuildFile; fileRef = C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
@@ -59,6 +62,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		07268E152090F70B004FC966 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3FE4C3BB3E1F4B3482EDAED0 /* RCTWKWebView.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0974579A1D2A440A000D9368;
+			remoteInfo = RCTWKWebView;
+		};
 		27429B071E64A7A90058A4F9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */;
@@ -388,12 +398,14 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* KeybaseTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeybaseTests.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFetchBlob.xcodeproj; path = "../../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; };
 		370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessageUIManager.m; sourceTree = "<group>"; };
 		3724B72A1FB491F000A12CE6 /* MessageUIManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MessageUIManager.h; sourceTree = "<group>"; };
 		375CA6641FFD40D300210B11 /* Storybook.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Storybook.m; sourceTree = "<group>"; };
 		375CA6901FFD418D00210B11 /* Storybook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Storybook.h; sourceTree = "<group>"; };
+		3FE4C3BB3E1F4B3482EDAED0 /* RCTWKWebView.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTWKWebView.xcodeproj; path = "../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView.xcodeproj"; sourceTree = "<group>"; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
 		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
@@ -401,6 +413,7 @@
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCameraRoll.xcodeproj; path = "../../node_modules/react-native/Libraries/CameraRoll/RCTCameraRoll.xcodeproj"; sourceTree = "<group>"; };
+		B77D36F6B3B04107BB7524A1 /* libRCTWKWebView.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTWKWebView.a; sourceTree = "<group>"; };
 		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		DB0500F31F10114D000B54AD /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
@@ -483,6 +496,7 @@
 				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
+				B62BF7E179804DC1BF27B544 /* libRCTWKWebView.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -511,6 +525,14 @@
 				00E356F11AD99517003FC87E /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		07268E122090F70A004FC966 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				07268E162090F70B004FC966 /* libRCTWKWebView.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		27429AEA1E64A7A90058A4F9 /* Products */ = {
@@ -551,6 +573,7 @@
 				FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */,
 				27DDEEF0AE72483E8BF08ED2 /* RNFetchBlob.xcodeproj */,
 				6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */,
+				3FE4C3BB3E1F4B3482EDAED0 /* RCTWKWebView.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -623,6 +646,7 @@
 		DB090F7F1F719A2F007E4E1B /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
+				B77D36F6B3B04107BB7524A1 /* libRCTWKWebView.a */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -762,6 +786,7 @@
 				DBDC80031DE7CC8E005387B3 /* kb.ttf */,
 				DBDC80041DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf */,
 				DBDC80051DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf */,
+				272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */,
 				DBDC80061DE7CC8E005387B3 /* OpenSans.ttf */,
 				DBDC80071DE7CC8E005387B3 /* OpenSans_bold.ttf */,
 				DBDC80081DE7CC8E005387B3 /* OpenSans_italic.ttf */,
@@ -984,6 +1009,10 @@
 					ProjectRef = DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */;
 				},
 				{
+					ProductGroup = 07268E122090F70A004FC966 /* Products */;
+					ProjectRef = 3FE4C3BB3E1F4B3482EDAED0 /* RCTWKWebView.xcodeproj */;
+				},
+				{
 					ProductGroup = DB2BD17F1DE7D81C00BB7989 /* Products */;
 					ProjectRef = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
 				},
@@ -1005,6 +1034,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		07268E162090F70B004FC966 /* libRCTWKWebView.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTWKWebView.a;
+			remoteRef = 07268E152090F70B004FC966 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		27429B081E64A7A90058A4F9 /* libRNImagePicker.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1332,6 +1368,7 @@
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
 				DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */,
+				272DA236209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1341,6 +1378,7 @@
 			files = (
 				DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */,
 				DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */,
+				272DA237209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1485,11 +1523,15 @@
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
+				);
 				OTHER_CFLAGS = "-mno-thumb";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -1534,11 +1576,15 @@
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
+				);
 				OTHER_CFLAGS = "-mno-thumb";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -1674,6 +1720,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1720,6 +1767,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native-contacts/ios/RCTContacts",
+					"$(SRCROOT)/../../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

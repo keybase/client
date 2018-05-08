@@ -14,6 +14,8 @@ export const dismissTransfer = 'fs:dismissTransfer'
 export const download = 'fs:download'
 export const downloadFinished = 'fs:downloadFinished'
 export const downloadStarted = 'fs:downloadStarted'
+export const favoriteIgnore = 'fs:favoriteIgnore'
+export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
 export const filePreviewLoad = 'fs:filePreviewLoad'
@@ -26,8 +28,10 @@ export const fuseStatusResult = 'fs:fuseStatusResult'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
+export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const openInFileUI = 'fs:openInFileUI'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
+export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const setFlags = 'fs:setFlags'
 export const setupFSHandlers = 'fs:setupFSHandlers'
 export const sortSetting = 'fs:sortSetting'
@@ -41,7 +45,6 @@ export const createDismissTransfer = (payload: $ReadOnly<{|key: string|}>) => ({
 export const createDownload = (
   payload: $ReadOnly<{|
     intent: Types.TransferIntent,
-    mimeType?: string,
     path: Types.Path,
     localPath?: string,
   |}>
@@ -61,6 +64,13 @@ export const createDownloadStarted = (
     opID: RPCTypes.OpID,
   |}>
 ) => ({error: false, payload, type: downloadStarted})
+export const createFavoriteIgnore = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: favoriteIgnore})
+export const createFavoriteIgnoreError = (
+  payload: $ReadOnly<{|
+    path: Types.Path,
+    errorText: string,
+  |}>
+) => ({error: false, payload, type: favoriteIgnoreError})
 export const createFavoritesLoad = () => ({error: false, payload: undefined, type: favoritesLoad})
 export const createFavoritesLoaded = (payload: $ReadOnly<{|folders: I.Map<Types.Path, Types.FavoriteItem>|}>) => ({error: false, payload, type: favoritesLoaded})
 export const createFilePreviewLoad = (payload: $ReadOnly<{|path: Types.Path|}>) => ({error: false, payload, type: filePreviewLoad})
@@ -88,8 +98,15 @@ export const createFuseStatusResult = (
 export const createInstallFuse = () => ({error: false, payload: undefined, type: installFuse})
 export const createInstallFuseResult = (payload: $ReadOnly<{|kextPermissionError: boolean|}>) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = () => ({error: false, payload: undefined, type: installKBFS})
+export const createLocalHTTPServerInfo = (
+  payload: $ReadOnly<{|
+    address: string,
+    token: string,
+  |}>
+) => ({error: false, payload, type: localHTTPServerInfo})
 export const createOpenInFileUI = (payload: $ReadOnly<{|path?: string|}>) => ({error: false, payload, type: openInFileUI})
 export const createOpenSecurityPreferences = () => ({error: false, payload: undefined, type: openSecurityPreferences})
+export const createRefreshLocalHTTPServerInfo = () => ({error: false, payload: undefined, type: refreshLocalHTTPServerInfo})
 export const createSetFlags = (
   payload: $ReadOnly<{|
     kbfsOpening?: boolean,
@@ -124,6 +141,8 @@ export type DismissTransferPayload = More.ReturnType<typeof createDismissTransfe
 export type DownloadFinishedPayload = More.ReturnType<typeof createDownloadFinished>
 export type DownloadPayload = More.ReturnType<typeof createDownload>
 export type DownloadStartedPayload = More.ReturnType<typeof createDownloadStarted>
+export type FavoriteIgnoreErrorPayload = More.ReturnType<typeof createFavoriteIgnoreError>
+export type FavoriteIgnorePayload = More.ReturnType<typeof createFavoriteIgnore>
 export type FavoritesLoadPayload = More.ReturnType<typeof createFavoritesLoad>
 export type FavoritesLoadedPayload = More.ReturnType<typeof createFavoritesLoaded>
 export type FilePreviewLoadPayload = More.ReturnType<typeof createFilePreviewLoad>
@@ -136,8 +155,10 @@ export type FuseStatusResultPayload = More.ReturnType<typeof createFuseStatusRes
 export type InstallFusePayload = More.ReturnType<typeof createInstallFuse>
 export type InstallFuseResultPayload = More.ReturnType<typeof createInstallFuseResult>
 export type InstallKBFSPayload = More.ReturnType<typeof createInstallKBFS>
+export type LocalHTTPServerInfoPayload = More.ReturnType<typeof createLocalHTTPServerInfo>
 export type OpenInFileUIPayload = More.ReturnType<typeof createOpenInFileUI>
 export type OpenSecurityPreferencesPayload = More.ReturnType<typeof createOpenSecurityPreferences>
+export type RefreshLocalHTTPServerInfoPayload = More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
 export type SetFlagsPayload = More.ReturnType<typeof createSetFlags>
 export type SetupFSHandlersPayload = More.ReturnType<typeof createSetupFSHandlers>
 export type SortSettingPayload = More.ReturnType<typeof createSortSetting>
@@ -153,6 +174,8 @@ export type Actions =
   | More.ReturnType<typeof createDownload>
   | More.ReturnType<typeof createDownloadFinished>
   | More.ReturnType<typeof createDownloadStarted>
+  | More.ReturnType<typeof createFavoriteIgnore>
+  | More.ReturnType<typeof createFavoriteIgnoreError>
   | More.ReturnType<typeof createFavoritesLoad>
   | More.ReturnType<typeof createFavoritesLoaded>
   | More.ReturnType<typeof createFilePreviewLoad>
@@ -165,8 +188,10 @@ export type Actions =
   | More.ReturnType<typeof createInstallFuse>
   | More.ReturnType<typeof createInstallFuseResult>
   | More.ReturnType<typeof createInstallKBFS>
+  | More.ReturnType<typeof createLocalHTTPServerInfo>
   | More.ReturnType<typeof createOpenInFileUI>
   | More.ReturnType<typeof createOpenSecurityPreferences>
+  | More.ReturnType<typeof createRefreshLocalHTTPServerInfo>
   | More.ReturnType<typeof createSetFlags>
   | More.ReturnType<typeof createSetupFSHandlers>
   | More.ReturnType<typeof createSortSetting>

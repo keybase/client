@@ -17,7 +17,8 @@ const _icons = {
   [Tabs.settingsTab]: 'iconfont-nav-settings',
   [Tabs.teamsTab]: 'iconfont-nav-teams',
   [Tabs.gitTab]: 'iconfont-nav-git',
-  [Tabs.fsTab]: 'iconfont-camera',
+  [Tabs.fsTab]: 'iconfont-nav-files',
+  [Tabs.walletsTab]: 'iconfont-hand-wave',
 }
 
 const _labels = {
@@ -30,17 +31,18 @@ const _labels = {
   [Tabs.teamsTab]: 'Teams',
   [Tabs.gitTab]: 'Git',
   [Tabs.fsTab]: 'Files',
+  [Tabs.walletsTab]: 'Wallet',
 }
 
 const _tabs = [
   Tabs.peopleTab,
   Tabs.chatTab,
-  Tabs.folderTab,
+  ...(flags.fsEnabled ? [Tabs.fsTab] : [Tabs.folderTab]),
   Tabs.teamsTab,
   Tabs.devicesTab,
   Tabs.gitTab,
   Tabs.settingsTab,
-  ...(flags.fsEnabled ? [Tabs.fsTab] : []),
+  ...(flags.walletsEnabled ? [Tabs.walletsTab] : []),
 ].filter(Boolean)
 
 const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (

@@ -20,6 +20,7 @@ import {
   uninstallKBFSConfirmSaga,
   uninstallKBFS,
   uninstallKBFSSuccess,
+  copyToDownloadDir,
 } from './fs-platform-specific'
 import {isMobile, isWindows} from '../constants/platform'
 import {saveAttachmentDialog, showShareActionSheet} from './platform-specific'
@@ -42,6 +43,37 @@ function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
   }
 }
 
+const direntToMetadata = (d: RPCTypes.Dirent) => ({
+  name: d.name,
+  lastModifiedTimestamp: d.time,
+  lastWriter: d.lastWriterUnverified,
+  size: d.size,
+})
+
+const makeEntry = (d: RPCTypes.Dirent) => {
+  switch (d.direntType) {
+    case RPCTypes.simpleFSDirentType.dir:
+      return Constants.makeFolder(direntToMetadata(d))
+    case RPCTypes.simpleFSDirentType.sym:
+      return Constants.makeSymlink({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+        // TODO: plumb link target
+      })
+    case RPCTypes.simpleFSDirentType.file:
+    case RPCTypes.simpleFSDirentType.exec:
+      return Constants.makeFile({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+      })
+    default:
+      return Constants.makeUnknownPathItem({
+        ...direntToMetadata(d),
+        progress: 'loaded',
+      })
+  }
+}
+
 function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<any, any> {
   const rootPath = action.payload.path
 
@@ -52,13 +84,7 @@ function* filePreview(action: FsGen.FilePreviewLoadPayload): Saga.SagaGenerator<
     },
   })
 
-  const meta = Constants.makeFile({
-    name: Types.getPathName(rootPath),
-    lastModifiedTimestamp: dirent.time,
-    size: dirent.size,
-    progress: 'loaded',
-    lastWriter: dirent.lastWriterUnverified,
-  })
+  const meta = makeEntry(dirent)
   yield Saga.put(FsGen.createFilePreviewLoaded({meta, path: rootPath}))
 }
 
@@ -80,19 +106,7 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   const result = yield Saga.call(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
   const entries = result.entries || []
 
-  const direntToMetadata = (d: RPCTypes.Dirent) => ({
-    name: d.name,
-    lastModifiedTimestamp: d.time,
-    lastWriter: d.lastWriterUnverified,
-    size: d.size,
-  })
-
-  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [
-    Types.pathConcat(rootPath, d.name),
-    d.direntType === RPCTypes.simpleFSDirentType.dir
-      ? Constants.makeFolder(direntToMetadata(d))
-      : Constants.makeFile(direntToMetadata(d)),
-  ]
+  const direntToPathAndPathItem = (d: RPCTypes.Dirent) => [Types.pathConcat(rootPath, d.name), makeEntry(d)]
 
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
@@ -156,9 +170,15 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
         // avoid overriding existing files. Just download over them.
         localPath = Constants.downloadFilePathFromPathNoSearch(path)
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         localPath = yield Saga.call(Constants.downloadFilePathFromPath, path)
         break
     }
@@ -190,20 +210,28 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // completePortion to 1.
     yield Saga.put(FsGen.createTransferProgress({key, completePortion: 1}))
 
-    // If this is for anyting other than a simple download, kick that off now
-    // that the file is available locally.
+    const mimeType = Constants.mimeTypeFromPathName(Types.getPathName(path))
+
+    // Kick off any post-download actions, now that the file is available locally.
     switch (intent) {
       case 'none':
+        yield Saga.call(copyToDownloadDir, localPath, mimeType)
         break
       case 'camera-roll':
         yield Saga.call(saveAttachmentDialog, localPath)
         break
       case 'share':
-        yield Saga.call(showShareActionSheet, {url: localPath, mimeType: action.payload.mimeType})
+        yield Saga.call(showShareActionSheet, {url: localPath, mimeType})
         break
+      case 'web-view':
+      case 'web-view-text':
+        // TODO
+        return
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(intent: empty) // this breaks when a new intent is added but not handled here
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
+      */
         break
     }
   } catch (error) {
@@ -259,7 +287,40 @@ function _setupFSHandlers() {
   })
 }
 
+function refreshLocalHTTPServerInfo() {
+  return Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
+}
+
+function refreshLocalHTTPServerInfoResult({address, token}: RPCTypes.SimpleFSGetHTTPAddressAndTokenResponse) {
+  return Saga.put(FsGen.createLocalHTTPServerInfo({address, token}))
+}
+
+function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
+  const folder = Constants.folderRPCFromPath(action.payload.path)
+  if (!folder) {
+    yield Saga.put(
+      FsGen.createFavoriteIgnoreError({
+        path: action.payload.path,
+        errorText: 'No folder specified',
+      })
+    )
+  } else {
+    try {
+      yield Saga.call(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
+        folder,
+      })
+    } catch (error) {
+      logger.warn('Err in favorite.favoriteAddOrIgnore', error)
+    }
+  }
+}
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure(
+    FsGen.refreshLocalHTTPServerInfo,
+    refreshLocalHTTPServerInfo,
+    refreshLocalHTTPServerInfoResult
+  )
   yield Saga.safeTakeEveryPure(FsGen.cancelTransfer, cancelTransfer)
   yield Saga.safeTakeEvery(FsGen.download, download)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
@@ -268,6 +329,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {

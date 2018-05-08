@@ -464,6 +464,14 @@ func (a AppStatusError) Error() string {
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
 }
 
+func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		return err.Code == int(code)
+	}
+	return false
+}
+
 //=============================================================================
 
 type GpgError struct {
@@ -807,10 +815,19 @@ func (d DecryptWrongReceiverError) Error() string {
 	return "Bad receiver key"
 }
 
-type DecryptOpenError struct{}
+type DecryptOpenError struct {
+	What string
+}
+
+func NewDecryptOpenError(what string) DecryptOpenError {
+	return DecryptOpenError{What: what}
+}
 
 func (d DecryptOpenError) Error() string {
-	return "box.Open failure; ciphertext was corrupted or wrong key"
+	if len(d.What) == 0 {
+		return "box.Open failure; ciphertext was corrupted or wrong key"
+	}
+	return fmt.Sprintf("failed to decrypt '%s'; ciphertext was corrupted or wrong key", d.What)
 }
 
 //=============================================================================
@@ -1014,6 +1031,14 @@ type ChainLinkError struct {
 
 func (c ChainLinkError) Error() string {
 	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
+}
+
+type ChainLinkStubbedUnsupportedError struct {
+	msg string
+}
+
+func (c ChainLinkStubbedUnsupportedError) Error() string {
+	return c.msg
 }
 
 type SigchainV2Error struct {

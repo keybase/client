@@ -2,7 +2,9 @@
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
 import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
-import {globalStyles, globalColors, isMobile, platformStyles} from '../../../../styles'
+import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
+import TeamMenu from '../../../conversation/info-panel/menu/container'
+import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
 
 type Props = {
   hasUnread: boolean,
@@ -10,15 +12,14 @@ type Props = {
   participants: Array<string>,
   showBold: boolean,
   showGear: boolean,
-  onClickGear: (SyntheticEvent<Element>) => void,
   backgroundColor: ?string,
   subColor: string,
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,
-}
+} & FloatingMenuParentProps
 
-class SimpleTopLine extends React.Component<Props> {
+class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'participants') {
@@ -41,6 +42,15 @@ class SimpleTopLine extends React.Component<Props> {
           maxHeight: isMobile ? 20 : 17,
         }}
       >
+        {this.props.showGear && (
+          <TeamMenu
+            visible={this.props.showingMenu}
+            attachTo={this.props.attachmentRef}
+            onHidden={this.props.toggleShowingMenu}
+            isSmallTeam={false}
+            teamname={(this.props.participants.length && this.props.participants[0]) || ''}
+          />
+        )}
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -91,8 +101,12 @@ class SimpleTopLine extends React.Component<Props> {
           <Icon
             type="iconfont-gear"
             className="small-team-gear"
-            onClick={this.props.onClickGear}
-            style={{fontSize: 14, color: this.props.subColor, hoverColor: this.props.iconHoverColor}}
+            onClick={this.props.toggleShowingMenu}
+            ref={this.props.setAttachmentRef}
+            color={this.props.subColor}
+            fontSize={14}
+            hoverColor={this.props.iconHoverColor}
+            style={{position: 'relative', right: globalMargins.xtiny}}
           />
         )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
@@ -100,6 +114,7 @@ class SimpleTopLine extends React.Component<Props> {
     )
   }
 }
+const SimpleTopLine = FloatingMenuParentHOC(_SimpleTopLine)
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,

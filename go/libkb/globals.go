@@ -1305,3 +1305,21 @@ func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {
 	}
 	return uc.IsOneshot(), nil
 }
+
+func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, err error) {
+	meUID := g.ActiveDevice.UID()
+	if meUID.IsNil() {
+		return res, LoginRequiredError{}
+	}
+	loadMeArg := NewLoadUserArgWithContext(ctx, g).
+		WithUID(meUID).
+		WithSelf(true)
+	upkv2, _, err := g.GetUPAKLoader().LoadV2(loadMeArg)
+	if err != nil {
+		return res, err
+	}
+	if upkv2 == nil {
+		return res, fmt.Errorf("could not load logged-in user")
+	}
+	return upkv2.Current.ToUserVersion(), nil
+}

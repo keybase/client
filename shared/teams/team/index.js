@@ -30,7 +30,7 @@ export type Props = {
 }
 
 class Team extends React.Component<Props> {
-  _renderItem = row => {
+  _renderItem = (row: *) => {
     switch (row.type) {
       case 'header':
         return <TeamHeader key="header" teamname={this.props.teamname} />
@@ -57,10 +57,13 @@ class Team extends React.Component<Props> {
       case 'subteam-subteam':
         return renderSubteamsItem(this.props.teamname, row)
       case 'settings':
+        // $FlowIssue complains about teamname not being in the props but i don't see how that could be true
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
-        // eslint-disable-next-line no-unused-expressions
-        ;(row.type: empty)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
         throw new Error(`Impossible case encountered in team page list: ${row.type}`)
       }
     }

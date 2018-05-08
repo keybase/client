@@ -459,6 +459,21 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
                 if (!findExisting(conversationIDKey, m)) {
                   arr.push(m.ordinal)
                 }
+              } else if (message.type === 'placeholder') {
+                // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
+                // and ignore the placeholder in that instance
+                logger.info(`Got placeholder message with id: ${message.id}`)
+                const existingOrdinal = messageIDToOrdinal(
+                  state.messageMap,
+                  pendingOutboxToOrdinal,
+                  conversationIDKey,
+                  message.id
+                )
+                if (!existingOrdinal) {
+                  arr.push(message.ordinal)
+                } else {
+                  logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
+                }
               } else {
                 arr.push(message.ordinal)
               }
@@ -709,8 +724,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.retryPendingConversation:
       return state
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(action: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

@@ -11,11 +11,11 @@ import {teamsTab} from '../../../constants/tabs'
 import {connect, type TypedState, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
+import {Box} from '../../../common-adapters'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  // ? because this isn't a route on desktop, and headerHoc is mobile only
-  navigateUp?: typeof Route.navigateUp,
+  onBack: () => void,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -47,35 +47,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, navigateUp}) => ({
-  _onAddPeople: (teamname: string, target) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {
-            teamname,
-            position: 'bottom left',
-            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
-          },
-          selected: 'addPeopleHow',
-        },
-      ])
-    ),
-  _onOpenMenu: (teamname: string, isSmallTeam: boolean, target) =>
-    dispatch(
-      Route.navigateAppend([
-        {
-          props: {
-            teamname,
-            isSmallTeam,
-            position: 'bottom left',
-            targetRect: isMobile ? null : target && target.getBoundingClientRect(),
-          },
-          selected: 'infoPanelMenu',
-        },
-      ])
-    ),
-  _onBack: () => dispatch(navigateUp && navigateUp()),
+const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, onBack}) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
@@ -117,13 +89,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
       username: p,
     }))
     .toArray(),
-  onAddPeople: (target: ?Element) => dispatchProps._onAddPeople(stateProps.teamname, target),
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
-  onClickGear: (target: ?Element) =>
-    dispatchProps._onOpenMenu(stateProps.teamname, stateProps.smallTeam, target),
   onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
@@ -134,14 +103,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
 
 type SelectorOwnProps = {
-  conversationIDKey: ?Types.ConversationIDKey,
-  routeProps?: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>, // on mobile it's a route
-  navigateUp?: typeof Route.navigateUp,
+  routeProps: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>,
+  navigateUp: typeof Route.navigateUp,
 }
 
 const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) => {
-  const conversationIDKey =
-    ownProps.conversationIDKey || (ownProps.routeProps ? ownProps.routeProps.get('conversationIDKey') : null)
+  const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
   return {
     conversationIDKey,
   }
@@ -166,8 +133,27 @@ class InfoPanelSelector extends React.PureComponent<Props> {
       return null
     }
 
-    return <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+    return isMobile ? (
+      <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+    ) : (
+      <Box onClick={this.props.onBack} style={clickCatcherStyle}>
+        <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
+          <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+        </Box>
+      </Box>
+    )
   }
+}
+
+const clickCatcherStyle = {position: 'absolute', top: 35, right: 0, bottom: 0, left: 80}
+const panelContainerStyle = {
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  bottom: 0,
+  width: 320,
+  display: 'flex',
+  flexDirection: 'column',
 }
 
 export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)

@@ -9,7 +9,14 @@ import {
   Text,
   PopupDialog,
 } from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile, desktopStyles} from '../../styles'
+import {
+  collapseStyles,
+  globalStyles,
+  globalMargins,
+  globalColors,
+  isMobile,
+  desktopStyles,
+} from '../../styles'
 import {capitalize} from 'lodash-es'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
@@ -31,7 +38,9 @@ const MaybePopup = isMobile
     )
 
 type Props = {
+  errorText: string,
   isEmpty: boolean,
+  loading: boolean,
   onAddPeople: () => void,
   onClose: () => void,
   onLeave: () => void,
@@ -88,6 +97,7 @@ const AddPeople = (props: Props) => (
           disabled={props.isEmpty}
           style={{margin: globalMargins.tiny}}
           type="Primary"
+          waiting={props.loading}
         />
       </Box>
 
@@ -100,8 +110,23 @@ const AddPeople = (props: Props) => (
           }}
         />
       )}
+      {!!props.errorText && (
+        <Box style={collapseStyles([globalStyles.flexBoxColumn, {backgroundColor: globalColors.red}])}>
+          {props.errorText.split('\n').map(line => (
+            <Box key={line} style={globalStyles.flexBoxRow}>
+              <Text
+                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                type="BodySemibold"
+                backgroundMode="HighRisk"
+              >
+                {line}
+              </Text>
+            </Box>
+          ))}
+        </Box>
+      )}
 
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <UserInput
           autoFocus={true}
           onExitSearch={props.onClose}

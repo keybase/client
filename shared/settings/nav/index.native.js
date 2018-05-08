@@ -7,6 +7,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
 import {isAndroid} from '../../constants/platform'
 import {compose, defaultProps} from 'recompose'
+import flags from '../../util/feature-flags'
 
 import type {Props} from './index'
 
@@ -36,11 +37,6 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
     <NativeScrollView style={{width: '100%', height: '100%'}}>
       <Box style={styleNavBox}>
         <SettingsItem
-          text="Folders"
-          badgeNumber={badgeNumbers[TabConstants.folderTab]}
-          onClick={() => onTabChange(Constants.foldersTab)}
-        />
-        <SettingsItem
           text="Files"
           badgeNumber={badgeNumbers[TabConstants.fsTab]}
           onClick={() => onTabChange(Constants.fsTab)}
@@ -55,6 +51,13 @@ function SettingsNav({badgeNotifications, badgeNumbers, selectedTab, onTabChange
           badgeNumber={badgeNumbers[TabConstants.devicesTab]}
           onClick={() => onTabChange(Constants.devicesTab)}
         />
+        {flags.walletsEnabled && (
+          <SettingsItem
+            text="Wallets"
+            badgeNumber={badgeNumbers[TabConstants.walletsTab]}
+            onClick={() => onTabChange(Constants.walletsTab)}
+          />
+        )}
         <SettingsItem
           text="Notifications"
           badgeNumber={badgeNotifications ? 1 : 0}

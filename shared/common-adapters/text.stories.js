@@ -56,8 +56,10 @@ const Container = ({backgroundColor, children}) => (
 
 const groups = [
   [{label: 'Header big Header big', type: 'HeaderBig'}],
+  [{label: 'Header big extrabold', type: 'HeaderBigExtrabold'}],
   [
     {label: 'Header Header', type: 'Header'},
+    {label: 'Header Extrabold', type: 'HeaderExtrabold'},
     {action: true, label: 'Header link Header link', normalOnly: true, type: 'HeaderLink'},
   ],
   [
@@ -67,6 +69,7 @@ const groups = [
   [
     {label: 'Body text Body text Body text', type: 'Body'},
     {label: 'Body semibold Body semibold', type: 'BodySemibold'},
+    {label: 'Body extrabold Body extrabold', type: 'BodyExtrabold'},
     {action: true, label: 'Body primary link', type: 'BodyPrimaryLink'},
     {action: true, label: 'Body secondary link', normalOnly: true, type: 'BodySecondaryLink'},
     {label: 'Body error Body error', normalOnly: true, type: 'BodyError'},
@@ -74,9 +77,16 @@ const groups = [
   ],
   [
     {label: 'Body small Body small', type: 'BodySmall'},
+    {label: 'Body small extrabold Body small extrabold', type: 'BodySmallExtrabold'},
     {action: true, label: 'Body small semibold', type: 'BodySmallSemibold'},
     {action: true, label: 'Body small primary link', type: 'BodySmallPrimaryLink'},
     {action: true, label: 'Body small secondary link', normalOnly: true, type: 'BodySmallSecondaryLink'},
+    {
+      action: true,
+      label: 'Body small secondary link extrabold',
+      normalOnly: true,
+      type: 'BodySmallSecondaryLinkExtrabold',
+    },
     {label: 'Body small error Body small error', normalOnly: true, type: 'BodySmallError'},
     {label: 'Body small success Body small success', normalOnly: true, type: 'BodySmallSuccess'},
   ],

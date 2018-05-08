@@ -4,7 +4,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
-import {navigateAppend} from '../../../../actions/route-tree'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
@@ -26,20 +25,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
-  _onClickGear: (teamname: string, evt: SyntheticEvent<Element>) =>
-    dispatch(
-      navigateAppend([
-        {
-          selected: 'infoPanelMenu',
-          props: {
-            teamname,
-            isSmallTeam: true,
-            position: 'bottom right',
-            targetRect: isMobile ? null : evt.currentTarget.getBoundingClientRect(),
-          },
-        },
-      ])
-    ),
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
 })
@@ -50,8 +35,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
-  const onClickGear = (evt: SyntheticEvent<Element>) =>
-    dispatchProps._onClickGear(stateProps._meta.teamname, evt)
 
   return {
     backgroundColor: styles.backgroundColor,
@@ -62,7 +45,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isFinalized: !!stateProps._meta.wasFinalizedBy,
     isMuted: stateProps._meta.isMuted,
     isSelected,
-    onClickGear,
     // Don't allow you to select yourself
     onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
     participantNeedToRekey,

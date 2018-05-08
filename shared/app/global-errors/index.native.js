@@ -8,8 +8,9 @@ import {
   NativeScrollView,
   List,
   NativeTouchableWithoutFeedback,
+  HOCTimers,
+  type PropsWithTimer,
 } from '../../common-adapters/index.native'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
 import {globalStyles, globalColors, globalMargins, isIPhoneX} from '../../styles'
 import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
@@ -23,7 +24,7 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & TimerProps
+type Props = PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
@@ -106,7 +107,8 @@ class GlobalError extends Component<Props, State> {
           <Box style={summaryRowStyle}>
             <Icon
               type="iconfont-exclamation"
-              style={{color: globalColors.white, marginRight: globalMargins.tiny}}
+              style={{marginRight: globalMargins.tiny}}
+              color={globalColors.white}
             />
             <Text type="BodySmall" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
               {summary}
@@ -114,7 +116,8 @@ class GlobalError extends Component<Props, State> {
             <Icon
               type="iconfont-close"
               onClick={onDismiss}
-              style={{color: globalColors.white_75, marginLeft: globalMargins.tiny}}
+              style={{marginLeft: globalMargins.tiny}}
+              color={globalColors.white_75}
             />
           </Box>
         </NativeTouchableWithoutFeedback>

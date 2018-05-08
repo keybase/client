@@ -4,8 +4,8 @@ import React, {Component} from 'react'
 import UserAdd from './user-add.desktop'
 import {Box, Icon, Text, Button, PopupMenu, Badge, ButtonBar} from '../common-adapters/index'
 import type {IconType} from '../common-adapters/icon'
-import {folderTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
-import {globalStyles, globalColors, desktopStyles} from '../styles'
+import {fsTab, peopleTab, chatTab, devicesTab, type Tab} from '../constants/tabs'
+import {globalStyles, globalColors, desktopStyles, collapseStyles, platformStyles} from '../styles'
 import {isDarwin} from '../constants/platform'
 import {remote} from 'electron'
 import {throttle} from 'lodash-es'
@@ -55,7 +55,11 @@ class MenubarRender extends Component<Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
-    const menuStyle = {...desktopStyles.clickable, color: menuColor, hoverColor: menuColor}
+    const menuStyle = platformStyles({
+      isElectron: {
+        ...desktopStyles.clickable,
+      },
+    })
 
     return (
       <Box style={styles.container}>
@@ -64,12 +68,14 @@ class MenubarRender extends Component<Props, State> {
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
           <Icon
             style={menuStyle}
+            color={menuColor}
+            hoverColor={menuColor}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} />
+          <Icon type="icon-keybase-logo-logged-out-64" style={stylesLogo} color={globalColors.yellow} />
           <Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Text>
@@ -144,7 +150,7 @@ class MenubarRender extends Component<Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<Tab> = [folderTab, peopleTab, chatTab, devicesTab]
+    const badgeTypes: Array<Tab> = [fsTab, peopleTab, chatTab, devicesTab]
 
     return (
       <Box style={styles.container}>
@@ -165,13 +171,15 @@ class MenubarRender extends Component<Props, State> {
             ))}
           </Box>
           <Icon
-            style={{
-              ...desktopStyles.clickable,
-              color: globalColors.black_40,
-              hoverColor: globalColors.black,
-              width: 16,
-              marginLeft: 8,
-            }}
+            style={collapseStyles([
+              desktopStyles.clickable,
+              {
+                width: 16,
+                marginLeft: 8,
+              },
+            ])}
+            color={globalColors.black_40}
+            hoverColor={globalColors.black}
             type="iconfont-hamburger"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
@@ -247,7 +255,7 @@ const BadgeIcon = ({
   const iconMap: {[key: Tab]: IconType} = {
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
-    [folderTab]: 'iconfont-nav-folders',
+    [fsTab]: 'iconfont-nav-files',
     [peopleTab]: 'iconfont-nav-people',
   }
   const iconType: ?IconType = iconMap[tab]
@@ -261,10 +269,7 @@ const BadgeIcon = ({
       style={{...desktopStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}}
       onClick={() => openApp(tab)}
     >
-      <Icon
-        style={{color: count ? globalColors.blue : globalColors.lightGrey2, fontSize: 20}}
-        type={iconType}
-      />
+      <Icon color={count ? globalColors.blue : globalColors.lightGrey2} fontSize={20} type={iconType} />
       {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 18, top: 0}} />}
     </Box>
   )
@@ -310,7 +315,6 @@ const stylesPublic = {
 
 const stylesLogo = {
   alignSelf: 'center',
-  color: globalColors.yellow,
   marginBottom: 12,
 }
 

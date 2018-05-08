@@ -1,12 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../../../../constants/types/chat2'
 import MessagePopupHeader from '../header'
-import {ModalLessPopupMenu} from '../../../../../common-adapters/popup-menu'
+import {FloatingMenu} from '../../../../../common-adapters/'
 import {fileUIName, isMobile} from '../../../../../styles'
+import type {DeviceType} from '../../../../../constants/types/devices'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  message: Types.MessageAttachment,
+  attachTo: ?React.Component<*, *>,
+  author: string,
+  deviceName: string,
+  deviceType: DeviceType,
+  deviceRevokedAt: ?number,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
   onDownload: null | (() => void),
@@ -14,7 +19,10 @@ type Props = {
   onSaveAttachment: null | (() => void),
   onShareAttachment: null | (() => void),
   onShowInFinder: null | (() => void),
+  position: Position,
   style?: Object,
+  timestamp: number,
+  visible: boolean,
   yourMessage: boolean,
 }
 
@@ -52,16 +60,27 @@ const AttachmentPopupMenu = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <MessagePopupHeader message={props.message} isLast={!items.length} yourMessage={props.yourMessage} />
+      <MessagePopupHeader
+        author={props.author}
+        deviceName={props.deviceName}
+        deviceRevokedAt={props.deviceRevokedAt}
+        deviceType={props.deviceType}
+        isLast={!items.length}
+        timestamp={props.timestamp}
+        yourMessage={props.yourMessage}
+      />
     ),
   }
   return (
-    <ModalLessPopupMenu
+    <FloatingMenu
+      attachTo={props.attachTo}
       header={header}
       items={items}
       onHidden={props.onHidden}
-      closeOnClick={true}
+      closeOnSelect={true}
+      position={props.position}
       style={{...stylePopup, ...props.style}}
+      visible={props.visible}
     />
   )
 }

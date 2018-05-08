@@ -1,9 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalMargins, globalColors, desktopStyles} from '../../styles'
+import {globalStyles, globalMargins, globalColors, collapseStyles, desktopStyles} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
-import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/route-tree'
 
 import type {Props} from './index'
 
@@ -13,22 +11,13 @@ class InviteGeneratedRender extends Component<Props> {
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          flex: 1,
-          position: 'relative',
-          justifyContent: 'center',
           alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
+          position: 'relative',
         }}
       >
-        <Icon
-          type="iconfont-close"
-          style={{
-            ...desktopStyles.clickable,
-            position: 'absolute',
-            right: globalMargins.small,
-            top: globalMargins.small,
-          }}
-          onClick={this.props.onClose}
-        />
+        <Icon type="iconfont-close" style={iconStyle} onClick={this.props.onClose} />
         <Icon type="icon-invite-link-48" />
         {this.props.email ? (
           <Text type="Body" style={textStyle}>
@@ -43,7 +32,8 @@ class InviteGeneratedRender extends Component<Props> {
         <Box style={linkContainerStyle}>
           <Icon
             type="iconfont-link"
-            style={{color: globalColors.black_10, marginRight: globalMargins.tiny, height: 14}}
+            style={{marginRight: globalMargins.tiny, height: 14}}
+            color={globalColors.black_10}
           />
           <Text type="BodySemibold" selectable={true} style={{color: globalColors.green2}}>
             {this.props.link}
@@ -61,32 +51,29 @@ class InviteGeneratedRender extends Component<Props> {
 }
 
 const textStyle = {
-  textAlign: 'center',
   paddingTop: globalMargins.medium,
+  textAlign: 'center',
   width: 440,
 }
+
+const iconStyle = collapseStyles([
+  desktopStyles.clickable,
+  {
+    position: 'absolute',
+    right: globalMargins.small,
+    top: globalMargins.small,
+  },
+])
 
 const linkContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  backgroundColor: globalColors.green3,
   borderRadius: 48,
   height: 32,
   marginTop: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  backgroundColor: globalColors.green3,
 }
 
-export default connect(
-  (state: any, {routeProps}) => ({
-    email: routeProps.get('email'),
-    link: routeProps.get('link'),
-  }),
-  (dispatch: any) => {
-    return {
-      onClose: () => dispatch(navigateUp()),
-    }
-  }
-)(InviteGeneratedRender)
-
-export {InviteGeneratedRender}
+export default InviteGeneratedRender

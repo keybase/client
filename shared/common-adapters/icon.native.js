@@ -3,11 +3,9 @@ import logger from '../logger'
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
 import * as React from 'react'
-import {globalColors, glamorous} from '../styles'
+import {globalColors, glamorous, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
-import {omit, has} from 'lodash-es'
 import {NativeStyleSheet} from './native-wrappers.native.js'
-
 import type {IconType, Props} from './icon'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
@@ -39,26 +37,20 @@ const Text = glamorous.text(
         }
       : null,
   props => {
-    const color =
-      (props.style && props.style.color) ||
-      shared.defaultColor(props.type) ||
-      (props.opacity && globalColors.lightGrey)
+    const color = props.color || shared.defaultColor(props.type) || (props.opacity && globalColors.lightGrey)
     if (color) {
       return {color}
     } else return null
   },
   props =>
-    props.style && props.style.textAlign !== undefined
+    props.textAlign !== undefined
       ? {
-          textAlign: props.style.textAlign,
+          textAlign: props.textAlign,
         }
       : null,
   props => {
-    if (
-      (props.style && props.style.fontSize !== undefined) ||
-      (props.style && props.style.width !== undefined)
-    ) {
-      return {fontSize: props.style.fontSize || props.style.width}
+    if (props.fontSize !== undefined || (props.style && props.style.width !== undefined)) {
+      return {fontSize: props.fontSize || props.style.width}
     }
 
     const temp = shared.fontSize(shared.typeToIconMapper(props.type))
@@ -94,6 +86,9 @@ const Image = glamorous.image(
 class Icon extends React.PureComponent<Props> {
   render() {
     const props = this.props
+    // Only apply props.style to icon if there is no onClick
+    const hasContainer = props.onClick && props.style
+    let iconStyle = hasContainer ? null : props.style
     let iconType = shared.typeToIconMapper(props.type)
 
     if (!iconType) {
@@ -109,28 +104,24 @@ class Icon extends React.PureComponent<Props> {
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-
+      if (props.color) {
+        iconStyle = collapseStyles([iconStyle, {color: props.color}])
+      }
       icon = (
-        <Text style={[props.style, props.iconStyle]} type={props.type}>
+        <Text style={iconStyle} type={props.type} fontSize={props.fontSize}>
           {code}
         </Text>
       )
     } else {
-      // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
-      // let's just filter it out if it exists
-      const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
-      icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
+      icon = <Image source={iconMeta[iconType].require} style={iconStyle} />
     }
-
-    const filter = ['color', 'fontSize', 'textAlign']
-    const boxStyle = filter.some(key => has(props.style, key)) ? omit(props.style, filter) : props.style
 
     return props.onClick ? (
       <ClickableBox
         activeOpacity={0.8}
         underlayColor={props.underlayColor || globalColors.white}
         onClick={props.onClick}
-        style={boxStyle}
+        style={props.style}
       >
         {icon}
       </ClickableBox>

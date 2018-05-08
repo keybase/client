@@ -52,9 +52,7 @@ type InfoPanelProps = {
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
-  onAddPeople: (?Element) => void,
   onViewTeam: () => void,
-  onClickGear: (?Element) => void,
   canSetRetention: boolean,
 
   // Used for big teams.
@@ -71,16 +69,16 @@ type InfoPanelProps = {
 type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
-  onClick: (?Element) => void,
+  teamname: string,
 }
 
-type ParticipantRow = {
+type ParticipantRow = {|
   type: 'participant',
   key: string,
   username: string,
   fullname: string,
   onShowProfile: string => void,
-}
+|}
 
 type DividerRow = {
   type: 'divider',
@@ -159,10 +157,10 @@ type ParticipantCountRow = {
 type SmallTeamHeaderRow = {
   type: 'small team header',
   key: 'small team header',
+  isSmallTeam: boolean,
   teamname: string,
   participantCount: number,
   onViewTeam: () => void,
-  onClickGear: (?Element) => void,
 }
 
 type BigTeamHeaderRow = {
@@ -258,8 +256,10 @@ const typeSizeEstimator = (row: Row): number => {
       return row.canSetRetention ? 84 : 49
 
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(row.type: empty)
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
       throw new Error(`Impossible case encountered: ${row.type}`)
   }
 }
@@ -268,7 +268,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
-        return <AddPeople key="add people" onClick={row.onClick} />
+        return <AddPeople key="add people" teamname={row.teamname} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -315,9 +315,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           <SmallTeamHeader
             key="small team header"
             teamname={row.teamname}
+            isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
             onClick={row.onViewTeam}
-            onClickGear={row.onClickGear}
           />
         )
 
@@ -371,8 +371,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         )
 
       default:
-        // eslint-disable-next-line no-unused-expressions
-        ;(row.type: empty)
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
+      */
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }
@@ -399,16 +401,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const participantCount = participants.length
 
     let rows: Array<Row>
-    const {teamname, channelname, onViewTeam, onClickGear} = props
+    const {teamname, channelname, onViewTeam} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
       const smallTeamHeaderRow = {
         type: 'small team header',
         key: 'small team header',
         teamname,
+        isSmallTeam: props.smallTeam,
         participantCount,
         onViewTeam,
-        onClickGear,
       }
       if (props.smallTeam) {
         // Small team.
@@ -554,7 +556,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
       }
       rows = headerRows.concat(participants)
       if (props.admin && props.teamname && !props.isPreview) {
-        rows = rows.concat({type: 'add people', key: 'add people', onClick: props.onAddPeople})
+        rows = rows.concat({type: 'add people', key: 'add people', teamname: props.teamname})
       }
     } else {
       // Conversation.

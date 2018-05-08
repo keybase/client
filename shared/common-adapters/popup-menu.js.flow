@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 
-export type MenuItem = {
+export type MenuItem = {|
   title: string, // Only used as ID if view is provided for Header
   view?: React.Node,
   subTitle?: string, // subTitle is not used on native
@@ -10,7 +10,7 @@ export type MenuItem = {
   onClick?: ?(evt?: SyntheticEvent<>) => void,
   onPress?: void,
   style?: Object,
-}
+|}
 
 export type Props = {
   items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
@@ -18,6 +18,7 @@ export type Props = {
   onHidden?: ?() => void,
   style?: Object,
   styleCatcher?: ?Object,
+  hoverColor?: string,
 }
 
 export type ModalLessPopupMenuProps = {
@@ -26,6 +27,7 @@ export type ModalLessPopupMenuProps = {
   onHidden?: ?() => void,
   closeOnClick?: boolean,
   style?: Object,
+  hoverColor?: string,
 }
 
 export type HeaderTextProps = {

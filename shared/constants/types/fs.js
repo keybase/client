@@ -22,14 +22,14 @@ export type ParticipantUnlock = {
   devices: string,
 }
 
-export type FavoriteMetadata = {
+export type FavoriteMetadata = {|
   folderType: RPCTypes.FolderType,
   isIgnored: boolean,
   isNew: boolean,
   needsRekey: boolean,
   waitingForParticipantUnlock?: Array<ParticipantUnlock>,
   youCanUnlock?: Array<Device>,
-}
+|}
 
 export type _FavoriteItem = {
   badgeCount: number,
@@ -59,7 +59,7 @@ export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
 export type _SymlinkPathItem = {
   type: 'symlink',
-  linkTarget: Path,
+  linkTarget: string,
 } & PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
@@ -91,7 +91,9 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type TransferType = 'upload' | 'download'
-export type TransferIntent = 'none' | 'camera-roll' | 'share'
+export type transferIntentMobile = 'camera-roll' | 'share'
+export type transferIntentWebview = 'web-view-text' | 'web-view'
+export type TransferIntent = 'none' | transferIntentMobile | transferIntentWebview
 
 export type _TransferMeta = {
   type: TransferType,
@@ -138,6 +140,12 @@ export type _Flags = {
 
 export type Flags = I.RecordOf<_Flags>
 
+export type _LocalHTTPServer = {
+  address: string,
+  token: string,
+}
+export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
+
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
@@ -145,6 +153,7 @@ export type _State = {
   transfers: I.Map<string, Transfer>,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
+  localHTTPServerInfo: LocalHTTPServer,
 }
 export type State = I.RecordOf<_State>
 
@@ -155,6 +164,11 @@ export const pathToString = (p: Path): string => (!p ? '' : p)
 // export const stringToLocalPath = (s: string): LocalPath => s
 // export const localPathToString = (p: LocalPath): string => p
 export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
+export const getPathNameFromElems = (elems: Array<string>): string => {
+  if (elems.length === 0) return ''
+  return elems.pop()
+}
+export const getPathLevel = (p: Path): number => (!p ? 0 : getPathElements(p).length)
 export const getPathParent = (p: Path): Path =>
   !p
     ? ''
@@ -176,6 +190,10 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       // be an empty string, so asserting empty will always fail.
       return null
   }
+}
+export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
+  if (v === null) return RPCTypes.favoriteFolderType.unknown
+  return RPCTypes.favoriteFolderType[v]
 }
 export const getPathVisibility = (p: Path): Visibility => {
   const elems = getPathElements(p)
@@ -326,3 +344,5 @@ export type FavoriteFolder = {
     can_self_help: boolean,
   },
 }
+
+export type FileViewType = 'text' | 'image' | 'video' | 'pdf' | 'default'

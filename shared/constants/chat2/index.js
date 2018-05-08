@@ -61,6 +61,10 @@ export const isUserActivelyLookingAtThisThread = (
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
+export const isInfoPanelOpen = (state: TypedState) => {
+  const routePath = getPath(state.routeTree.routeState, [chatTab])
+  return routePath.size === 3 && routePath.get(2) === 'infoPanel'
+}
 export const pendingConversationIDKey = Types.stringToConversationIDKey('')
 
 export {
@@ -82,8 +86,10 @@ export {
   isSpecialMention,
   makeMessageAttachment,
   makeMessageDeleted,
+  makeMessageText,
   makePendingAttachmentMessage,
   makePendingTextMessage,
+  messageExplodeDescriptions,
   pathToAttachmentType,
   rpcErrorToString,
   uiMessageEditToMessage,

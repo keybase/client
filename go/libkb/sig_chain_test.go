@@ -69,6 +69,12 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"WRONG_PREV": {
 			reflect.TypeOf(ChainLinkPrevHashMismatchError{}): true,
 		},
+		"BAD_CHAIN_LINK": {
+			reflect.TypeOf(ChainLinkError{}): true,
+		},
+		"CHAIN_LINK_STUBBED_UNSUPPORTED": {
+			reflect.TypeOf(ChainLinkStubbedUnsupportedError{}): true,
+		},
 		"SIGCHAIN_V2_STUBBED_SIGNATURE_NEEDED": {
 			reflect.TypeOf(SigchainV2StubbedSignatureNeededError{}): true,
 		},

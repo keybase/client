@@ -24,6 +24,7 @@ type Syncer struct {
 	offlinables []types.Offlinable
 
 	notificationLock  sync.Mutex
+	lastLoadedLock    sync.Mutex
 	clock             clockwork.Clock
 	sendDelay         time.Duration
 	shutdownCh        chan struct{}
@@ -276,7 +277,7 @@ func (s *Syncer) filterNotifyConvs(ctx context.Context, convs []chat1.Conversati
 		case chat1.ConversationMembersType_TEAM:
 			// include if this is a simple team, or the topic name has changed
 			if conv.Metadata.TeamType != chat1.TeamType_COMPLEX || m[conv.GetConvID().String()] ||
-				conv.GetConvID().Eq(s.lastLoadedConv) {
+				conv.GetConvID().Eq(s.GetSelectedConversation()) {
 				include = true
 			}
 		default:
@@ -386,7 +387,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		for _, conv := range incr.Convs {
 			// Any conversation with a delete in it needs to be checked for expunge
 			if delMsg, err := conv.GetMaxMessage(chat1.MessageType_DELETE); err == nil {
-				s.G().ConvSource.ExpungeFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
+				s.G().ConvSource.ClearFromDelete(ctx, uid, conv.GetConvID(), delMsg.GetMessageID())
 			}
 			// Queue background conversation loads
 			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
@@ -406,9 +407,15 @@ func (s *Syncer) RegisterOfflinable(offlinable types.Offlinable) {
 	s.offlinables = append(s.offlinables, offlinable)
 }
 
+func (s *Syncer) GetSelectedConversation() chat1.ConversationID {
+	s.lastLoadedLock.Lock()
+	defer s.lastLoadedLock.Unlock()
+	return s.lastLoadedConv
+}
+
 func (s *Syncer) SelectConversation(ctx context.Context, convID chat1.ConversationID) {
-	s.Lock()
-	defer s.Unlock()
+	s.lastLoadedLock.Lock()
+	defer s.lastLoadedLock.Unlock()
 	s.Debug(ctx, "SelectConversation: setting last loaded conv to: %s", convID)
 	s.lastLoadedConv = convID
 }

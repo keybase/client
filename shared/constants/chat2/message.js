@@ -29,6 +29,16 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+const makeMessageExplodable = {
+  exploded: false,
+  explodedBy: '',
+}
+
+export const makeMessagePlaceholder: I.RecordFactory<MessageTypes._MessagePlaceholder> = I.Record({
+  ...makeMessageCommon,
+  type: 'placeholder',
+})
+
 export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> = I.Record({
   ...makeMessageCommon,
   type: 'deleted',
@@ -36,6 +46,7 @@ export const makeMessageDeleted: I.RecordFactory<MessageTypes._MessageDeleted> =
 
 export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -46,15 +57,16 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
 
 export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachment> = I.Record({
   ...makeMessageCommon,
+  ...makeMessageExplodable,
   attachmentType: 'file',
-  fileURL: '',
-  previewURL: '',
-  fileType: '',
   downloadPath: null,
   fileName: '',
   fileSize: 0,
+  fileType: '',
+  fileURL: '',
   previewHeight: 0,
   previewTransferState: null,
+  previewURL: '',
   previewWidth: 0,
   submitState: null,
   title: '',
@@ -204,8 +216,11 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
           inviteType = 'text'
           break
         default:
+          /*::
           // $FlowIssue flow gets confused about this switch statement
-          ;(iType: empty) // eslint-disable-line no-unused-expressions
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(iType);
+      */
           inviteType = 'unknown'
           break
       }
@@ -244,8 +259,10 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       })
     }
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(body.systemType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(body.systemType);
+      */
       return null
   }
 }
@@ -304,15 +321,20 @@ const validUIMessagetoMessage = (
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
       let attachment = {}
       let preview: ?RPCChatTypes.Asset
+      let transferState = null
 
       if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachment) {
         attachment = m.messageBody.attachment || {}
         preview =
           attachment.preview ||
           (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        if (!attachment.uploaded) {
+          transferState = 'remoteUploading'
+        }
       } else if (m.messageBody.messageType === RPCChatTypes.commonMessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded || {}
         preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        transferState = null
       }
       const {filename, title, size} = attachment.object
       let previewHeight = 0
@@ -355,6 +377,7 @@ const validUIMessagetoMessage = (
         previewHeight,
         previewWidth,
         title,
+        transferState,
         previewURL,
         fileURL,
         fileType,
@@ -388,8 +411,11 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.deletehistory:
       return null
     default:
-      // normally we'd have this but flow gets confused about the fallthrough
-      // ;(m.messageBody.messageType: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      // $FlowIssue flow gets confused by the fallthroughs
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(m.messageBody.messageType);
+      */
       return null
   }
 }
@@ -439,6 +465,24 @@ const outboxUIMessagetoMessage = (
   })
 }
 
+const placeholderUIMessageToMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  uiMessage: RPCChatTypes.UIMessage,
+  p: RPCChatTypes.MessageUnboxedPlaceholder
+) => {
+  return !p.hidden
+    ? makeMessagePlaceholder({
+        conversationIDKey,
+        id: Types.numberToMessageID(p.messageID),
+        ordinal: Types.numberToOrdinal(p.messageID),
+      })
+    : makeMessageDeleted({
+        conversationIDKey,
+        id: Types.numberToMessageID(p.messageID),
+        ordinal: Types.numberToOrdinal(p.messageID),
+      })
+}
+
 const errorUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
@@ -464,22 +508,27 @@ export const uiMessageToMessage = (
       if (uiMessage.valid) {
         return validUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.valid)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.error:
       if (uiMessage.error) {
         return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
         return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
       }
-      break
+      return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
+      if (uiMessage.placeholder) {
+        return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder)
+      }
       return null
     default:
-      // eslint-disable-next-line no-unused-expressions
-      ;(uiMessage.state: empty) // if you get a flow error here it means there's an action you claim to handle but didn't
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(uiMessage.state);
+      */
       return null
   }
 }
@@ -561,16 +610,41 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
     })
   }
   if (old.type === 'attachment' && m.type === 'attachment') {
+    if (old.submitState === 'pending') {
+      // we sent an attachment, service replied
+      // with the real message. replace our placeholder but
+      // only hold on to the ordinal so it doesn't
+      // jump in the conversation view
+      return m.set('ordinal', old.ordinal)
+    }
     // $ForceType
     return m.withMutations((ret: Types.MessageAttachment) => {
+      // We got an attachment-uploaded message. Hold on to the old ID
+      // because that's what the service expects to delete this message
+      ret.set('id', old.id)
       ret.set('ordinal', old.ordinal)
       ret.set('downloadPath', old.downloadPath)
       if (old.previewURL && !m.previewURL) {
         ret.set('previewURL', old.previewURL)
       }
-      ret.set('transferState', old.transferState)
+      if (old.transferState === 'remoteUploading') {
+        ret.set('transferState', null)
+      } else {
+        ret.set('transferState', old.transferState)
+      }
       ret.set('transferProgress', old.transferProgress)
     })
   }
   return m
 }
+
+export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
+  {text: 'Never', seconds: 0},
+  {text: '3 minutes', seconds: 180},
+  {text: '1 hour', seconds: 3600},
+  {text: '3 hours', seconds: 3600 * 3},
+  {text: '12 hours', seconds: 3600 * 12},
+  {text: '24 hours', seconds: 86400},
+  {text: '3 days', seconds: 86400 * 3},
+  {text: '7 days', seconds: 86400 * 7},
+]

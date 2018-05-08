@@ -3,10 +3,10 @@ import * as SettingsGen from '../../actions/settings-gen'
 import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
 import {navigateUp} from '../../actions/route-tree'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
-import {connect, type TypedState} from '../../util/container'
+import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
+import {compose, connect, type TypedState} from '../../util/container'
 
-class DeleteConfirmContainer extends Component<Props & TimerProps> {
+class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
   componentDidMount() {
     this.props.setAllowDeleteAccount(false)
     this.props.setTimeout(() => {
@@ -40,4 +40,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(HOCTimers(DeleteConfirmContainer))
+export default compose(connect(mapStateToProps, mapDispatchToProps), HOCTimers)(DeleteConfirmContainer)

@@ -6,7 +6,7 @@ import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
-import clipboard from '../../../../desktop/clipboard'
+import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce} from 'lodash-es'
 import {globalColors, globalStyles} from '../../../../styles'
 
@@ -122,13 +122,7 @@ class Thread extends React.Component<Props, State> {
               <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
             )
           } else if (index === 0) {
-            content = (
-              <SpecialTopMessage
-                onToggleInfoPanel={this.props.onToggleInfoPanel}
-                conversationIDKey={this.props.conversationIDKey}
-                measure={measure}
-              />
-            )
+            content = <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={measure} />
           } else {
             const ordinalIndex = index - 1
             const ordinal = this.props.messageOrdinals.get(ordinalIndex)
@@ -153,7 +147,7 @@ class Thread extends React.Component<Props, State> {
   _onCopyCapture(e) {
     // Copy text only, not HTML/styling.
     e.preventDefault()
-    clipboard.writeText(window.getSelection().toString())
+    copyToClipboard(window.getSelection().toString())
   }
 
   _handleListClick = () => {

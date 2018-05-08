@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import logger from '../../logger'
-import {Box, Text, Icon} from '../../common-adapters'
-import HOCTimers, {type TimerProps} from '../../common-adapters/hoc-timers'
+import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 import {RPCError} from '../../util/errors'
@@ -16,7 +15,7 @@ type State = {
   cachedDetails: ?string,
 }
 
-type Props = _Props & TimerProps
+type Props = PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
@@ -131,14 +130,12 @@ class GlobalError extends Component<Props, State> {
       <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
           {summary && (
-            <Icon type="iconfont-exclamation" style={{color: globalColors.white, marginRight: 8}} />
+            <Icon type="iconfont-exclamation" style={{marginRight: 8}} color={globalColors.white} />
           )}
           <Text type="BodyBig" style={{color: globalColors.white, textAlign: 'center', flex: 1}}>
             {summary}
           </Text>
-          {summary && (
-            <Icon type="iconfont-close" onClick={onDismiss} style={{color: globalColors.white_75}} />
-          )}
+          {summary && <Icon type="iconfont-close" onClick={onDismiss} color={globalColors.white_75} />}
         </Box>
         <Text type="BodyBig" selectable={true} style={detailStyle}>
           {this.props.debugDump.length ? this.props.debugDump.join('\n') : details}

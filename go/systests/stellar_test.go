@@ -63,7 +63,6 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 func sampleNote() stellar1.NoteContents {
 	return stellar1.NoteContents{
-		Version:   1,
 		Note:      "wizbang",
 		StellarID: stellar1.TransactionID("6653fc2fdbc42ad51ccbe77ee0a3c29e258a5513c62fdc532cbfff91ab101abf"),
 	}

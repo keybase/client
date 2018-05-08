@@ -1,11 +1,13 @@
 // @flow
 import * as React from 'react'
-import PopupMenu, {ModalLessPopupMenu} from '../../../../common-adapters/popup-menu'
+import {FloatingMenu} from '../../../../common-adapters'
 import {isMobile} from '../../../../styles'
 
 type Props = {
+  attachTo: ?React.Component<*, *>,
+  visible: boolean,
   onAddPeople: () => void,
-  onClose: () => void,
+  onHidden: () => void,
   onInvite: () => void,
 }
 
@@ -15,10 +17,15 @@ const AddPeopleHow = (props: Props) => {
     {title: isMobile ? 'From address book' : 'By email', onClick: props.onInvite, style: {borderTopWidth: 0}},
   ]
 
-  return isMobile ? (
-    <PopupMenu onHidden={props.onClose} style={{overflow: 'visible'}} items={items} />
-  ) : (
-    <ModalLessPopupMenu onHidden={() => {}} style={{overflow: 'visible', width: 200}} items={items} />
+  return (
+    <FloatingMenu
+      attachTo={props.attachTo}
+      visible={props.visible}
+      items={items}
+      onHidden={props.onHidden}
+      position="bottom left"
+      closeOnSelect={true}
+    />
   )
 }
 

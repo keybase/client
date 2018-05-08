@@ -1,14 +1,20 @@
 // @flow
-import {connect, isMobile} from '../../../../util/container'
+import * as React from 'react'
+import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
 import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
-  const teamname = routeProps.get('teamname')
+type OwnProps = {
+  attachTo: ?React.Component<*, *>,
+  onHidden: () => void,
+  teamname: string,
+  visible: boolean,
+}
+
+const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
-      !isMobile && dispatch(navigateUp())
       dispatch(
         navigateTo(
           [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
@@ -17,11 +23,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
       )
       dispatch(switchTo([teamsTab]))
     },
-    onClose: () => {
-      dispatch(navigateUp())
-    },
     onInvite: () => {
-      !isMobile && dispatch(navigateUp())
       dispatch(
         navigateTo(
           [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
