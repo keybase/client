@@ -316,6 +316,17 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 	return os.OpenFile(path, os.O_RDWR, os.ModeAppend)
 }
 
+func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {
+	found, entry, err := c.diskLRU.Get(ctx, c.G(), c.cacheKey(asset))
+	if err != nil {
+		return found, path, err
+	}
+	if found {
+		path = entry.Value.(string)
+	}
+	return found, path, nil
+}
+
 func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
 	convID chat1.ConversationID, asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer,
 	progress types.ProgressReporter) (err error) {
@@ -323,12 +334,11 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 	defer c.Trace(ctx, func() error { return err }, "FetchAttachment")()
 
 	// Check for a disk cache hit, and decrypt that onto the response stream
-	found, entry, err := c.diskLRU.Get(ctx, c.G(), c.cacheKey(asset))
+	found, path, err := c.localAssetPath(ctx, asset)
 	if err != nil {
 		return err
 	}
 	if found {
-		path := entry.Value.(string)
 		c.Debug(ctx, "FetchAttachment: cache hit for: %s filepath: %s", asset.Path, path)
 		fileReader, err := os.OpenFile(path, os.O_RDONLY, os.ModeAppend)
 		defer c.closeFile(fileReader)
@@ -397,8 +407,15 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 
 	// Delete the assets locally
 	for _, asset := range assets {
-		os.Remove(asset.Path)
-		c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+		found, path, err := c.localAssetPath(ctx, asset)
+		if err != nil {
+			c.Debug(ctx, "error getting asset: %s", err)
+			continue
+		}
+		if found {
+			os.Remove(path)
+			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+		}
 	}
 
 	// get s3 params from server

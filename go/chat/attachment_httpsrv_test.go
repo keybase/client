@@ -153,7 +153,18 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 
 	assets := utils.AssetsForMessage(tc.Context(), tv.Messages[0].Valid().MessageBody)
 	require.Len(t, assets, 1)
+
+	found, localPath, err := fetcher.localAssetPath(context.TODO(), assets[0])
+	require.NoError(t, err)
+	require.True(t, found)
+	_, err = os.Stat(localPath)
+	require.False(t, os.IsNotExist(err))
+
 	err = fetcher.DeleteAssets(context.TODO(), conv.Id, assets,
 		func() chat1.RemoteInterface { return mockSigningRemote{} }, mockSigningRemote{})
 	require.NoError(t, err)
+
+	// make sure we have purged the attachment from disk as well
+	_, err = os.Stat(localPath)
+	require.True(t, os.IsNotExist(err))
 }
