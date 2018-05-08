@@ -84,6 +84,7 @@ const styles = styleSheetCreate({
   },
   detailContainer: {},
   note: platformStyles({
+    // TODO: Consider using markdown quoting.
     common: {
       marginTop: globalMargins.xtiny,
     },
