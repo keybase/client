@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text} from '../../common-adapters'
+import {Avatar, Box2, Text} from '../../common-adapters'
 import {globalMargins, styleSheetCreate} from '../../styles'
 
 export type Props = {
@@ -15,7 +15,7 @@ export type Props = {
 export const Transaction = (props: Props) => {
   return (
     <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      Avatar
+      <Avatar username={props.sender} size={48} />
       <Box2 direction="vertical" style={styles.rightContainer}>
         <Text type="Body">{props.timestamp.toString()}</Text>
         <Box2 direction="horizontal" fullWidth={true} style={styles.rightDownContainer}>
