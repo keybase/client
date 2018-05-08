@@ -1,8 +1,10 @@
 // @flow
-module.exports = function(api) {
+type Api = {
+  cache: boolean => void,
+  env: () => string,
+}
+module.exports = function(api: Api) {
   api.cache(true)
-  // in case we need env this is how you get it
-  // const env = api.env()
   var config = {
     plugins: [
       '@babel/plugin-proposal-object-rest-spread',
