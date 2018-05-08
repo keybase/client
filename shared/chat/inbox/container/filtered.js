@@ -44,9 +44,11 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
     },
     {foundExact: 0, foundPrefix: 0, foundSub: 0}
   )
-  return (
-    (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0) - namesMinusYou.join('').length
-  )
+  const rawScore = (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0)
+  // We subtract inputLength to give a bonus to shorter groups, but we never want that to make a matching score go to zero
+  const inputLength = namesMinusYou.join('').length
+
+  return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
 let _metaMap
