@@ -82,20 +82,15 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
-  detailContainer: {
-    border: 'solid 1px black',
-  },
+  detailContainer: {},
   note: platformStyles({
     isElectron: {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 8},
     isMobile: {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8},
   }),
   rightContainer: {
-    border: 'solid 1px black',
     marginLeft: globalMargins.tiny,
   },
-  rightDownContainer: {
-    border: 'solid 1px black',
-  },
+  rightDownContainer: {},
 })
 
 export default Transaction
