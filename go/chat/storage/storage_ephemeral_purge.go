@@ -147,7 +147,7 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 			continue
 		}
 		mvalid := msg.Valid()
-		if mvalid.IsExploding() {
+		if mvalid.IsEphemeral() {
 			if !mvalid.IsEphemeralExpired(s.clock.Now()) {
 				hasExploding = true
 				// Keep track of the minimum ephemeral message that is not yet

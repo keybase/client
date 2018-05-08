@@ -268,6 +268,7 @@ export const localMessageUnboxedErrorType = {
   badversionCritical: 1,
   badversion: 2,
   identify: 3,
+  ephemeral: 4,
 }
 
 export const localNewConversationLocalRpcChannelMap = (configKeys: Array<string>, request: LocalNewConversationLocalRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'chat.1.local.newConversationLocal', request)
@@ -1065,13 +1066,14 @@ export type MessageType =
 
 export type MessageUnboxed = {state: 1, valid: ?MessageUnboxedValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?OutboxRecord} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 
-export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time}>
+export type MessageUnboxedError = $ReadOnly<{errType: MessageUnboxedErrorType, errMsg: String, messageID: MessageID, messageType: MessageType, ctime: Gregor1.Time, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
 
 export type MessageUnboxedErrorType =
   | 0 // MISC_0
   | 1 // BADVERSION_CRITICAL_1
   | 2 // BADVERSION_2
   | 3 // IDENTIFY_3
+  | 4 // EPHEMERAL_4
 
 export type MessageUnboxedPlaceholder = $ReadOnly<{messageID: MessageID, hidden: Boolean}>
 
@@ -1360,7 +1362,7 @@ export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?
 
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double}>
 
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, ephemeralMetadata?: ?MsgEphemeralMetadata}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, senderUsername: String, senderDeviceName: String, senderDeviceType: String, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, etime: Gregor1.Time}>
 
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 

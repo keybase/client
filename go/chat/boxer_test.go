@@ -1565,7 +1565,7 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	}
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	require.NotNil(t, unboxed.BodyHash)
-	require.True(t, unboxed.IsExploding())
+	require.True(t, unboxed.IsEphemeral())
 	require.NotNil(t, unboxed.EphemeralMetadata())
 	require.Equal(t, msg.EphemeralMetadata().Lifetime, unboxed.EphemeralMetadata().Lifetime)
 }
