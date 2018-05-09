@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Keybase Inc. All rights reserved.
+// Copyright 2015-2018 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -38,19 +38,6 @@ const (
 	kbfsLibdokanCurrentSession          = MountFlag(C.kbfsLibdokanCurrentSession)
 	kbfsLibdokanUseFindFilesWithPattern = MountFlag(C.kbfsLibdokanUseFindFilesWithPattern)
 )
-
-// loadDokanDLL can be called to init the system with custom Dokan location,
-// e.g. LoadDokanDLL(`C:\mypath\dokan1.dll`).
-func loadDokanDLL(fullpath string) error {
-	if fullpath == "" {
-		return nil
-	}
-	dw := syscall.Errno(C.kbfsLibdokanLoadLibrary((*C.WCHAR)(stringToUtf16Ptr(fullpath))))
-	if dw != 0 {
-		return dw
-	}
-	return nil
-}
 
 const ntstatusOk = C.NTSTATUS(0)
 

@@ -1,4 +1,4 @@
-// Copyright 2016 Keybase Inc. All rights reserved.
+// Copyright 2016-2018 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -6,60 +6,9 @@
 
 #include "bridge.h"
 
-static const WCHAR dokansystem32[] = L"C:\\WINDOWS\\SYSTEM32\\DOKAN" DOKAN_MAJOR_API_VERSION L".DLL";
-static const WCHAR dokansyswow64[] = L"C:\\WINDOWS\\SYSWOW64\\DOKAN" DOKAN_MAJOR_API_VERSION L".DLL";
-static const WCHAR dokan1dll[] = L"DOKAN" DOKAN_MAJOR_API_VERSION L".DLL";
-
-static BOOL __stdcall (*kbfsLibdokanPtr_RemoveMountPoint)(LPCWSTR MountPoint);
-static HANDLE __stdcall (*kbfsLibdokanPtr_OpenRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo);
-static int __stdcall (*kbfsLibdokanPtr_Main)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations);
-
-DWORD kbfsLibdokanLoadLibrary(LPCWSTR location) {
-  int i;
-  BOOL defaultPath = FALSE;
-  // 0x800 is LOAD_LIBRARY_SEARCH_SYSTEM32 but that is not defined on build machines.
-  DWORD flags = 0x800;
-
-  if(!location) {
-    location = dokan1dll;
-    defaultPath = TRUE;
-  } else {
-    for(i=0; location[i]; i++)
-      if(location[i]== L'/' || location[i]==L'\\') {
-        flags = 0;
-        break;
-      }
-  }
-  HMODULE mod = LoadLibraryExW(location, NULL, flags);
-  if(mod == NULL) {
-    if(defaultPath && GetLastError()==ERROR_INVALID_PARAMETER) {
-      // User has not installed KB2533623 which is a security update
-      // from 2011. Without this Windows security update loading libraries
-      // is unsafe on Windows.
-
-      // Try SysWOW64 on 32 bit builds.
-      if(sizeof(void*)==4)
-        mod = LoadLibrary(dokansyswow64);
-      if(mod == NULL)
-        mod = LoadLibrary(dokansystem32);
-      if(mod == NULL)
-        mod = LoadLibrary(dokan1dll);
-      if(mod == NULL)
-        return GetLastError();
-    } else
-      return GetLastError();
-  }
-  kbfsLibdokanPtr_RemoveMountPoint = (void*)GetProcAddress(mod, "DokanRemoveMountPoint");
-  if(kbfsLibdokanPtr_RemoveMountPoint == NULL)
-    return GetLastError();
-  kbfsLibdokanPtr_OpenRequestorToken = (void*)GetProcAddress(mod, "DokanOpenRequestorToken");
-  if(kbfsLibdokanPtr_OpenRequestorToken == NULL)
-    return GetLastError();
-  kbfsLibdokanPtr_Main = (void*)GetProcAddress(mod, "DokanMain");
-  if(kbfsLibdokanPtr_Main == NULL)
-    return GetLastError();
-  return 0;
-}
+void *kbfsLibdokanPtr_RemoveMountPoint;
+void *kbfsLibdokanPtr_OpenRequestorToken;
+void *kbfsLibdokanPtr_Main;
 
 extern NTSTATUS kbfsLibdokanCreateFile(LPCWSTR FileName,
 					 PDOKAN_IO_SECURITY_CONTEXT psec,
@@ -380,15 +329,14 @@ error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx) {
 }
 
 error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
-	if(!kbfsLibdokanPtr_Main)
-		kbfsLibdokanLoadLibrary(NULL);
-	if(!kbfsLibdokanPtr_Main)
+	int __stdcall (*dokanMain)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations) = kbfsLibdokanPtr_Main;
+	if(!dokanMain)
 		return kbfsLibDokan_DLL_LOAD_ERROR;
 	if((ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern) != 0) {
 	  ctx->dokan_options.Options &= ~kbfsLibdokanUseFindFilesWithPattern;
 	  ctx->dokan_operations.FindFilesWithPattern = kbfsLibdokanC_FindFilesWithPattern;
 	}
-	int status = (*kbfsLibdokanPtr_Main)(&ctx->dokan_options, &ctx->dokan_operations);
+	int status = (*dokanMain)(&ctx->dokan_options, &ctx->dokan_operations);
 	return status;
 }
 
@@ -397,16 +345,18 @@ int kbfsLibdokanFill_find(PFillFindData fptr, PWIN32_FIND_DATAW a1, PDOKAN_FILE_
 }
 
 BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint) {
-	if(!kbfsLibdokanPtr_RemoveMountPoint)
+	BOOL __stdcall (*removeMountPoint)(LPCWSTR MountPoint) = kbfsLibdokanPtr_RemoveMountPoint;
+	if(!removeMountPoint)
 		return 0;
-	return (*kbfsLibdokanPtr_RemoveMountPoint)(MountPoint);
+	return (*removeMountPoint)(MountPoint);
 }
 
 
 HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo) {
-	if(!kbfsLibdokanPtr_OpenRequestorToken)
+	HANDLE __stdcall (*openRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo) = kbfsLibdokanPtr_OpenRequestorToken;
+	if(!openRequestorToken)
 		return INVALID_HANDLE_VALUE;
-	return (*kbfsLibdokanPtr_OpenRequestorToken)(DokanFileInfo);
+	return (*openRequestorToken)(DokanFileInfo);
 }
 
 #endif /* windows check */
