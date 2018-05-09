@@ -26,6 +26,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TeamStatus",
+      "symbols": [
+        "NONE_0",
+        "LIVE_1",
+        "DELETED_2",
+        "ABANDONED_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "PerTeamKeyGeneration",
       "fields": [],

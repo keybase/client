@@ -23,6 +23,13 @@ protocol teams {
     STELLAR_RELAY_6
   }
 
+  enum TeamStatus {
+    NONE_0,
+    LIVE_1,
+    DELETED_2,
+    ABANDONED_3
+  }
+
   // PerTeamKeyGeneration describes the generation of the secret.
   // The sequence starts at 1.
   @typedef("int")
