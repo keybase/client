@@ -14,6 +14,7 @@ import {
   Linking,
   NativeModules,
   NativeEventEmitter,
+  PermissionsAndroid,
 } from 'react-native'
 import {eventChannel} from 'redux-saga'
 import {isDevApplePushToken} from '../local-debug'
@@ -91,34 +92,41 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return CameraRoll.saveToCameraRoll(goodPath)
 }
 
-function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
+async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
   const logPrefix = '[saveAttachmentToCameraRoll] '
   if (isIOS) {
     logger.info(logPrefix + 'Saving to camera roll')
-    return CameraRoll.saveToCameraRoll(fileURL)
+    await CameraRoll.saveToCameraRoll(fileURL)
+    return
   }
-  return (
-    RNFetchBlob.config({
-      appendExt: mime.extension(mimeType),
-      fileCache: true,
-    })
-      .fetch('GET', fileURL)
-      // get just the path
-      .then(res => {
-        logger.info(logPrefix + 'Fetching success, getting local file path')
-        return res.path()
-      })
-      // hold on to the path to delete later and save to camera roll
-      .then(path => {
-        logger.info(logPrefix + 'Got local file path, attempting to save')
-        return [Promise.resolve(path), CameraRoll.saveToCameraRoll(`file://${path}`)]
-      })
-      // delete temp file
-      .then(([res, newURI]) => {
-        logger.info(logPrefix + 'Success, deleting tmp file')
-        return RNFetchBlob.fs.unlink(res)
-      })
+  const permissionStatus = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    {
+      title: 'Keybase Storage Permission',
+      message: 'Keybase needs access to your storage so we can download an attachment.',
+    }
   )
+  if (permissionStatus !== 'granted') {
+    logger.error(logPrefix + 'Unable to acquire storage permissions')
+    throw new Error('Unable to acquire storage permissions')
+  }
+  const download = await RNFetchBlob.config({
+    appendExt: mime.extension(mimeType),
+    fileCache: true,
+  }).fetch('GET', fileURL)
+  logger.info(logPrefix + 'Fetching success, getting local file path')
+  const path = download.path()
+  try {
+    logger.info(logPrefix + 'Attempting to save')
+    await CameraRoll.saveToCameraRoll(`file://${path}`)
+    logger.info(logPrefix + 'Success')
+  } catch (err) {
+    logger.error(logPrefix + 'Failed:', err)
+    throw err
+  } finally {
+    logger.info(logPrefix + 'Deleting tmp file')
+    await RNFetchBlob.fs.unlink(path)
+  }
 }
 
 // Downloads a file, shows the shareactionsheet, and deletes the file afterwards
