@@ -199,10 +199,10 @@ const BOOL isDebug = NO;
 }
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
-  NSLog(@"Remote notification handle started...");
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-    NSString* type = notification[@"type"];
-    if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
+  NSString* type = notification[@"type"];
+  if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSLog(@"Remote notification handle started...");
       NSString* convID = notification[@"c"];
       int membersType = [notification[@"t"] intValue];
       int messageID = [notification[@"d"] intValue];
@@ -213,13 +213,16 @@ const BOOL isDebug = NO;
       PushNotifier* pusher = [[PushNotifier alloc] init];
       NSError* err = nil;
       KeybaseHandleBackgroundNotification(convID, membersType, messageID, pushID, badgeCount, unixTime, body, pusher, &err);
-      if (err == nil) {
+      if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
-    }
+      completionHandler(UIBackgroundFetchResultNewData);
+      NSLog(@"Remote notification handle finished...");
+    });
+  } else {
+    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
-    NSLog(@"Remote notification handle finished...");
-  });
+  }
 }
   
 // Required for the localNotification event.
