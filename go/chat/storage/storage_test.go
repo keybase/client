@@ -798,12 +798,14 @@ func TestStorageLocalMax(t *testing.T) {
 	msgs := makeMsgRange(10)
 	conv := makeConversation(15)
 
-	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil, nil)
+	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, 0,
+		nil, nil)
 	require.Error(t, err)
 	require.IsType(t, MissError{}, err, "wrong error type")
 
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
-	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil, nil)
+	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, 0,
+		nil, nil)
 	require.NoError(t, err)
 	require.Len(t, tv.Messages, 10)
 }
