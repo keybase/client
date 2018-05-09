@@ -21,6 +21,7 @@
         // why this happened, sometimes there's different side effects
         "reason": [
           "'clearSelected'", // deselect
+          "'justCreated'", // just made one
           "'desktopNotification'", // clicked notification
           "'searching'", // searching and found one
           "'sendingToPending'", // select the pending we sent into

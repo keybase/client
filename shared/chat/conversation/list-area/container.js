@@ -94,7 +94,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     listScrollDownCounter: ownProps.listScrollDownCounter,
     onFocusInput: ownProps.onFocusInput,
     onShowTracker: dispatchProps.onShowTracker,
-    onToggleInfoPanel: ownProps.onToggleInfoPanel,
     type: stateProps.type,
   }
 }

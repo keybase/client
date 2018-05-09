@@ -11,7 +11,7 @@ import sendAnimation from './conversation/messages/wrapper/chat-send.stories'
 import setExplodingMessage from './conversation/messages/set-explode-popup/index.stories'
 import userMentionHud from './conversation/input-area/user-mention-hud/index.stories'
 import messages from './conversation/messages/index.stories'
-import startConversation from './conversation/start-conversation/index.stories'
+import startConversation from './conversation/list-area/start-conversation/index.stories'
 
 const load = () => {
   ;[

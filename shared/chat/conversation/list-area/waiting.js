@@ -4,7 +4,7 @@ import {Box2, ProgressIndicator} from '../../../common-adapters'
 import {styleSheetCreate} from '../../../styles'
 
 const Waiting = () => (
-  <Box2 type="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+  <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
     <ProgressIndicator type="Small" style={styles.spinner} />
   </Box2>
 )

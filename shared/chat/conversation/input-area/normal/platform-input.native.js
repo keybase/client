@@ -60,15 +60,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
   }
 
   render = () => {
-    const multilineOpts = {rowsMax: 3, rowsMin: 1}
-
-    let hintText = 'Write a message'
-    if (this.props.isEditing) {
-      hintText = 'Edit your message'
-    } else if (this.props.pendingWaiting) {
-      hintText = 'Creating conversation...'
-    }
-
     return (
       <Box>
         {this.props.mentionPopupOpen && (
@@ -107,9 +98,9 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             autoCorrect={true}
             autoCapitalize="sentences"
             autoFocus={false}
-            editable={!this.props.pendingWaiting}
+            editable={true}
             hideUnderline={true}
-            hintText={hintText}
+            hintText={this.props.isEditing ? 'Edit your message' : 'Write a message'}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
@@ -120,7 +111,8 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             small={true}
             style={styles.input}
             uncontrolled={true}
-            {...multilineOpts}
+            rowsMax={3}
+            rowsMin={1}
           />
 
           {this.props.typing.size > 0 && <Typing />}
@@ -128,7 +120,6 @@ class PlatformInput extends Component<PlatformInputProps, State> {
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            pendingWaiting={this.props.pendingWaiting}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
           />
@@ -160,7 +151,7 @@ const Typing = () => (
   </Box>
 )
 
-const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, insertMentionMarker}) =>
+const Action = ({hasText, onSubmit, isEditing, openFilePicker, insertMentionMarker}) =>
   hasText ? (
     <Box style={styles.actionText}>
       <Text type="BodyBigLink" onClick={onSubmit}>
@@ -169,18 +160,8 @@ const Action = ({hasText, onSubmit, isEditing, pendingWaiting, openFilePicker, i
     </Box>
   ) : (
     <Box2 direction="horizontal" gap="tiny" gapEnd={true}>
-      <Icon
-        onClick={pendingWaiting ? undefined : insertMentionMarker}
-        type="iconfont-mention"
-        style={styles.actionButton}
-        fontSize={21}
-      />
-      <Icon
-        onClick={pendingWaiting ? undefined : openFilePicker}
-        type="iconfont-camera"
-        style={styles.actionButton}
-        fontSize={21}
-      />
+      <Icon onClick={insertMentionMarker} type="iconfont-mention" style={styles.actionButton} fontSize={21} />
+      <Icon onClick={openFilePicker} type="iconfont-camera" style={styles.actionButton} fontSize={21} />
     </Box2>
   )
 

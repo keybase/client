@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Text, Button} from '../../../../common-adapters'
-import {globalStyles, styleSheetCreate} from '../../../../styles'
+import {styleSheetCreate} from '../../../../styles'
 
 type Props = {
   participants: string,

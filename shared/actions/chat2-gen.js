@@ -349,7 +349,7 @@ export const createResetLetThemIn = (
 export const createSelectConversation = (
   payload: $ReadOnly<{|
     conversationIDKey: Types.ConversationIDKey,
-    reason: 'clearSelected' | 'desktopNotification' | 'searching' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'pendingModeChange' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
+    reason: 'clearSelected' | 'justCreated' | 'desktopNotification' | 'searching' | 'sendingToPending' | 'createdMessagePrivately' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'messageLink' | 'pendingModeChange' | 'preview' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
   |}>
 ) => ({error: false, payload, type: selectConversation})
 export const createSendToPendingConversation = (

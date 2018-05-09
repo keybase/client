@@ -1925,7 +1925,7 @@ const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes
     return
   }
   return Saga.sequentially([
-    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
+    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'})),
     Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   ])
 }

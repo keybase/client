@@ -10,6 +10,7 @@ type Props = {
   shouldShow: boolean,
   isSelected: boolean,
   onClick: () => void,
+  onCancel: () => void,
   users: I.OrderedSet<string>,
 }
 
