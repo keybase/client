@@ -804,8 +804,8 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
+	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, iboxMaxMsgID chat1.MessageID,
+	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res chat1.ThreadView, err Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functions.
 	locks.Storage.Lock()
@@ -815,6 +815,11 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, err
+	}
+	if iboxMaxMsgID > maxMsgID {
+		s.Debug(ctx, "FetchUpToLocalMaxMsgID: overriding locally stored max msgid with ibox: %d",
+			iboxMaxMsgID)
+		maxMsgID = iboxMaxMsgID
 	}
 	s.Debug(ctx, "FetchUpToLocalMaxMsgID: using max msgID: %d", maxMsgID)
 
