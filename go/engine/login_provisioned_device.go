@@ -175,7 +175,7 @@ func (e *LoginProvisionedDevice) reattemptUnlock(m libkb.MetaContext) (success b
 
 // tryPassphraseLogin tries a username/passphrase login to the server, and makes a global
 // side effect: to store the user's full LKSec secret into the secret store. After which point,
-// usual attempts to run LoadPrivisionalActiveDevice or BootstrapActiveDevice will succeed
+// usual attempts to run LoadProvisionalActiveDevice or BootstrapActiveDevice will succeed
 // without a prompt.
 func (e *LoginProvisionedDevice) tryPassphraseLogin(m libkb.MetaContext) (err error) {
 	defer m.CTrace("LoginProvisionedDevice#tryPassphraseLogin", func() error { return err })()
@@ -183,10 +183,14 @@ func (e *LoginProvisionedDevice) tryPassphraseLogin(m libkb.MetaContext) (err er
 	if err != nil {
 		return err
 	}
-	err = libkb.StoreSecretAfterLogin(m, e.username, e.uid, e.deviceID)
-	if err != nil {
-		return err
+
+	// A failure here is just a warning, since we still can use the app for this
+	// session. But it will undoubtedly cause pain.
+	w := libkb.StoreSecretAfterLogin(m, e.username, e.uid, e.deviceID)
+	if w != nil {
+		m.CWarningf("Secret store failed: %s", w.Error())
 	}
+
 	return nil
 }
 

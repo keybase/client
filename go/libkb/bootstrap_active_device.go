@@ -143,7 +143,7 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 }
 
 func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (ret *ActiveDevice, err error) {
-	defer m.CTrace("LoadActiveDevice", func() error { return err })()
+	defer m.CTrace("LoadProvisionalActiveDevice", func() error { return err })()
 	sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online)
 	if err != nil {
 		return nil, err

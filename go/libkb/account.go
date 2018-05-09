@@ -120,7 +120,7 @@ func (a *Account) LoadLoginSession(emailOrUsername string) error {
 	}
 
 	ls := NewLoginSession(a.G(), emailOrUsername)
-	if err := ls.Load(NewMetaContextTODO(a.G())); err != nil {
+	if err := ls.Load(NewMetaContextBackground(a.G())); err != nil {
 		return err
 	}
 	a.setLoginSession(ls)

@@ -10,7 +10,7 @@ func pplPromptCheckPreconditions(m MetaContext, usernameOrEmail string) (err err
 		return InternalError{"PassphraseLoginPrompt: need a non-nil LoginContext"}
 	}
 	if m.UIs().SecretUI == nil {
-		return NoUIError{"seret"}
+		return NoUIError{"secret"}
 	}
 	if m.UIs().LoginUI == nil && len(usernameOrEmail) == 0 {
 		return NoUIError{"login"}
@@ -190,7 +190,6 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 		return err
 	}
 
-	// Ignore any errors storing the secret.
 	err = secretStore.StoreSecret(secret)
 	if err != nil {
 		return err
