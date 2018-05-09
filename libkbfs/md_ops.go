@@ -100,7 +100,6 @@ func (md *MDOpsStandard) decryptMerkleLeaf(
 	}
 
 	currRmd := rmd
-	//var fetched []*RootMetadataSigned
 	for {
 		// If currRmd isn't readable, keep fetching MDs until it can
 		// be read.  Then try currRmd.data.TLFPrivateKey to decrypt
@@ -504,7 +503,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	irmd := MakeImmutableRootMetadata(rmd, key, mdID, localTimestamp, true)
 
 	// Then, verify the verifying keys.  We do this after decrypting
-	// the MD and making the ImmutableRootMetadata, since we way need
+	// the MD and making the ImmutableRootMetadata, since we may need
 	// access to the private metadata when checking the merkle roots,
 	// and we also need access to the `mdID`.
 	if err := md.verifyWriterKey(
