@@ -32,10 +32,6 @@ func GetFileUserSid(name string) (*windows.SID, error) {
 
 	err := GetNamedSecurityInfo(name, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION, &userSID, nil, nil, nil, &secDesc)
 	if err != nil {
-		if userSID != nil {
-			userString, err := userSID.String()
-			fmt.Printf("currentProcessUserSid error, SID: %s, %v\n", userString, err)
-		}
 		return nil, err
 	}
 	return userSID, nil

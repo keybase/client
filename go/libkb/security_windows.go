@@ -3,7 +3,6 @@
 package libkb
 
 import (
-	"fmt"
 	"golang.org/x/sys/windows"
 
 	"unsafe"
@@ -63,7 +62,6 @@ func GetNamedSecurityInfo(objectName string, objectType int32, secInfo uint32, o
 		uintptr(unsafe.Pointer(secDesc)),
 	)
 	if ret != 0 {
-		fmt.Printf("GetNamedSecurityInfo returns %v, %v\n", ret, err)
 		return err
 	}
 	return nil
