@@ -65,8 +65,9 @@ public class ShareFiles extends ReactContextBaseJavaModule {
             Uri fileUri = FileProvider.getUriForFile(reactContext, "io.keybase.ossifrage.fileprovider", file);
             intent.putExtra(Intent.EXTRA_STREAM, fileUri);
         }
-        Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
         if (intent.resolveActivity(reactContext.getPackageManager()) != null) {
+            Intent chooser = Intent.createChooser(intent, reactContext.getResources().getText(R.string.send_to));
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             reactContext.startActivity(chooser);
             promise.resolve(true);
         } else {
