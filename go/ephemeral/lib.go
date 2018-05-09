@@ -12,6 +12,14 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// While  under development, this whitelist will allow ephemeral code to work
+// (useful for enabling on mobile builds)
+var adminWhitelist = map[keybase1.UID]bool{
+	"d1b3a5fa977ce53da2c2142a4511bc00": true, // joshblum
+	"41b1f75fb55046d370608425a3208100": true, // oconnor663
+	"95e88f2087e480cae28f08d81554bc00": true, // mikem
+}
+
 const cacheEntryLifetimeSecs = 60 * 5 // 5 minutes
 const lruSize = 200
 
@@ -63,15 +71,16 @@ func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 func (e *EKLib) ShouldRun(ctx context.Context) bool {
 	g := e.G()
 
-	// TODO -- when we launch, remove the feature flagging on Prod
-	willRun := g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
+	_, ok := adminWhitelist[e.G().Env.GetUID()]
+	willRun := ok || g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == libkb.DevelRunMode || g.Env.RunningInCI()
 	if !willRun {
 		e.G().Log.CDebugf(ctx, "EKLib skipping run")
 		return false
 	}
+
 	oneshot, err := g.IsOneshot(ctx)
 	if err != nil {
-		e.G().Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
+		g.Log.CDebugf(ctx, "EKLib#ShouldRun failed: %s", err)
 		return false
 	}
 	return !oneshot
