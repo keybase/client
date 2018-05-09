@@ -67,6 +67,20 @@ func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
 	}
 }
 
+type RelayClaimPost struct {
+	KeybaseID         KeybaseTransactionID `codec:"keybaseID" json:"keybaseID"`
+	Dir               RelayDirection       `codec:"dir" json:"dir"`
+	SignedTransaction string               `codec:"signedTransaction" json:"signedTransaction"`
+}
+
+func (o RelayClaimPost) DeepCopy() RelayClaimPost {
+	return RelayClaimPost{
+		KeybaseID:         o.KeybaseID.DeepCopy(),
+		Dir:               o.Dir.DeepCopy(),
+		SignedTransaction: o.SignedTransaction,
+	}
+}
+
 type PaymentSummary struct {
 	Stellar     *PaymentSummaryStellar `codec:"stellar,omitempty" json:"stellar,omitempty"`
 	Keybase     *PaymentSummaryKeybase `codec:"keybase,omitempty" json:"keybase,omitempty"`
@@ -192,6 +206,11 @@ type SubmitRelayPaymentArg struct {
 	Payment PaymentRelayPost     `codec:"payment" json:"payment"`
 }
 
+type SubmitRelayClaimArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+	Claim  RelayClaimPost       `codec:"claim" json:"claim"`
+}
+
 type IsMasterKeyActiveArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
@@ -207,6 +226,7 @@ type RemoteInterface interface {
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
 	SubmitRelayPayment(context.Context, SubmitRelayPaymentArg) (PaymentResult, error)
+	SubmitRelayClaim(context.Context, SubmitRelayClaimArg) (RelayClaimResult, error)
 	IsMasterKeyActive(context.Context, IsMasterKeyActiveArg) (bool, error)
 	Ping(context.Context) (string, error)
 }
@@ -311,6 +331,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"submitRelayClaim": {
+				MakeArg: func() interface{} {
+					ret := make([]SubmitRelayClaimArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SubmitRelayClaimArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SubmitRelayClaimArg)(nil), args)
+						return
+					}
+					ret, err = i.SubmitRelayClaim(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"isMasterKeyActive": {
 				MakeArg: func() interface{} {
 					ret := make([]IsMasterKeyActiveArg, 1)
@@ -373,6 +409,11 @@ func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg)
 
 func (c RemoteClient) SubmitRelayPayment(ctx context.Context, __arg SubmitRelayPaymentArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayPayment", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SubmitRelayClaim(ctx context.Context, __arg SubmitRelayClaimArg) (res RelayClaimResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []interface{}{__arg}, &res)
 	return
 }
 

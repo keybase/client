@@ -1794,6 +1794,13 @@ export const teamsTeamSetSettingsRpcChannelMap = (configKeys: Array<string>, req
 
 export const teamsTeamSetSettingsRpcPromise = (request: TeamsTeamSetSettingsRpcParam): Promise<void> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamSetSettings', request, (error: RPCError, result: void) => (error ? reject(error) : resolve())))
 
+export const teamsTeamStatus = {
+  none: 0,
+  live: 1,
+  deleted: 2,
+  abandoned: 3,
+}
+
 export const teamsTeamTreeRpcChannelMap = (configKeys: Array<string>, request: TeamsTeamTreeRpcParam): EngineChannel => engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
 
 export const teamsTeamTreeRpcPromise = (request: TeamsTeamTreeRpcParam): Promise<TeamsTeamTreeResult> => new Promise((resolve, reject) => engine()._rpcOutgoing('keybase.1.teams.teamTree', request, (error: RPCError, result: TeamsTeamTreeResult) => (error ? reject(error) : resolve(result))))
@@ -3855,6 +3862,12 @@ export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
 
 export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
+
+export type TeamStatus =
+  | 0 // NONE_0
+  | 1 // LIVE_1
+  | 2 // DELETED_2
+  | 3 // ABANDONED_3
 
 export type TeamTreeEntry = $ReadOnly<{name: TeamName, admin: Boolean}>
 

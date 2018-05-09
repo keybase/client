@@ -179,6 +179,16 @@ func (o PaymentResult) DeepCopy() PaymentResult {
 	}
 }
 
+type RelayClaimResult struct {
+	ClaimStellarID TransactionID `codec:"claimStellarID" json:"claimStellarID"`
+}
+
+func (o RelayClaimResult) DeepCopy() RelayClaimResult {
+	return RelayClaimResult{
+		ClaimStellarID: o.ClaimStellarID.DeepCopy(),
+	}
+}
+
 type EncryptedNote struct {
 	V         int               `codec:"v" json:"v"`
 	E         []byte            `codec:"e" json:"e"`

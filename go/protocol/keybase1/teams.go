@@ -82,6 +82,38 @@ func (e TeamApplication) String() string {
 	return ""
 }
 
+type TeamStatus int
+
+const (
+	TeamStatus_NONE      TeamStatus = 0
+	TeamStatus_LIVE      TeamStatus = 1
+	TeamStatus_DELETED   TeamStatus = 2
+	TeamStatus_ABANDONED TeamStatus = 3
+)
+
+func (o TeamStatus) DeepCopy() TeamStatus { return o }
+
+var TeamStatusMap = map[string]TeamStatus{
+	"NONE":      0,
+	"LIVE":      1,
+	"DELETED":   2,
+	"ABANDONED": 3,
+}
+
+var TeamStatusRevMap = map[TeamStatus]string{
+	0: "NONE",
+	1: "LIVE",
+	2: "DELETED",
+	3: "ABANDONED",
+}
+
+func (e TeamStatus) String() string {
+	if v, ok := TeamStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PerTeamKeyGeneration int
 
 func (o PerTeamKeyGeneration) DeepCopy() PerTeamKeyGeneration {

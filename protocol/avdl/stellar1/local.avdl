@@ -6,6 +6,10 @@ protocol local {
 
   PaymentResult sendLocal(string recipient, string amount, Asset asset, string note);
 
+  // Claim a relay payment
+  // Merge into the `into` account, or default to the user's primary account.
+  RelayClaimResult claimCLILocal(string kbTxID, union { null, AccountID } into);
+
   record PaymentCLILocal {
     TransactionID stellarTxID;
     TimeMs time;

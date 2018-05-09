@@ -148,6 +148,22 @@
       ],
       "response": "PaymentResult"
     },
+    "claimCLILocal": {
+      "request": [
+        {
+          "name": "kbTxID",
+          "type": "string"
+        },
+        {
+          "name": "into",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        }
+      ],
+      "response": "RelayClaimResult"
+    },
     "recentPaymentsCLILocal": {
       "request": [
         {

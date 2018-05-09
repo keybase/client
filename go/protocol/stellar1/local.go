@@ -113,6 +113,11 @@ type SendLocalArg struct {
 	Note      string `codec:"note" json:"note"`
 }
 
+type ClaimCLILocalArg struct {
+	KbTxID string     `codec:"kbTxID" json:"kbTxID"`
+	Into   *AccountID `codec:"into,omitempty" json:"into,omitempty"`
+}
+
 type RecentPaymentsCLILocalArg struct {
 	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
 }
@@ -155,6 +160,7 @@ type ExchangeRateLocalArg struct {
 type LocalInterface interface {
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendLocal(context.Context, SendLocalArg) (PaymentResult, error)
+	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
 	RecentPaymentsCLILocal(context.Context, *AccountID) ([]PaymentCLILocal, error)
 	PaymentDetailCLILocal(context.Context, string) (PaymentCLILocal, error)
 	WalletInitLocal(context.Context) error
@@ -199,6 +205,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SendLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"claimCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]ClaimCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ClaimCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ClaimCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ClaimCLILocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -364,6 +386,11 @@ func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (re
 
 func (c LocalClient) SendLocal(ctx context.Context, __arg SendLocalArg) (res PaymentResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.sendLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) (res RelayClaimResult, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []interface{}{__arg}, &res)
 	return
 }
 

@@ -47,6 +47,11 @@ protocol common {
     TransactionID stellarID;
   }
 
+  record RelayClaimResult {
+    // tx ID of the submitted claim tx (not the fund tx)
+    TransactionID claimStellarID;
+  }
+
   // A note encrypted for one or two keybase users.
   // Decrypts to a NoteContents.
   record EncryptedNote {
