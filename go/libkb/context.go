@@ -344,25 +344,6 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	return nil
 }
 
-// SetDeviceIDWithRegistration sets the DeviceID for a user's config section during
-// device registration. It atomically clears out the global ActiveDevice, since the ActiveDevice
-// should be nil if the deviceID for the current user is unset (as it was jus before the call).
-func (m MetaContext) SetDeviceIDWithinRegistration(d keybase1.DeviceID) error {
-	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
-	cw := g.Env.GetConfigWriter()
-	if cw == nil {
-		return NoConfigWriterError{}
-	}
-	err := cw.SetDeviceID(d)
-	if err != nil {
-		return err
-	}
-	g.ActiveDevice.Clear(nil)
-	return nil
-}
-
 // SetActiveDevice sets the active device to have the UID, deviceID, sigKey, encKey and deviceName
 // as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
 // with attempts to switch the global logged in user. It does not, however, change the `current_user`
