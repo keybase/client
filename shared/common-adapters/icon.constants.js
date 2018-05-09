@@ -1955,6 +1955,11 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 24,
     charCode: 0xe95b,
+  },
+  'iconfont-nav-wallets': {
+    isFont: true,
+    gridSize: 24,
+    charCode: 0xe95c,
   } /* eslint-enable */,
 }
 
