@@ -652,6 +652,7 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
+	GetMaybeCreateNewTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair

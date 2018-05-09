@@ -388,6 +388,20 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	return teamEK, nil
 }
 
+// Try to get the TeamEK for the given `generation`. If this fails and the
+// `generation` is also the current maxGeneration, create a new teamEK.
+func (e *EKLib) GetMaybeCreateNewTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	defer e.G().CTrace(ctx, "GetMaybeCreateNewTeamEK", func() error { return err })()
+
+	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
+	if err != nil {
+		if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
+			e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
+		}
+	}
+	return teamEK, err
+}
+
 func (e *EKLib) NewEphemeralSeed() (seed keybase1.Bytes32, err error) {
 	return makeNewRandomSeed()
 }
