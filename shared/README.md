@@ -54,6 +54,9 @@ You can set environment variables for debugging:
 # Build the go keybase.framework
 yarn run rn-gobuild-ios
 
+# if this fails with something like 'xcrun: error: unable to lookup item 'Path' in SDK 'iphoneos' you might have a partial xcode install. try
+xcode-select --switch /Applications/Xcode.app/Contents/Developer
+
 # Open workspace (not xcodeproj)
 open react-native/ios/Keybase.xcworkspace
 ```
@@ -142,6 +145,8 @@ To run on the Android simulator:
 ```sh
 # Build the go keybaselib
 yarn run rn-gobuild-android
+# if this fails with something like 'xcrun: error: unable to lookup item 'Path' in SDK 'iphoneos' you might have a partial xcode install. try
+xcode-select --switch /Applications/Xcode.app/Contents/Developer
 ```
 
 ```sh
