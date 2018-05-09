@@ -195,6 +195,11 @@ func (md *MDOpsStandard) verifyKey(
 	case nil:
 		return true, nil
 	case RevokedDeviceVerificationError:
+		// TODO(KBFS-2963): Support team-keyed TLFs.
+		if irmd.TypeForKeying() == tlf.TeamKeying {
+			md.log.CDebugf(ctx, "Skipping team folder verification for now")
+			return false, nil
+		}
 		if ctx.Value(ctxMDOpsSkipKeyVerification) != nil {
 			md.log.CDebugf(ctx,
 				"Skipping revoked key verification due to recursion")
