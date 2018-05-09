@@ -11,6 +11,7 @@ type MetaContext struct {
 	ctx          context.Context
 	g            *GlobalContext
 	loginContext LoginContext
+	activeDevice *ActiveDevice
 	uis          UIs
 }
 
@@ -65,6 +66,9 @@ func (m MetaContext) CInfof(f string, args ...interface{}) {
 }
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
+	if m.activeDevice != nil {
+		return m.activeDevice
+	}
 	return m.G().ActiveDevice
 }
 
@@ -156,6 +160,16 @@ func (m MetaContext) WithUIs(u UIs) MetaContext {
 	return m
 }
 
+func (m MetaContext) WithActiveDevice(a *ActiveDevice) MetaContext {
+	m.activeDevice = a
+	return m
+}
+
+func (m MetaContext) WithGlobalActiveDevice() MetaContext {
+	m.activeDevice = nil
+	return m
+}
+
 func (m MetaContext) SecretKeyPromptArg(ska SecretKeyArg, reason string) SecretKeyPromptArg {
 	return SecretKeyPromptArg{
 		SecretUI: m.uis.SecretUI,
@@ -243,6 +257,11 @@ func NewMetaContextified(m MetaContext) MetaContextified {
 	return MetaContextified{m: m}
 }
 
+// SwitchUserNewConfig switches the global active "user" as far as the global config file is concerned.
+// It switches the user to a new user, and therefore you should specify the username, salt, and device ID
+// for this user on this device. It will take out the global `switchUserMu` and also clear out the
+// global ActiveDevice at the same time. We follow the same pattern here and elsewhere: atomically
+// mutate the `current_user` of the config file as we set the global ActiveDevice.
 func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID) error {
 	g := m.G()
 	g.switchUserMu.Lock()
@@ -261,6 +280,8 @@ func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	return nil
 }
 
+// SwitchUser switches the globally active configured user to the given username. In the same atomic
+// critical section, it clears out the global ActiveDevice.
 func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 	g := m.G()
 	if n.IsNil() {
@@ -287,6 +308,9 @@ func (m MetaContext) SwitchUser(n NormalizedUsername) error {
 	return nil
 }
 
+// SetDeviceIDWithRegistration sets the DeviceID for a user's config section during
+// device registration. It atomically clears out the global ActiveDevice, since the ActiveDevice
+// should be nil if the deviceID for the current user is unset (as it was jus before the call).
 func (m MetaContext) SetDeviceIDWithinRegistration(d keybase1.DeviceID) error {
 	g := m.G()
 	g.switchUserMu.Lock()
@@ -303,6 +327,10 @@ func (m MetaContext) SetDeviceIDWithinRegistration(d keybase1.DeviceID) error {
 	return nil
 }
 
+// SetActiveDevice sets the active device to have the UID, deviceID, sigKey, encKey and deviceName
+// as specified, and does so while grabbing the global switchUser lock, since it should be sycnhronized
+// with attempts to switch the global logged in user. It does not, however, change the `current_user`
+// in the config file, or edit the global config file in any way.
 func (m MetaContext) SetActiveDevice(uid keybase1.UID, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
 	g := m.G()
 	g.switchUserMu.Lock()
