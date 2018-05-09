@@ -56,7 +56,16 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 }
 
 func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	pipe, err := npipe.DialTimeout(s.dialFiles[0], time.Duration(1)*time.Second)
+	// Test ownership
+	owner, err := Pipeowner(s.dialFiles[0])
+	if err != nil {
+		return nil, err
+	}
+	if ! owner {
+		return nil, errors.New("failed to verify pipe ownership")
+	}
+	
+	pipe, err := npipe.DialTimeout(s.dialFiles[0] , time.Duration(1)*time.Second)
 	if err != nil {
 		// Be sure to return a nil interface, and not a nil npipe.PipeConn
 		// See https://keybase.atlassian.net/browse/CORE-2675 for when this
