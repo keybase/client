@@ -9,6 +9,7 @@ type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   style: Object,
+  onAddToTeam: () => void,
   onChat: () => void,
   onFollow: () => void,
   onUnfollow: () => void,

@@ -402,7 +402,7 @@ const _createNewTeamFromConversation = function*(
 }
 
 const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGenerator<any, any> {
-  const teamname = action.payload.teamname
+  const {teamname} = action.payload
   yield Saga.put(createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
@@ -514,6 +514,13 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
   } finally {
     yield Saga.put(createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
   }
+}
+
+function _getDetailsForAllTeams(action: TeamsGen.GetDetailsForAllTeamsPayload, state: TypedState) {
+  console.warn('in getDetailsForAllTeams')
+  const actions = state.teams.teamnames.map(teamname => Saga.put(TeamsGen.createGetDetails({teamname}))).toArray()
+  console.warn('actions', actions)
+  return Saga.sequentially(actions)
 }
 
 const _getTeamOperations = function*(
@@ -1108,6 +1115,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
+  yield Saga.safeTakeEveryPure(TeamsGen.getDetailsForAllTeams, _getDetailsForAllTeams)
   yield Saga.safeTakeEvery(TeamsGen.getTeamPublicity, _getTeamPublicity)
   yield Saga.safeTakeEvery(TeamsGen.getTeamOperations, _getTeamOperations)
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)

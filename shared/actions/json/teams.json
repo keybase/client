@@ -31,6 +31,7 @@
     "getDetails": {
       "teamname": "string"
     },
+    "getDetailsForAllTeams": {},
     "getTeamOperations": {
       "teamname": "string"
     },

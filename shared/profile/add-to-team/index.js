@@ -15,56 +15,63 @@ import {
   ScrollView,
   Text,
 } from '../../common-adapters'
-import {teamRoleTypes, teamWaitingKey} from '../../constants/teams'
+import {teamRoleTypes} from '../../constants/teams'
 import {capitalize} from 'lodash-es'
 import {type TeamRoleType} from '../../constants/types/teams'
 import type {RowProps, Props} from './index'
 
 const TeamRow = ({
   canShowcase,
+  checked,
   name,
   isOpen,
   membercount,
+  memberIsInTeam,
+  onCheck,
   onPromote,
   showcased,
+  them,
   waiting,
   isExplicitMember,
-}: RowProps) => (
-  <Box style={globalStyles.flexBoxColumn}>
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        minHeight: isMobile ? 64 : 48,
-        minWidth: isMobile ? undefined : 500,
-        marginLeft: globalMargins.medium,
-        marginRight: globalMargins.tiny,
-        paddingTop: globalMargins.tiny,
-        paddingBottom: globalMargins.tiny,
-        alignItems: 'center',
-      }}
-    >
-      <Checkbox checked={true} />
-      <Box style={{display: 'flex', position: 'relative'}}>
-        <Avatar
-          isTeam={true}
-          size={isMobile ? 48 : 32}
-          style={{marginRight: globalMargins.tiny}}
-          teamname={name}
-        />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySemibold">{name}</Text>
-          {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
+}: RowProps) => {
+  const memberStatus = memberIsInTeam ? `${them} is already a member` : ''
+  return (
+    <Box style={globalStyles.flexBoxColumn}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          minHeight: isMobile ? 64 : 48,
+          minWidth: isMobile ? undefined : 500,
+          marginLeft: globalMargins.medium,
+          marginRight: globalMargins.tiny,
+          paddingTop: globalMargins.tiny,
+          paddingBottom: globalMargins.tiny,
+          alignItems: 'center',
+        }}
+      >
+        <Checkbox onCheck={onCheck} disabled={memberIsInTeam} checked={checked} />
+        <Box style={{display: 'flex', position: 'relative'}}>
+          <Avatar
+            isTeam={true}
+            size={isMobile ? 48 : 32}
+            style={{marginRight: globalMargins.tiny}}
+            teamname={name}
+          />
         </Box>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          {waiting ? <ProgressIndicator style={{width: 16}} white={false} /> : <Text type="BodySmall">foo is already a member</Text>}
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          <Box style={globalStyles.flexBoxRow}>
+            <Text style={{color: memberIsInTeam ? globalColors.black_40 : globalColors.black}} type="BodySemibold">{name}</Text>
+            {isOpen && <Meta title="open" style={styleMeta} backgroundColor={globalColors.green} />}
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            {waiting ? <ProgressIndicator style={{width: 16}} white={false} /> : <Text type="BodySmall">{memberStatus}</Text>}
+          </Box>
         </Box>
       </Box>
+      {!isMobile && <Divider style={{marginLeft: 48}} />}
     </Box>
-    {!isMobile && <Divider style={{marginLeft: 48}} />}
-  </Box>
-)
+  )
+}
 
 const _makeDropdownItem = (item: string) => (
   <Box
@@ -99,13 +106,17 @@ const AddToTeam = (props: Props) => (
                 (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
                 ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
               }
+              checked={props.selectedTeams[name]}
               isExplicitMember={props.teamNameToRole[name] !== 'none'}
               key={name}
               name={name}
               isOpen={props.teamNameToIsOpen[name]}
               membercount={props.teammembercounts[name]}
+              memberIsInTeam={props.teamNameToMembers[name] && props.teamNameToMembers[name].get(props.them)}
+              onCheck={() => props.onToggle(name)}
               onPromote={promoted => props.onPromote(name, promoted)}
               showcased={props.teamNameToIsShowcasing[name]}
+              them={props.them}
               waiting={!props.teamNameToMembers[name]}
             />
           ))}

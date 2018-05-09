@@ -26,6 +26,7 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
+export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
 export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -170,6 +171,7 @@ export const createEditTeamDescription = (
   |}>
 ) => ({error: false, payload, type: editTeamDescription})
 export const createGetDetails = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getDetails})
+export const createGetDetailsForAllTeams = () => ({error: false, payload: undefined, type: getDetailsForAllTeams})
 export const createGetTeamOperations = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamOperations})
 export const createGetTeamPublicity = (payload: $ReadOnly<{|teamname: string|}>) => ({error: false, payload, type: getTeamPublicity})
 export const createGetTeams = () => ({error: false, payload: undefined, type: getTeams})
@@ -352,6 +354,7 @@ export type DeleteChannelInfoPayload = More.ReturnType<typeof createDeleteChanne
 export type EditMembershipPayload = More.ReturnType<typeof createEditMembership>
 export type EditTeamDescriptionPayload = More.ReturnType<typeof createEditTeamDescription>
 export type GetChannelsPayload = More.ReturnType<typeof createGetChannels>
+export type GetDetailsForAllTeamsPayload = More.ReturnType<typeof createGetDetailsForAllTeams>
 export type GetDetailsPayload = More.ReturnType<typeof createGetDetails>
 export type GetTeamOperationsPayload = More.ReturnType<typeof createGetTeamOperations>
 export type GetTeamPublicityPayload = More.ReturnType<typeof createGetTeamPublicity>
@@ -412,6 +415,7 @@ export type Actions =
   | More.ReturnType<typeof createEditTeamDescription>
   | More.ReturnType<typeof createGetChannels>
   | More.ReturnType<typeof createGetDetails>
+  | More.ReturnType<typeof createGetDetailsForAllTeams>
   | More.ReturnType<typeof createGetTeamOperations>
   | More.ReturnType<typeof createGetTeamPublicity>
   | More.ReturnType<typeof createGetTeamRetentionPolicy>

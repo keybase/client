@@ -67,7 +67,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
 const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
   onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
-  onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
+  onAddToTeam: (username: string) => {console.warn('in onAddToTeam'); dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])) },
   onBack: () => dispatch(navigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onChat: username => dispatch(Chat2Gen.createStartConversation({participants: [username]})),

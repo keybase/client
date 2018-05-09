@@ -48,7 +48,7 @@ const profileRoute = makeRouteDefNode({
         },
       },
       component: AddToTeam,
-      tags: makeLeafTags({layerOnTop: true}),
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     editProfile: {
       component: EditProfile,

@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import Render from './index'
-import {branch, compose, connect, lifecycle, withStateHandlers, type TypedState} from '../../util/container'
+import {branch, compose, connect, lifecycle, withHandlers, withStateHandlers, type TypedState} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import {HeaderHoc} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -25,9 +25,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
+  loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
+  loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
+  _onAddToTeams: (teams: Array<string>, user: string) => dispatch(TeamsGen.createAddUserToTeams({teams, user})),
   onBack: () => dispatch(navigateUp()),
-  onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
   onOpenRolePicker: (role: string, onComplete: (string, boolean) => void) => {
     dispatch(
       navigateAppend([
@@ -50,6 +51,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
+    onAddToTeams: (role: any, teams: Array<string>) => dispatchProps._onAddToTeams(role, teams, stateProps._them),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
@@ -66,16 +68,25 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   compose(
     withStateHandlers(
-      {role: 'writer', sendNotification: true},
+      {selectedTeams: {}, role: 'writer', sendNotification: true},
       {
         setSendNotification: () => sendNotification => ({sendNotification}),
         onRoleChange: () => role => ({role}),
+        setSelectedTeams: () => selectedTeams => ({selectedTeams}),
       }
-    ),
+    )
   ),
+  withHandlers({
+    onToggle: props => (teamname: string) => props.setSelectedTeams({
+      ...props.selectedTeams,
+      [teamname]: !props.selectedTeams[teamname],
+    }),
+    onSave: props => () => props.onAddToTeams(props.role, props.selectedTeams),
+  }),
   lifecycle({
     componentDidMount() {
-      this.props.loadTeams()
+      this.props.loadTeamList()
+      this.props.loadAllTeams()
     },
   }),
   branch(() => isMobile, HeaderHoc)
