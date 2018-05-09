@@ -959,17 +959,25 @@ const messageReplyPrivately = (action: Chat2Gen.MessageReplyPrivatelyPayload, st
     return
   }
 
+  return createConversation(Chat2Gen.createCreateConversation({participants: [message.author]}), state)
+}
+
+const messageReplyPrivatelySuccess = (
+  result: RPCChatTypes.NewConversationLocalRes,
+  action: Chat2Gen.MessageReplyPrivatelyPayload
+) => {
+  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+  if (!conversationIDKey) {
+    throw new Error("Couldn't make a new conversation in reply privately")
+  }
+
   return Saga.sequentially([
+    Saga.put(Chat2Gen.createSelectConversation({conversationIDKey})),
     Saga.put(
       Chat2Gen.createMessageSetQuoting({
-        ordinal,
-        sourceConversationIDKey,
-        targetConversationIDKey: Constants.pendingConversationIDKey,
-      })
-    ),
-    Saga.put(
-      Chat2Gen.createPreviewConversation({
-        participants: [message.author],
+        ordinal: action.payload.ordinal,
+        sourceConversationIDKey: action.payload.sourceConversationIDKey,
+        targetConversationIDKey: conversationIDKey,
       })
     ),
   ])
@@ -1026,83 +1034,6 @@ const messageEdit = (action: Chat2Gen.MessageEditPayload, state: TypedState) => 
   }
 }
 
-// First we make the conversation, then on success we dispatch the piggybacking action
-// const sendToPendingConversation = (action: Chat2Gen.SendToPendingConversationPayload, state: TypedState) => {
-// const tlfName = action.payload.users.join(',')
-// const membersType = RPCChatTypes.commonConversationMembersType.impteamnative
-
-// return Saga.sequentially([
-// // Disable sending more into a pending conversation
-// Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'waiting'})),
-// // Disable searching for more people once you've tried to send
-// Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'fixedSetOfUsers'})),
-// // Try to make the conversation
-// Saga.call(RPCChatTypes.localNewConversationLocalRpcPromise, {
-// identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-// membersType,
-// tlfName,
-// tlfVisibility: RPCTypes.commonTLFVisibility.private,
-// topicType: RPCChatTypes.commonTopicType.chat,
-// }),
-// ])
-// }
-
-// Now actually send
-// const sendToPendingConversationSuccess = (
-// results: [any, any, RPCChatTypes.NewConversationLocalRes],
-// action: Chat2Gen.SendToPendingConversationPayload
-// ) => {
-// const conversationIDKey = Types.conversationIDToKey(results[2].conv.info.id)
-// if (!conversationIDKey) {
-// logger.warn("Couldn't make a new conversation?")
-// return
-// }
-
-// // Update conversationIDKey to real one
-// const {sendingAction} = action.payload
-// const updatedSendingAction = {
-// ...sendingAction,
-// payload: {
-// ...sendingAction.payload,
-// conversationIDKey,
-// },
-// }
-
-// // emulate getting an inbox item for the new conversation. This lets us skip having to unbox the inbox item
-// const dummyMeta = Constants.makeConversationMeta({
-// conversationIDKey,
-// participants: I.OrderedSet(action.payload.users),
-// tlfname: action.payload.users.join(','),
-// })
-
-// return Saga.sequentially([
-// // Saga.put(Chat2Gen.createExitSearch({canceled: true})),
-// // Emulate us getting an inbox item so we don't have to unbox it before sending
-// Saga.put(Chat2Gen.createMetasReceived({metas: [dummyMeta]})),
-// // Select it
-// Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'})),
-// // Clear the search
-// Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
-// // Clear the pendingStatus
-// // Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'none'})),
-// // Post it
-// Saga.put(updatedSendingAction),
-// ])
-// }
-
-// const sendToPendingConversationError = (e: Error, action: Chat2Gen.SendToPendingConversationPayload) =>
-// Saga.sequentially([
-// // Enable controls for the user to retry / cancel
-// Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'})),
-// // Set the submitState of the pending messages
-// Saga.put(
-// Chat2Gen.createSetPendingMessageSubmitState({
-// reason: e.message,
-// submitState: 'failed',
-// })
-// ),
-// ])
-
 const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPayload) =>
   Saga.sequentially([
     // Saga.put(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
@@ -1116,64 +1047,6 @@ const cancelPendingConversation = (action: Chat2Gen.CancelPendingConversationPay
     // Navigate to the inbox
     Saga.put(Chat2Gen.createNavigateToInbox()),
   ])
-
-// const retryPendingConversation = (action: Chat2Gen.RetryPendingConversationPayload, state: TypedState) => {
-// const pendingMessages = state.chat2.messageMap.get(Constants.pendingConversationIDKey)
-// if (!(pendingMessages && !pendingMessages.isEmpty())) {
-// logger.warn('retryPendingConversation: found no pending messages; aborting')
-// return
-// }
-// const pendingUsers = Constants.getMeta(state, Constants.pendingConversationIDKey).participants
-// if (pendingUsers.isEmpty()) {
-// logger.warn('retryPendingConversation: found no pending conv users; aborting')
-// return
-// }
-
-// if (pendingMessages.size > 1) {
-// logger.warn('retryPendingConversation: found more than one pending message; only resending the first')
-// }
-// const message: ?Types.Message = pendingMessages.first()
-// if (!message) {
-// // impossible, helps flow
-// return
-// }
-
-// const you = state.config.username
-// if (!you) {
-// logger.warn('retryPendingConversation: found no currently logged in username; aborting')
-// return
-// }
-// let retryAction: ?(Chat2Gen.MessageSendPayload | Chat2Gen.AttachmentUploadPayload)
-// if (message.type === 'text') {
-// retryAction = Chat2Gen.createMessageSend({
-// conversationIDKey: message.conversationIDKey,
-// text: message.text,
-// })
-// } else if (message.type === 'attachment') {
-// retryAction = Chat2Gen.createAttachmentUpload({
-// conversationIDKey: message.conversationIDKey,
-// path: message.previewURL,
-// title: message.title,
-// })
-// }
-// if (retryAction) {
-// return Saga.sequentially([
-// Saga.put(
-// Chat2Gen.createSendToPendingConversation({
-// users: pendingUsers.concat([you]).toArray(),
-// sendingAction: retryAction,
-// })
-// ),
-// Saga.put(
-// Chat2Gen.createSetPendingMessageSubmitState({
-// reason: 'Retrying createConversation...',
-// submitState: 'pending',
-// })
-// ),
-// ])
-// }
-// logger.warn(`retryPendingConversation: got message of invalid type ${message.type}`)
-// }
 
 const messageRetry = (action: Chat2Gen.MessageRetryPayload, state: TypedState) => {
   const {outboxID} = action.payload
@@ -2221,7 +2094,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.blockConversation, blockConversation)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
-  yield Saga.safeTakeEveryPure(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.messageReplyPrivately,
+    messageReplyPrivately,
+    messageReplyPrivatelySuccess
+  )
   yield Saga.safeTakeEveryPure(
     Chat2Gen.createConversation,
     createConversation,
