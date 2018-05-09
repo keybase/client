@@ -1,9 +1,10 @@
 // @flow
-type Api = {
+/*:: type Api = {
   cache: boolean => void,
   env: () => string,
 }
-module.exports = function(api: Api) {
+*/
+module.exports = function(api /*: Api */) {
   api.cache(true)
   var config = {
     plugins: [
